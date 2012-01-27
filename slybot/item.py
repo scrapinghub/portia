@@ -55,14 +55,14 @@ def create_item_version(item_cls, item):
     """Item version based on hashlib.sha1 algorithm"""
     if not item_cls.version_fields:
         return
-    hash = hashlib.sha1()
+    _hash = hashlib.sha1()
     for attrname in item_cls.version_fields:
-        hash.update(repr(item.get(attrname)))
-    return hash.digest()
+        _hash.update(repr(item.get(attrname)))
+    return _hash.digest()
 
-def apply_extractors(descriptor, extractors, all_extractors):
+def apply_extractors(descriptor, template_extractors, all_extractors):
     field_type_manager = FieldTypeManager()
-    for eid in extractors or ():
+    for eid in template_extractors or ():
         extractor_doc = all_extractors[eid]
         field_name = extractor_doc["field_name"]
         if not field_name in descriptor.attribute_map:
