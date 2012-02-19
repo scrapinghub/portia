@@ -2,7 +2,7 @@
 Numeric data extraction
 """
 
-from scrapely import extractors
+from scrapely.extractors import contains_any_numbers, extract_number, htmlregion
 
 class NumberTypeProcessor(object):
     """NumberTypeProcessor
@@ -10,8 +10,8 @@ class NumberTypeProcessor(object):
     Extracts a number from text
 
     >>> n = NumberTypeProcessor()
-    >>> n.extract(u"there are no numbers here")
-    >>> n.extract(u"foo 34")
+    >>> n.extract(htmlregion(u"there are no numbers here"))
+    >>> n.extract(htmlregion(u"foo 34"))
     u'foo 34'
     >>> n.adapt(u"foo 34", None)
     u'34'
@@ -23,12 +23,12 @@ class NumberTypeProcessor(object):
     name = 'number'
     description = 'extracts a single number in the text passed'
     
-    def extract(self, text):
+    def extract(self, htmlregion):
         """Only matches and extracts strings with at least one number"""
-        return extractors.contains_any_numbers(text)
+        return contains_any_numbers(htmlregion.text_content)
         
     def adapt(self, text, htmlpage):
-        return extractors.extract_number(text)
+        return extract_number(text)
 
     def render(self, field_name, field_value, item):
         return field_value
