@@ -9,4 +9,4 @@ class ExtractorTest(TestCase):
         extracted = extractor(u"The price of this product is <div>45</div> </div class='small'>.50</div> pounds")
         self.assertEqual(extracted, u"45.50")
         processor = TextFieldTypeProcessor()
-        self.assertEqual(processor.adapt(extracted), u"45.50")
+        self.assertEqual(processor.adapt(extracted, None), u"45.50")

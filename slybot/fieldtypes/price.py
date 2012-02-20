@@ -8,8 +8,8 @@ class PriceTypeProcessor(object):
     name = "price"
     description = "extracts a price decimal number in the text passed"
 
-    def extract(self, text):
-        return extractors.contains_any_numbers(text)
+    def extract(self, htmlregion):
+        return extractors.contains_any_numbers(htmlregion.text_content)
 
     def adapt(self, text, htmlpage):
         return extractors.extract_price(text)

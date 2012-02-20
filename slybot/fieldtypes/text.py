@@ -1,7 +1,7 @@
 """
 Text types
 """
-from scrapely.extractors import text as extract_text, safehtml, htmlregion
+from scrapely.extractors import safehtml, htmlregion
 
 def escape_html(text):
     """escape text for use in an html page"""
@@ -44,17 +44,17 @@ class TextFieldTypeProcessor(_BaseTextProcessor):
     Extraction and rendering does nothing, but adapt converts html into text
     >>> p = TextFieldTypeProcessor()
     >>> html = htmlregion(u'<p>test</p><!-- comment --><script> // script</script>!')
-    >>> p.extract(html)
-    u'<p>test</p><!-- comment --><script> // script</script>!'
-    >>> p.adapt(html)
+    >>> extracted = p.extract(html)
+    >>> extracted
+    u'test !'
+    >>> p.adapt(extracted, None)
     u'test !'
     """
     name = 'text'
     description = 'extracts text from web pages, cleaning all markup'
     
-    def adapt(self, text, htmlpage=None):
-        """Remove html markup"""
-        return extract_text(text)
+    def extract(self, htmlregion):
+        return htmlregion.text_content
 
 class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
     """Extracts strings, with only a safe subset of HTML remaining
