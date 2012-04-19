@@ -120,9 +120,7 @@ class IblSpider(BaseSpider):
     def _requests_to_follow(self, htmlpage):
         requests = []
         if self._links_ibl_extractor is not None:
-            extracted_regions = []
-            extracted_regions_dict = self._links_ibl_extractor.extract(htmlpage)[0][0]
-            [extracted_regions.extend(v) for k, v in extracted_regions_dict.items() if k == "_links"]
+            extracted_regions = self._links_ibl_extractor.extract(htmlpage)[0][0].get('_links', [])
             seen = set()
             for region in extracted_regions:
                 htmlregion = HtmlPage(htmlpage.url, htmlpage.headers, region, encoding=htmlpage.encoding)
