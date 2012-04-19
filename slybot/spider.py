@@ -62,28 +62,7 @@ class IblSpider(BaseSpider):
         self.link_extractor = LinkExtractor()
         self.allowed_domains = self._get_allowed_domains(self._ipages)
         
-        # make a filter for links 
-        respect_nofollow = spec.get('respect_nofollow', True)
-        patterns = spec.get('follow_patterns')
-        if patterns:
-            pattern = patterns[0] if len(patterns) == 1 else "(?:%s)" % '|'.join(patterns)
-            follow_pattern = re.compile(pattern)
-            if respect_nofollow:
-                url_filterf = lambda x: follow_pattern.search(x.url) and not x.nofollow
-            else:
-                url_filterf = lambda x: follow_pattern.search(x.url)
-        elif respect_nofollow:
-            url_filterf = lambda x: not x.nofollow
-        else:
-            url_filterf = bool
-        # apply exclude patterns
-        exclude_patterns = spec.get('exclude_patterns')
-        if exclude_patterns:
-            pattern = exclude_patterns[0] if len(exclude_patterns) == 1 else "(?:%s)" % '|'.join(exclude_patterns)
-            exclude_pattern = re.compile(pattern)
-            self.url_filterf = lambda x: not exclude_pattern.search(x.url) and url_filterf(x)
-        else:
-            self.url_filterf = url_filterf
+        self.build_url_filter(spec)
 
         default_item_cls = get_iblitem_class(self._default_schema)
         default_item_descriptor = create_slybot_item_descriptor(self._default_schema)
@@ -264,3 +243,30 @@ class IblSpider(BaseSpider):
             return False
         self._itemversion_cache[version] = item["url"]
         return True
+
+    def build_url_filter(self, spec):
+        """make a filter for links"""
+        respect_nofollow = spec.get('respect_nofollow', True)
+        patterns = spec.get('follow_patterns')
+        if spec.get("links_to_follow") == "none":
+            url_filterf = lambda x: False
+        elif patterns:
+            pattern = patterns[0] if len(patterns) == 1 else "(?:%s)" % '|'.join(patterns)
+            follow_pattern = re.compile(pattern)
+            if respect_nofollow:
+                url_filterf = lambda x: follow_pattern.search(x.url) and not x.nofollow
+            else:
+                url_filterf = lambda x: follow_pattern.search(x.url)
+        elif respect_nofollow:
+            url_filterf = lambda x: not x.nofollow
+        else:
+            url_filterf = bool
+        # apply exclude patterns
+        exclude_patterns = spec.get('exclude_patterns')
+        if exclude_patterns:
+            pattern = exclude_patterns[0] if len(exclude_patterns) == 1 else "(?:%s)" % '|'.join(exclude_patterns)
+            exclude_pattern = re.compile(pattern)
+            self.url_filterf = lambda x: not exclude_pattern.search(x.url) and url_filterf(x)
+        else:
+            self.url_filterf = url_filterf
+
