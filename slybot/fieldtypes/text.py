@@ -41,7 +41,6 @@ class RawFieldTypeProcessor(_BaseTextProcessor):
 class TextFieldTypeProcessor(_BaseTextProcessor):
     """Extracts strings, removing all HTML markup
 
-    Extraction and rendering does nothing, but adapt converts html into text
     >>> p = TextFieldTypeProcessor()
     >>> html = htmlregion(u'<p>test</p><!-- comment --><script> // script</script>!')
     >>> extracted = p.extract(html)
@@ -63,17 +62,24 @@ class TextFieldTypeProcessor(_BaseTextProcessor):
 class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
     """Extracts strings, with only a safe subset of HTML remaining
 
-    Extraction and rendering does nothing, but adapt transforms the HTML
+    Extraction checks for presence of text content, and adapt transforms the HTML
     >>> p = SafeHtmlFieldTypeProcessor()
     >>> html = htmlregion(u'<p>test</p> <blink>foo')
     >>> p.extract(html)
     u'<p>test</p> <blink>foo'
     >>> p.adapt(html)
     u'<p>test</p> foo'
+    
+    html without text must not be extracted
+    >>> html = htmlregion(u'<br/>')
+
     """
     name = 'safe html'
     description = 'removes all but a small subset of html tags'
-    
+    def extract(self, htmlregion):
+        if extract_text(htmlregion.text_content):
+            return htmlregion
+
     def adapt(self, text, htmlpage=None):
         """Remove html markup"""
         return safehtml(text)
