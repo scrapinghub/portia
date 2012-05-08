@@ -185,20 +185,19 @@ class IblSpider(BaseSpider):
 
     def handle_html(self, response):
         htmlpage = self._htmlpage_from_response(response)
-        items, _, link_regions = self.extract_items(htmlpage)
+        items, link_regions = self.extract_items(htmlpage)
         requests_to_follow = self._process_link_regions(response, htmlpage, link_regions)
         return requests_to_follow + items
         
     def extract_items(self, htmlpage):
         """This method is also called from UI webservice to extract items"""
         items = []
-        template_ids = []
         link_regions = []
         for item_cls_name, info in self.itemcls_info.iteritems():
             item_cls = info['class']
             item_descriptor = info['descriptor']
             extractor = info['extractor']
-            extracted, template_id, _link_regions = self._do_extract_items_from(
+            extracted, _link_regions = self._do_extract_items_from(
                     htmlpage,
                     item_cls,
                     item_descriptor,
@@ -206,10 +205,8 @@ class IblSpider(BaseSpider):
                     item_cls_name,
             )
             items.extend(extracted)
-            if template_id:
-                template_ids.append(template_id)
             link_regions.extend(_link_regions)
-        return items, template_ids, link_regions
+        return items, link_regions
 
     def _do_extract_items_from(self, htmlpage, item_cls, item_descriptor, extractor, item_cls_name):
         extracted_data, template = extractor.extract(htmlpage)
@@ -222,10 +219,11 @@ class IblSpider(BaseSpider):
             item = item_cls(processed_attributes)
             item['url'] = htmlpage.url
             item['_type'] = item_cls_name
+            item['_template'] = template.id
             if self._check_not_dupe(item_cls, item):
                 items.append(item)
 
-        return items, template.id if template else None, link_regions
+        return items, link_regions
 
     def _check_not_dupe(self, item_cls, item):
         """Checks whether a scrapy item is a dupe, based on version (not vary)
