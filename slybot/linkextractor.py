@@ -10,6 +10,7 @@ from scrapely.htmlpage import HtmlTag, HtmlTagType
 from scrapy.utils.url import urljoin_rfc
 
 _META_REFRESH_CONTENT_RE = re.compile("(?P<int>(\d*\.)?\d+)\s*;\s*url=(?P<url>.*)")
+_ONCLICK_LINK_RE = re.compile("(?P<sep>('|\"))(?P<url>.+?)(?P=sep)")
 
 _ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
@@ -152,6 +153,24 @@ def iterlinks(htmlpage):
     >>> p = HtmlPage(body=u"<head><base href=' foo/ '/></head><a href='bar '/>baz")
     >>> list(iterlinks(p))
     [Link(url='foo/bar', text=u'baz', fragment='', nofollow=False)]
+
+    Test standard onclick links
+    >>> p = HtmlPage(url="http://www.example.com", body=u"<html><td onclick=window.open('page.html?productid=23','win2') >")
+    >>> list(iterlinks(p))
+    [Link(url='http://www.example.com/page.html?productid=23', text=None, fragment='', nofollow=False)]
+
+    >>> p = HtmlPage("http://www.example.com", body=u"<html><a href='#' onclick=window.open('page.html?productid=24','win2') >")
+    >>> list(iterlinks(p))
+    [Link(url='http://www.example.com/page.html?productid=24', text=None, fragment='', nofollow=False)]
+
+    >>> p = HtmlPage(body=u"<html><div onclick=window.location.href='http://www.jungleberry.co.uk/Fair-Trade-Earrings/Aguas-Earrings.htm'>")
+    >>> list(iterlinks(p))
+    [Link(url='http://www.jungleberry.co.uk/Fair-Trade-Earrings/Aguas-Earrings.htm', text=None, fragment='', nofollow=False)]
+
+    Dont generate link when target is an anchor
+    >>> p = HtmlPage("http://www.example.com", body=u"<html><a href='#section1' >")
+    >>> list(iterlinks(p))
+    []
     """
     base_href = remove_entities(htmlpage.url, encoding=htmlpage.encoding)
     def mklink(url, anchortext=None, nofollow=False):
@@ -169,14 +188,14 @@ def iterlinks(htmlpage):
     for nexttag in tag_iter:
         tagname = nexttag.tag
         attributes = nexttag.attributes
-        if tagname == 'a':
+        if tagname == 'a' and not attributes.get('href', '').startswith('#'):
             if astart:
                 yield mklink(ahref, htmlpage.body[astart:nexttag.start], nofollow)
                 astart = ahref = None
                 nofollow = False
             if nexttag.tag_type != HtmlTagType.CLOSE_TAG:
                 href = attributes.get('href')
-                if href and not href.startswith('#'):
+                if href:
                     ahref = href
                     astart = nexttag.end
                     nofollow = attributes.get('rel') == u'nofollow'
@@ -213,8 +232,12 @@ def iterlinks(htmlpage):
             if target:
                 yield mklink(target)
         elif 'onclick' in attributes:
-            #FIXME: extract URLs in onclick and add doctests
-           pass
+            match = _ONCLICK_LINK_RE.search(attributes["onclick"] or "")
+            if not match:
+                continue
+            target = match.group("url")
+            nofollow = attributes.get('rel') == u'nofollow'
+            yield mklink(target, nofollow=nofollow)
 
     if astart:
         yield mklink(ahref, htmlpage.body[astart:])
