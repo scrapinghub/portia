@@ -167,6 +167,11 @@ def iterlinks(htmlpage):
     >>> list(iterlinks(p))
     [Link(url='http://www.jungleberry.co.uk/Fair-Trade-Earrings/Aguas-Earrings.htm', text=None, fragment='', nofollow=False)]
 
+    Onclick with no href
+    >>> p = HtmlPage("http://www.example.com", body=u"<html><a onclick=window.open('page.html?productid=24','win2') >")
+    >>> list(iterlinks(p))
+    [Link(url='http://www.example.com/page.html?productid=24', text=None, fragment='', nofollow=False)]
+
     Dont generate link when target is an anchor
     >>> p = HtmlPage("http://www.example.com", body=u"<html><a href='#section1' >")
     >>> list(iterlinks(p))
@@ -188,17 +193,17 @@ def iterlinks(htmlpage):
     for nexttag in tag_iter:
         tagname = nexttag.tag
         attributes = nexttag.attributes
-        if tagname == 'a' and not attributes.get('href', '').startswith('#'):
+        if tagname == 'a' and (nexttag.tag_type == HtmlTagType.CLOSE_TAG or attributes.get('href') \
+                    and not attributes.get('href', '').startswith('#')):
             if astart:
                 yield mklink(ahref, htmlpage.body[astart:nexttag.start], nofollow)
                 astart = ahref = None
                 nofollow = False
-            if nexttag.tag_type != HtmlTagType.CLOSE_TAG:
-                href = attributes.get('href')
-                if href:
-                    ahref = href
-                    astart = nexttag.end
-                    nofollow = attributes.get('rel') == u'nofollow'
+            href = attributes.get('href')
+            if href:
+                ahref = href
+                astart = nexttag.end
+                nofollow = attributes.get('rel') == u'nofollow'
         elif tagname == 'head':
             # scan ahead until end of head section
             for nexttag in tag_iter:
