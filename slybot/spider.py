@@ -46,7 +46,7 @@ class IblSpider(BaseSpider):
 
         # generate ibl extractor for links pages
         _links_pages = [dict_to_page(t, 'annotated_body')
-                for t in spec['templates'] if t.get('page_type') == '_links']
+                for t in spec['templates'] if t.get('page_type') == 'links']
         _links_item_descriptor = create_slybot_item_descriptor({'id': "_links", 'properties': ()})
         self._links_ibl_extractor = InstanceBasedLearningExtractor([(t, _links_item_descriptor) for t in _links_pages]) \
                 if _links_pages else None
@@ -120,15 +120,17 @@ class IblSpider(BaseSpider):
     def _requests_to_follow(self, htmlpage):
         requests = []
         if self._links_ibl_extractor is not None:
-            extracted_regions = self._links_ibl_extractor.extract(htmlpage)[0][0].get('_links', [])
-            seen = set()
-            for region in extracted_regions:
-                htmlregion = HtmlPage(htmlpage.url, htmlpage.headers, region, encoding=htmlpage.encoding)
-                for request in self._request_to_follow_from_region(htmlregion):
-                    if request.url in seen:
-                        continue
-                    seen.add(request.url)
-                    requests.append(request)
+            extracted = self._links_ibl_extractor.extract(htmlpage)[0]
+            if extracted:
+                extracted_regions = extracted[0].get('_links', [])
+                seen = set()
+                for region in extracted_regions:
+                    htmlregion = HtmlPage(htmlpage.url, htmlpage.headers, region, encoding=htmlpage.encoding)
+                    for request in self._request_to_follow_from_region(htmlregion):
+                        if request.url in seen:
+                            continue
+                        seen.add(request.url)
+                        requests.append(request)
         else:
             requests = self._request_to_follow_from_region(htmlpage)
 
@@ -151,10 +153,6 @@ class IblSpider(BaseSpider):
                 requests.append(request)
         return requests
 
-    def _htmlpage_from_response(self, response, body=None):
-        body = body or response.body_as_unicode()
-        return HtmlPage(response.url, response.headers, body, encoding=response.encoding)
-
     def start_requests(self):
         if self._start_urls:
             return [Request(r, callback=self.parse, dont_filter=True) \
@@ -172,21 +170,23 @@ class IblSpider(BaseSpider):
             self.log("Ignoring page with content-type=%r: %s" % (content_type, \
                 response.url), level=log.DEBUG)
 
-    def _process_link_regions(self, response, htmlpage, link_regions):
+    def _process_link_regions(self, htmlpage, link_regions):
         """Process link regions if any, and generate requests"""
         requests_to_follow = []
         if link_regions:
             for link_region in link_regions:
-                htmlregion = self._htmlpage_from_response(response, link_region)
+                htmlregion = HtmlPage(htmlpage.url, htmlpage.headers, \
+                        link_region, encoding=htmlpage.encoding)
                 requests_to_follow.extend(self._requests_to_follow(htmlregion))
         else:
             requests_to_follow = self._requests_to_follow(htmlpage)
         return requests_to_follow
 
     def handle_html(self, response):
-        htmlpage = self._htmlpage_from_response(response)
+        htmlpage = HtmlPage(response.url, response.headers, \
+                    response.body_as_unicode(), encoding=response.encoding)
         items, link_regions = self.extract_items(htmlpage)
-        requests_to_follow = self._process_link_regions(response, htmlpage, link_regions)
+        requests_to_follow = self._process_link_regions(htmlpage, link_regions)
         return requests_to_follow + items
         
     def extract_items(self, htmlpage):
