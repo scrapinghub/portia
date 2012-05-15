@@ -26,12 +26,13 @@ class SlybotSpiderManager(object):
         return IblSpider(name, spec, items, extractors, **args)
 
     def list(self):
-        return os.listdir(self.datadir)
+        return [i.split(".")[0] for i in os.listdir(os.path.join(self.datadir, "spiders"))]
 
     def _load_items(self):
         items = {}
         itemsdir = os.path.join(self.datadir, 'items')
-        for name in os.listdir(itemsdir):
+        for fname in os.listdir(itemsdir):
+            name = fname.split(".")[0]
             with open(os.path.join(itemsdir, '%s.json' % name)) as f:
                 items[name] = json.load(f)
         return items
