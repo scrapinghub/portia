@@ -2,12 +2,12 @@
 Link extraction for auto scraping
 """
 import re, os, posixpath
+from urlparse import urljoin
 from urlparse import urlparse
 from scrapy.utils.markup import remove_entities
 from scrapy.link import Link
 from scrapy.linkextractor import IGNORED_EXTENSIONS
 from scrapely.htmlpage import HtmlTag, HtmlTagType
-from scrapy.utils.url import urljoin_rfc
 
 _META_REFRESH_CONTENT_RE = re.compile("(?P<int>(\d*\.)?\d+)\s*;\s*url=(?P<url>.*)")
 _ONCLICK_LINK_RE = re.compile("(?P<sep>('|\"))(?P<url>.+?)(?P=sep)")
@@ -180,7 +180,7 @@ def iterlinks(htmlpage):
     base_href = remove_entities(htmlpage.url, encoding=htmlpage.encoding)
     def mklink(url, anchortext=None, nofollow=False):
         url = url.strip()
-        fullurl = urljoin_rfc(base_href, 
+        fullurl = urljoin(base_href,
             remove_entities(url, encoding=htmlpage.encoding), htmlpage.encoding)
         return Link(fullurl, text=anchortext, nofollow=nofollow)
 
@@ -215,7 +215,7 @@ def iterlinks(htmlpage):
                 if tagname == 'base':
                     href = nexttag.attributes.get('href')
                     if href:
-                        joined_base = urljoin_rfc(htmlpage.url, href.strip(), 
+                        joined_base = urljoin(htmlpage.url, href.strip(),
                             htmlpage.encoding)
                         base_href = remove_entities(joined_base, 
                             encoding=htmlpage.encoding)
