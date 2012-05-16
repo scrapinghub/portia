@@ -180,9 +180,8 @@ def iterlinks(htmlpage):
     base_href = remove_entities(htmlpage.url, encoding=htmlpage.encoding)
     def mklink(url, anchortext=None, nofollow=False):
         url = url.strip()
-        fullurl = urljoin(base_href,
-            remove_entities(url, encoding=htmlpage.encoding), htmlpage.encoding)
-        return Link(fullurl, text=anchortext, nofollow=nofollow)
+        fullurl = urljoin(base_href, remove_entities(url, encoding=htmlpage.encoding))
+        return Link(fullurl.encode(htmlpage.encoding), text=anchortext, nofollow=nofollow)
 
     # iter to quickly scan only tags
     tag_iter = (t for t in htmlpage.parsed_body if isinstance(t, HtmlTag))
