@@ -57,7 +57,7 @@ class IblSpider(BaseSpider):
             for t in spec['templates'] if t.get('page_type', 'item') == 'form'
         ]
         
-        self._start_urls = spec.get('start_urls')
+        self.start_urls = self.start_urls or spec.get('start_urls')
 
         self.link_extractor = LinkExtractor()
         self.allowed_domains = self._get_allowed_domains(self._ipages)
@@ -91,7 +91,7 @@ class IblSpider(BaseSpider):
 
     def _get_allowed_domains(self, templates):
         urls = [x.url for x in templates]
-        urls += self._start_urls
+        urls += self.start_urls
         return [x[1] for x in iter_unique_scheme_netloc(urls)]
 
     def _get_form_requests(self, templates):
@@ -154,9 +154,9 @@ class IblSpider(BaseSpider):
         return requests
 
     def start_requests(self):
-        if self._start_urls:
+        if self.start_urls:
             return [Request(r, callback=self.parse, dont_filter=True) \
-                for r in self._start_urls]
+                for r in self.start_urls]
         if self._fpages:
             return self._get_form_requests(self._fpages)
         return self._get_item_requests(self._ipages)
