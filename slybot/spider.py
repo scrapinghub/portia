@@ -58,6 +58,8 @@ class IblSpider(BaseSpider):
         ]
         
         self.start_urls = self.start_urls or spec.get('start_urls')
+        if isinstance(self.start_urls, basestring):
+            self.start_urls = self.start_urls.splitlines()
 
         self.link_extractor = LinkExtractor()
         self.allowed_domains = self._get_allowed_domains(self._ipages)
