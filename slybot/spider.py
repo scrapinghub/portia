@@ -9,7 +9,7 @@ from scrapely.htmlpage import HtmlPage, dict_to_page
 from scrapely.extraction import InstanceBasedLearningExtractor
 
 from slybot.item import get_iblitem_class, create_slybot_item_descriptor, \
-    create_item_version, apply_extractors
+    apply_extractors
 from slybot.utils import iter_unique_scheme_netloc
 from slybot.linkextractor import LinkExtractor
 
@@ -88,8 +88,6 @@ class IblSpider(BaseSpider):
                 'descriptor': item_descriptor,
                 'extractor': extractor,
             }
-
-        self._itemversion_cache = {}
 
     def _get_allowed_domains(self, templates):
         urls = [x.url for x in templates]
@@ -196,12 +194,10 @@ class IblSpider(BaseSpider):
         items = []
         link_regions = []
         for item_cls_name, info in self.itemcls_info.iteritems():
-            item_cls = info['class']
             item_descriptor = info['descriptor']
             extractor = info['extractor']
             extracted, _link_regions = self._do_extract_items_from(
                     htmlpage,
-                    item_cls,
                     item_descriptor,
                     extractor,
                     item_cls_name,
@@ -210,37 +206,22 @@ class IblSpider(BaseSpider):
             link_regions.extend(_link_regions)
         return items, link_regions
 
-    def _do_extract_items_from(self, htmlpage, item_cls, item_descriptor, extractor, item_cls_name):
+    def _do_extract_items_from(self, htmlpage, item_descriptor, extractor, item_cls_name):
         extracted_data, template = extractor.extract(htmlpage)
         link_regions = []
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
         processed_data = _process_extracted_data(extracted_data, item_descriptor, htmlpage)
         items = []
+        item_cls = self.itemcls_info[item_cls_name]['class']
         for processed_attributes in processed_data:
             item = item_cls(processed_attributes)
             item['url'] = htmlpage.url
             item['_type'] = item_cls_name
             item['_template'] = template.id
-            if self._check_not_dupe(item_cls, item):
-                items.append(item)
+            items.append(item)
 
         return items, link_regions
-
-    def _check_not_dupe(self, item_cls, item):
-        """Checks whether a scrapy item is a dupe, based on version (not vary)
-        fields of the item class"""
-        if not item_cls.version_fields:
-            return True
-        
-        version = create_item_version(item_cls, item)
-        if version in self._itemversion_cache:
-            old_url = self._itemversion_cache[version]
-            self.log("Duplicate product scraped at <%s>, first one was scraped at <%s>" % (item["url"], old_url),
-                    log.WARNING)
-            return False
-        self._itemversion_cache[version] = item["url"]
-        return True
 
     def build_url_filter(self, spec):
         """make a filter for links"""
