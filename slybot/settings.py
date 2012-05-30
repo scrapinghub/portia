@@ -3,6 +3,6 @@ EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
 PROJECT_DIR = 'slybot-project'
 
 try:
-    from local_asbot_settings import *
+    from local_slybot_settings import *
 except ImportError:
     pass
