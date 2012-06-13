@@ -58,7 +58,3 @@ class FieldTypeManager(object):
         """Retrieve all processor classes registered"""
         return self._TYPEMAP.values()
 
-# all the different available extractors
-class ExtractorTypes:
-    raw = RawFieldTypeProcessor().extract
-    number = NumberTypeProcessor().extract

@@ -8,8 +8,8 @@ from scrapy.http import Request, HtmlResponse, FormRequest
 from scrapely.htmlpage import HtmlPage, dict_to_page
 from scrapely.extraction import InstanceBasedLearningExtractor
 
-from slybot.item import get_iblitem_class, create_slybot_item_descriptor, \
-    apply_extractors
+from slybot.item import get_iblitem_class, create_slybot_item_descriptor
+from slybot.extractors import apply_extractors
 from slybot.utils import iter_unique_scheme_netloc
 from slybot.linkextractor import LinkExtractor
 

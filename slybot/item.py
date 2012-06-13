@@ -4,8 +4,7 @@ from collections import defaultdict
 from scrapy.item import DictItem, Field
 from scrapely.descriptor import ItemDescriptor, FieldDescriptor
 
-from slybot.fieldtypes import FieldTypeManager, ExtractorTypes
-from slybot.utils import create_regex_extractor
+from slybot.fieldtypes import FieldTypeManager
 
 def get_iblitem_class(schema):
     if not schema:
@@ -59,19 +58,4 @@ def create_item_version(item_cls, item):
     for attrname in item_cls.version_fields:
         _hash.update(repr(item.get(attrname)))
     return _hash.digest()
-
-def apply_extractors(descriptor, template_extractors, all_extractors):
-    field_type_manager = FieldTypeManager()
-    for eid in template_extractors or ():
-        extractor_doc = all_extractors[eid]
-        field_name = extractor_doc["field_name"]
-        if not field_name in descriptor.attribute_map:
-            descriptor.attribute_map[field_name] = SlybotFieldDescriptor(field_name, 
-                    field_name, field_type_manager.type_processor_class("text"))
-        if "regular_expression" in extractor_doc:
-            descriptor.attribute_map[field_name].extractor = \
-                    create_regex_extractor(extractor_doc["regular_expression"])
-        else:
-            descriptor.attribute_map[field_name].extractor = \
-                    getattr(ExtractorTypes, extractor_doc["builtin_extractor"])
 
