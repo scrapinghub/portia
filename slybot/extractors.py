@@ -48,6 +48,7 @@ def apply_extractors(descriptor, template_extractors_ids, extractors):
             descriptor.attribute_map[field_name] = SlybotFieldDescriptor(field_name, 
                     field_name, field_type_manager.type_processor_class("text")())
             
-        equeue.insert(0, descriptor.attribute_map[field_name].extractor)
-        descriptor.attribute_map[field_name].extractor = PipelineExtractor(*equeue)
+        if equeue:
+            equeue.insert(0, descriptor.attribute_map[field_name].extractor)
+            descriptor.attribute_map[field_name].extractor = PipelineExtractor(*equeue)
 
