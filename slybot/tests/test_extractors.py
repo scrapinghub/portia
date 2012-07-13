@@ -138,4 +138,25 @@ class ExtractorTest(TestCase):
         ibl_extractor = InstanceBasedLearningExtractor([(self.template, descriptor)])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0], {u'gender': [u'Male']})
 
+    def test_text_type_w_regex_and_no_groups(self):
+        schema = {
+            "id": "test",
+            "properties": [('gender', {
+                    'description': '',
+                    'optional': True,
+                    'type': 'text',
+                    'vary': False,
+            })],
+        }
+        descriptor = create_slybot_item_descriptor(schema)
+        extractors =  {1: {
+                        "_id": 1,
+                        "field_name": "gender",
+                        "regular_expression": "Gender"
+        }}
+        apply_extractors(descriptor, [1], extractors)
+        
+        ibl_extractor = InstanceBasedLearningExtractor([(self.template, descriptor)])
+        self.assertEqual(ibl_extractor.extract(self.target)[0][0], {u'gender': [u'Gender']})
+
 
