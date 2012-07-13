@@ -18,7 +18,7 @@ def create_regex_extractor(pattern):
     def _extractor(txt):
         m = ereg.search(txt)
         if m:
-            return htmlregion("".join(filter(None, m.groups())))
+            return htmlregion(u"".join(filter(None, m.groups() or m.group())))
     
     return _extractor
 
@@ -28,7 +28,7 @@ class PipelineExtractor:
     
     def __call__(self, value):
         for extractor in self.extractors:
-            value = extractor(value or "")
+            value = extractor(value or u"")
         return value
     
 
