@@ -218,7 +218,7 @@ class IblSpider(BaseSpider):
             item = item_cls(processed_attributes)
             item['url'] = htmlpage.url
             item['_type'] = item_cls_name
-            item['_template'] = template.id
+            item['_template'] = str(template.id)
             items.append(item)
 
         return items, link_regions
