@@ -14,13 +14,26 @@ class ExtractorTest(TestCase):
 <tr data-scrapy-annotate="{&quot;required&quot;: [], &quot;variant&quot;: 0, &quot;annotations&quot;: {&quot;content&quot;: &quot;gender&quot;}}">
 <th class="item-key">Gender</th>
 <td >Male</td></tr>"""
-    target =  u"""
+    _target =  u"""
 <tr>
 <th class="item-key">Gender</th>
 <td >Male</td></tr>"""
+    annotated2 = u"""
+<tr data-scrapy-annotate="{&quot;required&quot;: [], &quot;variant&quot;: 0, &quot;annotations&quot;: {&quot;content&quot;: &quot;name&quot;}}">
+<th class="item-key">Name</th>
+<td >John</td></tr>
+<span data-scrapy-annotate="{&quot;required&quot;: [], &quot;variant&quot;: 0, &quot;annotations&quot;: {&quot;content&quot;: &quot;gender&quot;}}">Male</span>"""
+    _target2 =  u"""
+<body>
+<tr>
+<th class="item-key">Name</th><td>Olivia</td></tr>
+<span></span>
+</body>"""
 
     template = HtmlPage(url="http://www.test.com/", body=annotated)
-    target = HtmlPage(url="http://www.test.com/", body=target)
+    target = HtmlPage(url="http://www.test.com/", body=_target)
+    template2 = HtmlPage(url="http://www.test.com/", body=annotated2)
+    target2 = HtmlPage(url="http://www.test.com/a", body=_target2)
 
     def test_regex_extractor(self):
         extractor = create_regex_extractor("(\d+).*(\.\d+)")
@@ -159,4 +172,34 @@ class ExtractorTest(TestCase):
         ibl_extractor = InstanceBasedLearningExtractor([(self.template, descriptor)])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0], {u'gender': [u'Gender']})
 
-
+    def test_extractor_w_empty_string_extraction(self):
+        schema = {
+            "id": "test",
+            "properties": [
+                ('gender', {
+                    'description': '',
+                    'optional': True,
+                    'type': 'text',
+                    'vary': False,
+                }),
+                ('name', {
+                    'description': '',
+                    'optional': False,
+                    'type': 'text',
+                    'vary': False,
+                }),
+            ],
+        }
+        descriptor = create_slybot_item_descriptor(schema)
+        extractors =  {
+                    1: {
+                        "_id": 2,
+                        "field_name": "gender",
+                        "regular_expression": "([0-9]+)"
+                    }
+        }
+        apply_extractors(descriptor, [1], extractors)
+        
+        ibl_extractor = InstanceBasedLearningExtractor([(self.template2, descriptor)])
+        self.assertEqual(ibl_extractor.extract(self.target2)[0][0], {u'name': [u'Name Olivia']})
+        
