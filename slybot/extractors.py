@@ -28,7 +28,7 @@ class PipelineExtractor:
     
     def __call__(self, value):
         for extractor in self.extractors:
-            value = extractor(value or u"")
+            value = extractor(value) if value else value
         return value
     
 
