@@ -20,6 +20,7 @@ def create_regex_extractor(pattern):
         if m:
             return htmlregion(u"".join(filter(None, m.groups() or m.group())))
     
+    _extractor.__name__ = "Regex: %s" % pattern.encode("utf-8")
     return _extractor
 
 class PipelineExtractor:
@@ -30,6 +31,10 @@ class PipelineExtractor:
         for extractor in self.extractors:
             value = extractor(value) if value else value
         return value
+
+    @property
+    def __name__(self):
+        return repr(self.extractors) 
     
 
 def apply_extractors(descriptor, template_extractors_ids, extractors):
