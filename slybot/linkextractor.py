@@ -176,6 +176,11 @@ def iterlinks(htmlpage):
     >>> p = HtmlPage("http://www.example.com", body=u"<html><a href='#section1' >")
     >>> list(iterlinks(p))
     []
+
+    Extract links from <link> tags in page header
+    >>> p = HtmlPage("http://example.blogspot.com/", body=u"<html><head><link rel='me' href='http://www.blogger.com/profile/987372' /></head><body>This is my body!</body></html>")
+    >>> list(iterlinks(p))
+    [Link(url='http://www.blogger.com/profile/987372', text=None, fragment='', nofollow=False)]
     """
     base_href = remove_entities(htmlpage.url, encoding=htmlpage.encoding)
     def mklink(url, anchortext=None, nofollow=False):
@@ -226,6 +231,10 @@ def iterlinks(htmlpage):
                             target = m.group('url')
                             if target:
                                 yield mklink(target)
+                elif tagname == 'link':
+                    href = nexttag.attributes.get('href')
+                    if href:
+                        yield mklink(href)
         elif tagname == 'area':
             href = attributes.get('href')
             if href:
