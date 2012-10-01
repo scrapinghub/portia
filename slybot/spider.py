@@ -10,7 +10,7 @@ from scrapely.extraction import InstanceBasedLearningExtractor
 
 from slybot.item import get_iblitem_class, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
-from slybot.utils import iter_unique_scheme_netloc
+from slybot.utils import iter_unique_scheme_hostname
 from slybot.linkextractor import LinkExtractor
 
 def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
@@ -92,7 +92,7 @@ class IblSpider(BaseSpider):
     def _get_allowed_domains(self, templates):
         urls = [x.url for x in templates]
         urls += self.start_urls
-        return [x[1] for x in iter_unique_scheme_netloc(urls)]
+        return [x[1] for x in iter_unique_scheme_hostname(urls)]
 
     def _get_form_requests(self, templates):
         reqs = []
@@ -108,15 +108,6 @@ class IblSpider(BaseSpider):
             reqs.append(request)
         return reqs
 
-    def _get_item_requests(self, templates):
-        reqs = []
-        urls = [x.url for x in templates]
-        for scheme, netloc in iter_unique_scheme_netloc(urls):
-            r = Request("%s://%s/" % (scheme, netloc), callback=self.parse, \
-                dont_filter=True)
-            reqs.append(r)
-        return reqs
-    
     def _requests_to_follow(self, htmlpage):
         requests = []
         if self._links_ibl_extractor is not None:
@@ -154,12 +145,10 @@ class IblSpider(BaseSpider):
         return requests
 
     def start_requests(self):
-        if self.start_urls:
-            return [Request(r, callback=self.parse, dont_filter=True) \
-                for r in self.start_urls]
         if self._fpages:
             return self._get_form_requests(self._fpages)
-        return self._get_item_requests(self._ipages)
+        return [Request(r, callback=self.parse, dont_filter=True) \
+            for r in self.start_urls]
 
     def parse(self, response):
         """Main handler for all downloaded responses"""
