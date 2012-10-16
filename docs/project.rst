@@ -88,7 +88,7 @@ Items
 -----
 
 The items object contains all the item object used in the project, it is
-represented as a list of item object::
+represented as a list of item objects::
 
     "items": [
         item object 1,
