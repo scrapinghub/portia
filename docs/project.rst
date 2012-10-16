@@ -5,22 +5,28 @@ Slybot project format
 This document describes the format used by slybot to store the configuration of
 a project and its spiders.
 
-* the format consists of a set of JSON files, laid out in a specific directory
+* The format consists of a set of JSON files, laid out in a specific directory
   structure
-* all JSON files are encoded in UTF-8 format
-* unless specified as "optional", all attributes are required
+* All JSON files are encoded in UTF-8 format
+* Unless specified as "optional", all attributes are required
 
 Files and structure
 ===================
 
 The project consists of the following files and structure::
 
+    project.json
     items.json
     extractors.json
     fieldtypes.json
     spiders/spider1.json
     spiders/spider2.json
     spiders/...
+
+project.json
+------------
+
+A project object.
 
 items.json
 ----------
@@ -47,12 +53,35 @@ Object types
 
 Summary of object types:
 
+* `Project object`_
 * `Item object`_
 * `Field object`_
 * `Field type object`_
 * `Extractor object`_
 * `Template object`_
 * `Spider object`_
+
+Project object
+--------------
+
+The project object contains the global project metadata::
+
+	"project": {
+		"name": "Slybot Test Project",
+		"version": "1.0",
+		"comment": ""
+	}
+
+Attributes:
+
+name : string
+  The name of the project.
+
+version : string
+  The version number of project format file.
+  
+comment : string : optional
+  The description of the project.
 
 Item object
 -----------
