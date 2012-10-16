@@ -31,7 +31,7 @@ A project object.
 items.json
 ----------
 
-A mapping from item names to item objects.
+An items object.
 
 extractors.json
 ---------------
@@ -53,43 +53,84 @@ Object types
 
 Summary of object types:
 
-* `Project object`_
-* `Item object`_
-* `Field object`_
-* `Field type object`_
-* `Extractor object`_
-* `Template object`_
-* `Spider object`_
+* `Project`_
+* `Items`_
+* `Item`_
+* `Field`_
+* `Field Type`_
+* `Extractor`_
+* `Template`_
+* `Spider`_
 
-Project object
---------------
+Project
+-------
 
 The project object contains the global project metadata::
 
 	"project": {
-		"name": "Slybot Test Project",
-		"version": "1.0",
-		"comment": ""
+	  "name": "Slybot Test Project",
+	  "version": "1.0",
+	  "comment": ""
 	}
 
 Attributes:
 
 name : string
-  The name of the project.
+  The project name.
 
 version : string
-  The version number of project format file.
+  Version number of the format.
   
 comment : string : optional
-  The description of the project.
+  A comment provided by the user.
 
-Item object
------------
+Items
+-----
 
-A mapping from field names to field objects.
+The items object contains all the item object used in the project, it is
+represented as a list of item object::
 
-Field object
-------------
+    "items": [
+        item object 1,
+        item object 2,
+        ...
+      ],
+    }
+
+Item
+----
+
+An item object represents a individual object to be extracted by the
+system, i.e: person, job, category, etc.::
+
+    {
+      name: "person",
+      fields: [
+        field object 1,
+        field object 2,
+      ]
+    },
+
+Attributes:
+
+name : string
+  The item name.
+
+fields: mapping
+  This is a mapping of the field names to the field objects representing
+  the properties of this item.
+
+Field
+-----
+
+The field represents a property of an object.::
+
+    {
+      "name": "first_name",
+      "type": "string",
+      "required": "true",
+      "vary": "true",
+    },
 
 Attributes:
 
@@ -111,7 +152,7 @@ type : string
   * price
 
 required : boolean
-  Weather the field is required to produce a successful match. All required
+  Whether the field is required to produce a successful match. All required
   fields must extract data, otherwise the extraction is considered to have
   failed and the data is discarded.
 
@@ -124,8 +165,8 @@ vary : boolean
 description : string : optional
   Field description.
 
-Field type object
-=================
+Field Type
+----------
 
 Attributes:
 
@@ -135,8 +176,8 @@ extractor : string?
 adaptor : string?
   The adaptor used for this field types. Unlike extractors, adaptors are applied after extraction has occurred and hence cannot affect the matching process. TODO: how to specify the adaptor (python func, etc).
 
-Spider object
-=============
+Spider
+------
 
 Attributes:
 
@@ -162,8 +203,8 @@ respect_nofollow : boolean
 templates : list of objects
   A list of templates objects.
 
-Template object
-===============
+Template
+--------
 
 Attributes:
 
@@ -191,8 +232,8 @@ annotated_body : string
 original_body : string
   The original body (without annotations).
 
-Extractor object
-================
+Extractor
+---------
 
 type_extractor : string : optional
   If defined, it will override the default extractor for the field. For allowed
@@ -206,6 +247,50 @@ regular_expression : string : optional
   The regex must extract at least one group (parenthesis enclosed part), in
   order to be considered a match. The groups matched will be concatenated for
   generating the final result.
+
+Examples
+========
+
+This is complete example of an items.json file::
+
+    {
+      "items": [
+        {
+          "name": "person",
+          "fields": [
+            {
+              "name": "first_name", 
+              "required": "true", 
+              "type": "string", 
+              "vary": "true"
+            }, 
+            {
+              "name": "last_name", 
+              "required": "true", 
+              "type": "string", 
+              "vary": "true"
+            }
+          ]
+        },
+        {
+          "name": "job",
+          "fields": [
+            {
+              "name": "company", 
+              "required": "true", 
+              "type": "string", 
+              "vary": "true"
+            }, 
+            {
+              "name": "position", 
+              "required": "true", 
+              "type": "string", 
+              "vary": "true"
+            }
+          ]
+        }
+      ]
+    }
 
 TODO
 ====
