@@ -116,7 +116,7 @@ required : boolean
   failed and the data is discarded.
 
 vary : boolean
-  Weather to ignore this field for duplicate detection. For example, sometimes
+  Whether to ignore this field for duplicate detection. For example, sometimes
   the same product is available under many urls, in which case you would want
   to enable this attribute for the ``url`` field, if you want to drop
   duplicates.
@@ -157,7 +157,7 @@ exclude_patterns : list of strings : optional
   precedence over ``follow_patterns``.
 
 respect_nofollow : boolean
-  Weather to respect `rel=nofollow`_. Defaults to false.
+  Whether to respect `rel=nofollow`_. Defaults to false.
   
 templates : list of objects
   A list of templates objects.
