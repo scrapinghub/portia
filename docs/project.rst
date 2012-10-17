@@ -88,13 +88,13 @@ Items
 -----
 
 The items object contains all the item objects used in the project, it is
-represented as a list of item object::
+represented as a mapping of item ids to items::
 
-    "items": [
-        item object 1,
-        item object 2,
+    "items": {
+        "person": item object 1,
+        "job": item object 2,
         ...
-      ],
+      },
     }
 
 Item
@@ -104,17 +104,13 @@ An item object represents a individual object to be extracted by the
 system, i.e: person, job, category, etc.::
 
     {
-      name: "person",
-      fields: [
-        field object 1,
-        field object 2,
-      ]
+      fields: {
+        "first_name": field object 1,
+        "last_name": field object 2,
+      }
     },
 
 Attributes:
-
-name : string
-  The item name.
 
 fields : mapping
   This is a mapping of the field names to the field objects representing
@@ -126,7 +122,6 @@ Field
 The field represents a property of an object.::
 
     {
-      "name": "first_name",
       "type": "string",
       "required": "true",
       "vary": "true",
@@ -253,44 +248,38 @@ Examples
 
 This is a complete example of an items.json file::
 
-    {
-      "items": [
-        {
-          "name": "person",
-          "fields": [
-            {
-              "name": "first_name", 
-              "required": "true", 
-              "type": "string", 
-              "vary": "true"
-            }, 
-            {
-              "name": "last_name", 
-              "required": "true", 
-              "type": "string", 
-              "vary": "true"
-            }
-          ]
-        },
-        {
-          "name": "job",
-          "fields": [
-            {
-              "name": "company", 
-              "required": "true", 
-              "type": "string", 
-              "vary": "true"
-            }, 
-            {
-              "name": "position", 
-              "required": "true", 
-              "type": "string", 
-              "vary": "true"
-            }
-          ]
-        }
-      ]
-    }
+	{
+	  "items": {
+		"person": {
+		  "fields": {
+			"first_name": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}, 
+			 "last_name": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}
+		  }
+		},
+		"job": {
+		  "fields": {
+			"company": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}, 
+			 "position": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}
+		  }
+		}
+	  }
+	}
 
 TODO
 ====
