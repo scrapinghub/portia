@@ -87,7 +87,7 @@ comment : string : optional
 Items
 -----
 
-The items object contains all the item object used in the project, it is
+The items object contains all the item objects used in the project, it is
 represented as a list of item object::
 
     "items": [
@@ -116,7 +116,7 @@ Attributes:
 name : string
   The item name.
 
-fields: mapping
+fields : mapping
   This is a mapping of the field names to the field objects representing
   the properties of this item.
 
@@ -251,7 +251,7 @@ regular_expression : string : optional
 Examples
 ========
 
-This is complete example of an items.json file::
+This is a complete example of an items.json file::
 
     {
       "items": [
