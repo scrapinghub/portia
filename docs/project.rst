@@ -5,16 +5,17 @@ Slybot project format
 This document describes the format used by slybot to store the configuration of
 a project and its spiders.
 
-* the format consists of a set of JSON files, laid out in a specific directory
+* The format consists of a set of JSON files, laid out in a specific directory
   structure
-* all JSON files are encoded in UTF-8 format
-* unless specified as "optional", all attributes are required
+* All JSON files are encoded in UTF-8 format
+* Unless specified as "optional", all attributes are required
 
 Files and structure
 ===================
 
 The project consists of the following files and structure::
 
+    project.json
     items.json
     extractors.json
     fieldtypes.json
@@ -22,10 +23,15 @@ The project consists of the following files and structure::
     spiders/spider2.json
     spiders/...
 
+project.json
+------------
+
+A project object.
+
 items.json
 ----------
 
-A mapping from item names to item objects.
+An items object.
 
 extractors.json
 ---------------
@@ -47,20 +53,79 @@ Object types
 
 Summary of object types:
 
-* `Item object`_
-* `Field object`_
-* `Field type object`_
-* `Extractor object`_
-* `Template object`_
-* `Spider object`_
+* `Project`_
+* `Items`_
+* `Item`_
+* `Field`_
+* `Field Type`_
+* `Extractor`_
+* `Template`_
+* `Spider`_
 
-Item object
------------
+Project
+-------
 
-A mapping from field names to field objects.
+The project object contains the global project metadata::
 
-Field object
-------------
+	"project": {
+	  "name": "Slybot Test Project",
+	  "version": "1.0",
+	  "comment": ""
+	}
+
+Attributes:
+
+name : string
+  The project name.
+
+version : string
+  Version number of the format.
+  
+comment : string : optional
+  A comment provided by the user.
+
+Items
+-----
+
+The items object contains all the item objects used in the project, it is
+represented as a mapping of item ids to items::
+
+    "items": {
+        "person": item object 1,
+        "job": item object 2,
+        ...
+      },
+    }
+
+Item
+----
+
+An item object represents a individual object to be extracted by the
+system, i.e: person, job, category, etc.::
+
+    {
+      fields: {
+        "first_name": field object 1,
+        "last_name": field object 2,
+      }
+    },
+
+Attributes:
+
+fields : mapping
+  This is a mapping of the field names to the field objects representing
+  the properties of this item.
+
+Field
+-----
+
+The field represents a property of an object.::
+
+    {
+      "type": "string",
+      "required": "true",
+      "vary": "true",
+    },
 
 Attributes:
 
@@ -82,12 +147,12 @@ type : string
   * price
 
 required : boolean
-  Weather the field is required to produce a successful match. All required
+  Whether the field is required to produce a successful match. All required
   fields must extract data, otherwise the extraction is considered to have
   failed and the data is discarded.
 
 vary : boolean
-  Weather to ignore this field for duplicate detection. For example, sometimes
+  Whether to ignore this field for duplicate detection. For example, sometimes
   the same product is available under many urls, in which case you would want
   to enable this attribute for the ``url`` field, if you want to drop
   duplicates.
@@ -95,8 +160,8 @@ vary : boolean
 description : string : optional
   Field description.
 
-Field type object
-=================
+Field Type
+----------
 
 Attributes:
 
@@ -106,8 +171,8 @@ extractor : string?
 adaptor : string?
   The adaptor used for this field types. Unlike extractors, adaptors are applied after extraction has occurred and hence cannot affect the matching process. TODO: how to specify the adaptor (python func, etc).
 
-Spider object
-=============
+Spider
+------
 
 Attributes:
 
@@ -128,13 +193,13 @@ exclude_patterns : list of strings : optional
   precedence over ``follow_patterns``.
 
 respect_nofollow : boolean
-  Weather to respect `rel=nofollow`_. Defaults to false.
+  Whether to respect `rel=nofollow`_. Defaults to false.
   
 templates : list of objects
   A list of templates objects.
 
-Template object
-===============
+Template
+--------
 
 Attributes:
 
@@ -162,8 +227,8 @@ annotated_body : string
 original_body : string
   The original body (without annotations).
 
-Extractor object
-================
+Extractor
+---------
 
 type_extractor : string : optional
   If defined, it will override the default extractor for the field. For allowed
@@ -177,6 +242,44 @@ regular_expression : string : optional
   The regex must extract at least one group (parenthesis enclosed part), in
   order to be considered a match. The groups matched will be concatenated for
   generating the final result.
+
+Examples
+========
+
+This is a complete example of an items.json file::
+
+	{
+	  "items": {
+		"person": {
+		  "fields": {
+			"first_name": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}, 
+			 "last_name": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}
+		  }
+		},
+		"job": {
+		  "fields": {
+			"company": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}, 
+			 "position": {
+				  "required": "true", 
+				  "type": "string", 
+				  "vary": "true"
+				}
+		  }
+		}
+	  }
+	}
 
 TODO
 ====
