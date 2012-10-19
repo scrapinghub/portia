@@ -11,5 +11,75 @@ Requirements
 * `Scrapy`_
 * `Scrapely`_
 
+Quick Usage
+===========
+
+Change your working directory to the slybot base module folder (where you can find ``settings.py`` file), create a directory called
+``slybot-project``, place your slybot project specs there, and run::
+
+    scrapy list
+
+for listing the spiders in your project, or::
+
+    scrapy crawl <spider name>
+
+for running your spider.
+
+Configuration
+=============
+
+In order to run `Scrapy`_ with the slybot spider, you need just to have slybot library in your python path,
+and pass the appropiate settings. In ``slybot/settings.py`` you can find a sample settings file::
+
+    SPIDER_MANAGER_CLASS = 'slybot.spidermanager.SlybotSpiderManager'
+    EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
+    ITEM_PIPELINES = ['slybot.dupefilter.DupeFilterPipeline']
+    SLYDUPEFILTER_ENABLED = True
+    PROJECT_DIR = 'slybot-project'
+
+    try:
+        from local_slybot_settings import *
+    except ImportError:
+        pass
+
+The first line::
+
+    SPIDER_MANAGER_CLASS = 'slybot.spidermanager.SlybotSpiderManager'
+
+is where the magic starts. It says to scrapy to use the slybot spider manager, which is required in order to load and
+run the slybot spider.
+
+The line::
+    
+    EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
+    
+is optional, but recommended. As slybot spiders are not absolutely customizable as a common scrapy spider, it
+can face some unexpected and uncontrollable situations thad leads them to a neverending crawling. The
+specified extension is a safe measure in order to avoid that. It works by checking each fixed period of time, that
+a minimal number of items has been scraped along the same period. Refer to ``slybot/closespider.py`` for details
+
+The also optional ``DupeFilterPipeline``, which is enabled with the lines::
+
+    ITEM_PIPELINES = ['slybot.dupefilter.DupeFilterPipeline']
+    SLYDUPEFILTER_ENABLED = True
+
+filters out duplicate items based on the item version, which is calculated using the version
+fields of the item definition. It maintains a set of the version of each item issued by the spider,
+and if the version of a new item is already in the set, it is dropped.
+
+The setting ``PROJECT_DIR`` defines where the slybot spider can find the project
+specifications (item definitions, extractors, spiders). It is a string that defines the path of a folder
+in your filesystem, with a folder structure that we will define below in this doc.
+
+So, if you know how to use scrapy, you already know the alternatives to pass those settings to the crawler: just use your
+customized settings module with all the settings you need, or use the ``slybot.settings`` module and give the remaining
+settings in a ``local_slybot_settings.py`` file somewhere in your python path, or pass the additional settings in command
+line. You can right now do a test with our test project in ``slybot/tests/data/Plants``, by running, inside the current folder::
+
+    scrapy list -s PROJECT_DIR=slybot/tests/data/Plants
+
+and then use the scrapy ``crawl`` command for run one of the available spiders that provides the list. 
+
 .. _Scrapy: https://github.com/scrapy/scrapy
 .. _Scrapely: https://github.com/scrapy/scrapely
+
