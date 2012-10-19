@@ -24,7 +24,7 @@ class SpiderTest(TestCase):
 
         items, link_regions = spider.extract_items(target1)
         self.assertEqual(items, [])
-        self.assertEqual(len(spider._process_link_regions(target1, link_regions)), 104)
+        self.assertEqual(len(list(spider._process_link_regions(target1, link_regions))), 104)
 
         items, link_regions = spider.extract_items(target2)
         self.assertEqual(items[0], {
@@ -42,7 +42,7 @@ class SpiderTest(TestCase):
                 u'weight': [None]}
         )
         self.assertEqual(link_regions, [])
-        self.assertEqual(len(spider._process_link_regions(target2, link_regions)), 0)
+        self.assertEqual(len(list(spider._process_link_regions(target2, link_regions))), 0)
 
     def test_spider_with_link_region_but_not_link_template(self):
         name = "seedsofchange2"
@@ -83,5 +83,5 @@ class SpiderTest(TestCase):
                 u'weight': [None]}
         )
         self.assertEqual(len(link_regions), 1)
-        self.assertEqual(len(spider._process_link_regions(target1, link_regions)), 25)
+        self.assertEqual(len(list(spider._process_link_regions(target1, link_regions))), 25)
         
