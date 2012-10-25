@@ -1,1 +1,126 @@
-{"type": "object", "properties": [["determinate", {"vary": false, "optional": true, "description": "Determinate or Indeterminate", "key": "", "type": "text"}], ["description", {"vary": false, "optional": false, "description": "Detailed description", "key": "", "type": "safe html"}], ["weight", {"vary": false, "optional": true, "description": "Weight in ounces", "key": "", "type": "number"}], ["color", {"vary": false, "optional": true, "description": "Color", "key": "", "type": "text"}], ["season", {"vary": false, "optional": true, "description": "Season", "key": "", "type": "text"}], ["price", {"vary": false, "optional": true, "description": "Price", "key": "", "type": "price"}], ["lifecycle", {"vary": false, "optional": true, "description": "Annual, Biennial, Perrenial", "key": "", "type": "text"}], ["categories", {"vary": true, "optional": true, "description": "category breadcumbs", "key": "", "type": "safe html"}], ["product_id", {"vary": false, "optional": true, "description": "Product ID", "key": "i", "type": "text"}], ["name", {"vary": false, "optional": false, "description": "Name or title", "key": "", "type": "text"}], ["url", {"vary": true, "optional": true, "description": "URL", "key": "", "type": "url"}], ["days", {"vary": false, "optional": true, "description": "Days to maturity", "key": "", "type": "number"}], ["species", {"vary": false, "optional": true, "description": "Species name", "key": "", "type": "text"}], ["size", {"vary": false, "optional": true, "description": "Size in inches", "key": "", "type": "number"}], ["type", {"vary": false, "optional": true, "description": "Type of variety", "key": "", "type": "text"}]], "id": "default"}
+{
+    "type": "object", 
+    "properties": [
+        [
+            "determinate", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "text"
+            }
+        ], 
+        [
+            "description", 
+            {
+                "optional": false, 
+                "vary": false, 
+                "type": "safe html"
+            }
+        ], 
+        [
+            "weight", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "number"
+            }
+        ], 
+        [
+            "color", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "text"
+            }
+        ], 
+        [
+            "season", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "text"
+            }
+        ], 
+        [
+            "price", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "price"
+            }
+        ], 
+        [
+            "lifecycle", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "text"
+            }
+        ], 
+        [
+            "categories", 
+            {
+                "optional": true, 
+                "vary": true, 
+                "type": "safe html"
+            }
+        ], 
+        [
+            "product_id", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "text"
+            }
+        ], 
+        [
+            "name", 
+            {
+                "optional": false, 
+                "vary": false, 
+                "type": "text"
+            }
+        ], 
+        [
+            "url", 
+            {
+                "optional": true, 
+                "vary": true, 
+                "type": "url"
+            }
+        ], 
+        [
+            "days", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "number"
+            }
+        ], 
+        [
+            "species", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "text"
+            }
+        ], 
+        [
+            "size", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "number"
+            }
+        ], 
+        [
+            "type", 
+            {
+                "optional": true, 
+                "vary": false, 
+                "type": "text"
+            }
+        ]
+    ], 
+    "id": "default"
+}
