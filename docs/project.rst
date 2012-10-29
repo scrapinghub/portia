@@ -62,6 +62,7 @@ Summary of object types:
 * `Extractor`_
 * `Template`_
 * `Spider`_
+* `Request`_
 
 Project
 -------
@@ -120,7 +121,7 @@ fields : mapping
 Field
 -----
 
-The field represents a property of an object.::
+The field describes the properties of an item field::
 
     {
       "type": "string",
@@ -175,6 +176,18 @@ adaptor : string?
 Spider
 ------
 
+The Spider object is the top-level object that describes a slybot spider::
+
+    {
+      "start_urls": list of strings,
+      "links_to_follow": string,
+      "follow_patterns": list of strings,
+      "exclude_patterns": list of strings,
+      "respect_nofollow": boolean,
+      "templates": list of template objects,
+      "init_requests": list of request objects,
+    }
+
 Attributes:
 
 start_urls : list of strings
@@ -198,6 +211,10 @@ respect_nofollow : boolean
   
 templates : list of objects
   A list of templates objects.
+
+init_requests : list of request objects : optional
+  A list of requests objects that will be executed (sequentially, in order)
+  when the spider is opened and before visiting the start urls.
 
 Template
 --------
@@ -281,6 +298,51 @@ This is a complete example of an items.json file::
 		}
 	  }
 	}
+
+Request
+=======
+
+A request object represents a request that will be made by slybot::
+
+    {
+      "type": string,
+      # ... type-specific arguments ...
+    }
+
+Attributes:
+
+type : string
+  The type of the request. This is the only attribute that is present in all request types.
+
+Other attributes are available depending on the request type.
+
+Login request
+-------------
+
+Used to represent a request to perform login::
+
+    {
+      "type": "login",
+      "loginurl": string,
+      "username": string,
+      "password": string,
+    }
+
+
+Attributes:
+
+type : string
+  The type of request, which for login requests must be ``login``.
+
+loginurl : string
+  The login page URL. This is the page containing the login form, not the URL
+  where the form data is POSTed.
+
+username : string
+  The login username.
+
+password : string
+  The login password.
 
 TODO
 ====
