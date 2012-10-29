@@ -19,9 +19,10 @@ The project consists of the following files and structure::
     items.json
     extractors.json
     fieldtypes.json
-    spiders/spider1.json
-    spiders/spider2.json
-    spiders/...
+    spiders/
+       spider1.json
+       spider2.json
+       ...
 
 project.json
 ------------
