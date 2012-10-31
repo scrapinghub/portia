@@ -2,6 +2,9 @@ import json
 from unittest import TestCase
 from os.path import dirname, join
 
+from scrapy.http import HtmlResponse
+from scrapy.utils.reqser import request_to_dict
+
 from scrapely.htmlpage import HtmlPage
 
 from slybot.spidermanager import SlybotSpiderManager
@@ -12,7 +15,8 @@ class SpiderTest(TestCase):
     smanager = SlybotSpiderManager("%s/data/Plants" % _PATH)
 
     def test_list(self):
-        self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2", "seedsofchange.com"]))
+        self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
+                "seedsofchange.com", "pinterest.com"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -85,3 +89,29 @@ class SpiderTest(TestCase):
         self.assertEqual(len(link_regions), 1)
         self.assertEqual(len(list(spider._process_link_regions(target1, link_regions))), 25)
         
+    def test_login_requests(self):
+        name = "pinterest.com"
+        spider = self.smanager.create(name)
+        login_request = list(spider.start_requests())[0]
+        
+        response = HtmlResponse(url="https://pinterest.com/login/", body=open(join(_PATH, "data", "pinterest.html")).read())
+        response.request = login_request
+        form_request = login_request.callback(response)
+        expected = {'_encoding': 'utf-8',
+            'body': 'email=test&password=testpass&csrfmiddlewaretoken=nLZy3NMzhTswZvweHJ4KVmq9UjzaZGn3&_ch=ecnwmar2',
+            'callback': 'after_login',
+            'cookies': {},
+            'dont_filter': False,
+            'errback': None,
+            'headers': {'Content-Type': ['application/x-www-form-urlencoded']},
+            'meta': {},
+            'method': 'POST',
+            'priority': 0,
+            'url': u'https://pinterest.com/login/?next=%2F'}
+
+        self.assertEqual(request_to_dict(form_request, spider), expected)
+        
+        # simulate a simple response to login post from which extract a link
+        response = HtmlResponse(url="http://pinterest.com/", body="<html><body><a href='http://pinterest.com/categories'></body></html>")
+        result = list(spider.after_login(response))
+        self.assertEqual([r.url for r in result], ['http://pinterest.com/categories', 'http://pinterest.com/popular/'])

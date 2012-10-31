@@ -8,6 +8,8 @@ from scrapy.http import Request, HtmlResponse, FormRequest
 from scrapely.htmlpage import HtmlPage, dict_to_page
 from scrapely.extraction import InstanceBasedLearningExtractor
 
+from loginform import fill_login_form
+
 from slybot.item import get_iblitem_class, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
 from slybot.utils import iter_unique_scheme_hostname
@@ -89,6 +91,24 @@ class IblSpider(BaseSpider):
                 'extractor': extractor,
             }
 
+        self.login_requests = []
+        for rdata in spec.get("init_requests", []):
+            if rdata["type"] == "login":
+                request = Request(url=rdata.pop("loginurl"), meta=rdata, callback=self.parse_login_page)
+                self.login_requests.append(request)
+
+    def parse_login_page(self, response):
+        username = response.request.meta["username"]
+        password = response.request.meta["password"]
+        args, url, method = fill_login_form(response.url, response.body, username, password)
+        return FormRequest(url, method=method, formdata=args, callback=self.after_login)
+
+    def after_login(self, response):
+        for result in self.parse(response):
+            yield result
+        for req in self._start_requests():
+            yield req
+
     def _get_allowed_domains(self, templates):
         urls = [x.url for x in templates]
         urls += self.start_urls
@@ -139,6 +159,15 @@ class IblSpider(BaseSpider):
                 yield request
 
     def start_requests(self):
+        start_requests = []
+        if self.login_requests:
+            start_requests = self.login_requests
+        else:
+            start_requests = self._start_requests()
+        for req in start_requests:
+            yield req
+
+    def _start_requests(self):
         if self._fpages:
             return self._get_form_requests(self._fpages)
         return [Request(r, callback=self.parse, dont_filter=True) \
