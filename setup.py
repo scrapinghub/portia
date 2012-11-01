@@ -1,10 +1,11 @@
+from slybot import __version__
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
 setup(name='slybot',
-      version='0.9',
+      version=__version__,
       license='BSD',
       description='Slybot crawler',
       author='Scrapy project',
