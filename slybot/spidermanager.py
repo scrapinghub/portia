@@ -47,7 +47,7 @@ class ZipfileSlybotSpiderManager(SlybotSpiderManager):
             datadir = tempfile.mkdtemp(prefix='slybot-')
             ZipFile(zipfile).extractall(datadir)
             atexit.register(shutil.rmtree, datadir)
-        super(ZipfileSlybotSpiderManger, self).__init__(datadir)
+        super(ZipfileSlybotSpiderManager, self).__init__(datadir)
 
     @classmethod
     def from_crawler(cls, crawler):
