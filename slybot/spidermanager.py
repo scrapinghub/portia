@@ -1,9 +1,8 @@
-import os, json, tempfile, shutil
+import os, json, tempfile, shutil, atexit
 from zipfile import ZipFile
 
 from zope.interface import implements
 from scrapy.interfaces import ISpiderManager
-from scrapy import signals
 
 from slybot.spider import IblSpider
 
@@ -41,20 +40,17 @@ class SlybotSpiderManager(object):
         return items
 
 
-class ZipfileSlybotSpiderManger(SlybotSpiderManager):
+class ZipfileSlybotSpiderManager(SlybotSpiderManager):
 
     def __init__(self, datadir, zipfile=None):
         if zipfile:
             datadir = tempfile.mkdtemp(prefix='slybot-')
             ZipFile(zipfile).extractall(datadir)
+            atexit.register(shutil.rmtree, self.datadir)
         super(ZipfileSlybotSpiderManger, self).__init__(datadir)
 
     @classmethod
     def from_crawler(cls, crawler):
         s = crawler.settings
         sm = cls(s['PROJECT_DIR'], s['PROJECT_ZIPFILE'])
-        crawler.signals.connect(sm.close, signals.engine_stopped)
         return sm
-
-    def close(self):
-        shutil.rmtree(self.datadir)
