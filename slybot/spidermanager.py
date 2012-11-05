@@ -46,7 +46,7 @@ class ZipfileSlybotSpiderManager(SlybotSpiderManager):
         if zipfile:
             datadir = tempfile.mkdtemp(prefix='slybot-')
             ZipFile(zipfile).extractall(datadir)
-            atexit.register(shutil.rmtree, self.datadir)
+            atexit.register(shutil.rmtree, datadir)
         super(ZipfileSlybotSpiderManger, self).__init__(datadir)
 
     @classmethod
