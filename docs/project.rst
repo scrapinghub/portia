@@ -344,6 +344,72 @@ username : string
 password : string
   The login password.
 
+Generic form request
+--------------------
+
+Used to represent a request to a generic form::
+
+    {
+        "type": "form",
+        "form_url": "http://www.mysite.com/search.php",
+        "name" : "search_form",
+        "fields" : [
+           {
+              "name": "state",
+              "type": "all"
+           },
+           {
+              "name": "country",
+              "type": "fixed",
+              "value": "US"
+           }
+        ]
+    }
+
+Attributes:
+
+type : string
+  The type of request, which for generic form requests must be ``form``.
+
+form_url : string
+  The form page URL. This is the page containing the form, not the URL
+  where the form data is POSTed.
+
+name: string  : optional
+  The name of the form to be posted. The form can be identified with the
+  attributes: name, id or xpath, those attributes are tried in that order
+  if none of them identify a form then the first form found in the page
+  will be used.
+
+id: string : optional
+  The id of the form to be posted. 
+
+xpath: string : optional
+  A xpath expression to access the form to be posted. 
+
+fields: list
+  A list of fields to be posted with the form.
+  
+Generic Form Field
+------------------
+
+Used to represent a field in a generic form.
+
+Attributes:
+
+name : string
+  Name of the field to be posted.
+
+type : string
+  The type attribute defines how the field will be posted, currently it has
+  two possible values: "fixed" means that the field will use the value defined
+  in the "value attribute" and posted only once. If the type is "all" it means
+  the search form will be posted once per every possible value of the field.
+  The field values are extracted from the list of options defined for the field.
+
+value: string : optional
+  If the field type is "fixed" this value will be used to post the form.
+
 TODO
 ====
 
