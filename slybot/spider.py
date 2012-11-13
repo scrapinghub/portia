@@ -14,6 +14,7 @@ from slybot.item import get_iblitem_class, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
 from slybot.utils import iter_unique_scheme_hostname
 from slybot.linkextractor import LinkExtractor
+from slybot.generic_form import fill_generic_form
 
 def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
     processed_data = []
@@ -39,9 +40,9 @@ class IblSpider(BaseSpider):
         if not self._default_schema:
             self.log("Scraping unknown default item schema: %s" % default_item, \
                 log.WARNING)
-        
+
         self._item_template_pages = sorted((
-            [t.get('scrapes', default_item), dict_to_page(t, 'annotated_body'), 
+            [t.get('scrapes', default_item), dict_to_page(t, 'annotated_body'),
             t.get('extractors', [])] \
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
         ), key=lambda pair: pair[0])
@@ -58,14 +59,14 @@ class IblSpider(BaseSpider):
             dict_to_page(t, 'annotated_body')
             for t in spec['templates'] if t.get('page_type', 'item') == 'form'
         ]
-        
+
         self.start_urls = self.start_urls or spec.get('start_urls')
         if isinstance(self.start_urls, basestring):
             self.start_urls = self.start_urls.splitlines()
 
         self.link_extractor = LinkExtractor()
         self.allowed_domains = self._get_allowed_domains(self._ipages)
-        
+
         self.build_url_filter(spec)
 
         default_item_cls = get_iblitem_class(self._default_schema)
@@ -92,10 +93,17 @@ class IblSpider(BaseSpider):
             }
 
         self.login_requests = []
+        self.form_requests = []
         for rdata in spec.get("init_requests", []):
             if rdata["type"] == "login":
-                request = Request(url=rdata.pop("loginurl"), meta=rdata, callback=self.parse_login_page)
+                request = Request(url=rdata.pop("loginurl"), meta=rdata,
+                                  callback=self.parse_login_page)
                 self.login_requests.append(request)
+
+            if rdata["type"] == "form":
+                request = Request(url=rdata.pop("form_url"), meta=rdata,
+                                  callback=self.parse_form_page)
+                self.form_requests.append(request)
 
     def parse_login_page(self, response):
         username = response.request.meta["username"]
@@ -108,6 +116,22 @@ class IblSpider(BaseSpider):
             yield result
         for req in self._start_requests():
             yield req
+
+    def parse_form_page(self, response):
+        try:
+            for (args, url, method) in fill_generic_form(response.url,
+                                                         response.body,
+                                                         response.request.meta):
+                yield FormRequest(url, method=method, formdata=args,
+                                  callback=self.after_form_page)
+        except Exception, e:
+            self.log(str(e), log.WARNING)
+        for req in self._start_requests():
+            yield req
+
+    def after_form_page(self, response):
+        for result in self.parse(response):
+            yield result
 
     def _get_allowed_domains(self, templates):
         urls = [x.url for x in templates]
@@ -142,7 +166,7 @@ class IblSpider(BaseSpider):
         else:
             for request in self._request_to_follow_from_region(htmlpage):
                 yield request
-            
+
     def _request_to_follow_from_region(self, htmlregion):
         seen = set()
 
@@ -162,6 +186,8 @@ class IblSpider(BaseSpider):
         start_requests = []
         if self.login_requests:
             start_requests = self.login_requests
+        elif self.form_requests:
+            start_requests = self.form_requests
         else:
             start_requests = self._start_requests()
         for req in start_requests:
@@ -202,7 +228,7 @@ class IblSpider(BaseSpider):
             yield item
         for request in self._process_link_regions(htmlpage, link_regions):
             yield request
-        
+
     def extract_items(self, htmlpage):
         """This method is also called from UI webservice to extract items"""
         items = []
