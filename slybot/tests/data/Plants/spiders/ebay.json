@@ -1,0 +1,29 @@
+{
+    "templates": [], 
+    "start_urls": [
+        "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc"
+    ], 
+    "init_requests": [
+        {
+            "type": "form",
+            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "name": "adv_search_from",
+            "fields": [
+                {
+                  "name": "_nkw",
+                  "type": "fixed",
+                  "value": "Cars"
+                },
+                {
+                  "name": "_in_kw",
+                  "type": "all"
+                }
+            ]
+        }
+    ],
+    "exclude_patterns": [], 
+    "respect_nofollow": true, 
+    "follow_patterns": [], 
+    "scrapes": "default", 
+    "links_to_follow": "none"
+}

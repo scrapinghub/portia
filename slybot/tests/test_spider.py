@@ -16,7 +16,7 @@ class SpiderTest(TestCase):
 
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
-                "seedsofchange.com", "pinterest.com"]))
+                "seedsofchange.com", "pinterest.com", "ebay"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -88,12 +88,12 @@ class SpiderTest(TestCase):
         )
         self.assertEqual(len(link_regions), 1)
         self.assertEqual(len(list(spider._process_link_regions(target1, link_regions))), 25)
-        
+
     def test_login_requests(self):
         name = "pinterest.com"
         spider = self.smanager.create(name)
         login_request = list(spider.start_requests())[0]
-        
+
         response = HtmlResponse(url="https://pinterest.com/login/", body=open(join(_PATH, "data", "pinterest.html")).read())
         response.request = login_request
         form_request = login_request.callback(response)
@@ -110,8 +110,25 @@ class SpiderTest(TestCase):
             'url': u'https://pinterest.com/login/?next=%2F'}
 
         self.assertEqual(request_to_dict(form_request, spider), expected)
-        
+
         # simulate a simple response to login post from which extract a link
         response = HtmlResponse(url="http://pinterest.com/", body="<html><body><a href='http://pinterest.com/categories'></body></html>")
         result = list(spider.after_login(response))
         self.assertEqual([r.url for r in result], ['http://pinterest.com/categories', 'http://pinterest.com/popular/'])
+
+    def test_generic_form_requests(self):
+        name = "ebay"
+        spider = self.smanager.create(name)
+        generic_form_request = list(spider.start_requests())[0]
+
+        response = HtmlResponse(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc", body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
+        response.request = generic_form_request
+        request_list = [request_to_dict(req, spider)
+                             for req in generic_form_request.callback(response)]
+
+        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_nkw=Cars&_in_kw=1&_ex_kw=&_adv=1&_udlo=&_udhi=&_salic=1&_fsradio=%26LH_SpecificSeller%3D1&_sasl=&_sop=12&_dmd=1&_ipg=50', 'dont_filter': False, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
+                    {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_nkw=Cars&_in_kw=2&_ex_kw=&_adv=1&_udlo=&_udhi=&_salic=1&_fsradio=%26LH_SpecificSeller%3D1&_sasl=&_sop=12&_dmd=1&_ipg=50', 'dont_filter': False, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
+                    {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_nkw=Cars&_in_kw=3&_ex_kw=&_adv=1&_udlo=&_udhi=&_salic=1&_fsradio=%26LH_SpecificSeller%3D1&_sasl=&_sop=12&_dmd=1&_ipg=50', 'dont_filter': False, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
+                    {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_nkw=Cars&_in_kw=4&_ex_kw=&_adv=1&_udlo=&_udhi=&_salic=1&_fsradio=%26LH_SpecificSeller%3D1&_sasl=&_sop=12&_dmd=1&_ipg=50', 'dont_filter': False, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
+                    {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse', 'method': 'GET', 'errback': None}]
+        self.assertEqual(request_list, expected)
