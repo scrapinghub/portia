@@ -1,10 +1,5 @@
 import itertools
 from lxml import html
-from BeautifulSoup import BeautifulSoup
-
-def _clean_html(data):
-    soup = BeautifulSoup(data)
-    return soup.prettify()
 
 def _pick_nodes(doc, selector):
     if 'id' in selector:
@@ -12,7 +7,6 @@ def _pick_nodes(doc, selector):
     elif 'name' in selector:
         nodes = doc.xpath('.//*[@name="%s"]' % selector['name'])
     elif 'xpath' in selector:
-        print selector['xpath']
         nodes = doc.xpath(selector['xpath'])
     else:
         nodes = []
@@ -34,8 +28,7 @@ def _get_field_values(form, field_descriptor):
 
 def fill_generic_form(url, body, form_descriptor):
 
-    # TODO: beautify probably should be optional
-    doc = html.document_fromstring(_clean_html(body), base_url=url)
+    doc = html.document_fromstring(body, base_url=url)
     form = _pick_node(doc, form_descriptor)
     if form is None:
         raise Exception('Generic form not found')
