@@ -375,7 +375,7 @@ form_url : string
   The form page URL. This is the page containing the form, not the URL
   where the form data is POSTed.
 
-xpath: string
+xpath : string
   A xpath expression to access the form to be posted.
 
 fields: list

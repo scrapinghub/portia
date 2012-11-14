@@ -7,7 +7,6 @@ def _pick_node(doc, selector):
         return nodes[0]
 
 def _get_field_values(form, field_descriptor):
-    #field_name = field_descriptor['name']
     field_type = field_descriptor['type']
     select_field = _pick_node(form, field_descriptor)
     if field_type == 'fixed':
