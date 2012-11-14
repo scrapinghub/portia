@@ -352,14 +352,14 @@ Used to represent a request to a generic form::
     {
         "type": "form",
         "form_url": "http://www.mysite.com/search.php",
-        "name" : "search_form",
+        "xpath" : "//form[@name=search_form]",
         "fields" : [
            {
-              "name": "state",
+              "xpath": "//*[@name=state]",
               "type": "all"
            },
            {
-              "name": "country",
+              "xpath": "//*[@name=country]",
               "type": "fixed",
               "value": "US"
            }
@@ -375,17 +375,8 @@ form_url : string
   The form page URL. This is the page containing the form, not the URL
   where the form data is POSTed.
 
-name: string  : optional
-  The name of the form to be posted. The form can be identified with the
-  attributes: name, id or xpath, those attributes are tried in that order
-  if none of them identify a form then the first form found in the page
-  will be used.
-
-id: string : optional
-  The id of the form to be posted. 
-
-xpath: string : optional
-  A xpath expression to access the form to be posted. 
+xpath: string
+  A xpath expression to access the form to be posted.
 
 fields: list
   A list of fields to be posted with the form.
@@ -397,8 +388,8 @@ Used to represent a field in a generic form.
 
 Attributes:
 
-name : string
-  Name of the field to be posted.
+xpath : string
+  A xpath expression to access the field to be posted.
 
 type : string
   The type attribute defines how the field will be posted, currently it has

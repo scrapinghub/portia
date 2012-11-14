@@ -14,10 +14,10 @@ class GenericFormTest(TestCase):
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
-            "name": "adv_search_from",
+            "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
-                  "name": "_nkw",
+                  "xpath": ".//*[@name='_nkw']",
                   "type": "fixed",
                   "value": "Cars"
                 }
@@ -25,12 +25,7 @@ class GenericFormTest(TestCase):
         }""")
 
         start_requests = list(fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_nkw', 'Cars'), ('_in_kw', '1'), ('_ex_kw', ''),
-                               ('_adv', '1'), ('_udlo', ''), ('_udhi', ''),
-                               ('_salic', '1'), ('_fsradio', '&LH_SpecificSeller=1'),
-                               ('_sasl', ''), ('_sop', '12'), ('_dmd', '1'),
-                               ('_ipg', '50')],
-                              'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)
 
     def test_advanced_search_form(self):
@@ -39,23 +34,23 @@ class GenericFormTest(TestCase):
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
-            "name": "adv_search_from",
+            "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
-                  "name": "_nkw",
+                  "xpath": ".//*[@name='_nkw']",
                   "type": "fixed",
                   "value": "Cars"
                 },
                 {
-                  "name": "_in_kw",
+                  "xpath": ".//*[@name='_in_kw']",
                   "type": "all"
                 }
             ]
         }""")
 
         start_requests = list(fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_nkw', 'Cars'), ('_in_kw', '1'), ('_ex_kw', ''), ('_adv', '1'), ('_udlo', ''), ('_udhi', ''), ('_salic', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_sasl', ''), ('_sop', '12'), ('_dmd', '1'), ('_ipg', '50')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_nkw', 'Cars'), ('_in_kw', '2'), ('_ex_kw', ''), ('_adv', '1'), ('_udlo', ''), ('_udhi', ''), ('_salic', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_sasl', ''), ('_sop', '12'), ('_dmd', '1'), ('_ipg', '50')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_nkw', 'Cars'), ('_in_kw', '3'), ('_ex_kw', ''), ('_adv', '1'), ('_udlo', ''), ('_udhi', ''), ('_salic', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_sasl', ''), ('_sop', '12'), ('_dmd', '1'), ('_ipg', '50')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_nkw', 'Cars'), ('_in_kw', '4'), ('_ex_kw', ''), ('_adv', '1'), ('_udlo', ''), ('_udhi', ''), ('_salic', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_sasl', ''), ('_sop', '12'), ('_dmd', '1'), ('_ipg', '50')], 'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
+                             ([('_in_kw', '2'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
+                             ([('_in_kw', '3'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
+                             ([('_in_kw', '4'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)

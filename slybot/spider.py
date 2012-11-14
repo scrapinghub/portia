@@ -100,7 +100,7 @@ class IblSpider(BaseSpider):
                                   callback=self.parse_login_page)
                 self.login_requests.append(request)
 
-            if rdata["type"] == "form":
+            elif rdata["type"] == "form":
                 request = Request(url=rdata.pop("form_url"), meta=rdata,
                                   callback=self.parse_form_page)
                 self.form_requests.append(request)

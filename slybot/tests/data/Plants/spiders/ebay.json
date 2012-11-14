@@ -7,15 +7,15 @@
         {
             "type": "form",
             "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
-            "name": "adv_search_from",
+            "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
-                  "name": "_nkw",
+                  "xpath": ".//*[@name='_nkw']",
                   "type": "fixed",
                   "value": "Cars"
                 },
                 {
-                  "name": "_in_kw",
+                  "xpath": ".//*[@name='_in_kw']",
                   "type": "all"
                 }
             ]

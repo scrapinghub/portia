@@ -1,30 +1,19 @@
 import itertools
 from lxml import html
 
-def _pick_nodes(doc, selector):
-    if 'id' in selector:
-        nodes = doc.xpath('.//*[@id="%s"]' % selector['id'])
-    elif 'name' in selector:
-        nodes = doc.xpath('.//*[@name="%s"]' % selector['name'])
-    elif 'xpath' in selector:
-        nodes = doc.xpath(selector['xpath'])
-    else:
-        nodes = []
-    return nodes
-
 def _pick_node(doc, selector):
-    nodes = _pick_nodes(doc, selector)
+    nodes = doc.xpath(selector['xpath'])
     if nodes:
         return nodes[0]
 
 def _get_field_values(form, field_descriptor):
-    field_name = field_descriptor['name']
+    #field_name = field_descriptor['name']
     field_type = field_descriptor['type']
+    select_field = _pick_node(form, field_descriptor)
     if field_type == 'fixed':
-        return [[field_name, field_descriptor['value']]]
+        return [[select_field.name, field_descriptor['value']]]
     elif field_type == 'all':
-        select_field = _pick_node(form, field_descriptor)
-        return [[field_name, option] for option in select_field.value_options]
+        return [[select_field.name, option] for option in select_field.value_options]
 
 def fill_generic_form(url, body, form_descriptor):
 
@@ -38,6 +27,7 @@ def fill_generic_form(url, body, form_descriptor):
               for field in form_descriptor['fields']]
 
     for params in itertools.product(*values):
+        form_values = dict((key, value) for (key, value) in form.form_values())
         for name, option in params:
-            form.fields[name] = option
-        yield form.form_values(), form.action or form.base_url, form.method
+            form_values[name] = option
+        yield form_values.items(), form.action or form.base_url, form.method
