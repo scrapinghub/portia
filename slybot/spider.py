@@ -55,10 +55,6 @@ class IblSpider(BaseSpider):
                 if _links_pages else None
 
         self._ipages = [page for _, page, _ in self._item_template_pages]
-        self._fpages = [
-            dict_to_page(t, 'annotated_body')
-            for t in spec['templates'] if t.get('page_type', 'item') == 'form'
-        ]
 
         self.start_urls = self.start_urls or spec.get('start_urls')
         if isinstance(self.start_urls, basestring):
@@ -138,18 +134,6 @@ class IblSpider(BaseSpider):
         urls += self.start_urls
         return [x[1] for x in iter_unique_scheme_hostname(urls)]
 
-    def _get_form_requests(self, templates):
-        # TODO: filter unique schema netlocs?
-        for t in templates:
-            # assume all templates are html and unicode
-            response = HtmlResponse(t.url, encoding='utf-8',
-                                    body=t.body, headers=t.headers)
-            request = FormRequest.from_response(response,
-                                                formname='SLYBOT-FORM',
-                                                callback=self.parse,
-                                                dont_filter=True)
-            yield request
-
     def _requests_to_follow(self, htmlpage):
         if self._links_ibl_extractor is not None:
             extracted = self._links_ibl_extractor.extract(htmlpage)[0]
@@ -194,8 +178,6 @@ class IblSpider(BaseSpider):
             yield req
 
     def _start_requests(self):
-        if self._fpages:
-            return self._get_form_requests(self._fpages)
         return [Request(r, callback=self.parse, dont_filter=True) \
             for r in self.start_urls]
 
