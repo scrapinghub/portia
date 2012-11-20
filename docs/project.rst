@@ -69,10 +69,10 @@ Project
 
 The project object contains the global project metadata::
 
-	"project": {
-	  "name": "Slybot Test Project",
-	  "version": "1.0",
-	  "comment": ""
+	{
+	    "name": "Slybot Test Project",
+	    "version": "1.0",
+	    "comment": ""
 	}
 
 Attributes:
@@ -92,11 +92,10 @@ Items
 The items object contains all the item objects used in the project, it is
 represented as a mapping of item ids to items::
 
-    "items": {
+    {
         "person": item object 1,
         "job": item object 2,
         ...
-      },
     }
 
 Item
@@ -106,10 +105,10 @@ An item object represents a individual object to be extracted by the
 system, i.e: person, job, category, etc.::
 
     {
-      fields: {
-        "first_name": field object 1,
-        "last_name": field object 2,
-      }
+        fields: {
+            "first_name": field object 1,
+            "last_name": field object 2,
+        }
     },
 
 Attributes:
@@ -124,9 +123,9 @@ Field
 The field describes the properties of an item field::
 
     {
-      "type": "string",
-      "required": "true",
-      "vary": "true",
+        "type": "string",
+        "required": "true",
+        "vary": "true",
     },
 
 Attributes:
@@ -179,13 +178,13 @@ Spider
 The Spider object is the top-level object that describes a slybot spider::
 
     {
-      "start_urls": list of strings,
-      "links_to_follow": string,
-      "follow_patterns": list of strings,
-      "exclude_patterns": list of strings,
-      "respect_nofollow": boolean,
-      "templates": list of template objects,
-      "init_requests": list of request objects,
+        "start_urls": list of strings,
+        "links_to_follow": string,
+        "follow_patterns": list of strings,
+        "exclude_patterns": list of strings,
+        "respect_nofollow": boolean,
+        "templates": list of template objects,
+        "init_requests": list of request objects,
     }
 
 Attributes:
@@ -267,36 +266,34 @@ Examples
 This is a complete example of an items.json file::
 
 	{
-	  "items": {
 		"person": {
-		  "fields": {
-			"first_name": {
-				  "required": "true", 
-				  "type": "string", 
-				  "vary": "true"
+		    "fields": {
+			    "first_name": {
+				    "required": "true", 
+				    "type": "string", 
+				    "vary": "true"
 				}, 
-			 "last_name": {
-				  "required": "true", 
-				  "type": "string", 
-				  "vary": "true"
+			    "last_name": {
+				    "required": "true", 
+				    "type": "string", 
+				    "vary": "true"
 				}
-		  }
+		    }
 		},
 		"job": {
-		  "fields": {
-			"company": {
-				  "required": "true", 
-				  "type": "string", 
-				  "vary": "true"
+		    "fields": {
+			    "company": {
+				    "required": "true", 
+				    "type": "string", 
+				    "vary": "true"
 				}, 
-			 "position": {
-				  "required": "true", 
-				  "type": "string", 
-				  "vary": "true"
+			    "position": {
+				    "required": "true", 
+				    "type": "string", 
+				    "vary": "true"
 				}
-		  }
+		    }
 		}
-	  }
 	}
 
 Request
@@ -305,8 +302,8 @@ Request
 A request object represents a request that will be made by slybot::
 
     {
-      "type": string,
-      # ... type-specific arguments ...
+        "type": string,
+        # ... type-specific arguments ...
     }
 
 Attributes:
@@ -322,10 +319,10 @@ Login request
 Used to represent a request to perform login::
 
     {
-      "type": "login",
-      "loginurl": string,
-      "username": string,
-      "password": string,
+        "type": "login",
+        "loginurl": string,
+        "username": string,
+        "password": string,
     }
 
 
@@ -354,15 +351,15 @@ Used to represent a request to a generic form::
         "form_url": "http://www.mysite.com/search.php",
         "xpath" : "//form[@name=search_form]",
         "fields" : [
-           {
-              "xpath": "//*[@name=state]",
-              "type": "all"
-           },
-           {
-              "xpath": "//*[@name=country]",
-              "type": "fixed",
-              "value": "US"
-           }
+            {
+                "xpath": "//*[@name=state]",
+                "type": "all"
+            },
+            {
+                "xpath": "//*[@name=country]",
+                "type": "fixed",
+                "value": "US"
+            }
         ]
     }
 
