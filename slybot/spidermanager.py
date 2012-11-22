@@ -26,22 +26,13 @@ class SlybotSpiderManager(object):
             spec = json.load(f)
         with open(os.path.join(self.datadir, 'extractors.json')) as f:
             extractors = json.load(f)
-        items = self._load_items()
+        with open(os.path.join(self.datadir, 'items.json')) as f:
+            items = json.load(f)
         return self.spider_cls(name, spec, items, extractors, **args)
 
     def list(self):
         return [os.path.splitext(fname)[0] for fname in \
                     os.listdir(os.path.join(self.datadir, "spiders")) if fname.endswith(".json")]
-
-    def _load_items(self):
-        items = {}
-        itemsdir = os.path.join(self.datadir, 'items')
-        for fname in os.listdir(itemsdir):
-            name = fname.split(".")[0]
-            with open(os.path.join(itemsdir, '%s.json' % name)) as f:
-                items[name] = json.load(f)
-        return items
-
 
 class ZipfileSlybotSpiderManager(SlybotSpiderManager):
 

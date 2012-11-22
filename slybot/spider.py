@@ -50,7 +50,7 @@ class IblSpider(BaseSpider):
         # generate ibl extractor for links pages
         _links_pages = [dict_to_page(t, 'annotated_body')
                 for t in spec['templates'] if t.get('page_type') == 'links']
-        _links_item_descriptor = create_slybot_item_descriptor({'id': "_links", 'properties': ()})
+        _links_item_descriptor = create_slybot_item_descriptor({'fields': {}})
         self._links_ibl_extractor = InstanceBasedLearningExtractor([(t, _links_item_descriptor) for t in _links_pages]) \
                 if _links_pages else None
 
