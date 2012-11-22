@@ -8,10 +8,14 @@ def _pick_node(doc, selector):
 
 def _get_field_values(form, field_descriptor):
     field_type = field_descriptor['type']
-    select_field = _pick_node(form, field_descriptor)
     if field_type == 'fixed':
-        return [[select_field.name, field_descriptor['value']]]
+        if 'name' in field_descriptor:
+            return [[field_descriptor['name'], field_descriptor['value']]]
+        else:
+            select_field = _pick_node(form, field_descriptor)
+            return [[select_field.name, field_descriptor['value']]]
     elif field_type == 'all':
+        select_field = _pick_node(form, field_descriptor)
         return [[select_field.name, option] for option in select_field.value_options]
 
 def fill_generic_form(url, body, form_descriptor):
