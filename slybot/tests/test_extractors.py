@@ -44,13 +44,13 @@ class ExtractorTest(TestCase):
 
     def test_raw_type_w_regex(self):
         schema = {
-            "id": "test",
-            "properties": [('gender', {
-                    'description': '',
-                    'optional': True,
+            'fields': {
+                'gender': {
+                    'required': False,
                     'type': 'raw',
                     'vary': False,
-            })],
+                }
+            }
         }
         descriptor = create_slybot_item_descriptor(schema)
         extractors =  {1: {
@@ -65,13 +65,13 @@ class ExtractorTest(TestCase):
 
     def test_negative_hit_w_regex(self):
         schema = {
-            "id": "test",
-            "properties": [('gender', {
-                    'description': '',
-                    'optional': True,
+            'fields': {
+                'gender': {
+                    'required': False,
                     'type': 'number',
                     'vary': False,
-            })],
+                }
+            }
         }
         descriptor = create_slybot_item_descriptor(schema)
         extractors =  {1: {
@@ -86,13 +86,13 @@ class ExtractorTest(TestCase):
       
     def test_text_type_w_regex(self):
         schema = {
-            "id": "test",
-            "properties": [('gender', {
-                    'description': '',
-                    'optional': True,
+            "fields": {
+                'gender': {
+                    'required': False,
                     'type': 'text',
                     'vary': False,
-            })],
+                }
+            }
         }
         descriptor = create_slybot_item_descriptor(schema)
         extractors =  {1: {
@@ -107,13 +107,13 @@ class ExtractorTest(TestCase):
 
     def test_type_extractor(self):
         schema = {
-            "id": "test",
-            "properties": [('gender', {
-                    'description': '',
-                    'optional': True,
+            "fields": {
+                'gender': {
+                    'required': False,
                     'type': 'number',
                     'vary': False,
-            })],
+                }
+            }
         }
         descriptor = create_slybot_item_descriptor(schema)
         extractors =  {
@@ -135,8 +135,7 @@ class ExtractorTest(TestCase):
 
     def test_default_type_extractor(self):
         schema = {
-            "id": "test",
-            "properties": [],
+            'fields': {}
         }
         descriptor = create_slybot_item_descriptor(schema)
         extractors =  {
@@ -153,13 +152,13 @@ class ExtractorTest(TestCase):
 
     def test_text_type_w_regex_and_no_groups(self):
         schema = {
-            "id": "test",
-            "properties": [('gender', {
-                    'description': '',
-                    'optional': True,
+            'fields': {
+                'gender': {
+                    'required': False,
                     'type': 'text',
                     'vary': False,
-            })],
+                }
+            }
         }
         descriptor = create_slybot_item_descriptor(schema)
         extractors =  {1: {
@@ -174,21 +173,18 @@ class ExtractorTest(TestCase):
 
     def test_extractor_w_empty_string_extraction(self):
         schema = {
-            "id": "test",
-            "properties": [
-                ('gender', {
-                    'description': '',
-                    'optional': True,
+            'fields': {
+                'gender': {
+                    'required': False,
                     'type': 'text',
                     'vary': False,
-                }),
-                ('name', {
-                    'description': '',
-                    'optional': False,
+                },
+                'name': {
+                    'required': True,
                     'type': 'text',
                     'vary': False,
-                }),
-            ],
+                }
+            }
         }
         descriptor = create_slybot_item_descriptor(schema)
         extractors =  {

@@ -7,12 +7,10 @@ from scrapely.descriptor import ItemDescriptor, FieldDescriptor
 from slybot.fieldtypes import FieldTypeManager
 
 def get_iblitem_class(schema):
-    if not schema:
-        schema = {'id': 'item', 'properties': []}
     class IblItem(DictItem):
         fields = defaultdict(dict)
         version_fields = []
-        for name, meta in schema['properties']:
+        for name, meta in schema['fields'].items():
             fields[name] = Field(meta)
             if not meta.get("vary", False):
                 version_fields.append(name)
@@ -24,17 +22,14 @@ def get_iblitem_class(schema):
 
 def create_slybot_item_descriptor(schema):
     field_type_manager = FieldTypeManager()
-    if schema is None:
-        schema = {'id': 'item', 'properties': ()}
     descriptors = []
-    for pname, pdict in schema.get('properties', ()):
-        description = pdict.get('description')
-        required = not pdict.get('optional', True)
-        pclass = field_type_manager.type_processor_class(pdict.get('type'))
+    for pname, pdict in schema['fields'].items():
+        required = pdict['required']
+        pclass = field_type_manager.type_processor_class(pdict['type'])
         processor = pclass()
-        descriptor = SlybotFieldDescriptor(pname, description, processor, required)
+        descriptor = SlybotFieldDescriptor(pname, pname, processor, required)
         descriptors.append(descriptor)
-    return ItemDescriptor(schema['id'], schema.get('description'), descriptors)
+    return ItemDescriptor("", "", descriptors)
 
 class SlybotFieldDescriptor(FieldDescriptor):
     """Extends the scrapely field descriptor to use slybot fieldtypes and

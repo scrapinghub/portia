@@ -1,0 +1,81 @@
+{
+    "default": {
+        "fields": {
+            "determinate": { 
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "description": { 
+                "required": true, 
+                "vary": false, 
+                "type": "safe html"
+            },
+            "weight": { 
+                "required": false, 
+                "vary": false, 
+                "type": "number"
+            },
+            "color": { 
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "season": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "price": {
+                "required": false, 
+                "vary": false, 
+                "type": "price"
+            },
+            "lifecycle": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "categories": {
+                "required": false, 
+                "vary": true, 
+                "type": "safe html"
+            },
+            "product_id": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "name": {
+                "required": true, 
+                "vary": false, 
+                "type": "text"
+            },
+            "url": {
+                "required": false, 
+                "vary": true, 
+                "type": "url"
+            },
+            "days": {
+                "required": false, 
+                "vary": false, 
+                "type": "number"
+            },
+            "species": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "size": {
+                "required": false, 
+                "vary": false, 
+                "type": "number"
+            },
+            "type": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            }
+        }
+    }
+}
