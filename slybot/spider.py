@@ -35,14 +35,9 @@ class IblSpider(BaseSpider):
 
     def __init__(self, name, spec, item_schemas, all_extractors, **kw):
         super(IblSpider, self).__init__(name, **kw)
-        default_item = spec['scrapes']
-        self._default_schema = item_schemas[default_item]
-        if not self._default_schema:
-            self.log("Scraping unknown default item schema: %s" % default_item, \
-                log.WARNING)
 
         self._item_template_pages = sorted((
-            [t.get('scrapes', default_item), dict_to_page(t, 'annotated_body'),
+            [t['scrapes'], dict_to_page(t, 'annotated_body'),
             t.get('extractors', [])] \
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
         ), key=lambda pair: pair[0])
@@ -65,18 +60,15 @@ class IblSpider(BaseSpider):
 
         self.build_url_filter(spec)
 
-        default_item_cls = get_iblitem_class(self._default_schema)
-        default_item_descriptor = create_slybot_item_descriptor(self._default_schema)
-
         self.itemcls_info = {}
         for itemclass_name, triplets in itertools.groupby(self._item_template_pages, operator.itemgetter(0)):
             page_extractors_pairs = map(operator.itemgetter(1, 2), triplets)
             schema = item_schemas[itemclass_name]
-            item_cls = get_iblitem_class(schema) if schema else default_item_cls
+            item_cls = get_iblitem_class(schema)
 
             page_descriptor_pairs = []
             for page, extractors in page_extractors_pairs:
-                item_descriptor = create_slybot_item_descriptor(schema) if schema else default_item_descriptor
+                item_descriptor = create_slybot_item_descriptor(schema)
                 apply_extractors(item_descriptor, extractors, all_extractors)
                 page_descriptor_pairs.append((page, item_descriptor))
 

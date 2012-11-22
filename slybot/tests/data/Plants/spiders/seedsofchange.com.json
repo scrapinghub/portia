@@ -3,7 +3,6 @@
     "start_urls": [
         "http://www.seedsofchange.com/garden_center/browse_category.aspx?id=123"
     ], 
-    "scrapes": "default", 
     "exclude_patterns": [
         "/tellafriend.aspx.+"
     ], 
