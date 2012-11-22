@@ -395,6 +395,12 @@ type : string
   the search form will be posted once per every possible value of the field.
   The field values are extracted from the list of options defined for the field.
 
+name : string : optional
+  If this field is set then it will be used as the option name sent to the server
+  overriding the field name. This can be used to submit values for fields not
+  present in the form (this is useful in some cases like when the data submitted
+  is modified by javascript, i.e in aspx forms).
+
 value: string : optional
   If the field type is "fixed" this value will be used to post the form.
 
