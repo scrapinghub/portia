@@ -24,6 +24,5 @@
     "exclude_patterns": [], 
     "respect_nofollow": true, 
     "follow_patterns": [], 
-    "scrapes": "default", 
     "links_to_follow": "none"
 }
