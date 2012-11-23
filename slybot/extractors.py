@@ -37,12 +37,13 @@ class PipelineExtractor:
         return repr(self.extractors) 
     
 
-def apply_extractors(descriptor, template_extractors_ids, extractors):
+def apply_extractors(descriptor, template_extractors, extractors):
     field_type_manager = FieldTypeManager()
-    template_extractors = [extractors[eid] for eid in template_extractors_ids]
-    for field_name, field_extractors in groupby(template_extractors or (), lambda x: x["field_name"]):
+
+    for field_name, field_extractors in template_extractors.items():
         equeue = []
-        for extractor_doc in field_extractors:
+        for eid in field_extractors:
+            extractor_doc = extractors[eid]
             if "regular_expression" in extractor_doc:
                 equeue.append(create_regex_extractor(extractor_doc["regular_expression"]))
             elif "type_extractor" in extractor_doc: # overrides default one
