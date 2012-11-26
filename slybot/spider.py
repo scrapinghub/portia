@@ -14,7 +14,7 @@ from slybot.item import get_iblitem_class, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
 from slybot.utils import iter_unique_scheme_hostname
 from slybot.linkextractor import LinkExtractor
-from slybot.generic_form import fill_generic_form
+from slybot.generic_form import GenericForm
 
 def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
     processed_data = []
@@ -89,9 +89,8 @@ class IblSpider(BaseSpider):
                 self.login_requests.append(request)
 
             elif rdata["type"] == "form":
-                request = Request(url=rdata.pop("form_url"), meta=rdata,
-                                  callback=self.parse_form_page, dont_filter=True)
-                self.form_requests.append(request)
+                self.generic_form = GenericForm(**kw)
+                self.form_requests.append(self.get_generic_form_start_request(rdata))
 
     def parse_login_page(self, response):
         username = response.request.meta["username"]
@@ -105,11 +104,29 @@ class IblSpider(BaseSpider):
         for req in self._start_requests():
             yield req
 
+    def get_generic_form_start_request(self, form_descriptor):
+        file_fields = list(self.generic_form.get_file_field(form_descriptor))
+        if file_fields:
+            (field_index, field_descriptor) = file_fields.pop(0)
+            form_descriptor['field_index'] = field_index
+            return FormRequest(self.generic_form.get_value(field_descriptor), meta=form_descriptor,
+                              callback=self.parse_field_file_page, dont_filter=True)
+        else:
+            return Request(url=form_descriptor.pop("form_url"), meta=form_descriptor,
+                                  callback=self.parse_form_page, dont_filter=True)
+
+    def parse_field_file_page(self, response):
+        form_descriptor = response.request.meta
+        field_index = form_descriptor['field_index']
+        field_descriptor = form_descriptor['fields'][field_index]
+        self.generic_form.set_values_file_field(field_descriptor, response.body)
+        yield self.get_generic_form_start_request(form_descriptor)
+
     def parse_form_page(self, response):
         try:
-            for (args, url, method) in fill_generic_form(response.url,
-                                                         response.body,
-                                                         response.request.meta):
+            for (args, url, method) in self.generic_form.fill_generic_form(response.url,
+                                                                           response.body,
+                                                                           response.request.meta):
                 yield FormRequest(url, method=method, formdata=args,
                                   callback=self.after_form_page, dont_filter=True)
         except Exception, e:

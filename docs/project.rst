@@ -375,7 +375,7 @@ form_url : string
 xpath : string
   A xpath expression to access the form to be posted.
 
-fields: list
+fields : list
   A list of fields to be posted with the form.
   
 Generic Form Field
@@ -389,11 +389,13 @@ xpath : string
   A xpath expression to access the field to be posted.
 
 type : string
-  The type attribute defines how the field will be posted, currently it has
-  two possible values: "fixed" means that the field will use the value defined
-  in the "value attribute" and posted only once. If the type is "all" it means
-  the search form will be posted once per every possible value of the field.
-  The field values are extracted from the list of options defined for the field.
+  The type attribute defines how the field will be posted, it supports the following values:
+
+    * "fixed": Use the constant value defined by the "value" attribute.
+    * "all": Use all the option values defined in a select field. This type is only supported
+             for select tags.
+    * "file": Use a list of values obtained from a file, the file URL is defined in the "value"
+              attribute. The URL must point to a text file with a value per line.
 
 name : string : optional
   If this field is set then it will be used as the option name sent to the server
@@ -401,8 +403,10 @@ name : string : optional
   present in the form (this is useful in some cases like when the data submitted
   is modified by javascript, i.e in aspx forms).
 
-value: string : optional
-  If the field type is "fixed" this value will be used to post the form.
+value : string : optional
+  If the field type is "fixed" this value will be used to post the form. Note that it is possible
+  to use spider arguments inside this field, using the following sintax: {arg1}, this will use
+  the value of the arg1.
 
 TODO
 ====
