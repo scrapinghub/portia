@@ -1,8 +1,5 @@
 {
     "4fad3762688f920d76000000": {
-        "_id": "4fad3762688f920d76000000", 
-        "field_name": "product_id", 
-        "spider": "seedsofchange", 
         "regular_expression": "(\\d+)"
     }
 }

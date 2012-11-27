@@ -67,9 +67,9 @@ class IblSpider(BaseSpider):
             item_cls = get_iblitem_class(schema)
 
             page_descriptor_pairs = []
-            for page, extractors in page_extractors_pairs:
+            for page, template_extractors in page_extractors_pairs:
                 item_descriptor = create_slybot_item_descriptor(schema)
-                apply_extractors(item_descriptor, extractors, all_extractors)
+                apply_extractors(item_descriptor, template_extractors, all_extractors)
                 page_descriptor_pairs.append((page, item_descriptor))
 
             extractor = InstanceBasedLearningExtractor(page_descriptor_pairs)
