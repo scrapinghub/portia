@@ -88,7 +88,7 @@ class GenericFormTest(TestCase):
             "fields": [
                 {
                   "name": "my_param",
-                  "type": "file",
+                  "type": "url",
                   "value": "file://%s/test_params.txt",
                   "file_values": ["Cars", "Boats", "Houses", "Electronics"]
                 }

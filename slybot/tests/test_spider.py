@@ -143,7 +143,7 @@ class SpiderTest(TestCase):
         response.request = generic_form_request
         requests = list(generic_form_request.callback(response))
         request_list = [request_to_dict(req, spider) for req in requests]
-        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'form_url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', u'type': u'form', 'field_index': 1, u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'file', u'value': u'file://tmp/test_params.txt'}, {u'type': u'file', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'all'}]}, 'headers': {}, 'url': u'file://tmp/test_params.txt', 'dont_filter': False, 'priority': 0, 'callback': 'parse_field_file_page', 'method': 'GET', 'errback': None}]
+        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'form_url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', u'type': u'form', 'field_index': 1, u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'url', u'value': u'file://tmp/test_params.txt'}, {u'type': u'url', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'all'}]}, 'headers': {}, 'url': u'file://tmp/test_params.txt', 'dont_filter': False, 'priority': 0, 'callback': 'parse_field_url_page', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
 
         generic_form_request = requests[0]
@@ -153,7 +153,7 @@ class SpiderTest(TestCase):
 
         requests = list(generic_form_request.callback(response))
         request_list = [request_to_dict(req, spider) for req in requests]
-        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'file', u'value': u'file://tmp/test_params.txt'}, {'file_values': ['Cars', 'Boats'], u'type': u'file', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'all'}], u'type': u'form', 'field_index': 1}, 'headers': {}, 'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': False, 'priority': 0, 'callback': 'parse_form_page', 'method': 'GET', 'errback': None}]
+        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'url', u'value': u'file://tmp/test_params.txt'}, {'file_values': ['Cars', 'Boats'], u'type': u'url', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'all'}], u'type': u'form', 'field_index': 1}, 'headers': {}, 'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': False, 'priority': 0, 'callback': 'parse_form_page', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
 
         generic_form_request = requests[0]

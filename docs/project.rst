@@ -394,8 +394,8 @@ type : string
     * "fixed": Use the constant value defined by the "value" attribute.
     * "all": Use all the option values defined in a select field. This type is only supported
              for select tags.
-    * "file": Use a list of values obtained from a file, the file URL is defined in the "value"
-              attribute. The URL must point to a text file with a value per line.
+    * "url": Use a list of values obtained from a file, the file URL is defined in the "value"
+             attribute. The URL must point to a text file with a value per line.
 
 name : string : optional
   If this field is set then it will be used as the option name sent to the server

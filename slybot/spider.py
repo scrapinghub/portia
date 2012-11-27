@@ -105,7 +105,7 @@ class IblSpider(BaseSpider):
             yield req
 
     def get_generic_form_start_request(self, form_descriptor):
-        file_fields = list(self.generic_form.get_file_field(form_descriptor))
+        file_fields = list(self.generic_form.get_url_field(form_descriptor))
         if file_fields:
             (field_index, field_descriptor) = file_fields.pop(0)
             form_descriptor['field_index'] = field_index
@@ -115,11 +115,11 @@ class IblSpider(BaseSpider):
             return Request(url=form_descriptor.pop("form_url"), meta=form_descriptor,
                                   callback=self.parse_form_page, dont_filter=True)
 
-    def parse_field_file_page(self, response):
+    def parse_field_url_page(self, response):
         form_descriptor = response.request.meta
         field_index = form_descriptor['field_index']
         field_descriptor = form_descriptor['fields'][field_index]
-        self.generic_form.set_values_file_field(field_descriptor, response.body)
+        self.generic_form.set_values_url_field(field_descriptor, response.body)
         yield self.get_generic_form_start_request(form_descriptor)
 
     def parse_form_page(self, response):

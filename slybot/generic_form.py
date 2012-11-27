@@ -22,7 +22,7 @@ class GenericForm:
         elif field_type == 'all':
             select_field = self._pick_node(form, field_descriptor)
             return [[select_field.name, option] for option in select_field.value_options]
-        elif field_type == 'file':
+        elif field_type == 'url':
             if 'name' in field_descriptor:
                 field_name = field_descriptor['name']
             else:
@@ -33,12 +33,12 @@ class GenericForm:
     def get_value(self, field_descriptor):
         return field_descriptor.get('value').format(**self.kwargs)
 
-    def set_values_file_field(self, field_descriptor, body):
+    def set_values_url_field(self, field_descriptor, body):
         field_descriptor['file_values'] = body.split('\n')
 
-    def get_file_field(self, form_descriptor):
+    def get_url_field(self, form_descriptor):
         for i, field_descriptor in enumerate(form_descriptor['fields']):
-            if (field_descriptor['type'] == 'file'
+            if (field_descriptor['type'] == 'url'
                 and (not 'file_values' in field_descriptor or
                      not field_descriptor['file_values'])):
                 yield i, field_descriptor

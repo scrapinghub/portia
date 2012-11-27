@@ -11,12 +11,12 @@
             "fields": [
                 {
                   "xpath": ".//*[@name='_nkw']",
-                  "type": "file",
+                  "type": "url",
                   "value": "file://tmp/test_params.txt"
                 },
                 {
                   "name": "_nkw2",
-                  "type": "file",
+                  "type": "url",
                   "value": "file://tmp/test_params.txt"
                 },
                 {
