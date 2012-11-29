@@ -353,12 +353,13 @@ Used to represent a request to a generic form::
         "fields" : [
             {
                 "xpath": "//*[@name=state]",
-                "type": "all"
+                "type": "iterate",
+                "value": ".*",
             },
             {
                 "xpath": "//*[@name=country]",
-                "type": "fixed",
-                "value": "US"
+                "type": "constants",
+                "value": ["US"]
             }
         ]
     }
@@ -391,11 +392,9 @@ xpath : string
 type : string
   The type attribute defines how the field will be posted, it supports the following values:
 
-    * "fixed": Use the constant value defined by the "value" attribute.
-    * "all": Use all the option values defined in a select field. This type is only supported
-             for select tags.
-    * "url": Use a list of values obtained from a file, the file URL is defined in the "value"
-             attribute. The URL must point to a text file with a value per line.
+    * "constants": Use a list of values defined in the value field.
+    * "iterate": Use the option values defined in a select field. The value for this type is a regex expression used to match the options for the select. If empty it will use all the select options.
+    * "inurl": Use a list of values obtained from the URL defined in the "value" attribute. The URL must point to a text file with a value per line.
 
 name : string : optional
   If this field is set then it will be used as the option name sent to the server
@@ -404,9 +403,8 @@ name : string : optional
   is modified by javascript, i.e in aspx forms).
 
 value : string : optional
-  If the field type is "fixed" this value will be used to post the form. Note that it is possible
-  to use spider arguments inside this field, using the following sintax: {arg1}, this will use
-  the value of the arg1.
+  Define the value(s) to be submitted with this field. The sintax of this attribute depends of the field type (see above).
+  This attribute supports the use of spider arguments, using the following sintax: {arg1}, this will use the value of the arg1.
 
 TODO
 ====

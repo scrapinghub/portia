@@ -11,17 +11,17 @@
             "fields": [
                 {
                   "xpath": ".//*[@name='_nkw']",
-                  "type": "url",
+                  "type": "inurl",
                   "value": "file://tmp/test_params.txt"
                 },
                 {
                   "name": "_nkw2",
-                  "type": "url",
+                  "type": "inurl",
                   "value": "file://tmp/test_params.txt"
                 },
                 {
                   "xpath": ".//*[@name='_in_kw']",
-                  "type": "all"
+                  "type": "iterate"
                 }
             ]
         }

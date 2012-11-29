@@ -11,12 +11,12 @@
             "fields": [
                 {
                   "xpath": ".//*[@name='_nkw']",
-                  "type": "fixed",
-                  "value": "Cars"
+                  "type": "constants",
+                  "value": ["Cars"]
                 },
                 {
                   "xpath": ".//*[@name='_in_kw']",
-                  "type": "all"
+                  "type": "iterate"
                 }
             ]
         }
