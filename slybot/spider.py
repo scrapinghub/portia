@@ -85,19 +85,19 @@ class IblSpider(BaseSpider):
         for rdata in spec.get("init_requests", []):
             if rdata["type"] == "login":
                 request = Request(url=rdata.pop("loginurl"), meta=rdata,
-                                  callback=self.parse_login_page)
+                                  callback=self.parse_login_page, dont_filter=True)
                 self.login_requests.append(request)
 
             elif rdata["type"] == "form":
                 request = Request(url=rdata.pop("form_url"), meta=rdata,
-                                  callback=self.parse_form_page)
+                                  callback=self.parse_form_page, dont_filter=True)
                 self.form_requests.append(request)
 
     def parse_login_page(self, response):
         username = response.request.meta["username"]
         password = response.request.meta["password"]
         args, url, method = fill_login_form(response.url, response.body, username, password)
-        return FormRequest(url, method=method, formdata=args, callback=self.after_login)
+        return FormRequest(url, method=method, formdata=args, callback=self.after_login, dont_filter=True)
 
     def after_login(self, response):
         for result in self.parse(response):
@@ -111,7 +111,7 @@ class IblSpider(BaseSpider):
                                                          response.body,
                                                          response.request.meta):
                 yield FormRequest(url, method=method, formdata=args,
-                                  callback=self.after_form_page)
+                                  callback=self.after_form_page, dont_filter=True)
         except Exception, e:
             self.log(str(e), log.WARNING)
         for req in self._start_requests():
