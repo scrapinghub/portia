@@ -110,7 +110,7 @@ class IblSpider(BaseSpider):
             (field_index, field_descriptor) = file_fields.pop(0)
             form_descriptor['field_index'] = field_index
             return FormRequest(self.generic_form.get_value(field_descriptor), meta=form_descriptor,
-                              callback=self.parse_field_file_page, dont_filter=True)
+                              callback=self.parse_field_url_page, dont_filter=True)
         else:
             return Request(url=form_descriptor.pop("form_url"), meta=form_descriptor,
                                   callback=self.parse_form_page, dont_filter=True)
