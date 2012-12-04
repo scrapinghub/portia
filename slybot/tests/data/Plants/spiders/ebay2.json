@@ -11,8 +11,13 @@
             "fields": [
                 {
                   "xpath": ".//*[@name='_nkw']",
-                  "type": "constants",
-                  "value": ["Cars"]
+                  "type": "inurl",
+                  "value": "file://tmp/test_params.txt"
+                },
+                {
+                  "name": "_nkw2",
+                  "type": "inurl",
+                  "value": "file://tmp/test_params.txt"
                 },
                 {
                   "xpath": ".//*[@name='_in_kw']",
@@ -24,5 +29,6 @@
     "exclude_patterns": [], 
     "respect_nofollow": true, 
     "follow_patterns": [], 
+    "scrapes": "default", 
     "links_to_follow": "none"
 }
