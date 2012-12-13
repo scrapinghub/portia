@@ -14,5 +14,5 @@
     "exclude_patterns": [], 
     "respect_nofollow": true, 
     "follow_patterns": [], 
-    "links_to_follow": "all"
+    "links_to_follow": "patterns"
 }
