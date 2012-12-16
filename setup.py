@@ -4,6 +4,9 @@ try:
 except ImportError:
     from distutils.core import setup
 
+install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml']
+tests_requires = ['jsonschema'] + install_requires
+
 setup(name='slybot',
       version=__version__,
       license='BSD',
@@ -13,7 +16,8 @@ setup(name='slybot',
       url='http://github.com/scrapy/slybot',
       packages=['slybot', 'slybot.fieldtypes', 'slybot.tests'],
       platforms = ['Any'],
-      install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml'],
+      install_requires = install_requires,
+      tests_requires = tests_requires,
       classifiers = ['Development Status :: 4 - Beta',
                      'License :: OSI Approved :: BSD License',
                      'Operating System :: OS Independent',
