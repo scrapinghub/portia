@@ -2,7 +2,7 @@ import json
 from unittest import TestCase
 from os.path import dirname, join
 
-from scrapy.http import HtmlResponse
+from scrapy.http import HtmlResponse, XmlResponse
 from scrapy.utils.reqser import request_to_dict
 
 from scrapely.htmlpage import HtmlPage
@@ -16,7 +16,7 @@ class SpiderTest(TestCase):
 
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
-                "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3"]))
+                "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "cargurus"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -198,4 +198,19 @@ class SpiderTest(TestCase):
                     {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_in_kw=4&_udlo=&_ex_kw=&_nkw=Cars&_ipg=50&_adv=1&_salic=1&_dmd=1&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_sop=12&_sasl=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
                     {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
+
+    def test_links_from_rss(self):
+        body = open(join(_PATH, "data", "rss_sample.xml")).read()
+        response = XmlResponse(url="http://example.com/sample.xml", body=body,
+                headers={'Content-Type': 'application/rss+xml;charset=ISO-8859-1'})
+
+        name = "cargurus"
+        spider = self.smanager.create(name)
+
+        urls = [r.url for r in spider.parse(response)]
+        self.assertEqual(len(urls), 3)
+        self.assertEqual(set(urls), set([
+                "http://www.cargurus.com/Cars/2004-Alfa-Romeo-GT-Reviews-c10012",
+                "http://www.cargurus.com/Cars/2005-Alfa-Romeo-GT-Reviews-c10013",
+                "http://www.cargurus.com/Cars/2007-Alfa-Romeo-GT-Reviews-c10015"]))
 
