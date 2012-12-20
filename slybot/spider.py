@@ -5,6 +5,7 @@ import re
 from scrapy import log
 from scrapy.spider import BaseSpider
 from scrapy.http import Request, HtmlResponse, FormRequest
+
 from scrapely.htmlpage import HtmlPage, dict_to_page
 from scrapely.extraction import InstanceBasedLearningExtractor
 
@@ -162,18 +163,21 @@ class IblSpider(BaseSpider):
 
     def _request_to_follow_from_region(self, htmlregion):
         seen = set()
-
         for link in self.link_extractor.links_to_follow(htmlregion):
-            url = link.url
-            if self.url_filterf(link):
-                # filter out duplicate urls, later we should handle link text
-                if url in seen:
-                    continue
+            request = self._filter_link(link, seen)
+            if request is not None:
+                yield request
+
+    def _filter_link(self, link, seen):
+        url = link.url
+        if self.url_filterf(link):
+            # filter out duplicate urls, later we should handle link text
+            if url not in seen:
                 seen.add(url)
                 request = Request(url)
                 if link.text:
                     request.meta['link_text'] = link.text
-                yield request
+                return request
 
     def start_requests(self):
         start_requests = []
@@ -192,10 +196,12 @@ class IblSpider(BaseSpider):
 
     def parse(self, response):
         """Main handler for all downloaded responses"""
+        content_type = response.headers.get('Content-Type')
         if isinstance(response, HtmlResponse):
             return self.handle_html(response)
+        elif "application/rss+xml" in content_type:
+            return self.handle_rss(response) 
         else:
-            content_type = response.headers.get('Content-Type')
             self.log("Ignoring page with content-type=%r: %s" % (content_type, \
                 response.url), level=log.DEBUG)
 
@@ -209,6 +215,13 @@ class IblSpider(BaseSpider):
                     yield request
         else:
             for request in self._requests_to_follow(htmlpage):
+                yield request
+
+    def handle_rss(self, response):
+        seen = set()
+        for link in self.link_extractor.links_to_follow_from_rss(response):
+            request = self._filter_link(link, seen)
+            if request:
                 yield request
 
     def handle_html(self, response):

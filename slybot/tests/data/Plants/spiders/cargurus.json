@@ -1,0 +1,21 @@
+{
+    "templates": [
+    ], 
+    "start_urls": [
+        "http://www.cargurus.com/Cars/sitemap.html"
+    ], 
+    "exclude_patterns": [
+        "-Pictures-", 
+        "-Specs-", 
+        "-Price-", 
+        "_v", 
+        "-Videos-"
+    ], 
+    "follow_patterns": [
+        "-Overview-", 
+        "-Reviews-", 
+        "/rss/"
+    ], 
+    "links_to_follow": "patterns", 
+    "respect_nofollow": false
+}

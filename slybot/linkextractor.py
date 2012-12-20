@@ -7,6 +7,8 @@ from urlparse import urlparse
 from scrapy.utils.markup import remove_entities
 from scrapy.link import Link
 from scrapy.linkextractor import IGNORED_EXTENSIONS
+from scrapy.selector import XmlXPathSelector
+
 from scrapely.htmlpage import HtmlTag, HtmlTagType
 
 _META_REFRESH_CONTENT_RE = re.compile("(?P<int>(\d*\.)?\d+)\s*;\s*url=(?P<url>.*)")
@@ -103,6 +105,12 @@ class LinkExtractor(object):
             link = self.normalize_link(link)
             if link is not None:
                 yield link
+
+    def links_to_follow_from_rss(self, response):
+        """Extract links from an rss file"""
+        xxs = XmlXPathSelector(response)
+        for url in xxs.select("//item/link/text()").extract():
+            yield self.normalize_link(Link(url.encode(response.encoding)))
             
 def iterlinks(htmlpage):
     """Iterate through the links in the HtmlPage passed
@@ -254,3 +262,4 @@ def iterlinks(htmlpage):
 
     if astart:
         yield mklink(ahref, htmlpage.body[astart:])
+
