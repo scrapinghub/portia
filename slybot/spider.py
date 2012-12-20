@@ -14,7 +14,7 @@ from loginform import fill_login_form
 from slybot.item import get_iblitem_class, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
 from slybot.utils import iter_unique_scheme_hostname
-from slybot.linkextractor import LinkExtractor
+from slybot.linkextractor import HtmlLinkExtractor, RssLinkExtractor
 from slybot.generic_form import GenericForm
 
 def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
@@ -56,7 +56,8 @@ class IblSpider(BaseSpider):
         if isinstance(self.start_urls, basestring):
             self.start_urls = self.start_urls.splitlines()
 
-        self.link_extractor = LinkExtractor()
+        self.html_link_extractor = HtmlLinkExtractor()
+        self.rss_link_extractor = RssLinkExtractor()
         self.allowed_domains = self._get_allowed_domains(self._ipages)
 
         self.build_url_filter(spec)
@@ -163,7 +164,7 @@ class IblSpider(BaseSpider):
 
     def _request_to_follow_from_region(self, htmlregion):
         seen = set()
-        for link in self.link_extractor.links_to_follow(htmlregion):
+        for link in self.html_link_extractor.links_to_follow(htmlregion):
             request = self._filter_link(link, seen)
             if request is not None:
                 yield request
@@ -219,7 +220,7 @@ class IblSpider(BaseSpider):
 
     def handle_rss(self, response):
         seen = set()
-        for link in self.link_extractor.links_to_follow_from_rss(response):
+        for link in self.rss_link_extractor.links_to_follow(response):
             request = self._filter_link(link, seen)
             if request:
                 yield request

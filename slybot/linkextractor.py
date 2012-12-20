@@ -19,15 +19,7 @@ _ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 # allowed protocols
 ALLOWED_SCHEMES = set(['http', 'https', None, ''])
 
-class LinkExtractor(object):
-    """Link extraction for auto scraping
-
-    Links (urls and the anchor text) are extracted from HtmlPage objects.
-
-    Some safe normalization is done (always correct, does not make assumptions
-    about how the site handles URLs). It allows some customization, which we
-    expect to learn for specific websites from the crawl logs.
-    """
+class BaseLinkExtractor(object):
 
     def __init__(self, max_url_len=2083, ignore_extensions=_ignored_exts, 
         allowed_schemes=ALLOWED_SCHEMES):
@@ -43,7 +35,7 @@ class LinkExtractor(object):
     def normalize_link(self, link):
         """Normalize a link
         
-        >>> le = LinkExtractor()
+        >>> le = BaseLinkExtractor()
         >>> l = Link('http://scrapinghub.com/some/path/../dir')
         >>> le.normalize_link(l).url
         'http://scrapinghub.com/some/dir'
@@ -95,6 +87,17 @@ class LinkExtractor(object):
             link.url = parsed._replace(path=path, fragment='').geturl()
         return link
 
+
+class HtmlLinkExtractor(BaseLinkExtractor):
+    """Link extraction for auto scraping
+
+    Links (urls and the anchor text) are extracted from HtmlPage objects.
+
+    Some safe normalization is done (always correct, does not make assumptions
+    about how the site handles URLs). It allows some customization, which we
+    expect to learn for specific websites from the crawl logs.
+    """
+
     def links_to_follow(self, htmlpage):
         """Extract links to follow from an html page
 
@@ -105,12 +108,6 @@ class LinkExtractor(object):
             link = self.normalize_link(link)
             if link is not None:
                 yield link
-
-    def links_to_follow_from_rss(self, response):
-        """Extract links from an rss file"""
-        xxs = XmlXPathSelector(response)
-        for url in xxs.select("//item/link/text()").extract():
-            yield self.normalize_link(Link(url.encode(response.encoding)))
             
 def iterlinks(htmlpage):
     """Iterate through the links in the HtmlPage passed
@@ -263,3 +260,11 @@ def iterlinks(htmlpage):
     if astart:
         yield mklink(ahref, htmlpage.body[astart:])
 
+
+class RssLinkExtractor(BaseLinkExtractor):
+    """Link extraction from RSS feeds"""
+
+    def links_to_follow(self, response):
+        xxs = XmlXPathSelector(response)
+        for url in xxs.select("//item/link/text()").extract():
+            yield self.normalize_link(Link(url.encode(response.encoding)))
