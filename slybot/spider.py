@@ -30,7 +30,7 @@ def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
                     value = [field_descriptor.adapt(x, htmlpage) for x in value]
                 processed_attributes.append((key, value))
         processed_data.append(processed_attributes)
-    return processed_data
+    return [dict(p) for p in processed_data]
 
 class IblSpider(BaseSpider):
 
