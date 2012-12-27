@@ -16,7 +16,8 @@ class SpiderTest(TestCase):
 
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
-                "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "cargurus"]))
+                "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "cargurus",
+                "networkhealth.com"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -213,4 +214,18 @@ class SpiderTest(TestCase):
                 "http://www.cargurus.com/Cars/2004-Alfa-Romeo-GT-Reviews-c10012",
                 "http://www.cargurus.com/Cars/2005-Alfa-Romeo-GT-Reviews-c10013",
                 "http://www.cargurus.com/Cars/2007-Alfa-Romeo-GT-Reviews-c10015"]))
+
+    def test_variants(self):
+        """Ensure variants are extracted as list of dicts"""
+        
+        name = "networkhealth.com"
+        spider = self.smanager.create(name)
+        with open(join(self.smanager.datadir, 'spiders', '%s.json' % name)) as f:
+            spec = json.load(f)
+        template, = spec["templates"]
+        target = HtmlPage(url=template["url"], body=template["original_body"])
+        items, link_regions = spider.extract_items(target)
+        for item in items:
+            for variant in item["variants"]:
+                self.assertEqual(type(variant), dict)
 
