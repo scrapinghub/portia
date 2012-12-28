@@ -1,4 +1,4 @@
-import os, json, tempfile, shutil, atexit
+import tempfile, shutil, atexit
 from zipfile import ZipFile
 
 from zope.interface import implements
@@ -6,14 +6,15 @@ from scrapy.interfaces import ISpiderManager
 from scrapy.utils.misc import load_object
 
 from slybot.spider import IblSpider
+from slybot.utils import open_project_from_dir
 
 class SlybotSpiderManager(object):
 
     implements(ISpiderManager)
 
     def __init__(self, datadir, spider_cls=None):
-        self.datadir = datadir
         self.spider_cls = load_object(spider_cls) if spider_cls else IblSpider
+        self._specs = open_project_from_dir(datadir)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -22,17 +23,13 @@ class SlybotSpiderManager(object):
         return cls(datadir, spider_cls)
 
     def create(self, name, **args):
-        with open(os.path.join(self.datadir, 'spiders', '%s.json' % name)) as f:
-            spec = json.load(f)
-        with open(os.path.join(self.datadir, 'extractors.json')) as f:
-            extractors = json.load(f)
-        with open(os.path.join(self.datadir, 'items.json')) as f:
-            items = json.load(f)
+        spec = self._specs["spiders"][name]
+        items = self._specs["items"]
+        extractors = self._specs["extractors"]
         return self.spider_cls(name, spec, items, extractors, **args)
 
     def list(self):
-        return [os.path.splitext(fname)[0] for fname in \
-                    os.listdir(os.path.join(self.datadir, "spiders")) if fname.endswith(".json")]
+        return self._specs["spiders"].keys()
 
 class ZipfileSlybotSpiderManager(SlybotSpiderManager):
 

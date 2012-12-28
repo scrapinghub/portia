@@ -1,13 +1,10 @@
-import json
 from unittest import TestCase
-from os.path import dirname, join
+from os.path import dirname
 
 from scrapy.http import HtmlResponse
 from scrapy.settings import Settings
 from scrapy.item import DictItem
 from scrapy.exceptions import DropItem
-
-from scrapely.htmlpage import HtmlPage
 
 from slybot.spidermanager import SlybotSpiderManager
 from slybot.dupefilter import DupeFilterPipeline
@@ -20,8 +17,7 @@ class DupeFilterTest(TestCase):
     def test_dupefilter(self):
         name = "seedsofchange2"
         spider = self.smanager.create(name)
-        with open(join(self.smanager.datadir, 'spiders', '%s.json' % name)) as f:
-            spec = json.load(f)
+        spec = self.smanager._specs["spiders"][name]
         t1, t2 = spec["templates"]
 
         dupefilter = DupeFilterPipeline(Settings({"SLYDUPEFILTER_ENABLED": True}))
