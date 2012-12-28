@@ -1,4 +1,3 @@
-import json
 from unittest import TestCase
 from os.path import dirname, join
 
@@ -22,8 +21,7 @@ class SpiderTest(TestCase):
     def test_spider_with_link_template(self):
         name = "seedsofchange"
         spider = self.smanager.create(name)
-        with open(join(self.smanager.datadir, 'spiders', '%s.json' % name)) as f:
-            spec = json.load(f)
+        spec = self.smanager._specs["spiders"][name]
         t1, t2 = spec["templates"]
         target1, target2 = [HtmlPage(url=t["url"], body=t["original_body"]) for t in spec["templates"]]
 
@@ -52,8 +50,7 @@ class SpiderTest(TestCase):
     def test_spider_with_link_region_but_not_link_template(self):
         name = "seedsofchange2"
         spider = self.smanager.create(name)
-        with open(join(self.smanager.datadir, 'spiders', '%s.json' % name)) as f:
-            spec = json.load(f)
+        spec = self.smanager._specs["spiders"][name]
         t1, t2 = spec["templates"]
 
         target1, target2 = [HtmlPage(url=t["url"], body=t["original_body"]) for t in spec["templates"]]
@@ -220,8 +217,7 @@ class SpiderTest(TestCase):
         
         name = "networkhealth.com"
         spider = self.smanager.create(name)
-        with open(join(self.smanager.datadir, 'spiders', '%s.json' % name)) as f:
-            spec = json.load(f)
+        spec = self.smanager._specs["spiders"][name]
         template, = spec["templates"]
         target = HtmlPage(url=template["url"], body=template["original_body"])
         items, link_regions = spider.extract_items(target)
