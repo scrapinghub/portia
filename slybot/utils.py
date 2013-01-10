@@ -24,5 +24,8 @@ def open_project_from_dir(project_dir):
         if fname.endswith(".json"):
             spider_name = os.path.splitext(fname)[0]
             with open(os.path.join(project_dir, "spiders", fname)) as f:
-                specs["spiders"][spider_name] = json.load(f)
+                try:
+                    specs["spiders"][spider_name] = json.load(f)
+                except ValueError:
+                    raise ValueError("Error parsing spider (invalid JSON): %s" % fname)
     return specs
