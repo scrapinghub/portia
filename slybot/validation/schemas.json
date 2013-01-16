@@ -1,6 +1,6 @@
 [
     {
-        "$id": "project",
+        "id": "project",
         "type": "object",
         "properties": {
             "name": {"type": "string", "required": true},
@@ -9,20 +9,20 @@
         }
     },
     {
-        "$id": "items",
+        "id": "items",
         "additionalProperties": {
             "$ref": "item"
         }
     },
     {
-        "$id": "item",
+        "id": "item",
         "type": "object",
         "properties": {
             "fields": {"additionalProperties": {"$ref": "field"}, "required": true}
         }
     },
     {
-        "$id": "field",
+        "id": "field",
         "type": "object",
         "properties": {
             "type": {"type": "string", "required": true},
@@ -31,11 +31,11 @@
         }
     },
     {
-        "$id": "extractors",
+        "id": "extractors",
         "additionalProperties": {"$ref": "extractor"}
     },
     {
-        "$id": "extractor",
+        "id": "extractor",
         "type": "object",
         "properties": {
             "type_extractor": {"type": "string"},
@@ -43,7 +43,7 @@
         }
     },
     {
-        "$id": "spider",
+        "id": "spider",
         "type": "object",
         "properties": {
             "start_urls": {"type": "array", "items": {"type": "string", "format": "url"}, "required": true},
@@ -56,7 +56,7 @@
         }
     },
     {
-        "$id": "template",
+        "id": "template",
         "type": "object",
         "properties": {
             "page_id": {"type": "string", "required": true},
@@ -69,7 +69,7 @@
         }
     },
     {
-        "$id": "request",
+        "id": "request",
         "type": "object",
         "properties": {
             "type": {"type": "string", "required": true}
