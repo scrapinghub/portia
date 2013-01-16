@@ -2,6 +2,8 @@ import re
 import itertools
 from lxml import html
 
+from scrapy.http.request.form import _get_inputs
+
 class GenericForm:
 
     def __init__(self, **kwargs):
@@ -63,7 +65,7 @@ class GenericForm:
                   for field in form_descriptor['fields']]
 
         for params in itertools.product(*values):
-            form_values = dict((key, value) for (key, value) in form.form_values())
+            form_values = dict(_get_inputs(form, None, False, None, None))
             for name, option in params:
                 form_values[name] = option
             yield form_values.items(), form.action or form.base_url, form.method
