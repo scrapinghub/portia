@@ -9,7 +9,7 @@ _PATH = dirname(__file__)
 
 def load_schemas():
     filename = join(_PATH, "schemas.json")
-    return dict((s["$id"], s) for s in json.load(open(filename)))
+    return dict((s["id"], s) for s in json.load(open(filename)))
 
 _SCHEMAS = load_schemas()
 
@@ -35,7 +35,7 @@ class SlybotJsonSchemaValidator(Draft3Validator):
         return None
 
 def get_schema_validator(schema):
-    resolver = RefResolver(_SCHEMAS)
+    resolver = RefResolver("", schema, _SCHEMAS)
     return SlybotJsonSchemaValidator(_SCHEMAS[schema], resolver=resolver)
 
 def validate_project_schema(specs):
