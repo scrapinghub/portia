@@ -26,7 +26,7 @@ class GenericFormTest(TestCase):
 
         generic_form = GenericForm()
         start_requests = list(generic_form.fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)
 
     def test_simple_search_form_2_values(self):
@@ -47,8 +47,7 @@ class GenericFormTest(TestCase):
 
         generic_form = GenericForm()
         start_requests = list(generic_form.fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Boats'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', u'Boats'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)
 
     def test_advanced_search_form(self):
@@ -73,10 +72,7 @@ class GenericFormTest(TestCase):
 
         generic_form = GenericForm()
         start_requests = list(generic_form.fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '2'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '3'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '4'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '2'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '3'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '4'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)
 
     def test_advanced_search_form_regex(self):
@@ -102,8 +98,7 @@ class GenericFormTest(TestCase):
 
         generic_form = GenericForm()
         start_requests = list(generic_form.fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '2'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', u'Cars'), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '2'), ('_nkw', u'Cars'), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)
 
 
@@ -125,7 +120,7 @@ class GenericFormTest(TestCase):
 
         generic_form = GenericForm()
         start_requests = list(generic_form.fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', ''), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), (u'my_param', u'Cars'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), (u'my_param', u'Cars'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', ''), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)
 
     def test_simple_search_form_with_file_type(self):
@@ -147,9 +142,6 @@ class GenericFormTest(TestCase):
 
         generic_form = GenericForm()
         start_requests = list(generic_form.fill_generic_form(url, body, form_descriptor))
-        expected_requests = [([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', ''), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), (u'my_param', u'Cars'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', ''), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), (u'my_param', u'Boats'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', ''), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), (u'my_param', u'Houses'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET'),
-                             ([('_in_kw', '1'), ('_udlo', ''), ('_ex_kw', ''), ('_nkw', ''), ('_ipg', '50'), ('_adv', '1'), ('_salic', '1'), ('_dmd', '1'), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_sop', '12'), (u'my_param', u'Electronics'), ('_sasl', '')], 'http://www.ebay.com/sch/i.html', 'GET')]
+        expected_requests = [([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), (u'my_param', u'Cars'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', ''), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), (u'my_param', u'Boats'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', ''), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), (u'my_param', u'Houses'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', ''), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET'), ([('_adv', '1'), ('_ex_kw', ''), ('_ftrv', '1'), ('_ftrt', '901'), ('_sabdlo', u''), ('_sabdhi', u''), ('_sop', '12'), ('_samihi', u''), ('_ipg', '50'), ('_salic', '1'), (u'my_param', u'Electronics'), ('_sasl', ''), ('_udlo', ''), ('_okw', u''), ('_fsradio', '&LH_SpecificSeller=1'), ('_udhi', ''), ('_in_kw', '1'), ('_nkw', ''), ('_sacat', '0'), ('_oexkw', u''), ('_dmd', '1'), ('_saslop', '1'), ('_samilow', u'')], 'http://www.ebay.com/sch/i.html', 'GET')]
         self.assertEqual(start_requests, expected_requests)
 
