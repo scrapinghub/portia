@@ -45,12 +45,12 @@ class SlybotFieldDescriptor(FieldDescriptor):
         # add an adapt method
         self.adapt = field_type_processor.adapt
 
-def create_item_version(item_cls, item):
+def create_item_version(item):
     """Item version based on hashlib.sha1 algorithm"""
-    if not item_cls.version_fields:
+    if not item.version_fields:
         return
     _hash = hashlib.sha1()
-    for attrname in item_cls.version_fields:
+    for attrname in item.version_fields:
         _hash.update(repr(item.get(attrname)))
     return _hash.digest()
 
