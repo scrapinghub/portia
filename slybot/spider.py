@@ -58,8 +58,10 @@ class IblSpider(BaseSpider):
 
         self.html_link_extractor = HtmlLinkExtractor()
         self.rss_link_extractor = RssLinkExtractor()
-        self.allowed_domains = self._get_allowed_domains(self._ipages)
-
+        self.allowed_domains = spec.get('allowed_domains',
+                                        self._get_allowed_domains(self._ipages))
+        if not self.allowed_domains:
+            self.allowed_domains = None
         self.build_url_filter(spec)
 
         self.itemcls_info = {}
@@ -201,7 +203,7 @@ class IblSpider(BaseSpider):
         if isinstance(response, HtmlResponse):
             return self.handle_html(response)
         elif "application/rss+xml" in content_type:
-            return self.handle_rss(response) 
+            return self.handle_rss(response)
         else:
             self.log("Ignoring page with content-type=%r: %s" % (content_type, \
                 response.url), level=log.DEBUG)
