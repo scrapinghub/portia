@@ -197,7 +197,7 @@ class IblSpider(BaseSpider):
 
     def parse(self, response):
         """Main handler for all downloaded responses"""
-        content_type = response.headers.get('Content-Type')
+        content_type = response.headers.get('Content-Type', '')
         if isinstance(response, HtmlResponse):
             return self.handle_html(response)
         elif "application/rss+xml" in content_type:
