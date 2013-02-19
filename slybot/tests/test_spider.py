@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os.path import dirname, join
 
-from scrapy.http import HtmlResponse, XmlResponse
+from scrapy.http import Response, HtmlResponse, XmlResponse
 from scrapy.utils.reqser import request_to_dict
 
 from scrapely.htmlpage import HtmlPage
@@ -15,7 +15,7 @@ class SpiderTest(TestCase):
 
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
-                "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "cargurus",
+                "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "ebay4", "cargurus",
                 "networkhealth.com"]))
 
     def test_spider_with_link_template(self):
@@ -186,6 +186,18 @@ class SpiderTest(TestCase):
                 "http://www.cargurus.com/Cars/2004-Alfa-Romeo-GT-Reviews-c10012",
                 "http://www.cargurus.com/Cars/2005-Alfa-Romeo-GT-Reviews-c10013",
                 "http://www.cargurus.com/Cars/2007-Alfa-Romeo-GT-Reviews-c10015"]))
+
+    def test_empty_content_type(self):
+        name = "ebay4"
+        spider = self.smanager.create(name)
+        generic_form_request = list(spider.start_requests())[0]
+        
+        response = Response(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc", 
+                            body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
+        response.request = generic_form_request
+        # must not raise an error
+        for result in spider.parse(response):
+            pass
 
     def test_variants(self):
         """Ensure variants are extracted as list of dicts"""
