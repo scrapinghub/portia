@@ -54,7 +54,7 @@ The line::
     EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
     
 is optional, but recommended. As slybot spiders are not absolutely customizable as a common scrapy spider, it
-can face some unexpected and uncontrollable situations thad leads them to a neverending crawling. The
+can face some unexpected and uncontrollable situations that leads them to a neverending crawling. The
 specified extension is a safe measure in order to avoid that. It works by checking each fixed period of time, that
 a minimal number of items has been scraped along the same period. Refer to ``slybot/closespider.py`` for details
 
