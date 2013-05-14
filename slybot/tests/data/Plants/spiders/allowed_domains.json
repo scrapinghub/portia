@@ -1,0 +1,14 @@
+{
+    "templates": [], 
+    "start_urls": [
+        "http://www.ebay.com/sch/ebayadvsearch/?rt=nc"
+    ], 
+    "allowed_domains": [
+        "www.ebay.com",
+        "www.yahoo.com"
+    ], 
+    "exclude_patterns": [], 
+    "respect_nofollow": true, 
+    "follow_patterns": [], 
+    "links_to_follow": "none"
+}

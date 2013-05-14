@@ -16,7 +16,7 @@ class SpiderTest(TestCase):
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
                 "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "ebay4", "cargurus",
-                "networkhealth.com"]))
+                "networkhealth.com", "allowed_domains", "any_allowed_domains"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -165,12 +165,30 @@ class SpiderTest(TestCase):
         spider = self.smanager.create(name, **args)
         generic_form_request = list(spider.start_requests())[0]
 
-        response = HtmlResponse(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc", body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
+        response = HtmlResponse(url="http://www.ebay.com/sch/ebayadvsearch/?rt=nc", body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
         response.request = generic_form_request
         request_list = [request_to_dict(req, spider)
                              for req in generic_form_request.callback(response)]
-        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=1&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=2&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=3&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=4&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse', 'method': 'GET', 'errback': None}]
+        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=1&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=2&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=3&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=4&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
+
+    def test_allowed_domains(self):
+        name = "allowed_domains"
+        spider = self.smanager.create(name)
+        expected = ['www.ebay.com', 'www.yahoo.com']
+        self.assertEqual(spider.allowed_domains, expected)
+
+    def test_allowed_domains_all(self):
+        name = "any_allowed_domains"
+        spider = self.smanager.create(name)
+        expected = None
+        self.assertEqual(spider.allowed_domains, expected)
+
+    def test_allowed_domains_previous_behavior(self):
+        name = "cargurus"
+        spider = self.smanager.create(name)
+        expected = ['www.cargurus.com']
+        self.assertEqual(spider.allowed_domains, expected)
 
     def test_links_from_rss(self):
         body = open(join(_PATH, "data", "rss_sample.xml")).read()

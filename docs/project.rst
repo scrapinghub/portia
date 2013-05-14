@@ -179,6 +179,7 @@ The Spider object is the top-level object that describes a slybot spider::
 
     {
         "start_urls": list of strings,
+        "allowed_domains": list of strings,
         "links_to_follow": string,
         "follow_patterns": list of strings,
         "exclude_patterns": list of strings,
@@ -191,6 +192,9 @@ Attributes:
 
 start_urls : list of strings
   The list of URLs the spider will start crawling from
+
+allowed_domains : list of strings : optional
+  The list of domains that can be crawled. If set to an empty list it will allow any domain. If this variable is not set then the list of allowed domains is extracted from the start urls.
 
 links_to_follow : string
   Either one of these values:
