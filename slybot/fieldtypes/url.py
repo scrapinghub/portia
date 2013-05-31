@@ -15,7 +15,7 @@ class UrlFieldTypeProcessor(object):
 
     def adapt(self, text, htmlpage):
         text = text.encode(htmlpage.encoding)
-        joined = urljoin(get_base_url(htmlpage), text)
+        joined = urljoin(get_base_url(htmlpage).encode(htmlpage.encoding), text)
         return safe_download_url(unquote_markup(joined, encoding=htmlpage.encoding))
 
     def render(self, field_name, field_value, item):
