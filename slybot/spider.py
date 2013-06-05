@@ -11,7 +11,7 @@ from scrapely.extraction import InstanceBasedLearningExtractor
 
 from loginform import fill_login_form
 
-from slybot.item import get_iblitem_class, create_slybot_item_descriptor
+from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
 from slybot.utils import iter_unique_scheme_hostname
 from slybot.linkextractor import HtmlLinkExtractor, RssLinkExtractor
@@ -68,7 +68,7 @@ class IblSpider(BaseSpider):
         for itemclass_name, triplets in itertools.groupby(self._item_template_pages, operator.itemgetter(0)):
             page_extractors_pairs = map(operator.itemgetter(1, 2), triplets)
             schema = item_schemas[itemclass_name]
-            item_cls = get_iblitem_class(schema)
+            item_cls = SlybotItem.create_iblitem_class(schema)
 
             page_descriptor_pairs = []
             for page, template_extractors in page_extractors_pairs:

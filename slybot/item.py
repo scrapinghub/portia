@@ -6,20 +6,22 @@ from scrapely.descriptor import ItemDescriptor, FieldDescriptor
 
 from slybot.fieldtypes import FieldTypeManager
 
-def get_iblitem_class(schema):
-    class IblItem(DictItem):
-        fields = defaultdict(dict)
-        version_fields = []
-        for name, meta in schema['fields'].items():
-            fields[name] = Field(meta)
-            if not meta.get("vary", False):
-                version_fields.append(name)
-        version_fields = sorted(version_fields)
-        # like DictItem.__setitem__ but doesn't check the field is declared
-        def __setitem__(self, name, value):
-            self._values[name] = value
-    return IblItem
-
+class SlybotItem(DictItem):
+    # like DictItem.__setitem__ but doesn't check the field is declared
+    def __setitem__(self, name, value):
+        self._values[name] = value
+    @classmethod
+    def create_iblitem_class(cls, schema):
+        class IblItem(cls):
+            fields = defaultdict(dict)
+            version_fields = []
+            for _name, _meta in schema['fields'].items():
+                fields[_name] = Field(_meta)
+                if not _meta.get("vary", False):
+                    version_fields.append(_name)
+            version_fields = sorted(version_fields)
+        return IblItem
+   
 def create_slybot_item_descriptor(schema):
     field_type_manager = FieldTypeManager()
     descriptors = []
