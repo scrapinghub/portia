@@ -1,92 +1,17 @@
 """
 Link extraction for auto scraping
 """
-import re, os, posixpath
+import re
 from urlparse import urljoin
-from urlparse import urlparse
 from scrapy.utils.markup import remove_entities
 from scrapy.link import Link
-from scrapy.linkextractor import IGNORED_EXTENSIONS
-from scrapy.selector import XmlXPathSelector
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType
 
-_META_REFRESH_CONTENT_RE = re.compile("(?P<int>(\d*\.)?\d+)\s*;\s*url=(?P<url>.*)")
+from slybot.linkextractor.base import BaseLinkExtractor
+
+_META_REFRESH_CONTENT_RE = re.compile(r"(?P<int>(\d*\.)?\d+)\s*;\s*url=(?P<url>.*)")
 _ONCLICK_LINK_RE = re.compile("(?P<sep>('|\"))(?P<url>.+?)(?P=sep)")
-
-_ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
-
-# allowed protocols
-ALLOWED_SCHEMES = set(['http', 'https', None, ''])
-
-class BaseLinkExtractor(object):
-
-    def __init__(self, max_url_len=2083, ignore_extensions=_ignored_exts, 
-        allowed_schemes=ALLOWED_SCHEMES):
-        """Creates a new LinkExtractor
-
-        The defaults are a good guess for the first time crawl. After that, we
-        expect that they can be learned.
-        """
-        self.max_url_len = max_url_len
-        self.ignore_extensions = ignore_extensions
-        self.allowed_schemes = allowed_schemes
-    
-    def normalize_link(self, link):
-        """Normalize a link
-        
-        >>> le = BaseLinkExtractor()
-        >>> l = Link('http://scrapinghub.com/some/path/../dir')
-        >>> le.normalize_link(l).url
-        'http://scrapinghub.com/some/dir'
-        >>> l = Link('http://scrapinghub.com/some//./path/')
-        >>> le.normalize_link(l).url
-        'http://scrapinghub.com/some/path/'
-
-        Files with disallowed extentions or protocols are not returned
-        >>> le.normalize_link(Link('myimage.jpg')) is None
-        True
-        >>> le.normalize_link(Link('file:///tmp/mydoc.htm')) is None
-        True
-        >>> le.normalize_link(Link('http://scrapinghub.com')).url
-        'http://scrapinghub.com/'
-        
-        Fragments are removed
-        >>> le.normalize_link(Link('http://example.com/#something')).url
-        'http://example.com/'
-        >>> le.normalize_link(Link('http://example.com/#something')).fragment
-        'something'
-        >>> le.normalize_link(Link('http://scrapinghub.com#some fragment')).url
-        'http://scrapinghub.com/'
-
-        Ajax crawling
-        >>> le.normalize_link(Link('http://example.com/#!something')).url
-        'http://example.com/?_escaped_fragment_=something'
-        >>> le.normalize_link(Link('http://example.com/page.html?arg=1#!something')).url
-        'http://example.com/page.html?arg=1&_escaped_fragment_=something'
-        """
-        if len(link.url) > self.max_url_len:
-            return
-        parsed = urlparse(link.url)
-        extention = os.path.splitext(parsed.path)[1].lower() 
-        if parsed.scheme not in self.allowed_schemes or \
-                extention in self.ignore_extensions:
-            return
-        # path normalization
-        path = parsed.path or '/'
-        path = path if path[0] != '.' else '/' + path
-        path = posixpath.normpath(path)
-        if parsed.path.endswith('/') and not path.endswith('/'):
-            path += '/'
-        if parsed.fragment.startswith('!'):
-            query = '_escaped_fragment_=%s' % parsed.fragment[1:]
-            query = parsed.query + '&' + query if parsed.query else query
-            parsed = parsed._replace(query=query)
-        link.fragment = parsed.fragment
-        if path != parsed.path or parsed.fragment:
-            link.url = parsed._replace(path=path, fragment='').geturl()
-        return link
-
 
 class HtmlLinkExtractor(BaseLinkExtractor):
     """Link extraction for auto scraping
@@ -261,10 +186,3 @@ def iterlinks(htmlpage):
         yield mklink(ahref, htmlpage.body[astart:])
 
 
-class RssLinkExtractor(BaseLinkExtractor):
-    """Link extraction from RSS feeds"""
-
-    def links_to_follow(self, response):
-        xxs = XmlXPathSelector(response)
-        for url in xxs.select("//item/link/text()").extract():
-            yield self.normalize_link(Link(url.encode(response.encoding)))
