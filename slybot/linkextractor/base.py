@@ -31,6 +31,7 @@ class BaseLinkExtractor(object):
     def normalize_link(self, link):
         """Normalize a link
         
+        >>> from scrapy.link import Link
         >>> le = BaseLinkExtractor()
         >>> l = Link('http://scrapinghub.com/some/path/../dir')
         >>> le.normalize_link(l).url
