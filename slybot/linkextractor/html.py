@@ -23,17 +23,13 @@ class HtmlLinkExtractor(BaseLinkExtractor):
     expect to learn for specific websites from the crawl logs.
     """
 
-    def links_to_follow(self, htmlpage):
+    def _extract_links(self, htmlpage):
         """Extract links to follow from an html page
 
-        This uses `iterlinks` to read the links in the page
-        and then applies link normalization. 
+        This uses `iterlinks` to read the links in the page.
         """
-        for link in iterlinks(htmlpage):
-            link = self.normalize_link(link)
-            if link is not None:
-                yield link
-            
+        return iterlinks(htmlpage)
+ 
 def iterlinks(htmlpage):
     """Iterate through the links in the HtmlPage passed
 

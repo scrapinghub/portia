@@ -25,8 +25,15 @@ class BaseLinkExtractor(object):
         self.ignore_extensions = ignore_extensions
         self.allowed_schemes = allowed_schemes
     
-    def links_to_follow(self, source):
+    def _extract_links(self, source):
         raise NotImplementedError
+
+    def links_to_follow(self, text):
+        """Returns normalized extracted links"""
+        for link in self._extract_links(text):
+            link = self.normalize_link(link)
+            if link is not None:
+                yield link
 
     def normalize_link(self, link):
         """Normalize a link
