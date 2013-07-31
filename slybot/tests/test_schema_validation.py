@@ -7,7 +7,7 @@ from slybot.validation.schema import get_schema_validator, \
             ValidationError, validate_project_schema
 from slybot.utils import open_project_from_dir
 
-_TEST_PROJECT_DIR = join(dirname(__file__), "data/Plants")
+_TEST_PROJECT_DIR = join(dirname(__file__), "data/SampleProject")
 
 class JsonSchemaTest(TestCase):
 

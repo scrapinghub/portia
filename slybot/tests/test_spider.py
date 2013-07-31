@@ -11,7 +11,7 @@ from slybot.spidermanager import SlybotSpiderManager
 _PATH = dirname(__file__)
 
 class SpiderTest(TestCase):
-    smanager = SlybotSpiderManager("%s/data/Plants" % _PATH)
+    smanager = SlybotSpiderManager("%s/data/SampleProject" % _PATH)
 
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
