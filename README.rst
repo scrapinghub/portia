@@ -76,9 +76,9 @@ If you know how to use scrapy, you already know the alternatives to pass those a
 either use your customized settings module with all the settings you need, and indicate it on the command line using the environment
 variable ``SCRAPY_SETTINGS_MODULE``, or use the ``slybot.settings`` module and give the remaining
 settings in a ``local_slybot_settings.py`` file somewhere in your python path, or pass the additional settings in command
-line. You can right now do a test with our test project in ``slybot/tests/data/Plants``, by running, inside the current folder::
+line. You can right now do a test with our test project in ``slybot/tests/data/SampleProject``, by running, inside the current folder::
 
-    scrapy list -s PROJECT_DIR=slybot/tests/data/Plants
+    scrapy list -s PROJECT_DIR=slybot/tests/data/SampleProject
 
 and then use the scrapy ``crawl`` command for run one of the available spiders that provides the list. 
 

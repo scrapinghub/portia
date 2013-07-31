@@ -12,7 +12,7 @@ from slybot.dupefilter import DupeFilterPipeline
 _PATH = dirname(__file__)
 
 class DupeFilterTest(TestCase):
-    smanager = SlybotSpiderManager("%s/data/Plants" % _PATH)
+    smanager = SlybotSpiderManager("%s/data/SampleProject" % _PATH)
 
     def test_dupefilter(self):
         name = "seedsofchange2"

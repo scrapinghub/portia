@@ -9,8 +9,8 @@ from slybot.linkextractor.base import BaseLinkExtractor
 class RssLinkExtractor(BaseLinkExtractor):
     """Link extraction from RSS feeds"""
 
-    def links_to_follow(self, response):
+    def _extract_links(self, response):
         xxs = XmlXPathSelector(response)
         for url in xxs.select("//item/link/text()").extract():
-            yield self.normalize_link(Link(url.encode(response.encoding)))
+            yield Link(url.encode(response.encoding))
 
