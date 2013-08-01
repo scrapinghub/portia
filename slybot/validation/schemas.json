@@ -47,6 +47,7 @@
         "type": "object",
         "properties": {
             "start_urls": {"type": "array", "items": {"type": "string", "format": "url"}, "required": true},
+            "feed_start_urls": {"type": "array", "items": {"$ref": "feed"}},
             "links_to_follow": {"type": "string", "enum": ["none", "patterns"], "required": true},
             "follow_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "exclude_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
@@ -67,6 +68,23 @@
             "extractors": {"additionalProperties": {"type": "array", "items": {"type": "string"}}, "required": true},
             "annotated_body": {"type": "string", "required": true},
             "original_body": {"type": "string", "required": true}
+        }
+    },
+    {
+        "id": "feed",
+        "type": "object",
+        "properties": {
+            "url": {"type": "string", "format": "url", "required": true},
+            "link_extractor": {"$ref": "link_extractor", "required": true}
+        }
+    },
+    {
+        "id": "link_extractor",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "required": true},
+            "value": {"type": "any", "required": true},
+            "additionalProperties": {"type": "any"}
         }
     },
     {

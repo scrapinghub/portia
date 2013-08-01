@@ -13,8 +13,8 @@ from loginform import fill_login_form
 
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
-from slybot.utils import iter_unique_scheme_hostname
-from slybot.linkextractor import HtmlLinkExtractor, RssLinkExtractor
+from slybot.utils import iter_unique_scheme_hostname, htmlpage_from_response
+from slybot.linkextractor import HtmlLinkExtractor, RssLinkExtractor, create_linkextractor_from_specs
 from slybot.generic_form import GenericForm
 
 def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
@@ -55,6 +55,7 @@ class IblSpider(BaseSpider):
         self.start_urls = self.start_urls or spec.get('start_urls')
         if isinstance(self.start_urls, basestring):
             self.start_urls = self.start_urls.splitlines()
+        self.feed_start_urls = spec.get('feed_start_urls', [])
 
         self.html_link_extractor = HtmlLinkExtractor()
         self.rss_link_extractor = RssLinkExtractor()
@@ -194,8 +195,19 @@ class IblSpider(BaseSpider):
             yield req
 
     def _start_requests(self):
-        return [Request(r, callback=self.parse, dont_filter=True) \
-            for r in self.start_urls]
+        for url in self.start_urls:
+            yield Request(url, callback=self.parse, dont_filter=True)
+        for info in self.feed_start_urls:
+            yield self._feed_start_request(info)
+
+    def _feed_start_request(self, info):
+        url = info["url"]
+        specs = info["link_extractor"]
+        linkextractor = create_linkextractor_from_specs(specs)
+        def _callback(self, response):
+            for link in linkextractor.links_to_follow(response):
+                yield Request(url=link.url, callback=self.parse)
+        return Request(url=url, callback=_callback)
 
     def parse(self, response):
         """Main handler for all downloaded responses"""
@@ -229,8 +241,7 @@ class IblSpider(BaseSpider):
                 yield request
 
     def handle_html(self, response):
-        htmlpage = HtmlPage(response.url, response.headers, \
-                    response.body_as_unicode(), encoding=response.encoding)
+        htmlpage = htmlpage_from_response(response)
         items, link_regions = self.extract_items(htmlpage)
         for item in items:
             yield item

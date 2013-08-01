@@ -179,6 +179,7 @@ The Spider object is the top-level object that describes a slybot spider::
 
     {
         "start_urls": list of strings,
+        "feed_start_urls": list of feed objects,
         "allowed_domains": list of strings,
         "links_to_follow": string,
         "follow_patterns": list of strings,
@@ -192,6 +193,9 @@ Attributes:
 
 start_urls : list of strings
   The list of URLs the spider will start crawling from
+
+feed_start_urls : list of objects : optional
+  A list of feed objects. Used to define non-HTML feeds start urls.
 
 allowed_domains : list of strings : optional
   The list of domains that can be crawled. If set to an empty list it will allow any domain. If this variable is not set then the list of allowed domains is extracted from the start urls.
@@ -213,7 +217,7 @@ respect_nofollow : boolean
   Whether to respect `rel=nofollow`_. Defaults to false.
   
 templates : list of objects
-  A list of templates objects.
+  A list of template objects.
 
 init_requests : list of request objects : optional
   A list of requests objects that will be executed (sequentially, in order)
@@ -250,6 +254,8 @@ original_body : string
 
 Extractor
 ---------
+
+Attributes:
 
 type_extractor : string : optional
   If defined, it will override the default extractor for the field. For allowed
@@ -409,6 +415,50 @@ name : string : optional
 value : string : optional
   Define the value(s) to be submitted with this field. The sintax of this attribute depends of the field type (see above).
   This attribute supports the use of spider arguments, using the following sintax: {arg1}, this will use the value of the arg1.
+
+Feed
+----
+
+::
+
+    {
+        "url": string,
+        "link_extractor": {
+            "type": string,
+            "value": string,
+            ...
+        }
+    }
+
+Attributes:
+
+url : string
+  Url to the feed (the scheme can be anyone supported by the scrapy library)
+
+link_extractor : link_extractor object
+  Specify how to extract links from the feed
+
+Link Extractor
+--------------
+
+Defines a link extractor object. Except in the case of ``module`` type, all types configure a base link extractor class. But all link extractors must have
+the same interface (see slybot.linkextractor.BaseLinkExtractor)
+
+Attributes:
+
+type : string
+  Defines how to interpret the string in the 'value' attribute. Current supported values for this attribute are:
+
+  * ``column`` - value is an integer index indicating a column number. Link source is regarded as csv formatted ``scrapy.http.TextResponse``.
+  * ``xpath`` - value is an xpath. Link source is regarded as a ``scrapy.http.XmlResponse``.
+  * ``regex`` - value is a regular expression. Link source is regarded as a ``scrapy.http.TextResponse``.
+  * ``module`` - value is a python module path. Link source is a ``scrapy.http.Response`` or subclass, depending on implementation requirements.
+  * ``html`` - a shortcut for ``module`` type with value ``slybot.linkextractor.HtmlLinkExtractor``. The content of the value attribute is ignored. Source is a ``scrapely.htmlpage.HtmlPage`` object or a ``scrapy.http.HtmlResponse``.
+
+value : any
+  The content is specific to the defined type.
+
+Additional attributes can be given. They are passed as extra keyword argument for the link extractor class constructor.
 
 TODO
 ====

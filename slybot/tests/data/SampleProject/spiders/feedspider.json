@@ -1,0 +1,18 @@
+{
+    "templates": [],
+    "start_urls": [],
+    "feed_start_urls": [
+        {
+            "url": "http://www.example.com/products.csv",
+            "link_extractor": {
+                "type": "column",
+                "value": 1,
+                "delimiter": ","
+            }
+        }
+    ], 
+    "exclude_patterns": [], 
+    "follow_patterns": [], 
+    "links_to_follow": "patterns", 
+    "respect_nofollow": true
+}
