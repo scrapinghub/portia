@@ -28,9 +28,9 @@ class BaseLinkExtractor(object):
     def _extract_links(self, source):
         raise NotImplementedError
 
-    def links_to_follow(self, text):
+    def links_to_follow(self, source):
         """Returns normalized extracted links"""
-        for link in self._extract_links(text):
+        for link in self._extract_links(source):
             link = self.normalize_link(link)
             if link is not None:
                 yield link

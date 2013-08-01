@@ -1,5 +1,5 @@
 from unittest import TestCase
-from scrapy.http import TextResponse
+from scrapy.http import TextResponse, HtmlResponse
 
 from slybot.linkextractor import (
         create_linkextractor_from_specs,
@@ -126,3 +126,16 @@ class Test_CsvLinkExtractor(TestCase):
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[1].url, 'http://www.example.com/path2')
 
+html = """
+<a href="http://www.example.com/path">Click here</a>
+"""
+
+class Test_HtmlLinkExtractor(TestCase):
+    def test_simple(self):
+        specs = {"type": "html", "value": None}
+        lextractor = create_linkextractor_from_specs(specs)
+        response = HtmlResponse(url='http://www.example.com/', body=html)
+        links = list(lextractor.links_to_follow(response))
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0].url, 'http://www.example.com/path')
+        self.assertEqual(links[0].text, 'Click here')

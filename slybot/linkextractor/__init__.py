@@ -13,7 +13,6 @@ _TYPE_MAP = (
     ('regex', RegexLinkExtractor),
     ('xpath', XmlLinkExtractor),
     ('column', CsvLinkExtractor),
-    ('html', HtmlLinkExtractor),
 )
 def create_linkextractor_from_specs(specs):
     """Return a link extractor instance from specs. By default, return a HtmlLinkExtractor.
@@ -23,6 +22,8 @@ def create_linkextractor_from_specs(specs):
     if ltype == 'module':
         cls = load_object(value)
         return cls(**specs)
+    if ltype == 'html':
+        return HtmlLinkExtractor(**specs)
     for key, cls in _TYPE_MAP:
         if key == ltype:
             return cls(value, **specs)

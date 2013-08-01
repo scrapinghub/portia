@@ -1,5 +1,4 @@
 import csv
-print csv
 from cStringIO import StringIO
 
 from scrapy.link import Link
