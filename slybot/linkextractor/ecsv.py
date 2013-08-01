@@ -12,7 +12,7 @@ _FORMAT_PARAMETERS = (
 
 class CsvLinkExtractor(BaseLinkExtractor):
     def __init__(self, column=0, **kwargs):
-        self.fmtparams = dict((key, kwargs.pop(key, default)) for key, default in _FORMAT_PARAMETERS)
+        self.fmtparams = dict((key, kwargs.pop(key, default).encode()) for key, default in _FORMAT_PARAMETERS)
         super(CsvLinkExtractor, self).__init__(**kwargs)
         self.allowed_schemes = filter(lambda x: x and isinstance(x, basestring), self.allowed_schemes)
         self.column = column
