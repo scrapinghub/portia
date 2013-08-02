@@ -18,7 +18,6 @@ class CsvLinkExtractor(BaseLinkExtractor):
         self.column = column
 
     def _extract_links(self, response):
-        """First extract regex groups(). If empty, extracts from regex group()"""
         buff = StringIO(response.body)
         reader = csv.reader(buff, **self.fmtparams)
         for row in reader:
