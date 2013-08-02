@@ -21,7 +21,6 @@ from .url import UrlFieldTypeProcessor
 from .number import NumberTypeProcessor
 from .point import GeoPointFieldTypeProcessor
 from .price import PriceTypeProcessor
-from .page import HtmlPageFieldTypeProcessor
 
 class FieldTypeManager(object):
     _TYPEMAP = dict((c.name, c) for c in (
@@ -29,7 +28,6 @@ class FieldTypeManager(object):
         ImagesFieldTypeProcessor, NumberTypeProcessor,
         UrlFieldTypeProcessor, SafeHtmlFieldTypeProcessor,
         GeoPointFieldTypeProcessor, PriceTypeProcessor,
-        HtmlPageFieldTypeProcessor,
     ))
 
     # including legacy names still supported in older schemas

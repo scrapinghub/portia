@@ -31,5 +31,3 @@ class NumberTypeProcessor(object):
     def adapt(self, text, htmlpage):
         return extract_number(text)
 
-    def render(self, field_name, field_value, item):
-        return field_value

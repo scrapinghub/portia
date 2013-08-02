@@ -3,12 +3,6 @@ Text types
 """
 from scrapely.extractors import text as extract_text, safehtml
 
-def escape_html(text):
-    """escape text for use in an html page"""
-    # import here so jinja2 is only required when displaying html
-    from jinja2.utils import escape
-    return escape(text)
-
 class _BaseTextProcessor(object):
     """basic text processor, defines identity functions, some of which 
     are overridden in subclasses
@@ -20,9 +14,6 @@ class _BaseTextProcessor(object):
     def adapt(self, text, htmlpage):
         return text
     
-    def render(self, field_name, field_value, item):
-        return escape_html(field_value)
-
 class RawFieldTypeProcessor(_BaseTextProcessor):
     """Extracts the raw data, without processing. Data is escaped for presentation
     
@@ -33,8 +24,6 @@ class RawFieldTypeProcessor(_BaseTextProcessor):
     u'<p>test</p>'
     >>> r.adapt(html, None)
     u'<p>test</p>'
-    >>> str(r.render(None, '<p>test</p>', {}))
-    '&lt;p&gt;test&lt;/p&gt;'
     """
     name = 'raw html'
     description = 'raw html as it appears in the page'
@@ -87,5 +76,3 @@ class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
         """Remove html markup"""
         return safehtml(text)
 
-    def render(self, field_name, field_value, item):
-        return field_value

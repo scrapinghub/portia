@@ -14,6 +14,3 @@ class PriceTypeProcessor(object):
     def adapt(self, text, htmlpage):
         return extractors.extract_price(text)
 
-    def render(self, field_name, field_value, item):
-        return field_value
-
