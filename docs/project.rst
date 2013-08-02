@@ -459,7 +459,7 @@ type : string
 value : any
   The content is specific to the defined type.
 
-Additional attributes can be given. They are passed as extra keyword argument for the link extractor class constructor.
+Additional attributes can be given. They are passed as extra keyword argument for the link extractor class constructor. Check ``slybot.linkextractor`` module.
 
 TODO
 ====
