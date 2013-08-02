@@ -449,11 +449,12 @@ Attributes:
 type : string
   Defines how to interpret the string in the 'value' attribute. Current supported values for this attribute are:
 
-  * ``column`` - value is an integer index indicating a column number. Link source is regarded as csv formatted ``scrapy.http.TextResponse``.
+  * ``csv_column`` - value is an integer index indicating a column number. Link source is regarded as csv formatted ``scrapy.http.TextResponse``.
   * ``xpath`` - value is an xpath. Link source is regarded as a ``scrapy.http.XmlResponse``.
   * ``regex`` - value is a regular expression. Link source is regarded as a ``scrapy.http.TextResponse``.
   * ``module`` - value is a python module path. Link source is a ``scrapy.http.Response`` or subclass, depending on implementation requirements.
   * ``html`` - a shortcut for ``module`` type with value ``slybot.linkextractor.HtmlLinkExtractor``. The content of the value attribute is ignored. Source is a ``scrapely.htmlpage.HtmlPage`` object or a ``scrapy.http.HtmlResponse``.
+  * ``rss`` - a shortcut for ``xpath`` type with value ``//item/link/text()``. The content of the value attribute is ignored.
 
 value : any
   The content is specific to the defined type.
