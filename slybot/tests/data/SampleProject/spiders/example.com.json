@@ -1,8 +1,9 @@
 {
     "templates": [],
-    "start_urls": [],
-    "feed_start_urls": [
+    "start_urls": ["http://www.example.com/index.html"],
+    "init_requests": [
         {
+            "type": "start",
             "url": "http://www.example.com/products.csv",
             "link_extractor": {
                 "type": "column",

@@ -179,7 +179,6 @@ The Spider object is the top-level object that describes a slybot spider::
 
     {
         "start_urls": list of strings,
-        "feed_start_urls": list of feed objects,
         "allowed_domains": list of strings,
         "links_to_follow": string,
         "follow_patterns": list of strings,
@@ -192,10 +191,8 @@ The Spider object is the top-level object that describes a slybot spider::
 Attributes:
 
 start_urls : list of strings
-  The list of URLs the spider will start crawling from
-
-feed_start_urls : list of objects : optional
-  A list of feed objects. Used to define non-HTML feeds start urls.
+  The list of URLs the spider will start crawling from. Start urls, and every further url discovered by the spider, are handled by the ``parse`` method of the
+  spider, which extracts links using an instance of ``slybot.linkextractor.HtmlLinkExtractor``, and extract items using the templates set.
 
 allowed_domains : list of strings : optional
   The list of domains that can be crawled. If set to an empty list it will allow any domain. If this variable is not set then the list of allowed domains is extracted from the start urls.
@@ -323,6 +320,30 @@ type : string
 
 Other attributes are available depending on the request type.
 
+Start request
+-------------
+
+Used to represent a plain start url::
+
+    {
+        "type": "start",
+        "url": string,
+        "link_extractor": link extractor object,
+    }
+
+Attributes:
+
+type : string
+    The type of request, which for start requests must be ``start``.
+
+url: string
+    The start page URL.
+
+link_extractor : link extractor : optional
+  Allow to associate a link extractor object to the request, in order to be applied to its response. If given, the request callback will be constructed using the
+  specified link extractor in order to extract links. If not given, the assigned callback will be the spider ``parse`` method, so request will work as if it were a
+  single url inside `Spider`_ ``start_urls``.
+
 Login request
 -------------
 
@@ -415,28 +436,6 @@ name : string : optional
 value : string : optional
   Define the value(s) to be submitted with this field. The sintax of this attribute depends of the field type (see above).
   This attribute supports the use of spider arguments, using the following sintax: {arg1}, this will use the value of the arg1.
-
-Feed
-----
-
-::
-
-    {
-        "url": string,
-        "link_extractor": {
-            "type": string,
-            "value": string,
-            ...
-        }
-    }
-
-Attributes:
-
-url : string
-  Url to the feed (the scheme can be anyone supported by the scrapy library)
-
-link_extractor : link_extractor object
-  Specify how to extract links from the feed
 
 Link Extractor
 --------------

@@ -1,0 +1,14 @@
+{
+    "templates": [],
+    "start_urls": [],
+    "init_requests": [
+        {
+            "type": "start",
+            "url": "http://www.example.com/index.html"
+        }
+    ], 
+    "exclude_patterns": [], 
+    "follow_patterns": [], 
+    "links_to_follow": "patterns", 
+    "respect_nofollow": true
+}

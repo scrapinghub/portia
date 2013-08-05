@@ -52,17 +52,8 @@ class IblSpider(BaseSpider):
 
         self._ipages = [page for _, page, _ in self._item_template_pages]
 
-        self.start_urls = self.start_urls or spec.get('start_urls')
-        if isinstance(self.start_urls, basestring):
-            self.start_urls = self.start_urls.splitlines()
-        self.feed_start_urls = spec.get('feed_start_urls', [])
-
         self.html_link_extractor = HtmlLinkExtractor()
         self.rss_link_extractor = RssLinkExtractor()
-        self.allowed_domains = spec.get('allowed_domains',
-                                        self._get_allowed_domains(self._ipages))
-        if not self.allowed_domains:
-            self.allowed_domains = None
         self.build_url_filter(spec)
 
         self.itemcls_info = {}
@@ -87,15 +78,32 @@ class IblSpider(BaseSpider):
 
         self.login_requests = []
         self.form_requests = []
-        for rdata in spec.get("init_requests", []):
+        self._start_requests = []
+        self._create_init_requests(spec.get("init_requests", []), **kw)
+        self._process_start_urls(spec)
+        self.allowed_domains = spec.get('allowed_domains',
+                                        self._get_allowed_domains(self._ipages))
+        if not self.allowed_domains:
+            self.allowed_domains = None
+
+    def _process_start_urls(self, spec):
+        self.start_urls = self.start_urls or spec.get('start_urls')
+        if isinstance(self.start_urls, basestring):
+            self.start_urls = self.start_urls.splitlines()
+        for url in self.start_urls:
+            self._start_requests.append(Request(url, callback=self.parse, dont_filter=True))
+
+    def _create_init_requests(self, spec, **kw):
+        for rdata in spec:
             if rdata["type"] == "login":
                 request = Request(url=rdata.pop("loginurl"), meta=rdata,
                                   callback=self.parse_login_page, dont_filter=True)
                 self.login_requests.append(request)
-
             elif rdata["type"] == "form":
                 self.generic_form = GenericForm(**kw)
                 self.form_requests.append(self.get_generic_form_start_request(rdata))
+            elif rdata["type"] == "start":
+                self._start_requests.append(self._create_start_request_from_specs(rdata))
 
     def parse_login_page(self, response):
         username = response.request.meta["username"]
@@ -106,7 +114,7 @@ class IblSpider(BaseSpider):
     def after_login(self, response):
         for result in self.parse(response):
             yield result
-        for req in self._start_requests():
+        for req in self._start_requests:
             yield req
 
     def get_generic_form_start_request(self, form_descriptor):
@@ -136,7 +144,7 @@ class IblSpider(BaseSpider):
                                   callback=self.after_form_page, dont_filter=True)
         except Exception, e:
             self.log(str(e), log.WARNING)
-        for req in self._start_requests():
+        for req in self._start_requests:
             yield req
 
     def after_form_page(self, response):
@@ -145,7 +153,7 @@ class IblSpider(BaseSpider):
 
     def _get_allowed_domains(self, templates):
         urls = [x.url for x in templates]
-        urls += self.start_urls
+        urls += [x.url for x in self._start_requests]
         return [x[1] for x in iter_unique_scheme_hostname(urls)]
 
     def _requests_to_follow(self, htmlpage):
@@ -190,24 +198,20 @@ class IblSpider(BaseSpider):
         elif self.form_requests:
             start_requests = self.form_requests
         else:
-            start_requests = self._start_requests()
+            start_requests = self._start_requests
         for req in start_requests:
             yield req
 
-    def _start_requests(self):
-        for url in self.start_urls:
-            yield Request(url, callback=self.parse, dont_filter=True)
-        for info in self.feed_start_urls:
-            yield self._feed_start_request(info)
-
-    def _feed_start_request(self, info):
+    def _create_start_request_from_specs(self, info):
         url = info["url"]
-        specs = info["link_extractor"]
-        linkextractor = create_linkextractor_from_specs(specs)
-        def _callback(self, response):
-            for link in linkextractor.links_to_follow(response):
-                yield Request(url=link.url, callback=self.parse)
-        return Request(url=url, callback=_callback)
+        lspecs = info.get("link_extractor")
+        if lspecs:
+            linkextractor = create_linkextractor_from_specs(lspecs)
+            def _callback(spider, response):
+                for link in linkextractor.links_to_follow(response):
+                    yield Request(url=link.url, callback=spider.parse)
+            return Request(url=url, callback=_callback)
+        return Request(url=url, callback=self.parse)
 
     def parse(self, response):
         """Main handler for all downloaded responses"""
