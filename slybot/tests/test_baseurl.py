@@ -61,3 +61,13 @@ class TestApplyAnnotations(TestCase):
         html = u'<html><head><body></body></html>'
         page = HtmlPage("http://example.com/products/p19.html", body=html)
         self.assertEqual(get_base_url(page), "http://example.com/products/p19.html")
+
+    def test_get_base_url_empty_basehref(self):
+        """Base tag exists but href is empty"""
+        html = u'<html><head><base href="" />\
+<body></body></html>'
+        url = "http://example.com/products/p19.html"
+        page = HtmlPage(url, body=html)
+        self.assertEqual(get_base_url(page), url)
+
+

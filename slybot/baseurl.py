@@ -57,5 +57,5 @@ def get_base_url(htmlpage):
     """Return the base url of the given HtmlPage""" 
     for element in htmlpage.parsed_body:
         if getattr(element, "tag", None) == "base":
-            return element.attributes.get("href", None)
+            return element.attributes.get("href") or htmlpage.url
     return htmlpage.url
