@@ -191,8 +191,9 @@ The Spider object is the top-level object that describes a slybot spider::
 Attributes:
 
 start_urls : list of strings
-  The list of URLs the spider will start crawling from. Start urls, and every further url discovered by the spider, are handled by the ``parse`` method of the
-  spider, which extracts links using an instance of ``slybot.linkextractor.HtmlLinkExtractor``, and extract items using the templates set.
+  The list of URLs the spider will start crawling from. Start urls are expected to point to an HTML page, whose links will be followed according to the url filters
+  attributes (``allowed_domains``, ``links_to_follow``, etc.). If you need a custom link extraction behavior (for example, if your starting page is a csv or xml feed)
+  consider to include a `Start request`_ in ``init_requests`` array.
 
 allowed_domains : list of strings : optional
   The list of domains that can be crawled. If set to an empty list it will allow any domain. If this variable is not set then the list of allowed domains is extracted from the start urls.
