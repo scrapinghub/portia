@@ -79,7 +79,8 @@ class IblSpider(BaseSpider):
         self.login_requests = []
         self.form_requests = []
         self._start_requests = []
-        self._create_init_requests(spec.get("init_requests", []), **kw)
+        self.generic_form = GenericForm(**kw)
+        self._create_init_requests(spec.get("init_requests", []))
         self._process_start_urls(spec)
         self.allowed_domains = spec.get('allowed_domains',
                                         self._get_allowed_domains(self._ipages))
@@ -93,14 +94,13 @@ class IblSpider(BaseSpider):
         for url in self.start_urls:
             self._start_requests.append(Request(url, callback=self.parse, dont_filter=True))
 
-    def _create_init_requests(self, spec, **kw):
+    def _create_init_requests(self, spec):
         for rdata in spec:
             if rdata["type"] == "login":
                 request = Request(url=rdata.pop("loginurl"), meta=rdata,
                                   callback=self.parse_login_page, dont_filter=True)
                 self.login_requests.append(request)
             elif rdata["type"] == "form":
-                self.generic_form = GenericForm(**kw)
                 self.form_requests.append(self.get_generic_form_start_request(rdata))
             elif rdata["type"] == "start":
                 self._start_requests.append(self._create_start_request_from_specs(rdata))
