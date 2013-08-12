@@ -5,10 +5,12 @@ import re
 from urlparse import urljoin
 from scrapy.utils.markup import remove_entities
 from scrapy.link import Link
+from scrapy.http import HtmlResponse
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType
 
 from slybot.linkextractor.base import BaseLinkExtractor
+from slybot.utils import htmlpage_from_response
 
 _META_REFRESH_CONTENT_RE = re.compile(r"(?P<int>(\d*\.)?\d+)\s*;\s*url=(?P<url>.*)")
 _ONCLICK_LINK_RE = re.compile("(?P<sep>('|\"))(?P<url>.+?)(?P=sep)")
@@ -23,11 +25,13 @@ class HtmlLinkExtractor(BaseLinkExtractor):
     expect to learn for specific websites from the crawl logs.
     """
 
-    def _extract_links(self, htmlpage):
+    def _extract_links(self, response_or_htmlpage):
         """Extract links to follow from an html page
 
         This uses `iterlinks` to read the links in the page.
         """
+        htmlpage = htmlpage_from_response(response_or_htmlpage) if \
+                    isinstance(response_or_htmlpage, HtmlResponse) else response_or_htmlpage
         return iterlinks(htmlpage)
  
 def iterlinks(htmlpage):

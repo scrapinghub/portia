@@ -191,7 +191,9 @@ The Spider object is the top-level object that describes a slybot spider::
 Attributes:
 
 start_urls : list of strings
-  The list of URLs the spider will start crawling from
+  The list of URLs the spider will start crawling from. Start urls are expected to point to an HTML page, whose links will be followed according to the url filters
+  attributes (``allowed_domains``, ``links_to_follow``, etc.). If you need a custom link extraction behavior (for example, if your starting page is a csv or xml feed)
+  consider to include a `Start request`_ in ``init_requests`` array.
 
 allowed_domains : list of strings : optional
   The list of domains that can be crawled. If set to an empty list it will allow any domain. If this variable is not set then the list of allowed domains is extracted from the start urls.
@@ -213,7 +215,7 @@ respect_nofollow : boolean
   Whether to respect `rel=nofollow`_. Defaults to false.
   
 templates : list of objects
-  A list of templates objects.
+  A list of template objects.
 
 init_requests : list of request objects : optional
   A list of requests objects that will be executed (sequentially, in order)
@@ -250,6 +252,8 @@ original_body : string
 
 Extractor
 ---------
+
+Attributes:
 
 type_extractor : string : optional
   If defined, it will override the default extractor for the field. For allowed
@@ -316,6 +320,30 @@ type : string
   The type of the request. This is the only attribute that is present in all request types.
 
 Other attributes are available depending on the request type.
+
+Start request
+-------------
+
+Used to represent a plain start url::
+
+    {
+        "type": "start",
+        "url": string,
+        "link_extractor": link extractor object,
+    }
+
+Attributes:
+
+type : string
+    The type of request, which for start requests must be ``start``.
+
+url: string
+    The start page URL.
+
+link_extractor : link extractor : optional
+  Allow to associate a link extractor object to the request, in order to be applied to its response. If given, the request callback will be constructed using the
+  specified link extractor in order to extract links. If not given, the assigned callback will be the spider ``parse`` method, so request will work as if it were a
+  single url inside `Spider`_ ``start_urls``.
 
 Login request
 -------------
@@ -409,6 +437,29 @@ name : string : optional
 value : string : optional
   Define the value(s) to be submitted with this field. The sintax of this attribute depends of the field type (see above).
   This attribute supports the use of spider arguments, using the following sintax: {arg1}, this will use the value of the arg1.
+
+Link Extractor
+--------------
+
+Defines a link extractor object. Except in the case of ``module`` type, all types configure a base link extractor class. But all link extractors must have
+the same interface (see slybot.linkextractor.BaseLinkExtractor)
+
+Attributes:
+
+type : string
+  Defines how to interpret the string in the 'value' attribute. Current supported values for this attribute are:
+
+  * ``csv_column`` - value is an integer index indicating a column number. Link source is regarded as csv formatted ``scrapy.http.TextResponse``.
+  * ``xpath`` - value is an xpath. Link source is regarded as a ``scrapy.http.XmlResponse``.
+  * ``regex`` - value is a regular expression. Link source is regarded as a ``scrapy.http.TextResponse``.
+  * ``module`` - value is a python module path. Link source is a ``scrapy.http.Response`` or subclass, depending on implementation requirements.
+  * ``html`` - a shortcut for ``module`` type with value ``slybot.linkextractor.HtmlLinkExtractor``. The content of the value attribute is ignored. Source is a ``scrapely.htmlpage.HtmlPage`` object or a ``scrapy.http.HtmlResponse``.
+  * ``rss`` - a shortcut for ``xpath`` type with value ``//item/link/text()``. The content of the value attribute is ignored.
+
+value : any
+  The content is specific to the defined type.
+
+Additional attributes can be given. They are passed as extra keyword argument for the link extractor class constructor. Check ``slybot.linkextractor`` module.
 
 TODO
 ====

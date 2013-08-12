@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os.path import dirname, join
 
-from scrapy.http import Response, HtmlResponse, XmlResponse
+from scrapy.http import Response, HtmlResponse, XmlResponse, TextResponse
 from scrapy.utils.reqser import request_to_dict
 
 from scrapely.htmlpage import HtmlPage
@@ -16,7 +16,7 @@ class SpiderTest(TestCase):
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
                 "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "ebay4", "cargurus",
-                "networkhealth.com", "allowed_domains", "any_allowed_domains"]))
+                "networkhealth.com", "allowed_domains", "any_allowed_domains", "example.com", "example2.com"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -280,3 +280,28 @@ class SpiderTest(TestCase):
             for variant in item["variants"]:
                 self.assertEqual(type(variant), dict)
 
+    def test_start_requests(self):
+        name = "example.com"
+        spider = self.smanager.create(name)
+        spec = self.smanager._specs["spiders"][name]
+        start_requests = list(spider.start_requests())
+        self.assertEqual(len(start_requests), 2)
+        self.assertEqual(start_requests[0].url, 'http://www.example.com/products.csv')
+        self.assertEqual(start_requests[1].url, 'http://www.example.com/index.html')
+
+        csv = """ 
+My feed
+
+name,url,id
+Product A,http://www.example.com/path,A
+Product B,http://www.example.com/path2,B"""
+        response = TextResponse(url="http://www.example.com/products.csv", body=csv)
+        requests = list(start_requests[0].callback(spider, response))
+        self.assertEqual(len(requests), 2)
+        self.assertEqual(requests[0].url, 'http://www.example.com/path')
+        self.assertEqual(requests[1].url, 'http://www.example.com/path2')
+
+    def test_start_requests_allowed_domains(self):
+        name = "example2.com"
+        spider = self.smanager.create(name)
+        self.assertEqual(spider.allowed_domains, ['www.example.com'])

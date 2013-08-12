@@ -70,10 +70,21 @@
         }
     },
     {
+        "id": "link_extractor",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "required": true},
+            "value": {"type": "any", "required": true},
+            "additionalProperties": {"type": "any"}
+        }
+    },
+    {
         "id": "request",
         "type": "object",
         "properties": {
-            "type": {"type": "string", "required": true}
+            "type": {"type": "string", "required": true},
+            "link_extractor": {"$ref": "link_extractor"},
+            "additionalProperties": {"type": "any"}
         }
     }
 ]
