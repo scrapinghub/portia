@@ -9,7 +9,7 @@ Homepage: https://github.com/scrapy/slybot
 Package: python-slybot
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends},
- scrapy (>=0.16),
+ scrapy-0.16 | scrapy-0.17,
  python-scrapely,
  python-loginform
 Description: A web crawler implemented in Python.
