@@ -34,6 +34,12 @@ for listing the spiders in your project, or::
 
 for running a specific spider.
 
+Example project
+===============
+
+There is a working slybot project example in `slybot/tests/data/SampleProject`_
+that is used for tests and hence use most of the available features.
+
 Configuration
 =============
 
@@ -98,3 +104,4 @@ For convenience, with the package comes the script ``bin/ascrawl.py``, which all
 
 .. _Scrapy: https://github.com/scrapy/scrapy
 .. _Scrapely: https://github.com/scrapy/scrapely
+.. _slybot/tests/data/SampleProject: https://github.com/scrapy/slybot/tree/master/slybot/tests/data/SampleProject
