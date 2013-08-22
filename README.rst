@@ -6,4 +6,4 @@ Slybot is a Python web crawler for doing web scraping. It's implemented on top o
 `Scrapy`_ web crawling framework and the `Scrapely`_ extraction library.
 
 The documentation (including installation and usage) can be found at:
-https://readthedocs.org/projects/slybot/
+http://slybot.readthedocs.org/
