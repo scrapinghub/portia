@@ -2,9 +2,16 @@
 Spiderlets
 ==========
 
+.. warning::
+
+   This functionality is experimental and its API may undergo changes from time
+   to time. Use at your own risk and please contribute feedback to make it
+   stable.
+
+
 The slybot spider alone is not able to solve all the crawling and extraction difficulties that may arise for every possible case: data
 presented in a way partially or not suitable for the similarity algorithm, arbitrary post data and ajax requests, complex url 
-normalization not handeable by an addon, etc. Spiderlets are a method to extend any AS spider in a way that everything it is possible
+normalization not handled by an addon, etc. Spiderlets are a method to extend any AS spider in a way that everything it is possible
 to do with a normal scrapy spider, can be done with a spiderlet.
 
 Spiderlets are handled by a spider middleware. In order to be enabled, the setting ``SPIDERLETS_MODULE`` must be present, with the
@@ -60,7 +67,7 @@ spiderlet.
 
 The fourth method, ``parse_login_page``, is of a different kind. Instead of process an output from the spider, it process an
 incoming response, and it is applied only to those responses which its callback is the ``parse_login_page`` method of the autoscraping
-spider. If you define ``parse_login_page`` method in your spiderlet, the request callback will be overriden by this new one. This
+spider. If you define ``parse_login_page`` method in your spiderlet, the request callback will be overridden by this new one. This
 feature allows to write your own login handler when the slybot default one (based on the generic solution implemented in the
 `loginforms library <https://github.com/scrapy/loginform>`_) does not fit well for a given case.
 
