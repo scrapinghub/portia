@@ -16,13 +16,11 @@ Requirements
 Installation
 ============
 
-To install the last development version:
-
-::
+To install the last development version::
 
     pip install pip install git+https://github.com/scrapy/slybot.git
 
-::
+To install the last stable version::
 
     pip install slybot
 
