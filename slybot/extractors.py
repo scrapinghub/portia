@@ -1,5 +1,4 @@
 import re
-from itertools import groupby
 
 from scrapely.extractors import htmlregion
 

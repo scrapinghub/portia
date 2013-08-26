@@ -1,11 +1,7 @@
 """
 Images 
 """
-from urlparse import urljoin
-from scrapy.utils.url import safe_download_url
-from scrapy.utils.markup import unquote_markup
 from scrapely.extractors import extract_image_url
-from slybot.baseurl import get_base_url
 from slybot.fieldtypes.url import UrlFieldTypeProcessor
 
 class ImagesFieldTypeProcessor(UrlFieldTypeProcessor):

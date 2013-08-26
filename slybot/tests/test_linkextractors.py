@@ -4,9 +4,7 @@ from scrapy.http import TextResponse, HtmlResponse
 from slybot.linkextractor import (
         create_linkextractor_from_specs,
         RssLinkExtractor,
-        XmlLinkExtractor,
 )
-from slybot.linkextractor.regex import URL_DEFAULT_REGEX
 
 class Test_RegexLinkExtractor(TestCase):
     def test_default(self):

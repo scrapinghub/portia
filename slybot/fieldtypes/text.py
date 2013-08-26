@@ -1,7 +1,7 @@
 """
 Text types
 """
-from scrapely.extractors import text as extract_text, safehtml, htmlregion
+from scrapely.extractors import text as extract_text, safehtml
 
 def escape_html(text):
     """escape text for use in an html page"""

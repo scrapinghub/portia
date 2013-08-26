@@ -2,7 +2,7 @@
 Numeric data extraction
 """
 
-from scrapely.extractors import contains_any_numbers, extract_number, htmlregion
+from scrapely.extractors import contains_any_numbers, extract_number
 
 class NumberTypeProcessor(object):
     """NumberTypeProcessor
