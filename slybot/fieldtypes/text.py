@@ -26,6 +26,7 @@ class _BaseTextProcessor(object):
 class RawFieldTypeProcessor(_BaseTextProcessor):
     """Extracts the raw data, without processing. Data is escaped for presentation
     
+    >>> from scrapely.extractors import htmlregion
     >>> r = RawFieldTypeProcessor()
     >>> html = htmlregion(u'<p>test</p>')
     >>> r.extract(html)
@@ -41,6 +42,7 @@ class RawFieldTypeProcessor(_BaseTextProcessor):
 class TextFieldTypeProcessor(_BaseTextProcessor):
     """Extracts strings, removing all HTML markup
 
+    >>> from scrapely.extractors import htmlregion
     >>> p = TextFieldTypeProcessor()
     >>> html = htmlregion(u'<p>test</p><!-- comment --><script> // script</script>!')
     >>> extracted = p.extract(html)
@@ -63,6 +65,7 @@ class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
     """Extracts strings, with only a safe subset of HTML remaining
 
     Extraction checks for presence of text content, and adapt transforms the HTML
+    >>> from scrapely.extractors import htmlregion
     >>> p = SafeHtmlFieldTypeProcessor()
     >>> html = htmlregion(u'<p>test</p> <blink>foo')
     >>> p.extract(html)

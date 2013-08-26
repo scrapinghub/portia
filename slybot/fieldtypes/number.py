@@ -9,6 +9,7 @@ class NumberTypeProcessor(object):
 
     Extracts a number from text
 
+    >>> from scrapely.extractors import htmlregion
     >>> n = NumberTypeProcessor()
     >>> n.extract(htmlregion(u"there are no numbers here"))
     >>> n.extract(htmlregion(u"foo 34"))
