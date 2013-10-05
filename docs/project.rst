@@ -135,16 +135,12 @@ type : string
   or be one of the following built-in types:
 
   * safe html
-  * string
   * url
   * text
   * image
   * geopoint
   * number
   * raw html
-  * raw
-  * html page
-  * string_markup
   * price
 
 required : boolean
