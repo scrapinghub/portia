@@ -21,7 +21,6 @@ from .url import UrlFieldTypeProcessor
 from .number import NumberTypeProcessor
 from .point import GeoPointFieldTypeProcessor
 from .price import PriceTypeProcessor
-from .page import HtmlPageFieldTypeProcessor
 
 class FieldTypeManager(object):
     _TYPEMAP = dict((c.name, c) for c in (
@@ -29,16 +28,7 @@ class FieldTypeManager(object):
         ImagesFieldTypeProcessor, NumberTypeProcessor,
         UrlFieldTypeProcessor, SafeHtmlFieldTypeProcessor,
         GeoPointFieldTypeProcessor, PriceTypeProcessor,
-        HtmlPageFieldTypeProcessor,
     ))
-
-    # including legacy names still supported in older schemas
-    _FULLMAP = {'raw': RawFieldTypeProcessor, 
-        'string': TextFieldTypeProcessor,
-        'string_markup': SafeHtmlFieldTypeProcessor
-    }
-    _FULLMAP.update(_TYPEMAP)
-
     _names = sorted(_TYPEMAP.keys())
 
     def available_type_names(self):
@@ -52,7 +42,7 @@ class FieldTypeManager(object):
         suitable type is found, it will default to the RawFieldTypeProcessor
         (no processing of extracted data is done).
         """
-        return self._FULLMAP.get(name, RawFieldTypeProcessor)
+        return self._TYPEMAP.get(name, RawFieldTypeProcessor)
 
     def all_processor_classes(self):
         """Retrieve all processor classes registered"""
