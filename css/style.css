@@ -42,7 +42,7 @@ body{
 	border-width: 1px;
 	color: #555;
 	width:100%;
-	font:1.3em Lucida Grande;
+	font:1.1em Lucida Grande;
 	margin-bottom:10px;
 	box-shadow:inset 2px 2px 4px 0px #999;
 }
@@ -55,7 +55,7 @@ body{
 	padding-bottom: 4px;
 	padding-left: 10px;
 	padding-right: 10px;
-	font:1.3em Lucida Grande;
+	font:1.1em Lucida Grande;
     cursor:pointer;
 	box-shadow:2px 2px 4px 0px #999;
 }
@@ -67,7 +67,7 @@ body{
 }
 
 .button.delete-button {
-	padding: 2px 4px 2px 5px;
+	padding: 2px 4px 2px 4px;
 	float: right;
 	vertical-align: middle;
 	font:0.7em Lucida Grande;
@@ -85,8 +85,8 @@ body{
 
 .annotation-internal {
 	vertical-align: middle;
-	margin:3px 6px 6px 6px;
-	font:1.2em Lucida Grande;
+	margin:1px 2px 6px 6px;
+	font:1.1em Lucida Grande;
 }
 
 #infocanvas {
@@ -109,36 +109,56 @@ body{
 	border:1px white;
 }
 
-#hoveredPath {
-	font:1.3em Lucida Grande, ‘Century Gothic’, AppleGothic, sans-serif;
+#hoveredInfo {
+	font:1em Lucida Grande, ‘Century Gothic’, AppleGothic, sans-serif;
 	min-width: 100px;
 	padding:5px;
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	background-color: rgba(20, 20, 20, 0.7);
-	color:white;
+	background-color: rgba(0, 0, 0, 0.5);
+	color:#FCDDB1;
 	z-index:100;
-	box-shadow:0px 0px 3px 3px #444;
+	box-shadow:0px 0px 3px 3px #666;
+	pointer-events:none;
+}
+
+.hoveredInfoLine {
+	margin-bottom:4px;
 }
 
 .elementAttributeName {
 	word-wrap: break-word;
-	font:1.2em Lucida Grande;
+	font:1.0em Lucida Grande;
 	color:#555;
 	width:150px;
 }
 
 .elementAttributeValue {
 	word-wrap: break-word;
-	font:1em Lucida Grande;
+	font:0.9em Lucida Grande;
 	color:#777;
 	margin-top: -7px;
+}
+
+.uniquePath {
+	word-wrap: break-word;
+	font:0.9em Lucida Grande;
+	color:#777;
+	width:320px;
+	margin-bottom: 20px;
 }
 
 .itemField {
 	margin-left: 20px;
 }
+
+.mapping {
+	font:0.9em Lucida Grande;
+	color:#444;
+	margin-left: 10px;
+}
+
 
 hr {
 	color: #FEFEFE;

@@ -22,7 +22,7 @@
 	<div id="scraped-doc">
 		<iframe id="scraped-doc-iframe" src="hoffman.html"> </iframe>
 		<canvas id="infocanvas"></canvas>
-		<div id="hoveredPath"></div>
+		<div id="hoveredInfo"></div>
 	</div>
 </script>
 
@@ -43,6 +43,29 @@
 	   {{/each}}
 	   <hr/>
 	   {{my-button action="addAnnotation" label="+"}}
+</script>
+
+
+<!-- Edit annotation template -->
+<script type="text/x-handlebars" id="annotation">
+	<h3>Edit annotation</h3>
+	{{input type="text" value=name id="annotation_name"}}
+	{{#if path}}
+		<div class="uniquePath">
+			<p><strong>Current selection unique CSS path:</strong></p>
+			<p>{{path}}</p>
+			<hr/>
+		</div>
+	{{else}}
+		<p>Please select an element from the document.</p>
+	{{/if}}
+	{{#each mappedAttributes}}
+		<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this mapped=true}}</p>
+	{{/each}}
+	{{#each unmappedAttributes}}
+		<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this}}</p>
+	{{/each}}
+	<button class="button" {{action 'doneEditing' this}}>Done</button>
 </script>
 
 
@@ -79,8 +102,11 @@
 		</span>
 		<span><strong>
 		{{#if view.mapped}}
-			{{view.attribute.mappedItem}}::
-			{{view.attribute.mappedField}}
+			<span class="mapping">
+			    currently:
+				{{view.attribute.mappedItem}}.
+				{{view.attribute.mappedField}}
+			</span>
 		{{/if}}
 		</span></strong>
 	</p>
@@ -107,20 +133,6 @@
 	{{else}}
 		<div>No fields defined yet.</div>
 	{{/each}}
-</script>
-
-
-<!-- Edit annotation template -->
-<script type="text/x-handlebars" id="annotation">
-	<h3>Edit annotation</h3>
-	{{input type="text" value=name id="annotation_name"}}
-	{{#each mappedAttributes}}
-		<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this mapped=true}}</p>
-	{{/each}}
-	{{#each unmappedAttributes}}
-		<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this}}</p>
-	{{/each}}
-	<button class="button" {{action 'doneEditing' this}}>Done</button>
 </script>
 
 

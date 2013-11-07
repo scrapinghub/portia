@@ -94,14 +94,27 @@ function getAttributeList(element) {
 	return attributeList;
 }
 
+function updateHoveredInfo(element) {
+	
+	var path = getPath(element);
+	var attributes = getAttributeList(element);
+	var contents = '<div>' + path + '</div><hr/>';
+	$(attributes).each(function(i, attribute) {
+		var value = attribute.get('value');
+		if (value.length > 100) {
+			value = value.substring(0, 100) + '...';
+		}
+		contents += '<div class="hoveredInfoLine">' + attribute.get('name') + value + '</div>';
+	});
+	$("#hoveredInfo").html(contents);
+}
+
 function mouseOverHandler(event) {
 	target = event.target;
 	if ($.inArray($(target).prop("tagName").toLowerCase(), ignoredElementTags) == -1) {
 		if (!hoveredElement) {
-			var targetPath = $(target).getUniquePath();
-			$("#hoveredPath").html(getPath(target));
-			selectionListener.set('attributes', getAttributeList(target));
-			hoveredElement = targetPath;
+			updateHoveredInfo(target);
+			hoveredElement = $(target).getUniquePath();
 			if (selection == hoveredElement) {
 				return;
 			}
@@ -118,7 +131,9 @@ function mouseOutHandler(event) {
 }
 
 function clickHandler(event) {
-	targetPath = $(event.target).getUniquePath()
+	var target = event.target;
+	selectionListener.set('attributes', getAttributeList(target));
+	var targetPath = $(target).getUniquePath();
 	selectionListener.set('path', targetPath);
 	selection = targetPath;
 	hoveredElement = null;
@@ -127,6 +142,7 @@ function clickHandler(event) {
 }
 
 function iframeLeftHandler(event) {
+	/*
 	if (selectionListener) {
 		if (selection) {
 			console.log(getAttributeList(findInAnnotatedDoc(selection)).length);
@@ -134,21 +150,23 @@ function iframeLeftHandler(event) {
 		} else {
 			selectionListener.set('attributes', []);
 		}
-	}
+	}*/
 }
 
 function installEventHandlers(listener) {
 	selectionListener = listener;
-	iframe.click(clickHandler);
-	iframe.bind('mouseleave', null, iframeLeftHandler)
-	iframe.find('body').bind('mouseover', null, mouseOverHandler);
-	iframe.find('body').bind('mouseout', null, mouseOutHandler);
-	redrawCanvas();
-	if (selection) {
-		selectionListener.set('attributes',
-			getAttributeList(findInAnnotatedDoc(selection)[0]));
-	}
+	if (iframe) {
+		iframe.click(clickHandler);
+		iframe.bind('mouseleave', null, iframeLeftHandler)
+		iframe.find('body').bind('mouseover', null, mouseOverHandler);
+		iframe.find('body').bind('mouseout', null, mouseOutHandler);
+		redrawCanvas();
+		if (selection) {
+			selectionListener.set('attributes',
+				getAttributeList(findInAnnotatedDoc(selection)[0]));
+		}
 	
+	}
 }
 
 function uninstallEventHandlers() {

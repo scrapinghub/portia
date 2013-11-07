@@ -88,8 +88,6 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 	
 	editAnnotation: function(annotation) {
 		this.transitionToRoute('annotation', annotation);
-		selection = annotation.get('path');
-		installEventHandlers(annotation);
 	},
 
 	actions: {
@@ -207,15 +205,19 @@ ASTool.AnnotationsRoute = Ember.Route.extend({
 });
 
 ASTool.AnnotationRoute = Ember.Route.extend({
-  model: function(params) {
-	  return this.get('store').find('annotation', params.annotation_id);
-  }
+	model: function(params) {
+		return this.get('store').find('annotation', params.annotation_id);
+	},
+  
+	afterModel: function(model) {
+		var path = model.get('path');
+		selection = path;
+		installEventHandlers(model);
+	},
 });
 
 ASTool.ItemsRoute = Ember.Route.extend({
-	beforeModel: function() {
-		//myAdapter = this.store.adapterFor('Item');
-		
+	beforeModel: function() {		
 		var mappingAttribute = this.controllerFor('annotation').get('mappingAttribute');
 		if (mappingAttribute) {
 			this.controllerFor('items').set('mappingAttribute', mappingAttribute);
