@@ -19,6 +19,7 @@
 	    	{{outlet}}
 		</div>
 	</div>
+	{{view ASTool.AnnotatedDocumentView}}
 	<div id="scraped-doc">
 		<iframe id="scraped-doc-iframe" src="hoffman.html"> </iframe>
 		<canvas id="infocanvas"></canvas>
@@ -26,6 +27,14 @@
 	</div>
 </script>
 
+<!-- Annotated document view -->
+<script type="text/x-handlebars" id="annotated-document-view">
+	<div id="scraped-doc">
+		<iframe id="scraped-doc-iframe" src="hoffman.html"> </iframe>
+		<canvas id="infocanvas"></canvas>
+		<div id="hoveredInfo"></div>
+	</div>
+</script>
 
 <!-- Annotations list -->
 <script type="text/x-handlebars" id="annotations">
@@ -78,8 +87,7 @@
 	{{/if}}
 	<hr/>
 	{{#each model}}
-		{{view ASTool.ItemView item=this
-  							   mappingAttribute=controller.mappingAttribute}}
+		{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
  	{{else}}
  		No items have been defined yet.
  	{{/each}}
@@ -115,24 +123,31 @@
 </script>
 
 
-<!-- Item field template -->
-<script type="text/x-handlebars" id="item-field">
-	{{name}} {{type}}
-</script>
-
-
 <!-- Item View -->
 <script type="text/x-handlebars" id="item">
-	<strong>{{view.item.name}}</strong><button class="button map-button" {{action "addField" this}}>+</button>
-	{{#each view.item.fields}}
-		<p class='itemField'>{{name}}
-		{{#if view.mappingAttribute}}
-			<button class="button map-button" {{action "chooseField" this}}>use</button>
+	{{view ASTool.EditField editable=view.item value=view.item.name}}
+	<button class="button map-button" {{action "addField" this}}>+</button>
+	<div style="margin:10px 0px 10px 30px;">
+		{{#if view.item.fields}}
+			<table>
+				<tr> <td>Name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
+				{{#each view.item.fields}}
+					<tr>
+						<td>{{view ASTool.EditField owner=this value=name}}</td>
+						<td>{{view ASTool.TypeSelect owner=this selection=type}}</td>
+						<td>{{view ASTool.EditBox owner=this checked=required}}</td>
+						<td>{{view ASTool.EditBox owner=this checked=vary}}</td>
+						{{#if view.mappingAttribute}}
+							<td><button class="button map-button" {{action "chooseField" this}}>use</button></td>
+							{{/if}}
+					</tr>
+				{{/each}}
+
+				</table>
+		{{else}}
+			<div style="margin-top:10px; margin-left:20px;">No fields defined yet.</div>
 		{{/if}}
-		</p>
-	{{else}}
-		<div>No fields defined yet.</div>
-	{{/each}}
+	</div>
 </script>
 
 

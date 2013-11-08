@@ -8,9 +8,19 @@ var ignoredElementTags = ['html', 'body'];
 var ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding',
 	 					 'cellspacing', 'border', 'bgcolor', 'color', 'colspan'];
 
-function highlight(ctx, element, fillColor, strokeColor, dashed) {
+function highlight(ctx, element, fillColor, strokeColor, dashed, text) {
 	var y_offset = iframe.scrollTop();
 	var x_offset = iframe.scrollLeft();
+	
+	ctx.save();
+	
+	if (text) {
+		ctx.fillStyle='#555';
+		ctx.font = "bold 12px sans-serif";
+		ctx.fillText(text,
+				 	 element.offset().left - x_offset + 4,
+			 		 element.offset().top - y_offset - 1);
+	}
 	
     ctx.shadowColor   = '#000';
     ctx.shadowOffsetX = 3;
@@ -26,12 +36,15 @@ function highlight(ctx, element, fillColor, strokeColor, dashed) {
 	if (dashed) {
 		ctx.setLineDash([4,3]);
 	} 
-    ctx.lineWidth=2;
+    ctx.lineWidth=1;
 	ctx.strokeStyle=strokeColor;
 	ctx.strokeRect(element.offset().left - x_offset + 2,
 		           element.offset().top - y_offset + 2,
 				   element.outerWidth(),
 				   element.outerHeight());
+	
+	ctx.restore();
+    
 }
 
 function redrawCanvas() {
@@ -50,7 +63,7 @@ function redrawCanvas() {
 			if (path != selection && path != hoveredElement) {
 				var annotatedElement = findInAnnotatedDoc(path);
 				if (annotatedElement) {				
-					highlight(ctx, annotatedElement, "rgba(88,120,220,0.3)", "white");
+					highlight(ctx, annotatedElement, "rgba(88,120,220,0.3)", "white", false, annotation.get('name'));
 				}	
 			}	
 		}
@@ -98,13 +111,13 @@ function updateHoveredInfo(element) {
 	
 	var path = getPath(element);
 	var attributes = getAttributeList(element);
-	var contents = '<div>' + path + '</div><hr/>';
+	var contents = '<div>' + path + '</div><hr style="background-color:#FCDDB1;"/>';
 	$(attributes).each(function(i, attribute) {
 		var value = attribute.get('value');
 		if (value.length > 100) {
 			value = value.substring(0, 100) + '...';
 		}
-		contents += '<div class="hoveredInfoLine">' + attribute.get('name') + value + '</div>';
+		contents += '<div class="hoveredInfoLine">' + attribute.get('name') + ": " + value + '</div>';
 	});
 	$("#hoveredInfo").html(contents);
 }
@@ -154,6 +167,7 @@ function iframeLeftHandler(event) {
 }
 
 function installEventHandlers(listener) {
+	console.log(iframe);
 	selectionListener = listener;
 	if (iframe) {
 		iframe.click(clickHandler);
@@ -188,9 +202,14 @@ function initCanvas() {
 	setInterval(redrawCanvas, 1000);
 	$('#scraped-doc-iframe').attr('src', "hoffman.html");  
 	$('#scraped-doc-iframe').bind('load', function() {
+		console.log('iframe reloaded');
 		var doc = document.getElementById("scraped-doc-iframe").contentWindow.document;
 		doc.onscroll = redrawCanvas;
 		iframe = $('#scraped-doc-iframe').contents();
+		if (selectionListener) {
+			// Reinstall handlers after reload.
+			installEventHandlers(selectionListener);
+		}
 	});	 
 };
 
@@ -203,10 +222,6 @@ window.onresize = function() {
 	$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 	$('#toolbar').height(window.innerHeight);
 }
-
-// TODO: find a decent hook.
-setTimeout(initCanvas, 1000);
-
 
 jQuery.fn.getUniquePath = function () {
     if (this.length != 1) {

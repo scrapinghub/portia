@@ -18,6 +18,9 @@ ASTool.Item = DS.Model.extend({
 
 ASTool.ItemField = DS.Model.extend({ 
 	name: DS.attr('string'),
+	type: DS.attr('string'),
+	required: DS.attr('boolean'),
+	vary: DS.attr('boolean'),
 	item: DS.belongsTo('item'),
 });
 
@@ -120,6 +123,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 	  	},
 		
 		mapAttribute: function(attribute) {
+			uninstallEventHandlers();
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
 			this.transitionToRoute('items');
@@ -195,8 +199,6 @@ ASTool.Router.map(function() {
 ASTool.AnnotationsRoute = Ember.Route.extend({
 	model: function() {
 		return this.store.find('annotation');
-		//return this.get('store').findAll('annotation');
-	    //return annotations;
     },
 	
 	afterModel: function() {
@@ -210,7 +212,9 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 	},
   
 	afterModel: function(model) {
+		
 		var path = model.get('path');
+		console.log('after model in annotation route path: ' + path);
 		selection = path;
 		installEventHandlers(model);
 	},
@@ -240,16 +244,48 @@ ASTool.MyButtonComponent = Ember.Component.extend({
 /*************************** Views ********************************/
 
 ASTool.ElemAttributeView = Ember.View.extend({
-  templateName: 'elem-attribute',
-  name: null,
-  value: null,
+	templateName: 'elem-attribute',
+	name: null,
+	value: null,
 });
 
 ASTool.ItemView = Ember.View.extend({
-  templateName: 'item',
-  item: null,
-  mappingAttribute: null,
+	templateName: 'item',
+	item: null,
+	mappingAttribute: null,
 });
+
+ASTool.EditField = Ember.TextField.extend({
+	owner: null,
+	change: function(evt) {
+		this.get('owner').save();
+	}
+});
+
+ASTool.EditBox = Ember.Checkbox.extend({
+	owner: null,
+	change: function(evt) {
+		this.get('owner').save();
+	}
+});
+
+ASTool.TypeSelect = Ember.Select.extend({
+	owner: null,
+	content: ['geopoint', 'image', 'number', 'price', 'raw html', 'safe html', 'text'],
+	change: function(evt) {
+		this.get('owner').save();
+	}
+});
+
+ASTool.AnnotatedDocumentView = Ember.View.extend({
+	templateName: 'annotated-document-view',
+	didInsertElement: function() {
+		if (!canvas) {
+			initCanvas();
+		}
+	}
+});
+
 
 /*************************** Helpers ******************************/
 Ember.Handlebars.helper('trim', function(text) {
