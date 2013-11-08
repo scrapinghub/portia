@@ -2,7 +2,7 @@
 	--------------
 
 	Just run 'python rest.py' and then point your browser to:
-	http://localhost:9001/main.html
+	http://localhost:9001/static/main.html
 	I am using chrome, try other browsers if you want but don't complain!
 
 	What to expect:
