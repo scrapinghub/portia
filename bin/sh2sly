@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+"""
+Downloads AS projects from scrapinghub in slybot format and saves them locally
+
+Used for testing.
+
+This uses the python-scrapinghub library
+"""
+
+
+def sh2sly(apikey, projects, destination):
+    from scrapinghub import Connection, Project
+    import tempfile, zipfile, os
+    conn = Connection(apikey)
+    if not projects:
+        projects = conn.project_ids()
+        #projects = xrange(1300)
+    out = tempfile.TemporaryFile()
+    for projectid in projects:
+        project = Project(conn, projectid)
+        project.autoscraping_project_slybot(outputfile=out)
+        try:
+            zf = zipfile.ZipFile(out)
+            scount = len([f for f in zf.namelist() if f.startswith('spiders/')])
+            if scount == 0:
+                print "skipping %s - no spiders" % projectid
+                continue
+            pdest = os.path.join(destination, str(projectid))
+            zf.extractall(pdest)
+            print "extracted project with %d spiders to %s" % (scount, pdest)
+        except zipfile.BadZipfile:
+            print "error with zipfile in project %s, skipping" % projectid
+        out.truncate()
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description='fetch slybot projects from scrapinghub')
+    parser.add_argument('-p', '--project', type=int, action='append',
+                   help='scrapinghub project, may be repeated, default is all')
+    parser.add_argument('-k', '--apikey',
+                       help='api key')
+    parser.add_argument('destination')
+    args = parser.parse_args()
+    sh2sly(args.apikey, args.project, args.destination)
+
+
+if __name__ == '__main__':
+    main()
