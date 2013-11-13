@@ -1,6 +1,7 @@
 import itertools
 import operator
 import re
+from copy import deepcopy
 
 from scrapy import log
 from scrapy.spider import BaseSpider
@@ -36,6 +37,11 @@ class IblSpider(BaseSpider):
 
     def __init__(self, name, spec, item_schemas, all_extractors, **kw):
         super(IblSpider, self).__init__(name, **kw)
+        spec = deepcopy(spec)
+        for key, val in kw.items():
+            if isinstance(val, basestring) and key in ['start_urls', 'exclude_patterns', 'follow_patterns', 'allowed_domains']:
+                val = val.splitlines()
+            spec[key] = val
 
         self._item_template_pages = sorted((
             [t['scrapes'], dict_to_page(t, 'annotated_body'),
@@ -88,9 +94,7 @@ class IblSpider(BaseSpider):
             self.allowed_domains = None
 
     def _process_start_urls(self, spec):
-        self.start_urls = self.start_urls or spec.get('start_urls')
-        if isinstance(self.start_urls, basestring):
-            self.start_urls = self.start_urls.splitlines()
+        self.start_urls = spec.get('start_urls')
         for url in self.start_urls:
             self._start_requests.append(Request(url, callback=self.parse, dont_filter=True))
 
