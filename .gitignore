@@ -1,0 +1,13 @@
+# python
+*.py[cod]
+
+# editor files
+*.orig
+*.bak
+*.swp
+*.project
+
+# twisted
+dropin.cache
+twistd.log
+
