@@ -68,27 +68,6 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 });
 
-//FIXME: Fix the serialization of field mappings.
-/*
-ASTool.AnnotationSerializer = DS.JSONSerializer.extend({
-    serialize: function(record, options) {
-       var json = this._super.apply(this, arguments);
-	   var fieldMappings = record.get('fieldMappings');
-	   var fieldMappingsJson = {};
-	   fieldMappings.forEach(function(fieldMapping) {
-		   fieldMappingsJson[fieldMapping.get('attribute')] = fieldMapping.get('itemField');
-	   });
-	   json['fieldMappings'] = fieldMappingsJson;
-       return json;
-   },
-	 
-	extractSingle: function(store, type, payload, id, requestType) {
-		return this._super.apply(this, arguments);
-	},
-	
- });*/
-
-
 ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({storageAttribute: 'data-scrapy-annotate'});
 
 
@@ -97,7 +76,27 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({storageAttribute: 'data-
 ASTool.Annotation = DS.Model.extend({	
 	name: DS.attr('string'),
 	
-	//fieldMappings: DS.hasMany('field-mapping'),
+	annotations: DS.attr('string'),
+	
+	fieldMappings: function() {
+		if (this.get('annotations')) {
+			return $.parseJSON(this.get('annotations'));
+		} else {
+			return {};
+		}
+	}.property('annotations'),
+	
+	addMapping: function(attribute, itemField) {
+		var mappings = this.get('fieldMappings');
+		mappings[attribute] = itemField;
+		this.set('annotations', JSON.stringify(mappings));
+	},
+	
+	removeMapping: function(attribute, itemField) {
+		var mappings = this.get('fieldMappings');
+		delete mappings[attribute];
+		this.set('annotations', JSON.stringify(mappings));
+	},
 	
 	isPartial: false,
 	
@@ -143,21 +142,18 @@ ASTool.Annotation = DS.Model.extend({
 	unmappedAttributes: function() {
 		unmapped = this.get('attributes').filter(
 			function(attribute, index, self) {
-				return attribute.mappedItem == null && attribute.mappedField == null;
+				return !this.get('fieldMappings')[attribute.get('name')];
 			}.bind(this));
 		return unmapped;
-	}.property('attributes.@each'),
+	}.property('attributes.@each', 'annotations'),
 	
 	mappedAttributes: function() {
 		mapped = [];
 		this.get('attributes').forEach(function(attribute) {
-			this.get('fieldMappings').forEach(function(mapping) {
-				if (mapping.get('attribute') == attribute.get('name')) {
-					attribute.set('mappedField', mapping.get('itemField').get('name'));
-					attribute.set('mappedItem',mapping.get('itemField').get('item').get('name'));
-					mapped.addObject(attribute);
-				}
-			}.bind(this));
+			if (this.get('fieldMappings')[attribute.get('name')]) {
+				attribute.set('mappedField', this.get('fieldMappings')[attribute.get('name')]);
+				mapped.addObject(attribute);
+			}
 		}.bind(this));
 		return mapped;
 	}.property('attributes', 'fieldMappings'),
@@ -186,7 +182,6 @@ ASTool.FieldMapping = DS.Model.extend({
 ASTool.Attribute = Em.Object.extend({
 	name: null,
 	value: null,
-	mappedItem: null,
 	mappedField: null,
 	annotation: null,
 });
@@ -347,10 +342,7 @@ ASTool.ItemsController = Em.ArrayController.extend({
 		chooseField: function(field) {
 			attribute = this.get('mappingAttribute');
 			annotation = attribute.get('annotation');
-			var fieldMapping = this.store.createRecord('field-mapping',
-				{itemField: field.get('item').get('name') + '.' + field.get('name'),
-				attribute: attribute.get('name')});
-			annotation.get('fieldMappings').pushObject(fieldMapping);
+			annotation.addMapping(attribute.get('name'), field.get('item').get('name') + '.' + field.get('name'));
 			this.transitionToRoute('annotation', annotation);		   
 		}
 	},
