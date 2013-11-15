@@ -9,7 +9,6 @@ from twisted.web.resource import Resource
 from twisted.application.internet import TCPServer
 from twisted.web.server import Site
 from twisted.web.static import File
-from slyd.renderer import Renderer
 
 DEFAULT_PORT = 9001
 DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
@@ -23,6 +22,9 @@ class Options(usage.Options):
 
 
 def create_root(config):
+    from slyd.renderer import Renderer
+    from slyd.bot import create_bot_resource
+
     root = Resource()
     annotation_renderer = Renderer('annotation', 'annotations',
         ['field-mappings', 'item-fields', 'items'])
@@ -35,6 +37,7 @@ def create_root(config):
     root.putChild("items", item_renderer)
     root.putChild("item-fields", item_field_renderer)
     root.putChild("field-mappings", field_mapping_renderer)
+    root.putChild("bot", create_bot_resource())
     return root
 
 
