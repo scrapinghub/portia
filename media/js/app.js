@@ -1,42 +1,152 @@
 /*************************** Application **************************/ 
 
-ASTool = Em.Application.create({ 
-    ready: function(){ 
-    } 
+ASTool = Em.Application.create({
+	ready: function(){
+	} 
+});
+
+ASTool.Router.reopen({
+	location: 'none'
 });
 
 ASTool.ApplicationAdapter = DS.RESTAdapter.extend({
-  host: 'http://localhost:9001',
+	host: 'http://localhost:9001',
 });
 
-/*************************** Models **************************/ 
-
-ASTool.Item = DS.Model.extend({ 
-	name: DS.attr('string'), 
-	fields: DS.hasMany('item-field'),
+ASTool.IFrameAdapter = DS.Adapter.extend({
+	
+	storageAttribute: null,
+	
+	generateIdForRecord: function(store, record) {
+		return guid();
+	},
+	
+	find: function(store, type, id) {
+		var annotatedElement = findAnnotatedElement(id);
+		var annotationJSON = $.parseJSON($(element).attr(this.get('storageAttribute')));
+		return annotationJSON;
+	},
+	
+	findAll: function(store, type) {
+		var annotatedElements = findAnnotatedElements();
+		var annotationsJSON = [];
+		$.each(annotatedElements, function(i, element) {
+			annotationsJSON.pushObject($.parseJSON($(element).attr(this.get('storageAttribute'))));
+		}.bind(this));
+		return annotationsJSON;
+	},
+	
+	createRecord: function(store, type, record) {
+		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
+		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
+		return this.wrapInPromise(function() {
+			return serializedRecord;
+		}, this);
+	},
+	
+	updateRecord: function(store, type, record) {
+		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
+		var oldAnnotatedElement = findAnnotatedElement(record.get('id'));
+		oldAnnotatedElement.removeAttr(this.get('storageAttribute'));
+		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
+		return this.wrapInPromise(function() {
+			return serializedRecord;
+		}, this);
+	},
+	
+	deleteRecord: function(store, type, record) {
+		$(record.get('element')).removeAttr(this.get('storageAttribute'));
+		return this.wrapInPromise(function(){}, this);
+	},
+	
+	wrapInPromise: function(callback, context) {
+		return new Ember.RSVP.Promise(function(resolve) {
+			Ember.run.once(function() {
+				resolve(callback.call(context));
+			});
+		});
+	},
 });
 
-ASTool.ItemField = DS.Model.extend({ 
+//FIXME: Fix the serialization of field mappings.
+/*
+ASTool.AnnotationSerializer = DS.JSONSerializer.extend({
+    serialize: function(record, options) {
+       var json = this._super.apply(this, arguments);
+	   var fieldMappings = record.get('fieldMappings');
+	   var fieldMappingsJson = {};
+	   fieldMappings.forEach(function(fieldMapping) {
+		   fieldMappingsJson[fieldMapping.get('attribute')] = fieldMapping.get('itemField');
+	   });
+	   json['fieldMappings'] = fieldMappingsJson;
+       return json;
+   },
+	 
+	extractSingle: function(store, type, payload, id, requestType) {
+		return this._super.apply(this, arguments);
+	},
+	
+ });*/
+
+
+ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({storageAttribute: 'data-scrapy-annotate'});
+
+
+/*************************** Models **************************/
+
+ASTool.Annotation = DS.Model.extend({	
 	name: DS.attr('string'),
-	type: DS.attr('string'),
-	required: DS.attr('boolean'),
-	vary: DS.attr('boolean'),
-	item: DS.belongsTo('item'),
-});
+	
+	//fieldMappings: DS.hasMany('field-mapping'),
+	
+	isPartial: false,
+	
+	partialText: function() {
+		if (this.get('element') && this.get('isPartial')) {
+			return $(this.get('element')).text();
+		} else {
+			return '';
+		}
+	}.property('element'),
+		
+	selectedElement: null,
+	
+	element: function() {
+		if (this.get('selectedElement')) {
+			return this.get('selectedElement');
+		} else {
+			var annotatedElement = findAnnotatedElement(this.get('id'));
+			if (annotatedElement.length) {
+				return annotatedElement.get(0);
+			} else {
+				return null;
+			}
+		}
+	}.property('selectedElement'),
 
-ASTool.Annotation = DS.Model.extend({ 
-	name: DS.attr('string'), 
-	path: DS.attr('string'),
-	attributes: [],
-	fieldMappings: DS.hasMany('field-mapping'),
+	path: function() {
+		if (this.get('element')) {
+			return $(this.get('element')).getUniquePath();
+		} else {
+			return [];
+		}
+	}.property('element'),
+	
+	attributes: function() {
+		if (this.get('element')) {
+			return getAttributeList(this.get('element'));
+		} else {
+			return [];
+		}
+	}.property('element'),
 	
 	unmappedAttributes: function() {
 		unmapped = this.get('attributes').filter(
 			function(attribute, index, self) {
-				return !this.get('fieldMappings').anyBy('attribute', attribute.name)
+				return attribute.mappedItem == null && attribute.mappedField == null;
 			}.bind(this));
 		return unmapped;
-	}.property('attributes', 'fieldMappings'),
+	}.property('attributes.@each'),
 	
 	mappedAttributes: function() {
 		mapped = [];
@@ -53,8 +163,21 @@ ASTool.Annotation = DS.Model.extend({
 	}.property('attributes', 'fieldMappings'),
 });
 
+ASTool.Item = DS.Model.extend({ 
+	name: DS.attr('string'), 
+	fields: DS.hasMany('item-field'),
+});
+
+ASTool.ItemField = DS.Model.extend({ 
+	name: DS.attr('string'),
+	type: DS.attr('string'),
+	required: DS.attr('boolean'),
+	vary: DS.attr('boolean'),
+	item: DS.belongsTo('item'),
+});
+
 ASTool.FieldMapping = DS.Model.extend({
-	itemField: DS.belongsTo('item-field'),
+	itemField: DS.attr('string'),
 	attribute: DS.attr('string'),
 });
 
@@ -72,21 +195,22 @@ ASTool.Attribute = Em.Object.extend({
 
 ASTool.AnnotationsController = Em.ArrayController.extend({
 	
-	bindAnnotations: function() {
-		this.store.find('annotation').then(function(annotations) {
-			_annotations = annotations;
-			redrawCanvas();
+	needs: ['application'],
+	
+	documentViewBinding: 'controllers.application.documentView',
+	
+	currentlySelectedElement: null,
+	
+	highlightedElements: function() {
+		return this.get('content').map(function(annotation) {
+			return annotation.get('element');
 		});
-	},
-
+	}.property('content.@each.element'),
+		
 	addAnnotation: function() {
-		var annotation = this.store.createRecord('annotation', {});
-		var me = this;
-        annotation.save().then(function(annotation) {
-        	me.editAnnotation(annotation);
-        }, function(error) {
-        	console.log('Error saving annotation: ' + error);
-        });
+		var annotation = this.store.createRecord('annotation');
+		annotation.set('name', 'Annotation ' + annotation.get('id').substring(0, 5));
+		this.editAnnotation(annotation);
 	},
 	
 	editAnnotation: function(annotation) {
@@ -96,6 +220,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 	actions: {
 		
 		editAnnotation: function(annotation) {
+			annotation.set('selectedElement', null);
 			this.editAnnotation(annotation);
 		},
 
@@ -104,31 +229,81 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 		},
 		
 		deleteAnnotation: function(annotation) {
-		   annotation.deleteRecord();
-		   annotation.save();
-		   redrawCanvas();
-	   },
-     }
+			annotation.deleteRecord();
+			annotation.save();
+		},
+	}
 });
 
 ASTool.AnnotationController = Em.ObjectController.extend({
 	mappingAttribute: null,
 	
+	needs: ['application', 'annotations'],
+	
+	documentViewBinding: 'controllers.application.documentView',
+	
+	highlightedElements: function() {
+		var highlightedElementsWithoutSelection = this.get('controllers.annotations.highlightedElements').copy().removeObject(this.get('currentlySelectedElement'));
+		return highlightedElementsWithoutSelection;
+	}.property('controllers.annotations.highlightedElements'),
+	
+	currentlySelectedElement: null,
+	
+	clearSelection: function() {
+		if (this.get('content').get('isPartial')) {
+			// FIXME: this fragments the text node of the element.
+			$(this.get('currentlySelectedElement')).replaceWith($(this.get('currentlySelectedElement')).contents());
+		}
+	},
+	
 	actions: {
-
+		
 		doneEditing: function(annotation) {
-			uninstallEventHandlers();
-			annotation.save();
+			this.get('documentView').elementSelectionEnabled(false);
+			annotation.save().then(function() {
+				this.transitionToRoute('annotations');
+				annotation.set('selectedElement', null);
+				this.get('documentView').resetSelections();
+			}.bind(this));
+		},
+		
+		cancelEdit: function(annotation) {
+			this.get('documentView').elementSelectionEnabled(false);
+			annotation.set('selectedElement', null);
+			if (!annotation.get('element')) {
+				annotation.deleteRecord();	
+			}
 			this.transitionToRoute('annotations');
-	  	},
+			this.get('documentView').resetSelections();
+		},
 		
 		mapAttribute: function(attribute) {
-			uninstallEventHandlers();
+			this.get('documentView').elementSelectionEnabled(false);
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
 			this.transitionToRoute('items');
+		},
+	},
+	
+	documentActions: {
+		
+		elementSelected: function(element) {
+			this.clearSelection();
+			this.content.set('selectedElement', element);
+			this.content.set('isPartial', false);
+			this.set('currentlySelectedElement', element);
+		},
+		
+		partialSelection: function(selection) {
+			this.clearSelection();
+			var insElement = $('<ins/>');
+			selection.getRangeAt(0).surroundContents(insElement.get(0));
+			this.content.set('isPartial', true);
+			this.set('currentlySelectedElement', insElement);
+			this.content.set('selectedElement', insElement);
+			selection.collapse();
 		}
-  }
+	},
 });
 
 ASTool.ItemsController = Em.ArrayController.extend({
@@ -142,52 +317,79 @@ ASTool.ItemsController = Em.ArrayController.extend({
 	
 	addField: function(owner) {
 		var field = this.store.createRecord('item-field',
-			 								{name:'unnamed field',
-											 type:'string',
-											 item: owner});
+			{name:'unnamed field',
+			type:'string',
+			item: owner});
 		field.save().then(function() {
 			owner.get('fields').addObject(field);
 			owner.save().then(function() {},
-							  function(error) {
-								 console.log('Error saving item: ' + error);
-							  })
-		});
+				function(error) {
+					console.log('Error saving item: ' + error);
+				})
+			});
 	},
 
 	actions: {
 		
-       addItem: function() {
-		   this.addItem();
-       },
-	   
-	   addField: function(item) {
+		addItem: function() {
+			this.addItem();
+		},
+		
+		addField: function(item) {
 			this.addField(item);
-	   },
+		},
+		
+		deleteItem: function(item) {
+			item.deleteRecord();
+			item.save();
+		},
 	   
-	   deleteItem: function(item) {
-		   item.deleteRecord();
-		   item.save();
-	   },
-	   
-	   chooseField: function(field) {
-		   attribute = this.get('mappingAttribute');
-		   mapping = this.store.createRecord('field-mapping',
-										     {itemField:field,
-											  attribute:attribute.get('name')});
-    	   mapping.save().then(
-				function(fieldMapping) {
-					var annotation = attribute.get('annotation');
-					annotation.get('fieldMappings').addObject(fieldMapping);
-					annotation.save();
-					this.transitionToRoute('annotation', annotation);
-				}.bind(this));
-	   }
-     }
+		chooseField: function(field) {
+			attribute = this.get('mappingAttribute');
+			annotation = attribute.get('annotation');
+			var fieldMapping = this.store.createRecord('field-mapping',
+				{itemField: field.get('item').get('name') + '.' + field.get('name'),
+				attribute: attribute.get('name')});
+			annotation.get('fieldMappings').pushObject(fieldMapping);
+			this.transitionToRoute('annotation', annotation);		   
+		}
+	},
 });
+
+
+ASTool.DocumentView = Em.Object.extend({
+	selectionsSource: null,
+	
+	currentlySelectedElementBinding: 'selectionsSource.currentlySelectedElement',
+	
+	highlightedElementsBinding: 'selectionsSource.highlightedElements',
+	
+	elementSelectionEnabled: function(selectionEnabled) {
+		if (selectionEnabled) {
+			installEventHandlers();
+		} else {
+			uninstallEventHandlers();
+		}
+	},
+	
+	redrawNow: function() {
+		redrawCanvas()
+	}.observes('currentlySelectedElement', 'highlightedElements'),
+	
+	resetSelections: function() {
+		this.set('selectionSource', null);
+	}
+}),
+
+ASTool.ApplicationController = Em.Controller.extend({
+	documentView: ASTool.DocumentView.create(),
+	documentListener: null,
+});
+
+
 /*************************** Routers **************************/ 
 
 ASTool.Router.map(function() {
-	this.resource('annotations', {path: '/'});
 	this.resource('annotations');
 	this.resource('annotation', {path: '/annotation/:annotation_id'});
 	this.resource('items');
@@ -196,27 +398,33 @@ ASTool.Router.map(function() {
 
 /*************************** Routes **************************/ 
 
+ASTool.ApplicationRoute = Em.Route.extend({
+});
+
 ASTool.AnnotationsRoute = Ember.Route.extend({
 	model: function() {
 		return this.store.find('annotation');
-    },
+	},
 	
-	afterModel: function() {
-		this.controllerFor('annotations').bindAnnotations();
-	}
+	setupController: function(controller, model) {
+		controller.set('model', model);
+		controller.get('documentView').elementSelectionEnabled(false);
+		controller.get('documentView').set('selectionsSource', controller);
+	},
+	
 });
 
 ASTool.AnnotationRoute = Ember.Route.extend({
 	model: function(params) {
-		return this.get('store').find('annotation', params.annotation_id);
+		return ASTool.annotationsStore.find(params.annotation_id);
 	},
-  
-	afterModel: function(model) {
-		
-		var path = model.get('path');
-		console.log('after model in annotation route path: ' + path);
-		selection = path;
-		installEventHandlers(model);
+	
+	setupController: function(controller, model) {
+		controller.set('model', model);
+		controller.get('controllers.application').set('documentListener', controller);
+		controller.get('documentView').elementSelectionEnabled(true);
+		controller.get('documentView').set('selectionsSource', controller);
+		controller.set('currentlySelectedElement', model.get('element'));
 	},
 });
 
@@ -230,15 +438,15 @@ ASTool.ItemsRoute = Ember.Route.extend({
 	
 	model: function() {
 		return this.store.find('item');
-    }
+	}
 });
 
 /*************************** Components **************************/
 
 ASTool.MyButtonComponent = Ember.Component.extend({
-  click: function() {
-    this.sendAction();
-  }
+	click: function() {
+		this.sendAction();
+	}
 });
 
 /*************************** Views ********************************/
@@ -279,11 +487,12 @@ ASTool.TypeSelect = Ember.Select.extend({
 
 ASTool.AnnotatedDocumentView = Ember.View.extend({
 	templateName: 'annotated-document-view',
+	
 	didInsertElement: function() {
-		if (!canvas) {
-			initCanvas();
-		}
-	}
+		loadAnnotatedDocument(function(){
+			this.get('controller').transitionToRoute('annotations');
+		}.bind(this), this.get('controller'));
+	},
 });
 
 
@@ -291,7 +500,7 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 Ember.Handlebars.helper('trim', function(text) {
 	var maxLength = 400;
 	if (text.length > 400) {
- 		return text.substring(0, 400) + "...";
+		return text.substring(0, 400) + "...";
 	} else {
 		return text;
 	}
