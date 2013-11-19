@@ -10,4 +10,7 @@
 # twisted
 dropin.cache
 twistd.log
+twistd.pid
 
+# local data files
+data/*
