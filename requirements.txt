@@ -1,2 +1,3 @@
 twisted
 scrapy
+-e git://github.com/scrapy/slybot.git#egg=slybot

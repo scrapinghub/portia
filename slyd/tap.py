@@ -22,8 +22,12 @@ class Options(usage.Options):
 
 
 def create_root(config):
+    from scrapy import log
+    from scrapy.settings import CrawlerSettings
     from slyd.renderer import Renderer
+    from slyd.crawlerspec import CrawlerSpecManager
     from slyd.bot import create_bot_resource
+    import slyd.settings
 
     root = Resource()
     annotation_renderer = Renderer('annotation', 'annotations',
@@ -37,9 +41,14 @@ def create_root(config):
     root.putChild("items", item_renderer)
     root.putChild("item-fields", item_field_renderer)
     root.putChild("field-mappings", field_mapping_renderer)
-    root.putChild("bot", create_bot_resource())
-    return root
 
+    crawler_settings = CrawlerSettings(settings_module=slyd.settings)
+    log.start_from_settings(crawler_settings)
+    spec_dir = crawler_settings['SPEC_DATA_DIR']
+    spec_manager = CrawlerSpecManager(spec_dir)
+    log.msg("Slybot specs loading from %s/[PROJECT]" % spec_dir, level=log.DEBUG)
+    root.putChild("bot", create_bot_resource(crawler_settings, spec_manager))
+    return root
 
 def makeService(config):
     root = create_root(config)
