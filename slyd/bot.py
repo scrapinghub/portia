@@ -25,7 +25,7 @@ from scrapy.http import HtmlResponse
 from scrapy.exceptions import DontCloseSpider
 from slybot.utils import htmlpage_from_response
 from slybot.spider import IblSpider
-
+from .descriptify import descriptify
 
 def create_bot_resource(settings, spec_manager):
     bot = Bot(settings, spec_manager)
@@ -89,10 +89,11 @@ class Fetch(BotResource):
             write_json(response, error=msg)
         try:
             params = response.meta['slyd_request_params']
-            result = dict(page=response.body_as_unicode())
+            htmlpage = htmlpage_from_response(response)
+            cleaned_html = descriptify(htmlpage)
+            result = dict(page=cleaned_html)
             spider = self.create_spider(params)
             if spider is not None:
-                htmlpage = htmlpage_from_response(response)
                 items, _link_regions = spider.extract_items(htmlpage)
                 result['items'] = [i._values for i in items]
             write_json(response, **result)
