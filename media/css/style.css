@@ -17,6 +17,8 @@ body{
 	border-style: solid;
     padding: 0px;
 	width: 100%;
+	scrolling: yes;
+	overflow-y: scroll;
 }
 
 #toolbar {
@@ -28,6 +30,15 @@ body{
  z-index:300;
  box-shadow:0px 0px 4px 4px #999;
 }
+
+
+#navbar {
+ background-color:red;
+ box-shadow:0px 0px 4px 4px #999;
+ display: block;
+ align:center;
+}
+
 
 #annotations_container {
 	padding:40px;
@@ -45,6 +56,12 @@ body{
 	font:1.1em Lucida Grande;
 	margin-bottom:10px;
 	box-shadow:inset 2px 2px 4px 0px #999;
+}
+
+#pageUrl {
+	width: 100%;
+	margin-bottom: 20px;
+	font: 1.3em Lucida Grande;
 }
 
 .button {
@@ -96,8 +113,8 @@ body{
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	pointer-events:none;
-	z-index:20;
+	pointer-events: none;
+	z-index: 20;
 }
 
 .elementpath {
@@ -121,6 +138,7 @@ body{
 	z-index:100;
 	box-shadow:0px 0px 3px 3px #666;
 	pointer-events:none;
+	display: none;
 }
 
 .hoveredInfoLine {

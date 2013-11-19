@@ -6,6 +6,7 @@ var ignoredElementTags = ['html', 'body'];
 var ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding',
 	 					 'cellspacing', 'border', 'bgcolor', 'color', 'colspan'];
 var mouseDown = 0;
+var autoRedrawId = null;
 
 function highlightElement(ctx, element, fillColor, strokeColor, dashed, text) {
 	var y_offset = iframe.scrollTop();
@@ -54,6 +55,12 @@ function highlightRect(ctx, rect, fillColor, strokeColor, dashed, text) {
 function redrawCanvas() {
 	var documentView = appController.get('documentView');
 	
+	if (!documentView) {
+		console.log('in redraw, documentView is not defined...');
+		console.log(appController);
+		return;
+	}
+	
 	_canvas = $('#infocanvas');
 	canvas = _canvas.get(0);
 	canvas.width = _canvas.outerWidth();
@@ -63,11 +70,14 @@ function redrawCanvas() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	// Draw the annotated areas.
 	
-	documentView.get('highlightedElements').forEach(function(element) {
-		if (element) {
-			highlightElement(ctx, $(element), "rgba(88,120,220,0.3)", "white", false, '');
-		}
-	});
+	var highLighted = documentView.get('highlightedElements');
+	if (highLighted) {
+		highLighted.forEach(function(element) {
+			if (element) {
+				highlightElement(ctx, $(element), "rgba(88,120,220,0.3)", "white", false, '');
+			}
+		});
+	}
 	
 	// Draw the currently hovered item.
 	if (hoveredElement) {
@@ -146,7 +156,6 @@ function mouseOverHandler(event) {
 			redrawCanvas();
 		}
 	}
-	
 }
 	
 function mouseOutHandler(event) {
@@ -173,7 +182,10 @@ function mouseUpHandler(event) {
 	if (selectedText) {
 		if (selectedText.anchorNode == selectedText.focusNode) {
 			sendEvent('partialSelection', selectedText);
-		} 
+		} else {
+			alert('The selected text must belong to a single HTML element');
+			selectedText.collapse();
+		}
 	} else {
 		var target = event.target;
 		sendEvent('elementSelected', target);
@@ -221,6 +233,14 @@ function uninstallEventHandlers() {
 	hoveredElement = null;
 }
 
+function showHoveredInfo() {
+	$("#hoveredInfo").css('display', 'inline');
+}
+
+function hideHoveredInfo() {
+	$("#hoveredInfo").css('display', 'none');
+}
+
 function initCanvas() {
 	$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 	$('#toolbar').height(window.innerHeight);
@@ -228,27 +248,46 @@ function initCanvas() {
 	canvas = _canvas.get(0);
 	canvas.width = _canvas.outerWidth();
 	canvas.height = _canvas.outerHeight();
-	setInterval(redrawCanvas, 1000);
 };
 
-function initIframe(cb) {
+function initIframe(callback) {
 	var doc = document.getElementById("scraped-doc-iframe").contentWindow.document;
 	doc.onscroll = redrawCanvas;
-	$('#scraped-doc-iframe').load(cb);
+	$('#scraped-doc-iframe').load(callback);
 	iframe = $('#scraped-doc-iframe').contents();
+	// FIXME
+	setTimeout(callback, 1000);
+	autoRedrawId = setInterval(redrawCanvas, 1000);
 }
 
 function findInAnnotatedDoc(path) {
-	return iframe.find(path);
+	if (iframe) {
+		return iframe.find(path);
+	} else {
+		return null;
+	}
 }
 
 function findAnnotatedElements() {
-	return iframe.find('[data-scrapy-annotate]');
+	if (iframe) {
+		return iframe.find('[data-scrapy-annotate]');	
+	} else {
+		return [];
+	}
+	
 }
 
 function findAnnotatedElement(annotationId) {
 	var selector = '[data-scrapy-annotate*="' + annotationId + '"]';
 	return iframe.find(selector);
+}
+
+function removePartialAnnotation(insElement) {
+	// FIXME: this may leave empty text node children.
+	var textNode = insElement.childNodes[0];
+	var parentNode = insElement.parentNode;
+	$(textNode).unwrap();
+	parentNode.normalize();
 }
 
 window.onresize = function() {
@@ -289,18 +328,27 @@ function getSiblingIndex(element){
 	return -1;
 }
 
-function loadAnnotatedDocument(cb, controller) {
+function loadAnnotatedDocument(pageUrl, loaded, controller) {
+	$('#scraped-doc-iframe').contents().find('html').html('<html><body>Loading...</body></html>');
+	if (autoRedrawId) {
+		clearInterval(autoRedrawId);
+	}
+	
 	if (!canvas) {
 		initCanvas();
 	}
 	appController = controller;
 	hash = {};
-	hash.type = 'GET';
+	hash.type = 'POST';
+	hash.data = JSON.stringify({project: 'test', spider: 'test', request: {url: pageUrl}});
 	hash.success = function(data) {
-		$('#scraped-doc-iframe').contents().find('html').html(data);
-		initIframe(cb);
-	}
-	hash.url = 'hoffman.html';
+		$('#scraped-doc-iframe').contents().find('html').html(data.page);
+		initIframe(loaded);
+	};
+	hash.error = function(req, status, error) {
+		console.log(error);
+	};
+	hash.url = 'http://localhost:9001/bot/fetch';
 	$.ajax(hash);
 }
 

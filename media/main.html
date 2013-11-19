@@ -9,14 +9,23 @@
 	<script src="js/ember-data.js"></script>
 	<script src="js/selector.js"></script>
 	<script src="js/app.js"></script>
+	<script src="js/models.js"></script>
+	<script src="js/routes.js"></script>
+	<script src="js/views.js"></script>
+	<script src="js/controllers.js"></script>
 </head>
 <body>	
 
 <!-- Main template -->
 <script type="text/x-handlebars">
 	<div id="toolbar">
+		<div id="navbar">
+			<button class="button" {{action "gotoPageSelection"}}>Page</button>
+			<button class="button" {{action "gotoAnnotations" this}}>Annotations</button>
+			<button class="button" {{action "gotoItems" this}}>Items</button>
+		</div>
 		<div id="annotations_container">
-	    	{{outlet}}
+			{{outlet}}
 		</div>
 	</div>
 	{{view ASTool.AnnotatedDocumentView}}
@@ -25,28 +34,37 @@
 <!-- Annotated document view -->
 <script type="text/x-handlebars" id="annotated-document-view">
 	<div id="scraped-doc">
-		<iframe id="scraped-doc-iframe" src="hoffman.html"> </iframe>
+		<iframe id="scraped-doc-iframe" src="start.html"> </iframe>
 		<canvas id="infocanvas"></canvas>
 		<div id="hoveredInfo"></div>
 	</div>
 </script>
 
+<!-- Select page template -->
+<script type="text/x-handlebars" id="page">
+	<div id="url-selector">
+		
+		Enter target url: {{input type="text" value=navigateToUrl id="pageUrl"}}
+		{{my-button action="loadPage" label="Go!"}}
+	</div>
+</script>
+
 <!-- Annotations list -->
 <script type="text/x-handlebars" id="annotations">
-       <h3>Annotations for template default</h3>
-	   <hr/>
-	   {{#each model}} 
-	      	<div class="annotation">
-				<div class="annotation-internal">
-					<span class="annotation_name" {{action "editAnnotation" this}}>{{name}}</span>
-			   	 	<button class="button delete-button" {{action "deleteAnnotation" this}}>X</button>
-				</div> 
+	<h3>Annotations for {{currentPage}}</h3>
+	<hr/>
+	{{#each model}} 
+	<div class="annotation">
+			<div class="annotation-internal">
+				<span class="annotation_name" {{action "editAnnotation" this}}>{{name}}</span>
+				<button class="button delete-button" {{action "deleteAnnotation" this}}>X</button>
 			</div> 
-	   {{else}}
-	   		No annotations have been defined yet.
-	   {{/each}}
-	   <hr/>
-	   {{my-button action="addAnnotation" label="+"}}
+		</div> 
+   {{else}}
+   		No annotations have been defined yet.
+   {{/each}}
+   <hr/>
+   {{my-button action="addAnnotation" label="+"}}
 </script>
 
 
