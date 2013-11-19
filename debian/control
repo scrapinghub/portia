@@ -9,7 +9,7 @@ Homepage: https://github.com/scrapy/slybot
 Package: python-slybot
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends},
- scrapy-0.16 | scrapy-0.17 | scrapy-0.18 | scrapy-0.19,
+ scrapy-0.18 | scrapy-0.20 | scrapy-0.21,
  python-scrapely,
  python-loginform,
  python-lxml
