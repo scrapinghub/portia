@@ -21,11 +21,11 @@ INTRINSIC_EVENT_ATTRIBUTES = ("onload", "onunload", "onclick", "ondblclick",
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                 "data", "href", "longdesc", "profile", "src", "usemap")
 
-AS_SCRIPT_REGION_BEGIN = "<!--Begin region added by autoscraping server-->"
-AS_SCRIPT_REGION_END = "<!--End region added by autoscraping server-->"
+AS_SCRIPT_REGION_BEGIN = "<!-- begin region added by slyd-->"
+AS_SCRIPT_REGION_END = "<!-- end region added by slyd-->"
 
-_AS_COMMENT_BEGIN = "<!--begin_ascomment:"
-_AS_COMMENT_END = ":end_ascomment-->"
+_AS_COMMENT_BEGIN = "<!-- begin_ascomment:"
+_AS_COMMENT_END = ":end_ascomment -->"
 _ENTITY_RE = re.compile("&#(\d+);")
 
 def _deentitize_unicode(mystr):
