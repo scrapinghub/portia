@@ -3,7 +3,10 @@
 	<meta charset="utf-8">
 	<link href="css/normalize.css" rel="stylesheet">
 	<link href="css/style.css" rel="stylesheet">
+	<link href="//code.jquery.com/ui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet">
+
 	<script src="js/jquery-1.9.1.js"></script>
+	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src="js/handlebars-1.0.0.js"></script>
 	<script src="js/ember_debug.js"></script>
 	<script src="js/ember-data.js"></script>
@@ -13,22 +16,35 @@
 	<script src="js/routes.js"></script>
 	<script src="js/views.js"></script>
 	<script src="js/controllers.js"></script>
+	
 </head>
 <body>	
 
 <!-- Main template -->
 <script type="text/x-handlebars">
 	<div id="toolbar">
-		<div id="navbar">
-			<button class="button" {{action "gotoPageSelection"}}>Page</button>
-			<button class="button" {{action "gotoAnnotations" this}}>Annotations</button>
-			<button class="button" {{action "gotoItems" this}}>Items</button>
+		<div id="tab-navigator">
+			<div style='text-align: center; width:100%; margin-bottom:20px'>
+				<h3>Scrapinghub AutoScraping v0.1</h3>
+			</div>
+			{{view JQ.TabNavigator templateName="tab-navigator-template"}}
 		</div>
-		<div id="annotations_container">
+		<div id="toolbar-container" class="ui-corner-all">
 			{{outlet}}
 		</div>
 	</div>
 	{{view ASTool.AnnotatedDocumentView}}
+</script>
+
+<!-- Navigation bar template -->
+<script type="text/x-handlebars" id="tab-navigator-template">
+	<form align="center">
+	  <div id="radio">
+	    <input {{action "gotoPageSelection" this}} type="radio" id="pageRadio" name="radio" /><label for="pageRadio">Page</label>
+	    <input {{action "gotoAnnotations" this}} type="radio" id="annotationsRadio" name="radio"/><label for="annotationsRadio">Annotations</label>
+	    <input {{action "gotoItems" this}} type="radio" id="itemsRadio" name="radio" /><label for="itemsRadio">Items</label>
+	  </div>
+	</form>
 </script>
 
 <!-- Annotated document view -->
@@ -43,59 +59,62 @@
 <!-- Select page template -->
 <script type="text/x-handlebars" id="page">
 	<div id="url-selector">
-		
-		Enter target url: {{input type="text" value=navigateToUrl id="pageUrl"}}
-		{{my-button action="loadPage" label="Go!"}}
+		<div style='width: 100%; text-align:center'>
+			<h3>Start url:</h3>
+			{{view JQ.TextField value=navigateToUrl id="pageUrl" class="textarea"}}
+			<br/>
+			{{view JQ.ButtonView action="loadPage" label="Go!" id="goButton"}}
+		</div>
 	</div>
 </script>
 
 <!-- Annotations list -->
 <script type="text/x-handlebars" id="annotations">
-	<h3>Annotations for {{currentPage}}</h3>
-	<hr/>
-	{{#each model}} 
-	<div class="annotation">
-			<div class="annotation-internal">
-				<span class="annotation_name" {{action "editAnnotation" this}}>{{name}}</span>
-				<button class="button delete-button" {{action "deleteAnnotation" this}}>X</button>
-			</div> 
-		</div> 
-   {{else}}
-   		No annotations have been defined yet.
-   {{/each}}
-   <hr/>
-   {{my-button action="addAnnotation" label="+"}}
+	<div style='text-align: center; width:100%;'>
+		<h3>Annotations for {{currentPage}}</h3>
+		<hr/>
+		{{#each model}}
+			<div style="margin-bottom: 5px">
+				{{view JQ.ButtonView action="editAnnotation" argument=this label=name}}
+				{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" label="x" text=false}}
+			</div>
+			{{else}}
+				<h4>No annotations have been defined yet.
+		{{/each}}
+		<hr/>
+		<div style="margin-top:20px">
+			{{view JQ.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="x" text=false}}
+		</div>
+	</div>
 </script>
 
 
 <!-- Edit annotation template -->
 <script type="text/x-handlebars" id="annotation">
+	<div style="text-align: center">
 	<h3>Edit annotation</h3>
-	{{input type="text" value=name id="annotation_name"}}
+	{{view JQ.TextField value=name class="textarea"}}
+	<div style="margin-top:25px"/>
 	{{#if path}}
-		<div class="uniquePath">
-			<p><strong>Current selection unique CSS path:</strong></p>
-			<p>{{path}}</p>
-			<hr/>
-		</div>
+		<h3>Selected element attributes:</h3>
 	{{else}}
-		<p>Please select an element from the document.</p>
+		<h4>Please select an element from the document.</h4>
 	{{/if}}
-	{{#if isPartial}}
-		<p>{{partialText}}</p>
-	{{else}}
+	
 		{{#each mappedAttributes}}
 			<p class="elementAttribute">{{view ASTool.ElemAttributeView mapped=true attribute=this}}</p>
 		{{/each}}
 		{{#each unmappedAttributes}}
 			<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this}}</p>
 		{{/each}}
-	{{/if}}
+	
+	<hr/>
 	{{#if element}}
-		<button class="button" {{action 'doneEditing' this}}>Save</button>
+		{{view JQ.ButtonView action="doneEditing" argument=model label="Save"}}
 	{{else}}
-		<button class="button" {{action 'cancelEdit' this}}>Cancel</button>
+		{{view JQ.ButtonView action="cancelEdit" argument=model label="Cancel"}}
 	{{/if}}
+	</div>
 	
 </script>
 
@@ -126,21 +145,19 @@
 
 <!-- Attribute view -->
 <script type="text/x-handlebars" id="elem-attribute">
+	<hr/>
 	<p>
-		<span class="elementAttributeName">{{view.attribute.name}}
-			<button class="button map-button" {{action "mapAttribute" view.attribute}}> > </button>
-		</span>
+		<span class="elementAttributeName">{{view.attribute.name}}</span>
+			{{view JQ.ButtonView action="mapAttribute" class="mapButton" argument=view.attribute icon=" ui-icon-arrowthick-2-e-w" label="x" text=false}}
 		<span><strong>
 		{{#if view.mapped}}
 			<span class="mapping">
-			    currently:
 				{{view.attribute.mappedField}}
 			</span>
 		{{/if}}
 		</span></strong>
 	</p>
 	<p class="elementAttributeValue">{{trim view.attribute.value}}</p>
-	<hr/>
 </script>
 
 
@@ -170,6 +187,8 @@
 		{{/if}}
 	</div>
 </script>
+
+
 
 
 </body>
