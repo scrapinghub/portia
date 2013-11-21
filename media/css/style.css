@@ -1,7 +1,7 @@
 html, body { height: 100% }
 
 body{
-	font: 62.5% "Lucida Grande", sans-serif;
+	font: 62.5% "Trebuchet MS", sans-serif;
 	height: 100%;
 }
 
@@ -26,84 +26,58 @@ body{
  width:400px;
  height:100%;
  min-height:200px;
- background-color:#DDD;
+ background-color:rgba(245, 248, 250, 1);
  z-index:300;
- box-shadow:0px 0px 4px 4px #999;
+ box-shadow:0px 0px 4px 4px rgba(0,0,0,0.3);
 }
 
 
-#navbar {
- background-color:red;
- box-shadow:0px 0px 4px 4px #999;
+#tab-navigator {
  display: block;
- align:center;
+ margin: 5px;
 }
 
 
-#annotations_container {
-	padding:40px;
-}
-
-#annotation_name {
-	background-color:#EEE;
-	outline: 0;
-	padding:4px;
-	border-style: solid;
-	border-color: #FCDDB1;
+#toolbar-container {
+	padding:10px 0px 10px 0px;
+	margin:10px 10px 10px 10px;
+	border-color: #aed0ea;
+	border-style:dotted;
 	border-width: 1px;
-	color: #555;
-	width:100%;
-	font:1.1em Lucida Grande;
-	margin-bottom:10px;
-	box-shadow:inset 2px 2px 4px 0px #999;
 }
 
 #pageUrl {
-	width: 100%;
+	width: 80%;
 	margin-bottom: 20px;
-	font: 1.3em Lucida Grande;
+	padding: 5px 0px 5px 0px;
 }
 
-.button {
-	background-color:#777;
-	color:#FCDDB1;
-    border:1px solid #FCDDB1;
-	padding-top: 4px;
-	padding-bottom: 4px;
-	padding-left: 10px;
-	padding-right: 10px;
-	font:1.1em Lucida Grande;
-    cursor:pointer;
-	box-shadow:2px 2px 4px 0px #999;
+.textarea {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2779aa;
+	text-align: center;
+	color:#2779aa;
+	padding: 4px 4px 4px 4px;
+	font: 1.5em Trebuchet MS,Helvetica,Arial,sans-serif;
 }
 
-.button.map-button {
-	font:0.7em Lucida Grande;
-	padding:2px 7px;
-	margin-left: 15px;
+
+#pageUrlLabel {
+	width: 100%;
+	margin-bottom: 5px;
+	background-color: clear;
+	text-align: center;
+	color: #2779aa;
+	font: 1.2em Trebuchet MS,Helvetica,Arial,sans-serif;
 }
 
-.button.delete-button {
-	padding: 2px 4px 2px 4px;
-	float: right;
-	vertical-align: middle;
-	font:0.7em Lucida Grande;
+#goButton {
+	font: 1.5em Trebuchet MS,Helvetica,Arial,sans-serif;
 }
 
-.annotation {
-	width:100%;
-	background-color:#EEE;
-	color:#555;
-    border:1px solid white;
-	margin-bottom:6px;
-    cursor:pointer;
-	box-shadow:2px 2px 4px 0px #999;
-}
-
-.annotation-internal {
-	vertical-align: middle;
-	margin:1px 2px 6px 6px;
-	font:1.1em Lucida Grande;
+#mapButton {
+	font: 0.5em Trebuchet MS,Helvetica,Arial,sans-serif;
 }
 
 #infocanvas {
@@ -122,12 +96,12 @@ body{
 	height: 150px;
 	background-color: #AAA;
 	color:#333;
-	font:1.5em Lucida Grande, ‘Century Gothic’, AppleGothic, sans-serif;
+	font:1.5em Trebuchet MS,Helvetica,Arial,sans-serif;
 	border:1px white;
 }
 
 #hoveredInfo {
-	font:1em Lucida Grande, ‘Century Gothic’, AppleGothic, sans-serif;
+	font:1em Trebuchet MS,Helvetica,Arial,sans-serif;
 	min-width: 100px;
 	padding:5px;
 	position: absolute;
@@ -136,7 +110,7 @@ body{
 	background-color: rgba(0, 0, 0, 0.5);
 	color:#FCDDB1;
 	z-index:100;
-	box-shadow:0px 0px 3px 3px #666;
+	box-shadow:0px 0px 4px 4px rgba(0,0,0,0.3);
 	pointer-events:none;
 	display: none;
 }
@@ -147,23 +121,21 @@ body{
 
 .elementAttributeName {
 	word-wrap: break-word;
-	font:1.0em Lucida Grande;
-	color:#555;
-	width:150px;
+	font:1.3em Trebuchet MS,Helvetica,Arial,sans-serif;
+	color:#2779aa;
 }
 
 .elementAttributeValue {
 	word-wrap: break-word;
-	font:0.9em Lucida Grande;
+	font:1em Trebuchet MS,Helvetica,Arial,sans-serif;
 	color:#777;
-	margin-top: -7px;
+	margin-top: 0px;
 }
 
 .uniquePath {
 	word-wrap: break-word;
-	font:0.9em Lucida Grande;
+	font:0.9em Trebuchet MS,Helvetica,Arial,sans-serif;
 	color:#777;
-	width:320px;
 	margin-bottom: 20px;
 }
 
@@ -172,21 +144,31 @@ body{
 }
 
 .mapping {
-	font:0.9em Lucida Grande;
+	font:1.3em Trebuchet MS,Helvetica,Arial,sans-serif;
 	color:#444;
-	margin-left: 10px;
 }
 
 
 hr {
 	color: #FEFEFE;
-	background-color: #EEEEEE;
+	background-color: #aed0ea;
 	height: 1px;
+	margin: 15px 0px 15px 0px;
 	border: 0;
+	width:100%;
 }
 
 h3 {
-	color:#555;
+	color:#2779aa;
 	width: 100%;
 	align: center;
 }
+
+h4 {
+	margin:0px;
+	font:1.1em Trebuchet MS,Helvetica,Arial,sans-serif;
+	color:#aed0ea;
+	width: 100%;
+	align: center;
+}
+

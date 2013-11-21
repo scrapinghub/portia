@@ -4,7 +4,8 @@ var canvas;
 var hoveredElement = null;
 var ignoredElementTags = ['html', 'body'];
 var ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding',
-	 					 'cellspacing', 'border', 'bgcolor', 'color', 'colspan'];
+	 					 'cellspacing', 'border', 'bgcolor', 'color', 'colspan',
+						 'data-scrapy-annotate'];
 var mouseDown = 0;
 var autoRedrawId = null;
 

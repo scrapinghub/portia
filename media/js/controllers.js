@@ -82,13 +82,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		this.get('documentView').resetSelections();
 	},
 	
-	currentPathWillChange: function(){
-		console.log('>>>>>' + this.get('controllers.application.currentPath'));
-		/*if (this.get('controllers.application.currentPath') == 'annotation' &&
-			this.get('content.isDirty')) {
-			this.cancelEdit(this.content);
-		}*/
-		
+	currentPathWillChange: function() {
 	}.observes('application.currentPath'),
 	
 	
@@ -177,7 +171,8 @@ ASTool.ItemsController = Em.ArrayController.extend({
 			attribute = this.get('mappingAttribute');
 			annotation = attribute.get('annotation');
 			annotation.addMapping(attribute.get('name'), field.get('item').get('name') + '.' + field.get('name'));
-			this.transitionToRoute('annotation', annotation);		   
+			this.transitionToRoute('annotation', annotation);
+			this.set('mappingAttribute', null);	   
 		}
 	},
 });
@@ -192,10 +187,11 @@ ASTool.PageController = Em.Controller.extend({
 	
 	actions: {
 		loadPage: function() {
-			this.set('currentUrl', this.get('navigateToUrl'));
+			this.set('currentUrl', null);
 			this.get('controllers.annotations').deleteAllAnnotations();
 			loadAnnotatedDocument(this.get('navigateToUrl'), 
 				function(){
+					this.set('currentUrl', this.get('navigateToUrl'));
 					this.transitionToRoute('annotations');
 				}.bind(this),
 				this.get('controllers.application')
@@ -237,10 +233,11 @@ ASTool.DocumentView = Em.Object.extend({
 
 ASTool.ApplicationController = Em.Controller.extend({
 	
+	needs: ['page'],
+	
 	documentView: ASTool.DocumentView.create(),
 	
 	currentPathWillChange: function() {
-		console.log('>>>>>' + this.get('currentPath'));
 	}.observes('currentPath'),
 	
 	documentListener: null,
