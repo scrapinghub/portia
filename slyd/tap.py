@@ -25,7 +25,8 @@ def create_root(config):
     from scrapy import log
     from scrapy.settings import CrawlerSettings
     from slyd.renderer import Renderer
-    from slyd.crawlerspec import CrawlerSpecManager
+    from slyd.crawlerspec import (CrawlerSpecManager,
+        create_crawler_spec_resource)
     from slyd.bot import create_bot_resource
     import slyd.settings
     from slyd.project import Project
@@ -42,6 +43,8 @@ def create_root(config):
 
     # the following are deprecated and will be removed:
     root.putChild("annotations", annotation_renderer)
+
+    # These are deprecated and will be removed
     root.putChild("items", item_renderer)
     root.putChild("item-fields", item_field_renderer)
     root.putChild("field-mappings", field_mapping_renderer)
@@ -52,12 +55,14 @@ def create_root(config):
 
     # add crawler at api/PROJECT/bot
     crawler_settings = CrawlerSettings(settings_module=slyd.settings)
-    log.start_from_settings(crawler_settings)
     spec_dir = crawler_settings['SPEC_DATA_DIR']
     spec_manager = CrawlerSpecManager(spec_dir)
     log.msg("Slybot specs loading from %s/[PROJECT]" % spec_dir, level=log.DEBUG)
     project.putChild("bot", create_bot_resource(crawler_settings, spec_manager))
 
+    # spec at api/PROJECT/spec
+    spec = create_crawler_spec_resource(crawler_settings, spec_manager)
+    project.putChild("spec", spec)
     return root
 
 def makeService(config):

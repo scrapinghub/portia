@@ -34,6 +34,32 @@ This will be moved to separate docs - it's currently some notes for developers
 All resources are either under /static/ or /api/. All API requests require a
 project following the API, then the path to the endpoint.
 
+spec
+
+The project specification is available under /api/PROJECT/spec. The path format
+mirrors the slybot format documented here:
+http://slybot.readthedocs.org/en/latest/project.html
+
+Currently, this is read only, but it will soon support PUT/POST.
+
+The entire spec is returned for a GET request to the root:
+
+	$ curl http://localhost:9001/api/78/spec
+	{"project": {
+    "version": "1308771278",
+    "name": "demo"
+    ..
+	}
+
+and specific resources can be requested:
+
+	$ curl http://localhost:9001/api/78/spec/spiders/accommodationforstudents.com
+	{
+    	"templates":
+    ...
+	    "respect_nofollow": true
+	}
+
 
 bot/fetch
 

@@ -13,7 +13,7 @@ error to display. Otherwise you will find the following fields:
     * page -- the retrieved page - will be annotated in future
 
 """
-import json
+import json, errno
 from functools import partial
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
@@ -105,16 +105,19 @@ class Fetch(BotResource):
 
     def create_spider(self, project, params, **kwargs):
         spider = params['spider']
-        specs = self.bot.spec_manager.load_spec(project)
+        pspec = self.bot.spec_manager.project_spec(project)
         try:
-            spec = specs['spiders'][spider]
-            items = specs['items']
-            extractors = specs['extractors']
-            return IblSpider(spider, spec, items, extractors,
+            spider_spec = pspec.spider_spec(spider).load()
+            items = pspec.resource_spec('items').load()
+            extractors = pspec.resource_spec('extractors').load()
+            return IblSpider(spider, spider_spec, items, extractors,
                 **kwargs)
-        except KeyError as ex:
-            log.msg("not extracting, missing spec for %s" % ex.message,
-                level=log.DEBUG)
+        except IOError as ex:
+            if ex.errno == errno.ENOENT:
+                log.msg("skipping extraction, no spec: %s" % ex.filename)
+            else:
+                raise
+
 
     def fetch_errback(self, twisted_request, failure):
         msg = "unexpected error response: %s" % failure
