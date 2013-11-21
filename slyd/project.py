@@ -21,6 +21,6 @@ class Project(Resource):
         request.project = project_path_element
         next_path_element = request.postpath.pop(0)
         if next_path_element not in self.children:
-            raise NoResource("No such child resource:")
+            raise NoResource("No such child resource.")
         request.prepath.append(project_path_element)
         return self.children[next_path_element]
