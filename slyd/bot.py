@@ -61,6 +61,7 @@ class BotResource(Resource):
 
 
 class Fetch(BotResource):
+    isLeaf=True
 
     def render_POST(self, request):
         #TODO: validate input data, handle errors, etc.
@@ -81,28 +82,28 @@ class Fetch(BotResource):
         return NOT_DONE_YET
 
     def fetch_callback(self, response):
+        request = response.meta['twisted_request']
         if response.status != 200:
-            write_json(response, error="Received http %s" % response.status)
+            finish_request(request, error="Received http %s" % response.status)
         if not isinstance(response, HtmlResponse):
             msg = "Non-html response: %s" % response.headers.get(
                 'content-type', 'no content type')
-            write_json(response, error=msg)
+            finish_request(request, error=msg)
         try:
             params = response.meta['slyd_request_params']
             htmlpage = htmlpage_from_response(response)
             cleaned_html = descriptify(htmlpage)
             result = dict(page=cleaned_html)
-            spider = self.create_spider(params)
+            spider = self.create_spider(request.project, params)
             if spider is not None:
                 items, _link_regions = spider.extract_items(htmlpage)
                 result['items'] = [i._values for i in items]
-            write_json(response, **result)
+            finish_request(request, **result)
         except Exception as ex:
             log.err()
-            write_json(response, error="unexpected internal error: %s" % ex)
+            finish_request(request, error="unexpected internal error: %s" % ex)
 
-    def create_spider(self, params, **kwargs):
-        project = params['project']
+    def create_spider(self, project, params, **kwargs):
         spider = params['spider']
         specs = self.bot.spec_manager.load_spec(project)
         try:
@@ -125,10 +126,6 @@ def read_json(request):
     data = request.content.getvalue()
     return json.loads(data)
 
-
-def write_json(response, **resp_obj):
-    request = response.meta['twisted_request']
-    finish_request(request, **resp_obj)
 
 def finish_request(trequest, **resp_obj):
     jdata = json.dumps(resp_obj)

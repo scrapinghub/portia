@@ -31,11 +31,14 @@ Slyd API Notes
 
 This will be moved to separate docs - it's currently some notes for developers
 
+All resources are either under /static/ or /api/. All API requests require a
+project following the API, then the path to the endpoint.
+
+
 bot/fetch
 
 Accepts json object with the following fields:
 * request - same as scrapy requst object. At least needs a url
-* project - project for which to fetch the page
 * spider - spider name within in the project
 * page_id - unique ID for this page, must match the id used in templates (not yet implemented)
 
@@ -49,7 +52,7 @@ $ bin/sh2sly data/projects -p 78 -k YOURAPIKEY
 
 Then you can extract data:
 
-$ curl -d '{"request": {"url": "http://www.pinterest.com/pin/339740365610932893/"}, "project": 78, "spider": "pinterest.com"}' http://localhost:9001/bot/fetch
+$ curl -d '{"request": {"url": "http://www.pinterest.com/pin/339740365610932893/"}, "spider": "pinterest.com"}' http://localhost:9001/api/78/bot/fetch
 {
    "items": [
       {

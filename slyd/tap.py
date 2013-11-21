@@ -28,8 +28,10 @@ def create_root(config):
     from slyd.crawlerspec import CrawlerSpecManager
     from slyd.bot import create_bot_resource
     import slyd.settings
+    from slyd.project import Project
 
     root = Resource()
+
     annotation_renderer = Renderer('annotation', 'annotations',
         ['field-mappings', 'item-fields', 'items'])
     item_renderer = Renderer('item', 'items', ['item-fields'])
@@ -37,17 +39,25 @@ def create_root(config):
     field_mapping_renderer = Renderer('field-mapping', 'field-mappings')
 
     root.putChild("static", File(config['docroot']))
+
+    # the following are deprecated and will be removed:
     root.putChild("annotations", annotation_renderer)
     root.putChild("items", item_renderer)
     root.putChild("item-fields", item_field_renderer)
     root.putChild("field-mappings", field_mapping_renderer)
 
+    # api/PROJECTID/child
+    project = Project()
+    root.putChild('api', project)
+
+    # add crawler at api/PROJECT/bot
     crawler_settings = CrawlerSettings(settings_module=slyd.settings)
     log.start_from_settings(crawler_settings)
     spec_dir = crawler_settings['SPEC_DATA_DIR']
     spec_manager = CrawlerSpecManager(spec_dir)
     log.msg("Slybot specs loading from %s/[PROJECT]" % spec_dir, level=log.DEBUG)
-    root.putChild("bot", create_bot_resource(crawler_settings, spec_manager))
+    project.putChild("bot", create_bot_resource(crawler_settings, spec_manager))
+
     return root
 
 def makeService(config):

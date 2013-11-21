@@ -341,7 +341,7 @@ function loadAnnotatedDocument(pageUrl, loaded, controller) {
 	appController = controller;
 	hash = {};
 	hash.type = 'POST';
-	hash.data = JSON.stringify({project: 'test', spider: 'test', request: {url: pageUrl}});
+	hash.data = JSON.stringify({spider: 'test', request: {url: pageUrl}});
 	hash.success = function(data) {
 		$('#scraped-doc-iframe').contents().find('html').html(data.page);
 		initIframe(loaded);
@@ -349,7 +349,8 @@ function loadAnnotatedDocument(pageUrl, loaded, controller) {
 	hash.error = function(req, status, error) {
 		console.log(error);
 	};
-	hash.url = 'http://localhost:9001/bot/fetch';
+	// FIXME: hardcode dummy 'test' project
+	hash.url = 'http://localhost:9001/api/test/bot/fetch';
 	$.ajax(hash);
 }
 
