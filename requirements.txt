@@ -1,3 +1,6 @@
 twisted
 scrapy
+loginform
+lxml
+-e git://github.com/scrapy/scrapely.git#egg=scrapely
 -e git://github.com/scrapy/slybot.git#egg=slybot
