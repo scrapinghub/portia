@@ -6,6 +6,7 @@
 *.bak
 *.swp
 *.project
+*.sublime-*
 
 # twisted
 dropin.cache
