@@ -107,9 +107,9 @@ class Fetch(BotResource):
         spider = params['spider']
         pspec = self.bot.spec_manager.project_spec(project)
         try:
-            spider_spec = pspec.spider_spec(spider).load()
-            items = pspec.resource_spec('items').load()
-            extractors = pspec.resource_spec('extractors').load()
+            spider_spec = pspec.resource('spiders', spider)
+            items = pspec.resource('items', spider)
+            extractors = pspec.resource('extractors', spider)
             return IblSpider(spider, spider_spec, items, extractors,
                 **kwargs)
         except IOError as ex:

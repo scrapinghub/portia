@@ -60,6 +60,12 @@ and specific resources can be requested:
 	    "respect_nofollow": true
 	}
 
+The spec can be updating by POSTing:
+
+  $ curl --data @newlinkedin.js http://localhost:9001/api/78/spec/spiders/linkedin
+
+An HTTP 400 will be returned if the uploaded spec does not validate.
+
 
 bot/fetch
 

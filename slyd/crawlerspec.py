@@ -12,6 +12,7 @@ from os.path import join, exists, splitext
 from twisted.web import http
 from twisted.web.error import Error
 from twisted.web.resource import NoResource, ForbiddenResource
+from jsonschema.exceptions import ValidationError
 from slybot.utils import open_project_from_dir
 from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
@@ -54,8 +55,22 @@ class SpecResource(SlydJsonResource):
 
     def render_POST(self, request):
         # get_schema_validator(name)
-        pass
-
+        # read request JSON:
+        obj = self.read_json(request)
+        try:
+            # validate the request path and data
+            resource = request.postpath[0]
+            if resource == 'spiders':
+                resource = 'spider'
+            get_schema_validator(resource).validate(obj)
+        except (KeyError, IndexError) as _ex:
+            self.error(404, "Not Found", "No such resource")
+        except ValidationError as ex:
+            msg = "Json failed validation: %s" % ex.message
+            self.error(400, "Bad Request", msg)
+        project_spec = self.spec_manager.project_spec(request.project)
+        project_spec.savejson(obj, request.postpath)
+        return ''
 
 class CrawlerSpecManager(object):
 
@@ -86,21 +101,31 @@ class ProjectSpec(object):
             if ex.errno != errno.ENOENT:
                 raise
 
-    def writejson(self, outf, *resource):
+    def _rfile(self, resources, mode='rb'):
+        return open(join(self.projectdir, *resources) + '.json', mode)
+
+    def resource(self, *resources):
+        return json.load(self._rfile(resources))
+
+    def writejson(self, outf, *resources):
         """Write json for the resource specified
 
         Multiple arguments are joined (e.g. spider, spidername).
 
         If the file does not exist, an empty dict is written
         """
-        filename = join(self.projectdir, *resource) + '.json'
         try:
-            shutil.copyfileobj(open(filename), outf)
+            shutil.copyfileobj(self._rfile(resources), outf)
         except IOError as ex:
             if ex.errno == errno.ENOENT:
                 outf.write('{}')
             else:
                 raise
+
+    def savejson(self, obj, *resources):
+        # convert to json in a way that will make sense in diffs
+        data = json.dumps(obj, sort_keys=True, indent=4)
+        self._rfile(*resources, mode='wb').write(data)
 
     def json(self, out):
         """Write spec as json to the file-like object
