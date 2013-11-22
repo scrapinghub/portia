@@ -58,12 +58,20 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 	
 	documentViewBinding: 'controllers.application.documentView',
 	
+	selectingIgnore: false,
+	
 	highlightedElements: function() {
 		var highlightedElementsWithoutSelection = this.get('controllers.annotations.highlightedElements').copy().removeObject(this.get('currentlySelectedElement'));
 		return highlightedElementsWithoutSelection;
-	}.property('controllers.annotations.highlightedElements'),
+	}.property('controllers.annotations.highlightedElements', 'currentlySelectedElement'),
 	
 	currentlySelectedElement: null,
+	
+	ignoredElements: function() {
+		return this.get('model.ignores').map(function(ignore) {
+			return ignore.get('element');
+		});
+	}.property('model.ignores.@each'),
 	
 	clearSelection: function() {
 		if (this.get('content').get('isPartial')) {
@@ -81,10 +89,6 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		this.transitionToRoute('annotations');
 		this.get('documentView').resetSelections();
 	},
-	
-	currentPathWillChange: function() {
-	}.observes('application.currentPath'),
-	
 	
 	actions: {
 		
@@ -107,15 +111,36 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			this.set('mappingAttribute', attribute);
 			this.transitionToRoute('items');
 		},
+		
+		addIgnore: function() {
+			this.set('documentView.restrictToDescendants', true);
+			this.set('selectingIgnore', true);
+		},
+
+		deleteIgnore: function(ignore) {
+			var ignores = this.get('model.ignores');
+			ignores.removeObject(ignore);
+		},	
 	},
 	
 	documentActions: {
 		
 		elementSelected: function(element) {
-			this.clearSelection();
-			this.content.set('selectedElement', element);
-			this.content.set('isPartial', false);
-			this.set('currentlySelectedElement', element);
+			if (this.get('selectingIgnore')) {
+				this.content.addIgnore(element);
+				this.set('selectingIgnore', false);
+				this.set('documentView.restrictToDescendants', false);
+			} else {
+				var needsConfirmation = this.get('ignoredElements').length || this.get('model.mappedAttributes').length;
+				if (!needsConfirmation ||
+					confirm('If you select a different region you will lose all the ignored regions and attribute mappings you defined, proceed anyway?')) {
+					this.clearSelection();
+					this.content.set('selectedElement', element);
+					this.content.set('isPartial', false);
+					this.content.removeIgnores();
+					this.set('currentlySelectedElement', element);	
+				}
+			}
 		},
 		
 		partialSelection: function(selection) {
@@ -128,11 +153,15 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			selection.collapse();
 		}
 	},
+
+	willLeave: function() {
+		console.log('Leaving controller...');
+	},
 });
 
 ASTool.ItemsController = Em.ArrayController.extend({
 	
-	mappingAttribute: null,
+	needs: ['annotation'],
 	
 	addItem: function() {
 		var newItem = this.store.createRecord('item', {});
@@ -168,11 +197,11 @@ ASTool.ItemsController = Em.ArrayController.extend({
 		},
 	   
 		chooseField: function(field) {
-			attribute = this.get('mappingAttribute');
+			attribute = this.get('controllers.annotations.mappingAttribute');
 			annotation = attribute.get('annotation');
 			annotation.addMapping(attribute.get('name'), field.get('item').get('name') + '.' + field.get('name'));
 			this.transitionToRoute('annotation', annotation);
-			this.set('mappingAttribute', null);	   
+			this.set('controllers.annotations.mappingAttribute', null);	   
 		}
 	},
 });
@@ -204,9 +233,13 @@ ASTool.PageController = Em.Controller.extend({
 ASTool.DocumentView = Em.Object.extend({
 	selectionsSource: null,
 	
+	restrictToDescendants: false,
+	
 	currentlySelectedElementBinding: 'selectionsSource.currentlySelectedElement',
 	
 	highlightedElementsBinding: 'selectionsSource.highlightedElements',
+	
+	ignoredElementsBinding: 'selectionsSource.ignoredElements',
 	
 	elementSelectionEnabled: function(selectionEnabled) {
 		if (iframe) {
@@ -224,7 +257,7 @@ ASTool.DocumentView = Em.Object.extend({
 		if (iframe) {
 			redrawCanvas();
 		}
-	}.observes('currentlySelectedElement', 'highlightedElements'),
+	}.observes('currentlySelectedElement', 'highlightedElements.@each', 'ignoredElements.@each'),
 	
 	resetSelections: function() {
 		this.set('selectionSource', null);

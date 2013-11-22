@@ -46,13 +46,6 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 });
 
 ASTool.ItemsRoute = Ember.Route.extend({
-	beforeModel: function() {		
-		var mappingAttribute = this.controllerFor('annotation').get('mappingAttribute');
-		if (mappingAttribute) {
-			this.controllerFor('items').set('mappingAttribute', mappingAttribute);
-		}
-	},
-	
 	model: function() {
 		return this.store.find('item');
 	}

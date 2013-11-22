@@ -2,8 +2,8 @@
 <head>
 	<meta charset="utf-8">
 	<link href="css/normalize.css" rel="stylesheet">
-	<link href="css/style.css" rel="stylesheet">
 	<link href="//code.jquery.com/ui/1.10.3/themes/cupertino/jquery-ui.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
 
 	<script src="js/jquery-1.9.1.js"></script>
 	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
@@ -14,6 +14,7 @@
 	<script src="js/app.js"></script>
 	<script src="js/models.js"></script>
 	<script src="js/routes.js"></script>
+	<script src="js/emberui.js"></script>
 	<script src="js/views.js"></script>
 	<script src="js/controllers.js"></script>
 	
@@ -92,54 +93,38 @@
 <!-- Edit annotation template -->
 <script type="text/x-handlebars" id="annotation">
 	<div style="text-align: center">
-	<h3>Edit annotation</h3>
-	{{view JQ.TextField value=name class="textarea"}}
-	<div style="margin-top:25px"/>
-	{{#if path}}
-		<h3>Selected element attributes:</h3>
-	{{else}}
-		<h4>Please select an element from the document.</h4>
-	{{/if}}
-	
-		{{#each mappedAttributes}}
-			<p class="elementAttribute">{{view ASTool.ElemAttributeView mapped=true attribute=this}}</p>
-		{{/each}}
-		{{#each unmappedAttributes}}
-			<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this}}</p>
-		{{/each}}
-	
-	<hr/>
-	{{#if element}}
-		{{view JQ.ButtonView action="doneEditing" argument=model label="Save"}}
-	{{else}}
-		{{view JQ.ButtonView action="cancelEdit" argument=model label="Cancel"}}
-	{{/if}}
+		<h3>Annotation name</h3>
+		{{view JQ.TextField value=name class="smalltextarea"}}
+		<div style="margin-top:25px"/>
+		{{#if path}}
+			<h3>Mapped attributes</h3>
+			{{#each mappedAttributes}}
+				<p class="elementAttribute">{{view ASTool.ElemAttributeView mapped=true attribute=this}}</p>
+			{{/each}}
+			{{#each unmappedAttributes}}
+				<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this}}</p>
+			{{/each}}
+			<hr/>
+			<h3>Ignored regions</h3>
+			{{#each model.ignores}}
+				<div style='margin-top: 3px'>
+					{{view JQ.TextField value=name class="mediumtextarea"}}
+					{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" label="x" text=false}}
+				</div>
+			{{/each}}
+			{{view JQ.ButtonView action="addIgnore" label="Add Ignore"}}
+			<hr/>
+		{{else}}
+			<h4>Please select a region from the document.</h4>
+		{{/if}}
+		
+		{{#if element}}
+			{{view JQ.ButtonView action="doneEditing" argument=model label="Save"}}
+		{{else}}
+			{{view JQ.ButtonView action="cancelEdit" argument=model label="Cancel"}}
+		{{/if}}
 	</div>
 	
-</script>
-
-
-<!-- Items list -->
-<script type="text/x-handlebars" id="items">
-	{{#if mappingAttribute}}
-		<h3>Choose an item field to map "{{mappingAttribute.name}}"</h3>
-	{{else}}
-		<h3>Items</h3>
-	{{/if}}
-	<hr/>
-	{{#each model}}
-		{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
- 	{{else}}
- 		No items have been defined yet.
- 	{{/each}}
-	<hr/>
-	{{my-button action="addItem" label="+"}}
-</script>
-
-
-<!-- Button component -->
-<script type="text/x-handlebars" id="components/my-button">
-      <button class="button">{{label}}</button>
 </script>
 
 
@@ -161,29 +146,50 @@
 </script>
 
 
+<!-- Items list -->
+<script type="text/x-handlebars" id="items">
+	<div style="text-align: center">
+		{{#if mappingAttribute}}
+			<h3>Choose an item field to map "{{mappingAttribute.name}}"</h3>
+		{{else}}
+			<h3>Items</h3>
+		{{/if}}
+		<hr/>
+		{{#each model}}
+			{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
+			<hr/>
+	 	{{else}}
+	 		<h4>No items have been defined yet.</h4>
+			<hr/>
+	 	{{/each}}
+		{{view JQ.ButtonView action="addItem" icon="ui-icon-circle-plus" label="+" text=false}}
+	</div>
+</script>
+
+
 <!-- Item View -->
 <script type="text/x-handlebars" id="item">
-	{{view ASTool.EditField editable=view.item value=view.item.name}}
-	<button class="button map-button" {{action "addField" this}}>+</button>
-	<div style="margin:10px 0px 10px 30px;">
+	<p style="color:#2779aa;">Item name</p>
+	{{view JQ.EditField owner=view.item value=view.item.name class="smalltextarea"}}
+	{{view JQ.ButtonView action="addField" argument=this class="smallbutton" icon="ui-icon-plus" label="+" text=false}}
+	<div style="text-align: center; margin-top:10px">
 		{{#if view.item.fields}}
-			<table>
-				<tr> <td>Name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
+			<table style="margin: 0 auto;">
+				<tr style="color:#2779aa;"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 				{{#each view.item.fields}}
 					<tr>
-						<td>{{view ASTool.EditField owner=this value=name}}</td>
+						<td>{{view JQ.TextField owner=this value=name class="smalltextarea"}}</td>
 						<td>{{view ASTool.TypeSelect owner=this selection=type}}</td>
 						<td>{{view ASTool.EditBox owner=this checked=required}}</td>
 						<td>{{view ASTool.EditBox owner=this checked=vary}}</td>
 						{{#if view.mappingAttribute}}
-							<td><button class="button map-button" {{action "chooseField" this}}>use</button></td>
-							{{/if}}
+							<td>{{view JQ.ButtonView action="chooseField" argument=this icon="ui-icon-check" label="ok" text=false}}</td>
+						{{/if}}
 					</tr>
 				{{/each}}
-
-				</table>
+			</table>
 		{{else}}
-			<div style="margin-top:10px; margin-left:20px;">No fields defined yet.</div>
+			<h4>No fields defined yet.</h4>
 		{{/if}}
 	</div>
 </script>

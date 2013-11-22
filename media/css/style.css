@@ -26,7 +26,7 @@ body{
  width:400px;
  height:100%;
  min-height:200px;
- background-color:rgba(245, 248, 250, 1);
+ background-color:rgba(248, 251, 255, 1);
  z-index:300;
  box-shadow:0px 0px 4px 4px rgba(0,0,0,0.3);
 }
@@ -44,6 +44,7 @@ body{
 	border-color: #aed0ea;
 	border-style:dotted;
 	border-width: 1px;
+	background-color:rgba(245, 248, 250, 1);
 }
 
 #pageUrl {
@@ -58,8 +59,33 @@ body{
 	border-color: #2779aa;
 	text-align: center;
 	color:#2779aa;
-	padding: 4px 4px 4px 4px;
+	padding: 3px 2px 3px 2px;
 	font: 1.5em Trebuchet MS,Helvetica,Arial,sans-serif;
+}
+
+.mediumtextarea {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2779aa;
+	text-align: center;
+	color:#2779aa;
+	padding: 2px;
+	font: 1.1em Trebuchet MS,Helvetica,Arial,sans-serif;
+}
+
+.smalltextarea {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2779aa;
+	text-align: center;
+	color:#2779aa;
+	padding: 1px;
+	font: 1em Trebuchet MS,Helvetica,Arial,sans-serif;
+}
+
+.smallbutton {
+	padding: 0.1em;
+	font: 0.5em Trebuchet MS,Helvetica,Arial,sans-serif;
 }
 
 
@@ -171,4 +197,18 @@ h4 {
 	width: 100%;
 	align: center;
 }
+
+td {
+	padding:3px;
+}
+
+input[type="checkbox"] {
+	width:20px;
+	height:20px;
+	margin:4px 0px 0px 0px;
+	padding:0px;
+}
+
+.ui-button-icon-only .ui-icon, .ui-button-text-icon-primary .ui-icon, .ui-button-text-icon-secondary .ui-icon, .ui-button-text-icons .ui-icon, .ui-button-icons-only .ui-icon { margin-top: -9px; }
+.ui-button-icon-only .ui-icon {margin-left: -9px;}
 

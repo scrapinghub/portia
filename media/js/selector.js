@@ -8,6 +8,7 @@ var ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding
 						 'data-scrapy-annotate'];
 var mouseDown = 0;
 var autoRedrawId = null;
+var dashPattern = [2, 1];
 
 function highlightElement(ctx, element, fillColor, strokeColor, dashed, text) {
 	var y_offset = iframe.scrollTop();
@@ -42,7 +43,7 @@ function highlightRect(ctx, rect, fillColor, strokeColor, dashed, text) {
 				 rect.height);
 				 
 	if (dashed) {
-		ctx.setLineDash([2,2]);
+		ctx.setLineDash(dashPattern);
 	} 
     ctx.lineWidth=1;
 	ctx.strokeStyle=strokeColor;
@@ -54,10 +55,15 @@ function highlightRect(ctx, rect, fillColor, strokeColor, dashed, text) {
 }
 
 function redrawCanvas() {
+	if (dashPattern[1] == 1) {
+		dashPattern[1] = 2;
+	} else {
+		dashPattern[1] = 1;
+	}
+
 	var documentView = appController.get('documentView');
 	
 	if (!documentView) {
-		console.log('in redraw, documentView is not defined...');
 		console.log(appController);
 		return;
 	}
@@ -69,8 +75,8 @@ function redrawCanvas() {
 	
 	var ctx=canvas.getContext("2d");
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	// Draw the annotated areas.
 	
+	// Draw the annotated areas.
 	var highLighted = documentView.get('highlightedElements');
 	if (highLighted) {
 		highLighted.forEach(function(element) {
@@ -80,12 +86,7 @@ function redrawCanvas() {
 		});
 	}
 	
-	// Draw the currently hovered item.
-	if (hoveredElement) {
-		highlightElement(ctx, $(hoveredElement), "rgba(0,255,0,0.3)", "orange");
-	}
 	// Draw the current selection.
-	
 	if (documentView.get('currentlySelectedElement')) {
 		highlightElement(ctx, $(documentView.get('currentlySelectedElement')), "rgba(88,120,220,0.3)", "white", true);
 		//highlightElement(ctx, findInAnnotatedDoc(selection), "rgba(88,120,220,0.3)", "white", true);
@@ -102,6 +103,20 @@ function redrawCanvas() {
 		} else {
 			highlightElement(ctx, findInAnnotatedDoc(selection), "rgba(88,120,220,0.3)", "white", true);
 		}*/
+	}
+	
+	var ignored = documentView.get('ignoredElements');
+	if (ignored) {
+		ignored.forEach(function(element) {
+			if (element) {
+				highlightElement(ctx, $(element), "rgba(255,0,0,0.3)", "white", false, '');
+			}
+		});
+	}
+
+	// Draw the currently hovered item.
+	if (hoveredElement) {
+		highlightElement(ctx, $(hoveredElement), "rgba(0,255,0,0.3)", "orange");
 	}
 }
 
@@ -147,14 +162,18 @@ function updateHoveredInfo(element) {
 }
 
 function mouseOverHandler(event) {
-	target = event.target;
 	event.preventDefault();
+	target = event.target;
 	if ($.inArray($(target).prop("tagName").toLowerCase(), ignoredElementTags) == -1 &&
 		mouseDown == 0) {
-		if (!hoveredElement) {
-			updateHoveredInfo(target);
-			hoveredElement = target;
-			redrawCanvas();
+		var documentView = appController.documentView;
+		if (!documentView.get('restrictToDescendants') ||
+			isDescendant(target, documentView.get('currentlySelectedElement'))) {
+			if (!hoveredElement) {
+				updateHoveredInfo(target);
+				hoveredElement = target;
+				redrawCanvas();
+			}
 		}
 	}
 }
@@ -189,7 +208,13 @@ function mouseUpHandler(event) {
 		}
 	} else {
 		var target = event.target;
-		sendEvent('elementSelected', target);
+		if ($.inArray($(target).prop("tagName").toLowerCase(), ignoredElementTags) == -1) {
+			var documentView = appController.documentView;
+			if (!documentView.get('restrictToDescendants') ||
+				isDescendant(target, documentView.get('currentlySelectedElement'))) {
+				sendEvent('elementSelected', target);
+			}
+		}
 	}
 }
 
@@ -283,6 +308,11 @@ function findAnnotatedElement(annotationId) {
 	return iframe.find(selector);
 }
 
+function findIgnoredElements(annotationId) {
+	var selector = '[data-scrapy-ignore*="' + annotationId + '"]';
+	return iframe.find(selector);
+}
+
 function removePartialAnnotation(insElement) {
 	// FIXME: this may leave empty text node children.
 	var textNode = insElement.childNodes[0];
@@ -327,6 +357,10 @@ function getSiblingIndex(element){
 		}
 	}
 	return -1;
+}
+
+function isDescendant(descendant, parent) {
+	return $(parent).find(descendant).length > 0;
 }
 
 function loadAnnotatedDocument(pageUrl, loaded, controller) {

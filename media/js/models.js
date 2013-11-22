@@ -57,8 +57,25 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 });
 
-ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({storageAttribute: 'data-scrapy-annotate'});
+ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
+	storageAttribute: 'data-scrapy-annotate',
 
+	deleteRecord: function(store, type, record) {
+		var ignoredElements = findIgnoredElements(record.get('id'));
+		ignoredElements.removeAttr('data-scrapy-ignore');
+		return this._super(store, type, record);
+	},
+
+	updateRecord: function(store, type, record) {
+		var oldIgnoredElements = findIgnoredElements(record.get('id'));
+		oldIgnoredElements.removeAttr('data-scrapy-ignore');
+		record.get('ignores').forEach(function(ignore) {
+			var ignoreJSON = {id: record.get('id'), name: ignore.get('name')};
+			$(ignore.get('element')).attr('data-scrapy-ignore', JSON.stringify(ignoreJSON));
+		});
+		return this._super(store, type, record);		
+	},
+});
 
 /*************************** Models **************************/
 
@@ -89,6 +106,33 @@ ASTool.Annotation = DS.Model.extend({
 	
 	isPartial: false,
 	
+	_ignores: null,
+	
+	ignores: function() {
+		if (this.get('_ignores') == null) {
+			var ignoredElements = findIgnoredElements(this.get('id')).toArray();
+			var ignores = ignoredElements.map(function(element){
+				var name = $.parseJSON($(element).attr('data-scrapy-ignore'))['name'];
+				return ASTool.Ignore.create({element: element, name: name});
+			});
+			this.set('_ignores', ignores);
+		} 
+		return this.get('_ignores');
+	}.property('_ignores'),
+
+	addIgnore: function(element) {
+		var ignore = ASTool.Ignore.create({element: element, name: 'testname'});
+		this.get('ignores').pushObject(ignore);
+	},
+
+	removeIgnore: function(ignore) {
+		this.get('ignores').removeObject(ignore);
+	},
+
+	removeIgnores: function() {
+		this.get('_ignores').setObjects([]);
+	},
+
 	partialText: function() {
 		if (this.get('element') && this.get('isPartial')) {
 			return $(this.get('element')).text();
@@ -166,11 +210,14 @@ ASTool.FieldMapping = DS.Model.extend({
 	attribute: DS.attr('string'),
 });
 
-/*************************** Helper objects *******************/ 
-
 ASTool.Attribute = Em.Object.extend({
 	name: null,
 	value: null,
 	mappedField: null,
 	annotation: null,
+});
+
+ASTool.Ignore = Em.Object.extend({
+	name: null,
+	element: null,
 });
