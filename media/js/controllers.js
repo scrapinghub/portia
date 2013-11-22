@@ -163,6 +163,8 @@ ASTool.ItemsController = Em.ArrayController.extend({
 	
 	needs: ['annotation'],
 	
+	mappingAttributeBinding: 'controllers.annotation.mappingAttribute',
+
 	addItem: function() {
 		var newItem = this.store.createRecord('item', {});
 		newItem.save();
@@ -197,11 +199,11 @@ ASTool.ItemsController = Em.ArrayController.extend({
 		},
 	   
 		chooseField: function(field) {
-			attribute = this.get('controllers.annotations.mappingAttribute');
-			annotation = attribute.get('annotation');
+			var attribute = this.get('mappingAttribute');
+			var annotation = attribute.get('annotation');
 			annotation.addMapping(attribute.get('name'), field.get('item').get('name') + '.' + field.get('name'));
 			this.transitionToRoute('annotation', annotation);
-			this.set('controllers.annotations.mappingAttribute', null);	   
+			this.set('mappingAttribute', null);	   
 		}
 	},
 });
