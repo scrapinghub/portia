@@ -9,70 +9,52 @@ loads data from the filesystem.
 import json, re, shutil, errno
 from os import listdir
 from os.path import join, exists, splitext
-from twisted.web import error
-from twisted.web.resource import Resource, NoResource
+from twisted.web import http
+from twisted.web.error import Error
+from twisted.web.resource import NoResource, ForbiddenResource
 from slybot.utils import open_project_from_dir
 from slybot.validation.schema import get_schema_validator
+from .resource import SlydJsonResource
 
 
 def create_crawler_spec_resource(settings, spec_manager):
-    project = ProjectSpecResource(spec_manager)
-    for resource in ProjectSpec.resources:
-        spec_resource = SpecResource(resource, spec_manager)
-        project.putChild(resource, spec_resource)
-    spider_resource = SpiderSpecResource(spec_manager)
-    project.putChild('spiders', spider_resource)
-    return project
+    return SpecResource(spec_manager)
 
+# stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
+_INVALID_SPIDER_RE = re.compile('[^A-Za-z0-9._]|^\.*$')
 
-class SpecResourceBase(Resource):
-    def __init__(self, spec_manager):
-        Resource.__init__(self)
-        self.spec_manager = spec_manager
+def allowed_spider_name(name):
+    return not _INVALID_SPIDER_RE.search(name)
 
-    def get_spec(self, request):
-        """overridden to get the spec for the current object"""
-        pass
-
-    def render(self, response):
-        try:
-            return Resource.render(self, response)
-        except IOError as ex:
-            if ex.errno == errno.ENOENT:
-                return NoResource().render(response)
-            else:
-                raise
-
-    def render_GET(self, request):
-        request.setHeader('Content-Type', 'application/json')
-        self.get_spec(request).json(request)
-        return '\n'
-
-class ProjectSpecResource(SpecResourceBase):
-
-    def get_spec(self, request):
-        return self.spec_manager.project_spec(request.project)
-
-
-class SpecResource(SpecResourceBase):
-
-    def __init__(self, name, spec_manager):
-        SpecResourceBase.__init__(self, spec_manager)
-        self.name = name
-        self.schema_validator = get_schema_validator(name)
-
-    def get_spec(self, request):
-        project_spec = self.spec_manager.project_spec(request.project)
-        return project_spec.resource_spec(self.name)
-
-
-class SpiderSpecResource(SpecResourceBase):
+class SpecResource(SlydJsonResource):
     isLeaf = True
 
-    def get_spec(self, request):
-        spider = request.postpath[0] if request.postpath else ''
+    def __init__(self, spec_manager):
+        SlydJsonResource.__init__(self)
+        self.spec_manager = spec_manager
+
+    def render(self, request):
+        # make sure the path is safe
+        for pathelement in request.postpath:
+            if pathelement and not allowed_spider_name(pathelement):
+                resource_class = NoResource if request.method == 'GET' \
+                    else ForbiddenResource
+                resource = resource_class("Bad path element %r" % pathelement)
+                return resource.render(request)
+        return SlydJsonResource.render(self, request)
+
+    def render_GET(self, request):
         project_spec = self.spec_manager.project_spec(request.project)
-        return project_spec.spider_spec(spider)
+        rpath = request.postpath
+        if not rpath:
+            project_spec.json(request)
+        else:
+            project_spec.writejson(request, *rpath)
+        return '\n'
+
+    def render_POST(self, request):
+        # get_schema_validator(name)
+        pass
 
 
 class CrawlerSpecManager(object):
@@ -95,17 +77,30 @@ class ProjectSpec(object):
         """load the spec for a given project"""
         return open_project_from_dir(self.projectdir)
 
-    def resource_spec(self, resource):
-        return Spec.from_name(self.projectdir, resource)
-
     def list_spiders(self):
-        for fname in listdir(join(self.projectdir, "spiders")):
-            if fname.endswith(".json"):
-                yield splitext(fname)[0]
+        try:
+            for fname in listdir(join(self.projectdir, "spiders")):
+                if fname.endswith(".json"):
+                    yield splitext(fname)[0]
+        except OSError as ex:
+            if ex.errno != errno.ENOENT:
+                raise
 
-    def spider_spec(self, spidername):
-        specfile = join(self.projectdir, "spiders", spidername + '.json')
-        return Spec(specfile)
+    def writejson(self, outf, *resource):
+        """Write json for the resource specified
+
+        Multiple arguments are joined (e.g. spider, spidername).
+
+        If the file does not exist, an empty dict is written
+        """
+        filename = join(self.projectdir, *resource) + '.json'
+        try:
+            shutil.copyfileobj(open(filename), outf)
+        except IOError as ex:
+            if ex.errno == errno.ENOENT:
+                outf.write('{}')
+            else:
+                raise
 
     def json(self, out):
         """Write spec as json to the file-like object
@@ -120,28 +115,10 @@ class ProjectSpec(object):
         for match in re.finditer('"(SPEC|SPIDER):([^"]+)"', json_template):
             out.write(json_template[last:match.start()])
             mtype, resource = match.groups()
-            specf = self.resource_spec if mtype == 'SPEC' else self.spider_spec
-            specf(resource).json(out)
+            if mtype == 'SPEC':
+                self.writejson(out, resource)
+            else:
+                self.writejson(out, 'spiders', resource)
             last = match.end()
         out.write(json_template[last:])
 
-
-class Spec(object):
-
-    def __init__(self, jsonfile):
-        self.jsonfile = jsonfile
-
-    def save(self, newobj):
-        # validate first, then save
-        pass
-
-    def load(self):
-        return json.load(open(self.jsonfile))
-
-    def json(self, out):
-        shutil.copyfileobj(open(self.jsonfile), out)
-
-    @classmethod
-    def from_name(cls, dirpath, name):
-        fname = join(dirpath, name) + '.json'
-        return Spec(fname)
