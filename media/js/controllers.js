@@ -3,15 +3,21 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 	needs: ['application', 'page'],
 	
 	documentViewBinding: 'controllers.application.documentView',
-	
+
 	currentlySelectedElement: null,
+
+	sprites: [],
 	
 	currentPageBinding: 'controllers.page.currentUrl',
 	
-	highlightedElements: function() {
+	sprites: function() {
 		return this.get('content').map(function(annotation) {
-			return annotation.get('element');
-		});
+			if (annotation.get('element')) {
+				return ASTool.AnnotationSprite.create({'annotation': annotation});
+			} else {
+				return null;
+			}
+		}).filter(function(annotation) {return annotation});
 	}.property('content.@each.element'),
 		
 	addAnnotation: function() {
@@ -27,16 +33,13 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 	},
 	
 	deleteAllAnnotations: function() {
-		var promises = [];
-		var annotations = this.toArray();
-		annotations.invoke('deleteRecord');
-		annotations.invoke('save');
+		this.invoke('deleteRecord');
+		this.invoke('save');
 	},
 
 	actions: {
 		
 		editAnnotation: function(annotation) {
-			annotation.set('selectedElement', null);
 			this.editAnnotation(annotation);
 		},
 
@@ -48,33 +51,57 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 			annotation.deleteRecord();
 			annotation.save();
 		},
-	}
+	},
+
+	willEnter: function() {
+		this.set('documentView.selectionsSource', this);
+		this.get('documentView').elementSelectionEnabled(false);
+	},
+
+	willLeave: function() {
+		this.set('documentView.selectionsSource', null);
+	},
 });
 
+
 ASTool.AnnotationController = Em.ObjectController.extend({
-	mappingAttribute: null,
-	
+
 	needs: ['application', 'annotations'],
 	
+	mappingAttribute: null,
+	
 	documentViewBinding: 'controllers.application.documentView',
-	
-	selectingIgnore: false,
-	
-	highlightedElements: function() {
-		var highlightedElementsWithoutSelection = this.get('controllers.annotations.highlightedElements').copy().removeObject(this.get('currentlySelectedElement'));
-		return highlightedElementsWithoutSelection;
-	}.property('controllers.annotations.highlightedElements', 'currentlySelectedElement'),
-	
+
 	currentlySelectedElement: null,
 	
-	ignoredElements: function() {
-		return this.get('model.ignores').map(function(ignore) {
-			return ignore.get('element');
+	selectingIgnore: false,
+
+	sprites: function() {
+		var sprites = [];
+		if (this.get('currentlySelectedElement')) {
+			sprites.pushObject(ASTool.AnnotationSprite.create(
+				{'annotation': this.content,
+				 'dashed': true}));
+		}
+
+		var annotationSprites = this.get('controllers.annotations.sprites').filter(function(sprite) {
+			return sprite.get('annotation.id') != this.content.get('id');
+		}.bind(this));
+
+		var ignoredElements = this.get('model.ignores').map(function(ignore) {
+			return ASTool.ElementSprite.create({'element': ignore.get('element'),
+												'text': ignore.get('name'),
+												'fillColor': 'rgba(255, 0, 0, 0.2)',
+												'strokeColor': 'rgba(255, 0, 0, 0.7)'})
 		});
-	}.property('model.ignores.@each'),
+
+		return sprites.concat(annotationSprites).concat(ignoredElements);
+	}.property('currentlySelectedElement',
+			   'controllers.annotations.sprites',
+			   'model.ignores.@each'),
 	
 	clearSelection: function() {
-		if (this.get('content').get('isPartial')) {
+		if (this.get('isPartial')) {
 			var insElement = this.get('currentlySelectedElement');
 			removePartialAnnotation(insElement);
 		}
@@ -87,7 +114,6 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			annotation.deleteRecord();	
 		}
 		this.transitionToRoute('annotations');
-		this.get('documentView').resetSelections();
 	},
 	
 	actions: {
@@ -97,7 +123,6 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			annotation.save().then(function() {
 				this.transitionToRoute('annotations');
 				annotation.set('selectedElement', null);
-				this.get('documentView').resetSelections();
 			}.bind(this));
 		},
 		
@@ -106,19 +131,18 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		},
 		
 		mapAttribute: function(attribute) {
-			this.get('documentView').elementSelectionEnabled(false);
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
 			this.transitionToRoute('items');
 		},
 		
 		addIgnore: function() {
-			this.set('documentView.restrictToDescendants', true);
+			this.set('documentView.restrictToDescendants', this.get('element'));
 			this.set('selectingIgnore', true);
 		},
 
 		deleteIgnore: function(ignore) {
-			var ignores = this.get('model.ignores');
+			var ignores = this.get('ignores');
 			ignores.removeObject(ignore);
 		},	
 	},
@@ -127,18 +151,20 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		
 		elementSelected: function(element) {
 			if (this.get('selectingIgnore')) {
-				this.content.addIgnore(element);
+				if (element) {
+					this.content.addIgnore(element);	
+				}
 				this.set('selectingIgnore', false);
 				this.set('documentView.restrictToDescendants', false);
 			} else {
-				var needsConfirmation = this.get('ignoredElements').length || this.get('model.mappedAttributes').length;
+				var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
 				if (!needsConfirmation ||
 					confirm('If you select a different region you will lose all the ignored regions and attribute mappings you defined, proceed anyway?')) {
 					this.clearSelection();
 					this.content.set('selectedElement', element);
 					this.content.set('isPartial', false);
 					this.content.removeIgnores();
-					this.set('currentlySelectedElement', element);	
+					this.set('currentlySelectedElement', element);
 				}
 			}
 		},
@@ -154,10 +180,20 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		}
 	},
 
+	willEnter: function() {
+		this.set('controllers.application.documentListener', this);
+		this.get('documentView').elementSelectionEnabled(true);
+		this.set('documentView.selectionsSource', this);
+		this.set('currentlySelectedElement', this.get('element'));
+	},
+
 	willLeave: function() {
-		console.log('Leaving controller...');
+		this.set('controllers.application.documentListener', null);
+		this.get('documentView').elementSelectionEnabled(false);
+		this.set('documentView.selectionsSource', null);
 	},
 });
+
 
 ASTool.ItemsController = Em.ArrayController.extend({
 	
@@ -172,15 +208,14 @@ ASTool.ItemsController = Em.ArrayController.extend({
 	
 	addField: function(owner) {
 		var field = this.store.createRecord('item-field',
-			{type:'string',
-			item: owner});
+			{type:'string', item: owner});
 		field.save().then(function() {
 			owner.get('fields').addObject(field);
 			owner.save().then(function() {},
 				function(error) {
 					console.log('Error saving item: ' + error);
 				})
-			});
+		});
 	},
 
 	actions: {
@@ -233,15 +268,20 @@ ASTool.PageController = Em.Controller.extend({
 
 
 ASTool.DocumentView = Em.Object.extend({
+
 	selectionsSource: null,
 	
 	restrictToDescendants: false,
 	
-	currentlySelectedElementBinding: 'selectionsSource.currentlySelectedElement',
-	
-	highlightedElementsBinding: 'selectionsSource.highlightedElements',
-	
-	ignoredElementsBinding: 'selectionsSource.ignoredElements',
+	_spritesBinding: 'selectionsSource.sprites',
+
+	sprites: function() {
+		if (!this.get('selectionsSource')) {
+			return [];
+		} else {
+			return this.get('_sprites');
+		}
+	}.property('_sprites.@each'),
 	
 	elementSelectionEnabled: function(selectionEnabled) {
 		if (iframe) {
@@ -257,23 +297,17 @@ ASTool.DocumentView = Em.Object.extend({
 	
 	redrawNow: function() {
 		if (iframe) {
-			redrawCanvas();
+			drawMan.draw();
 		}
-	}.observes('currentlySelectedElement', 'highlightedElements.@each', 'ignoredElements.@each'),
-	
-	resetSelections: function() {
-		this.set('selectionSource', null);
-	}
+	}.observes('sprites'),
 }),
+
 
 ASTool.ApplicationController = Em.Controller.extend({
 	
 	needs: ['page'],
 	
 	documentView: ASTool.DocumentView.create(),
-	
-	currentPathWillChange: function() {
-	}.observes('currentPath'),
 	
 	documentListener: null,
 	

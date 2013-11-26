@@ -209,6 +209,3 @@ input[type="checkbox"] {
 	padding:0px;
 }
 
-.ui-button-icon-only .ui-icon, .ui-button-text-icon-primary .ui-icon, .ui-button-text-icon-secondary .ui-icon, .ui-button-text-icons .ui-icon, .ui-button-icons-only .ui-icon { margin-top: -9px; }
-.ui-button-icon-only .ui-icon {margin-left: -9px;}
-

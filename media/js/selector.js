@@ -1,124 +1,14 @@
 var appController;
 var iframe;
 var canvas;
-var hoveredElement = null;
+var hoveredSprite = null;
 var ignoredElementTags = ['html', 'body'];
 var ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding',
 	 					 'cellspacing', 'border', 'bgcolor', 'color', 'colspan',
 						 'data-scrapy-annotate'];
 var mouseDown = 0;
 var autoRedrawId = null;
-var dashPattern = [2, 1];
-
-function highlightElement(ctx, element, fillColor, strokeColor, dashed, text) {
-	var y_offset = iframe.scrollTop();
-	var x_offset = iframe.scrollLeft();
-	var rect = {};
-	rect.left = element.offset().left - x_offset;
-	rect.top = element.offset().top - y_offset;
-	rect.width = element.outerWidth();
-	rect.height = element.outerHeight();
-	highlightRect(ctx, rect, fillColor, strokeColor, dashed, text);
-}
-
-function highlightRect(ctx, rect, fillColor, strokeColor, dashed, text) {
-	ctx.save();
-	if (text) {
-		ctx.fillStyle='#555';
-		ctx.font = "bold 12px sans-serif";
-		ctx.fillText(text,
-				 	 rect.left + 4,
-			 		 rect.top - 1);
-	}
-	
-    ctx.shadowColor   = '#000';
-    ctx.shadowOffsetX = 3;
-    ctx.shadowOffsetY = 3;
-    ctx.shadowBlur    = 16;
-	
-	ctx.fillStyle=fillColor;
-	ctx.fillRect(rect.left + 2,
-		         rect.top + 2,
-				 rect.width,
-				 rect.height);
-				 
-	if (dashed) {
-		ctx.setLineDash(dashPattern);
-	} 
-    ctx.lineWidth=1;
-	ctx.strokeStyle=strokeColor;
-	ctx.strokeRect(rect.left + 2,
-		           rect.top + 2,
-				   rect.width,
-				   rect.height);
-	ctx.restore();
-}
-
-function redrawCanvas() {
-	if (dashPattern[1] == 1) {
-		dashPattern[1] = 2;
-	} else {
-		dashPattern[1] = 1;
-	}
-
-	var documentView = appController.get('documentView');
-	
-	if (!documentView) {
-		console.log(appController);
-		return;
-	}
-	
-	_canvas = $('#infocanvas');
-	canvas = _canvas.get(0);
-	canvas.width = _canvas.outerWidth();
-	canvas.height = _canvas.outerHeight();
-	
-	var ctx=canvas.getContext("2d");
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	
-	// Draw the annotated areas.
-	var highLighted = documentView.get('highlightedElements');
-	if (highLighted) {
-		highLighted.forEach(function(element) {
-			if (element) {
-				highlightElement(ctx, $(element), "rgba(88,120,220,0.3)", "white", false, '');
-			}
-		});
-	}
-	
-	// Draw the current selection.
-	if (documentView.get('currentlySelectedElement')) {
-		highlightElement(ctx, $(documentView.get('currentlySelectedElement')), "rgba(88,120,220,0.3)", "white", true);
-		//highlightElement(ctx, findInAnnotatedDoc(selection), "rgba(88,120,220,0.3)", "white", true);
-		/*if (selectionListener.get('isPartial')) {
-			range = iframe.get(0).createRange();
-			rangeOwner = findInAnnotatedDoc(selection).get(0);
-			var node = rangeOwner.childNodes[selectionListener.get('selectedChildIndex')];
-			range.setStart(node, selectionListener.get('startOffset'));
-			range.setEnd(node, selectionListener.get('endOffset'));
-			rects = range.getClientRects();
-			for (var i = 0; i < rects.length; i++) {
-				highlightRect(ctx, rects[i], "rgba(255,0,0,0.3)", "white", true);	
-			}
-		} else {
-			highlightElement(ctx, findInAnnotatedDoc(selection), "rgba(88,120,220,0.3)", "white", true);
-		}*/
-	}
-	
-	var ignored = documentView.get('ignoredElements');
-	if (ignored) {
-		ignored.forEach(function(element) {
-			if (element) {
-				highlightElement(ctx, $(element), "rgba(255,0,0,0.3)", "white", false, '');
-			}
-		});
-	}
-
-	// Draw the currently hovered item.
-	if (hoveredElement) {
-		highlightElement(ctx, $(hoveredElement), "rgba(0,255,0,0.3)", "orange");
-	}
-}
+var drawMan = null;
 
 function getPath(element) {
     var elementPath = [element.tagName.toLowerCase()];
@@ -168,11 +58,11 @@ function mouseOverHandler(event) {
 		mouseDown == 0) {
 		var documentView = appController.documentView;
 		if (!documentView.get('restrictToDescendants') ||
-			isDescendant(target, documentView.get('currentlySelectedElement'))) {
-			if (!hoveredElement) {
+			isDescendant(target, documentView.get('restrictToDescendants'))) {
+			if (!hoveredSprite) {
 				updateHoveredInfo(target);
-				hoveredElement = target;
-				redrawCanvas();
+				hoveredSprite = ASTool.ElementSprite.create({'element': target});
+				drawMan.draw();
 			}
 		}
 	}
@@ -181,8 +71,8 @@ function mouseOverHandler(event) {
 function mouseOutHandler(event) {
 	var textbox = $('#current-elem');
 	textbox.val("");
-	hoveredElement = null;
-    redrawCanvas();
+	hoveredSprite = null;
+	drawMan.draw();
 }
 
 function clickHandler(event) {
@@ -190,9 +80,9 @@ function clickHandler(event) {
 }
 
 function mouseDownHandler(event) {
-	hoveredElement = null;
+	hoveredSprite = null;
 	++mouseDown;
-	redrawCanvas();
+	drawMan.draw();
 }
 
 function mouseUpHandler(event) {
@@ -211,8 +101,10 @@ function mouseUpHandler(event) {
 		if ($.inArray($(target).prop("tagName").toLowerCase(), ignoredElementTags) == -1) {
 			var documentView = appController.documentView;
 			if (!documentView.get('restrictToDescendants') ||
-				isDescendant(target, documentView.get('currentlySelectedElement'))) {
+				isDescendant(target, documentView.get('restrictToDescendants'))) {
 				sendEvent('elementSelected', target);
+			} else {
+				sendEvent('elementSelected', null);
 			}
 		}
 	}
@@ -243,7 +135,7 @@ function installEventHandlers() {
 		iframe.bind('mousedown', null, mouseDownHandler);
 		iframe.bind('mouseup', null, mouseUpHandler);
 		iframe.bind('hover', null, function(event) {event.preventDefault()});
-		redrawCanvas();
+		drawMan.draw();
 	}
 }
 
@@ -256,7 +148,7 @@ function uninstallEventHandlers() {
 	iframe.unbind('mouseup');
 	iframe.unbind('hover');	
 	selection = null;
-	hoveredElement = null;
+	hoveredSprite = null;
 }
 
 function showHoveredInfo() {
@@ -277,13 +169,17 @@ function initCanvas() {
 };
 
 function initIframe(callback) {
-	var doc = document.getElementById("scraped-doc-iframe").contentWindow.document;
-	doc.onscroll = redrawCanvas;
+	
 	$('#scraped-doc-iframe').load(callback);
 	iframe = $('#scraped-doc-iframe').contents();
 	// FIXME
+	drawMan = ASTool.Canvas.create();
 	setTimeout(callback, 1000);
-	autoRedrawId = setInterval(redrawCanvas, 1000);
+	autoRedrawId = setInterval(drawMan.draw.bind(drawMan), 1000);
+	drawMan.appController = appController;
+
+	var doc = document.getElementById("scraped-doc-iframe").contentWindow.document;
+	doc.onscroll = drawMan.draw.bind(drawMan);
 }
 
 function findInAnnotatedDoc(path) {
@@ -322,7 +218,7 @@ function removePartialAnnotation(insElement) {
 }
 
 window.onresize = function() {
-	redrawCanvas();
+	drawMan.draw();
 	$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 	$('#toolbar').height(window.innerHeight);
 }
@@ -348,6 +244,15 @@ jQuery.fn.getUniquePath = function () {
 	}
 	return path;
 };
+
+jQuery.fn.boundingBox = function() {
+	var rect = {};
+	rect.left = this.offset().left;
+	rect.top = this.offset().top;
+	rect.width = this.outerWidth();
+	rect.height = this.outerHeight();
+	return rect;
+}
 
 function getSiblingIndex(element){
 	var siblings = element.parentNode.childNodes;
