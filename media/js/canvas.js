@@ -1,21 +1,22 @@
 ASTool.Canvas = Em.Object.extend({
 
-	appController: null,
+	canvasId: null,
 
-	sprites: null,
+	datasource: null,
 	
 	draw: function() {
-
-		var documentView = appController.get('documentView');
-		var sprites = documentView.get('sprites');
+		var sprites = this.datasource.get('sprites');
+		var hoveredSprite = this.datasource.get('hoveredSprite');
+		var iframe = this.datasource.get('iframe');
 
 		if (hoveredSprite) {
 			sprites = sprites.concat([hoveredSprite]);
 		}
 
-		_canvas = $('#infocanvas');
+		_canvas = $('#' + this.get('canvasId'));
 		canvas = _canvas.get(0);
 
+		// Match intrinsic and extrinsic sizes.
 		canvas.width = _canvas.outerWidth();
 		canvas.height = _canvas.outerHeight();
 

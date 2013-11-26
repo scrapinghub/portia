@@ -7,13 +7,13 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 	
 	find: function(store, type, id) {
-		var annotatedElement = findAnnotatedElement(id);
+		var annotatedElement = this.iframe.findAnnotatedElement(id);
 		var annotationJSON = $.parseJSON($(element).attr(this.get('storageAttribute')));
 		return annotationJSON;
 	},
 	
 	findAll: function(store, type) {
-		var annotatedElements = findAnnotatedElements();
+		var annotatedElements = this.iframe.findAnnotatedElements();
 		var annotationsJSON = [];
 		$.each(annotatedElements, function(i, element) {
 			annotationsJSON.pushObject($.parseJSON($(element).attr(this.get('storageAttribute'))));
@@ -22,6 +22,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 	
 	createRecord: function(store, type, record) {
+		record.set('iframe', this.iframe);
 		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
 		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
 		return this.wrapInPromise(function() {
@@ -31,7 +32,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	
 	updateRecord: function(store, type, record) {
 		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
-		var oldAnnotatedElement = findAnnotatedElement(record.get('id'));
+		var oldAnnotatedElement = this.iframe.findAnnotatedElement(record.get('id'));
 		oldAnnotatedElement.removeAttr(this.get('storageAttribute'));
 		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
 		return this.wrapInPromise(function() {
@@ -41,7 +42,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	
 	deleteRecord: function(store, type, record) {
 		if (record.get('isPartial')) {
-			removePartialAnnotation(record.get('element'));
+			$(record.get('element')).removePartialAnnotation();
 		} else {
 			$(record.get('element')).removeAttr(this.get('storageAttribute'));
 		}
@@ -58,16 +59,17 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 });
 
 ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
+
 	storageAttribute: 'data-scrapy-annotate',
 
 	deleteRecord: function(store, type, record) {
-		var ignoredElements = findIgnoredElements(record.get('id'));
+		var ignoredElements = this.iframe.findIgnoredElements(record.get('id'));
 		ignoredElements.removeAttr('data-scrapy-ignore');
 		return this._super(store, type, record);
 	},
 
 	updateRecord: function(store, type, record) {
-		var oldIgnoredElements = findIgnoredElements(record.get('id'));
+		var oldIgnoredElements = this.iframe.findIgnoredElements(record.get('id'));
 		oldIgnoredElements.removeAttr('data-scrapy-ignore');
 		record.get('ignores').forEach(function(ignore) {
 			var ignoreJSON = {id: record.get('id'), name: ignore.get('name')};
@@ -83,6 +85,8 @@ ASTool.Annotation = DS.Model.extend({
 	name: DS.attr('string'),
 	
 	annotations: DS.attr('string'),
+
+	iframe: null,
 	
 	fieldMappings: function() {
 		if (this.get('annotations')) {
@@ -110,7 +114,7 @@ ASTool.Annotation = DS.Model.extend({
 	
 	ignores: function() {
 		if (this.get('_ignores') == null) {
-			var ignoredElements = findIgnoredElements(this.get('id')).toArray();
+			var ignoredElements = this.iframe.findIgnoredElements(this.get('id')).toArray();
 			var ignores = ignoredElements.map(function(element){
 				var name = $.parseJSON($(element).attr('data-scrapy-ignore'))['name'];
 				return ASTool.Ignore.create({element: element, name: name});
@@ -147,7 +151,7 @@ ASTool.Annotation = DS.Model.extend({
 		if (this.get('selectedElement')) {
 			return this.get('selectedElement');
 		} else {
-			var annotatedElement = findAnnotatedElement(this.get('id'));
+			var annotatedElement = this.iframe.findAnnotatedElement(this.get('id'));
 			if (annotatedElement.length) {
 				return annotatedElement.get(0);
 			} else {
@@ -166,7 +170,7 @@ ASTool.Annotation = DS.Model.extend({
 	
 	attributes: function() {
 		if (this.get('element')) {
-			return getAttributeList(this.get('element'));
+			return $(this.get('element')).getAttributeList();
 		} else {
 			return [];
 		}
@@ -221,3 +225,14 @@ ASTool.Ignore = Em.Object.extend({
 	name: null,
 	element: null,
 });
+
+function s4() {
+	return Math.floor((1 + Math.random()) * 0x10000)
+		.toString(16)
+		.substring(1);
+};
+
+function guid() {
+	return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+		s4() + '-' + s4() + s4() + s4();
+}

@@ -14,6 +14,14 @@ ASTool.Router.map(function() {
 });
 
 
+ASTool.ApplicationRoute = Ember.Route.extend({
+	setupController: function(controller) {
+		if (!controller.get('documentView')) {
+			controller.set('documentView', ASTool.DocumentView.create());
+		}
+	},
+})
+
 /* Routes */
 ASTool.AnnotationsRoute = Ember.Route.extend({
 	model: function() {

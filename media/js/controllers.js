@@ -33,8 +33,9 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 	},
 	
 	deleteAllAnnotations: function() {
-		this.invoke('deleteRecord');
-		this.invoke('save');
+		var annotations = this.get('content').toArray();
+		annotations.invoke('deleteRecord');
+		annotations.invoke('save');
 	},
 
 	actions: {
@@ -54,12 +55,12 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 	},
 
 	willEnter: function() {
-		this.set('documentView.selectionsSource', this);
-		this.get('documentView').elementSelectionEnabled(false);
+		this.set('documentView.dataSource', this);
+		this.set('documentView.elementSelectionEnabled', false);
 	},
 
 	willLeave: function() {
-		this.set('documentView.selectionsSource', null);
+		this.set('documentView.dataSource', null);
 	},
 });
 
@@ -103,7 +104,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 	clearSelection: function() {
 		if (this.get('isPartial')) {
 			var insElement = this.get('currentlySelectedElement');
-			removePartialAnnotation(insElement);
+			$(insElement).removePartialAnnotation();
 		}
 	},
 	
@@ -119,7 +120,6 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 	actions: {
 		
 		doneEditing: function(annotation) {
-			this.get('documentView').elementSelectionEnabled(false);
 			annotation.save().then(function() {
 				this.transitionToRoute('annotations');
 				annotation.set('selectedElement', null);
@@ -138,6 +138,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		
 		addIgnore: function() {
 			this.set('documentView.restrictToDescendants', this.get('element'));
+			this.set('documentView.partialSelectionEnabled', false);
 			this.set('selectingIgnore', true);
 		},
 
@@ -145,6 +146,10 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			var ignores = this.get('ignores');
 			ignores.removeObject(ignore);
 		},	
+	},
+
+	confirmChangeSelection: function() {
+		return confirm('If you select a different region you will lose all the ignored regions and attribute mappings you defined, proceed anyway?');
 	},
 	
 	documentActions: {
@@ -158,8 +163,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 				this.set('documentView.restrictToDescendants', false);
 			} else {
 				var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
-				if (!needsConfirmation ||
-					confirm('If you select a different region you will lose all the ignored regions and attribute mappings you defined, proceed anyway?')) {
+				if (!needsConfirmation || this.confirmChangeSelection()) {
 					this.clearSelection();
 					this.content.set('selectedElement', element);
 					this.content.set('isPartial', false);
@@ -167,30 +171,38 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 					this.set('currentlySelectedElement', element);
 				}
 			}
+			this.set('documentView.partialSelectionEnabled', true);
 		},
 		
 		partialSelection: function(selection) {
-			this.clearSelection();
-			var insElement = $('<ins/>').get(0);
-			selection.getRangeAt(0).surroundContents(insElement);
-			this.content.set('isPartial', true);
-			this.set('currentlySelectedElement', insElement);
-			this.content.set('selectedElement', insElement);
+			var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
+			if (!needsConfirmation || this.confirmChangeSelection()) {
+				this.clearSelection();
+				var element = $('<ins/>').get(0);
+				selection.getRangeAt(0).surroundContents(element);
+				this.content.set('selectedElement', element);
+				this.content.set('isPartial', true);
+				this.content.removeIgnores();
+				this.set('currentlySelectedElement', element);
+			}
 			selection.collapse();
-		}
+		},
 	},
 
 	willEnter: function() {
-		this.set('controllers.application.documentListener', this);
-		this.get('documentView').elementSelectionEnabled(true);
-		this.set('documentView.selectionsSource', this);
+		this.set('documentView.listener', this);
+		this.set('documentView.elementSelectionEnabled', true);
+		this.set('documentView.partialSelectionEnabled', true);
+		this.set('documentView.dataSource', this);
 		this.set('currentlySelectedElement', this.get('element'));
 	},
 
 	willLeave: function() {
-		this.set('controllers.application.documentListener', null);
-		this.get('documentView').elementSelectionEnabled(false);
-		this.set('documentView.selectionsSource', null);
+		this.set('selectingIgnore', false);
+		this.set('documentView.listener', null);
+		this.set('documentView.elementSelectionEnabled', false);
+		this.set('documentView.partialSelectionEnabled', false);
+		this.set('documentView.dataSource', null);
 	},
 });
 
@@ -255,61 +267,25 @@ ASTool.PageController = Em.Controller.extend({
 		loadPage: function() {
 			this.set('currentUrl', null);
 			this.get('controllers.annotations').deleteAllAnnotations();
-			loadAnnotatedDocument(this.get('navigateToUrl'), 
-				function(){
+			this.get('controllers.application.documentView').loadAnnotatedDocument(this.get('navigateToUrl'), 
+				function(docIframe){
+					ASTool.IFrameAdapter.reopen({
+						iframe: docIframe,
+					}),
 					this.set('currentUrl', this.get('navigateToUrl'));
 					this.transitionToRoute('annotations');
-				}.bind(this),
-				this.get('controllers.application')
+				}.bind(this)
 			);
 		},
 	},
 });
 
 
-ASTool.DocumentView = Em.Object.extend({
-
-	selectionsSource: null,
-	
-	restrictToDescendants: false,
-	
-	_spritesBinding: 'selectionsSource.sprites',
-
-	sprites: function() {
-		if (!this.get('selectionsSource')) {
-			return [];
-		} else {
-			return this.get('_sprites');
-		}
-	}.property('_sprites.@each'),
-	
-	elementSelectionEnabled: function(selectionEnabled) {
-		if (iframe) {
-			if (selectionEnabled) {
-				showHoveredInfo();
-				installEventHandlers();
-			} else {
-				uninstallEventHandlers();
-				hideHoveredInfo();
-			}
-		}
-	},
-	
-	redrawNow: function() {
-		if (iframe) {
-			drawMan.draw();
-		}
-	}.observes('sprites'),
-}),
-
-
 ASTool.ApplicationController = Em.Controller.extend({
 	
 	needs: ['page'],
 	
-	documentView: ASTool.DocumentView.create(),
-	
-	documentListener: null,
+	documentView: null,
 	
 	actions: {
 		gotoAnnotations: function() {
