@@ -8,7 +8,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	
 	find: function(store, type, id) {
 		var annotatedElement = this.iframe.findAnnotatedElement(id);
-		var annotationJSON = $.parseJSON($(element).attr(this.get('storageAttribute')));
+		var annotationJSON = $.parseJSON($(annotatedElement).attr(this.get('storageAttribute')));
 		return annotationJSON;
 	},
 	
@@ -41,7 +41,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 	
 	deleteRecord: function(store, type, record) {
-		if (record.get('isPartial')) {
+		if (record.get('isPartial') && record.get('element')) {
 			$(record.get('element')).removePartialAnnotation();
 		} else {
 			$(record.get('element')).removeAttr(this.get('storageAttribute'));
@@ -106,6 +106,10 @@ ASTool.Annotation = DS.Model.extend({
 		var mappings = this.get('fieldMappings');
 		delete mappings[attribute];
 		this.set('annotations', JSON.stringify(mappings));
+	},
+
+	removeMappings: function() {
+		this.set('annotations', JSON.stringify({}));
 	},
 	
 	isPartial: false,
@@ -194,6 +198,12 @@ ASTool.Annotation = DS.Model.extend({
 		}.bind(this));
 		return mapped;
 	}.property('attributes', 'fieldMappings'),
+
+	reload: function() {
+		// Force reload of ignores from the document.
+		this.set('_ignores', null);
+		return this._super();
+	}
 });
 
 ASTool.Item = DS.Model.extend({ 

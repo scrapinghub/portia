@@ -122,9 +122,8 @@
 		
 		{{#if element}}
 			{{view JQ.ButtonView action="doneEditing" argument=model label="Save"}}
-		{{else}}
-			{{view JQ.ButtonView action="cancelEdit" argument=model label="Cancel"}}
 		{{/if}}
+		{{view JQ.ButtonView action="cancelEdit" argument=model label="Cancel"}}
 	</div>
 	
 </script>

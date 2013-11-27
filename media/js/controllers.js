@@ -1,6 +1,6 @@
 ASTool.AnnotationsController = Em.ArrayController.extend({
 	
-	needs: ['application', 'page'],
+	needs: ['application', 'page', 'annotation'],
 	
 	documentViewBinding: 'controllers.application.documentView',
 
@@ -67,7 +67,9 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 
 ASTool.AnnotationController = Em.ObjectController.extend({
 
-	needs: ['application', 'annotations'],
+	needs: ['application', 'annotations', 'page'],
+
+	hasUnfinishedEdit: false,
 	
 	mappingAttribute: null,
 	
@@ -101,33 +103,47 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			   'controllers.annotations.sprites',
 			   'model.ignores.@each'),
 	
-	clearSelection: function() {
-		if (this.get('isPartial')) {
-			var insElement = this.get('currentlySelectedElement');
-			$(insElement).removePartialAnnotation();
-		}
+	clearGeneratedIns: function(insElement) {
+		$(insElement).removePartialAnnotation();
 	},
 	
-	cancelEdit: function(annotation) {
-		this.get('documentView').elementSelectionEnabled(false);
+	cancelEdit: function(annotation, transitionTo) {
+		this.set('selectingIgnore', false);
+		this.set('documentView.restrictToDescendants', false);
+		this.set('documentView.partialSelectionEnabled', true);
+		this.set('hasUnfinishedEdit', false);
 		annotation.set('selectedElement', null);
+		var isPartial = this.get('isPartial');
+
 		if (!annotation.get('element')) {
-			annotation.deleteRecord();	
+			annotation.deleteRecord();
+			annotation.save();	
+		} else {
+			annotation.rollback();
+			annotation.reload();
 		}
-		this.transitionToRoute('annotations');
+		if (isPartial &&
+			annotation.get('element') != this.get('currentlySelectedElement')) {
+			this.clearGeneratedIns(this.get('currentlySelectedElement'));
+		}
+		this.set('currentlySelectedElement', null);
+		if (transitionTo) {
+			this.transitionToRoute(transitionTo);
+		}
 	},
 	
 	actions: {
 		
 		doneEditing: function(annotation) {
 			annotation.save().then(function() {
+				this.set('hasUnfinishedEdit', false);
 				this.transitionToRoute('annotations');
 				annotation.set('selectedElement', null);
 			}.bind(this));
 		},
 		
 		cancelEdit: function(annotation) {
-			this.cancelEdit(annotation);
+			this.cancelEdit(annotation, 'annotations');
 		},
 		
 		mapAttribute: function(attribute) {
@@ -164,10 +180,13 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			} else {
 				var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
 				if (!needsConfirmation || this.confirmChangeSelection()) {
-					this.clearSelection();
+					if (this.get('isPartial')) {
+						this.clearGeneratedIns(this.get('currentlySelectedElement'));	
+					}
 					this.content.set('selectedElement', element);
 					this.content.set('isPartial', false);
 					this.content.removeIgnores();
+					this.content.removeMappings();
 					this.set('currentlySelectedElement', element);
 				}
 			}
@@ -177,12 +196,15 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		partialSelection: function(selection) {
 			var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
 			if (!needsConfirmation || this.confirmChangeSelection()) {
-				this.clearSelection();
+				if (this.get('isPartial')) {
+						this.clearGeneratedIns(this.get('currentlySelectedElement'));	
+				}
 				var element = $('<ins/>').get(0);
 				selection.getRangeAt(0).surroundContents(element);
 				this.content.set('selectedElement', element);
 				this.content.set('isPartial', true);
 				this.content.removeIgnores();
+				this.content.removeMappings();
 				this.set('currentlySelectedElement', element);
 			}
 			selection.collapse();
@@ -190,6 +212,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 	},
 
 	willEnter: function() {
+		this.set('hasUnfinishedEdit', true);
 		this.set('documentView.listener', this);
 		this.set('documentView.elementSelectionEnabled', true);
 		this.set('documentView.partialSelectionEnabled', true);
@@ -204,6 +227,13 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		this.set('documentView.partialSelectionEnabled', false);
 		this.set('documentView.dataSource', null);
 	},
+
+	willLoadNewDocument: function() {
+		if (this.get('hasUnfinishedEdit')) {
+			this.cancelEdit(this.get('model'));
+			this.set('hasUnfinishedEdit', false);
+		}
+	}.observes('controllers.page.currentUrl'),
 });
 
 
@@ -265,7 +295,7 @@ ASTool.PageController = Em.Controller.extend({
 	
 	actions: {
 		loadPage: function() {
-			this.set('currentUrl', null);
+			this.set('currentUrl', '');
 			this.get('controllers.annotations').deleteAllAnnotations();
 			this.get('controllers.application.documentView').loadAnnotatedDocument(this.get('navigateToUrl'), 
 				function(docIframe){
@@ -288,6 +318,7 @@ ASTool.ApplicationController = Em.Controller.extend({
 	documentView: null,
 	
 	actions: {
+
 		gotoAnnotations: function() {
 			this.transitionToRoute('annotations');
 		},

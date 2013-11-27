@@ -178,7 +178,7 @@ ASTool.DocumentView = Em.Object.extend({
 		window.onresize = function() {
 			$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 			$('#toolbar').height(window.innerHeight);
-			this.get('canvas').draw();
+			this.get('canvas').draw().bind(this);
 		};
 		var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
 		doc.onscroll = canvas.draw.bind(canvas);

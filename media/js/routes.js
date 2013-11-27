@@ -24,6 +24,12 @@ ASTool.ApplicationRoute = Ember.Route.extend({
 
 /* Routes */
 ASTool.AnnotationsRoute = Ember.Route.extend({
+	beforeModel: function() {
+		if (this.get('controller.controllers.annotation.hasUnfinishedEdit')) {
+			this.transitionTo('annotation', this.get('controller.controllers.annotation.model'));
+		}
+	},
+
 	model: function() {
 		return this.store.find('annotation');
 	},
