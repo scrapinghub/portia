@@ -35,6 +35,7 @@ ASTool.Canvas = Em.Object.extend({
 	},
 });
 
+
 ASTool.Sprite = Em.Object.extend({
 	zPosition: 0,
 
@@ -109,6 +110,7 @@ ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 		return $(this.get('annotation.element')).boundingBox();
 	},
 });
+
 
 ASTool.ElementSprite = ASTool.RectSprite.extend({
 	element: null,

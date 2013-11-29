@@ -1,15 +1,28 @@
-ASTool.AnnotationsController = Em.ArrayController.extend({
+ASTool.RouteBrowseMixin = Ember.Mixin.create({
+
+	pushRoute: function(route, label, model) {
+		this.get('controllers.application').pushRoute(route, label, model);
+	},
+
+	popRoutes: function(route) {
+		this.get('controllers.application').popRoutes(route);
+	},
+
+});
+
+
+ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	
-	needs: ['application', 'page', 'annotation'],
+	needs: ['application', 'annotation'],
+
+	template: null,
 	
 	documentViewBinding: 'controllers.application.documentView',
 
 	currentlySelectedElement: null,
 
 	sprites: [],
-	
-	currentPageBinding: 'controllers.page.currentUrl',
-	
+		
 	sprites: function() {
 		return this.get('content').map(function(annotation) {
 			if (annotation.get('element')) {
@@ -29,13 +42,19 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 	},
 	
 	editAnnotation: function(annotation) {
-		this.transitionToRoute('annotation', annotation);
+		this.pushRoute('annotation', annotation.get('name'), annotation);
 	},
 	
 	deleteAllAnnotations: function() {
 		var annotations = this.get('content').toArray();
 		annotations.invoke('deleteRecord');
 		annotations.invoke('save');
+	},
+
+	saveAnnotations: function() {
+		if (this.get('template')) {
+			this.set('template.annotated_body', this.get('documentView').getAnnotatedDocument());
+		}
 	},
 
 	actions: {
@@ -50,7 +69,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 		
 		deleteAnnotation: function(annotation) {
 			annotation.deleteRecord();
-			annotation.save();
+			annotation.save().then(this.saveAnnotations.bind(this));
 		},
 	},
 
@@ -65,9 +84,9 @@ ASTool.AnnotationsController = Em.ArrayController.extend({
 });
 
 
-ASTool.AnnotationController = Em.ObjectController.extend({
+ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
-	needs: ['application', 'annotations', 'page'],
+	needs: ['application', 'annotations'],
 
 	hasUnfinishedEdit: false,
 	
@@ -107,7 +126,9 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		$(insElement).removePartialAnnotation();
 	},
 	
-	cancelEdit: function(annotation, transitionTo) {
+	cancelEdit: function(annotation) {
+		// FIXME: If we are editing a partial annotation and we cancel we
+		// may lose the partial annotation.
 		this.set('selectingIgnore', false);
 		this.set('documentView.restrictToDescendants', false);
 		this.set('documentView.partialSelectionEnabled', true);
@@ -127,9 +148,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 			this.clearGeneratedIns(this.get('currentlySelectedElement'));
 		}
 		this.set('currentlySelectedElement', null);
-		if (transitionTo) {
-			this.transitionToRoute(transitionTo);
-		}
+		this.popRoutes('annotation');
 	},
 	
 	actions: {
@@ -137,19 +156,20 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		doneEditing: function(annotation) {
 			annotation.save().then(function() {
 				this.set('hasUnfinishedEdit', false);
-				this.transitionToRoute('annotations');
 				annotation.set('selectedElement', null);
+				this.get('controllers.annotations').saveAnnotations();
+				this.popRoutes('annotation');
 			}.bind(this));
 		},
 		
 		cancelEdit: function(annotation) {
-			this.cancelEdit(annotation, 'annotations');
+			this.cancelEdit(annotation);
 		},
 		
 		mapAttribute: function(attribute) {
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
-			this.transitionToRoute('items');
+			this.pushRoute('items', 'Items');
 		},
 		
 		addIgnore: function() {
@@ -161,7 +181,7 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		deleteIgnore: function(ignore) {
 			var ignores = this.get('ignores');
 			ignores.removeObject(ignore);
-		},	
+		},
 	},
 
 	confirmChangeSelection: function() {
@@ -227,19 +247,12 @@ ASTool.AnnotationController = Em.ObjectController.extend({
 		this.set('documentView.partialSelectionEnabled', false);
 		this.set('documentView.dataSource', null);
 	},
-
-	willLoadNewDocument: function() {
-		if (this.get('hasUnfinishedEdit')) {
-			this.cancelEdit(this.get('model'));
-			this.set('hasUnfinishedEdit', false);
-		}
-	}.observes('controllers.page.currentUrl'),
 });
 
 
-ASTool.ItemsController = Em.ArrayController.extend({
+ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	
-	needs: ['annotation'],
+	needs: ['application', 'annotation'],
 	
 	mappingAttributeBinding: 'controllers.annotation.mappingAttribute',
 
@@ -279,56 +292,154 @@ ASTool.ItemsController = Em.ArrayController.extend({
 			var attribute = this.get('mappingAttribute');
 			var annotation = attribute.get('annotation');
 			annotation.addMapping(attribute.get('name'), field.get('item').get('name') + '.' + field.get('name'));
-			this.transitionToRoute('annotation', annotation);
+			this.popRoutes('items');
 			this.set('mappingAttribute', null);	   
 		}
 	},
 });
 
 
-ASTool.PageController = Em.Controller.extend({
-	needs: ['annotations', 'application'],
+ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	
-	navigateToUrl: 'http://dmoz.org',
-	
-	currentUrl: null,
-	
-	actions: {
-		loadPage: function() {
-			this.set('currentUrl', '');
-			this.get('controllers.annotations').deleteAllAnnotations();
-			this.get('controllers.application.documentView').loadAnnotatedDocument(this.get('navigateToUrl'), 
+	needs: ['application', 'annotations'],
+
+	pageUrl: 'http://dmoz.org',
+
+	loadedUrl: null,
+
+	loadedPageData: null,
+
+	editTemplate: function(template) {
+		this.get('controllers.annotations').deleteAllAnnotations();
+		this.set('controllers.annotations.template', template);
+		this.get('controllers.application.documentView')
+		.displayAnnotatedDocument(template.get('annotated_body'),
+			function(docIframe){
+				ASTool.set('iframe', docIframe);
+				this.pushRoute('annotations', template.get('name'));
+			}.bind(this)
+		);
+	},
+
+	loadPage: function() {
+		this.popRoutes('annotations');
+		this.set('loadedUrl', null);
+		this.get('controllers.application.documentView').showLoading();
+		ASTool.api.fetchDocument(this.get('pageUrl'), this.content.get('name'), function(data) {
+			this.get('controllers.application.documentView')
+			.displayAnnotatedDocument(data.page,
 				function(docIframe){
-					ASTool.IFrameAdapter.reopen({
-						iframe: docIframe,
-					}),
-					this.set('currentUrl', this.get('navigateToUrl'));
-					this.transitionToRoute('annotations');
+					this.set('loadedUrl', this.get('pageUrl'));
+					this.set('loadedPageData', data.page);
 				}.bind(this)
 			);
+		}.bind(this));
+	},
+
+	addTemplate: function() {
+		var template = this.store.createRecord('template');
+		template.set('id', guid());
+		this.content.get('templates').pushObject(template);
+		this.get('controllers.annotations').deleteAllAnnotations();
+		template.set('annotated_body', this.get('loadedPageData'));
+		template.set('original_body', this.get('loadedPageData'));
+		template.set('url', this.get('loadedUrl'));
+		this.editTemplate(template);
+	},
+	
+	actions: {
+
+		editTemplate: function(template) {
+			this.editTemplate(template);
 		},
+
+		addTemplate: function() {
+			this.addTemplate();
+		},
+
+		saveSpider: function() {
+			this.content.save();
+		},
+
+		loadPage: function() {
+			this.loadPage();
+		}
+	},
+
+	willEnter: function() {
+		this.set('controllers.annotations.template', null);
 	},
 });
 
+ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
-ASTool.ApplicationController = Em.Controller.extend({
-	
-	needs: ['page'],
+	needs: ['application'],
+
+	actions: {
+
+		editSpider: function(spiderName) {
+			this.pushRoute('spider', spiderName, spiderName);
+		},
+	}
+});
+
+ASTool.NavRoute = Em.Object.extend({
+	route: null,
+	label: null,
+	model: null,
+});
+
+ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
+
+	modelMap: {},
+
+	labelMap: {},
+
+	routeStack: [],
 	
 	documentView: null,
+
+	pushRoute: function(route, label, model) {
+		// Remove the route if it's already  there.
+		this.popRoutes(route);
+		var navRoute = ASTool.NavRoute.create({route: route, label: label, model: model});
+		this.routeStack.pushObject(navRoute);
+		if (model) {
+			this.transitionToRoute(route, model);		
+		} else {
+			this.transitionToRoute(route);
+		}
+	},
+
+	popRoutes: function(route) {
+		var navRoute = this.routeStack.filterBy('route', route).get('firstObject');
+		if (navRoute) {
+			var tmp = this.routeStack.toArray();
+			var found = false;
+			tmp.forEach(function(navRoute) {
+				if (found || navRoute.route == route) {
+					found = true;
+					this.routeStack.removeObject(navRoute);
+				}
+			}.bind(this));
+			var lastRoute = this.routeStack.get('lastObject');
+			if (lastRoute.model) {
+				this.transitionToRoute(lastRoute.route, lastRoute.model);	
+			} else {
+				this.transitionToRoute(lastRoute.route);
+			}
+		}
+	},
 	
 	actions: {
 
-		gotoAnnotations: function() {
-			this.transitionToRoute('annotations');
-		},
-		
-		gotoPageSelection: function() {
-			this.transitionToRoute('page');
-		},
-		
-		gotoItems: function() {
-			this.transitionToRoute('items');
+		gotoRoute: function(route) {
+			var navRoute = this.routeStack.filterBy('route', route).get('firstObject');
+			if (navRoute.model) {
+				this.transitionToRoute(route, navRoute.model);	
+			} else {
+				this.transitionToRoute(route);
+			}
 		},
 	}
 });

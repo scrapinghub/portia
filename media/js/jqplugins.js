@@ -48,7 +48,6 @@ jQuery.fn.getAttributeList = function() {
 	return attributeList;
 };
 
-
 jQuery.fn.getAttributeList.ignoredAttributes = ['id', 'class',
 	'width', 'style', 'height', 'cellpadding',
 	'cellspacing', 'border', 'bgcolor', 'color', 'colspan',

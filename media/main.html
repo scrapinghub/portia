@@ -12,6 +12,7 @@
 	<script src="js/ember-data.js"></script>
 	<script src="js/jqplugins.js"></script>
 	<script src="js/app.js"></script>
+	<script src="js/api.js"></script>
 	<script src="js/selector.js"></script>
 	<script src="js/canvas.js"></script>
 	<script src="js/models.js"></script>
@@ -30,7 +31,7 @@
 			<div style='text-align: center; width:100%; margin-bottom:20px'>
 				<h3>Scrapinghub AutoScraping v0.1</h3>
 			</div>
-			{{view JQ.TabNavigator templateName="tab-navigator-template"}}
+			{{view JQ.TabNavigator templateName="navigation-template"}}
 		</div>
 		<div id="toolbar-container" class="ui-corner-all">
 			{{outlet}}
@@ -39,15 +40,11 @@
 	{{view ASTool.AnnotatedDocumentView}}
 </script>
 
-<!-- Navigation bar template -->
-<script type="text/x-handlebars" id="tab-navigator-template">
-	<form align="center">
-	  <div id="radio">
-	    <input {{action "gotoPageSelection" this}} type="radio" id="pageRadio" name="radio" /><label for="pageRadio">Page</label>
-	    <input {{action "gotoAnnotations" this}} type="radio" id="annotationsRadio" name="radio"/><label for="annotationsRadio">Annotations</label>
-	    <input {{action "gotoItems" this}} type="radio" id="itemsRadio" name="radio" /><label for="itemsRadio">Items</label>
-	  </div>
-	</form>
+<!-- Navigation template -->
+<script type="text/x-handlebars" id="navigation-template">
+	{{#each routeStack}}
+		{{view JQ.ButtonView action="gotoRoute" argument=this.route label=this.label}}
+	{{/each}}
 </script>
 
 <!-- Annotated document view -->
@@ -59,24 +56,58 @@
 	</div>
 </script>
 
-<!-- Select page template -->
-<script type="text/x-handlebars" id="page">
-	<div id="url-selector">
-		<div style='width: 100%; text-align:center'>
-			<h3>Start url:</h3>
-			{{view JQ.TextField value=navigateToUrl id="pageUrl" class="textarea"}}
-			<br/>
-			{{view JQ.ButtonView action="loadPage" label="Go!" id="goButton"}}
-		</div>
+<!-- Project template -->
+<script type="text/x-handlebars" id="project">
+	<div style='width: 100%; text-align:center'>
+		<h3>Project test</h3>
+		<hr/>
+		<h3>Spiders for this project:</h3>
+		{{#each}}
+			<div style="margin-bottom: 5px">
+				{{view JQ.ButtonView action="editSpider" argument=this label=this}}
+			</div>
+		{{else}}
+			<h3>No spiders for this project.</h3>.
+		{{/each}}
 	</div>
 </script>
+
+<!-- Spider template -->
+<script type="text/x-handlebars" id="spider">
+	<div style='width: 100%; text-align:center'>
+		<h3>Spider {{name}}</h3>
+		<hr/>
+		<h3>Templates:</h3>
+		{{#each templates}}
+			<div style="margin-bottom: 5px">
+				{{view JQ.ButtonView action="editTemplate" argument=this label=name}}
+			</div>
+		{{else}}
+			<h3>No tempates for this spider</h3>.
+		{{/each}}
+
+		<hr/>
+		<div/>
+		<h4>Enter a page Url:</h4>
+		{{view JQ.TextField value=pageUrl class="textarea"}}{{view JQ.ButtonView action="loadPage" label="Go"}}
+		<div style="margin-top: 10px">
+			{{#if loadedUrl}}
+				{{view JQ.ButtonView action="addTemplate" label="Add template"}}
+			{{/if}}
+		</div>
+		<hr/>
+		{{view JQ.ButtonView action="saveSpider" label="Save spider"}}
+	</div>
+	</div>
+</script>
+
 
 <!-- Annotations list -->
 <script type="text/x-handlebars" id="annotations">
 	<div style='text-align: center; width:100%;'>
-		<h3>Annotations for {{currentPage}}</h3>
+		<h3>Annotations for template {{template.name}}</h3>
 		<hr/>
-		{{#each model}}
+		{{#each}}
 			<div style="margin-bottom: 5px">
 				{{view JQ.ButtonView action="editAnnotation" argument=this label=name}}
 				{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" label="x" text=false}}
@@ -121,7 +152,7 @@
 		{{/if}}
 		
 		{{#if element}}
-			{{view JQ.ButtonView action="doneEditing" argument=model label="Save"}}
+			{{view JQ.ButtonView action="doneEditing" argument=model label="Ok"}}
 		{{/if}}
 		{{view JQ.ButtonView action="cancelEdit" argument=model label="Cancel"}}
 	</div>
@@ -194,8 +225,5 @@
 		{{/if}}
 	</div>
 </script>
-
-
-
 
 </body>

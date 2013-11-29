@@ -24,21 +24,6 @@ JQ.ButtonSetView = Em.View.extend(JQ.Widget, {
 
 JQ.TabNavigator = JQ.ButtonSetView.extend({
 	
-	didInsertElement: function() {
-		this._super();
-		if (!this.get('controller.controllers.page.currentUrl')) {
-			$(this.get('element')).find('#annotationsRadio').prop('disabled', true);
-		}
-	},
-	
-	pageLoaded: function() {
-		$(this.get('element')).find('#annotationsRadio').prop('disabled',
-			!this.get('controller.controllers.page.currentUrl'));
-		var currentPath = this.get('controller.currentPath');
-		$(this.get('element')).find('#' + currentPath + 'Radio').prop('checked', true);
-		$(this.get('element')).buttonset('refresh');
-	}.observes('controller.controllers.page.currentUrl'),
-	
 	tabChanged: function() {
 		var currentPath = this.get('controller.currentPath');
 		if (currentPath == 'annotation') {
@@ -150,7 +135,7 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 	templateName: 'annotated-document-view',
 	
 	didInsertElement: function() {
-		this.get('controller').transitionToRoute('page');
+		this.get('controller').pushRoute('project', 'Project');
 		$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 		$('#toolbar').height(window.innerHeight);
 	},
@@ -174,7 +159,8 @@ ASTool.ViewNotifyingMixin = Ember.Mixin.create({
 ASTool.AnnotationsView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 ASTool.AnnotationView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 ASTool.ItemsView = Ember.View.extend(ASTool.ViewNotifyingMixin);
-ASTool.PageView = Ember.View.extend(ASTool.ViewNotifyingMixin);
+ASTool.SpiderView = Ember.View.extend(ASTool.ViewNotifyingMixin);
+ASTool.ProjectView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 
 
 /*************************** Helpers ******************************/

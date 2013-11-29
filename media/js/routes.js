@@ -6,14 +6,16 @@ ASTool.Router.reopen({
 
 /* Route Map */
 ASTool.Router.map(function() {
-	this.resource('page');
+	this.resource('project');
+	this.resource('spider', {path: '/spiders/:spider_id'});
 	this.resource('annotations');
-	this.resource('annotation', {path: '/annotation/:annotation_id'});
+	this.resource('annotation', {path: '/annotations/:annotation_id'});
 	this.resource('items');
-	this.resource('item', {path: '/item/:item_id'});
+	this.resource('item', {path: '/items/:item_id'});
 });
 
 
+/* Routes */
 ASTool.ApplicationRoute = Ember.Route.extend({
 	setupController: function(controller) {
 		if (!controller.get('documentView')) {
@@ -22,24 +24,39 @@ ASTool.ApplicationRoute = Ember.Route.extend({
 	},
 })
 
-/* Routes */
-ASTool.AnnotationsRoute = Ember.Route.extend({
-	beforeModel: function() {
-		if (this.get('controller.controllers.annotation.hasUnfinishedEdit')) {
-			this.transitionTo('annotation', this.get('controller.controllers.annotation.model'));
-		}
-	},
 
+ASTool.ProjectRoute = Ember.Route.extend({
+	model: function() {
+		var promise = Ember.RSVP.Promise(function(resolve) {
+			ASTool.api.getSpiderNames(function(spiderNames) {	
+				resolve(spiderNames);
+			});
+		});
+		return promise;
+	},
+});
+
+
+ASTool.SpiderRoute = Ember.Route.extend({
+	model: function(params) {
+		return this.store.find('spider', params.spider_id);
+	},
+});
+
+
+ASTool.AnnotationsRoute = Ember.Route.extend({
 	model: function() {
 		return this.store.find('annotation');
 	},
 });
 
+
 ASTool.AnnotationRoute = Ember.Route.extend({
 	model: function(params) {
-		return ASTool.annotationsStore.find(params.annotation_id);
+		return this.store.find(params.annotation_id);
 	},
 });
+
 
 ASTool.ItemsRoute = Ember.Route.extend({
 	model: function() {

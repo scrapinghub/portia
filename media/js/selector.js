@@ -178,33 +178,33 @@ ASTool.DocumentView = Em.Object.extend({
 		window.onresize = function() {
 			$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 			$('#toolbar').height(window.innerHeight);
-			this.get('canvas').draw().bind(this);
-		};
+			this.get('canvas').draw();
+		}.bind(this);
 		var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
 		doc.onscroll = canvas.draw.bind(canvas);
 	},
 
-	loadAnnotatedDocument: function(pageUrl, loadedCallback) {
+	displayAnnotatedDocument: function(annotatedDocument, readyCallback) {
 		this.iframe = $('#scraped-doc-iframe').contents();
-		this.iframe.find('html').html('<html><body>Loading...</body></html>');
 		if (this.get('autoRedrawId')) {
 			clearInterval(this.get('autoRedrawId'));
 		}
-		hash = {};
-		hash.type = 'POST';
-		hash.data = JSON.stringify({spider: 'test', request: {url: pageUrl}});
-		hash.success = function(data) {
-			$('#scraped-doc-iframe').contents().find('html').html(data.page);
-			// FIXME
-			setTimeout(loadedCallback, 1000, this.iframe);
-			this.initCanvas();
-		}.bind(this);
-		hash.error = function(req, status, error) {
-			console.log(error);
-		};
-		// FIXME: hardcode dummy 'test' project
-		hash.url = 'http://localhost:9001/api/test/bot/fetch';
-		$.ajax(hash);
+		$('#scraped-doc-iframe').contents().find('html').html(annotatedDocument);
+		setTimeout(readyCallback, 1000, this.iframe);
+		this.initCanvas();
+	},
+
+	showLoading: function() {
+		this.iframe = $('#scraped-doc-iframe').contents();
+		this.iframe.find('html').html('<html><body>Loading...</body></html>');
+	},
+
+	showSpider: function() {
+		this.iframe = $('#scraped-doc-iframe').attr('src', 'start.html');
+	},
+
+	getAnnotatedDocument: function() {
+		return this.iframe.find('html').get(0).outerHTML;
 	},
 });
 

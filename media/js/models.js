@@ -1,19 +1,22 @@
+/*************** Adapters & Serializers ****************/
 ASTool.IFrameAdapter = DS.Adapter.extend({
 	
 	storageAttribute: null,
+
+	iframeBinding: 'ASTool.iframe',
 	
 	generateIdForRecord: function(store, record) {
 		return guid();
 	},
 	
 	find: function(store, type, id) {
-		var annotatedElement = this.iframe.findAnnotatedElement(id);
+		var annotatedElement = this.get('iframe').findAnnotatedElement(id);
 		var annotationJSON = $.parseJSON($(annotatedElement).attr(this.get('storageAttribute')));
 		return annotationJSON;
 	},
 	
 	findAll: function(store, type) {
-		var annotatedElements = this.iframe.findAnnotatedElements();
+		var annotatedElements = this.get('iframe').findAnnotatedElements();
 		var annotationsJSON = [];
 		$.each(annotatedElements, function(i, element) {
 			annotationsJSON.pushObject($.parseJSON($(element).attr(this.get('storageAttribute'))));
@@ -22,7 +25,6 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 	
 	createRecord: function(store, type, record) {
-		record.set('iframe', this.iframe);
 		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
 		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
 		return this.wrapInPromise(function() {
@@ -32,7 +34,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	
 	updateRecord: function(store, type, record) {
 		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
-		var oldAnnotatedElement = this.iframe.findAnnotatedElement(record.get('id'));
+		var oldAnnotatedElement = this.get('iframe').findAnnotatedElement(record.get('id'));
 		oldAnnotatedElement.removeAttr(this.get('storageAttribute'));
 		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
 		return this.wrapInPromise(function() {
@@ -58,18 +60,19 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 });
 
+
 ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 
 	storageAttribute: 'data-scrapy-annotate',
 
 	deleteRecord: function(store, type, record) {
-		var ignoredElements = this.iframe.findIgnoredElements(record.get('id'));
+		var ignoredElements = this.get('iframe').findIgnoredElements(record.get('id'));
 		ignoredElements.removeAttr('data-scrapy-ignore');
 		return this._super(store, type, record);
 	},
 
 	updateRecord: function(store, type, record) {
-		var oldIgnoredElements = this.iframe.findIgnoredElements(record.get('id'));
+		var oldIgnoredElements = this.get('iframe').findIgnoredElements(record.get('id'));
 		oldIgnoredElements.removeAttr('data-scrapy-ignore');
 		record.get('ignores').forEach(function(ignore) {
 			var ignoreJSON = {id: record.get('id'), name: ignore.get('name')};
@@ -79,37 +82,135 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 	},
 });
 
+
+ASTool.SlydApiAdapter = DS.Adapter.extend({
+	
+	generateIdForRecord: function(store, record) {
+		return guid();
+	},
+	
+	find: function(store, type, id) {
+		var promise = Ember.RSVP.Promise(function(resolve) {
+			var methodName = ('load ' + type.typeKey).camelize();
+			ASTool.api.get(methodName).call(ASTool.api, id, function(spider) {
+				resolve(spider);
+			});
+		});
+		return promise;
+	},
+	
+	findAll: function(store, type) {
+		var promise = Ember.RSVP.Promise(function(resolve) {
+			var methodName = ('load ' + type.typeKey.pluralize()).camelize();
+			ASTool.api.get(methodName).call(ASTool.api, function(spiders) {
+				resolve(spiders);
+			});
+		});
+		return promise;
+	},
+
+	createRecord: function(store, type, record) {
+
+	},
+	
+	updateRecord: function(store, type, record) {
+		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: false });
+		var promise = Ember.RSVP.Promise(function(resolve) {
+			ASTool.api.saveSpider('test', serializedRecord, function() {	
+				resolve(serializedRecord);
+			});
+		});
+		return promise;
+	},
+	
+	deleteRecord: function(store, type, record) {
+	},
+	
+});
+
+
+ASTool.SpiderSerializer = DS.RESTSerializer.extend({
+
+	extractSingle: function(store, type, payload, id, requestType) {
+		payload = {spider: payload};
+		var templates = payload.spider.templates;
+		var templateIds = templates.mapProperty('id');
+		payload.templates = templates;
+		payload.spider.templates = templateIds;
+		return this._super(store, type, payload, id, requestType);
+  	},
+
+	serializeHasMany: function(record, json, relationship) {
+		var key = relationship.key;
+		var relationshipType = DS.RelationshipChange.determineRelationshipType(record.constructor, relationship);
+
+	    if (relationshipType === 'manyToNone' || 
+		    relationshipType === 'manyToMany' ||
+			relationshipType === 'manyToOne') {
+			json[key] = record.get(key).map(function(relative) {
+				return record.store.serializerFor(relationship.type).serialize(relative, { includeId: false });
+			});
+	    }
+	}
+});
+
+ASTool.SpiderAdapter = ASTool.SlydApiAdapter.extend();
+
 /*************************** Models **************************/
+
+ASTool.Template = DS.Model.extend({
+	page_id: DS.attr('string', {defaultValue:''}),
+	scrapes: DS.attr('string', {defaultValue:'default'}),
+	page_type: DS.attr('string', {defaultValue:'item'}),
+	url: DS.attr('string', {defaultValue:''}),
+	annotated_body: DS.attr('string', {defaultValue:''}),
+	original_body: DS.attr('string', {defaultValue:''}),
+	extractors: DS.attr(undefined, {defaultValue:[]}),
+	name: function() {
+		return this.get('url');
+	}.property('url'),
+}),
+
+ASTool.Spider = DS.Model.extend({
+	start_urls: DS.attr(undefined, {defaultValue:[]}),
+	allowed_domains: DS.attr(undefined, {defaultValue:[]}),
+	links_to_follow: DS.attr('string', {defaultValue:''}),
+	follow_patterns: DS.attr(undefined, {defaultValue:[]}),
+	exclude_patterns: DS.attr(undefined, {defaultValue:[]}),
+	respect_nofollow: DS.attr('boolean', {defaultValue:true}),
+	templates: DS.hasMany('template'),
+	init_requests: DS.attr(undefined, {defaultValue:[]}),
+	name: function() {
+		return this.get('id');
+	}.property('id'),
+}),
 
 ASTool.Annotation = DS.Model.extend({	
 	name: DS.attr('string'),
 	
-	annotations: DS.attr('string'),
+	annotations: DS.attr(),
 
-	iframe: null,
-	
-	fieldMappings: function() {
-		if (this.get('annotations')) {
-			return $.parseJSON(this.get('annotations'));
-		} else {
-			return {};
-		}
-	}.property('annotations'),
+	iframeBinding: 'ASTool.iframe',
+
+	//FIXME
+	annotationsChanged: false,
 	
 	addMapping: function(attribute, itemField) {
-		var mappings = this.get('fieldMappings');
-		mappings[attribute] = itemField;
-		this.set('annotations', JSON.stringify(mappings));
+		this.get('annotations')[attribute] = itemField;
+		//FIXME
+		this.set('annotationsChanged', !this.annotationsChanged);
 	},
 	
 	removeMapping: function(attribute, itemField) {
-		var mappings = this.get('fieldMappings');
-		delete mappings[attribute];
-		this.set('annotations', JSON.stringify(mappings));
+		delete this.get('annotations')[attribute];
+		//FIXME
+		this.set('annotationsChanged', !this.annotationsChanged);
 	},
 
 	removeMappings: function() {
-		this.set('annotations', JSON.stringify({}));
+		this.set('annotations', {});
+		//FIXME
+		this.set('annotationsChanged', !this.annotationsChanged);
 	},
 	
 	isPartial: false,
@@ -118,7 +219,7 @@ ASTool.Annotation = DS.Model.extend({
 	
 	ignores: function() {
 		if (this.get('_ignores') == null) {
-			var ignoredElements = this.iframe.findIgnoredElements(this.get('id')).toArray();
+			var ignoredElements = this.get('iframe').findIgnoredElements(this.get('id')).toArray();
 			var ignores = ignoredElements.map(function(element){
 				var name = $.parseJSON($(element).attr('data-scrapy-ignore'))['name'];
 				return ASTool.Ignore.create({element: element, name: name});
@@ -155,7 +256,7 @@ ASTool.Annotation = DS.Model.extend({
 		if (this.get('selectedElement')) {
 			return this.get('selectedElement');
 		} else {
-			var annotatedElement = this.iframe.findAnnotatedElement(this.get('id'));
+			var annotatedElement = this.get('iframe').findAnnotatedElement(this.get('id'));
 			if (annotatedElement.length) {
 				return annotatedElement.get(0);
 			} else {
@@ -183,21 +284,21 @@ ASTool.Annotation = DS.Model.extend({
 	unmappedAttributes: function() {
 		unmapped = this.get('attributes').filter(
 			function(attribute, index, self) {
-				return !this.get('fieldMappings')[attribute.get('name')];
+				return !this.get('annotations')[attribute.get('name')];
 			}.bind(this));
 		return unmapped;
-	}.property('attributes.@each', 'annotations'),
+	}.property('attributes.@each', 'annotationsChanged'),
 	
 	mappedAttributes: function() {
 		mapped = [];
 		this.get('attributes').forEach(function(attribute) {
-			if (this.get('fieldMappings')[attribute.get('name')]) {
-				attribute.set('mappedField', this.get('fieldMappings')[attribute.get('name')]);
+			if (this.get('annotations')[attribute.get('name')]) {
+				attribute.set('mappedField', this.get('annotations')[attribute.get('name')]);
 				mapped.addObject(attribute);
 			}
 		}.bind(this));
 		return mapped;
-	}.property('attributes', 'fieldMappings'),
+	}.property('attributes.@each', 'annotationsChanged'),
 
 	reload: function() {
 		// Force reload of ignores from the document.
