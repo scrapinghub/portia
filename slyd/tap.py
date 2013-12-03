@@ -24,7 +24,6 @@ class Options(usage.Options):
 def create_root(config):
     from scrapy import log
     from scrapy.settings import CrawlerSettings
-    from slyd.renderer import Renderer
     from slyd.crawlerspec import (CrawlerSpecManager,
         create_crawler_spec_resource)
     from slyd.bot import create_bot_resource
@@ -32,22 +31,7 @@ def create_root(config):
     from slyd.project import Project
 
     root = Resource()
-
-    annotation_renderer = Renderer('annotation', 'annotations',
-        ['field-mappings', 'item-fields', 'items'])
-    item_renderer = Renderer('item', 'items', ['item-fields'])
-    item_field_renderer = Renderer('item-field', 'item-fields')
-    field_mapping_renderer = Renderer('field-mapping', 'field-mappings')
-
     root.putChild("static", File(config['docroot']))
-
-    # the following are deprecated and will be removed:
-    root.putChild("annotations", annotation_renderer)
-
-    # These are deprecated and will be removed
-    root.putChild("items", item_renderer)
-    root.putChild("item-fields", item_field_renderer)
-    root.putChild("field-mappings", field_mapping_renderer)
 
     # api/PROJECTID/child
     project = Project()
