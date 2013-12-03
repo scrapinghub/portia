@@ -51,6 +51,11 @@ The entire spec is returned for a GET request to the root:
     ..
 	}
 
+A list of available spiders can be retrieved:
+
+  $ curl http://localhost:9001/api/78/spec/spiders
+["accommodationforstudents.com", "food.com", "pinterest.com", "pin", "mhvillage"]
+
 and specific resources can be requested:
 
 	$ curl http://localhost:9001/api/78/spec/spiders/accommodationforstudents.com

@@ -49,6 +49,9 @@ class SpecResource(SlydJsonResource):
         rpath = request.postpath
         if not rpath:
             project_spec.json(request)
+        elif len(rpath) == 1 and rpath[0] == 'spiders':
+            spiders = project_spec.list_spiders()
+            request.write(json.dumps(list(spiders)))
         else:
             project_spec.writejson(request, *rpath)
         return '\n'
