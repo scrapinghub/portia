@@ -257,20 +257,13 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	mappingAttributeBinding: 'controllers.annotation.mappingAttribute',
 
 	addItem: function() {
-		var newItem = this.store.createRecord('item', {});
-		newItem.save();
+		var newItem = ASTool.Item.create({ name: 'new item' });
+		this.pushObject(newItem);
 	},
 	
 	addField: function(owner) {
-		var field = this.store.createRecord('item-field',
-			{type:'string', item: owner});
-		field.save().then(function() {
-			owner.get('fields').addObject(field);
-			owner.save().then(function() {},
-				function(error) {
-					console.log('Error saving item: ' + error);
-				})
-		});
+		var newField = ASTool.ItemField.create({ name: 'new field' });
+		owner.fields.pushObject(newField);
 	},
 
 	actions: {
@@ -284,17 +277,19 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		},
 		
 		deleteItem: function(item) {
-			item.deleteRecord();
-			item.save();
 		},
 	   
 		chooseField: function(field) {
 			var attribute = this.get('mappingAttribute');
 			var annotation = attribute.get('annotation');
-			annotation.addMapping(attribute.get('name'), field.get('item').get('name') + '.' + field.get('name'));
+			annotation.addMapping(attribute.get('name'), field['name']);
 			this.popRoutes('items');
 			this.set('mappingAttribute', null);	   
 		}
+	},
+
+	willLeave: function() {
+		ASTool.api.saveItems(this.content.toArray());
 	},
 });
 

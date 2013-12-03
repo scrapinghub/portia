@@ -119,13 +119,12 @@ JQ.EditField = JQ.TextField.extend({
 ASTool.EditBox = Ember.Checkbox.extend({
 	owner: null,
 	change: function(evt) {
-		this.get('owner').save();
 	}
 });
 
 ASTool.TypeSelect = Ember.Select.extend({
 	owner: null,
-	content: ['geopoint', 'image', 'number', 'price', 'raw html', 'safe html', 'text'],
+	content: ['geopoint', 'image', 'number', 'price', 'raw html', 'safe html', 'text', 'url'],
 	change: function(evt) {
 		this.get('owner').save();
 	}

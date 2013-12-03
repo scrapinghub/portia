@@ -6,8 +6,3 @@ ASTool = Em.Application.create({
 		ASTool.api = ASTool.SlydApi.create();
 	} 
 });
-
-
-ASTool.ApplicationAdapter = DS.RESTAdapter.extend({
-	host: 'http://localhost:9001',
-});

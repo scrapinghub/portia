@@ -85,15 +85,11 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 
 ASTool.SlydApiAdapter = DS.Adapter.extend({
 	
-	generateIdForRecord: function(store, record) {
-		return guid();
-	},
-	
 	find: function(store, type, id) {
 		var promise = Ember.RSVP.Promise(function(resolve) {
 			var methodName = ('load ' + type.typeKey).camelize();
-			ASTool.api.get(methodName).call(ASTool.api, id, function(spider) {
-				resolve(spider);
+			ASTool.api.get(methodName).call(ASTool.api, id, function(entity) {
+				resolve(entity);
 			});
 		});
 		return promise;
@@ -102,8 +98,8 @@ ASTool.SlydApiAdapter = DS.Adapter.extend({
 	findAll: function(store, type) {
 		var promise = Ember.RSVP.Promise(function(resolve) {
 			var methodName = ('load ' + type.typeKey.pluralize()).camelize();
-			ASTool.api.get(methodName).call(ASTool.api, function(spiders) {
-				resolve(spiders);
+			ASTool.api.get(methodName).call(ASTool.api, function(entities) {
+				resolve(entities);
 			});
 		});
 		return promise;
@@ -117,7 +113,7 @@ ASTool.SlydApiAdapter = DS.Adapter.extend({
 		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: false });
 		var promise = Ember.RSVP.Promise(function(resolve) {
 			var methodName = ('save ' + type.typeKey).camelize();
-			ASTool.api.saveSpider(record.get('id'), serializedRecord, function() {	
+			ASTool.api.get(methodName).call(ASTool.api, record.get('id'), serializedRecord, function() {
 				resolve(serializedRecord);
 			});
 		});
@@ -126,9 +122,7 @@ ASTool.SlydApiAdapter = DS.Adapter.extend({
 	
 	deleteRecord: function(store, type, record) {
 	},
-	
 });
-
 
 ASTool.SpiderSerializer = DS.RESTSerializer.extend({
 
@@ -156,6 +150,7 @@ ASTool.SpiderSerializer = DS.RESTSerializer.extend({
 });
 
 ASTool.SpiderAdapter = ASTool.SlydApiAdapter.extend();
+
 
 /*************************** Models **************************/
 
@@ -308,23 +303,20 @@ ASTool.Annotation = DS.Model.extend({
 	}
 });
 
-ASTool.Item = DS.Model.extend({ 
-	name: DS.attr('string'), 
-	fields: DS.hasMany('item-field'),
+
+ASTool.Item = Em.Object.extend({
+	name: null,
+	fields: [],
 });
 
-ASTool.ItemField = DS.Model.extend({ 
-	name: DS.attr('string'),
-	type: DS.attr('string'),
-	required: DS.attr('boolean'),
-	vary: DS.attr('boolean'),
-	item: DS.belongsTo('item'),
+
+ASTool.ItemField = Em.Object.extend({
+	name: null,
+	type: 'text',
+	required: false,
+	vary: false,
 });
 
-ASTool.FieldMapping = DS.Model.extend({
-	itemField: DS.attr('string'),
-	attribute: DS.attr('string'),
-});
 
 ASTool.Attribute = Em.Object.extend({
 	name: null,
@@ -333,10 +325,12 @@ ASTool.Attribute = Em.Object.extend({
 	annotation: null,
 });
 
+
 ASTool.Ignore = Em.Object.extend({
 	name: null,
 	element: null,
 });
+
 
 function s4() {
 	return Math.floor((1 + Math.random()) * 0x10000)

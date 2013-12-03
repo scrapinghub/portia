@@ -60,6 +60,11 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 
 ASTool.ItemsRoute = Ember.Route.extend({
 	model: function() {
-		return this.store.find('item');
+		var promise = Ember.RSVP.Promise(function(resolve) {
+			ASTool.api.loadItems(function(items) {
+				resolve(items);
+			});
+		});
+		return promise;
 	}
 });
