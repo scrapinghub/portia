@@ -8,12 +8,11 @@ ASTool.SlydApi = Em.Object.extend({
 	getSpiderNames: function(onSuccess, onError) {
 		hash = {};
 		hash.type = 'GET';
-		hash.success = function(projectData) {
-			var spiders = projectData['spiders'];
-			onSuccess(Object.keys(spiders));
+		hash.success = function(spiderNames) {
+			onSuccess(spiderNames);
 		};
 		hash.error = onError;
-		hash.url = this.baseUrl + this.project + '/spec';
+		hash.url = this.baseUrl + this.project + '/spec/spiders';
 		$.ajax(hash);
 	},
 

@@ -110,13 +110,14 @@ ASTool.SlydApiAdapter = DS.Adapter.extend({
 	},
 
 	createRecord: function(store, type, record) {
-
+		return this.updateRecord(store, type, record);
 	},
 	
 	updateRecord: function(store, type, record) {
 		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: false });
 		var promise = Ember.RSVP.Promise(function(resolve) {
-			ASTool.api.saveSpider('test', serializedRecord, function() {	
+			var methodName = ('save ' + type.typeKey).camelize();
+			ASTool.api.saveSpider(record.get('id'), serializedRecord, function() {	
 				resolve(serializedRecord);
 			});
 		});
@@ -172,14 +173,14 @@ ASTool.Template = DS.Model.extend({
 }),
 
 ASTool.Spider = DS.Model.extend({
-	start_urls: DS.attr(undefined, {defaultValue:[]}),
-	allowed_domains: DS.attr(undefined, {defaultValue:[]}),
-	links_to_follow: DS.attr('string', {defaultValue:''}),
-	follow_patterns: DS.attr(undefined, {defaultValue:[]}),
-	exclude_patterns: DS.attr(undefined, {defaultValue:[]}),
+	start_urls: DS.attr(null, {defaultValue:['http://test.com']}),
+	allowed_domains: DS.attr(null),
+	links_to_follow: DS.attr('string', {defaultValue:'none'}),
+	follow_patterns: DS.attr(null),
+	exclude_patterns: DS.attr(null),
 	respect_nofollow: DS.attr('boolean', {defaultValue:true}),
 	templates: DS.hasMany('template'),
-	init_requests: DS.attr(undefined, {defaultValue:[]}),
+	init_requests: DS.attr(null),
 	name: function() {
 		return this.get('id');
 	}.property('id'),
