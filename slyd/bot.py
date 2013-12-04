@@ -23,9 +23,11 @@ from scrapy import signals, log
 from scrapy.crawler import Crawler
 from scrapy.http import HtmlResponse
 from scrapy.exceptions import DontCloseSpider
+from scrapy.utils.request import request_fingerprint
 from slybot.utils import htmlpage_from_response
 from slybot.spider import IblSpider
 from .descriptify import descriptify
+
 
 def create_bot_resource(settings, spec_manager):
     bot = Bot(settings, spec_manager)
@@ -93,7 +95,9 @@ class Fetch(BotResource):
             params = response.meta['slyd_request_params']
             htmlpage = htmlpage_from_response(response)
             cleaned_html = descriptify(htmlpage)
-            result = dict(page=cleaned_html)
+            # we may want to include some headers
+            fingerprint = request_fingerprint(response.request)
+            result = dict(page=cleaned_html, fp=fingerprint)
             spider = self.create_spider(request.project, params)
             if spider is not None:
                 items, _link_regions = spider.extract_items(htmlpage)
