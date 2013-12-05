@@ -16,7 +16,7 @@ ASTool.Canvas = Em.Object.extend({
 		_canvas = $('#' + this.get('canvasId'));
 		canvas = _canvas.get(0);
 
-		// Match intrinsic and extrinsic sizes.
+		// Match intrinsic and extrinsic dimensions.
 		canvas.width = _canvas.outerWidth();
 		canvas.height = _canvas.outerHeight();
 
@@ -33,6 +33,24 @@ ASTool.Canvas = Em.Object.extend({
 			sprite.draw(context);	
 		});
 	},
+
+	_interactionsBlocked: false,
+		
+	interactionsBlocked: function(key, interactionsBlocked) {
+		if (arguments.length > 1) {
+			this.set('_interactionsBlocked', interactionsBlocked);
+			var canvas = $('#' + this.get('canvasId'));
+			if (interactionsBlocked) {
+				canvas.css('pointer-events', 'auto');
+				canvas.css('background-color', 'rgba(0,0,0,0.5)');
+			} else {
+				canvas.css('pointer-events', 'none');
+				canvas.css('background-color', 'rgba(0,0,0,0)');
+			}
+		} else {
+			return this.get('_interactionsBlocked');
+		}
+	}.property(),
 });
 
 

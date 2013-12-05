@@ -1,25 +1,36 @@
 // Create a new Ember view for the jQuery UI Button widget
 JQ.ButtonView = Em.View.extend(JQ.Widget, {
-  uiType: 'button',
+	uiType: 'button',
   
-  uiOptions: ['label', 'disabled', 'icons', 'text'],
+	uiOptions: ['label', 'disabled', 'icons', 'text'],
   
-  tagName: 'button',
+	tagName: 'button',
   
-  icons: function() {
-	  return this.get('icon') ? {primary: this.get('icon')} : {};
-  }.property('icon'),
+	icons: function() {
+		return this.get('icon') ? {primary: this.get('icon')} : {};
+	}.property('icon'),
   
-  click: function() {
-  	  this.get('controller').send(this.get('action'), this.get('argument'));
-  }
-  
+	click: function() {
+  		this.get('controller').send(this.get('action'), this.get('argument'));
+	},
+
+	_label: null,
+
+	label: function(key, label) {
+		if (arguments.length > 1) {
+			if (label.length > 40) {
+				label = label.substring(0, 40) + '...';
+			} 
+			this.set('_label', label);
+		} 
+		return this.get('_label');
+	}.property('_label'),
 });
 
 JQ.ButtonSetView = Em.View.extend(JQ.Widget, {
-  uiType: 'buttonset',
-  uiOptions: [],
-  tagName: 'div',
+	uiType: 'buttonset',
+	uiOptions: [],
+	tagName: 'div',
 });
 
 JQ.TabNavigator = JQ.ButtonSetView.extend({
@@ -163,10 +174,9 @@ ASTool.ProjectView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 
 
 /*************************** Helpers ******************************/
-Ember.Handlebars.helper('trim', function(text) {
-	var maxLength = 400;
-	if (text.length > 400) {
-		return text.substring(0, 400) + "...";
+Ember.Handlebars.helper('trim', function(text, length) {
+	if (text.length > length) {
+		return text.substring(0, length) + "...";
 	} else {
 		return text;
 	}

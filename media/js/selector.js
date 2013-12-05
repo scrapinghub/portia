@@ -1,5 +1,7 @@
 ASTool.DocumentView = Em.Object.extend({
 
+	displayedPageId: null,
+
 	dataSource: null,
 
 	listener: null,
@@ -49,6 +51,11 @@ ASTool.DocumentView = Em.Object.extend({
 	redrawNow: function() {
 		this.get('canvas').draw();
 	}.observes('sprites'),
+
+	installEventHandlersForBrowse: function() {
+		this.uninstallEventHandlers();
+		this.iframe.bind('click', null, this.clickHandlerBrowse.bind(this));
+	},
 
 	installEventHandlers: function() {
 		this.uninstallEventHandlers();
@@ -120,6 +127,15 @@ ASTool.DocumentView = Em.Object.extend({
 		event.preventDefault();
 	},
 
+	clickHandlerBrowse: function(event) {
+		event.preventDefault();
+		var linkingElement = $(event.target).closest('[href]');
+		if (linkingElement.length) {
+			var href = $(linkingElement).attr('href');
+        	this.sendEvent('linkClicked', href);	
+		}
+	},
+
 	mouseDownHandler: function(event) {
 		this.set('hoveredSprite', null);
 		++this.mouseDown;
@@ -184,23 +200,35 @@ ASTool.DocumentView = Em.Object.extend({
 		doc.onscroll = canvas.draw.bind(canvas);
 	},
 
-	displayAnnotatedDocument: function(annotatedDocument, readyCallback) {
+	displayAnnotatedDocument: function(annotatedDocument, pageId, readyCallback) {
+		this.set('displayedPageId', pageId);
 		this.iframe = $('#scraped-doc-iframe').contents();
 		if (this.get('autoRedrawId')) {
 			clearInterval(this.get('autoRedrawId'));
 		}
-		$('#scraped-doc-iframe').contents().find('html').html(annotatedDocument);
-		setTimeout(readyCallback, 1000, this.iframe);
-		this.initCanvas();
+		this.iframe.find('html').html(annotatedDocument);
+		if (!this.getCanvas) {
+			this.initCanvas();	
+		}
+		// We need to disable all interactions with the document we are loading
+		// until we trigger the callback.
+		this.set('canvas.interactionsBlocked', true);
+		setTimeout(function(){
+			this.set('canvas.interactionsBlocked', false);
+			readyCallback(this.iframe);
+		}.bind(this), 1000);
 	},
 
 	showLoading: function() {
+		this.set('displayedPageId', null);
 		this.iframe = $('#scraped-doc-iframe').contents();
 		this.iframe.find('html').html('<html><body>Loading...</body></html>');
 	},
 
 	showSpider: function() {
-		this.iframe = $('#scraped-doc-iframe').attr('src', 'start.html');
+		this.set('displayedPageId', null);
+		this.iframe = $('#scraped-doc-iframe').contents();
+		$('#scraped-doc-iframe').attr('src', 'start.html');
 	},
 
 	getAnnotatedDocument: function() {

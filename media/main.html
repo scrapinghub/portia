@@ -6,6 +6,7 @@
 	<link href="css/style.css" rel="stylesheet">
 
 	<script src="js/jquery-1.9.1.js"></script>
+	<script src="js/uri.js"></script>
 	<script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src="js/handlebars-1.0.0.js"></script>
 	<script src="js/ember_debug.js"></script>
@@ -62,13 +63,15 @@
 		<h3>Project test</h3>
 		<hr/>
 		<h3>Spiders for this project:</h3>
-		{{#each}}
-			<div style="margin-bottom: 5px">
-				{{view JQ.ButtonView action="editSpider" argument=this label=this}}
-			</div>
-		{{else}}
-			<h3>No spiders for this project.</h3>.
-		{{/each}}
+		<div style="overflow: auto; max-height: 300px; background-color:white">
+			{{#each}}
+				<div style="margin-bottom: 5px">
+					{{view JQ.ButtonView action="editSpider" argument=this label=this}}
+				</div>
+			{{else}}
+				<h3>No spiders for this project.</h3>.
+			{{/each}}
+		</div>
 		<div style="margin-top:20px">
 			{{view JQ.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="x" text=false}}
 		</div>
@@ -80,6 +83,20 @@
 	<div style='width: 100%; text-align:center'>
 		<h3>Spider {{name}}</h3>
 		<hr/>
+		
+		<h3>Start URLs</h3>
+		{{#each start_urls}}
+			<div style="margin-bottom: 5px">
+				{{view JQ.ButtonView action="loadPage" argument=this label=this}}
+			</div>
+		{{else}}
+			<h3>No start urls for this spider.</h3>.
+		{{/each}}
+		<div style="margin-top:20px">
+			{{view JQ.TextField value=newStartUrl class="textarea"}}
+			{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="x" text=false}}
+		</div>
+		<hr/>
 		<h3>Templates:</h3>
 		{{#each templates}}
 			<div style="margin-bottom: 5px">
@@ -88,11 +105,8 @@
 		{{else}}
 			<h3>No tempates for this spider</h3>.
 		{{/each}}
-
 		<hr/>
 		<div/>
-		<h4>Enter a page Url:</h4>
-		{{view JQ.TextField value=pageUrl class="textarea"}}{{view JQ.ButtonView action="loadPage" label="Go"}}
 		<div style="margin-top: 10px">
 			{{#if loadedUrl}}
 				{{view JQ.ButtonView action="addTemplate" label="Add template"}}
@@ -177,7 +191,7 @@
 		{{/if}}
 		</span></strong>
 	</p>
-	<p class="elementAttributeValue">{{trim view.attribute.value}}</p>
+	<p class="elementAttributeValue">{{trim view.attribute.value 400}}</p>
 </script>
 
 

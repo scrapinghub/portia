@@ -8,6 +8,9 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		this.get('controllers.application').popRoutes(route);
 	},
 
+	popRoute: function() {
+		this.get('controllers.application').popRoute();
+	},
 });
 
 
@@ -87,8 +90,6 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 	needs: ['application', 'annotations'],
-
-	hasUnfinishedEdit: false,
 	
 	mappingAttribute: null,
 	
@@ -132,7 +133,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		this.set('selectingIgnore', false);
 		this.set('documentView.restrictToDescendants', false);
 		this.set('documentView.partialSelectionEnabled', true);
-		this.set('hasUnfinishedEdit', false);
 		annotation.set('selectedElement', null);
 		var isPartial = this.get('isPartial');
 
@@ -148,17 +148,16 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			this.clearGeneratedIns(this.get('currentlySelectedElement'));
 		}
 		this.set('currentlySelectedElement', null);
-		this.popRoutes('annotation');
+		this.popRoute();
 	},
 	
 	actions: {
 		
 		doneEditing: function(annotation) {
 			annotation.save().then(function() {
-				this.set('hasUnfinishedEdit', false);
 				annotation.set('selectedElement', null);
 				this.get('controllers.annotations').saveAnnotations();
-				this.popRoutes('annotation');
+				this.popRoute();
 			}.bind(this));
 		},
 		
@@ -232,7 +231,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	},
 
 	willEnter: function() {
-		this.set('hasUnfinishedEdit', true);
 		this.set('documentView.listener', this);
 		this.set('documentView.elementSelectionEnabled', true);
 		this.set('documentView.partialSelectionEnabled', true);
@@ -283,7 +281,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			var attribute = this.get('mappingAttribute');
 			var annotation = attribute.get('annotation');
 			annotation.addMapping(attribute.get('name'), field['name']);
-			this.popRoutes('items');
+			this.popRoute();
 			this.set('mappingAttribute', null);	   
 		}
 	},
@@ -298,34 +296,29 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	
 	needs: ['application', 'annotations'],
 
-	pageUrl: 'http://dmoz.org',
+	documentViewBinding: 'controllers.application.documentView',
 
 	loadedUrl: null,
 
 	loadedPageData: null,
 
+	newStartUrl: null,
+
 	editTemplate: function(template) {
-		this.get('controllers.annotations').deleteAllAnnotations();
 		this.set('controllers.annotations.template', template);
-		this.get('controllers.application.documentView')
-		.displayAnnotatedDocument(template.get('annotated_body'),
-			function(docIframe){
-				ASTool.set('iframe', docIframe);
-				this.pushRoute('annotations', template.get('name'));
-			}.bind(this)
-		);
+		this.pushRoute('annotations', template.get('name'));
 	},
 
-	loadPage: function() {
-		this.popRoutes('annotations');
+	loadPage: function(url) {
 		this.set('loadedUrl', null);
-		this.get('controllers.application.documentView').showLoading();
-		ASTool.api.fetchDocument(this.get('pageUrl'), this.content.get('name'), function(data) {
-			this.get('controllers.application.documentView')
-			.displayAnnotatedDocument(data.page,
+		this.get('documentView').showLoading();
+		ASTool.api.fetchDocument(url, this.content.get('name'), function(data) {
+			this.get('documentView')
+			.displayAnnotatedDocument(data.page, 'browse_' + url,
 				function(docIframe){
-					this.set('loadedUrl', this.get('pageUrl'));
-					this.set('loadedPageData', data.page);
+					this.set('loadedUrl', url);
+					this.set('loadedPageData', data);
+					this.get('documentView').installEventHandlersForBrowse();
 				}.bind(this)
 			);
 		}.bind(this));
@@ -336,10 +329,15 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		template.set('id', guid());
 		this.content.get('templates').pushObject(template);
 		this.get('controllers.annotations').deleteAllAnnotations();
-		template.set('annotated_body', this.get('loadedPageData'));
-		template.set('original_body', this.get('loadedPageData'));
+		template.set('annotated_body', this.get('loadedPageData.page'));
+		template.set('original_body', this.get('loadedPageData.page'));
+		template.set('page_id', this.get('loadedPageData.fp'));
 		template.set('url', this.get('loadedUrl'));
 		this.editTemplate(template);
+	},
+
+	addStartUrl: function(url) {
+		this.content.get('start_urls').pushObject(url);
 	},
 	
 	actions: {
@@ -356,19 +354,45 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			this.content.save();
 		},
 
-		loadPage: function() {
-			this.loadPage();
+		loadPage: function(url) {
+			this.loadPage(url);
+		},
+
+		addStartUrl: function() {
+			this.addStartUrl(this.get('newStartUrl'));
+		},
+	},
+
+	documentActions: {
+
+		linkClicked: function(url) {
+			var parsedUrl = URI.parse(url);
+			var parsedCurrentUrl = URI.parse(this.get('loadedUrl'));
+
+			if (!parsedUrl.protocol) {
+				parsedCurrentUrl.path = parsedUrl.path;
+				url = URI.build(parsedCurrentUrl);
+			}
+			this.loadPage(url);	
 		}
 	},
 
 	willEnter: function() {
-		this.set('controllers.annotations.template', null);
+		this.set('documentView.listener', this);
+		this.get('documentView').showSpider();
+	},
+
+	willLeave: function() {
+		this.set('documentView.listener', null);
+		this.get('documentView').uninstallEventHandlers();
 	},
 });
 
 ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	needs: ['application'],
+
+	documentViewBinding: 'controllers.application.documentView',
 
 	actions: {
 
@@ -386,7 +410,11 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			this.pushObject(spider.get('name'));
 			spider.save();
 		}
-	}
+	},
+
+	willEnter: function() {
+		this.get('documentView').showSpider();	
+	},
 });
 
 ASTool.NavRoute = Em.Object.extend({
@@ -423,9 +451,11 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 			var tmp = this.routeStack.toArray();
 			var found = false;
 			tmp.forEach(function(navRoute) {
-				if (found || navRoute.route == route) {
-					found = true;
+				if (found) {
 					this.routeStack.removeObject(navRoute);
+				}
+				if (navRoute.route == route) {
+					found = true;
 				}
 			}.bind(this));
 			var lastRoute = this.routeStack.get('lastObject');
@@ -436,16 +466,23 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 			}
 		}
 	},
+
+	popRoute: function() {
+		if (this.routeStack.length > 1) {
+			this.popRoutes(this.routeStack[this.routeStack.length - 2].route);
+		}
+	},
 	
 	actions: {
 
 		gotoRoute: function(route) {
-			var navRoute = this.routeStack.filterBy('route', route).get('firstObject');
+			this.popRoutes(route);
+			/*var navRoute = this.routeStack.filterBy('route', route).get('firstObject');
 			if (navRoute.model) {
 				this.transitionToRoute(route, navRoute.model);	
 			} else {
 				this.transitionToRoute(route);
-			}
+			}*/
 		},
 	}
 });
