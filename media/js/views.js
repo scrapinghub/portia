@@ -5,6 +5,12 @@ JQ.ButtonView = Em.View.extend(JQ.Widget, {
 	uiOptions: ['label', 'disabled', 'icons', 'text'],
   
 	tagName: 'button',
+
+	classNames: ['controlShadow'],
+
+	minWidth: null,
+
+	maxWidth: null,
   
 	icons: function() {
 		return this.get('icon') ? {primary: this.get('icon')} : {};
@@ -18,14 +24,36 @@ JQ.ButtonView = Em.View.extend(JQ.Widget, {
 
 	label: function(key, label) {
 		if (arguments.length > 1) {
-			if (label.length > 40) {
-				label = label.substring(0, 40) + '...';
-			} 
+			label = trim(label, 40);
 			this.set('_label', label);
 		} 
 		return this.get('_label');
 	}.property('_label'),
+
+	didInsertElement: function() {
+		this._super();
+		if (this.minWidth) {
+			var ui = $(this.get('element'));
+			ui.css('min-width', this.minWidth);
+		}
+		if (this.maxWidth) {
+			var ui = $(this.get('element'));
+			ui.css('max-width', this.maxWidth);
+		}
+	},
 });
+
+JQ.AnnotationWidget = JQ.ButtonView.extend({
+
+	mouseEnter: function() {
+		this.set('argument.highlighted', true);
+	},
+
+	mouseLeave: function() {
+		this.set('argument.highlighted', false);
+	},	
+});
+
 
 JQ.ButtonSetView = Em.View.extend(JQ.Widget, {
 	uiType: 'buttonset',
@@ -33,16 +61,8 @@ JQ.ButtonSetView = Em.View.extend(JQ.Widget, {
 	tagName: 'div',
 });
 
-JQ.TabNavigator = JQ.ButtonSetView.extend({
+JQ.TabNavigator = Em.View.extend({
 	
-	tabChanged: function() {
-		var currentPath = this.get('controller.currentPath');
-		if (currentPath == 'annotation') {
-			currentPath = 'annotations';
-		}
-		$(this.get('element')).find('#' + currentPath + 'Radio').prop('checked', true);
-		$(this.get('element')).buttonset('refresh');
-	}.observes('controller.currentPath'),
 });
 
 // Create a new Ember view for the jQuery UI Menu widget.
@@ -90,12 +110,34 @@ JQ.TextField = Em.TextField.extend({
 	uiOptions: [],
 	
 	uiType: null,
+
+	width:null,
 	
 	didInsertElement: function() {
 		this._super();
 		var ui = $(this.get('element'));
 		ui.addClass('ui-corner-all');
+		if (this.width) {
+			var ui = $(this.get('element'));
+			ui.css('width', this.width);
+		}
 	},
+});
+
+JQ.IgnoreWidget = JQ.TextField.extend({
+	ignore: null,
+	valueBinding: 'ignore.name',
+	
+	mouseEnter: function() {
+		console.log(this.get('ignore'));
+		this.set('ignore.highlighted', true);
+	},
+
+	mouseLeave: function() {
+		this.set('ignore.highlighted', false);
+	},
+
+	click: null,
 });
 
 
@@ -109,10 +151,35 @@ ASTool.MyButtonComponent = Ember.Component.extend({
 
 /*************************** Views ********************************/
 
-ASTool.ElemAttributeView = Ember.View.extend({
-	templateName: 'elem-attribute',
+ASTool.ElemAttributeView = JQ.ButtonView.extend({
 	name: null,
 	value: null,
+	attribute: null,
+	
+	/*label: function() {
+		var label = this.get('attribute').name + ": " + trim(this.get('attribute').value, 60);
+		label += this.mapped ? ' >> ' + this.attribute.mappedField : '';
+		return label;
+	}.property('attribute'),*/
+
+
+
+	didInsertElement: function() {
+		this._super();
+		var attribute = this.get('attribute');
+		var ui = $(this.get('element'));
+		var content = $('<div/>').
+			append($('<span/>', { text:attribute.name + ': ', class:'elementAttributeName' })).
+			append($('<span/>', { text:trim(attribute.value, 40), class:'elementAttributeValue' }));
+		if (this.mapped) {
+			content.append($('<div/>').
+			append($('<span/>', { text:'mapped to: ', class:'elementAttributeName' })).
+			append($('<span/>', { text:attribute.mappedField, class:'elementAttributeValue' })));
+		}
+		content.css('text-align', 'left').css('margin-left', '5px');
+		ui.find('[class=ui-button-text]').html(
+			content);
+	},
 });
 
 ASTool.ItemView = Ember.View.extend({
@@ -145,6 +212,7 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 	templateName: 'annotated-document-view',
 	
 	didInsertElement: function() {
+		this._super();
 		this.get('controller').pushRoute('project', 'Project');
 		$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 		$('#toolbar').height(window.innerHeight);
@@ -174,10 +242,13 @@ ASTool.ProjectView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 
 
 /*************************** Helpers ******************************/
-Ember.Handlebars.helper('trim', function(text, length) {
-	if (text.length > length) {
-		return text.substring(0, length) + "...";
-	} else {
-		return text;
+function trim(text, maxLength) {
+	if (text.length > maxLength) {
+		text = text.substring(0, maxLength) + '...';
 	}
+	return text;
+}
+
+Ember.Handlebars.helper('trim', function(text, length) {
+	return trim(text, length);
 });

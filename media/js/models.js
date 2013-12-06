@@ -168,7 +168,7 @@ ASTool.Template = DS.Model.extend({
 }),
 
 ASTool.Spider = DS.Model.extend({
-	start_urls: DS.attr(null, {defaultValue:['http://test.com']}),
+	start_urls: DS.attr(null, {defaultValue:[]}),
 	allowed_domains: DS.attr(null),
 	links_to_follow: DS.attr('string', {defaultValue:'none'}),
 	follow_patterns: DS.attr(null),
@@ -197,7 +197,7 @@ ASTool.Annotation = DS.Model.extend({
 		this.set('annotationsChanged', !this.annotationsChanged);
 	},
 	
-	removeMapping: function(attribute, itemField) {
+	removeMapping: function(attribute) {
 		delete this.get('annotations')[attribute];
 		//FIXME
 		this.set('annotationsChanged', !this.annotationsChanged);
@@ -226,7 +226,7 @@ ASTool.Annotation = DS.Model.extend({
 	}.property('_ignores'),
 
 	addIgnore: function(element) {
-		var ignore = ASTool.Ignore.create({element: element, name: 'testname'});
+		var ignore = ASTool.Ignore.create({element: element, name: 'unnamed ignored region'});
 		this.get('ignores').pushObject(ignore);
 	},
 
@@ -329,6 +329,7 @@ ASTool.Attribute = Em.Object.extend({
 ASTool.Ignore = Em.Object.extend({
 	name: null,
 	element: null,
+	highlighted: false,
 });
 
 

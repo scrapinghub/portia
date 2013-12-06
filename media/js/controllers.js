@@ -11,6 +11,14 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 	popRoute: function() {
 		this.get('controllers.application').popRoute();
 	},
+
+	actions: {
+
+		back: function() {
+			this.popRoute()	
+		},
+	},
+	
 });
 
 
@@ -34,7 +42,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 				return null;
 			}
 		}).filter(function(annotation) {return annotation});
-	}.property('content.@each.element'),
+	}.property('content.@each.element', 'content.@each.highlighted'),
 		
 	addAnnotation: function() {
 		var annotation = this.store.createRecord('annotation');
@@ -45,6 +53,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	},
 	
 	editAnnotation: function(annotation) {
+		annotation.set('highlighted', false);
 		this.pushRoute('annotation', annotation.get('name'), annotation);
 	},
 	
@@ -77,12 +86,15 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	},
 
 	willEnter: function() {
+		this.set('documentView.listener', this);
 		this.set('documentView.dataSource', this);
-		this.set('documentView.elementSelectionEnabled', false);
+		this.get('documentView').installEventHandlersForBrowse();
 	},
 
 	willLeave: function() {
+		this.set('documentView.listener', null);
 		this.set('documentView.dataSource', null);
+		this.get('documentView').uninstallEventHandlers();
 	},
 });
 
@@ -96,8 +108,17 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	documentViewBinding: 'controllers.application.documentView',
 
 	currentlySelectedElement: null,
+
+	_selectingIgnore: null,
 	
-	selectingIgnore: false,
+	selectingIgnore: function(key, selectingIgnore) {
+		// FIXME: move this to the view.
+		if (arguments.length > 1) {
+			this.set('_selectingIgnore', selectingIgnore);
+			$('#addIgnore').toggleClass('activeControlShadow');
+		}
+		return this._selectingIgnore;
+	}.property('_selectingIgnore'),
 
 	sprites: function() {
 		var sprites = [];
@@ -112,16 +133,13 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		}.bind(this));
 
 		var ignoredElements = this.get('model.ignores').map(function(ignore) {
-			return ASTool.ElementSprite.create({'element': ignore.get('element'),
-												'text': ignore.get('name'),
-												'fillColor': 'rgba(255, 0, 0, 0.2)',
-												'strokeColor': 'rgba(255, 0, 0, 0.7)'})
+			return ASTool.IgnoreSprite.create({ ignore: ignore });
 		});
 
 		return sprites.concat(annotationSprites).concat(ignoredElements);
 	}.property('currentlySelectedElement',
 			   'controllers.annotations.sprites',
-			   'model.ignores.@each'),
+			   'model.ignores.@each.highlighted'),
 	
 	clearGeneratedIns: function(insElement) {
 		$(insElement).removePartialAnnotation();
@@ -169,6 +187,10 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
 			this.pushRoute('items', 'Items');
+		},
+
+		unmapAttribute: function(attribute) {
+			this.content.removeMapping(attribute.name);
 		},
 		
 		addIgnore: function() {
@@ -251,6 +273,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	
 	needs: ['application', 'annotation'],
+
+	documentViewBinding: 'controllers.application.documentView',
 	
 	mappingAttributeBinding: 'controllers.annotation.mappingAttribute',
 
@@ -283,10 +307,20 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			annotation.addMapping(attribute.get('name'), field['name']);
 			this.popRoute();
 			this.set('mappingAttribute', null);	   
-		}
+		},
+
+		back: function() {
+			this.set('mappingAttribute', null);
+			this._super();
+		},
+	},
+
+	willEnter: function() {
+		this.set('documentView.canvas.interactionsBlocked', true);
 	},
 
 	willLeave: function() {
+		this.set('documentView.canvas.interactionsBlocked', false);
 		ASTool.api.saveItems(this.content.toArray());
 	},
 });
@@ -337,6 +371,12 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	},
 
 	addStartUrl: function(url) {
+		var parsedUrl = URI.parse(url);
+
+		if (!parsedUrl.protocol) {
+			parsedUrl.protocol = 'http';
+			url = URI.build(parsedUrl);
+		}
 		this.content.get('start_urls').pushObject(url);
 	},
 	
@@ -350,6 +390,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			this.addTemplate();
 		},
 
+		deleteTemplate: function(template) {
+			this.content.get('templates').removeObject(template);
+		},
+
 		saveSpider: function() {
 			this.content.save();
 		},
@@ -360,6 +404,11 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 		addStartUrl: function() {
 			this.addStartUrl(this.get('newStartUrl'));
+			this.set('newStartUrl', '');
+		},
+
+		deleteStartUrl: function(url) {
+			this.content.get('start_urls').removeObject(url);
 		},
 	},
 
@@ -378,6 +427,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	},
 
 	willEnter: function() {
+		this.set('loadedUrl', null);
+		this.set('loadedPageData',  null);
 		this.set('documentView.listener', this);
 		this.get('documentView').showSpider();
 	},
@@ -409,7 +460,11 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			var spider = this.store.createRecord('spider', { 'id': newSpiderName });
 			this.pushObject(spider.get('name'));
 			spider.save();
-		}
+		},
+
+		gotoItems: function() {
+			this.pushRoute('items', 'Items');
+		},
 	},
 
 	willEnter: function() {

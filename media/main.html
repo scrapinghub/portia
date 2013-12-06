@@ -28,10 +28,7 @@
 <!-- Main template -->
 <script type="text/x-handlebars">
 	<div id="toolbar">
-		<div id="tab-navigator">
-			<div style='text-align: center; width:100%; margin-bottom:20px'>
-				<h3>Scrapinghub AutoScraping v0.1</h3>
-			</div>
+		<div style='margin-top:10px; margin-bottom:10px'>
 			{{view JQ.TabNavigator templateName="navigation-template"}}
 		</div>
 		<div id="toolbar-container" class="ui-corner-all">
@@ -43,9 +40,11 @@
 
 <!-- Navigation template -->
 <script type="text/x-handlebars" id="navigation-template">
-	{{#each routeStack}}
-		{{view JQ.ButtonView action="gotoRoute" argument=this.route label=this.label}}
-	{{/each}}
+	<div id="navigationbar" class="ui-corner-all">
+		{{#each routeStack}}
+			<span {{action "gotoRoute" this.route}} class="navRoute">{{this.label}}</span> >
+		{{/each}}
+	</div>
 </script>
 
 <!-- Annotated document view -->
@@ -63,18 +62,21 @@
 		<h3>Project test</h3>
 		<hr/>
 		<h3>Spiders for this project:</h3>
-		<div style="overflow: auto; max-height: 300px; background-color:white">
+		<div class="scrolling-container ui-corner-all">
 			{{#each}}
-				<div style="margin-bottom: 5px">
-					{{view JQ.ButtonView action="editSpider" argument=this label=this}}
+				<div style="margin: 4px 0px 4px 0px">
+					{{view JQ.ButtonView action="editSpider" argument=this label=this minWidth='300px'}}
 				</div>
 			{{else}}
 				<h3>No spiders for this project.</h3>.
 			{{/each}}
 		</div>
-		<div style="margin-top:20px">
-			{{view JQ.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="x" text=false}}
+		<div style="margin-top:10px">
+			{{view JQ.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="New spider"}}
 		</div>
+		<hr/>
+		{{view JQ.ButtonView action="gotoItems" argument=this icon="ui-icon-circle-triangle-e" label='Items'}}
+
 	</div>
 </script>
 
@@ -83,37 +85,44 @@
 	<div style='width: 100%; text-align:center'>
 		<h3>Spider {{name}}</h3>
 		<hr/>
-		
 		<h3>Start URLs</h3>
-		{{#each start_urls}}
-			<div style="margin-bottom: 5px">
-				{{view JQ.ButtonView action="loadPage" argument=this label=this}}
-			</div>
-		{{else}}
-			<h3>No start urls for this spider.</h3>.
-		{{/each}}
-		<div style="margin-top:20px">
-			{{view JQ.TextField value=newStartUrl class="textarea"}}
-			{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="x" text=false}}
+		<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+			{{#each start_urls}}
+				<div style="margin: 4px 0px 4px 0px">
+					{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='300px'}}
+					{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" label="x" text=false}}
+				</div>
+			{{else}}
+				<h3>No start urls for this spider.</h3>
+			{{/each}}
+		</div>
+		<div style="margin-top:5px">
+			<h4>New start URL</h4>
+			{{view JQ.TextField value=newStartUrl class="mediumtextarea" width='240px'}}
+			{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url"}}
 		</div>
 		<hr/>
-		<h3>Templates:</h3>
-		{{#each templates}}
-			<div style="margin-bottom: 5px">
-				{{view JQ.ButtonView action="editTemplate" argument=this label=name}}
-			</div>
-		{{else}}
-			<h3>No tempates for this spider</h3>.
-		{{/each}}
-		<hr/>
-		<div/>
-		<div style="margin-top: 10px">
-			{{#if loadedUrl}}
-				{{view JQ.ButtonView action="addTemplate" label="Add template"}}
-			{{/if}}
+		<h3>Templates</h3>
+		<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+			{{#each templates}}
+				<div style="margin: 4px 0px 4px 0px">
+					{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='300px'}}
+					{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" label="x" text=false}}
+				</div>
+			{{else}}
+				<h3>No templates for this spider.</h3>
+			{{/each}}
 		</div>
+		{{#if loadedUrl}}
+			<div style="margin-top: 10px">
+				{{view JQ.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
+			<div/>
+		{{else}}
+			<h4>Browse from one of the start URLs to add a template.</h4>
+		{{/if}}
 		<hr/>
-		{{view JQ.ButtonView action="saveSpider" label="Save spider"}}
+		{{view JQ.ButtonView action="saveSpider" icon="ui-icon-disk" label="Save spider"}}
+		{{view JQ.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
 	</div>
 	</div>
 </script>
@@ -122,20 +131,24 @@
 <!-- Annotations list -->
 <script type="text/x-handlebars" id="annotations">
 	<div style='text-align: center; width:100%;'>
-		<h3>Annotations for template {{template.name}}</h3>
+		<h3>Template {{template.name}}</h3>
 		<hr/>
-		{{#each}}
-			<div style="margin-bottom: 5px">
-				{{view JQ.ButtonView action="editAnnotation" argument=this label=name}}
-				{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" label="x" text=false}}
-			</div>
-			{{else}}
-				<h4>No annotations have been defined yet.
-		{{/each}}
-		<hr/>
-		<div style="margin-top:20px">
-			{{view JQ.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="x" text=false}}
+		<h3>Annotations</h3>
+		<div class="scrolling-container ui-corner-all">
+			{{#each}}
+				<div style="margin: 4px 0px 4px 0px">
+					{{view JQ.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth='300px'}}
+					{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" label="x" text=false}}
+				</div>
+				{{else}}
+					<h4>No annotations have been defined yet.</h4>
+			{{/each}}
 		</div>
+		<div style="margin-top:10px">
+				{{view JQ.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="New annotation"}}
+		</div>
+		<hr/>
+		{{view JQ.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to spider"}}
 	</div>
 </script>
 
@@ -143,57 +156,63 @@
 <!-- Edit annotation template -->
 <script type="text/x-handlebars" id="annotation">
 	<div style="text-align: center">
-		<h3>Annotation name</h3>
-		{{view JQ.TextField value=name class="smalltextarea"}}
-		<div style="margin-top:25px"/>
+		<label class="bigLabel">Annotation </label>{{view JQ.TextField value=name class="mediumtextarea"}}
+		<div style="margin-top:10px"/>
 		{{#if path}}
-			<h3>Mapped attributes</h3>
-			{{#each mappedAttributes}}
-				<p class="elementAttribute">{{view ASTool.ElemAttributeView mapped=true attribute=this}}</p>
-			{{/each}}
-			{{#each unmappedAttributes}}
-				<p class="elementAttribute">{{view ASTool.ElemAttributeView attribute=this}}</p>
-			{{/each}}
+			<hr/>
+			<h3>Path</h3>
+				<div class="scrolling-container ui-corner-all">
+					<h3>{{path}}</h3>
+				</div>
+			<hr/>
+			<h3>Attributes</h3>
+			<div class="scrolling-container ui-corner-all">
+				{{#if mappedAttributes}}
+					<h4 style="margin-bottom: 5px">Mapped</h4>
+					{{#each mappedAttributes}}
+						<div style="margin: 4px 0px 4px 0px">
+							{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
+							  maxWidth='336px' action="unmapAttribute" argument=this}}
+						</div>
+					{{/each}}
+				{{/if}}
+
+				{{#if unmappedAttributes}}
+					<h4 style="margin-bottom: 5px">Not mapped</h4>
+					{{#each unmappedAttributes}}
+						<div style="margin: 4px 0px 4px 0px">
+							{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='336px'
+						      maxWidth='336px' action="mapAttribute" argument=this}}
+						</div>
+					{{/each}}
+				{{/if}}
+			</div>
 			<hr/>
 			<h3>Ignored regions</h3>
-			{{#each model.ignores}}
-				<div style='margin-top: 3px'>
-					{{view JQ.TextField value=name class="mediumtextarea"}}
-					{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" label="x" text=false}}
-				</div>
-			{{/each}}
-			{{view JQ.ButtonView action="addIgnore" label="Add Ignore"}}
-			<hr/>
+			<div class="scrolling-container ui-corner-all">
+				{{#each model.ignores}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='300px'}}
+						{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" label="x" text=false}}
+					</div>
+				{{else}}
+					<h4>No ignored regions defined.</h4>
+				{{/each}}
+			</div>
+			<div style="margin-top:10px">
+				{{view JQ.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
+			</div>
 		{{else}}
-			<h4>Please select a region from the document.</h4>
+			<h4>Please select an element or region from the document.</h4>
 		{{/if}}
-		
+		<hr/>
 		{{#if element}}
-			{{view JQ.ButtonView action="doneEditing" argument=model label="Ok"}}
+			{{view JQ.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
 		{{/if}}
-		{{view JQ.ButtonView action="cancelEdit" argument=model label="Cancel"}}
+		{{view JQ.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Cancel"}}
 	</div>
 	
 </script>
-
-
-<!-- Attribute view -->
-<script type="text/x-handlebars" id="elem-attribute">
-	<hr/>
-	<p>
-		<span class="elementAttributeName">{{view.attribute.name}}</span>
-			{{view JQ.ButtonView action="mapAttribute" class="mapButton" argument=view.attribute icon=" ui-icon-arrowthick-2-e-w" label="x" text=false}}
-		<span><strong>
-		{{#if view.mapped}}
-			<span class="mapping">
-				{{view.attribute.mappedField}}
-			</span>
-		{{/if}}
-		</span></strong>
-	</p>
-	<p class="elementAttributeValue">{{trim view.attribute.value 400}}</p>
-</script>
-
 
 <!-- Items list -->
 <script type="text/x-handlebars" id="items">
@@ -211,28 +230,29 @@
 	 		<h4>No items have been defined yet.</h4>
 			<hr/>
 	 	{{/each}}
-		{{view JQ.ButtonView action="addItem" icon="ui-icon-circle-plus" label="+" text=false}}
+		{{view JQ.ButtonView action="addItem" icon="ui-icon-circle-plus" label="New item"}}
+		{{view JQ.ButtonView action="back" icon="ui-icon-circle-triangle-w" label="Back"}}
 	</div>
 </script>
 
 
 <!-- Item View -->
 <script type="text/x-handlebars" id="item">
-	<p style="color:#2779aa;">Item name</p>
-	{{view JQ.EditField owner=view.item value=view.item.name class="smalltextarea"}}
-	{{view JQ.ButtonView action="addField" argument=this class="smallbutton" icon="ui-icon-plus" label="+" text=false}}
+	<span class="mediumLabel">Name </span>
+	{{view JQ.EditField owner=view.item value=view.item.name class="mediumtextarea"}}
+	{{view JQ.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="New field"}}
 	<div style="text-align: center; margin-top:10px">
 		{{#if view.item.fields}}
 			<table style="margin: 0 auto;">
-				<tr style="color:#2779aa;"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
+				<tr class="smallLabel"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 				{{#each view.item.fields}}
 					<tr>
-						<td>{{view JQ.TextField owner=this value=name class="smalltextarea"}}</td>
+						<td>{{view JQ.TextField owner=this value=name class="mediumtextarea"}}</td>
 						<td>{{view ASTool.TypeSelect owner=this selection=type}}</td>
 						<td>{{view ASTool.EditBox owner=this checked=required}}</td>
 						<td>{{view ASTool.EditBox owner=this checked=vary}}</td>
 						{{#if view.mappingAttribute}}
-							<td>{{view JQ.ButtonView action="chooseField" argument=this icon="ui-icon-check" label="ok" text=false}}</td>
+							<td>{{view JQ.ButtonView action="chooseField" argument=this icon="ui-icon-circle-triangle-e" label="Choose"}}</td>
 						{{/if}}
 					</tr>
 				{{/each}}

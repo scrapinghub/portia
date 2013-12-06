@@ -42,7 +42,7 @@ ASTool.Canvas = Em.Object.extend({
 			var canvas = $('#' + this.get('canvasId'));
 			if (interactionsBlocked) {
 				canvas.css('pointer-events', 'auto');
-				canvas.css('background-color', 'rgba(0,0,0,0.5)');
+				canvas.css('background-color', 'rgba(0,0,30,0.2)');
 			} else {
 				canvas.css('pointer-events', 'none');
 				canvas.css('background-color', 'rgba(0,0,0,0)');
@@ -75,24 +75,23 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 	text: null,
 	textColor: 'black',
 	rect: null,
+	blend: null,
+	highlighted: null,
 
 	draw: function(context) {
 		context.save();
 		var rect = this.getBoundingBox();
-		if (this.get('text')) {
-			context.fillStyle = this.get('textColor');
-			context.font = "bold 12px sans-serif";
-			context.fillText(this.get('text'),
-					 	 	 rect.left + 4,
-				 		 	 rect.top - 1);
-		}
 		context.save();
+		if (this.get('blend')) {
+			context.globalCompositeOperation = this.get('blend');
+		}
 		if (this.get('hasShadow')) {
 		    context.shadowColor   = this.get('shadowColor');
 		    context.shadowOffsetX = this.get('shadowOffsetX');
 		    context.shadowOffsetY = this.get('shadowOffsetY');
 		    context.shadowBlur    = this.get('shadowBlur');
 		}
+
 		context.fillStyle = this.get('fillColor');
 		context.fillRect(rect.left + 2,
 			         	 rect.top + 2,
@@ -105,10 +104,34 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 
 	    context.lineWidth = this.get('boderWidth');
 		context.strokeStyle = this.get('strokeColor');
+		if (this.get('highlighted')) {
+			context.shadowColor = 'orange';
+		    context.shadowOffsetX = 0;
+		    context.shadowOffsetY = 0;
+		    context.shadowBlur = 5;
+		    context.lineWidth = 2;
+		    context.strokeStyle = 'orange';
+
+		}
 		context.strokeRect(rect.left + 2,
 			           rect.top + 2,
 					   rect.width,
 					   rect.height);
+
+		if (this.get('text')) {
+			context.font = "12px sans-serif";
+			context.shadowColor   = 'rgba(0,0,0,0.5)';
+		    context.shadowBlur    = 4;
+			context.lineWidth = 2;
+			context.strokeStyle = '#333';
+			context.strokeText(this.get('text'),
+					 	 	  rect.left + 6,
+				 		 	  rect.top + 14);
+			context.fillStyle = this.get('textColor');
+			context.fillText(this.get('text'),
+					 	 	 rect.left + 6,
+				 		 	 rect.top + 14);
+		}
 		context.restore();
 	}
 });
@@ -116,16 +139,42 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 
 ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 	annotation: null,
-	fillColor: 'rgba(88,120,220,0.3)',
+	fillColor: 'rgba(88,120,220,0.4)',
 	strokeColor: 'white',
 	hasShadow: 'true',
+	textColor: 'white',
 
 	text: function() {
 		return this.get('annotation.name');
 	}.property('annotation'),
 
+	highlighted: function() {
+		return this.get('annotation.highlighted');
+	}.property('annotation'),
+
 	getBoundingBox: function() {
 		return $(this.get('annotation.element')).boundingBox();
+	},
+});
+
+
+ASTool.IgnoreSprite = ASTool.RectSprite.extend({
+	ignore: null,
+	fillColor: 'black',
+	strokeColor: 'rgba(255, 0, 0, 0.4)',
+	textColor: 'rgba(255,150,150,1)',
+	blend: 'destination-out',
+
+	text: function() {
+		return this.get('ignore.name');
+	}.property('ignore'),
+
+	highlighted: function() {
+		return this.get('ignore.highlighted');
+	}.property('ignore'),
+
+	getBoundingBox: function() {
+		return $(this.get('ignore.element')).boundingBox();
 	},
 });
 

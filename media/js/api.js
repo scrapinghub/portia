@@ -1,6 +1,7 @@
+
 ASTool.SlydApi = Em.Object.extend({
 
-	baseUrl: 'http://localhost:9001/api/',
+	baseUrl: window.location.protocol + '//' + window.location.host + '/api/',
 
 	// FIXME: hardcoded 'test' project.
 	project: 'test',

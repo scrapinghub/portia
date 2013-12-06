@@ -54,6 +54,7 @@ ASTool.DocumentView = Em.Object.extend({
 
 	installEventHandlersForBrowse: function() {
 		this.uninstallEventHandlers();
+		console.log('Installing browse events');
 		this.iframe.bind('click', null, this.clickHandlerBrowse.bind(this));
 	},
 
@@ -89,12 +90,9 @@ ASTool.DocumentView = Em.Object.extend({
 	updateHoveredInfo: function(element) {
 		var path = $(element).getPath();
 		var attributes = $(element).getAttributeList();
-		var contents = '<div>' + path + '</div><hr style="background-color:#FCDDB1;"/>';
+		var contents = '<div class="hoveredPathLine">' + path + '</div><hr style="background-color:#2779aa;"/>';
 		$(attributes).each(function(i, attribute) {
-			var value = attribute.get('value');
-			if (value.length > 100) {
-				value = value.substring(0, 100) + '...';
-			}
+			var value = trim(attribute.get('value'), 60);
 			contents += '<div class="hoveredInfoLine">' + attribute.get('name') + ": " + value + '</div>';
 		});
 		$("#hoveredInfo").html(contents);
@@ -128,6 +126,7 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	clickHandlerBrowse: function(event) {
+		console.log('Click handler browse');
 		event.preventDefault();
 		var linkingElement = $(event.target).closest('[href]');
 		if (linkingElement.length) {
@@ -222,7 +221,7 @@ ASTool.DocumentView = Em.Object.extend({
 	showLoading: function() {
 		this.set('displayedPageId', null);
 		this.iframe = $('#scraped-doc-iframe').contents();
-		this.iframe.find('html').html('<html><body>Loading...</body></html>');
+		$('#scraped-doc-iframe').attr('src', 'loading.html');
 	},
 
 	showSpider: function() {
