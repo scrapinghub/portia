@@ -54,7 +54,6 @@ ASTool.DocumentView = Em.Object.extend({
 
 	installEventHandlersForBrowse: function() {
 		this.uninstallEventHandlers();
-		console.log('Installing browse events');
 		this.iframe.bind('click', null, this.clickHandlerBrowse.bind(this));
 	},
 
@@ -126,7 +125,6 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	clickHandlerBrowse: function(event) {
-		console.log('Click handler browse');
 		event.preventDefault();
 		var linkingElement = $(event.target).closest('[href]');
 		if (linkingElement.length) {
@@ -189,14 +187,20 @@ ASTool.DocumentView = Em.Object.extend({
 		var canvas = ASTool.Canvas.create({canvasId: 'infocanvas',
 										   datasource: this})
 		this.set('canvas', canvas);
-		this.set('autoRedrawId', setInterval(canvas.draw.bind(canvas), 1000));
-		window.onresize = function() {
-			$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
-			$('#toolbar').height(window.innerHeight);
-			this.get('canvas').draw();
-		}.bind(this);
-		var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
-		doc.onscroll = canvas.draw.bind(canvas);
+		this.set('autoRedrawId', setInterval(function() {
+			Ember.run(function(){
+				canvas.draw();
+			});
+		}, 1000));
+		if (!Ember.testing){
+			window.onresize = function() {
+				$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
+				$('#toolbar').height(window.innerHeight);
+				this.get('canvas').draw();
+			}.bind(this);
+			var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
+			doc.onscroll = canvas.draw.bind(canvas);
+		}
 	},
 
 	displayAnnotatedDocument: function(annotatedDocument, pageId, readyCallback) {
@@ -212,22 +216,26 @@ ASTool.DocumentView = Em.Object.extend({
 		// We need to disable all interactions with the document we are loading
 		// until we trigger the callback.
 		this.set('canvas.interactionsBlocked', true);
-		setTimeout(function(){
-			this.set('canvas.interactionsBlocked', false);
-			readyCallback(this.iframe);
-		}.bind(this), 1000);
+		Em.run.later(this, function() {
+				this.set('canvas.interactionsBlocked', false);
+				readyCallback(this.iframe);
+			}, 1000);
 	},
 
 	showLoading: function() {
-		this.set('displayedPageId', null);
-		this.iframe = $('#scraped-doc-iframe').contents();
-		$('#scraped-doc-iframe').attr('src', 'loading.html');
+		if (!Ember.testing){
+			this.set('displayedPageId', null);
+			this.iframe = $('#scraped-doc-iframe').contents();
+			$('#scraped-doc-iframe').attr('src', 'loading.html');
+		}
 	},
 
 	showSpider: function() {
-		this.set('displayedPageId', null);
-		this.iframe = $('#scraped-doc-iframe').contents();
-		$('#scraped-doc-iframe').attr('src', 'start.html');
+		if (!Ember.testing){
+			this.set('displayedPageId', null);
+			this.iframe = $('#scraped-doc-iframe').contents();
+			$('#scraped-doc-iframe').attr('src', 'start.html');
+		}
 	},
 
 	getAnnotatedDocument: function() {

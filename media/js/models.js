@@ -85,14 +85,9 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 
 ASTool.SlydApiAdapter = DS.Adapter.extend({
 	
-	find: function(store, type, id) {
-		var promise = Ember.RSVP.Promise(function(resolve) {
-			var methodName = ('load ' + type.typeKey).camelize();
-			ASTool.api.get(methodName).call(ASTool.api, id, function(entity) {
-				resolve(entity);
-			});
-		});
-		return promise;
+	find: function(store, type, id) {	
+		var methodName = ('load ' + type.typeKey).camelize();
+		return ASTool.api.get(methodName).call(ASTool.api, id);
 	},
 	
 	findAll: function(store, type) {
@@ -111,13 +106,9 @@ ASTool.SlydApiAdapter = DS.Adapter.extend({
 	
 	updateRecord: function(store, type, record) {
 		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: false });
-		var promise = Ember.RSVP.Promise(function(resolve) {
-			var methodName = ('save ' + type.typeKey).camelize();
-			ASTool.api.get(methodName).call(ASTool.api, record.get('id'), serializedRecord, function() {
-				resolve(serializedRecord);
-			});
-		});
-		return promise;
+		var methodName = ('save ' + type.typeKey).camelize();
+		return ASTool.api.get(methodName).call(ASTool.api, record.get('id'), serializedRecord);
+		
 	},
 	
 	deleteRecord: function(store, type, record) {

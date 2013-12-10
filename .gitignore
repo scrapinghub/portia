@@ -15,3 +15,6 @@ twistd.pid
 
 # local data files
 data/*
+
+# npm files
+node_modules/*

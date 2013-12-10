@@ -1,65 +1,59 @@
-
 ASTool.SlydApi = Em.Object.extend({
 
-	baseUrl: window.location.protocol + '//' + window.location.host + '/api/',
+	// Leave empty to use window.location.
+	slydUrl: 'http://localhost:9001/api/',
+
+	baseUrl: function() {
+		return this.get('slydUrl') || window.location.protocol + '//' + window.location.host + '/api/';
+	}.property('slydUrl'),
 
 	// FIXME: hardcoded 'test' project.
 	project: 'test',
 
-	getSpiderNames: function(onSuccess, onError) {
+	getSpiderNames: function() {
 		hash = {};
 		hash.type = 'GET';
-		hash.success = function(spiderNames) {
-			onSuccess(spiderNames);
-		};
-		hash.error = onError;
-		hash.url = this.baseUrl + this.project + '/spec/spiders';
-		$.ajax(hash);
+		hash.url = this.get('baseUrl') + this.project + '/spec/spiders';
+		return ic.ajax(hash);
 	},
 
 	loadSpiders: function(onSuccess, onError) {
 		hash = {};
 		hash.type = 'GET';
-		hash.success = function(projectData) {
-			onSuccess(projectData['spiders']);
-		};
-		hash.error = onError;
-		hash.url = this.baseUrl + this.project + '/spec';
-		$.ajax(hash);
+		hash.url = this.get('baseUrl') + this.project + '/spec';
+		ic.ajax(hash).then(function(projectData){
+			return projectData['spiders'];
+		});
 	},
 
-	loadSpider: function(spiderName, onSuccess, onError) {
+	loadSpider: function(spiderName) {
 		hash = {};
 		hash.type = 'GET';
-		hash.success = function(spiderData) {
+		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/' + spiderName;
+		return ic.ajax(hash).then(function(spiderData) {
 			spiderData['id'] = spiderName;		
 			spiderData['templates'] = spiderData['templates'].map(function(template) {
 				template['id'] = guid();
 				return template;
 			});
-			onSuccess(spiderData);
-		};
-		hash.error = onError;
-		hash.url = this.baseUrl + this.project + '/spec/spiders/' + spiderName;
-		$.ajax(hash);
+			return spiderData;
+		});
 	},
 
 	loadItems: function(onSuccess, onError) {
 		hash = {};
 		hash.type = 'GET';
-		hash.success = function(items) {
+		hash.url = this.get('baseUrl') + this.project + '/spec/items';
+		return ic.ajax(hash).then(function(items) {
 			items = this.dictToList(items, ASTool.Item);
 			items.forEach(function(item) {
 				item.fields = this.dictToList(item.fields, ASTool.ItemField);
 			}.bind(this));
-			onSuccess(items);
-		}.bind(this);
-		hash.error = onError;
-		hash.url = this.baseUrl + this.project + '/spec/items';
-		$.ajax(hash);
+			return items;
+		}.bind(this));
 	},
 
-	saveItems: function(items, onSuccess, onError) {
+	saveItems: function(items) {
 		items.forEach(function(item) {
 			item.set('fields', this.listToDict(item.get('fields')));
 		}.bind(this));
@@ -67,36 +61,25 @@ ASTool.SlydApi = Em.Object.extend({
 		hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify(items);
-		hash.success = onSuccess;
-		hash.error = onError;
-		hash.url = this.baseUrl + this.project + '/spec/items';
-		$.ajax(hash);
+		hash.url = this.get('baseUrl') + this.project + '/spec/items';
+		return ic.ajax(hash);
 	},
 
-	saveSpider: function(spiderName, spiderData, onSuccess, onError) {
+	saveSpider: function(spiderName, spiderData) {
 		hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify(spiderData);
-		hash.success = onSuccess;
-		hash.error = onError;
-		hash.url = this.baseUrl + this.project + '/spec/spiders/' + spiderName;
-		$.ajax(hash);
+		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/' + spiderName;
+		return ic.ajax(hash);
 	},
 
-	fetchDocument: function(pageUrl, spiderName, onSuccess, onError) {
+	fetchDocument: function(pageUrl, spiderName) {
 		hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify({spider: spiderName,
 									request: {url: pageUrl}});
-		hash.success = function(data) {
-			onSuccess(data);	
-		}
-		hash.error = function(req, status, error) {
-			onError(error);
-		};
-		// FIXME: hardcode dummy 'test' project
-		hash.url = this.baseUrl + this.project + '/bot/fetch';
-		$.ajax(hash);
+		hash.url = this.get('baseUrl') + this.project + '/bot/fetch';
+		return ic.ajax(hash);
 	},
 
 	listToDict: function(list) {

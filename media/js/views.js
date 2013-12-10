@@ -11,6 +11,16 @@ JQ.ButtonView = Em.View.extend(JQ.Widget, {
 	minWidth: null,
 
 	maxWidth: null,
+
+	action: null,
+
+	argument: null,
+
+	attributeBindings: ['name'],
+
+	name: function() {
+		return this.get('action') + '_' + this.get('label');
+	}.property('action', 'label'),
   
 	icons: function() {
 		return this.get('icon') ? {primary: this.get('icon')} : {};
@@ -129,7 +139,6 @@ JQ.IgnoreWidget = JQ.TextField.extend({
 	valueBinding: 'ignore.name',
 	
 	mouseEnter: function() {
-		console.log(this.get('ignore'));
 		this.set('ignore.highlighted', true);
 	},
 
@@ -161,8 +170,6 @@ ASTool.ElemAttributeView = JQ.ButtonView.extend({
 		label += this.mapped ? ' >> ' + this.attribute.mappedField : '';
 		return label;
 	}.property('attribute'),*/
-
-
 
 	didInsertElement: function() {
 		this._super();

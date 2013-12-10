@@ -27,12 +27,7 @@ ASTool.ApplicationRoute = Ember.Route.extend({
 
 ASTool.ProjectRoute = Ember.Route.extend({
 	model: function() {
-		var promise = Ember.RSVP.Promise(function(resolve) {
-			ASTool.api.getSpiderNames(function(spiderNames) {	
-				resolve(spiderNames);
-			});
-		});
-		return promise;
+		return ASTool.api.getSpiderNames();
 	},
 });
 
@@ -80,11 +75,6 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 
 ASTool.ItemsRoute = Ember.Route.extend({
 	model: function() {
-		var promise = Ember.RSVP.Promise(function(resolve) {
-			ASTool.api.loadItems(function(items) {
-				resolve(items);
-			});
-		});
-		return promise;
+		return ASTool.api.loadItems();
 	}
 });
