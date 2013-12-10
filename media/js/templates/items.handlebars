@@ -1,0 +1,17 @@
+<div style="text-align: center">
+	{{#if mappingAttribute}}
+		<h3>Choose an item field to map "{{mappingAttribute.name}}"</h3>
+	{{else}}
+		<h3>Items</h3>
+	{{/if}}
+	<hr/>
+	{{#each model}}
+		{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
+		<hr/>
+ 	{{else}}
+ 		<h4>No items have been defined yet.</h4>
+		<hr/>
+ 	{{/each}}
+	{{view JQ.ButtonView action="addItem" icon="ui-icon-circle-plus" label="New item"}}
+	{{view JQ.ButtonView action="back" icon="ui-icon-circle-triangle-w" label="Back"}}
+</div>

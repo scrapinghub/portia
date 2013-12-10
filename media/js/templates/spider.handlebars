@@ -1,0 +1,42 @@
+<div style='width: 100%; text-align:center'>
+	<h3>Spider {{name}}</h3>
+	<hr/>
+	<h3>Start URLs</h3>
+	<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+		{{#each start_urls}}
+			<div style="margin: 4px 0px 4px 0px">
+				{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='300px'}}
+				{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" label="x" text=false}}
+			</div>
+		{{else}}
+			<h3>No start urls for this spider.</h3>
+		{{/each}}
+	</div>
+	<div style="margin-top:5px">
+		<h4>New start URL</h4>
+		{{view JQ.TextField value=newStartUrl class="mediumtextarea" width='240px'}}
+		{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url"}}
+	</div>
+	<hr/>
+	<h3>Templates</h3>
+	<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+		{{#each templates}}
+			<div style="margin: 4px 0px 4px 0px">
+				{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='300px'}}
+				{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" label="x" text=false}}
+			</div>
+		{{else}}
+			<h3>No templates for this spider.</h3>
+		{{/each}}
+	</div>
+	{{#if loadedUrl}}
+		<div style="margin-top: 10px">
+			{{view JQ.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
+		<div/>
+	{{else}}
+		<h4>Browse from one of the start URLs to add a template.</h4>
+	{{/if}}
+	<hr/>
+	{{view JQ.ButtonView action="saveSpider" icon="ui-icon-disk" label="Save spider"}}
+	{{view JQ.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
+</div>

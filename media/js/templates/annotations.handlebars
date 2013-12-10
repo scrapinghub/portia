@@ -1,0 +1,20 @@
+<div style='text-align: center; width:100%;'>
+	<h3>Template {{template.name}}</h3>
+	<hr/>
+	<h3>Annotations</h3>
+	<div class="scrolling-container ui-corner-all">
+		{{#each}}
+			<div style="margin: 4px 0px 4px 0px">
+				{{view JQ.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth='300px'}}
+				{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" label="x" text=false}}
+			</div>
+			{{else}}
+				<h4>No annotations have been defined yet.</h4>
+		{{/each}}
+	</div>
+	<div style="margin-top:10px">
+			{{view JQ.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="New annotation"}}
+	</div>
+	<hr/>
+	{{view JQ.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to spider"}}
+</div>

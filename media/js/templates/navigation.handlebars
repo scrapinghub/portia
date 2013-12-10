@@ -1,0 +1,5 @@
+<div id="navigationbar" class="ui-corner-all">
+	{{#each routeStack}}
+		<span {{action "gotoRoute" this.route}} class="navRoute">{{this.label}}</span> >
+	{{/each}}
+</div>

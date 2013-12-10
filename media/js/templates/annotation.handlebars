@@ -1,0 +1,56 @@
+<div style="text-align: center">
+	<label class="bigLabel">Annotation </label>{{view JQ.TextField value=name class="mediumtextarea"}}
+	<div style="margin-top:10px"/>
+	{{#if path}}
+		<hr/>
+		<h3>Path</h3>
+			<div class="scrolling-container ui-corner-all">
+				<h3>{{path}}</h3>
+			</div>
+		<hr/>
+		<h3>Attributes</h3>
+		<div class="scrolling-container ui-corner-all">
+			{{#if mappedAttributes}}
+				<h4 style="margin-bottom: 5px">Mapped</h4>
+				{{#each mappedAttributes}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
+						  maxWidth='336px' action="unmapAttribute" argument=this}}
+					</div>
+				{{/each}}
+			{{/if}}
+
+			{{#if unmappedAttributes}}
+				<h4 style="margin-bottom: 5px">Not mapped</h4>
+				{{#each unmappedAttributes}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='336px'
+					      maxWidth='336px' action="mapAttribute" argument=this}}
+					</div>
+				{{/each}}
+			{{/if}}
+		</div>
+		<hr/>
+		<h3>Ignored regions</h3>
+		<div class="scrolling-container ui-corner-all">
+			{{#each model.ignores}}
+				<div style="margin: 4px 0px 4px 0px">
+					{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='300px'}}
+					{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" label="x" text=false}}
+				</div>
+			{{else}}
+				<h4>No ignored regions defined.</h4>
+			{{/each}}
+		</div>
+		<div style="margin-top:10px">
+			{{view JQ.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
+		</div>
+	{{else}}
+		<h4>Please select an element or region from the document.</h4>
+	{{/if}}
+	<hr/>
+	{{#if element}}
+		{{view JQ.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
+	{{/if}}
+	{{view JQ.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Cancel"}}
+</div>
