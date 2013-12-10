@@ -120,16 +120,17 @@ UI Testing
 
 A Karma test eviroment is now available. To run the ui tests:
 
-  npm install
-  export PATH="./node_modules/.bin:$PATH"
-  karma start
+  	npm install
+	export PATH="./node_modules/.bin:$PATH"
+  	karma start
 
 You can download npm from https://npmjs.org
 
 There is only one integration test implemented at the moment, and it is quite trivial. Many more coming soon. Also note that the
-current test is not currently mocking API requests so it requires for slyd to be running.
+current test is not currently mocking API requests so it requires for slyd to be running (and serving a project called test with at least one spider) to pass.
 
-Look at karma.conf.js to configure test options.
+Look at *karma.conf.js* to configure test options.
 
 The tests are located in:
-  media/tests
+
+	media/tests
