@@ -126,8 +126,7 @@ A Karma test eviroment is now available. To run the ui tests:
 
 You can download npm from https://npmjs.org
 
-There is only one integration test implemented at the moment, and it is quite trivial. Many more coming soon. Also note that the
-current test is not currently mocking API requests so it requires for slyd to be running.
+There is only one integration test implemented at the moment, and it is quite trivial. Many more coming soon.
 
 Look at karma.conf.js to configure test options.
 
