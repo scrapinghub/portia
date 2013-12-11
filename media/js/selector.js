@@ -187,12 +187,13 @@ ASTool.DocumentView = Em.Object.extend({
 		var canvas = ASTool.Canvas.create({canvasId: 'infocanvas',
 										   datasource: this})
 		this.set('canvas', canvas);
-		this.set('autoRedrawId', setInterval(function() {
-			Ember.run(function(){
-				canvas.draw();
-			});
-		}, 1000));
 		if (!Ember.testing){
+			// Disable automatic redrawing during tests.
+			this.set('autoRedrawId', setInterval(function() {
+				Ember.run(function(){
+					canvas.draw();
+				});
+			}, 1000));
 			window.onresize = function() {
 				$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 				$('#toolbar').height(window.innerHeight);
@@ -223,17 +224,17 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	showLoading: function() {
+		this.iframe = $('#scraped-doc-iframe').contents();
+		this.set('displayedPageId', null);
 		if (!Ember.testing){
-			this.set('displayedPageId', null);
-			this.iframe = $('#scraped-doc-iframe').contents();
 			$('#scraped-doc-iframe').attr('src', 'loading.html');
 		}
 	},
 
 	showSpider: function() {
+		this.iframe = $('#scraped-doc-iframe').contents();
+		this.set('displayedPageId', null);
 		if (!Ember.testing){
-			this.set('displayedPageId', null);
-			this.iframe = $('#scraped-doc-iframe').contents();
 			$('#scraped-doc-iframe').attr('src', 'start.html');
 		}
 	},

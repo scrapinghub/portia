@@ -53,26 +53,47 @@
    *    });
    *
    * @param {String} url
+   * @param {String} method
    * @param {Object} fixture
    */
-  ajax.defineFixture = function(url, fixture) {
+  ajax.defineFixture = function(url, method, fixture) {
     ajax.FIXTURES = ajax.FIXTURES || {};
-    ajax.FIXTURES[url] = fixture;
+    ajax.FIXTURES[method + '_' + url] = {data: fixture, callCount: 0};
   };
 
   /*
-   * Looks up a fixture by url.
+   * Looks up a fixture by url and HTTP method.
    *
    * @param {String} url
+   * @param {String} method
    */
-
-  ajax.lookupFixture = function(url) {
-    return ajax.FIXTURES && ajax.FIXTURES[url];
+  ajax.lookupFixture = function(url, method) {
+    var fixture = ajax.FIXTURES && ajax.FIXTURES[method + '_' + url];
+    if (fixture) {
+      fixture.callCount += 1;
+      return fixture.data;
+    };
   };
+
+  /*
+   * Looks up how many times a fixture has been called by url and HTTP method.
+   *
+   * @param {String} url
+   * @param {String} method
+   */
+  ajax.callCount = function(url, method) {
+    console.log(ajax.FIXTURES);
+    console.log(method + '_' + url);
+    var fixture = ajax.FIXTURES && ajax.FIXTURES[method + '_' + url];
+    if (fixture) {
+      return fixture.callCount;
+    };
+    return -1;
+  }
 
   function makePromise(settings) {
     return new Ember.RSVP.Promise(function(resolve, reject) {
-      var fixture = ajax.lookupFixture(settings.url);
+      var fixture = ajax.lookupFixture(settings.url, settings.type);
       if (fixture) {
         return resolve(fixture);
       }

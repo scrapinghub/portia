@@ -13,20 +13,70 @@ module('integration tests', {
 
 var TEST_PROJECT_NAME = 'test';
 
-function stubEndpoint(endpoint, response) {
+function stubEndpoint(endpoint, response, method) {
+    method = method || 'GET';
     var url = ASTool.slydUrl + TEST_PROJECT_NAME + endpoint;
-    ic.ajax.defineFixture(url, {
+    ic.ajax.defineFixture(url, method, {
         response: response,
         jqXHR: {},
         textStatus: 'success'
     });
 }
 
+function callCount(endpoint, method) {
+    method = method || 'GET';
+    var url = ASTool.slydUrl + TEST_PROJECT_NAME + endpoint;
+    return ic.ajax.callCount(url, method);
+}
+
+test('add item & field test', function() {
+    stubEndpoint('/spec/spiders', []);
+    stubEndpoint('/spec/items', {}); 
+    Ember.run(ASTool, 'advanceReadiness');
+    Ember.run(function() {
+        wait().
+        click('[name*="gotoItems"]').
+        click('[name*="addItem"]').
+        click('[name*="addField"]').
+        then(function() {
+            equal(exists('[name*="fieldName"]'), true);
+        })
+    });
+});
+
+test('add spider test', function() {
+    stubEndpoint('/spec/spiders', []);
+    stubEndpoint('/spec/spiders', [], 'POST');
+    Ember.run(ASTool, 'advanceReadiness');
+    Ember.run(function() {
+        wait().
+        click('[name*="addSpider"]').
+        then(function() {
+            equal(exists('[name*="editSpider"]'), true);
+        })
+    });
+});
+
+test('add starturl test', function() {
+    stubEndpoint('/spec/spiders', spiderNamesJson);
+    stubEndpoint('/spec/spiders/spider1', $.extend(true, {}, spider1Json));
+    Ember.run(ASTool, 'advanceReadiness');
+    Ember.run(function() {
+        wait().
+        click('[name*="editSpider"]').
+        fillIn('[name*="startUrlTextField"]', 'http://newurl.com').
+        click('[name*="addStartUrl"]').
+        then(function() {
+           equal(exists('[name*="loadPage_http://newurl.com"]'), true);
+        })
+    });
+});
+
 test('map attribute test', function() {
     stubEndpoint('/spec/spiders', spiderNamesJson);
-    stubEndpoint('/spec/spiders/spider1', spider1Json); 
-    stubEndpoint('/spec/items', itemsJson); 
-
+    stubEndpoint('/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
+    stubEndpoint('/spec/items', itemsJson);
+    stubEndpoint('/spec/items', {}, 'POST');
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         wait().
@@ -37,6 +87,40 @@ test('map attribute test', function() {
         click('[name*="chooseField"]').
         then(function() {
             equal(exists('[name*="unmapAttribute"]'), true);
+        })
+    });
+});
+
+test('delete annotation test', function() {
+    stubEndpoint('/spec/spiders', spiderNamesJson);
+    stubEndpoint('/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
+    Ember.run(ASTool, 'advanceReadiness');
+    Ember.run(function() {
+        wait().
+        click('[name*="editSpider"]').
+        click('[name*="editTemplate_http://site1"]').
+        then(function() {
+            equal(exists('[name*="editAnnotation"]'), true);
+        }).
+        click('[name*="deleteAnnotation"]').
+        then(function() {
+            equal(exists('[name*="editAnnotation"]'), false);
+        })
+    });
+});
+
+test('items saved automatically', function() {
+    stubEndpoint('/spec/spiders', []);
+    stubEndpoint('/spec/items', $.extend(true, {}, itemsJson));
+    stubEndpoint('/spec/items', {}, 'POST');
+    Ember.run(ASTool, 'advanceReadiness');
+    Ember.run(function() {
+        wait().
+        click('[name*="gotoItems"]').
+        click('[name*="back"]').
+        then(function() {
+            // Items should be saved when we leave the items screen.
+            equal(callCount('/spec/items', 'POST'), 1);
         })
     });
 });

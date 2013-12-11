@@ -14,6 +14,11 @@ ASTool.Canvas = Em.Object.extend({
 		}
 
 		_canvas = $('#' + this.get('canvasId'));
+
+		if (!_canvas.length) {
+			return;
+		}
+		
 		canvas = _canvas.get(0);
 
 		// Match intrinsic and extrinsic dimensions.

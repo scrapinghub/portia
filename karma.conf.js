@@ -34,7 +34,7 @@ module.exports = function(karma) {
 
         logLevel: karma.LOG_WARN,
 
-        browsers: ['Firefox', 'PhantomJS_without_security', 'Chrome'],
+        browsers: ['Chrome', 'Firefox', 'PhantomJS'],
 
         // Disable security to avoid XSS errors.
         customLaunchers: {

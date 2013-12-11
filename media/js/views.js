@@ -214,6 +214,7 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 	didInsertElement: function() {
 		this._super();
 		this.get('controller').pushRoute('project', 'Project');
+		this.get('controller.documentView').initCanvas();
 		$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 		$('#toolbar').height(window.innerHeight);
 	},

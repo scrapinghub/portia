@@ -85,19 +85,14 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 
 ASTool.SlydApiAdapter = DS.Adapter.extend({
 	
-	find: function(store, type, id) {	
+	find: function(store, type, id) {
 		var methodName = ('load ' + type.typeKey).camelize();
 		return ASTool.api.get(methodName).call(ASTool.api, id);
 	},
 	
 	findAll: function(store, type) {
-		var promise = Ember.RSVP.Promise(function(resolve) {
-			var methodName = ('load ' + type.typeKey.pluralize()).camelize();
-			ASTool.api.get(methodName).call(ASTool.api, function(entities) {
-				resolve(entities);
-			});
-		});
-		return promise;
+		var methodName = ('load ' + type.typeKey.pluralize()).camelize();
+		return ASTool.api.get(methodName).call(ASTool.api);
 	},
 
 	createRecord: function(store, type, record) {
@@ -151,7 +146,7 @@ ASTool.Template = DS.Model.extend({
 	url: DS.attr('string', {defaultValue:''}),
 	annotated_body: DS.attr('string', {defaultValue:''}),
 	original_body: DS.attr('string', {defaultValue:''}),
-	extractors: DS.attr(undefined, {defaultValue:[]}),
+	extractors: DS.attr(null, {defaultValue:[]}),
 	name: function() {
 		return this.get('url');
 	}.property('url'),

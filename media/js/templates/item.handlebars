@@ -7,10 +7,10 @@
 			<tr class="smallLabel"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 			{{#each view.item.fields}}
 				<tr>
-					<td>{{view JQ.TextField owner=this value=name class="mediumtextarea"}}</td>
-					<td>{{view ASTool.TypeSelect owner=this selection=type}}</td>
-					<td>{{view ASTool.EditBox owner=this checked=required}}</td>
-					<td>{{view ASTool.EditBox owner=this checked=vary}}</td>
+					<td>{{view JQ.TextField owner=this value=name class="mediumtextarea" name="fieldName"}}</td>
+					<td>{{view ASTool.TypeSelect owner=this selection=type name="fieldType"}}</td>
+					<td>{{view ASTool.EditBox owner=this checked=required name="fieldRequired"}}</td>
+					<td>{{view ASTool.EditBox owner=this checked=vary name="fieldVary"}}</td>
 					{{#if view.mappingAttribute}}
 						<td>{{view JQ.ButtonView action="chooseField" argument=this icon="ui-icon-circle-triangle-e" label="Choose"}}</td>
 					{{/if}}
