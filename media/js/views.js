@@ -161,16 +161,9 @@ ASTool.MyButtonComponent = Ember.Component.extend({
 /*************************** Views ********************************/
 
 ASTool.ElemAttributeView = JQ.ButtonView.extend({
-	name: null,
 	value: null,
 	attribute: null,
 	
-	/*label: function() {
-		var label = this.get('attribute').name + ": " + trim(this.get('attribute').value, 60);
-		label += this.mapped ? ' >> ' + this.attribute.mappedField : '';
-		return label;
-	}.property('attribute'),*/
-
 	didInsertElement: function() {
 		this._super();
 		var attribute = this.get('attribute');

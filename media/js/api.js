@@ -1,10 +1,7 @@
 ASTool.SlydApi = Em.Object.extend({
 
-	// Leave empty to use window.location.
-	slydUrl: 'http://localhost:9001/api/',
-
 	baseUrl: function() {
-		return this.get('slydUrl') || window.location.protocol + '//' + window.location.host + '/api/';
+		return ASTool.slydUrl || window.location.protocol + '//' + window.location.host + '/api/';
 	}.property('slydUrl'),
 
 	// FIXME: hardcoded 'test' project.

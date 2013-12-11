@@ -6,3 +6,6 @@ ASTool = Em.Application.create({
 		ASTool.api = ASTool.SlydApi.create();
 	} 
 });
+
+
+ASTool.slydUrl = 'http://localhost:9001/api/';

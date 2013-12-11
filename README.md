@@ -120,9 +120,9 @@ UI Testing
 
 A Karma test eviroment is now available. To run the ui tests:
 
-  npm install
-  export PATH="./node_modules/.bin:$PATH"
-  karma start
+    npm install 
+    export PATH="./node_modules/.bin:$PATH"
+    karma start
 
 You can download npm from https://npmjs.org
 

@@ -125,7 +125,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		if (this.get('currentlySelectedElement')) {
 			sprites.pushObject(ASTool.AnnotationSprite.create(
 				{'annotation': this.content,
-				 'dashed': true}));
+				 'highlighted': 'true'}));
 		}
 
 		var annotationSprites = this.get('controllers.annotations.sprites').filter(function(sprite) {

@@ -24,6 +24,7 @@ module.exports = function(karma) {
           "js/views.js",
           "js/templates/*.handlebars",
 
+          "tests/fixtures.js",
           "tests/*.js",
 
           "css/normalize.css",
@@ -33,7 +34,7 @@ module.exports = function(karma) {
 
         logLevel: karma.LOG_WARN,
 
-        browsers: ['Chrome_without_security'],
+        browsers: ['Firefox', 'PhantomJS_without_security', 'Chrome'],
 
         // Disable security to avoid XSS errors.
         customLaunchers: {
@@ -54,6 +55,7 @@ module.exports = function(karma) {
         plugins: [
             'karma-qunit',
             'karma-chrome-launcher',
+            'karma-firefox-launcher',
             'karma-ember-preprocessor',
             'karma-phantomjs-launcher'
         ],

@@ -18,7 +18,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	findAll: function(store, type) {
 		var annotatedElements = this.get('iframe').findAnnotatedElements();
 		var annotationsJSON = [];
-		$.each(annotatedElements, function(i, element) {
+		annotatedElements.each(function(i, element) {
 			annotationsJSON.pushObject($.parseJSON($(element).attr(this.get('storageAttribute'))));
 		}.bind(this));
 		return annotationsJSON;
@@ -108,7 +108,6 @@ ASTool.SlydApiAdapter = DS.Adapter.extend({
 		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: false });
 		var methodName = ('save ' + type.typeKey).camelize();
 		return ASTool.api.get(methodName).call(ASTool.api, record.get('id'), serializedRecord);
-		
 	},
 	
 	deleteRecord: function(store, type, record) {

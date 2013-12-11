@@ -65,8 +65,6 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 	fillColor: 'blue',
 	boderWidth: 1,
 	strokeColor: 'white',
-	dashed: false,
-	dashPattern: [2, 2],
 	hasShadow: false,
 	shadowColor: 'black',
 	shadowOffsetX: 0,
@@ -98,9 +96,6 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 					 	 rect.width,
 						 rect.height);
 		context.restore();			 
-		if (this.get('dashed')) {
-			context.setLineDash(this.get('dashPattern'));
-		}
 
 	    context.lineWidth = this.get('boderWidth');
 		context.strokeStyle = this.get('strokeColor');
