@@ -16,7 +16,8 @@ class SpiderTest(TestCase):
     def test_list(self):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
                 "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "ebay4", "cargurus",
-                "networkhealth.com", "allowed_domains", "any_allowed_domains", "example.com", "example2.com"]))
+                "networkhealth.com", "allowed_domains", "any_allowed_domains", "example.com", "example2.com",
+                "example3.com"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -305,3 +306,21 @@ Product B,http://www.example.com/path2,B"""
         name = "example2.com"
         spider = self.smanager.create(name)
         self.assertEqual(spider.allowed_domains, ['www.example.com'])
+
+    def test_override_start_urls(self):
+        name = "example2.com"
+        spider = self.smanager.create(name, start_urls=['http://www.example.com/override.html'])
+        start_requests = list(spider.start_requests())
+        self.assertEqual(start_requests[1].url, 'http://www.example.com/override.html')
+
+    def test_links_to_follow(self):
+
+        html = "<html><body><a href='http://www.example.com/link.html'>Link</a></body></html>"
+        response = HtmlResponse(url='http://www.example.com/index.html', body=html)
+
+        name = "example3.com"
+        spider = self.smanager.create(name, links_to_follow='none')
+        start_requests = list(spider.start_requests())
+
+        requests = list(start_requests[0].callback(response))
+        self.assertEqual(len(requests), 0)
