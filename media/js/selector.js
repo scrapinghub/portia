@@ -231,6 +231,12 @@ ASTool.DocumentView = Em.Object.extend({
 		}
 	},
 
+	showError: function(error) {
+		this.iframe = $('#scraped-doc-iframe').contents();
+		this.set('displayedPageId', null);
+		this.iframe.find('html').html(error);
+	},
+
 	showSpider: function() {
 		this.iframe = $('#scraped-doc-iframe').contents();
 		this.set('displayedPageId', null);

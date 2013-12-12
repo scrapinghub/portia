@@ -345,16 +345,20 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 	loadPage: function(url) {
 		this.set('loadedUrl', null);
-		this.get('documentView').showLoading();
+		var documentView = this.get('documentView');
+		documentView.showLoading();
 		ASTool.api.fetchDocument(url, this.content.get('name')).then(function(data) {
-			this.get('documentView')
-			.displayAnnotatedDocument(data.page, 'browse_' + url,
-				function(docIframe){
-					this.set('loadedUrl', url);
-					this.set('loadedPageData', data);
-					this.get('documentView').installEventHandlersForBrowse();
-				}.bind(this)
-			);
+			if (!data.error) {
+				documentView.displayAnnotatedDocument(data.page, 'browse_' + url,
+					function(docIframe){
+						this.set('loadedUrl', url);
+						this.set('loadedPageData', data);
+						documentView.installEventHandlersForBrowse();
+					}.bind(this)
+				);
+			} else {
+				documentView.showError(data.error);
+			}
 		}.bind(this));
 	},
 
