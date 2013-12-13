@@ -6,7 +6,9 @@ ASTool.DocumentView = Em.Object.extend({
 
 	listener: null,
 
-	iframe: null,
+	iframe: function() {
+		return $('#scraped-doc-iframe').contents();
+	}.property(),
 	
 	restrictToDescendants: false,
 	
@@ -17,6 +19,8 @@ ASTool.DocumentView = Em.Object.extend({
 	ignoredElementTags: ['html', 'body'],
 
 	mouseDown: 0,
+
+	loader: null,
 
 	sprites: function() {
 		if (!this.get('dataSource')) {
@@ -54,27 +58,27 @@ ASTool.DocumentView = Em.Object.extend({
 
 	installEventHandlersForBrowse: function() {
 		this.uninstallEventHandlers();
-		this.iframe.bind('click', null, this.clickHandlerBrowse.bind(this));
+		this.get('iframe').bind('click', null, this.clickHandlerBrowse.bind(this));
 	},
 
 	installEventHandlers: function() {
 		this.uninstallEventHandlers();
-		this.iframe.bind('click', null, this.clickHandler.bind(this));
-		this.iframe.bind('mouseover', null, this.mouseOverHandler.bind(this));
-		this.iframe.bind('mouseout', null, this.mouseOutHandler.bind(this));
-		this.iframe.bind('mousedown', null, this.mouseDownHandler.bind(this));
-		this.iframe.bind('mouseup', null, this.mouseUpHandler.bind(this));
-		this.iframe.bind('hover', null, function(event) {event.preventDefault()});
+		this.get('iframe').bind('click', null, this.clickHandler.bind(this));
+		this.get('iframe').bind('mouseover', null, this.mouseOverHandler.bind(this));
+		this.get('iframe').bind('mouseout', null, this.mouseOutHandler.bind(this));
+		this.get('iframe').bind('mousedown', null, this.mouseDownHandler.bind(this));
+		this.get('iframe').bind('mouseup', null, this.mouseUpHandler.bind(this));
+		this.get('iframe').bind('hover', null, function(event) {event.preventDefault()});
 		this.get('canvas').draw();
 	},
 
 	uninstallEventHandlers: function() {
-		this.iframe.unbind('click');
-		this.iframe.unbind('mouseover');
-		this.iframe.unbind('mouseout');
-		this.iframe.unbind('mousedown');
-		this.iframe.unbind('mouseup');
-		this.iframe.unbind('hover');	
+		this.get('iframe').unbind('click');
+		this.get('iframe').unbind('mouseover');
+		this.get('iframe').unbind('mouseout');
+		this.get('iframe').unbind('mousedown');
+		this.get('iframe').unbind('mouseup');
+		this.get('iframe').unbind('hover');	
 		this.set('hoveredSprite', null);
 	},
 
@@ -175,7 +179,7 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	getIframeSelectedText: function() {
-		var range = this.iframe.get(0).getSelection();
+		var range = this.get('iframe').get(0).getSelection();
 		if (range && !range.isCollapsed) {
 			return range;
 		} else {
@@ -206,11 +210,10 @@ ASTool.DocumentView = Em.Object.extend({
 
 	displayAnnotatedDocument: function(annotatedDocument, pageId, readyCallback) {
 		this.set('displayedPageId', pageId);
-		this.iframe = $('#scraped-doc-iframe').contents();
 		if (this.get('autoRedrawId')) {
 			clearInterval(this.get('autoRedrawId'));
 		}
-		this.iframe.find('html').html(annotatedDocument);
+		this.get('iframe').find('html').html(annotatedDocument);
 		if (!this.getCanvas) {
 			this.initCanvas();	
 		}
@@ -219,34 +222,53 @@ ASTool.DocumentView = Em.Object.extend({
 		this.set('canvas.interactionsBlocked', true);
 		Em.run.later(this, function() {
 				this.set('canvas.interactionsBlocked', false);
-				readyCallback(this.iframe);
+				readyCallback(this.get('iframe'));
 			}, 1000);
 	},
 
 	showLoading: function() {
-		this.iframe = $('#scraped-doc-iframe').contents();
+		this.set('canvas.interactionsBlocked', true);
 		this.set('displayedPageId', null);
-		if (!Ember.testing){
-			$('#scraped-doc-iframe').attr('src', 'loading.html');
+		var loader = this.get('loader');
+		if (!loader) {
+			loader = new CanvasLoader('loaderContainer');
+			loader.setColor('#2398c2');
+			loader.setShape('spiral');
+			loader.setDiameter(133);
+			loader.setRange(0.9);
+			loader.setSpeed(1);
+			loader.setFPS(60);
+			var loaderObj = document.getElementById("canvasLoader");
+		  	loaderObj.style.position = "absolute";
+		  	loaderObj.style["top"] = loader.getDiameter() * -0.5 + "px";
+		  	loaderObj.style["left"] = loader.getDiameter() * -0.5 + "px";
+		  	this.set('loader', loader);
+		}
+		loader.show();
+	},
+
+	hideLoading: function() {
+		if (this.get('loader')) { 
+			this.get('loader').hide();
 		}
 	},
 
 	showError: function(error) {
-		this.iframe = $('#scraped-doc-iframe').contents();
 		this.set('displayedPageId', null);
-		this.iframe.find('html').html(error);
+		this.get('iframe').find('html').html(error);
 	},
 
 	showSpider: function() {
-		this.iframe = $('#scraped-doc-iframe').contents();
 		this.set('displayedPageId', null);
 		if (!Ember.testing){
-			$('#scraped-doc-iframe').attr('src', 'start.html');
+			ic.ajax('start.html').then(function(page) {
+				this.get('iframe').find('html').html(page);
+			}.bind(this));
 		}
 	},
 
 	getAnnotatedDocument: function() {
-		return this.iframe.find('html').get(0).outerHTML;
+		return this.get('iframe').find('html').get(0).outerHTML;
 	},
 });
 

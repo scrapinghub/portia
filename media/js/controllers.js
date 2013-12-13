@@ -348,6 +348,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		var documentView = this.get('documentView');
 		documentView.showLoading();
 		ASTool.api.fetchDocument(url, this.content.get('name')).then(function(data) {
+			documentView.hideLoading();
 			if (!data.error) {
 				documentView.displayAnnotatedDocument(data.page, 'browse_' + url,
 					function(docIframe){
