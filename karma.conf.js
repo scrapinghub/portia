@@ -3,11 +3,13 @@ module.exports = function(karma) {
         basePath: 'media',
 
         files: [
+          "http://heartcode-canvasloader.googlecode.com/files/heartcode-canvasloader-min-0.9.1.js",
           "js/vendor/jquery-1.9.1.js",
           "js/vendor/jquery-ui-1.10.3.js",
           "js/vendor/uri.js",
           "js/vendor/handlebars-1.0.0.js",
           "js/vendor/ember-debug.js",
+          "js/vendor/ember-animated-outlet.js",
           "js/vendor/ic-ajax.js",
           "js/vendor/ember-data.js",
           "js/vendor/loading.js",
@@ -30,6 +32,7 @@ module.exports = function(karma) {
           "css/normalize.css",
           "http://code.jquery.com/ui/1.10.3/themes/cupertino/jquery-ui.css",
           "css/style.css",
+          "css/ember-animated-outlet.css",
         ],
 
         logLevel: karma.LOG_WARN,

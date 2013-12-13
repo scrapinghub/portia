@@ -1,24 +1,36 @@
 ASTool.RouteBrowseMixin = Ember.Mixin.create({
 
-	pushRoute: function(route, label, model) {
-		this.get('controllers.application').pushRoute(route, label, model);
+	pushRoute: function(route, label, animation, model) {
+		this.get('controllers.application').pushRoute(route, label, animation, model);
 	},
 
-	popRoutes: function(route) {
-		this.get('controllers.application').popRoutes(route);
+	popRoutes: function(route, animation) {
+		this.get('controllers.application').popRoutes(route, animation);
 	},
 
-	popRoute: function() {
-		this.get('controllers.application').popRoute();
+	popRoute: function(animation) {
+		this.get('controllers.application').popRoute(animation);
+	},
+
+	transitionToRouteAnimated: function(route, animation, model) {
+		if (Ember.testing) {
+			// Disable animations during testing.
+			if (model) {
+				return this.transitionToRoute(route, model);
+			} else {
+				return this.transitionToRoute(route);
+			}
+		} else {
+			return this._super.apply(this, arguments);
+		}
 	},
 
 	actions: {
 
-		back: function() {
-			this.popRoute()	
+		back: function(animation) {
+			this.popRoute(animation);	
 		},
 	},
-	
 });
 
 
@@ -32,8 +44,6 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 
 	currentlySelectedElement: null,
 
-	sprites: [],
-		
 	sprites: function() {
 		return this.get('content').map(function(annotation) {
 			if (annotation.get('element')) {
@@ -54,7 +64,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
-		this.pushRoute('annotation', annotation.get('name'), annotation);
+		this.pushRoute('annotation', annotation.get('name'), 'flip', annotation);
 	},
 	
 	deleteAllAnnotations: function() {
@@ -86,15 +96,9 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	},
 
 	willEnter: function() {
-		this.set('documentView.listener', this);
-		this.set('documentView.dataSource', this);
-		this.get('documentView').installEventHandlersForBrowse();
-	},
-
-	willLeave: function() {
-		this.set('documentView.listener', null);
-		this.set('documentView.dataSource', null);
-		this.get('documentView').uninstallEventHandlers();
+		this.get('documentView').config({ mode: 'browse',
+										  listener: this,
+										  dataSource: this, });
 	},
 });
 
@@ -166,7 +170,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			this.clearGeneratedIns(this.get('currentlySelectedElement'));
 		}
 		this.set('currentlySelectedElement', null);
-		this.popRoute();
+		this.popRoute('flip');
 	},
 	
 	actions: {
@@ -175,7 +179,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			annotation.save().then(function() {
 				annotation.set('selectedElement', null);
 				this.get('controllers.annotations').saveAnnotations();
-				this.popRoute();
+				this.popRoute('flip');
 			}.bind(this));
 		},
 		
@@ -186,7 +190,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		mapAttribute: function(attribute) {
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
-			this.pushRoute('items', 'Items');
+			this.pushRoute('items', 'Items', 'flip');
 		},
 
 		unmapAttribute: function(attribute) {
@@ -253,19 +257,15 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	},
 
 	willEnter: function() {
-		this.set('documentView.listener', this);
-		this.set('documentView.elementSelectionEnabled', true);
-		this.set('documentView.partialSelectionEnabled', true);
-		this.set('documentView.dataSource', this);
+		this.get('documentView').config({ mode: 'select',
+										  listener: this,
+										  dataSource: this,
+										  partialSelection: true });
 		this.set('currentlySelectedElement', this.get('element'));
 	},
 
 	willLeave: function() {
 		this.set('selectingIgnore', false);
-		this.set('documentView.listener', null);
-		this.set('documentView.elementSelectionEnabled', false);
-		this.set('documentView.partialSelectionEnabled', false);
-		this.set('documentView.dataSource', null);
 	},
 });
 
@@ -336,7 +336,11 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 	loadedPageData: null,
 
-	newStartUrl: null,
+	newStartUrl: '',
+
+	hasStartUrl: function() {
+		return !this.get('newStartUrl');
+	}.property('newStartUrl'),
 
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
@@ -354,7 +358,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 					function(docIframe){
 						this.set('loadedUrl', url);
 						this.set('loadedPageData', data);
-						documentView.installEventHandlersForBrowse();
 					}.bind(this)
 				);
 			} else {
@@ -365,7 +368,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 	addTemplate: function() {
 		var template = this.store.createRecord('template');
-		template.set('id', guid());
+		template.set('id', ASTool.guid());
 		this.content.get('templates').pushObject(template);
 		this.get('controllers.annotations').deleteAllAnnotations();
 		template.set('annotated_body', this.get('loadedPageData.page'));
@@ -434,13 +437,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	willEnter: function() {
 		this.set('loadedUrl', null);
 		this.set('loadedPageData',  null);
-		this.set('documentView.listener', this);
+		this.get('documentView').config({ mode: 'browse',
+										  listener: this,
+										  dataSource: this });
 		this.get('documentView').showSpider();
-	},
-
-	willLeave: function() {
-		this.set('documentView.listener', null);
-		this.get('documentView').uninstallEventHandlers();
 	},
 });
 
@@ -453,12 +453,12 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	actions: {
 
 		editSpider: function(spiderName) {
-			this.pushRoute('spider', spiderName, spiderName);
+			this.pushRoute('spider', spiderName, 'fade', spiderName);
 		},
 
 		addSpider: function() {
 			// Find a unique spider name.
-			var newSpiderName = guid().substring(0, 5);
+			var newSpiderName = ASTool.guid().substring(0, 5);
 			while(this.content.any(function(spiderName){ return spiderName == newSpiderName })) {
 				newSpiderName += '0';
 			}
@@ -493,19 +493,21 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 	
 	documentView: null,
 
-	pushRoute: function(route, label, model) {
+	pushRoute: function(route, label, animation, model) {
 		// Remove the route if it's already  there.
+		animation = animation || 'fade';
 		this.popRoutes(route);
 		var navRoute = ASTool.NavRoute.create({route: route, label: label, model: model});
 		this.routeStack.pushObject(navRoute);
 		if (model) {
-			this.transitionToRoute(route, model);		
+			this.transitionToRouteAnimated(route, {main: animation}, model);		
 		} else {
-			this.transitionToRoute(route);
+			this.transitionToRouteAnimated(route, {main: animation});
 		}
 	},
 
-	popRoutes: function(route) {
+	popRoutes: function(route, animation) {
+		animation = animation || 'fade';
 		var navRoute = this.routeStack.filterBy('route', route).get('firstObject');
 		if (navRoute) {
 			var tmp = this.routeStack.toArray();
@@ -520,29 +522,28 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 			}.bind(this));
 			var lastRoute = this.routeStack.get('lastObject');
 			if (lastRoute.model) {
-				this.transitionToRoute(lastRoute.route, lastRoute.model);	
+				this.transitionToRouteAnimated(lastRoute.route, {main: animation}, lastRoute.model);	
 			} else {
-				this.transitionToRoute(lastRoute.route);
+				this.transitionToRouteAnimated(lastRoute.route, {main: animation});
 			}
 		}
 	},
 
-	popRoute: function() {
+	popRoute: function(animation) {
 		if (this.routeStack.length > 1) {
-			this.popRoutes(this.routeStack[this.routeStack.length - 2].route);
+			this.popRoutes(this.routeStack[this.routeStack.length - 2].route, animation);
 		}
 	},
 	
 	actions: {
 
-		gotoRoute: function(route) {
-			this.popRoutes(route);
-			/*var navRoute = this.routeStack.filterBy('route', route).get('firstObject');
-			if (navRoute.model) {
-				this.transitionToRoute(route, navRoute.model);	
-			} else {
-				this.transitionToRoute(route);
-			}*/
+		gotoRoute: function(route, animation) {
+			this.popRoutes(route, animation);
 		},
-	}
+	},
+
+	currentPathDidChange: function() {
+		// Always reset the document view when leaving a route.
+		this.get('documentView').reset();			
+  	}.observes('currentPath')
 });

@@ -58,7 +58,8 @@ body{
 	text-decoration: underline;
 }
 
-#toolbar-container {
+.toolbar-container {
+	text-align:center;
 	padding:5px 0px 10px 0px;
 	margin:10px 10px 10px 10px;
 	border-color: #aed0ea;

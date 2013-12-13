@@ -31,7 +31,8 @@ function callCount(endpoint, method) {
 
 test('add item & field test', function() {
     stubEndpoint('/spec/spiders', []);
-    stubEndpoint('/spec/items', {}); 
+    stubEndpoint('/spec/items', {}, 'POST'); 
+    stubEndpoint('/spec/items', {});
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         wait().
@@ -40,19 +41,24 @@ test('add item & field test', function() {
         click('[name*="addField"]').
         then(function() {
             equal(exists('[name*="fieldName"]'), true);
-        })
+        }).
+        click('[name*="back"]')
     });
 });
 
 test('add spider test', function() {
+    ASTool.guid = function() {
+            return 'test_guid'
+    };
     stubEndpoint('/spec/spiders', []);
-    stubEndpoint('/spec/spiders', [], 'POST');
+    stubEndpoint('/spec/spiders/test_', [], 'POST');
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         wait().
         click('[name*="addSpider"]').
         then(function() {
             equal(exists('[name*="editSpider"]'), true);
+            ASTool.guid = guid;
         })
     });
 });

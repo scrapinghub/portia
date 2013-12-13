@@ -5,10 +5,6 @@ ASTool.DocumentView = Em.Object.extend({
 	dataSource: null,
 
 	listener: null,
-
-	iframe: function() {
-		return $('#scraped-doc-iframe').contents();
-	}.property(),
 	
 	restrictToDescendants: false,
 	
@@ -26,11 +22,15 @@ ASTool.DocumentView = Em.Object.extend({
 		if (!this.get('dataSource')) {
 			return [];
 		} else {
-			return this.get('_sprites');
+			return this.get('_sprites') || [];
 		}
 	}.property('_sprites.@each'),
 
 	_elementSelectionEnabled: null,
+
+	getIframe: function() {
+		return $('#scraped-doc-iframe').contents();
+	},
 	
 	elementSelectionEnabled: function(key, selectionEnabled) {
 		if (arguments.length > 1) {
@@ -38,7 +38,7 @@ ASTool.DocumentView = Em.Object.extend({
 			    if (!this.get('_elementSelectionEnabled')) {
 					this.set('_elementSelectionEnabled', true);
 					this.showHoveredInfo();
-					this.installEventHandlers();
+					this.installEventHandlersForSelecting();
 				}
 			} else {
 				this.set('_elementSelectionEnabled', false);
@@ -51,34 +51,55 @@ ASTool.DocumentView = Em.Object.extend({
 	}.property('_elementSelectionEnabled'),
 
 	partialSelectionEnabled: false,
-	
-	redrawNow: function() {
-		this.get('canvas').draw();
-	}.observes('sprites'),
 
-	installEventHandlersForBrowse: function() {
+	reset: function() {
 		this.uninstallEventHandlers();
-		this.get('iframe').bind('click', null, this.clickHandlerBrowse.bind(this));
+		this.set('elementSelectionEnabled', false);
+		this.set('partialSelectionEnabled', false);
+		this.set('dataSource', null);
+		this.set('listener', null);	
 	},
 
-	installEventHandlers: function() {
+	config: function(options) {
+		this.set('dataSource', options.dataSource);
+		this.set('listener', options.listener);
+		if (options.mode == 'select') {
+			this.set('elementSelectionEnabled', true);
+			this.set('partialSelectionEnabled', options.partialSelects);
+		} else if (options.mode == 'browse') {
+			this.installEventHandlersForBrowsing();
+		}
+	},
+	
+	redrawNow: function() {
+		if (this.get('dataSource')) {
+			this.get('canvas').draw();	
+		}
+	}.observes('sprites'),
+
+	installEventHandlersForBrowsing: function() {
 		this.uninstallEventHandlers();
-		this.get('iframe').bind('click', null, this.clickHandler.bind(this));
-		this.get('iframe').bind('mouseover', null, this.mouseOverHandler.bind(this));
-		this.get('iframe').bind('mouseout', null, this.mouseOutHandler.bind(this));
-		this.get('iframe').bind('mousedown', null, this.mouseDownHandler.bind(this));
-		this.get('iframe').bind('mouseup', null, this.mouseUpHandler.bind(this));
-		this.get('iframe').bind('hover', null, function(event) {event.preventDefault()});
-		this.get('canvas').draw();
+		this.getIframe().bind('click', null, this.clickHandlerBrowse.bind(this));
+	},
+
+	installEventHandlersForSelecting: function() {
+		this.uninstallEventHandlers();
+		this.getIframe().bind('click', null, this.clickHandler.bind(this));
+		this.getIframe().bind('mouseover', null, this.mouseOverHandler.bind(this));
+		this.getIframe().bind('mouseout', null, this.mouseOutHandler.bind(this));
+		this.getIframe().bind('mousedown', null, this.mouseDownHandler.bind(this));
+		this.getIframe().bind('mouseup', null, this.mouseUpHandler.bind(this));
+		this.getIframe().bind('hover', null, function(event) {event.preventDefault()});
+		this.redrawNow();
 	},
 
 	uninstallEventHandlers: function() {
-		this.get('iframe').unbind('click');
-		this.get('iframe').unbind('mouseover');
-		this.get('iframe').unbind('mouseout');
-		this.get('iframe').unbind('mousedown');
-		this.get('iframe').unbind('mouseup');
-		this.get('iframe').unbind('hover');	
+		this.getIframe().unbind('click');
+		this.getIframe().unbind('mouseover');
+		this.getIframe().unbind('mouseout');
+		this.getIframe().unbind('mousedown');
+		this.getIframe().unbind('mouseup');
+		this.getIframe().unbind('hover');
 		this.set('hoveredSprite', null);
 	},
 
@@ -179,7 +200,7 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	getIframeSelectedText: function() {
-		var range = this.get('iframe').get(0).getSelection();
+		var range = this.getIframe().get(0).getSelection();
 		if (range && !range.isCollapsed) {
 			return range;
 		} else {
@@ -193,9 +214,10 @@ ASTool.DocumentView = Em.Object.extend({
 		this.set('canvas', canvas);
 		if (!Ember.testing){
 			// Disable automatic redrawing during tests.
+			var self = this;
 			this.set('autoRedrawId', setInterval(function() {
 				Ember.run(function(){
-					canvas.draw();
+					self.redrawNow();
 				});
 			}, 1000));
 			window.onresize = function() {
@@ -213,7 +235,7 @@ ASTool.DocumentView = Em.Object.extend({
 		if (this.get('autoRedrawId')) {
 			clearInterval(this.get('autoRedrawId'));
 		}
-		this.get('iframe').find('html').html(annotatedDocument);
+		this.getIframe().find('html').html(annotatedDocument);
 		if (!this.getCanvas) {
 			this.initCanvas();	
 		}
@@ -222,7 +244,7 @@ ASTool.DocumentView = Em.Object.extend({
 		this.set('canvas.interactionsBlocked', true);
 		Em.run.later(this, function() {
 				this.set('canvas.interactionsBlocked', false);
-				readyCallback(this.get('iframe'));
+				readyCallback(this.getIframe());
 			}, 1000);
 	},
 
@@ -255,20 +277,20 @@ ASTool.DocumentView = Em.Object.extend({
 
 	showError: function(error) {
 		this.set('displayedPageId', null);
-		this.get('iframe').find('html').html(error);
+		this.getIframe().find('html').html(error);
 	},
 
 	showSpider: function() {
 		this.set('displayedPageId', null);
 		if (!Ember.testing){
 			ic.ajax('start.html').then(function(page) {
-				this.get('iframe').find('html').html(page);
+				this.getIframe().find('html').html(page);
 			}.bind(this));
 		}
 	},
 
 	getAnnotatedDocument: function() {
-		return this.get('iframe').find('html').get(0).outerHTML;
+		return this.getIframe().find('html').get(0).outerHTML;
 	},
 });
 

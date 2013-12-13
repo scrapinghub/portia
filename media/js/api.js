@@ -30,7 +30,7 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash).then(function(spiderData) {
 			spiderData['id'] = spiderName;		
 			spiderData['templates'] = spiderData['templates'].map(function(template) {
-				template['id'] = guid();
+				template['id'] = ASTool.guid();
 				return template;
 			});
 			return spiderData;

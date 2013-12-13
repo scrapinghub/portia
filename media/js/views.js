@@ -190,7 +190,7 @@ ASTool.ItemView = Ember.View.extend({
 
 JQ.EditField = JQ.TextField.extend({
 	change: function(evt) {
-		this.get('owner').save();
+		//this.get('owner').save();
 	}
 });
 

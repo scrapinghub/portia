@@ -82,8 +82,6 @@
    * @param {String} method
    */
   ajax.callCount = function(url, method) {
-    console.log(ajax.FIXTURES);
-    console.log(method + '_' + url);
     var fixture = ajax.FIXTURES && ajax.FIXTURES[method + '_' + url];
     if (fixture) {
       return fixture.callCount;

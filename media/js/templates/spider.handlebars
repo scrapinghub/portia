@@ -1,4 +1,4 @@
-<div style='width: 100%; text-align:center'>
+<div class="toolbar-container ui-corner-all">
 	<h3>Spider {{name}}</h3>
 	<hr/>
 	<h3>Start URLs</h3>
@@ -15,7 +15,7 @@
 	<div style="margin-top:5px">
 		<h4>New start URL</h4>
 		{{view JQ.TextField value=newStartUrl class="mediumtextarea" width='240px' name='startUrlTextField'}}
-		{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url"}}
+		{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
 	</div>
 	<hr/>
 	<h3>Templates</h3>

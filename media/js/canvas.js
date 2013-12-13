@@ -7,7 +7,7 @@ ASTool.Canvas = Em.Object.extend({
 	draw: function() {
 		var sprites = this.datasource.get('sprites');
 		var hoveredSprite = this.datasource.get('hoveredSprite');
-		var iframe = this.datasource.get('iframe');
+		var iframe = this.datasource.getIframe();
 
 		if (hoveredSprite) {
 			sprites = sprites.concat([hoveredSprite]);

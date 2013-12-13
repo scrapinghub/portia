@@ -6,7 +6,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	iframeBinding: 'ASTool.iframe',
 	
 	generateIdForRecord: function(store, record) {
-		return guid();
+		return ASTool.guid();
 	},
 	
 	find: function(store, type, id) {
@@ -179,6 +179,7 @@ ASTool.Annotation = DS.Model.extend({
 	addMapping: function(attribute, itemField) {
 		this.get('annotations')[attribute] = itemField;
 		//FIXME
+		// use notifyPropertyChange
 		this.set('annotationsChanged', !this.annotationsChanged);
 	},
 	
@@ -316,15 +317,3 @@ ASTool.Ignore = Em.Object.extend({
 	element: null,
 	highlighted: false,
 });
-
-
-function s4() {
-	return Math.floor((1 + Math.random()) * 0x10000)
-		.toString(16)
-		.substring(1);
-};
-
-function guid() {
-	return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-		s4() + '-' + s4() + s4() + s4();
-}
