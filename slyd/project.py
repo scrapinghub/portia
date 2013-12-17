@@ -4,7 +4,7 @@ Project Resource
 Manages access to project specific settings.
 """
 from twisted.web.resource import Resource, NoResource
-from scrapy import log
+
 
 class Project(Resource):
     """Project resource

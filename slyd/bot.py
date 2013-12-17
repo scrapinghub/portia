@@ -63,7 +63,7 @@ class BotResource(Resource):
 
 
 class Fetch(BotResource):
-    isLeaf=True
+    isLeaf = True
 
     def render_POST(self, request):
         #TODO: validate input data, handle errors, etc.
@@ -121,7 +121,6 @@ class Fetch(BotResource):
                 log.msg("skipping extraction, no spec: %s" % ex.filename)
             else:
                 raise
-
 
     def fetch_errback(self, twisted_request, failure):
         msg = "unexpected error response: %s" % failure

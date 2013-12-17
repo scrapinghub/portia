@@ -2,10 +2,10 @@
 from os.path import join, dirname
 
 EXTENSIONS = {
-   'scrapy.contrib.logstats.LogStats': None,
-   'scrapy.webservice.WebService': None,
-   'scrapy.telnet.TelnetConsole': None,
-   'scrapy.contrib.throttle.AutoThrottle': None
+    'scrapy.contrib.logstats.LogStats': None,
+    'scrapy.webservice.WebService': None,
+    'scrapy.telnet.TelnetConsole': None,
+    'scrapy.contrib.throttle.AutoThrottle': None
 }
 
 LOG_LEVEL = 'DEBUG'
