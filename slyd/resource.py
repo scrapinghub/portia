@@ -1,6 +1,6 @@
-import json
+import json, errno
 from twisted.web.resource import Resource, NoResource, ErrorPage
-from twisted.web.error import Error
+
 
 class SlydJsonResource(Resource):
     """Base Resource for Slyd Resources

@@ -1,7 +1,7 @@
 """
-	Removes JavaScript from HTML
+    Removes JavaScript from HTML
 
-	This module removes all existing JavaScript in an HTML document.
+    This module removes all existing JavaScript in an HTML document.
 
 """
 import re
@@ -28,11 +28,13 @@ _AS_COMMENT_BEGIN = "<!-- begin_ascomment:"
 _AS_COMMENT_END = ":end_ascomment -->"
 _ENTITY_RE = re.compile("&#(\d+);")
 
+
 def _deentitize_unicode(mystr):
     """replaces all entities in the form &#\d+; by its
     unicode equivalent.
     """
     return _ENTITY_RE.sub(lambda m: unichr(int(m.groups()[0])), mystr)
+
 
 def descriptify(htmlpage):
     """Clean JavaScript in a html source string.
@@ -70,6 +72,7 @@ def descriptify(htmlpage):
                 newdoc.append(text)
 
     return ''.join(newdoc)
+
 
 def serialize_tag(tag):
     """
@@ -109,11 +112,15 @@ def _quotify(mystr):
     l = len(mystr)
     for i in range(l):
         if mystr[i] == "\\" and i + 1 < l and mystr[i+1] == "'":
-            quote = "'"; break
+            quote = "'"
+            break
         elif mystr[i] == "\\" and i + 1 < l and mystr[i+1] == '"':
-            quote = '"'; break
+            quote = '"'
+            break
         elif mystr[i] == "'":
-            quote = '"'; break
+            quote = '"'
+            break
         elif mystr[i] == '"':
-            quote = "'"; break
+            quote = "'"
+            break
     return quote + mystr + quote

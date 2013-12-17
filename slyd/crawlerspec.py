@@ -8,9 +8,7 @@ loads data from the filesystem.
 """
 import json, re, shutil, errno
 from os import listdir
-from os.path import join, exists, splitext
-from twisted.web import http
-from twisted.web.error import Error
+from os.path import join, splitext
 from twisted.web.resource import NoResource, ForbiddenResource
 from jsonschema.exceptions import ValidationError
 from slybot.utils import open_project_from_dir
@@ -24,8 +22,10 @@ def create_crawler_spec_resource(settings, spec_manager):
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
 _INVALID_SPIDER_RE = re.compile('[^A-Za-z0-9._]|^\.*$')
 
+
 def allowed_spider_name(name):
     return not _INVALID_SPIDER_RE.search(name)
+
 
 class SpecResource(SlydJsonResource):
     isLeaf = True
