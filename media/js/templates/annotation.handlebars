@@ -13,27 +13,29 @@
 
 			<h3>Attributes</h3>
 			<div>
-				<div class="scrolling-container ui-corner-all">
-					{{#if mappedAttributes}}
-						<h4 style="margin-bottom: 5px">Mapped</h4>
+				<h5>Mapped</h5>
+				{{#if mappedAttributes}}
+					<div class="scrolling-container ui-corner-all">
 						{{#each mappedAttributes}}
 							<div style="margin: 4px 0px 4px 0px">
 								{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
 								  maxWidth='336px' action="unmapAttribute" argument=this}}
 							</div>
 						{{/each}}
-					{{/if}}
-
-					{{#if unmappedAttributes}}
-						<h4 style="margin-bottom: 5px">Not mapped</h4>
+					</div>
+				{{/if}}
+				<hr/>
+				<h5>Not mapped</h5>
+				{{#if unmappedAttributes}}
+					<div class="scrolling-container ui-corner-all">	
 						{{#each unmappedAttributes}}
 							<div style="margin: 4px 0px 4px 0px">
 								{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='336px'
 							      maxWidth='336px' action="mapAttribute" argument=this}}
 							</div>
 						{{/each}}
-					{{/if}}
-				</div>
+					</div>
+				{{/if}}
 			</div>
 			
 			<h3>Ignored subregions</h3>

@@ -25,6 +25,10 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		}
 	},
 
+	openAccordion: function(accordionNumber) {
+		$( ".accordion" ).accordion("option", "active", accordionNumber);
+	},
+
 	actions: {
 
 		back: function(animation) {
@@ -114,6 +118,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	currentlySelectedElement: null,
 
 	_selectingIgnore: null,
+
+	openAttributesOnShow: false,
 	
 	selectingIgnore: function(key, selectingIgnore) {
 		// FIXME: move this to the view.
@@ -190,6 +196,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		mapAttribute: function(attribute) {
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
+			this.set('openAttributesOnShow', true);
 			this.pushRoute('items', 'Items', 'flip');
 		},
 
@@ -216,6 +223,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	documentActions: {
 		
 		elementSelected: function(element) {
+			this.openAccordion(0);
 			if (this.get('selectingIgnore')) {
 				if (element) {
 					this.content.addIgnore(element);	
@@ -262,6 +270,13 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 										  dataSource: this,
 										  partialSelection: true });
 		this.set('currentlySelectedElement', this.get('element'));
+		if (this.get('openAttributesOnShow')) {
+			console.log('opening attributes');
+			Em.run.later(this, function() {
+				this.openAccordion(1);
+			}, 100);
+			this.set('openAttributesOnShow', false);
+		}
 	},
 
 	willLeave: function() {
