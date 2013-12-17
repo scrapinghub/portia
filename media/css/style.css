@@ -69,6 +69,12 @@ body{
 	box-shadow:0px 0px 6px 1px rgba(0,0,0,0.1);
 }
 
+.toolbar-container-noborder {
+	text-align:center;
+	padding:5px 0px 10px 0px;
+	margin:10px 10px 10px 10px;
+}
+
 .scrolling-container {
 	overflow: auto;
 	padding:10px 0px 10px 0px;
@@ -221,7 +227,6 @@ hr {
 
 h3  {
 	color:#2779aa;
-	width: 100%;
 	align: center;
 }
 
@@ -232,7 +237,8 @@ h3  {
 
 .mediumLabel {
 	color:#2779aa;
-	font:1.1em Trebuchet MS,Helvetica,Arial,sans-serif;
+	font:1.0em Trebuchet MS,Helvetica,Arial,sans-serif;
+	font-weight: bold;
 }
 
 .bigLabel {
@@ -244,7 +250,13 @@ h4 {
 	margin:0px;
 	font:1.1em Trebuchet MS,Helvetica,Arial,sans-serif;
 	color:#aed0ea;
-	width: 100%;
+	align: center;
+}
+
+h5 {
+	margin:0px;
+	font:1.0em Trebuchet MS,Helvetica,Arial,sans-serif;
+	color:#aed0ea;
 	align: center;
 }
 
@@ -263,4 +275,38 @@ div > * {
    vertical-align: middle;
 }
 
+.custom-combobox {
+	position: relative;
+	display: inline-block;
+	align: center;
+}
+
+.custom-combobox-toggle {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	margin-left: -1px;
+	padding: 0.1;
+	height: 1.7em;
+}
+
+.custom-combobox-input {
+	margin: 0;
+	padding: 0.3em 1em 0.3em 1em;
+	font:1.0em Trebuchet MS,Helvetica,Arial,sans-serif !important;
+	width: 300px;
+}
+
 .ui-state-focus { outline: none; }
+
+.ui-accordion .ui-accordion-content {padding: 0.5em 0.5em 1em 0.5em;
+		   			   margin-bottom: 5px;
+					   box-shadow:0px 0px 6px 1px rgba(0,0,0,0.1); }
+
+.ui-accordion .ui-accordion-header { box-shadow:0px 0px 6px 1px rgba(0,0,0,0.1); margin-top: 5px; }
+
+.ui-autocomplete .ui-menu-item {
+	color: red;
+	font:1em Trebuchet MS,Helvetica,Arial,sans-serif !important;
+}
+

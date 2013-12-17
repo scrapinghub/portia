@@ -79,6 +79,7 @@ test('add starturl test', function() {
 });
 
 test('map attribute test', function() {
+    //FIXME: This test is flaky in firefox.
     stubEndpoint('/spec/spiders', spiderNamesJson);
     stubEndpoint('/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
     stubEndpoint('/spec/items', itemsJson);

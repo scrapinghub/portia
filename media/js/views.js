@@ -1,3 +1,22 @@
+JQ.FollowSelect = Ember.Select.extend(JQ.Widget, {
+	uiType: 'combobox',
+
+	uiOptions: ['label', 'disabled'],
+
+	uiEvents: ['select'],
+
+	content: [{ option: 'none', label: "Don't follow links" },
+			  { option: 'patterns', label: 'Follow links that match the following patterns' }],
+
+	optionValuePath: 'content.option',
+
+	optionLabelPath: 'content.label',
+
+	select: function(event, data) {
+		this.set('controller.model.links_to_follow', data.item.value);
+	},
+});
+
 // Create a new Ember view for the jQuery UI Button widget
 JQ.ButtonView = Em.View.extend(JQ.Widget, {
 	uiType: 'button',
@@ -16,7 +35,7 @@ JQ.ButtonView = Em.View.extend(JQ.Widget, {
 
 	argument: null,
 
-	attributeBindings: ['name'],
+	attributeBindings: ['name', 'title'],
 
 	name: function() {
 		return this.get('action') + '_' + this.get('label');
@@ -31,6 +50,8 @@ JQ.ButtonView = Em.View.extend(JQ.Widget, {
 	},
 
 	_label: null,
+
+	title: null,
 
 	label: function(key, label) {
 		if (arguments.length > 1) {
@@ -122,6 +143,10 @@ JQ.TextField = Em.TextField.extend({
 	uiType: null,
 
 	width:null,
+
+	attributeBindings: ['placeholder'],
+
+	placeholder: null,
 	
 	didInsertElement: function() {
 		this._super();
@@ -238,7 +263,18 @@ ASTool.ViewNotifyingMixin = Ember.Mixin.create({
 ASTool.AnnotationsView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 ASTool.AnnotationView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 ASTool.ItemsView = Ember.View.extend(ASTool.ViewNotifyingMixin);
-ASTool.SpiderView = Ember.View.extend(ASTool.ViewNotifyingMixin);
+
+
+ASTool.SpiderView = Ember.View.extend(ASTool.ViewNotifyingMixin, {
+
+	didInsertElement: function() {
+		$('#accordion').accordion({ heightStyle: "content" });
+		this._super();
+	},
+
+});
+
+
 ASTool.ProjectView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 
 
@@ -253,3 +289,9 @@ function trim(text, maxLength) {
 Ember.Handlebars.helper('trim', function(text, length) {
 	return trim(text, length);
 });
+
+
+/**************************** JQueri UI initialization *************/
+$(function() {
+    $( document ).tooltip({ track: true });
+ });

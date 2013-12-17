@@ -338,9 +338,23 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 	newStartUrl: '',
 
+	newExcludePattern: '',
+
 	hasStartUrl: function() {
 		return !this.get('newStartUrl');
 	}.property('newStartUrl'),
+
+	hasExcludePattern: function() {
+		return !this.get('newExcludePattern');
+	}.property('newExcludePattern'),
+
+	hasFollowPattern: function() {
+		return !this.get('newFollowPattern');
+	}.property('newFollowPattern'),
+
+	displayLinksToFollow: function() {
+		return this.content.get('links_to_follow') == 'patterns';
+	}.property('model.links_to_follow'),
 
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
@@ -387,6 +401,14 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		}
 		this.content.get('start_urls').pushObject(url);
 	},
+
+	addExcludePattern: function(pattern) {
+		this.content.get('exclude_patterns').pushObject(pattern);
+	},
+
+	addFollowPattern: function(pattern) {
+		this.content.get('follow_patterns').pushObject(pattern);
+	},
 	
 	actions: {
 
@@ -417,6 +439,24 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 		deleteStartUrl: function(url) {
 			this.content.get('start_urls').removeObject(url);
+		},
+
+		addExcludePattern: function() {
+			this.addExcludePattern(this.get('newExcludePattern'));
+			this.set('newExcludePattern', '');
+		},
+
+		deleteExcludePattern: function(pattern) {
+			this.content.get('exclude_patterns').removeObject(pattern);
+		},
+
+		addFollowPattern: function() {
+			this.addFollowPattern(this.get('newFollowPattern'));
+			this.set('newFollowPattern', '');
+		},
+
+		deleteFollowPattern: function(pattern) {
+			this.content.get('follow_patterns').removeObject(pattern);
 		},
 	},
 

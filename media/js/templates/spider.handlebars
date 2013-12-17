@@ -1,42 +1,97 @@
-<div class="toolbar-container ui-corner-all">
+<div class="toolbar-container-noborder ui-corner-all">
 	<h3>Spider {{name}}</h3>
 	<hr/>
-	<h3>Start URLs</h3>
-	<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
-		{{#each start_urls}}
-			<div style="margin: 4px 0px 4px 0px">
-				{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='300px'}}
-				{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" label="x" text=false}}
+	<div id="accordion" style="margin-bottom: 10px">
+		
+		<h3>Start URLs</h3>
+		<div>
+			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+				{{#each start_urls}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='300px' title=this}}
+						{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" label="x" title='' text=false}}
+					</div>
+				{{else}}
+					<h5>No start urls for this spider.</h5>
+				{{/each}}
 			</div>
-		{{else}}
-			<h3>No start urls for this spider.</h3>
-		{{/each}}
-	</div>
-	<div style="margin-top:5px">
-		<h4>New start URL</h4>
-		{{view JQ.TextField value=newStartUrl class="mediumtextarea" width='240px' name='startUrlTextField'}}
-		{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
-	</div>
-	<hr/>
-	<h3>Templates</h3>
-	<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
-		{{#each templates}}
-			<div style="margin: 4px 0px 4px 0px">
-				{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='300px'}}
-				{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" label="x" text=false}}
+			<div style="margin-top:10px">
+				{{view JQ.TextField value=newStartUrl class="mediumtextarea" width='250px' name='startUrlTextField' placeholder='New start url'}}
+				{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
 			</div>
-		{{else}}
-			<h3>No templates for this spider.</h3>
-		{{/each}}
+		</div>
+
+		<h3>Exclude Patterns</h3>
+		<div>
+			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+				{{#each exclude_patterns}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view JQ.ButtonView label=this minWidth='300px' title=this}}
+						{{view JQ.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" label="x" text=false}}
+					</div>
+				{{else}}
+					<h5>No excluded patterns for this spider</h5>
+				{{/each}}
+			</div>
+			<div style="margin-top:10px">
+				{{view JQ.TextField value=newExcludePattern class="mediumtextarea" width='226px' name='excludePatternTextField' placeholder='New exclude pattern'}}
+				{{view JQ.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasExcludePattern}}
+			</div>
+		</div>
+
+		<h3>Links to follow</h3>
+		<div>
+			<div style="margin: 5px 0px 12px -20px; color: #0000FF;">
+				{{view JQ.FollowSelect value=links_to_follow}}
+			</div>
+			{{#if displayLinksToFollow}}
+				<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+					{{#each follow_patterns}}
+						<div style="margin: 4px 0px 4px 0px">
+							{{view JQ.ButtonView label=this minWidth='300px' title=this}}
+							{{view JQ.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" label="x" text=false}}
+						</div>
+					{{else}}
+						<h5>All links within the spider domain will be matched.</h5>
+					{{/each}}
+				</div>
+				<div style="margin-top:10px">
+					{{view JQ.TextField value=newFollowPattern class="mediumtextarea" width='226px' name='followPatternTextField' placeholder='New follow pattern'}}
+					{{view JQ.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasFollowPattern}}
+				</div>
+			{{/if}}
+			<hr/>
+			{{view ASTool.EditBox checked=respect_nofollow name="respectNoFollow"}}
+			<span class="mediumLabel">Respect nofollow</span>
+		</div>
+		
+		<h3>Templates</h3>
+		<div>
+			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+				{{#each templates}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='300px'}}
+						{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" label="x" text=false}}
+					</div>
+				{{else}}
+					<h5>No templates for this spider</h5>
+				{{/each}}
+			</div>
+			{{#if loadedUrl}}
+				<div style="margin-top: 10px">
+					{{view JQ.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
+				</div>
+			{{else}}
+				<h5>Browse from one of the start URLs to add a template</h5>
+			{{/if}}
+		</div>
 	</div>
-	{{#if loadedUrl}}
-		<div style="margin-top: 10px">
-			{{view JQ.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
-		<div/>
-	{{else}}
-		<h4>Browse from one of the start URLs to add a template.</h4>
-	{{/if}}
+
+	<div>
+	</div>
+	
 	<hr/>
 	{{view JQ.ButtonView action="saveSpider" icon="ui-icon-disk" label="Save spider"}}
 	{{view JQ.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
+	
 </div>

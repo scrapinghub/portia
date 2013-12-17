@@ -87,4 +87,4 @@ jQuery.fn.removePartialAnnotation = function() {
 	var parentNode = element.parentNode;
 	$(textNode).unwrap();
 	parentNode.normalize();
-}
+}  
