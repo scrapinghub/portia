@@ -1,19 +1,22 @@
-<div class="toolbar-container ui-corner-all">
+<div class="toolbar-container-noborder ui-corner-all">
 	<h3>Project test</h3>
 	<hr/>
-	<h3>Spiders for this project:</h3>
-	<div class="scrolling-container ui-corner-all">
-		{{#each}}
-			<div style="margin: 4px 0px 4px 0px">
-				{{view JQ.ButtonView action="editSpider" argument=this label=this minWidth='300px'}}
+	<div class="accordion" style="margin-bottom: 10px">
+		<h3>Spiders for this project:</h3>
+		<div>
+			<div class="scrolling-container ui-corner-all">
+				{{#each}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view JQ.ButtonView action="editSpider" argument=this label=this minWidth='300px'}}
+					</div>
+				{{else}}
+					<h3>No spiders for this project.</h3>
+				{{/each}}
 			</div>
-		{{else}}
-			<h3>No spiders for this project.</h3>
-		{{/each}}
+			<div style="margin-top:10px">
+				{{view JQ.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="New spider"}}
+			</div>
+		</div>
 	</div>
-	<div style="margin-top:10px">
-		{{view JQ.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="New spider"}}
-	</div>
-	<hr/>
 	{{view JQ.ButtonView action="gotoItems" argument=this icon="ui-icon-circle-triangle-e" label='Items'}}
 </div>

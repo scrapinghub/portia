@@ -1,17 +1,20 @@
-<div class="toolbar-container ui-corner-all">
-	{{#if mappingAttribute}}
-		<h3>Choose an item field to map "{{mappingAttribute.name}}"</h3>
-	{{else}}
+<div class="toolbar-container-noborder ui-corner-all">
+	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Items</h3>
-	{{/if}}
-	<hr/>
-	{{#each model}}
-		{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
-		<hr/>
- 	{{else}}
- 		<h4>No items have been defined yet.</h4>
-		<hr/>
- 	{{/each}}
-	{{view JQ.ButtonView action="addItem" icon="ui-icon-circle-plus" label="New item"}}
-	{{view JQ.ButtonView action="back" icon="ui-icon-circle-triangle-w" label="Back"}}
+		<div>
+			{{#if mappingAttribute}}
+				<h3>Choose an item field to map "{{mappingAttribute.name}}"</h3>
+				<hr/>
+			{{/if}}
+			{{#each model}}
+				{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
+				<hr/>
+		 	{{else}}
+		 		<h4>No items have been defined yet.</h4>
+				<hr/>
+		 	{{/each}}
+			{{view JQ.ButtonView action="addItem" icon="ui-icon-circle-plus" label="New item"}}
+			{{view JQ.ButtonView action="back" icon="ui-icon-circle-triangle-w" label="Back"}}
+		</div>
+	</div>
 </div>

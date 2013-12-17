@@ -257,24 +257,18 @@ ASTool.ViewNotifyingMixin = Ember.Mixin.create({
 			this.controller.willLeave();
 		};
 	},
+
+	didInsertElement: function() {
+		$('.accordion').accordion({ heightStyle: "content" });
+		this._super();
+	},
 });
 
 
 ASTool.AnnotationsView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 ASTool.AnnotationView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 ASTool.ItemsView = Ember.View.extend(ASTool.ViewNotifyingMixin);
-
-
-ASTool.SpiderView = Ember.View.extend(ASTool.ViewNotifyingMixin, {
-
-	didInsertElement: function() {
-		$('#accordion').accordion({ heightStyle: "content" });
-		this._super();
-	},
-
-});
-
-
+ASTool.SpiderView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 ASTool.ProjectView = Ember.View.extend(ASTool.ViewNotifyingMixin);
 
 
