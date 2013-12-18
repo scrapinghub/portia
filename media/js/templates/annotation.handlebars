@@ -73,6 +73,14 @@
 				{{view JQ.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
 			</div>
 		</div>
+
+		<h3>Variant</h3>
+		<div>
+			<div class="variantBox" style="margin-right:20px">
+				<label class="mediumLabel">Choose a variant for the annotation:</label>
+				{{view JQ.VariantSelect value=variant}}
+			</div>
+		</div>
 	</div>
 	<hr/>
 	{{#if element}}

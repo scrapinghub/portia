@@ -83,6 +83,16 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		}
 	},
 
+	maxVariant: function() {
+		var maxVariant = 0;
+		this.get('content').forEach(function(annotation) {
+			var stringVariant = annotation.get('variant');
+			var variant = stringVariant ? parseInt(stringVariant) : 0;
+			maxVariant = variant > maxVariant ? variant : maxVariant;
+		});
+		return maxVariant;
+	}.property('content.@each.variant'),
+
 	actions: {
 		
 		editAnnotation: function(annotation) {

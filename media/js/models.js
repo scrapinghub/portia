@@ -168,6 +168,8 @@ ASTool.Spider = DS.Model.extend({
 
 ASTool.Annotation = DS.Model.extend({	
 	name: DS.attr('string'),
+
+	variant: DS.attr('string', { defaultValue: '0' }),
 	
 	annotations: DS.attr(),
 

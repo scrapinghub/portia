@@ -17,6 +17,33 @@ JQ.FollowSelect = Ember.Select.extend(JQ.Widget, {
 	},
 });
 
+JQ.VariantSelect = Ember.Select.extend(JQ.Widget, {
+	uiType: 'combobox',
+
+	uiOptions: ['label', 'disabled'],
+
+	uiEvents: ['select'],
+
+	content: function() {
+		var options = [{ option: '0', label: "Base(0)" }];
+		var maxVariant = this.get('controller.controllers.annotations.maxVariant');
+		var i;
+		for (i = 1; i <= maxVariant; i++) {
+			options.pushObject({ option: i + '', label: 'Variant ' + i });
+		}
+		options.pushObject({ option: i + '', label: 'Add new variant (' + i + ')' });
+		return options;
+	}.property('controller.controllers.annotations.maxVariant'),
+
+	optionValuePath: 'content.option',
+
+	optionLabelPath: 'content.label',
+
+	select: function(event, data) {
+		this.set('controller.model.variant', data.item.value);
+	},
+});
+
 // Create a new Ember view for the jQuery UI Button widget
 JQ.ButtonView = Em.View.extend(JQ.Widget, {
 	uiType: 'button',

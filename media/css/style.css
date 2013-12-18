@@ -297,6 +297,10 @@ div > * {
 	width: 300px;
 }
 
+.variantBox .custom-combobox-input {
+	width: 100px;
+}
+
 .ui-state-focus { outline: none; }
 
 .ui-accordion .ui-accordion-content {padding: 0.5em 0.5em 1em 0.5em;
