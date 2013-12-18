@@ -249,6 +249,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 				}
 				this.set('selectingIgnore', false);
 				this.set('documentView.restrictToDescendants', false);
+				this.set('documentView.partialSelectionEnabled', true);
 			} else {
 				var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
 				if (!needsConfirmation || this.confirmChangeSelection()) {
@@ -260,33 +261,18 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 					this.openAccordion(0);
 					this.set('highlightedElement', null);
 					this.content.set('selectedElement', element);
-					this.content.set('isPartial', false);
+					this.content.set('isPartial', !!partialSelection);
 					this.content.removeIgnores();
 					this.content.removeMappings();
 					this.set('currentlySelectedElement', element);
 				}
 			}
-			this.set('documentView.partialSelectionEnabled', true);
 		},
 		
 		partialSelection: function(selection) {
-			var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
-			if (!needsConfirmation || this.confirmChangeSelection()) {
-				if (this.get('isPartial')) {
-					this.clearGeneratedIns(this.get('currentlySelectedElement'));	
-				}
-				// FIXME
-				$('.accordion').accordion({ heightStyle: "content" });
-				this.openAccordion(0);
-				this.set('highlightedElement', null);
-				var element = $('<ins/>').get(0);
-				selection.getRangeAt(0).surroundContents(element);
-				this.content.set('selectedElement', element);
-				this.content.set('isPartial', true);
-				this.content.removeIgnores();
-				this.content.removeMappings();
-				this.set('currentlySelectedElement', element);
-			}
+			var element = $('<ins/>').get(0);
+			selection.getRangeAt(0).surroundContents(element);
+			this.documentActions['elementSelected'].call(this, element, true);
 			selection.collapse();
 		},
 	},
@@ -295,7 +281,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		this.get('documentView').config({ mode: 'select',
 										  listener: this,
 										  dataSource: this,
-										  partialSelection: true });
+										  partialSelects: true });
 		this.set('currentlySelectedElement', this.get('element'));
 		if (this.get('openAttributesOnShow')) {
 			Em.run.later(this, function() {
