@@ -256,6 +256,9 @@ ASTool.Annotation = DS.Model.extend({
 	}.property('element'),
 
 	ancestorPaths: function() {
+		if (!this.get('element')) {
+			return [];
+		}
 		var path = this.get('path');
 		var splitted = path.split('>');
 		var result = [];
@@ -273,6 +276,9 @@ ASTool.Annotation = DS.Model.extend({
 	}.property('path'),
 
 	childPaths: function() {
+		if (!this.get('element')) {
+			return [];
+		}
 		var result = [];
 		if (this.get('element')) {
 			var path = this.get('path');

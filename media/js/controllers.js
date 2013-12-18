@@ -256,8 +256,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 					if (this.get('isPartial')) {
 						this.clearGeneratedIns(this.get('currentlySelectedElement'));	
 					}
-					// FIXME
-					$('.accordion').accordion({ heightStyle: "content" });
 					this.openAccordion(0);
 					this.set('highlightedElement', null);
 					this.content.set('selectedElement', element);

@@ -2,10 +2,11 @@
 	<label class="bigLabel">Annotation </label>{{view JQ.TextField value=name class="mediumtextarea"}}
 	<div style="margin-top:10px"/>
 	<hr/>
-	{{#if path}}
-		<div class="accordion" style="margin-bottom: 10px">
-			<h3>Selected region</h3>
-			<div>
+	
+	<div class="accordion" style="margin-bottom: 10px">
+		<h3>Selected region</h3>
+		<div>
+			{{#if path}}
 				<h5>Ancestors</h5>
 				<div class="scrolling-container ui-corner-all" style="text-align:left">
 					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
@@ -26,56 +27,53 @@
 						{{/each}}
 					</ul>
 				</div>
-			</div>
+			{{else}}
+				<h4>Please select an element or region from the document.</h4>
+			{{/if}}
 
-			<h3>Attributes</h3>
-			<div>
-				<h5>Mapped</h5>
-				{{#if mappedAttributes}}
-					<div class="scrolling-container ui-corner-all">
-						{{#each mappedAttributes}}
-							<div style="margin: 4px 0px 4px 0px">
-								{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
-								  maxWidth='336px' action="unmapAttribute" argument=this}}
-							</div>
-						{{/each}}
+			
+		</div>
+
+		<h3>Attributes</h3>
+		<div>
+			<h5>Mapped</h5>
+			<div class="scrolling-container ui-corner-all">
+				{{#each mappedAttributes}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
+						  maxWidth='336px' action="unmapAttribute" argument=this}}
 					</div>
-				{{/if}}
-				<hr/>
-				<h5>Not mapped</h5>
-				{{#if unmappedAttributes}}
-					<div class="scrolling-container ui-corner-all">	
-						{{#each unmappedAttributes}}
-							<div style="margin: 4px 0px 4px 0px">
-								{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='336px'
-							      maxWidth='336px' action="mapAttribute" argument=this}}
-							</div>
-						{{/each}}
-					</div>
-				{{/if}}
+				{{/each}}
 			</div>
 			
-			<h3>Ignored subregions</h3>
-			<div>
-				<div class="scrolling-container ui-corner-all">
-					{{#each model.ignores}}
-						<div style="margin: 4px 0px 4px 0px">
-							{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='300px'}}
-							{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" label="x" text=false}}
-						</div>
-					{{else}}
-						<h4>No ignored subregions defined.</h4>
-					{{/each}}
-				</div>
-				<div style="margin-top:10px">
-					{{view JQ.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
-				</div>
+			<h5>Not mapped</h5>
+			<div class="scrolling-container ui-corner-all">	
+				{{#each unmappedAttributes}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='336px'
+					      maxWidth='336px' action="mapAttribute" argument=this}}
+					</div>
+				{{/each}}
 			</div>
 		</div>
-	{{else}}
-		<h4>Please select an element or region from the document.</h4>
-	{{/if}}
-
+		
+		<h3>Ignored subregions</h3>
+		<div>
+			<div class="scrolling-container ui-corner-all">
+				{{#each model.ignores}}
+					<div style="margin: 4px 0px 4px 0px">
+						{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='300px'}}
+						{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" label="x" text=false}}
+					</div>
+				{{else}}
+					<h4>No ignored subregions defined.</h4>
+				{{/each}}
+			</div>
+			<div style="margin-top:10px">
+				{{view JQ.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
+			</div>
+		</div>
+	</div>
 	<hr/>
 	{{#if element}}
 		{{view JQ.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
