@@ -251,9 +251,43 @@ ASTool.Annotation = DS.Model.extend({
 		if (this.get('element')) {
 			return $(this.get('element')).getUniquePath();
 		} else {
-			return [];
+			return '';
 		}
 	}.property('element'),
+
+	ancestorPaths: function() {
+		var path = this.get('path');
+		var splitted = path.split('>');
+		var result = [];
+		var selector = '';
+		splitted.forEach(function(pathElement, i) {
+			var ancestorPath = {};
+			selector += (selector ? '>' : '') + pathElement;
+			ancestorPath['path'] = selector;
+			var element = this.get('iframe').find(selector).get(0);
+			ancestorPath['element'] = element;
+			ancestorPath['label'] = element.tagName.toLowerCase();
+			result.pushObject(ancestorPath);
+		}.bind(this));
+		return result;
+	}.property('path'),
+
+	childPaths: function() {
+		var result = [];
+		if (this.get('element')) {
+			var path = this.get('path');
+			var children = this.get('element').children;
+			children = Array.prototype.slice.call(children);
+			children.forEach(function(child, i) {
+				var childPath = {};
+				childPath['label'] = child.tagName.toLowerCase();
+				childPath['path'] = path + '>' + ':eq(' + i + ')';
+				childPath['element'] = child;
+				result.pushObject(childPath);
+			});
+		}
+		return result;
+	}.property('path'),
 	
 	attributes: function() {
 		if (this.get('element')) {

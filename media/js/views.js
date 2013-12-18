@@ -85,6 +85,16 @@ JQ.AnnotationWidget = JQ.ButtonView.extend({
 	},	
 });
 
+JQ.CSSPathWidget = JQ.ButtonView.extend({
+
+	mouseEnter: function() {
+		this.get('controller').send('highlightElement', this.get('argument'));
+	},
+
+	mouseLeave: function() {
+		this.get('controller').send('highlightElement', null);
+	},
+});
 
 JQ.ButtonSetView = Em.View.extend(JQ.Widget, {
 	uiType: 'buttonset',

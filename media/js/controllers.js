@@ -120,6 +120,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	_selectingIgnore: null,
 
 	openAttributesOnShow: false,
+
+	highlightedElement: null,
 	
 	selectingIgnore: function(key, selectingIgnore) {
 		// FIXME: move this to the view.
@@ -138,6 +140,15 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 				 'highlighted': 'true'}));
 		}
 
+		if (this.highlightedElement) {
+			sprites.pushObject(ASTool.ElementSprite.create({
+				element: this.highlightedElement,
+				fillColor: 'rgba(255,149,0,0.2)',
+				strokeColor: 'rgba(255,149,0,0.6)',
+				zPosition: 1000,
+			}));
+		}
+
 		var annotationSprites = this.get('controllers.annotations.sprites').filter(function(sprite) {
 			return sprite.get('annotation.id') != this.content.get('id');
 		}.bind(this));
@@ -149,7 +160,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		return sprites.concat(annotationSprites).concat(ignoredElements);
 	}.property('currentlySelectedElement',
 			   'controllers.annotations.sprites',
-			   'model.ignores.@each.highlighted'),
+			   'model.ignores.@each.highlighted',
+			   'highlightedElement'),
 	
 	clearGeneratedIns: function(insElement) {
 		$(insElement).removePartialAnnotation();
@@ -214,6 +226,14 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			var ignores = this.get('ignores');
 			ignores.removeObject(ignore);
 		},
+
+		highlightElement: function(element) {
+			this.set('highlightedElement', element);
+		},
+
+		selectElement: function(element) {
+			this.documentActions['elementSelected'].call(this, element);
+		}
 	},
 
 	confirmChangeSelection: function() {
@@ -222,8 +242,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	
 	documentActions: {
 		
-		elementSelected: function(element) {
-			this.openAccordion(0);
+		elementSelected: function(element, partialSelection) {
 			if (this.get('selectingIgnore')) {
 				if (element) {
 					this.content.addIgnore(element);	
@@ -236,6 +255,10 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 					if (this.get('isPartial')) {
 						this.clearGeneratedIns(this.get('currentlySelectedElement'));	
 					}
+					// FIXME
+					$('.accordion').accordion({ heightStyle: "content" });
+					this.openAccordion(0);
+					this.set('highlightedElement', null);
 					this.content.set('selectedElement', element);
 					this.content.set('isPartial', false);
 					this.content.removeIgnores();
@@ -250,8 +273,12 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
 			if (!needsConfirmation || this.confirmChangeSelection()) {
 				if (this.get('isPartial')) {
-						this.clearGeneratedIns(this.get('currentlySelectedElement'));	
+					this.clearGeneratedIns(this.get('currentlySelectedElement'));	
 				}
+				// FIXME
+				$('.accordion').accordion({ heightStyle: "content" });
+				this.openAccordion(0);
+				this.set('highlightedElement', null);
 				var element = $('<ins/>').get(0);
 				selection.getRangeAt(0).surroundContents(element);
 				this.content.set('selectedElement', element);
@@ -271,7 +298,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 										  partialSelection: true });
 		this.set('currentlySelectedElement', this.get('element'));
 		if (this.get('openAttributesOnShow')) {
-			console.log('opening attributes');
 			Em.run.later(this, function() {
 				this.openAccordion(1);
 			}, 100);

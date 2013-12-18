@@ -6,8 +6,25 @@
 		<div class="accordion" style="margin-bottom: 10px">
 			<h3>Selected region</h3>
 			<div>
-				<div class="scrolling-container ui-corner-all">
-					<h3>{{path}}</h3>
+				<h5>Ancestors</h5>
+				<div class="scrolling-container ui-corner-all" style="text-align:left">
+					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
+						{{#each ancestorPaths}}
+							<li style="float:left; padding:5px 2px 5px 2px;">
+								{{view JQ.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="75px"}}
+							</li>
+						{{/each}}
+					</ul>
+				</div>
+				<h5>Children</h5>
+				<div class="scrolling-container ui-corner-all" style="text-align:left">
+					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
+						{{#each childPaths}}
+							<li style="float:left; padding:5px 2px 5px 2px;">
+								{{view JQ.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="75px"}}
+							</li>
+						{{/each}}
+					</ul>
 				</div>
 			</div>
 
