@@ -559,9 +559,11 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 	documentView: null,
 
 	pushRoute: function(route, label, animation, model) {
-		// Remove the route if it's already  there.
+		if (this.routeStack.filterBy('route', route).length) {
+			// Don't go if the route is already in the stack.
+			return;
+		}
 		animation = animation || 'fade';
-		this.popRoutes(route);
 		var navRoute = ASTool.NavRoute.create({route: route, label: label, model: model});
 		this.routeStack.pushObject(navRoute);
 		if (model) {
