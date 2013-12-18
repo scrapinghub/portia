@@ -292,6 +292,12 @@ ASTool.DocumentView = Em.Object.extend({
 	getAnnotatedDocument: function() {
 		return this.getIframe().find('html').get(0).outerHTML;
 	},
+
+	scrollToElement: function(element) {
+		var rect = $(element).boundingBox();
+		this.getIframe().scrollTop(rect.top - 100);
+		this.getIframe().scrollLeft(rect.left - 100);
+	},
 });
 
 window.onresize = function() {

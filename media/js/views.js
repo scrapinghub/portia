@@ -78,6 +78,7 @@ JQ.AnnotationWidget = JQ.ButtonView.extend({
 
 	mouseEnter: function() {
 		this.set('argument.highlighted', true);
+		this.get('controller').send('annotationHighlighted', this.argument);
 	},
 
 	mouseLeave: function() {

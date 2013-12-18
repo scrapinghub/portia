@@ -97,6 +97,10 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			annotation.deleteRecord();
 			annotation.save().then(this.saveAnnotations.bind(this));
 		},
+
+		annotationHighlighted: function(annotation) {
+			this.get('documentView').scrollToElement(annotation.get('element'));
+		},
 	},
 
 	willEnter: function() {
@@ -612,5 +616,9 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 	currentPathDidChange: function() {
 		// Always reset the document view when leaving a route.
 		this.get('documentView').reset();			
-  	}.observes('currentPath')
+  	}.observes('currentPath'),
+
+  	willDestroy: function() {
+  		this.routeStack.length = 0;
+  	},
 });
