@@ -48,7 +48,7 @@ test('add item & field test', function() {
 
 test('add spider test', function() {
     ASTool.guid = function() {
-            return 'test_guid'
+        return 'test_guid'
     };
     stubEndpoint('/spec/spiders', []);
     stubEndpoint('/spec/spiders/test_', [], 'POST');
