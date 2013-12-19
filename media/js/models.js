@@ -164,9 +164,42 @@ ASTool.Spider = DS.Model.extend({
 	respect_nofollow: DS.attr('boolean', { defaultValue:true }),
 	templates: DS.hasMany('template'),
 	init_requests: DS.attr(null),
+
 	name: function() {
 		return this.get('id');
 	}.property('id'),
+
+	performLogin: function(key, performLogin) {
+		if (arguments.length > 1) {
+			if (performLogin) {
+				this.set('init_requests', [{type: 'login'}]);
+			} else {
+				this.get('init_requests').length = 0;
+			}
+		}
+		return !!this.get('init_requests').length;
+	}.property('init_requests'),
+
+	loginUrl: function(key, loginUrl) {
+		if (arguments.length > 1) {
+			this.get('init_requests')[0]['loginurl'] = loginUrl;	
+		}
+		return this.get('init_requests')[0]['loginurl'];
+	}.property('init_requests'),
+
+	loginUser: function(key, loginUser) {
+		if (arguments.length > 1) {
+			this.get('init_requests')[0]['username'] = loginUser;	
+		}
+		return this.get('init_requests')[0]['username'];
+	}.property('init_requests'),
+
+	loginPassword: function(key, loginPassword) {
+		if (arguments.length > 1) {
+			this.get('init_requests')[0]['loginPassword'] = loginPassword;
+		}
+		return this.get('init_requests')[0]['loginPassword'];
+	}.property('init_requests'),
 }),
 
 ASTool.Annotation = DS.Model.extend({	

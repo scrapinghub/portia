@@ -63,6 +63,25 @@
 			{{view ASTool.EditBox checked=respect_nofollow name="respectNoFollow"}}
 			<span class="mediumLabel">Respect nofollow</span>
 		</div>
+
+		<h3>Login</h3>
+		<div>
+			<div>
+				{{view ASTool.EditBox checked=performLogin name="performLoginCheck"}}
+				<label class="mediumLabel">Perform login</label>
+			</div>
+			{{#if performLogin}}
+				<hr/>
+				<div class="mediumLabel">Url</div>
+				{{view JQ.TextField value=loginUrl class="mediumtextarea" width='286px' name='loginUrlField' placeholder='Login URL'}}
+				<div style="margin-top:5px"/>
+				<div class="mediumLabel">User</div>
+				{{view JQ.TextField value=loginUser class="mediumtextarea" width='286px' name='loginUserField' placeholder='Login user'}}
+				<div style="margin-top:5px"/>
+				<div class="mediumLabel">Password</div>
+				{{view JQ.TextField value=loginPassword class="mediumtextarea" width='286px' name='loginPasswordField' placeholder='Login password'}}
+			{{/if}}
+		</div>
 		
 		<h3>Templates</h3>
 		<div>
