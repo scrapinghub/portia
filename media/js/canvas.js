@@ -82,8 +82,10 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 	highlighted: null,
 
 	draw: function(context) {
-		context.save();
-		var rect = this.getBoundingBox();
+		this.drawRect(context, this.getBoundingBox());
+	},
+
+	drawRect: function(context, rect) {
 		context.save();
 		if (this.get('blend')) {
 			context.globalCompositeOperation = this.get('blend');
@@ -165,16 +167,27 @@ ASTool.IgnoreSprite = ASTool.RectSprite.extend({
 	textColor: 'rgba(255,150,150,1)',
 	blend: 'destination-out',
 
+	ignoreBeneath: function() {
+		return this.get('ignore.ignoreBeneath');
+	}.property('ignore.ignoreBeneath'),
+
 	text: function() {
 		return this.get('ignore.name');
-	}.property('ignore'),
+	}.property('ignore.name'),
 
 	highlighted: function() {
 		return this.get('ignore.highlighted');
-	}.property('ignore'),
+	}.property('ignore.highlighted'),
 
-	getBoundingBox: function() {
-		return $(this.get('ignore.element')).boundingBox();
+	draw: function(context) {
+		var element = $(this.get('ignore.element'));
+		if (this.get('ignoreBeneath')) {
+			var elementsBeneath = element.nextAll();
+			elementsBeneath.each(function(i, element) {
+				this.drawRect(context, $(element).boundingBox());
+			}.bind(this));
+		}
+		this.drawRect(context, element.boundingBox());
 	},
 });
 

@@ -76,7 +76,7 @@ jQuery.fn.findAnnotatedElement = function(annotationId) {
 };
 
 jQuery.fn.findIgnoredElements = function(annotationId) {
-	var selector = '[data-scrapy-ignore*="' + annotationId + '"]';
+	var selector = '[data-scrapy-ignore*="' + annotationId + '"], [data-scrapy-ignore-beneath*="' + annotationId + '"]';
 	return this.find(selector);
 };
 

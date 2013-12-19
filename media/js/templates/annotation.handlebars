@@ -62,7 +62,9 @@
 			<div class="scrolling-container ui-corner-all">
 				{{#each model.ignores}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='300px'}}
+						{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
+						<label class="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
+						{{view ASTool.EditBox checked=this.ignoreBeneath name="ignoreBeneath"}}
 						{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}

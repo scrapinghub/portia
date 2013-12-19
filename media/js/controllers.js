@@ -175,6 +175,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	}.property('currentlySelectedElement',
 			   'controllers.annotations.sprites',
 			   'model.ignores.@each.highlighted',
+			   'model.ignores.@each.ignoreBeneath',
 			   'highlightedElement'),
 	
 	clearGeneratedIns: function(insElement) {

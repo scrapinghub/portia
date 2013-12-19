@@ -68,15 +68,18 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 	deleteRecord: function(store, type, record) {
 		var ignoredElements = this.get('iframe').findIgnoredElements(record.get('id'));
 		ignoredElements.removeAttr('data-scrapy-ignore');
+		ignoredElements.removeAttr('data-scrapy-ignore-beneath');
 		return this._super(store, type, record);
 	},
 
 	updateRecord: function(store, type, record) {
 		var oldIgnoredElements = this.get('iframe').findIgnoredElements(record.get('id'));
 		oldIgnoredElements.removeAttr('data-scrapy-ignore');
+		oldIgnoredElements.removeAttr('data-scrapy-ignore-beneath');
 		record.get('ignores').forEach(function(ignore) {
 			var ignoreJSON = {id: record.get('id'), name: ignore.get('name')};
-			$(ignore.get('element')).attr('data-scrapy-ignore', JSON.stringify(ignoreJSON));
+			var attrName = ignore.get('ignoreBeneath') ? 'data-scrapy-ignore-beneath' : 'data-scrapy-ignore';
+			$(ignore.get('element')).attr(attrName, JSON.stringify(ignoreJSON));
 		});
 		return this._super(store, type, record);		
 	},
@@ -204,9 +207,12 @@ ASTool.Annotation = DS.Model.extend({
 	ignores: function() {
 		if (this.get('_ignores') == null) {
 			var ignoredElements = this.get('iframe').findIgnoredElements(this.get('id')).toArray();
-			var ignores = ignoredElements.map(function(element){
-				var name = $.parseJSON($(element).attr('data-scrapy-ignore'))['name'];
-				return ASTool.Ignore.create({element: element, name: name});
+			var ignores = ignoredElements.map(function(element) {
+				var attributeName = $(element).attr('data-scrapy-ignore') ? 'data-scrapy-ignore' : 'data-scrapy-ignore-beneath';
+				var name = $.parseJSON($(element).attr(attributeName))['name'];
+				return ASTool.Ignore.create({element: element,
+											 name: name,
+											 ignoreBeneath: attributeName == 'data-scrapy-ignore-beneath'});
 			});
 			this.set('_ignores', ignores);
 		} 
@@ -357,5 +363,6 @@ ASTool.Attribute = Em.Object.extend({
 ASTool.Ignore = Em.Object.extend({
 	name: null,
 	element: null,
+	ignoreBeneath: false,
 	highlighted: false,
 });
