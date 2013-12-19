@@ -3,6 +3,7 @@ html, body { height: 100% }
 body{
 	font: 62.5% "Trebuchet MS", sans-serif;
 	height: 100%;
+	overflow-x:hidden;
 }
 
 #scraped-doc {
