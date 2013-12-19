@@ -8,7 +8,7 @@
 				{{#each start_urls}}
 					<div style="margin: 4px 0px 4px 0px">
 						{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='300px' title=this}}
-						{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" label="x" title='' text=false}}
+						{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
 					<h5>No start urls for this spider.</h5>
@@ -26,7 +26,7 @@
 				{{#each exclude_patterns}}
 					<div style="margin: 4px 0px 4px 0px">
 						{{view JQ.ButtonView label=this minWidth='300px' title=this}}
-						{{view JQ.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" label="x" text=false}}
+						{{view JQ.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
 					<h5>No excluded patterns for this spider</h5>
@@ -48,7 +48,7 @@
 					{{#each follow_patterns}}
 						<div style="margin: 4px 0px 4px 0px">
 							{{view JQ.ButtonView label=this minWidth='300px' title=this}}
-							{{view JQ.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" label="x" text=false}}
+							{{view JQ.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 						</div>
 					{{else}}
 						<h5>All links within the spider domain will be matched.</h5>
@@ -70,7 +70,7 @@
 				{{#each templates}}
 					<div style="margin: 4px 0px 4px 0px">
 						{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='300px'}}
-						{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" label="x" text=false}}
+						{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
 					<h5>No templates for this spider</h5>

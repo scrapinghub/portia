@@ -314,3 +314,7 @@ div > * {
 	font:1em Trebuchet MS,Helvetica,Arial,sans-serif !important;
 }
 
+.textless-button .ui-button-text {
+	padding: 16px 20px 6px 6px !important;
+}
+
