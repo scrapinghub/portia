@@ -401,6 +401,11 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		this.pushRoute('annotations', template.get('name'));
 	},
 
+	loadTemplate: function(template) {
+		this.set('loadedUrl', template.get('url'));
+		this.get('documentView').displayAnnotatedDocument(template.get('original_body'), 'showTemplate');
+	},
+
 	loadPage: function(url) {
 		this.set('loadedUrl', null);
 		var documentView = this.get('documentView');
@@ -462,6 +467,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 		deleteTemplate: function(template) {
 			this.content.get('templates').removeObject(template);
+		},
+
+		loadTemplate: function(template) {
+			this.loadTemplate(template);
 		},
 
 		saveSpider: function() {

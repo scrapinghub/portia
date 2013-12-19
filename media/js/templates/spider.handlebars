@@ -7,7 +7,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each start_urls}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='300px' title=this}}
+						{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='300px' title=this icon="ui-icon-folder-open"}}
 						{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
@@ -88,7 +88,8 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each templates}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='300px'}}
+						{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='270px' icon="ui-icon-wrench"}}
+						{{view JQ.ButtonView action="loadTemplate" argument=this icon="ui-icon-folder-open" class="textless-button"}}
 						{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}

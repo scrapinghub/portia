@@ -244,7 +244,9 @@ ASTool.DocumentView = Em.Object.extend({
 		this.set('canvas.interactionsBlocked', true);
 		Em.run.later(this, function() {
 				this.set('canvas.interactionsBlocked', false);
-				readyCallback(this.getIframe());
+				if (readyCallback) {
+					readyCallback(this.getIframe());
+				};
 			}, 1000);
 	},
 

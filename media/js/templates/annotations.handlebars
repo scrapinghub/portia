@@ -7,7 +7,7 @@
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth="300px"}}
+						{{view JQ.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth="300px" icon="ui-icon-wrench"}}
 						{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 					{{else}}
