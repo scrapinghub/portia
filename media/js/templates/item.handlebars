@@ -1,4 +1,4 @@
-<span class="mediumLabel">Name </span>
+<span class="smallLabel">Name </span>
 {{view JQ.EditField owner=view.item value=view.item.name class="mediumtextarea"}}
 {{view JQ.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="New field"}}
 <div style="text-align: center; margin-top:10px">
@@ -7,7 +7,7 @@
 			<tr class="smallLabel"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 			{{#each view.item.fields}}
 				<tr>
-					<td>{{view JQ.TextField owner=this value=name class="mediumtextarea" name="fieldName"}}</td>
+					<td>{{view JQ.TextField owner=this value=name class="mediumtextarea" width="100px" name="fieldName"}}</td>
 					<td>{{view ASTool.TypeSelect owner=this selection=type name="fieldType"}}</td>
 					<td>{{view ASTool.EditBox owner=this checked=required name="fieldRequired"}}</td>
 					<td>{{view ASTool.EditBox owner=this checked=vary name="fieldVary"}}</td>

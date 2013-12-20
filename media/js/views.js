@@ -48,7 +48,7 @@ JQ.VariantSelect = Ember.Select.extend(JQ.Widget, {
 JQ.ButtonView = Em.View.extend(JQ.Widget, {
 	uiType: 'button',
   
-	uiOptions: ['label', 'disabled', 'icons', 'text'],
+	uiOptions: ['label', 'disabled', 'icons', 'text', 'selected'],
   
 	tagName: 'button',
 
@@ -82,7 +82,7 @@ JQ.ButtonView = Em.View.extend(JQ.Widget, {
 
 	label: function(key, label) {
 		if (arguments.length > 1) {
-			label = trim(label, 40);
+			label = trim(label, 32);
 			this.set('_label', label);
 		} 
 		return this.get('_label');
@@ -131,7 +131,6 @@ JQ.ButtonSetView = Em.View.extend(JQ.Widget, {
 });
 
 JQ.TabNavigator = Em.View.extend({
-	
 });
 
 // Create a new Ember view for the jQuery UI Menu widget.
@@ -276,7 +275,7 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 	
 	didInsertElement: function() {
 		this._super();
-		this.get('controller').pushRoute('project', 'Project');
+		this.get('controller').pushRoute('project', 'Project: test');
 		this.get('controller.documentView').initCanvas();
 		$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 		$('#toolbar').height(window.innerHeight);

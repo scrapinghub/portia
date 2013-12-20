@@ -30,7 +30,7 @@ module.exports = function(karma) {
           "tests/*.js",
 
           "css/normalize.css",
-          "http://code.jquery.com/ui/1.10.3/themes/cupertino/jquery-ui.css",
+          "css/jquery-ui-1.10.3.custom.css",
           "css/style.css",
           "css/ember-animated-outlet.css",
         ],

@@ -1,17 +1,14 @@
 <div class="toolbar-container-noborder ui-corner-all">
-	<label class="bigLabel">Annotation </label>{{view JQ.TextField value=name class="mediumtextarea"}}
 	<div style="margin-top:10px"/>
-	<hr/>
-	
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Selected region</h3>
-		<div>
+		<div class='rightIcon'>
 			{{#if path}}
 				<h5>Ancestors</h5>
-				<div class="scrolling-container ui-corner-all" style="text-align:left">
+				<div class="scrolling-container ui-corner-all">
 					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
 						{{#each ancestorPaths}}
-							<li style="float:left; padding:5px 2px 5px 2px;">
+							<li style="float:left; padding:3px 2px 3px 2px; font:0.4em Trebuchet MS,Helvetica,Arial,sans-serif !important;">
 								{{view JQ.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="75px"}}
 							</li>
 						{{/each}}
@@ -21,17 +18,15 @@
 				<div class="scrolling-container ui-corner-all" style="text-align:left">
 					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
 						{{#each childPaths}}
-							<li style="float:left; padding:5px 2px 5px 2px;">
+							<li style="float:left; padding:3px 2px 3px 2px; font:0.4em Trebuchet MS,Helvetica,Arial,sans-serif !important;">
 								{{view JQ.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="75px"}}
 							</li>
 						{{/each}}
 					</ul>
 				</div>
 			{{else}}
-				<h4>Please select an element or region from the document.</h4>
-			{{/if}}
-
-			
+				<h5>Please select an element or region from the document.</h5>
+			{{/if}}	
 		</div>
 
 		<h3>Attributes</h3>
@@ -68,7 +63,7 @@
 						{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
-					<h4>No ignored subregions defined.</h4>
+					<h5>No ignored subregions defined.</h5>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">

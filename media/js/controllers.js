@@ -60,7 +60,6 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		
 	addAnnotation: function() {
 		var annotation = this.store.createRecord('annotation');
-		annotation.set('name', 'Annotation ' + annotation.get('id').substring(0, 5));
 		annotation.save().then(function() {
 			this.editAnnotation(annotation);
 		}.bind(this));
@@ -68,7 +67,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
-		this.pushRoute('annotation', annotation.get('name'), 'flip', annotation);
+		this.pushRoute('annotation', 'Annotation: ' + annotation.get('name'), 'flip', annotation);
 	},
 	
 	deleteAllAnnotations: function() {
@@ -224,7 +223,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
 			this.set('openAttributesOnShow', true);
-			this.pushRoute('items', 'Items', 'flip');
+			this.pushRoute('items', 'Mapping attribute: ' + attribute.get('name'), 'flip');
 		},
 
 		unmapAttribute: function(attribute) {
@@ -396,9 +395,29 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		return this.content.get('links_to_follow') == 'patterns';
 	}.property('model.links_to_follow'),
 
+	sprites: function() {
+		//FIXME: get this from slyd.
+		if (!this.get('loadedUrl')) {
+			return [];
+		}
+		var parsedCurrentUrl = URI.parse(this.get('loadedUrl'));
+		var links = $($('#scraped-doc-iframe').contents().get(0).links);
+		var sprites = [];
+		links.each(function(i, link) {
+			var parsedHref = URI.parse(link.href);
+			var inDomain = parsedCurrentUrl['hostname'] == parsedHref['hostname'] ||
+				parsedHref['hostname'] == 'localhost';
+			sprites.pushObject(ASTool.ElementSprite.create({
+				element: link,
+				fillColor: inDomain ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
+				strokeColor: 'clear' }));
+		});
+		return sprites;
+	}.property('loadedUrl'),
+
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
-		this.pushRoute('annotations', template.get('name'));
+		this.pushRoute('annotations', 'Template: ' + template.get('name'));
 	},
 
 	loadTemplate: function(template) {
@@ -542,7 +561,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	actions: {
 
 		editSpider: function(spiderName) {
-			this.pushRoute('spider', spiderName, 'fade', spiderName);
+			this.pushRoute('spider', 'Spider: ' + spiderName, 'fade', spiderName);
 		},
 
 		addSpider: function() {

@@ -1,6 +1,4 @@
 <div class="toolbar-container-noborder ui-corner-all">
-	<h3>Template {{template.name}}</h3>
-	<hr/>
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Annotations</h3>
 		<div>
@@ -11,7 +9,7 @@
 						{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 					{{else}}
-						<h4>No annotations have been defined yet.</h4>
+						<h5>No annotations have been defined yet.</h5>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">

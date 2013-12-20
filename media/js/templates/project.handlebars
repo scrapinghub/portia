@@ -1,13 +1,11 @@
 <div class="toolbar-container-noborder ui-corner-all">
-	<h3>Project test</h3>
-	<hr/>
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Spiders for this project:</h3>
 		<div>
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.ButtonView action="editSpider" argument=this label=this minWidth="300px" icon="ui-icon-wrench"}}
+						{{view JQ.ButtonView action="editSpider" argument=this label=this minWidth="324px" icon="ui-icon-wrench"}}
 					</div>
 				{{else}}
 					<h3>No spiders for this project.</h3>

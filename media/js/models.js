@@ -163,7 +163,7 @@ ASTool.Spider = DS.Model.extend({
 	exclude_patterns: DS.attr(null),
 	respect_nofollow: DS.attr('boolean', { defaultValue:true }),
 	templates: DS.hasMany('template'),
-	init_requests: DS.attr(null),
+	init_requests: DS.attr(null, { defaultValue:[] }),
 
 	name: function() {
 		return this.get('id');
@@ -203,7 +203,13 @@ ASTool.Spider = DS.Model.extend({
 }),
 
 ASTool.Annotation = DS.Model.extend({	
-	name: DS.attr('string'),
+	name: function() {
+		if (this.get('annotations') && Object.keys(this.get('annotations')).length) {
+			return JSON.stringify(this.get('annotations')).replace(/"/g, '');
+		} else {
+			return 'Empty (' + this.get('id').substring(0, 5) + ')';
+		}
+	}.property('annotationsChanged'),
 
 	variant: DS.attr('string', { defaultValue: '0' }),
 	
