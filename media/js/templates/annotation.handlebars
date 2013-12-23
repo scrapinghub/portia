@@ -3,6 +3,12 @@
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Selected region</h3>
 		<div class='rightIcon'>
+			<h5>CSS Path</h5>
+			
+			<div class="ui-corner-all pathBox" style="word-wrap: break-word;">
+			{{path}}
+			</div>
+			
 			{{#if path}}
 				<h5>Ancestors</h5>
 				<div class="scrolling-container ui-corner-all">
@@ -36,7 +42,7 @@
 				{{#each mappedAttributes}}
 					<div style="margin: 4px 0px 4px 0px">
 						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
-						  maxWidth='336px' action="unmapAttribute" argument=this title="TEST TOOLTIP"}}
+						  maxWidth='336px' action="unmapAttribute" argument=this}}
 					</div>
 				{{/each}}
 			</div>
@@ -59,7 +65,7 @@
 					<div style="margin: 4px 0px 4px 0px">
 						<label class="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
 						{{view ASTool.EditBox checked=this.ignoreBeneath name="ignoreBeneath"}}
-						{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
+						{{view ASTool.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
 						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}

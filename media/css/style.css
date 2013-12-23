@@ -85,6 +85,18 @@ body{
 	box-shadow:0px 0px 12px 1px rgba(0,0,0,0.3) inset;
 }
 
+.pathBox {
+	padding:10px 8px 10px 8px;
+	max-height: 300px;
+	text-align: left;
+	margin:6px;
+	border-color: #242424;
+	border-style: solid;
+	border-width: 1px;
+	background-color:#333;
+	box-shadow:0px 0px 12px 1px rgba(0,0,0,0.3) inset;	
+}
+
 #pageUrl {
 	width: 80%;
 	margin-bottom: 20px;
@@ -303,7 +315,7 @@ div > * {
 }
 
 .textless-button .ui-button-text {
-	padding: 15px 20px 5px 6px !important;
+	padding: 16px 20px 6px 6px !important;
 }
 
 .rightIcon .ui-button-icon-primary { left: auto; right: 0.5em; }
