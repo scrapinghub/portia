@@ -44,7 +44,7 @@ body{
 #navigationbar {
 	margin:0px 10px 10px 10px;
 	padding: 8px;
-	border-color: #999;
+	border-color: #636363;
 	border-style:solid;
 	border-width: 1px;
 	background-color:#4A4A4A;
@@ -78,10 +78,10 @@ body{
 	padding:10px 0px 10px 0px;
 	max-height: 300px;
 	margin:6px;
-	border-color: #999;
-	border-style:dotted;
+	border-color: #242424;
+	border-style: solid;
 	border-width: 1px;
-	background-color:#999;
+	background-color:#333;
 	box-shadow:0px 0px 12px 1px rgba(0,0,0,0.3) inset;
 	
 }
@@ -96,7 +96,7 @@ body{
 	border-width: 1px;
 	margin-top:0px;
 	border-style: solid;
-	border-color: #999;
+	border-color: ##636363;
 	text-align: center;
 	color:#222;
 	background-color:#EFEFEF;
@@ -185,7 +185,7 @@ body{
 .elementAttributeValue {
 	word-wrap: break-word;
 	font:1.1em Verdana,Helvetica,Arial,sans-serif;
-	color:##999;
+	color:###636363;
 	margin-top: 0px;
 }
 
@@ -208,7 +208,7 @@ body{
 
 hr {
 	color: #FEFEFE;
-	background-color: #999;
+	background-color: #636363;
 	height: 1px;
 	margin: 10px 0px 10px 0px;
 	border: 0;
