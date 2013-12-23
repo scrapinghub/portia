@@ -9,7 +9,7 @@
 					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
 						{{#each ancestorPaths}}
 							<li style="float:left; padding:3px 2px 3px 2px; font:0.4em Trebuchet MS,Helvetica,Arial,sans-serif !important;">
-								{{view JQ.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="75px"}}
+								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="75px"}}
 							</li>
 						{{/each}}
 					</ul>
@@ -19,7 +19,7 @@
 					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
 						{{#each childPaths}}
 							<li style="float:left; padding:3px 2px 3px 2px; font:0.4em Trebuchet MS,Helvetica,Arial,sans-serif !important;">
-								{{view JQ.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="75px"}}
+								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="75px"}}
 							</li>
 						{{/each}}
 					</ul>
@@ -36,7 +36,7 @@
 				{{#each mappedAttributes}}
 					<div style="margin: 4px 0px 4px 0px">
 						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
-						  maxWidth='336px' action="unmapAttribute" argument=this}}
+						  maxWidth='336px' action="unmapAttribute" argument=this title="TEST TOOLTIP"}}
 					</div>
 				{{/each}}
 			</div>
@@ -60,14 +60,14 @@
 						<label class="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
 						{{view ASTool.EditBox checked=this.ignoreBeneath name="ignoreBeneath"}}
 						{{view JQ.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
-						{{view JQ.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
+						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
 					<h5>No ignored subregions defined.</h5>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view JQ.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
+				{{view ASTool.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
 			</div>
 		</div>
 
@@ -75,13 +75,13 @@
 		<div>
 			<div class="variantBox" style="margin-right:20px">
 				<label class="mediumLabel">Choose a variant for the annotation:</label>
-				{{view JQ.VariantSelect value=variant}}
+				{{view ASTool.VariantSelect value=variant}}
 			</div>
 		</div>
 	</div>
 	<hr/>
 	{{#if element}}
-		{{view JQ.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
+		{{view ASTool.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
 	{{/if}}
-	{{view JQ.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Cancel"}}
+	{{view ASTool.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Cancel"}}
 </div>

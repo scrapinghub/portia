@@ -6,16 +6,16 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each start_urls}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.ButtonView action="loadPage" argument=this label=this minWidth='286px' title=this icon="ui-icon-folder-open"}}
-						{{view JQ.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
+						{{view ASTool.ButtonView action="loadPage" argument=this label=this minWidth='286px' title=this icon="ui-icon-folder-open"}}
+						{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
 					<h5>No start urls for this spider.</h5>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view JQ.TextField value=newStartUrl class="mediumtextarea" width='262px' name='startUrlTextField' placeholder='New start url'}}
-				{{view JQ.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
+				{{view ASTool.TextField value=newStartUrl class="mediumtextarea" width='262px' name='startUrlTextField' placeholder='New start url'}}
+				{{view ASTool.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
 			</div>
 		</div>
 
@@ -24,38 +24,38 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each exclude_patterns}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.ButtonView label=this minWidth='286px' title=this}}
-						{{view JQ.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button"}}
+						{{view ASTool.ButtonView label=this minWidth='286px' title=this}}
+						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
 					<h5>No excluded patterns for this spider</h5>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view JQ.TextField value=newExcludePattern class="mediumtextarea" width='236px' name='excludePatternTextField' placeholder='New exclude pattern'}}
-				{{view JQ.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasExcludePattern}}
+				{{view ASTool.TextField value=newExcludePattern class="mediumtextarea" width='236px' name='excludePatternTextField' placeholder='New exclude pattern'}}
+				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasExcludePattern}}
 			</div>
 		</div>
 
 		<h3>Links to follow</h3>
 		<div>
 			<div style="margin: 5px 0px 12px -20px; color: #0000FF;">
-				{{view JQ.FollowSelect value=links_to_follow}}
+				{{view ASTool.FollowSelect value=links_to_follow}}
 			</div>
 			{{#if displayLinksToFollow}}
 				<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 					{{#each follow_patterns}}
 						<div style="margin: 4px 0px 4px 0px">
-							{{view JQ.ButtonView label=this minWidth='286px' title=this}}
-							{{view JQ.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button"}}
+							{{view ASTool.ButtonView label=this minWidth='286px' title=this}}
+							{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 						</div>
 					{{else}}
 						<h5>All links within the spider domain will be matched.</h5>
 					{{/each}}
 				</div>
 				<div style="margin-top:10px">
-					{{view JQ.TextField value=newFollowPattern class="mediumtextarea" width='236px' name='followPatternTextField' placeholder='New follow pattern'}}
-					{{view JQ.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasFollowPattern}}
+					{{view ASTool.TextField value=newFollowPattern class="mediumtextarea" width='236px' name='followPatternTextField' placeholder='New follow pattern'}}
+					{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasFollowPattern}}
 				</div>
 			{{/if}}
 			<hr/>
@@ -72,13 +72,13 @@
 			{{#if performLogin}}
 				<hr/>
 				<div class="mediumLabel">Url</div>
-				{{view JQ.TextField value=loginUrl class="mediumtextarea" width='286px' name='loginUrlField' placeholder='Login URL'}}
+				{{view ASTool.TextField value=loginUrl class="mediumtextarea" width='286px' name='loginUrlField' placeholder='Login URL'}}
 				<div style="margin-top:5px"/>
 				<div class="mediumLabel">User</div>
-				{{view JQ.TextField value=loginUser class="mediumtextarea" width='286px' name='loginUserField' placeholder='Login user'}}
+				{{view ASTool.TextField value=loginUser class="mediumtextarea" width='286px' name='loginUserField' placeholder='Login user'}}
 				<div style="margin-top:5px"/>
 				<div class="mediumLabel">Password</div>
-				{{view JQ.TextField value=loginPassword class="mediumtextarea" width='286px' name='loginPasswordField' placeholder='Login password'}}
+				{{view ASTool.TextField value=loginPassword class="mediumtextarea" width='286px' name='loginPasswordField' placeholder='Login password'}}
 			{{/if}}
 		</div>
 		
@@ -87,9 +87,9 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each templates}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.ButtonView action="editTemplate" argument=this label=name minWidth='260px' title=url icon="ui-icon-wrench"}}
-						{{view JQ.ButtonView action="loadTemplate" argument=this icon="ui-icon-folder-open" class="textless-button"}}
-						{{view JQ.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}
+						{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='260px' title=url icon="ui-icon-wrench"}}
+						{{view ASTool.ButtonView action="loadTemplate" argument=this icon="ui-icon-folder-open" class="textless-button"}}
+						{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
 					<h5>No templates for this spider</h5>
@@ -97,7 +97,7 @@
 			</div>
 			{{#if loadedUrl}}
 				<div style="margin-top: 10px">
-					{{view JQ.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
+					{{view ASTool.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
 				</div>
 			{{else}}
 				<h5>Browse from one of the start URLs to add a template</h5>
@@ -109,7 +109,7 @@
 	</div>
 	
 	<hr/>
-	{{view JQ.ButtonView action="saveSpider" icon="ui-icon-disk" label="Save spider"}}
-	{{view JQ.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
+	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-disk" label="Save spider"}}
+	{{view ASTool.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
 	
 </div>

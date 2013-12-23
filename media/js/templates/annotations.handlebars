@@ -5,18 +5,18 @@
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view JQ.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth="300px" icon="ui-icon-wrench"}}
-						{{view JQ.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button"}}
+						{{view ASTool.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth="300px" icon="ui-icon-wrench"}}
+						{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 					{{else}}
 						<h5>No annotations have been defined yet.</h5>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-					{{view JQ.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="New annotation"}}
+					{{view ASTool.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="New annotation"}}
 			</div>
 		</div>
 	</div>
 	<hr/>
-	{{view JQ.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to spider"}}
+	{{view ASTool.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to spider"}}
 </div>
