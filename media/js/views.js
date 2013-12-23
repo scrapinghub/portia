@@ -73,6 +73,21 @@ ASTool.TextField = Em.TextField.extend({
 });
 
 
+ASTool.CheckBox = Ember.Checkbox.extend();
+
+
+ASTool.ToggleButton = Ember.Checkbox.extend(JQ.Widget, {
+	uiType: 'button',
+	uiOptions: ['label', 'disabled', 'selected', 'checked'],
+
+	updateCheckedState: function() {
+		var ui = $(this.get('element'));
+		ui.attr('checked', this.get('checked'));
+		ui.button('refresh');
+	}.observes('checked')
+});
+
+
 /************************* Application views ****************************/
 
 ASTool.FollowSelect = ASTool.Select.extend({
@@ -175,9 +190,6 @@ ASTool.ItemView = Ember.View.extend({
 	item: null,
 	mappingAttribute: null,
 });
-
-
-ASTool.EditBox = Ember.Checkbox.extend({});
 
 
 ASTool.TypeSelect = Ember.Select.extend({

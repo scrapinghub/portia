@@ -130,19 +130,24 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 
 	currentlySelectedElement: null,
 
-	_selectingIgnore: null,
+	_selectingIgnore: false,
 
 	openAttributesOnShow: false,
 
 	highlightedElement: null,
 	
 	selectingIgnore: function(key, selectingIgnore) {
-		// FIXME: move this to the view.
 		if (arguments.length > 1) {
 			this.set('_selectingIgnore', selectingIgnore);
-			$('#addIgnore').toggleClass('activeControlShadow');
+			if (selectingIgnore) {
+				this.set('documentView.restrictToDescendants', this.get('element'));
+				this.set('documentView.partialSelectionEnabled', false);
+			} else {
+				this.set('documentView.restrictToDescendants', null);
+				this.set('documentView.partialSelectionEnabled', true);
+			}
 		}
-		return this._selectingIgnore;
+		return this.get('_selectingIgnore');
 	}.property('_selectingIgnore'),
 
 	sprites: function() {
@@ -229,12 +234,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		unmapAttribute: function(attribute) {
 			this.content.removeMapping(attribute.name);
 		},
-		
-		addIgnore: function() {
-			this.set('documentView.restrictToDescendants', this.get('element'));
-			this.set('documentView.partialSelectionEnabled', false);
-			this.set('selectingIgnore', true);
-		},
 
 		deleteIgnore: function(ignore) {
 			var ignores = this.get('ignores');
@@ -262,8 +261,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 					this.content.addIgnore(element);	
 				}
 				this.set('selectingIgnore', false);
-				this.set('documentView.restrictToDescendants', false);
-				this.set('documentView.partialSelectionEnabled', true);
 			} else {
 				var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
 				if (!needsConfirmation || this.confirmChangeSelection()) {

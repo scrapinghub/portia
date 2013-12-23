@@ -59,14 +59,14 @@
 				</div>
 			{{/if}}
 			<hr/>
-			{{view ASTool.EditBox checked=respect_nofollow name="respectNoFollow"}}
+			{{view ASTool.CheckBox checked=respect_nofollow name="respectNoFollow"}}
 			<span class="mediumLabel">Respect nofollow</span>
 		</div>
 
 		<h3>Login</h3>
 		<div>
 			<div>
-				{{view ASTool.EditBox checked=performLogin name="performLoginCheck"}}
+				{{view ASTool.CheckBox checked=performLogin name="performLoginCheck"}}
 				<label class="mediumLabel">Perform login</label>
 			</div>
 			{{#if performLogin}}

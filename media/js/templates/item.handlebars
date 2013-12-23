@@ -9,8 +9,8 @@
 				<tr>
 					<td>{{view ASTool.TextField value=name class="mediumtextarea" width="100px" name="fieldName"}}</td>
 					<td>{{view ASTool.TypeSelect selection=type name="fieldType"}}</td>
-					<td>{{view ASTool.EditBox checked=required name="fieldRequired"}}</td>
-					<td>{{view ASTool.EditBox checked=vary name="fieldVary"}}</td>
+					<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
+					<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
 					{{#if view.mappingAttribute}}
 						<td>{{view ASTool.ButtonView action="chooseField" argument=this icon="ui-icon-circle-triangle-e" label="Choose"}}</td>
 					{{/if}}

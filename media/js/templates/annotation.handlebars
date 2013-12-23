@@ -63,8 +63,8 @@
 			<div class="scrolling-container ui-corner-all">
 				{{#each model.ignores}}
 					<div style="margin: 4px 0px 4px 0px">
-						<label class="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
-						{{view ASTool.EditBox checked=this.ignoreBeneath name="ignoreBeneath"}}
+						<label forclass="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
+						{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
 						{{view ASTool.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
 						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
@@ -73,7 +73,8 @@
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view ASTool.ButtonView action="addIgnore" label="Ignore region" icon="ui-icon-cancel" id="addIgnore"}}
+				{{view ASTool.ToggleButton action="addIgnore" checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore"}}
+				<label for="addIgnore">Ignore region</label>
 			</div>
 		</div>
 

@@ -56,12 +56,6 @@ body{
 	box-shadow:0px 0px 8px 1px rgba(0,0,0,0.3);
 }
 
-.activeControlShadow {
-	border-color: orange;
-	color:orange;
-	box-shadow:0px 0px 8px 1px rgba(0,0,0,0.3) inset !important;
-}
-
 .navRoute {
 	cursor: pointer;
 	text-decoration: underline;
