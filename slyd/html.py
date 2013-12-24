@@ -6,6 +6,8 @@
 """
 import re
 from scrapely.htmlpage import HtmlTag, HtmlTagType
+from slybot.utils import htmlpage_from_response
+from slybot.baseurl import insert_base_url
 
 ### Known weaknesses
 #     Doesn't deal with JS hidden in CSS
@@ -34,6 +36,16 @@ def _deentitize_unicode(mystr):
     unicode equivalent.
     """
     return _ENTITY_RE.sub(lambda m: unichr(int(m.groups()[0])), mystr)
+
+
+def html4annotation(response):
+    """Convert the response body for the annotation UI
+
+    This removes scripts and adds a base url
+    """
+    htmlpage = htmlpage_from_response(response)
+    cleaned_html = descriptify(htmlpage)
+    return insert_base_url(cleaned_html, response.url)
 
 
 def descriptify(htmlpage):

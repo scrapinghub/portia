@@ -24,9 +24,8 @@ from scrapy.crawler import Crawler
 from scrapy.http import HtmlResponse
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
-from slybot.utils import htmlpage_from_response
 from slybot.spider import IblSpider
-from .descriptify import descriptify
+from .html import html4annotation
 
 
 def create_bot_resource(spec_manager):
@@ -101,8 +100,7 @@ class Fetch(BotResource):
             finish_request(request, error=msg)
         try:
             params = response.meta['slyd_request_params']
-            htmlpage = htmlpage_from_response(response)
-            cleaned_html = descriptify(htmlpage)
+            cleaned_html = html4annotation(response)
             # we may want to include some headers
             fingerprint = request_fingerprint(response.request)
             result_response = dict(status=response.status,

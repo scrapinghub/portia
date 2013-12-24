@@ -38,11 +38,13 @@ class BotTest(unittest.TestCase):
         self.assertEqual(status, 404)
 
         # get an existing file
-        result = yield self._fetch("http://localhost:8997/test.html")
+        test_url = "http://localhost:8997/test.html"
+        result = yield self._fetch(test_url)
         self.assertEqual(result.responseCode, 200)
         value = json.loads(result.value())
+        # expect 200 response and base href added
         self.assertEqual(value['response']['status'], 200)
-        self.assertIn('page', value)
+        self.assertIn('<base href="%s"' % test_url, value['page'])
 
 
     def tearDown(self):
