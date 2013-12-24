@@ -12,6 +12,7 @@
 dropin.cache
 twistd.log
 twistd.pid
+_trial_temp*
 
 # local data files
 data/*

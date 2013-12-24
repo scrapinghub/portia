@@ -19,7 +19,10 @@ class Project(Resource):
         # rely on the CrawlerSpec for this as storage and auth
         # can be customized
         request.project = project_path_element
-        next_path_element = request.postpath.pop(0)
+        try:
+            next_path_element = request.postpath.pop(0)
+        except IndexError:
+            next_path_element = None
         if next_path_element not in self.children:
             raise NoResource("No such child resource.")
         request.prepath.append(project_path_element)

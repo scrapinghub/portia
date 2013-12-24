@@ -82,8 +82,10 @@ Accepts json object with the following fields:
 
 Returns a json object containing (so far):
 * page - page content, not yet annotated but will be
+* response - object containing the response data: http code and headers
 * items - array of items extracted
 * fp - request fingerprint
+* error - error message, present if there was an error
 
 Coming soon in the response:
 * template_id - id of template that matched
@@ -115,12 +117,12 @@ $ curl -d '{"request": {"url": "http://www.pinterest.com/pin/339740365610932893/
    "page": "<!DOCTYPE html>\n ...."
 }
 
-UI Testing
-----------
+Testing
+-------
 
 A Karma test eviroment is now available. To run the ui tests:
 
-    npm install 
+    npm install
     export PATH="./node_modules/.bin:$PATH"
     karma start
 
@@ -130,3 +132,7 @@ Look at karma.conf.js to configure test options.
 
 The tests are located in:
   media/tests
+
+slyd can be tested using twisted:
+
+    trial tests

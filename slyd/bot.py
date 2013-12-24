@@ -29,8 +29,8 @@ from slybot.spider import IblSpider
 from .descriptify import descriptify
 
 
-def create_bot_resource(settings, spec_manager):
-    bot = Bot(settings, spec_manager)
+def create_bot_resource(spec_manager):
+    bot = Bot(spec_manager.settings, spec_manager)
     bot.putChild('fetch', Fetch(bot))
     return bot
 
@@ -54,6 +54,11 @@ class Bot(Resource):
 
     def keep_spider_alive(self, spider):
         raise DontCloseSpider("keeping it open")
+
+    def stop(self):
+        """Stop the crawler"""
+        self.crawler.stop()
+        log.msg("bot stopped", level=log.DEBUG)
 
 
 class BotResource(Resource):
@@ -85,8 +90,11 @@ class Fetch(BotResource):
 
     def fetch_callback(self, response):
         request = response.meta['twisted_request']
+        result_response = dict(status=response.status,
+                headers=response.headers.to_string())
         if response.status != 200:
-            finish_request(request, error="Received http %s" % response.status)
+            finish_request(request, response=result_response)
+            return
         if not isinstance(response, HtmlResponse):
             msg = "Non-html response: %s" % response.headers.get(
                 'content-type', 'no content type')
@@ -97,7 +105,10 @@ class Fetch(BotResource):
             cleaned_html = descriptify(htmlpage)
             # we may want to include some headers
             fingerprint = request_fingerprint(response.request)
-            result = dict(page=cleaned_html, fp=fingerprint)
+            result_response = dict(status=response.status,
+                headers=response.headers.to_string())
+            result = dict(page=cleaned_html, fp=fingerprint,
+                response=result_response)
             spider = self.create_spider(request.project, params)
             if spider is not None:
                 items, _link_regions = spider.extract_items(htmlpage)
@@ -105,10 +116,13 @@ class Fetch(BotResource):
             finish_request(request, **result)
         except Exception as ex:
             log.err()
-            finish_request(request, error="unexpected internal error: %s" % ex)
+            finish_request(request, response=result_response,
+                error="unexpected internal error: %s" % ex)
 
     def create_spider(self, project, params, **kwargs):
-        spider = params['spider']
+        spider = params.get('spider')
+        if spider is None:
+            return
         pspec = self.bot.spec_manager.project_spec(project)
         try:
             spider_spec = pspec.resource('spiders', spider)
@@ -135,6 +149,7 @@ def read_json(request):
 
 def finish_request(trequest, **resp_obj):
     jdata = json.dumps(resp_obj)
+    trequest.setResponseCode(200)
     trequest.setHeader('Content-Type', 'application/json')
     trequest.setHeader('Content-Length', len(jdata))
     trequest.write(jdata)

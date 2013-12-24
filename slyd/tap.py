@@ -39,14 +39,13 @@ def create_root(config):
 
     # add crawler at api/PROJECT/bot
     crawler_settings = CrawlerSettings(settings_module=slyd.settings)
-    spec_dir = crawler_settings['SPEC_DATA_DIR']
-    spec_manager = CrawlerSpecManager(spec_dir)
-    log.msg("Slybot specs loading from %s/[PROJECT]" % spec_dir,
+    spec_manager = CrawlerSpecManager(crawler_settings)
+    log.msg("Slybot specs loading from %s/[PROJECT]" % spec_manager.basedir,
         level=log.DEBUG)
-    project.putChild("bot", create_bot_resource(crawler_settings, spec_manager))
+    project.putChild("bot", create_bot_resource(spec_manager))
 
     # spec at api/PROJECT/spec
-    spec = create_crawler_spec_resource(crawler_settings, spec_manager)
+    spec = create_crawler_spec_resource(spec_manager)
     project.putChild("spec", spec)
     return root
 

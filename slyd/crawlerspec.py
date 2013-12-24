@@ -16,7 +16,7 @@ from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 
 
-def create_crawler_spec_resource(settings, spec_manager):
+def create_crawler_spec_resource(spec_manager):
     return SpecResource(spec_manager)
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -57,8 +57,6 @@ class SpecResource(SlydJsonResource):
         return '\n'
 
     def render_POST(self, request):
-        # get_schema_validator(name)
-        # read request JSON:
         obj = self.read_json(request)
         try:
             # validate the request path and data
@@ -75,10 +73,12 @@ class SpecResource(SlydJsonResource):
         project_spec.savejson(obj, request.postpath)
         return ''
 
+
 class CrawlerSpecManager(object):
 
-    def __init__(self, basedir):
-        self.basedir = basedir
+    def __init__(self, settings):
+        self.settings = settings
+        self.basedir = self.settings['SPEC_DATA_DIR']
 
     def project_spec(self, project):
         return ProjectSpec(join(self.basedir, str(project)))

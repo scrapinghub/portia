@@ -9,6 +9,7 @@ class SlydJsonResource(Resource):
     """
 
     def render(self, request):
+        request.setResponseCode(200)
         request.setHeader('Content-Type', 'application/json')
         try:
             return Resource.render(self, request)
