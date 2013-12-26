@@ -42,22 +42,17 @@ ASTool.SpiderRoute = Ember.Route.extend({
 ASTool.AnnotationsRoute = Ember.Route.extend({
 	beforeModel: function() {
 		var controller = this.controllerFor('annotations');
-		// We need to reload the annotated document.
-		if (controller.get('documentView.displayedPageId') !=
-		    'template_' + controller.get('template.name')) {
-			var promise = Ember.RSVP.Promise(function(resolve) {
-				controller.deleteAllAnnotations();
-				controller.get('documentView').displayAnnotatedDocument(
-					controller.get('template.annotated_body'),
-					'template_' + controller.get('template.name'),
-					function(docIframe){
-						ASTool.set('iframe', docIframe);
-						resolve();
-					}
-				);
-			});
-			return promise;
-		}
+		var promise = Ember.RSVP.Promise(function(resolve) {
+			controller.deleteAllAnnotations();
+			controller.get('documentView').displayAnnotatedDocument(
+				controller.get('template.annotated_body'),
+				function(docIframe){
+					ASTool.set('iframe', docIframe);
+					resolve();
+				}
+			);
+		});
+		return promise;
 	},
 
 	model: function() {

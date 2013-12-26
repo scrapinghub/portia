@@ -6,7 +6,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each start_urls}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="loadPage" argument=this label=this minWidth='286px' title=this icon="ui-icon-folder-open"}}
+						{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='286px' title=this icon="ui-icon-folder-open"}}
 						{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
@@ -97,7 +97,7 @@
 					<h5>No templates for this spider</h5>
 				{{/each}}
 			</div>
-			{{#if loadedUrl}}
+			{{#if loadedPageFp}}
 				<div style="margin-top: 10px">
 					{{view ASTool.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
 				</div>
@@ -113,5 +113,8 @@
 	<hr/>
 	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-disk" label="Save spider"}}
 	{{view ASTool.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
+	{{#if hasHistory}}
+		{{view ASTool.ButtonView action="browseBack" label="Browse back" minWidth='100px'}}
+	{{/if}}
 	
 </div>

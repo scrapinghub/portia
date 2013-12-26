@@ -1,7 +1,5 @@
 ASTool.DocumentView = Em.Object.extend({
 
-	displayedPageId: null,
-
 	dataSource: null,
 
 	listener: null,
@@ -230,8 +228,7 @@ ASTool.DocumentView = Em.Object.extend({
 		}
 	},
 
-	displayAnnotatedDocument: function(annotatedDocument, pageId, readyCallback) {
-		this.set('displayedPageId', pageId);
+	displayAnnotatedDocument: function(annotatedDocument, readyCallback) {
 		if (this.get('autoRedrawId')) {
 			clearInterval(this.get('autoRedrawId'));
 		}
@@ -252,7 +249,6 @@ ASTool.DocumentView = Em.Object.extend({
 
 	showLoading: function() {
 		this.set('canvas.interactionsBlocked', true);
-		this.set('displayedPageId', null);
 		var loader = this.get('loader');
 		if (!loader) {
 			loader = new CanvasLoader('loaderContainer');
@@ -278,12 +274,10 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	showError: function(error) {
-		this.set('displayedPageId', null);
 		this.getIframe().find('html').html(error);
 	},
 
 	showSpider: function() {
-		this.set('displayedPageId', null);
 		if (!Ember.testing){
 			ic.ajax('start.html').then(function(page) {
 				this.getIframe().find('html').html(page);
