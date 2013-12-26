@@ -315,7 +315,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	mappingAttributeBinding: 'controllers.annotation.mappingAttribute',
 
 	addItem: function() {
-		var newItem = ASTool.Item.create({ name: 'new item' });
+		var newItem = ASTool.Item.create({ name: 'new item ' + ASTool.guid().substring(0, 5) });
 		this.pushObject(newItem);
 	},
 	

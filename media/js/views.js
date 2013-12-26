@@ -101,6 +101,22 @@ ASTool.FollowSelect = ASTool.Select.extend({
 });
 
 
+ASTool.TypeSelect = ASTool.Select.extend({
+	owner: null,
+	content: [{ option: 'geopoint', label: 'geopoint' },
+			  { option: 'number', label: 'number' },
+			  { option: 'price', label: 'price' },
+			  { option: 'raw html', label: 'raw html' },
+			  { option: 'safe html', label: 'safe html' },
+			  { option: 'text', label: 'text'},
+			  { option: 'url', label: 'url' }],
+
+	select: function(event, data) {
+		this.get('itemField').set('type', data.item.value);
+	},
+});
+
+
 ASTool.VariantSelect = ASTool.Select.extend({
 
 	content: function() {
@@ -189,15 +205,6 @@ ASTool.ItemView = Ember.View.extend({
 	templateName: 'item',
 	item: null,
 	mappingAttribute: null,
-});
-
-
-ASTool.TypeSelect = Ember.Select.extend({
-	owner: null,
-	content: ['geopoint', 'image', 'number', 'price', 'raw html', 'safe html', 'text', 'url'],
-	change: function(evt) {
-		this.get('owner').save();
-	}
 });
 
 

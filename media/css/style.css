@@ -41,17 +41,6 @@ body{
 	background-image: -moz-linear-gradient(top, #A81317 0%, #880910 100%);
 }
 
-#navigationbar {
-	margin:0px 10px 10px 10px;
-	padding: 8px;
-	border-color: #636363;
-	border-style:solid;
-	border-width: 1px;
-	background-color:#4A4A4A;
-	box-shadow:0px 0px 12px 1px rgba(0,0,0,0.3) inset;
-	text-align: center;
-}
-
 .controlShadow {
 	box-shadow:0px 0px 8px 1px rgba(0,0,0,0.3);
 }
@@ -65,6 +54,17 @@ body{
 	text-align:center;
 	padding:0px 0px 10px 0px;
 	margin:0px 10px 10px 10px;
+}
+
+.nonscrolling-container {
+	margin:0px 10px 10px 10px;
+	padding: 8px;
+	border-color: #636363;
+	border-style:solid;
+	border-width: 1px;
+	background-color:#4A4A4A;
+	box-shadow:0px 0px 12px 1px rgba(0,0,0,0.3) inset;
+	text-align: center;
 }
 
 .scrolling-container {
@@ -293,6 +293,14 @@ div > * {
 
 .variantBox .custom-combobox-input {
 	width: 100px;
+}
+
+.typeBox .custom-combobox {
+	margin: -1px 20px 0px 6px;
+}
+
+.typeBox .custom-combobox-input {
+	width: 56px;
 }
 
 .ui-state-focus { outline: none; }

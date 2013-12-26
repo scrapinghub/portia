@@ -6,13 +6,15 @@
 				<h4>Choose an item field to map "{{mappingAttribute.name}}"</h4>
 				<hr/>
 			{{/if}}
-			{{#each model}}
-				{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
-				<hr/>
-		 	{{else}}
-		 		<h4>No items have been defined yet.</h4>
-				<hr/>
-		 	{{/each}}
+			<div class="scrolling-container ui-corner-all">
+				{{#each model}}
+					{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
+					<hr/>
+			 	{{else}}
+			 		<h4>No items have been defined yet.</h4>
+					<hr/>
+			 	{{/each}}
+			 </div>
 			{{view ASTool.ButtonView action="addItem" icon="ui-icon-circle-plus" label="New item"}}
 			{{view ASTool.ButtonView action="back" icon="ui-icon-circle-triangle-w" label="Back"}}
 		</div>

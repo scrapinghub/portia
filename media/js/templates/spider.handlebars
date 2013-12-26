@@ -70,15 +70,17 @@
 				<label class="mediumLabel">Perform login</label>
 			</div>
 			{{#if performLogin}}
-				<hr/>
-				<div class="mediumLabel">Url</div>
-				{{view ASTool.TextField value=loginUrl class="mediumtextarea" width='286px' name='loginUrlField' placeholder='Login URL'}}
-				<div style="margin-top:5px"/>
-				<div class="mediumLabel">User</div>
-				{{view ASTool.TextField value=loginUser class="mediumtextarea" width='286px' name='loginUserField' placeholder='Login user'}}
-				<div style="margin-top:5px"/>
-				<div class="mediumLabel">Password</div>
-				{{view ASTool.TextField value=loginPassword class="mediumtextarea" width='286px' name='loginPasswordField' placeholder='Login password'}}
+				<div class="nonscrolling-container ui-corner-all">
+					<div class="mediumLabel">Url</div>
+					{{view ASTool.TextField value=loginUrl class="mediumtextarea" width='286px' name='loginUrlField' placeholder='Login URL'}}
+					<div style="margin-top:5px"/>
+					<div class="mediumLabel">User</div>
+					{{view ASTool.TextField value=loginUser class="mediumtextarea" width='286px' name='loginUserField' placeholder='Login user'}}
+					<div style="margin-top:5px"/>
+					<div class="mediumLabel">Password</div>
+					{{view ASTool.TextField value=loginPassword class="mediumtextarea" width='286px' name='loginPasswordField' placeholder='Login password'}}
+					<div style="margin-top:10px"/>
+				</div>
 			{{/if}}
 		</div>
 		
