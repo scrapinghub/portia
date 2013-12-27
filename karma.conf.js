@@ -13,6 +13,7 @@ module.exports = function(karma) {
           "js/vendor/ic-ajax.js",
           "js/vendor/ember-data.js",
           "js/vendor/loading.js",
+          "js/vendor/arbor.js",
           
           "js/app.js",
           "js/api.js",
