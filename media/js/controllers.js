@@ -447,7 +447,9 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 					function(docIframe){
 						this.set('loadedPageFp', data.fp);
 						this.get('pageMap')[data.fp] = data;
-						ASTool.graph.addPage(data, parentFp)
+						if (ASTool.graph) {
+							ASTool.graph.addPage(data, parentFp);
+						}
 					}.bind(this)
 				);
 			} else {
