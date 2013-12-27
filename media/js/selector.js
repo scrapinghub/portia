@@ -222,6 +222,10 @@ ASTool.DocumentView = Em.Object.extend({
 				$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
 				$('#toolbar').height(window.innerHeight);
 				this.get('canvas').draw();
+				if (ASTool.graph) {
+					// FIXME: move this to a good place.
+					ASTool.graph.resize();
+				}
 			}.bind(this);
 			var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
 			doc.onscroll = canvas.draw.bind(canvas);
@@ -295,8 +299,3 @@ ASTool.DocumentView = Em.Object.extend({
 		this.getIframe().scrollLeft(rect.left - 100);
 	},
 });
-
-window.onresize = function() {
-	$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
-	$('#toolbar').height(window.innerHeight);
-}

@@ -398,9 +398,36 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		return this.content.get('links_to_follow') == 'patterns';
 	}.property('model.links_to_follow'),
 
+	showCrawlGraph: function(key, show) {
+		if (!ASTool.graph) {
+			return false;
+		}
+		if (arguments.length > 1) {
+            if (show) {
+                ASTool.graph.set('hidden', false);
+            } else {
+                ASTool.graph.set('hidden', true);
+            }
+        }
+        return  !ASTool.graph.get('hidden');
+	}.property('ASTool.graph.hidden'),
+
+	_showLinks: true,
+
+	showLinks: function(key, show) {
+		if (arguments.length > 1) {
+            if (show) {
+                this.set('_showLinks', true);
+            } else {
+                this.set('_showLinks', false);
+            }
+        }
+        return  this.get('_showLinks');
+	}.property('_showLinks'),
+
 	sprites: function() {
 		//FIXME: get this from slyd.
-		if (!this.get('loadedPageFp')) {
+		if (!this.get('loadedPageFp') || !this.get('showLinks')) {
 			return [];
 		}
 		var currentPageUrl = this.get('pageMap')[this.get('loadedPageFp')].url;
@@ -417,7 +444,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 				strokeColor: 'clear' }));
 		});
 		return sprites;
-	}.property('loadedPageFp'),
+	}.property('loadedPageFp', 'showLinks'),
 
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
@@ -581,6 +608,15 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 										  listener: this,
 										  dataSource: this });
 		this.get('documentView').showSpider();
+		if (!ASTool.graph) {
+			ASTool.set('graph', ASTool.CrawlGraph.create());
+		}
+		ASTool.graph.set('hidden', false);
+	},
+
+	willLeave: function() {
+		ASTool.graph.clear();
+		ASTool.graph.set('hidden', true);
 	},
 });
 
@@ -609,10 +645,6 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 		gotoItems: function() {
 			this.pushRoute('items', 'Items');
-		},
-
-		showCrawlGraph: function() {
-			var crawlGraph = ASTool.CrawlGraph.create();
 		},
 	},
 

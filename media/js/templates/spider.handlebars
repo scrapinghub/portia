@@ -105,6 +105,19 @@
 				<h5>Browse from one of the start URLs to add a template</h5>
 			{{/if}}
 		</div>
+
+		<h3>Overlays</h3>
+		<div>
+			<div>
+				<span class="mediumLabel">Show crawl graph</span>
+				{{view ASTool.CheckBox checked=showCrawlGraph name="showCrawlGraph"}}
+			</div>
+			<div>
+				<span class="mediumLabel">Show blocked links</span>
+				{{view ASTool.CheckBox checked=showLinks name="showLinks"}}
+			</div>
+		</div>
+
 	</div>
 
 	<div>
