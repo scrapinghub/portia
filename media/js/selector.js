@@ -70,10 +70,13 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 	
 	redrawNow: function() {
+		var canvas = this.get('canvas');
 		if (this.get('dataSource')) {
-			this.get('canvas').draw();	
+			canvas.draw();	
+		} else {
+			canvas.clear();
 		}
-	}.observes('sprites'),
+	}.observes('sprites', 'dataSource'),
 
 	installEventHandlersForBrowsing: function() {
 		this.uninstallEventHandlers();
@@ -227,8 +230,6 @@ ASTool.DocumentView = Em.Object.extend({
 					ASTool.graph.resize();
 				}
 			}.bind(this);
-			var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
-			doc.onscroll = canvas.draw.bind(canvas);
 		}
 	},
 
@@ -236,19 +237,29 @@ ASTool.DocumentView = Em.Object.extend({
 		if (this.get('autoRedrawId')) {
 			clearInterval(this.get('autoRedrawId'));
 		}
-		this.getIframe().find('html').html(annotatedDocument);
+		
+		// FIXME!!
+		if (!Ember.testing){
+			document.getElementById('scraped-doc-iframe').srcdoc = annotatedDocument;
+		} else {
+			this.getIframe().find('html').html(annotatedDocument);
+		}
+
 		if (!this.getCanvas) {
 			this.initCanvas();	
 		}
+		
 		// We need to disable all interactions with the document we are loading
 		// until we trigger the callback.
 		this.set('canvas.interactionsBlocked', true);
-		Em.run.later(this, function() {
-				this.set('canvas.interactionsBlocked', false);
-				if (readyCallback) {
-					readyCallback(this.getIframe());
-				};
-			}, 1000);
+		Em.run.later(this, function() {	
+			var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
+			doc.onscroll = this.get('canvas').draw.bind(this.get('canvas'));
+			this.set('canvas.interactionsBlocked', false);
+			if (readyCallback) {
+				readyCallback(this.getIframe());
+			};
+		}, 1000);
 	},
 
 	showLoading: function() {

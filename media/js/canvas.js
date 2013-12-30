@@ -3,7 +3,13 @@ ASTool.Canvas = Em.Object.extend({
 	canvasId: null,
 
 	datasource: null,
-	
+
+	clear: function() {
+		var canvas = $('#' + this.get('canvasId')).get(0);
+		var context = canvas.getContext("2d");
+		context.clearRect(0, 0, canvas.width, canvas.height);
+	},
+
 	draw: function() {
 		var sprites = this.datasource.get('sprites');
 		var hoveredSprite = this.datasource.get('hoveredSprite');

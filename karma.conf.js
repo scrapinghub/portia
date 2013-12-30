@@ -19,6 +19,7 @@ module.exports = function(karma) {
           "js/api.js",
           "js/canvas.js",
           "js/controllers.js",
+          "js/crawlgraph.js",
           "js/emberui.js",
           "js/jqplugins.js",
           "js/models.js",

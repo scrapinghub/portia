@@ -472,6 +472,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 				this.get('browseHistory').pushObject(data.fp);
 				documentView.displayAnnotatedDocument(data.page,
 					function(docIframe){
+						this.get('documentView').reset();
+						this.get('documentView').config({ mode: 'browse',
+										  listener: this,
+										  dataSource: this });
 						this.set('loadedPageFp', data.fp);
 						this.get('pageMap')[data.fp] = data;
 						if (ASTool.graph) {
@@ -490,6 +494,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		var documentView = this.get('documentView');
 		documentView.displayAnnotatedDocument(this.get('pageMap')[fp].page,
 			function(){
+				this.get('documentView').reset();		
+				this.get('documentView').config({ mode: 'browse',
+					listener: this,
+					dataSource: this });
 				this.set('loadedPageFp', fp);
 			}.bind(this));
 	},
@@ -593,9 +601,14 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			var parsedCurrentUrl = URI.parse(this.get('pageMap')[this.get('loadedPageFp')].url);
 
 			if (!parsedUrl.protocol) {
-				parsedCurrentUrl.path = parsedUrl.path;
+				if (url.indexOf('/') == 0) {
+					parsedCurrentUrl.path = parsedUrl.path.substring(1);
+				} else {
+					parsedCurrentUrl.path += parsedUrl.path;	
+				}
 				url = URI.build(parsedCurrentUrl);
 			}
+			console.log(url);
 			this.fetchPage(url, this.get('loadedPageFp'));	
 		}
 	},

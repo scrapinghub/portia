@@ -97,7 +97,7 @@ ASTool.CrawlGraph = Em.Object.extend({
     system: null,
 
     init: function() {
-        var system = arbor.ParticleSystem(10, 10, 0.5, true, 55);
+        var system = arbor.ParticleSystem(10, 10, 0.1, true, 55);
         this.set('system', system);
         system.renderer = ASTool.GraphRenderer.create({ system: system });
         this.clear();

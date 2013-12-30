@@ -73,7 +73,7 @@ test('add starturl test', function() {
         fillIn('[name*="startUrlTextField"]', 'http://newurl.com').
         click('[name*="addStartUrl"]').
         then(function() {
-           equal(exists('[name*="loadPage_http://newurl.com"]'), true);
+           equal(exists('[name*="fetchPage_http://newurl.com"]'), true);
         })
     });
 });
