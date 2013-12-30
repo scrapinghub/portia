@@ -1,5 +1,9 @@
 <div class="toolbar-container-noborder ui-corner-all">
-	<!--<h3>Spider {{name}}</h3>-->
+	{{#if hasHistory}}
+		<div style="margin-bottom: 10px">
+			{{view ASTool.ButtonView action="browseBack" label="Browse back" minWidth="100px" icon="ui-icon-triangle-1-w"}}
+		</div>
+	{{/if}}
 	<div class="accordion" style="margin-bottom: 10px">	
 		<h3>Start URLs</h3>
 		<div>
@@ -126,8 +130,5 @@
 	<hr/>
 	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-disk" label="Save spider"}}
 	{{view ASTool.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
-	{{#if hasHistory}}
-		{{view ASTool.ButtonView action="browseBack" label="Browse back" minWidth='100px'}}
-	{{/if}}
 	
 </div>
