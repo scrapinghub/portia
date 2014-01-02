@@ -379,7 +379,7 @@ ASTool.Annotation = DS.Model.extend({
 
 ASTool.Item = Em.Object.extend({
 	name: null,
-	fields: [],
+	fields: null,
 });
 
 

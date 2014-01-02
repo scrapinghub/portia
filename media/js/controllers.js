@@ -321,6 +321,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	
 	addField: function(owner) {
 		var newField = ASTool.ItemField.create({ name: 'new field' });
+		owner.set('fields', owner.fields || []);
 		owner.fields.pushObject(newField);
 	},
 
