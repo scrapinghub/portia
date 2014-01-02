@@ -1,6 +1,7 @@
 /* Router config */
 ASTool.Router.reopen({
-	location: 'none'
+	// TODO: use 'hash' here.
+	location: 'none',
 });
 
 
@@ -42,7 +43,7 @@ ASTool.SpiderRoute = Ember.Route.extend({
 ASTool.AnnotationsRoute = Ember.Route.extend({
 	beforeModel: function() {
 		var controller = this.controllerFor('annotations');
-		var promise = Ember.RSVP.Promise(function(resolve) {
+		var promise = new Ember.RSVP.Promise(function(resolve) {
 			controller.deleteAllAnnotations();
 			controller.get('documentView').displayAnnotatedDocument(
 				controller.get('template.annotated_body'),

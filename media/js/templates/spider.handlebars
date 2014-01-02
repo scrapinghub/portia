@@ -28,7 +28,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each exclude_patterns}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ButtonView label=this minWidth='286px' title=this}}
+						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='286px' title=this}}
 						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}

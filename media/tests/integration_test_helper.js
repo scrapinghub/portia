@@ -2,6 +2,32 @@ document.write('<div id="ember-testing-container"><div id="ember-testing"></div>
 
 ASTool.rootElement = '#ember-testing';
 ASTool.setupForTesting();
+
+Ember.Test.registerAsyncHelper('iframeClick', function(app, selector, context) {
+    var $el =$('#scraped-doc-iframe').contents().find(selector);
+    Ember.run(function() {
+        $el.mouseup();
+    });
+});
+
+Ember.Test.registerAsyncHelper('iframeClick', function(app, selector, context) {
+    var $el =$('#scraped-doc-iframe').contents().find(selector);
+    Ember.run(function() {
+        $el.mouseup();
+    });
+});
+
+Ember.Test.registerAsyncHelper('sleep', function(app, value) {
+    return Ember.Test.promise(function(resolve) {
+        Ember.Test.adapter.asyncStart();
+        setTimeout(function() {
+            Ember.Test.adapter.asyncEnd();
+            Em.run(null, resolve, value);
+        }, 250);
+    });
+});
+
+
 ASTool.injectTestHelpers();
 
 function exists(selector) {
@@ -15,15 +41,15 @@ function exists(selector) {
 if (!Function.prototype.bind) {
   Function.prototype.bind = function (oThis) {
     if (typeof this !== "function") {
-      // closest thing possible to the ECMAScript 5 internal IsCallable function
-      throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+        // closest thing possible to the ECMAScript 5 internal IsCallable function
+        throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
     }
 
     var aArgs = Array.prototype.slice.call(arguments, 1), 
         fToBind = this, 
         fNOP = function () {},
         fBound = function () {
-          return fToBind.apply(this instanceof fNOP && oThis
+            return fToBind.apply(this instanceof fNOP && oThis
                                  ? this
                                  : oThis,
                                aArgs.concat(Array.prototype.slice.call(arguments)));

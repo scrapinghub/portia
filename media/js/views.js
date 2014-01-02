@@ -166,6 +166,7 @@ ASTool.CSSPathWidget = ASTool.ButtonView.extend({
 ASTool.IgnoreWidget = ASTool.TextField.extend({
 	ignore: null,
 	valueBinding: 'ignore.name',
+	name: 'ignore_' + this.get('value'),
 	
 	mouseEnter: function() {
 		this.set('ignore.highlighted', true);

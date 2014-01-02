@@ -60,22 +60,26 @@
 		
 		<h3>Ignored subregions</h3>
 		<div>
-			<div class="scrolling-container ui-corner-all">
-				{{#each model.ignores}}
-					<div style="margin: 4px 0px 4px 0px">
-						<label forclass="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
-						{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
-						{{view ASTool.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
-						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
-					</div>
-				{{else}}
-					<h5>No ignored subregions defined.</h5>
-				{{/each}}
-			</div>
-			<div style="margin-top:10px">
-				{{view ASTool.ToggleButton action="addIgnore" checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore"}}
-				<label for="addIgnore">Ignore region</label>
-			</div>
+			{{#if path}}
+				<div class="scrolling-container ui-corner-all">
+					{{#each model.ignores}}
+						<div style="margin: 4px 0px 4px 0px">
+							<label forclass="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
+							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
+							{{view ASTool.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
+							{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
+						</div>
+					{{else}}
+						<h5>No ignored subregions defined.</h5>
+					{{/each}}
+				</div>
+				<div style="margin-top:10px">
+					{{view ASTool.ToggleButton action="addIgnore" checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
+					<label for="addIgnore">Ignore region</label>
+				</div>
+			{{else}}
+				<h5>Please select an element or region from the document.</h5>
+			{{/if}}
 		</div>
 
 		<h3>Variant</h3>

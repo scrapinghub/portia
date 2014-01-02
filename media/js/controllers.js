@@ -580,6 +580,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			this.set('newExcludePattern', '');
 		},
 
+		editExcludePattern: function() {
+			//TODO: implement this.
+		},
+
 		deleteExcludePattern: function(pattern) {
 			this.content.get('exclude_patterns').removeObject(pattern);
 		},

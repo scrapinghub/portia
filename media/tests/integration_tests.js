@@ -51,7 +51,7 @@ test('add spider test', function() {
         return 'test_guid'
     };
     stubEndpoint('/spec/spiders', []);
-    stubEndpoint('/spec/spiders/test_', [], 'POST');
+    stubEndpoint('/spec/spiders/test_', null, 'POST');
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         wait().
@@ -88,6 +88,8 @@ test('map attribute test', function() {
     Ember.run(function() {
         wait().
         click('[name*="editSpider"]').
+        // This should't be needed fixes Firefox flakyness for this test.
+        sleep().
         click('[name*="editTemplate_http://site1"]').
         click('[name*="editAnnotation"]').
         click('[name*="mapAttribute"]').
@@ -99,13 +101,14 @@ test('map attribute test', function() {
 });
 
 test('delete annotation test', function() {
-    //FIXME: This test is flaky in firefox.
     stubEndpoint('/spec/spiders', spiderNamesJson);
     stubEndpoint('/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         wait().
         click('[name*="editSpider"]').
+        // This should't be needed fixes Firefox flakyness for this test.
+        sleep().
         click('[name*="editTemplate_http://site1"]').
         then(function() {
             equal(exists('[name*="editAnnotation"]'), true);
@@ -132,3 +135,43 @@ test('items saved automatically', function() {
         })
     });
 });
+
+test('add exclude pattern', function() {
+    stubEndpoint('/spec/spiders', spiderNamesJson);
+    stubEndpoint('/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
+    Ember.run(ASTool, 'advanceReadiness');
+    Ember.run(function() {
+        wait().
+        click('[name*="editSpider"]').
+        fillIn('[name*="excludePatternTextField"]', 'test_pattern').
+        click('[name*="addExcludePattern"]').
+        then(function() {
+           equal(exists('[name*="editExcludePattern_test_pattern"]'), true);
+        })
+    });
+});
+
+test('ignore subregion & delete ignore', function() {
+    stubEndpoint('/spec/spiders', spiderNamesJson);
+    stubEndpoint('/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
+    Ember.run(ASTool, 'advanceReadiness');
+    Ember.run(function() {
+        wait().
+        click('[name*="editSpider"]').
+        // This should't be needed fixes Firefox flakyness for this test.
+        sleep().
+        click('[name*="editTemplate_http://site1"]').
+        click('[name*="editAnnotation"]').
+        click('[name*="addIgnore"]').
+        iframeClick('#xxx').
+        then(function() {
+            equal(exists('[name*="ignore_"]'), true);
+        }).
+        click('[name*="deleteIgnore"]').
+        then(function() {
+            equal(exists('[name*="ignore_"]'), false);
+        })
+    });
+});
+
+

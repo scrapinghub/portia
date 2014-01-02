@@ -196,7 +196,9 @@ ASTool.DocumentView = Em.Object.extend({
 	sendEvent: function(name, target) {
 		var actions = this.get('listener.documentActions');
 		if (actions && actions[name]) {
-			actions[name].bind(this.get('listener'))(target);
+			Em.run(function(){
+				actions[name].call(this.get('listener'), target);
+			}.bind(this));
 		}
 	},
 
