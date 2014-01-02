@@ -30,13 +30,11 @@ $.widget( "custom.combobox", {
         this._on( this.input, {
             autocompleteselect: function( event, ui ) {
                 ui.item.option.selected = true;
-                this._trigger( "select", event, {
-                item: ui.item.option
-            });
-        },
+                this._trigger( "select", event, { item: ui.item.option });
+            },
  
-        autocompletechange: "_removeIfInvalid"
-        });
+            autocompletechange: "_removeIfInvalid" }
+        );
     },
  
     _createShowAllButton: function() {
@@ -58,10 +56,11 @@ $.widget( "custom.combobox", {
                 wasOpen = input.autocomplete( "widget" ).is( ":visible" );
             })
             .click(function() {
+                input.focus();
                 // Close if already visible
                 if ( wasOpen ) {
                     return;
-            }
+                }
  
             // Pass empty string as value to search for, displaying all results
             input.autocomplete( "search", "" );

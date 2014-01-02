@@ -105,6 +105,7 @@ ASTool.TypeSelect = ASTool.Select.extend({
 	owner: null,
 	content: [{ option: 'geopoint', label: 'geopoint' },
 			  { option: 'number', label: 'number' },
+			  { option: 'image', label: 'image' },
 			  { option: 'price', label: 'price' },
 			  { option: 'raw html', label: 'raw html' },
 			  { option: 'safe html', label: 'safe html' },
