@@ -147,7 +147,7 @@ ASTool.AnnotationWidget = ASTool.ButtonView.extend({
 
 	mouseLeave: function() {
 		this.set('argument.highlighted', false);
-	},	
+	},
 });
 
 
@@ -207,6 +207,45 @@ ASTool.ItemView = Ember.View.extend({
 	templateName: 'item',
 	item: null,
 	mappingAttribute: null,
+});
+
+
+ASTool.InlineTextField = Ember.View.extend({
+  layoutName: 'inline-textfield',
+
+ 	click: function() {
+    	if (!this.get('isEditing'))  {
+      		this.set('isEditing', true);
+      		Ember.run.scheduleOnce('afterRender', this, this.focusTextField);
+    	}
+  	},
+
+  	focusTextField: function() {
+    	var val = this.$('input').val();
+    	this.$('input').focus();
+
+    	this.$('input').val('');
+    	this.$('input').val(val);
+  	},
+
+  	textField: Ember.TextField.extend({
+  		classNames: ['inlinetextarea', 'ui-corner-all'],
+
+    	focusOut: function() {
+    		this.done();
+    	},
+
+    	keyPress: function(e) {
+        	if (e.keyCode == $.ui.keyCode['ENTER']) {
+        		this.done();
+        	}
+    	},
+
+    	done: function() {
+			var parentView = this.get('parentView');
+      		parentView.set('isEditing', false);
+    	},
+  	}),
 });
 
 

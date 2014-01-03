@@ -1,0 +1,9 @@
+<div style="margin:-5px 0px 15px 0px;">
+	{{#if view.isEditing}}
+		<div style="margin:0px 10px 10px 0px;">
+	 		{{view view.textField value=view.value action=save}}
+	 	</div>
+	{{else}}
+		{{yield}}
+	{{/if}}
+</div>

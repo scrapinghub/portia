@@ -93,7 +93,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each templates}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='260px' title=url icon="ui-icon-wrench"}}
+						{{view ASTool.ButtonView action="editTemplate" argument=this label=templateName minWidth='260px' title=url icon="ui-icon-wrench"}}
 						{{view ASTool.ButtonView action="loadTemplate" argument=this icon="ui-icon-folder-open" class="textless-button"}}
 						{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>

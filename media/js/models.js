@@ -150,8 +150,13 @@ ASTool.Template = DS.Model.extend({
 	annotated_body: DS.attr('string', {defaultValue:''}),
 	original_body: DS.attr('string', {defaultValue:''}),
 	extractors: DS.attr(null, { defaultValue:[] }),
-	name: function() {
-		return this.get('url');
+	name: DS.attr('string'),
+
+	templateName: function(key, templateName) {
+		if (arguments.length > 1) {
+			this.set('name', templateName); 
+		}
+		return this.get('name') || this.get('url');
 	}.property('url'),
 }),
 

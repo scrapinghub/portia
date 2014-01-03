@@ -84,7 +84,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
-		this.pushRoute('annotations', 'Template: ' + template.get('name'));
+		this.pushRoute('annotations', 'Template: ' + template.get('templateName'));
 	},
 
 	loadTemplate: function(template) {

@@ -1,4 +1,7 @@
 <div class="toolbar-container-noborder ui-corner-all">
+	{{#view ASTool.InlineTextField value=name}}
+  		<h3 class="editableName">Template {{name}}</h3>
+	{{/view}}
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Annotations</h3>
 		<div>
@@ -13,7 +16,7 @@
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-					{{view ASTool.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="New annotation"}}
+				{{view ASTool.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="New annotation"}}
 			</div>
 		</div>
 	</div>

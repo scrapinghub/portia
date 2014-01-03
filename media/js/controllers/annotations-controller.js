@@ -8,6 +8,8 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 
 	currentlySelectedElement: null,
 
+	nameBinding: 'template.templateName',
+
 	sprites: function() {
 		return this.get('content').map(function(annotation) {
 			if (annotation.get('element')) {
