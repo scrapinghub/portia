@@ -22,6 +22,16 @@ Ember.Application.initializer({
 });
 
 
+Ember.Application.initializer({
+ 	name: 'documentViewInitializer',
+  
+	initialize: function(container, application) {
+    	container.register('document:view', ASTool.DocumentView);
+    	application.inject('controller', 'documentView', 'document:view');
+  	}
+});
+
+
 function s4() {
 	return Math.floor((1 + Math.random()) * 0x10000)
 		.toString(16)

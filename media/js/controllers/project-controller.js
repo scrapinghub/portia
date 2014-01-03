@@ -2,7 +2,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	needs: ['application'],
 
-	documentViewBinding: 'controllers.application.documentView',
+	documentView: null,
 
 	actions: {
 

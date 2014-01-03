@@ -2,7 +2,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	
 	needs: ['application', 'annotations'],
 
-	documentViewBinding: 'controllers.application.documentView',
+	documentView: null,
 
 	newStartUrl: '',
 

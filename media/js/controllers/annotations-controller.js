@@ -4,7 +4,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 
 	template: null,
 	
-	documentViewBinding: 'controllers.application.documentView',
+	documentView: null,
 
 	currentlySelectedElement: null,
 

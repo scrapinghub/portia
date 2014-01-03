@@ -16,16 +16,6 @@ ASTool.Router.map(function() {
 });
 
 
-/* Routes */
-ASTool.ApplicationRoute = Ember.Route.extend({
-	setupController: function(controller) {
-		if (!controller.get('documentView')) {
-			controller.set('documentView', ASTool.DocumentView.create());
-		}
-	},
-})
-
-
 ASTool.ProjectRoute = Ember.Route.extend({
 	model: function() {
 		return this.get('slyd').getSpiderNames();

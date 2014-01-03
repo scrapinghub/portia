@@ -2,7 +2,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	
 	needs: ['application', 'annotation'],
 
-	documentViewBinding: 'controllers.application.documentView',
+	documentView: null,
 	
 	mappingAttributeBinding: 'controllers.annotation.mappingAttribute',
 
