@@ -50,6 +50,6 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	willLeave: function() {
 		this.set('documentView.canvas.interactionsBlocked', false);
-		ASTool.api.saveItems(this.content.toArray());
+		this.get('slyd').saveItems(this.content.toArray());
 	},
 });

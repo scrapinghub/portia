@@ -1,8 +1,8 @@
 ASTool.SlydApi = Em.Object.extend({
 
 	baseUrl: function() {
-		return ASTool.slydUrl || window.location.protocol + '//' + window.location.host + '/api/';
-	}.property('slydUrl'),
+		return SLYD_URL || window.location.protocol + '//' + window.location.host + '/api/';
+	}.property(),
 
 	// FIXME: hardcoded 'test' project.
 	project: 'test',
@@ -44,7 +44,9 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash).then(function(items) {
 			items = this.dictToList(items, ASTool.Item);
 			items.forEach(function(item) {
-				item.fields = this.dictToList(item.fields, ASTool.ItemField);
+				if (item.fields) {
+					item.fields = this.dictToList(item.fields, ASTool.ItemField);	
+				}
 			}.bind(this));
 			return items;
 		}.bind(this));
@@ -52,7 +54,9 @@ ASTool.SlydApi = Em.Object.extend({
 
 	saveItems: function(items) {
 		items.forEach(function(item) {
-			item.set('fields', this.listToDict(item.get('fields')));
+			if (item.get('fields')) {
+				item.set('fields', this.listToDict(item.get('fields')));	
+			}
 		}.bind(this));
 		items = this.listToDict(items);
 		hash = {};

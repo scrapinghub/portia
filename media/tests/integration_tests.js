@@ -15,7 +15,8 @@ var TEST_PROJECT_NAME = 'test';
 
 function stubEndpoint(endpoint, response, method) {
     method = method || 'GET';
-    var url = ASTool.slydUrl + TEST_PROJECT_NAME + endpoint;
+    var url = SLYD_URL + TEST_PROJECT_NAME + endpoint;
+    console.log(url);
     ic.ajax.defineFixture(url, method, {
         response: response,
         jqXHR: {},
@@ -25,7 +26,7 @@ function stubEndpoint(endpoint, response, method) {
 
 function callCount(endpoint, method) {
     method = method || 'GET';
-    var url = ASTool.slydUrl + TEST_PROJECT_NAME + endpoint;
+    var url = SLYD_URL + TEST_PROJECT_NAME + endpoint;
     return ic.ajax.callCount(url, method);
 }
 
@@ -173,5 +174,3 @@ test('ignore subregion & delete ignore', function() {
         })
     });
 });
-
-

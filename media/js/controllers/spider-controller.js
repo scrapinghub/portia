@@ -101,7 +101,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		this.set('loadedPageFp', null);
 		var documentView = this.get('documentView');
 		documentView.showLoading();
-		ASTool.api.fetchDocument(url, this.content.get('name')).then(function(data) {
+		this.get('slyd').fetchDocument(url, this.content.get('name')).then(function(data) {
 			documentView.hideLoading();
 			if (!data.error) {
 				data.url = url;

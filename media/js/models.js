@@ -86,16 +86,16 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 });
 
 
-ASTool.SlydApiAdapter = DS.Adapter.extend({
+ASTool.SlydAdapter = DS.Adapter.extend({
 	
 	find: function(store, type, id) {
 		var methodName = ('load ' + type.typeKey).camelize();
-		return ASTool.api.get(methodName).call(ASTool.api, id);
+		return this.get('slyd.' + methodName).call(this.get('slyd'), id);
 	},
 	
 	findAll: function(store, type) {
 		var methodName = ('load ' + type.typeKey.pluralize()).camelize();
-		return ASTool.api.get(methodName).call(ASTool.api);
+		return this.get('slyd.' + methodName).call(this.get('slyd'));
 	},
 
 	createRecord: function(store, type, record) {
@@ -105,7 +105,7 @@ ASTool.SlydApiAdapter = DS.Adapter.extend({
 	updateRecord: function(store, type, record) {
 		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: false });
 		var methodName = ('save ' + type.typeKey).camelize();
-		return ASTool.api.get(methodName).call(ASTool.api, record.get('id'), serializedRecord);
+		return this.get('slyd.' + methodName).call(this.get('slyd'), record.get('id'), serializedRecord);
 	},
 	
 	deleteRecord: function(store, type, record) {
@@ -137,7 +137,7 @@ ASTool.SpiderSerializer = DS.RESTSerializer.extend({
 	}
 });
 
-ASTool.SpiderAdapter = ASTool.SlydApiAdapter.extend();
+ASTool.SpiderAdapter = ASTool.SlydAdapter.extend();
 
 
 /*************************** Models **************************/

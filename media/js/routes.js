@@ -28,7 +28,7 @@ ASTool.ApplicationRoute = Ember.Route.extend({
 
 ASTool.ProjectRoute = Ember.Route.extend({
 	model: function() {
-		return ASTool.api.getSpiderNames();
+		return this.get('slyd').getSpiderNames();
 	},
 });
 
@@ -71,6 +71,6 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 
 ASTool.ItemsRoute = Ember.Route.extend({
 	model: function() {
-		return ASTool.api.loadItems();
+		return this.get('slyd').loadItems();
 	}
 });
