@@ -209,34 +209,27 @@ ASTool.Annotation = DS.Model.extend({
 		} else {
 			return 'Empty (' + this.get('id').substring(0, 5) + ')';
 		}
-	}.property('annotationsChanged'),
+	}.property('annotations'),
 
 	variant: DS.attr('string', { defaultValue: '0' }),
 	
 	annotations: DS.attr(),
 
 	iframeBinding: 'ASTool.iframe',
-
-	//FIXME
-	annotationsChanged: false,
 	
 	addMapping: function(attribute, itemField) {
 		this.get('annotations')[attribute] = itemField;
-		//FIXME
-		// use notifyPropertyChange
-		this.set('annotationsChanged', !this.annotationsChanged);
+		this.notifyPropertyChange('annotations');
 	},
 	
 	removeMapping: function(attribute) {
 		delete this.get('annotations')[attribute];
-		//FIXME
-		this.set('annotationsChanged', !this.annotationsChanged);
+		this.notifyPropertyChange('annotations');
 	},
 
 	removeMappings: function() {
 		this.set('annotations', {});
-		//FIXME
-		this.set('annotationsChanged', !this.annotationsChanged);
+		this.notifyPropertyChange('annotations');
 	},
 	
 	isPartial: false,
@@ -356,7 +349,7 @@ ASTool.Annotation = DS.Model.extend({
 				return !this.get('annotations')[attribute.get('name')];
 			}.bind(this));
 		return unmapped;
-	}.property('attributes.@each', 'annotationsChanged'),
+	}.property('attributes.@each', 'annotations'),
 	
 	mappedAttributes: function() {
 		mapped = [];
@@ -367,7 +360,7 @@ ASTool.Annotation = DS.Model.extend({
 			}
 		}.bind(this));
 		return mapped;
-	}.property('attributes.@each', 'annotationsChanged'),
+	}.property('attributes.@each', 'annotations'),
 
 	reload: function() {
 		// Force reload of ignores from the document.

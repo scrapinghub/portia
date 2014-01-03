@@ -154,11 +154,11 @@ ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 
 	text: function() {
 		return this.get('annotation.name');
-	}.property('annotation'),
+	}.property('annotation.name'),
 
 	highlighted: function() {
 		return this.get('annotation.highlighted');
-	}.property('annotation'),
+	}.property('annotation.highlighted'),
 
 	getBoundingBox: function() {
 		return $(this.get('annotation.element')).boundingBox();
