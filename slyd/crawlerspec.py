@@ -149,4 +149,3 @@ class ProjectSpec(object):
                 self.writejson(out, 'spiders', resource)
             last = match.end()
         out.write(json_template[last:])
-

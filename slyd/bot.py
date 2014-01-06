@@ -19,6 +19,7 @@ from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
 from scrapy.http import Request
 from scrapy.spider import BaseSpider
+from scrapy.item import DictItem
 from scrapy import signals, log
 from scrapy.crawler import Crawler
 from scrapy.http import HtmlResponse
@@ -109,8 +110,19 @@ class Fetch(BotResource):
                 response=result_response)
             spider = self.create_spider(request.project, params)
             if spider is not None:
-                items, _link_regions = spider.extract_items(htmlpage)
-                result['items'] = [i._values for i in items]
+                items = []
+                links = []
+                for value in spider.parse(response):
+                    if isinstance(value, Request):
+                        links.append(value.url)
+                    elif isinstance(value, DictItem):
+                        items.append(value._values)
+                    else:
+                        raise ValueError("Unexpected type %s from spider"
+                            % type(value))
+                result['items'] = items
+                # TODO: add not followed links
+                result['links'] = dict(followed=links, notfollowed=[])
             finish_request(request, **result)
         except Exception as ex:
             log.err()
@@ -124,9 +136,9 @@ class Fetch(BotResource):
         pspec = self.bot.spec_manager.project_spec(project)
         try:
             spider_spec = pspec.resource('spiders', spider)
-            items = pspec.resource('items', spider)
-            extractors = pspec.resource('extractors', spider)
-            return IblSpider(spider, spider_spec, items, extractors,
+            items_spec = pspec.resource('items')
+            extractors = pspec.resource('extractors')
+            return IblSpider(spider, spider_spec, items_spec, extractors,
                 **kwargs)
         except IOError as ex:
             if ex.errno == errno.ENOENT:

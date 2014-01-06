@@ -46,6 +46,17 @@ class BotTest(unittest.TestCase):
         self.assertEqual(value['response']['status'], 200)
         self.assertIn('<base href="%s"' % test_url, value['page'])
 
+        # parse fetched data
+        test_url = "http://localhost:8997/pin1.html"
+        result = yield self._fetch(test_url, spider='pinterest.com')
+        self.assertEqual(result.responseCode, 200)
+        value = json.loads(result.value())
+        # check item
+        item = value['items'][0]
+        self.assertEqual(item['url'], test_url)
+        self.assertEqual(item['name'][0], u'Luheca Designs')
+        # check links
+        self.assertIn('followed', value['links'])
 
     def tearDown(self):
         self.bot_resource.stop()
