@@ -62,21 +62,18 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	}.property('_showLinks'),
 
 	sprites: function() {
-		//FIXME: get this from slyd.
 		if (!this.get('loadedPageFp') || !this.get('showLinks')) {
 			return [];
 		}
-		var currentPageUrl = this.get('pageMap')[this.get('loadedPageFp')].url;
-		var parsedCurrentUrl = URI.parse(currentPageUrl);
-		var links = $($('#scraped-doc-iframe').contents().get(0).links);
+		var currentPageData = this.get('pageMap')[this.get('loadedPageFp')];
+		var allLinks = $($('#scraped-doc-iframe').contents().get(0).links);
+		var followedLinks = currentPageData.links.followed;
 		var sprites = [];
-		links.each(function(i, link) {
-			var parsedHref = URI.parse(link.href);
-			var inDomain = parsedCurrentUrl['hostname'] == parsedHref['hostname'] ||
-				parsedHref['hostname'] == 'localhost';
+		allLinks.each(function(i, link) {
+			var followed = followedLinks.indexOf(link.href) >= 0;
 			sprites.pushObject(ASTool.ElementSprite.create({
 				element: link,
-				fillColor: inDomain ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
+				fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
 				strokeColor: 'clear' }));
 		});
 		return sprites;
@@ -105,6 +102,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			documentView.hideLoading();
 			if (!data.error) {
 				data.url = url;
+				console.log(data.items);
 				this.get('browseHistory').pushObject(data.fp);
 				documentView.displayAnnotatedDocument(data.page,
 					function(docIframe){
@@ -248,7 +246,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 				}
 				url = URI.build(parsedCurrentUrl);
 			}
-			console.log(url);
 			this.fetchPage(url, this.get('loadedPageFp'));	
 		}
 	},
