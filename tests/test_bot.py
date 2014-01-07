@@ -56,7 +56,7 @@ class BotTest(unittest.TestCase):
         self.assertEqual(item['url'], test_url)
         self.assertEqual(item['name'][0], u'Luheca Designs')
         # check links
-        self.assertIn('followed', value['links'])
+        self.assertIn('links', value)
 
     def tearDown(self):
         self.bot_resource.stop()

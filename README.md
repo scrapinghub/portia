@@ -86,6 +86,7 @@ Returns a json object containing (so far):
 * items - array of items extracted
 * fp - request fingerprint
 * error - error message, present if there was an error
+* links - array of links followed
 
 Coming soon in the response:
 * template_id - id of template that matched

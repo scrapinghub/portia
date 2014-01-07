@@ -121,8 +121,7 @@ class Fetch(BotResource):
                         raise ValueError("Unexpected type %s from spider"
                             % type(value))
                 result['items'] = items
-                # TODO: add not followed links
-                result['links'] = dict(followed=links, notfollowed=[])
+                result['links'] = links
             finish_request(request, **result)
         except Exception as ex:
             log.err()
