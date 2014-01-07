@@ -161,14 +161,14 @@ ASTool.Template = DS.Model.extend({
 }),
 
 ASTool.Spider = DS.Model.extend({
-	start_urls: DS.attr(null, { defaultValue:[] }),
+	start_urls: DS.attr(null),
 	allowed_domains: DS.attr(null),
 	links_to_follow: DS.attr('string', { defaultValue:'none' }),
-	follow_patterns: DS.attr(null, { defaultValue:[] }),
+	follow_patterns: DS.attr(null),
 	exclude_patterns: DS.attr(null),
 	respect_nofollow: DS.attr('boolean', { defaultValue:true }),
 	templates: DS.hasMany('template'),
-	init_requests: DS.attr(null, { defaultValue:[] }),
+	init_requests: DS.attr(null),
 
 	name: function() {
 		return this.get('id');

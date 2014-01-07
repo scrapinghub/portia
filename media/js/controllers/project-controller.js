@@ -16,7 +16,12 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			while(this.content.any(function(spiderName){ return spiderName == newSpiderName })) {
 				newSpiderName += '0';
 			}
-			var spider = this.store.createRecord('spider', { 'id': newSpiderName });
+			var spider = this.store.createRecord('spider', 
+				{ 'id': newSpiderName,
+				  'start_urls': [],
+				  'follow_patterns': [],
+				  'exclude_patterns': [],
+				  'init_requests': [] });
 			this.pushObject(spider.get('name'));
 			spider.save();
 		},
