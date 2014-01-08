@@ -8,6 +8,7 @@ from scrapy.http import Request, HtmlResponse, FormRequest
 try:
     from scrapy.spider import Spider
 except ImportError:
+    # BaseSpider class was deprecated in Scrapy 0.21
     from scrapy.spider import BaseSpider as Spider
 
 from scrapely.htmlpage import HtmlPage, dict_to_page
