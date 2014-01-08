@@ -71,6 +71,14 @@ The spec can be updating by POSTing:
 
 An HTTP 400 will be returned if the uploaded spec does not validate.
 
+Basic commands are available for manipilating spider files. For example:
+
+  $ curl -d '{"cmd": "rm", "args": ["spidername"]}' http://localhost:9001/api/78/spec/spiders
+
+Available commands are:
+* mv - move spider from first arg to second. If the second exists it is overwritten.
+* rm - delete spider
+
 
 bot/fetch
 

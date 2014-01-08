@@ -24,12 +24,14 @@ class SlydJsonResource(Resource):
     def error(self, request, status, why):
         raise ErrorPage(request, status, why)
 
+    def bad_request(self, why):
+        self.error(400, "Bad Request", why)
+
     def read_json(self, request):
         try:
             return json.load(request.content)
         except ValueError as ex:
-            self.error(400, "Bad Request",
-                "Error parsing json. %s" % ex.message)
+            self.bad_request("Error parsing json. %s" % ex.message)
 
 
 class SlydJsonObjectResource(SlydJsonResource):

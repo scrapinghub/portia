@@ -11,6 +11,21 @@ from .settings import SPEC_DATA_DIR
 
 
 class CrawlerSpecTest(unittest.TestCase):
+    spider = """
+        {
+            "exclude_patterns": [],
+            "follow_patterns": [
+                ".+MobileHomePark.php?key=d+"
+            ],
+            "links_to_follow": "patterns",
+            "respect_nofollow": true,
+            "start_urls": [
+                "http://www.mhvillage.com/"
+            ],
+            "templates": []
+        }
+    """
+
     def setUp(self):
         sm = test_spec_manager()
         spec_resource = create_crawler_spec_resource(sm)
@@ -34,29 +49,44 @@ class CrawlerSpecTest(unittest.TestCase):
         self._get_check_resource("spiders/pinterest.com")
 
     @inlineCallbacks
+    def post_command(self, spider, cmd, *args, **kwargs):
+        obj = {'cmd': cmd, 'args': args}
+        result = yield self.specsite.post(spider, data=json.dumps(obj))
+        self.assertEqual(result.responseCode, kwargs.get('expect', 200))
+
+    @inlineCallbacks
     def test_updating(self):
-        spider = """
-        {
-            "exclude_patterns": [],
-            "follow_patterns": [
-                ".+MobileHomePark.php?key=d+"
-            ],
-            "links_to_follow": "patterns",
-            "respect_nofollow": true,
-            "start_urls": [
-                "http://www.mhvillage.com/"
-            ],
-            "templates": []
-        }
-        """
-        result = yield self.specsite.post('spiders/testpost', data=spider)
+        result = yield self.specsite.post('spiders/testpost', data=self.spider)
         self.assertEqual(result.responseCode, 200)
         result = yield self.specsite.get('spiders/testpost')
-        self.assertEqual(json.loads(result.value()), json.loads(spider))
+        self.assertEqual(json.loads(result.value()), json.loads(self.spider))
 
         # should fail - missing required fields
         result = yield self.specsite.post('spiders/testpost', data='{}')
         self.assertEqual(result.responseCode, 400)
+
+    @inlineCallbacks
+    def test_commands(self):
+        self.post_command('spiders', 'unknown', expect=400)
+        self.post_command('spiders', 'mv', expect=400)
+        self.post_command('spiders', 'mv', '../notallowed', 'whatever', expect=400)
+        self.post_command('spiders', 'mv', 'notallowedexists', 'whatever', expect=404)
+        self.post_command('spiders', 'rm', 'notexists', expect=404)
+        # TODO: mv to existing spider - 400
+        yield self.specsite.post('spiders/c', data=self.spider)
+        self._get_check_resource('spiders/c')
+        self.post_command('spiders', 'mv', 'c', 'c2')
+        result = yield self.specsite.get('spiders/c')
+        self.assertEqual(result.value(), '{}\n')
+        self._get_check_resource('spiders/c2')
+        yield self.specsite.post('spiders/c3', data=self.spider)
+        # overwrites
+        self.post_command('spiders', 'mv', 'c2', 'c3')
+        result = yield self.specsite.get('spiders/c2')
+        self.assertEqual(result.value(), '{}\n')
+        self.post_command('spiders', 'rm', 'c3')
+        result = yield self.specsite.get('spiders/c3')
+        self.assertEqual(result.value(), '{}\n')
 
     def tearDown(self):
         rmtree(self.temp_project_dir)
