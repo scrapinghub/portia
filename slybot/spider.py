@@ -4,8 +4,11 @@ import re
 from copy import deepcopy
 
 from scrapy import log
-from scrapy.spider import BaseSpider
 from scrapy.http import Request, HtmlResponse, FormRequest
+try:
+    from scrapy.spider import Spider
+except ImportError:
+    from scrapy.spider import BaseSpider as Spider
 
 from scrapely.htmlpage import HtmlPage, dict_to_page
 from scrapely.extraction import InstanceBasedLearningExtractor
@@ -33,7 +36,7 @@ def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
         processed_data.append(processed_attributes)
     return [dict(p) for p in processed_data]
 
-class IblSpider(BaseSpider):
+class IblSpider(Spider):
 
     def __init__(self, name, spec, item_schemas, all_extractors, **kw):
         super(IblSpider, self).__init__(name, **kw)
