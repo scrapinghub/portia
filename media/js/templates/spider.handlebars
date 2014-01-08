@@ -1,9 +1,4 @@
 <div class="toolbar-container-noborder ui-corner-all">
-	{{#if hasHistory}}
-		<div style="margin-bottom: 10px">
-			{{view ASTool.ButtonView action="browseBack" label="Browse back" minWidth="100px" icon="ui-icon-triangle-1-w"}}
-		</div>
-	{{/if}}
 	<div class="accordion" style="margin-bottom: 10px">	
 		<h3>Start URLs</h3>
 		<div>
@@ -100,25 +95,6 @@
 				{{else}}
 					<h5>No templates for this spider</h5>
 				{{/each}}
-			</div>
-			{{#if loadedPageFp}}
-				<div style="margin-top: 10px">
-					{{view ASTool.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add a template for this page"}}
-				</div>
-			{{else}}
-				<h5>Browse from one of the start URLs to add a template</h5>
-			{{/if}}
-		</div>
-
-		<h3>Overlays</h3>
-		<div>
-			<div>
-				<span class="mediumLabel">Show crawl graph</span>
-				{{view ASTool.CheckBox checked=showCrawlGraph name="showCrawlGraph"}}
-			</div>
-			<div>
-				<span class="mediumLabel">Show blocked links</span>
-				{{view ASTool.CheckBox checked=showLinks name="showLinks"}}
 			</div>
 		</div>
 

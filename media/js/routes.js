@@ -27,6 +27,18 @@ ASTool.SpiderRoute = Ember.Route.extend({
 	model: function(params) {
 		return this.store.find('spider', params.spider_id);
 	},
+
+	renderTemplate: function() {
+		this.render('spider', {
+      		outlet: 'main',
+      		controller: 'spider',
+    	});
+
+    	this.render('page-browser', {
+      		outlet: 'pageBrowser',
+      		controller: 'spider',
+    	});
+	},
 });
 
 

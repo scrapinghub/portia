@@ -249,6 +249,21 @@ ASTool.InlineTextField = Ember.View.extend({
 });
 
 
+ASTool.ExtractedItemView = Ember.View.extend({
+	templateName: 'extracted-item',
+	item: null,
+
+	fields: function() {
+		var fields = [];
+		var item = this.get('item');
+		Object.keys(item).forEach(function(key) {
+			fields.pushObject({ name: key, value: item[key] });
+		});
+		return fields;
+	}.property('item'),
+}),
+
+
 ASTool.AnnotatedDocumentView = Ember.View.extend({
 	templateName: 'annotated-document-view',
 	
@@ -287,6 +302,36 @@ ASTool.AnnotationView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.ItemsView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.SpiderView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.ProjectView = Ember.View.extend(ASTool.ToolbarViewMixin);
+
+ASTool.PageBrowserView = Ember.View.extend({
+	tagName: 'div',
+	classNames: ['pageBrowser'],
+	expanded: false,
+
+	iconName: function() {
+		return this.get('expanded') ? 'ui-icon-triangle-1-e' : 'ui-icon-triangle-1-w';
+	}.property('expanded'),
+
+	itemsButtonLabel: function() {
+		return this.get('controller.showItems') ? "Hide Items " : "Show Items";
+	}.property('controller.showItems'),
+
+	click: function(event) {
+		if (event.target == this.get('element')) {
+			if (this.get('expanded')) {
+				this.set('expanded', false);
+				$(this.get('element')).animate({ width: 12 }, 200);	
+			} else {
+				$(this.get('element')).animate(
+					{ width: 400 },
+	      	 		{ complete: function() {
+	        				this.set('expanded', true);
+	        			}.bind(this),
+	        		}, 200);
+			}	
+		}
+	},
+});
 
 
 /*************************** Helpers ******************************/

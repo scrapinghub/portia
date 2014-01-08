@@ -149,7 +149,7 @@ ASTool.Template = DS.Model.extend({
 	url: DS.attr('string', {defaultValue:''}),
 	annotated_body: DS.attr('string', {defaultValue:''}),
 	original_body: DS.attr('string', {defaultValue:''}),
-	extractors: DS.attr(null, { defaultValue:[] }),
+	extractors: DS.attr(null),
 	name: DS.attr('string'),
 
 	templateName: function(key, templateName) {

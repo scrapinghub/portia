@@ -14,10 +14,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 	loadedPageFp: null,
 
-	hasHistory: function() {
-		return this.get('browseHistory').length > 1;
-	}.property('browseHistory.@each'),
-
 	hasStartUrl: function() {
 		return !this.get('newStartUrl');
 	}.property('newStartUrl'),
@@ -61,13 +57,40 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
         return  this.get('_showLinks');
 	}.property('_showLinks'),
 
+	showItems: false,
+
+	addTemplateDisabled: function() {
+		return !this.get('loadedPageFp');
+	}.property('loadedPageFp'),
+
+	browseBackDisabled: function() {
+		return this.get('browseHistory').length <= 1;
+	}.property('browseHistory.@each'),
+
+	showItemsDisabled: function() {
+		var loadedPageFp = this.get('loadedPageFp');
+		if (this.pageMap[loadedPageFp]) {
+			return !loadedPageFp ? true : !this.pageMap[loadedPageFp].items.length;	
+		}
+		return true;
+	}.property('loadedPageFp'),
+
+	extractedItems: function() {
+		var items = [];
+		var loadedPageFp = this.get('loadedPageFp');
+		if (this.pageMap[loadedPageFp]) {
+			items = this.pageMap[loadedPageFp].items;	
+		}
+		return items.toArray();
+	}.property('loadedPageFp'),
+
 	sprites: function() {
 		if (!this.get('loadedPageFp') || !this.get('showLinks')) {
 			return [];
 		}
 		var currentPageData = this.get('pageMap')[this.get('loadedPageFp')];
 		var allLinks = $($('#scraped-doc-iframe').contents().get(0).links);
-		var followedLinks = currentPageData.links.followed;
+		var followedLinks = currentPageData.links;
 		var sprites = [];
 		allLinks.each(function(i, link) {
 			var followed = followedLinks.indexOf(link.href) >= 0;
@@ -102,7 +125,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			documentView.hideLoading();
 			if (!data.error) {
 				data.url = url;
-				console.log(data.items);
 				this.get('browseHistory').pushObject(data.fp);
 				documentView.displayAnnotatedDocument(data.page,
 					function(docIframe){
@@ -137,8 +159,9 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	},
 
 	addTemplate: function() {
-		var template = this.store.createRecord('template');
-		template.set('id', ASTool.guid());
+		var template = this.store.createRecord('template', 
+			{ 'id': ASTool.guid(),
+			  'extractors': {} });
 		this.content.get('templates').pushObject(template);
 		this.get('controllers.annotations').deleteAllAnnotations();
 		var page = this.get('pageMap')[this.get('loadedPageFp')];
@@ -229,6 +252,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 		deleteFollowPattern: function(pattern) {
 			this.content.get('follow_patterns').removeObject(pattern);
+		},
+
+		toggleShowItems: function() {
+			this.set('showItems', !this.get('showItems'));
 		},
 	},
 

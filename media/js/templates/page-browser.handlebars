@@ -1,0 +1,30 @@
+	<span class="rotate pageBrowserTitle">Browse Tools</span>
+	{{#if view.expanded}}
+		<div style="margin-left: 15px;">
+			<div style="text-align: left; margin-top:10px">
+				{{view ASTool.ButtonView action="browseBack" label="Browse back" minWidth="100px" icon="ui-icon-triangle-1-w" disabled=browseBackDisabled}}
+				{{view ASTool.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add template" disabled=addTemplateDisabled}}
+				{{view ASTool.ButtonView action="toggleShowItems" icon="ui-icon-heart" label=view.itemsButtonLabel disabled=showItemsDisabled}}
+			</div>
+			{{#if showItems}}
+				{{#if this.extractedItems.length}}
+					<h3 style="text-align: center">Displaying {{this.extractedItems.length}} extracted items</h3>
+					<div style="margin-top:10px; background-color:#222; padding: 5px; overflow-y: scroll; max-height: 150px; border: 1px solid #666;" class="ui-corner-all">
+						{{#each this.extractedItems}}
+							<div style="margin-bottom: 20px">
+								{{view ASTool.ExtractedItemView item=this}}
+							</div>
+						{{/each}}
+					</div>
+				{{/if}}
+			{{/if}}
+			<div style="margin-top: 15px;">
+				<div style="text-align: center;">
+					<span class="mediumLabel">Overlay crawl graph</span>
+					{{view ASTool.CheckBox checked=showCrawlGraph name="showCrawlGraph"}}
+					<span class="mediumLabel">Overlay blocked links</span>
+					{{view ASTool.CheckBox checked=showLinks name="showLinks"}}
+				</div>
+			</div>
+		</div>
+	{{/if}}

@@ -115,7 +115,7 @@ ASTool.DocumentView = Em.Object.extend({
 	updateHoveredInfo: function(element) {
 		var path = $(element).getPath();
 		var attributes = $(element).getAttributeList();
-		var contents = '<div class="hoveredPathLine">' + path + '</div><hr style="background-color:#2779aa;"/>';
+		var contents = '<div class="hoveredPathLine">' + path + '</div><hr style="background-color:#eaebda;"/>';
 		$(attributes).each(function(i, attribute) {
 			var value = trim(attribute.get('value'), 60);
 			contents += '<div class="hoveredInfoLine">' + attribute.get('name') + ": " + value + '</div>';

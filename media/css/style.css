@@ -41,6 +41,37 @@ body{
 	background-image: -moz-linear-gradient(top, #A81317 0%, #880910 100%);
 }
 
+.pageBrowser {
+	color: white;
+	display:inline;
+	background-color:#363636;
+	min-height:78px;
+	width: 12px;
+	position:absolute;
+	right:400px;
+	top:0px;
+	z-index:1000;
+	box-shadow:-3px 4px 7px 0px rgba(0,0,0,0.45);
+	padding:5px 3px 3px 3px;
+	border: 1px solid #444;
+	border-bottom-left-radius:3px;
+	border-top-left-radius:3px;
+	background-image: -webkit-linear-gradient(left, #555 0%, #333 100%);
+	background-image: -moz-linear-gradient(left, #555 0%, #333 100%);
+}
+
+.pageBrowserTitle {
+	float:left;
+	width:72px;
+	height:15px;
+	background-color:#222;
+	text-align:center;
+	margin:28px 0px 0px -31px;
+	font:1.0em Verdana,Helvetica,Arial,sans-serif;
+	pointer-events: none;
+	color:#eaebda;
+}
+
 .controlShadow {
 	box-shadow:0px 0px 8px 1px rgba(0,0,0,0.3);
 }
@@ -203,10 +234,10 @@ body{
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	background-color: rgba(248, 251, 255, 0.85);
-	color:#2779aa;
+	background-color: rgba(30,30,30,0.6);
+	color:#eaebda;
 	z-index:100;
-	box-shadow:0px 0px 6px 1px rgba(0,0,0,0.2);
+	box-shadow:0px 0px 6px 1px rgba(0,0,0,0.4);
 	pointer-events:none;
 	display: none;
 }
@@ -247,6 +278,17 @@ body{
 .mapping {
 	font:1.3em Verdana,Helvetica,Arial,sans-serif;
 	color:#444;
+}
+
+.rotate {
+  -webkit-transform: rotate(-90deg);
+  -moz-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+
+  /* also accepts left, right, top, bottom coordinates; not required, but a good idea for styling */
+  -webkit-transform-origin: 50% 50%;
+  -moz-transform-origin: 50% 50%;
+  transform-origin: 50% 50%;
 }
 
 
