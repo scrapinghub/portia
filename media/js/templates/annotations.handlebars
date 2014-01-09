@@ -1,7 +1,8 @@
 <div class="toolbar-container-noborder ui-corner-all">
 	{{#view ASTool.RenameTextField value=name}}
-  		<h3 class="editableName">Template {{name}}</h3>
+  		<span style="word-wrap:break-word;"><h3 class="editableName">Template {{name}}</h3></span>
 	{{/view}}
+	<h3 style="color:#888;word-wrap:break-word;background-color:#333;padding:4px;" class="ui-corner-all"><b>Page URL:</b> {{template.url}}</h3>
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Annotations</h3>
 		<div>
