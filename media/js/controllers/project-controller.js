@@ -28,9 +28,9 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 		deleteSpider: function(spiderName) {
 			if (confirm('Are you sure you want to delete spider ' + spiderName + '?')) {
-				this.get('slyd').deleteSpider(spiderName);	
+				this.get('slyd').deleteSpider(spiderName);
+				this.removeObject(spiderName);
 			}
-			this.removeObject(spiderName);
 		},
 
 		gotoItems: function() {
