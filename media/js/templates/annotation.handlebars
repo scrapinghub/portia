@@ -11,21 +11,21 @@
 			
 			{{#if path}}
 				<h5>Ancestors</h5>
-				<div class="scrolling-container ui-corner-all">
-					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
+				<div class="scrolling-container ui-corner-all" style="max-height: 180px;">
+					<ul style="list-style-type: none; padding:0px; margin:0px 12px 0px 12px;">
 						{{#each ancestorPaths}}
 							<li style="float:left; padding:3px 2px 3px 2px; font:0.8em Trebuchet MS,Helvetica,Arial,sans-serif !important;">
-								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="75px"}}
+								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="73px"}}
 							</li>
 						{{/each}}
 					</ul>
 				</div>
 				<h5>Children</h5>
-				<div class="scrolling-container ui-corner-all" style="text-align:left">
-					<ul style="list-style-type: none; padding:0px; margin:0px 15px 0px 15px;">
+				<div class="scrolling-container ui-corner-all" style="max-height: 180px;">
+					<ul style="list-style-type: none; padding:0px; margin:0px 12px 0px 12px;">
 						{{#each childPaths}}
 							<li style="float:left; padding:3px 2px 3px 2px; font:0.8em Trebuchet MS,Helvetica,Arial,sans-serif !important;">
-								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="75px"}}
+								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="73px"}}
 							</li>
 						{{/each}}
 					</ul>
@@ -38,7 +38,7 @@
 		<h3>Attributes</h3>
 		<div>
 			<h5>Mapped</h5>
-			<div class="scrolling-container ui-corner-all">
+			<div class="scrolling-container ui-corner-all" style="max-height: 180px;">
 				{{#each mappedAttributes}}
 					<div style="margin: 4px 0px 4px 0px">
 						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
@@ -48,7 +48,7 @@
 			</div>
 			
 			<h5>Not mapped</h5>
-			<div class="scrolling-container ui-corner-all">	
+			<div class="scrolling-container ui-corner-all" style="max-height: 180px;">	
 				{{#each unmappedAttributes}}
 					<div style="margin: 4px 0px 4px 0px">
 						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='336px'
