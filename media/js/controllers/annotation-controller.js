@@ -77,7 +77,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			annotation.deleteRecord();
 			annotation.save();	
 		} else {
-			annotation.rollback();
 			annotation.reload();
 		}
 		if (isPartial &&
