@@ -42,18 +42,20 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.type = 'POST';
 		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/';
 		hash.data = JSON.stringify({ cmd: 'mv', args: [oldSpiderName, newSpiderName] });
+		hash.dataType = 'text';
 		return ic.ajax(hash);
 	},
 
 	deleteSpider: function(spiderName) {
 		hash = {};
 		hash.type = 'POST';
+		hash.dataType = 'text';
 		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/';
 		hash.data = JSON.stringify({ cmd: 'rm', args: [spiderName] });
 		return ic.ajax(hash);
 	},
 
-	loadItems: function(onSuccess, onError) {
+	loadItems: function() {
 		hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('baseUrl') + this.project + '/spec/items';
@@ -78,6 +80,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify(items);
+		hash.dataType = 'text';
 		hash.url = this.get('baseUrl') + this.project + '/spec/items';
 		return ic.ajax(hash);
 	},
@@ -86,6 +89,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify(spiderData);
+		hash.dataType = 'text';
 		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/' + spiderName;
 		return ic.ajax(hash);
 	},
