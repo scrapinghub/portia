@@ -259,8 +259,16 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		},
 
 		rename: function(oldName, newName) {
-			this.get('slyd').renameSpider(oldName, newName);
-			this.renameTop('Spider: ' + newName);
+			if (confirm('Are you sure you want to rename this spider? This operation cannot be undone.')) {
+				this.get('slyd').renameSpider(oldName, newName);
+				this.renameTop('Spider: ' + newName);	
+			}
+		},
+
+		undoChanges: function() {
+			if (confirm('Are you sure you want to abandon your changes?')) {
+				this.content.reload();
+			}
 		},
 	},
 
