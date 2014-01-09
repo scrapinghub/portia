@@ -21,7 +21,9 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 			return;
 		}
 		animation = animation || 'fade';
-		var navRoute = ASTool.NavRoute.create({route: route, label: label, model: model});
+		var navRoute = ASTool.NavRoute.create({ route: route,
+												label: label,
+												model: model });
 		this.routeStack.pushObject(navRoute);
 		if (model) {
 			this.transitionToRouteAnimated(route, {main: animation}, model);		
@@ -57,6 +59,10 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 		if (this.routeStack.length > 1) {
 			this.popRoutes(this.routeStack[this.routeStack.length - 2].route, animation);
 		}
+	},
+
+	renameTop: function(newLabel) {
+		this.routeStack.get('lastObject').set('label', newLabel);
 	},
 	
 	actions: {

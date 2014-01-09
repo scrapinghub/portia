@@ -12,6 +12,10 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		this.get('controllers.application').popRoute(animation);
 	},
 
+	renameTop: function(newLabel) {
+		this.get('controllers.application').renameTop(newLabel);	
+	},
+
 	transitionToRouteAnimated: function(route, animation, model) {
 		if (Ember.testing) {
 			// Disable animations during testing.

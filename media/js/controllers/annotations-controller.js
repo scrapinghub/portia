@@ -29,7 +29,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
-		this.pushRoute('annotation', 'Annotation: ' + annotation.get('name'), 'flip', annotation);
+		this.pushRoute('annotation', 'Editing annotation', 'flip', annotation);
 	},
 	
 	deleteAllAnnotations: function() {
@@ -71,6 +71,10 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 
 		annotationHighlighted: function(annotation) {
 			this.get('documentView').scrollToElement(annotation.get('element'));
+		},
+
+		rename: function(oldName, newName) {
+			this.renameTop('Template: ' + newName);
 		},
 	},
 

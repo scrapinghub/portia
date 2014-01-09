@@ -260,6 +260,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 
 		rename: function(oldName, newName) {
 			this.get('slyd').renameSpider(oldName, newName);
+			this.renameTop('Spider: ' + newName);
 		},
 	},
 
