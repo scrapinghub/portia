@@ -88,8 +88,8 @@ class ProjectSpec(object):
 
     def savejson(self, obj, *resources):
         # convert to json in a way that will make sense in diffs
-        data = json.dumps(obj, sort_keys=True, indent=4)
-        self._rfile(*resources, mode='wb').write(data)
+        ouf = self._rfile(*resources, mode='wb')
+        json.dump(obj, ouf, sort_keys=True, indent=4)
 
     def json(self, out):
         """Write spec as json to the file-like object

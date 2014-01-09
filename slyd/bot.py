@@ -27,6 +27,7 @@ from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
 from slybot.spider import IblSpider
 from .html import html4annotation
+from .resource import SlydJsonResource
 
 
 def create_bot_resource(spec_manager):
@@ -61,7 +62,7 @@ class Bot(Resource):
         log.msg("bot stopped", level=log.DEBUG)
 
 
-class BotResource(Resource):
+class BotResource(SlydJsonResource):
     def __init__(self, bot):
         Resource.__init__(self)
         self.bot = bot
@@ -72,7 +73,7 @@ class Fetch(BotResource):
 
     def render_POST(self, request):
         #TODO: validate input data, handle errors, etc.
-        params = read_json(request)
+        params = self.read_json(request)
         scrapy_request_kwargs = params['request']
         scrapy_request_kwargs.update(
             callback=self.fetch_callback,
@@ -149,11 +150,6 @@ class Fetch(BotResource):
         msg = "unexpected error response: %s" % failure
         log.msg(msg, level=log.ERROR)
         finish_request(twisted_request, error=msg)
-
-
-def read_json(request):
-    data = request.content.getvalue()
-    return json.loads(data)
 
 
 def finish_request(trequest, **resp_obj):
