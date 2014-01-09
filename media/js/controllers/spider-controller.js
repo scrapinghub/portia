@@ -257,6 +257,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		toggleShowItems: function() {
 			this.set('showItems', !this.get('showItems'));
 		},
+
+		rename: function(oldName, newName) {
+			this.get('slyd').renameSpider(oldName, newName);
+		},
 	},
 
 	documentActions: {

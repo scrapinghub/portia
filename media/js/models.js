@@ -109,6 +109,8 @@ ASTool.SlydAdapter = DS.Adapter.extend({
 	},
 	
 	deleteRecord: function(store, type, record) {
+		var methodName = ('delete ' + type.typeKey).camelize();
+		return this.get('slyd.' + methodName).call(this.get('slyd'), record.get('id'));
 	},
 });
 

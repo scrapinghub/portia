@@ -37,6 +37,22 @@ ASTool.SlydApi = Em.Object.extend({
 		});
 	},
 
+	renameSpider: function(oldSpiderName, newSpiderName) {
+		hash = {};
+		hash.type = 'POST';
+		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/';
+		hash.data = JSON.stringify({ cmd: 'mv', args: [oldSpiderName, newSpiderName] });
+		return ic.ajax(hash);
+	},
+
+	deleteSpider: function(spiderName) {
+		hash = {};
+		hash.type = 'POST';
+		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/';
+		hash.data = JSON.stringify({ cmd: 'rm', args: [spiderName] });
+		return ic.ajax(hash);
+	},
+
 	loadItems: function(onSuccess, onError) {
 		hash = {};
 		hash.type = 'GET';

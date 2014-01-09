@@ -88,6 +88,48 @@ ASTool.ToggleButton = Ember.Checkbox.extend(JQ.Widget, {
 });
 
 
+ASTool.InlineTextField = Ember.View.extend({
+  layoutName: 'inline-textfield',
+
+ 	click: function() {
+    	if (!this.get('isEditing'))  {
+      		this.set('isEditing', true);
+      		Ember.run.scheduleOnce('afterRender', this, this.focusTextField);
+    	}
+  	},
+
+  	focusTextField: function() {
+    	var val = this.$('input').val();
+    	this.$('input').focus();
+
+    	this.$('input').val('');
+    	this.$('input').val(val);
+  	},
+
+  	save: function() {
+  	},
+
+  	textField: Ember.TextField.extend({
+  		classNames: ['inlinetextarea', 'ui-corner-all'],
+
+    	focusOut: function() {
+    		this.done();
+    	},
+
+    	keyPress: function(e) {
+        	if (e.keyCode == $.ui.keyCode['ENTER']) {
+        		this.done();
+        	}
+    	},
+
+    	done: function() {
+			var parentView = this.get('parentView');
+      		parentView.set('isEditing', false);
+      		parentView.save();
+    	},
+  	}),
+});
+
 /************************* Application views ****************************/
 
 ASTool.FollowSelect = ASTool.Select.extend({
@@ -210,42 +252,19 @@ ASTool.ItemView = Ember.View.extend({
 });
 
 
-ASTool.InlineTextField = Ember.View.extend({
-  layoutName: 'inline-textfield',
+ASTool.RenameTextField = ASTool.InlineTextField.extend({
+	oldValue: null,
 
- 	click: function() {
-    	if (!this.get('isEditing'))  {
-      		this.set('isEditing', true);
-      		Ember.run.scheduleOnce('afterRender', this, this.focusTextField);
-    	}
-  	},
+	save: function() {
+		if (this.get('oldValue') != this.get('value')) {
+			this.get('controller').send('rename', this.get('oldValue'), this.get('value'));	
+		}
+		this.set('oldValue',  this.get('value'));
+	},
 
-  	focusTextField: function() {
-    	var val = this.$('input').val();
-    	this.$('input').focus();
-
-    	this.$('input').val('');
-    	this.$('input').val(val);
-  	},
-
-  	textField: Ember.TextField.extend({
-  		classNames: ['inlinetextarea', 'ui-corner-all'],
-
-    	focusOut: function() {
-    		this.done();
-    	},
-
-    	keyPress: function(e) {
-        	if (e.keyCode == $.ui.keyCode['ENTER']) {
-        		this.done();
-        	}
-    	},
-
-    	done: function() {
-			var parentView = this.get('parentView');
-      		parentView.set('isEditing', false);
-    	},
-  	}),
+	focusIn: function() {
+		this.set('oldValue', this.get('value'));
+	},
 });
 
 
@@ -261,7 +280,7 @@ ASTool.ExtractedItemView = Ember.View.extend({
 		});
 		return fields;
 	}.property('item'),
-}),
+});
 
 
 ASTool.AnnotatedDocumentView = Ember.View.extend({
