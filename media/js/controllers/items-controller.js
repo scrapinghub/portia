@@ -42,6 +42,12 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			this.set('mappingAttribute', null);
 			this._super();
 		},
+
+		undoChanges: function() {
+			this.get('slyd').loadItems().then(function(items) {
+				this.set('content', items);
+			}.bind(this));
+		},
 	},
 
 	willEnter: function() {
