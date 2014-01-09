@@ -30,6 +30,10 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		deleteItem: function(item) {
 			this.removeObject(item);
 		},
+
+		deleteField: function(item, field) {
+			item.get('fields').removeObject(field);
+		},
 	   
 		chooseField: function(field) {
 			var attribute = this.get('mappingAttribute');

@@ -31,7 +31,9 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 	}.property('icon'),
   
 	click: function() {
-  		this.get('controller').send(this.get('action'), this.get('argument'));
+		if (this.get('action')) {
+			this.get('controller').send(this.get('action'), this.get('argument'));	
+		}
 	},
 
 	label: function(key, label) {

@@ -336,7 +336,7 @@ h5 {
 }
 
 td {
-	padding:2px;
+	padding:2px 0px 2px 0px;
 }
 
 input[type="checkbox"] {
