@@ -28,6 +28,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		},
 		
 		deleteItem: function(item) {
+			this.removeObject(item);
 		},
 	   
 		chooseField: function(field) {

@@ -1,5 +1,6 @@
 <span class="smallLabel">Name </span>
 {{view ASTool.TextField owner=view.item value=view.item.name class="mediumtextarea"}}
+{{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="textless-button"}}
 {{view ASTool.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="New field"}}
 <div style="text-align: center; margin-top:10px">
 	{{#if view.item.fields}}
