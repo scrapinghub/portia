@@ -6,6 +6,15 @@ ASTool.Select = Ember.Select.extend(JQ.Widget, {
 	uiEvents: ['select'],
 	optionValuePath: 'content.option',
 	optionLabelPath: 'content.label',
+
+	/* Required to update the combobox selection when the model changes, for example
+	because of an undo. */
+	updateUi: function() {
+		if (this.get('ui')) {
+			var label = this.content.filterBy('option', this.get('value'))[0].label;
+			this.get('ui').input.val(label);	
+		}
+	}.property('value'),
 });
 
 
@@ -126,8 +135,10 @@ ASTool.InlineTextField = Ember.View.extend({
 
     	done: function() {
 			var parentView = this.get('parentView');
-      		parentView.set('isEditing', false);
-      		parentView.save();
+			if (parentView.get('isEditing')) {
+				parentView.save();	
+				parentView.set('isEditing', false);
+			}
     	},
   	}),
 });
@@ -146,7 +157,6 @@ ASTool.FollowSelect = ASTool.Select.extend({
 
 
 ASTool.TypeSelect = ASTool.Select.extend({
-	owner: null,
 	content: [{ option: 'geopoint', label: 'geopoint' },
 			  { option: 'number', label: 'number' },
 			  { option: 'image', label: 'image' },

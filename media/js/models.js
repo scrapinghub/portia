@@ -179,33 +179,36 @@ ASTool.Spider = DS.Model.extend({
 	performLogin: function(key, performLogin) {
 		if (arguments.length > 1) {
 			if (performLogin) {
-				this.set('init_requests', [{type: 'login'}]);
+				this.get('init_requests').setObjects([{ type: 'login' }]);
 			} else {
-				this.get('init_requests').length = 0;
+				this.get('init_requests').setObjects([]);
 			}
 		}
 		return !!this.get('init_requests').length;
 	}.property('init_requests'),
 
 	loginUrl: function(key, loginUrl) {
+		var reqs = this.get('init_requests');
 		if (arguments.length > 1) {
-			this.get('init_requests')[0]['loginurl'] = loginUrl;	
+			reqs[0]['loginurl'] = loginUrl;	
 		}
-		return this.get('init_requests')[0]['loginurl'];
+		return reqs.length ? reqs[0]['loginurl'] : null;
 	}.property('init_requests'),
 
 	loginUser: function(key, loginUser) {
+		var reqs = this.get('init_requests');
 		if (arguments.length > 1) {
-			this.get('init_requests')[0]['username'] = loginUser;	
+			reqs[0]['username'] = loginUser;	
 		}
-		return this.get('init_requests')[0]['username'];
+		return reqs.length ? reqs[0]['username'] : null;
 	}.property('init_requests'),
 
 	loginPassword: function(key, loginPassword) {
+		var reqs = this.get('init_requests');
 		if (arguments.length > 1) {
-			this.get('init_requests')[0]['loginPassword'] = loginPassword;
+			reqs[0]['loginPassword'] = loginPassword;
 		}
-		return this.get('init_requests')[0]['loginPassword'];
+		return reqs.length ? reqs[0]['loginPassword'] : null;
 	}.property('init_requests'),
 }),
 

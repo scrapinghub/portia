@@ -269,11 +269,14 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 						alert('The name ' + newName + ' is not a valid spider name.');
 					}.bind(this)
 				);
+			} else {
+				this.set('id', oldName);
 			}
 		},
 
 		undoChanges: function() {
 			if (confirm('Are you sure you want to abandon your changes?')) {
+				this.content.rollback();
 				this.content.reload();
 			}
 		},
