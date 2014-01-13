@@ -2,13 +2,13 @@
 	{{#view ASTool.RenameTextField value=name}}
   		<span style="word-wrap:break-word;"><h3 class="editable-name">Template {{name}}</h3></span>
 	{{/view}}
-	<h3 style="color:#888;word-wrap:break-word;background-color:#333;padding:4px;" class="ui-corner-all"><b>Page URL:</b> {{template.url}}</h3>
+	<h3 style="color:#888;word-wrap:break-word;margin 5px 0px 5px 0px"><b>Page URL:</b> {{template.url}}</h3>
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Annotations</h3>
 		<div>
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
-					<div style="margin: 4px 0px 4px 0px">
+					<div style="margin:4px 0px 4px 0px">
 						{{view ASTool.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth="82%" icon="ui-icon-wrench"}}
 						{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>

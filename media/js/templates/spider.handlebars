@@ -2,12 +2,12 @@
 	{{#view ASTool.RenameTextField value=id}}
   		<h3 class="editable-name">Spider {{id}}</h3>
 	{{/view}}
-	<div class="accordion" style="margin-bottom: 10px">	
+	<div class="accordion" style="margin-bottom:10px">	
 		<h3>Start URLs</h3>
 		<div>
-			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+			<div class="scrolling-container ui-corner-all" style="max-height:150px;">
 				{{#each start_urls}}
-					<div style="margin: 4px 0px 4px 0px">
+					<div style="margin:4px 0px 4px 0px">
 						{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='82%' title=this icon="ui-icon-folder-open"}}
 						{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
@@ -23,9 +23,9 @@
 
 		<h3>Exclude Patterns</h3>
 		<div>
-			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+			<div class="scrolling-container ui-corner-all" style="max-height:150px;">
 				{{#each exclude_patterns}}
-					<div style="margin: 4px 0px 4px 0px">
+					<div style="margin:4px 0px 4px 0px">
 						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='82%' title=this}}
 						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
@@ -41,13 +41,13 @@
 
 		<h3>Links to follow</h3>
 		<div>
-			<div style="margin: 5px 0px 12px -20px; color: #0000FF;">
+			<div style="margin:5px 0px 12px -22px;">
 				{{view ASTool.FollowSelect value=links_to_follow}}
 			</div>
 			{{#if displayLinksToFollow}}
 				<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 					{{#each follow_patterns}}
-						<div style="margin: 4px 0px 4px 0px">
+						<div style="margin:4px 0px 4px 0px">
 							{{view ASTool.ButtonView label=this minWidth='82%' title=this}}
 							{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 						</div>
@@ -86,9 +86,9 @@
 		
 		<h3>Templates</h3>
 		<div>
-			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
+			<div class="scrolling-container ui-corner-all" style="max-height:150px;">
 				{{#each templates}}
-					<div style="margin: 4px 0px 4px 0px">
+					<div style="margin:4px 0px 4px 0px">
 						{{view ASTool.ButtonView action="editTemplate" argument=this label=templateName minWidth='75%' title=url icon="ui-icon-wrench"}}
 						{{view ASTool.ButtonView action="loadTemplate" argument=this icon="ui-icon-folder-open" class="textless-button"}}
 						{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}

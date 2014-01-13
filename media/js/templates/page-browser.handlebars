@@ -1,26 +1,33 @@
 <div id="page-browser">
 	<span class="rotate title">Browse Tools</span>
 	{{#if view.expanded}}
-		<div style="margin-left: 15px;">
-			<div style="text-align: left; margin-top:10px">
+		<div style="margin-left:15px;">
+			<div style="text-align:left; margin-top:10px">
 				{{view ASTool.ButtonView action="browseBack" label="Browse back" minWidth="100px" icon="ui-icon-triangle-1-w" disabled=browseBackDisabled}}
 				{{view ASTool.ButtonView action="addTemplate" icon="ui-icon-circle-plus" label="Add template" disabled=addTemplateDisabled}}
 				{{view ASTool.ButtonView action="toggleShowItems" icon="ui-icon-heart" label=view.itemsButtonLabel disabled=showItemsDisabled}}
 			</div>
 			{{#if showItems}}
 				{{#if this.extractedItems.length}}
-					<h3 style="text-align: center">Displaying {{this.extractedItems.length}} extracted items</h3>
-					<div style="margin-top:10px; background-color:#222; padding: 5px; overflow-y: scroll; max-height: 150px; border: 1px solid #666;" class="ui-corner-all">
+					<h3 style="text-align:center">Displaying {{this.extractedItems.length}} extracted items</h3>
+					<div style="max-height:150px; padding:5px;" class="ui-corner-all scrolling-container ">
 						{{#each this.extractedItems}}
-							<div style="margin-bottom: 20px">
-								{{view ASTool.ExtractedItemView item=this}}
+							<div style="margin-bottom:20px">
+								{{#view ASTool.ExtractedItemView item=this}}
+									{{#each view.fields}}
+										<div style="margin-bottom:5px">
+											<span style="color:orange; font-weight:bold;">{{this.name}}:</span>
+											{{this.value}}
+										</div>
+									{{/each}}
+								{{/view}}
 							</div>
 						{{/each}}
 					</div>
 				{{/if}}
 			{{/if}}
-			<div style="margin-top: 15px;">
-				<div style="text-align: center;">
+			<div style="margin-top:15px;">
+				<div style="text-align:center;">
 					<span>Overlay crawl graph</span>
 					{{view ASTool.CheckBox checked=showCrawlGraph name="showCrawlGraph"}}
 					<span>Overlay blocked links</span>

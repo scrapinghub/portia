@@ -2,9 +2,9 @@
 {{view ASTool.TextField owner=view.item value=view.item.name}}
 {{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="textless-button"}}
 {{view ASTool.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="New field"}}
-<div style="text-align: center; margin-top:10px">
+<div style="text-align:center; margin-top:10px">
 	{{#if view.item.fields}}
-		<table style="margin: 0 auto;">
+		<table style="margin:0 auto;">
 			<tr style="font-size:0.8em"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 			{{#each view.item.fields}}
 				<tr>
@@ -12,9 +12,9 @@
 					<td class="typeBox">{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
 					<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
 					<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
-					<td style="padding: 0px 5px 0px 5px;"{{action deleteField view.item this}}>{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button"}}</td>
+					<td style="padding:0px 5px 0px 5px;"{{action deleteField view.item this}}>{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button"}}</td>
 					{{#if view.mappingAttribute}}
-						<td style="padding-bottom: 4px;">{{view ASTool.ButtonView action="chooseField" argument=this icon="ui-icon-circle-triangle-e" label="Map"}}</td>
+						<td style="padding-bottom:4px;">{{view ASTool.ButtonView action="chooseField" argument=this icon="ui-icon-circle-triangle-e" label="Map"}}</td>
 					{{/if}}
 				</tr>
 			{{/each}}
