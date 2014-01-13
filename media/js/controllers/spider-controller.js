@@ -209,7 +209,12 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		},
 
 		saveSpider: function() {
-			this.content.save();
+			this.content.save().then(function() {
+				if (this.get('loadedPageFp')) {
+					this.fetchPage(
+						this.get('pageMap')[this.get('loadedPageFp')].url);
+				}
+			}.bind(this));
 		},
 
 		fetchPage: function(url) {
