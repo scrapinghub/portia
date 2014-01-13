@@ -1,11 +1,11 @@
-<div class="toolbar-container-noborder ui-corner-all">
+<div class="container ui-corner-all">
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Spiders for this project:</h3>
 		<div>
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editSpider" argument=this label=this minWidth="300px" icon="ui-icon-wrench"}}
+						{{view ASTool.ButtonView action="editSpider" argument=this label=this minWidth="82%" icon="ui-icon-wrench"}}
 						{{view ASTool.ButtonView action="deleteSpider" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}

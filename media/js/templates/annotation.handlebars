@@ -1,11 +1,11 @@
-<div class="toolbar-container-noborder ui-corner-all">
+<div class="container ui-corner-all">
 	<div style="margin-top:10px"/>
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Selected region</h3>
 		<div class='rightIcon'>
 			<h5>CSS Path</h5>
 			
-			<div class="ui-corner-all pathBox" style="word-wrap: break-word;">
+			<div class="ui-corner-all scrolling-container" style="word-wrap: break-word; padding:10px;">
 			{{path}}
 			</div>
 			
@@ -41,7 +41,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 180px;">
 				{{#each mappedAttributes}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='336px'
+						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='90%'
 						  maxWidth='336px' action="unmapAttribute" argument=this}}
 					</div>
 				{{/each}}
@@ -51,7 +51,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 180px;">	
 				{{#each unmappedAttributes}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='336px'
+						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='90%'
 					      maxWidth='336px' action="mapAttribute" argument=this}}
 					</div>
 				{{/each}}
@@ -64,9 +64,9 @@
 				<div class="scrolling-container ui-corner-all">
 					{{#each model.ignores}}
 						<div style="margin: 4px 0px 4px 0px">
-							<label forclass="mediumLabel" style="margin: 0px -1px 0px 5px">Ignore beneath</label>
+							<label style="margin: 0px -1px 0px 5px">Ignore beneath</label>
 							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
-							{{view ASTool.IgnoreWidget ignore=this class="mediumtextarea" width='180px'}}
+							{{view ASTool.IgnoreWidget ignore=this width='180px'}}
 							{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
 						</div>
 					{{else}}
@@ -85,7 +85,7 @@
 		<h3>Variant</h3>
 		<div>
 			<div class="variantBox" style="margin-right:20px">
-				<label class="mediumLabel">Choose a variant:</label>
+				<label>Choose a variant:</label>
 				{{view ASTool.VariantSelect value=variant}}
 			</div>
 		</div>

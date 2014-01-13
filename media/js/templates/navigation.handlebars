@@ -1,12 +1,12 @@
 <div style="text-align: center;">
 	<div id="title">
-		<label class="bigLabel" style="color:#DDD;">Scraping Hub Autoscraping v0.3</label>
+		<label style="color:#DDD; font:bold 1.2em Verdana,Helvetica,Arial,sans-serif;">Scraping Hub Autoscraping v0.3</label>
 		<img style="margin-left:5px;" src="minispider.png"/>
 	</div>
-	<div class="nonscrolling-container ui-corner-all">
+	<div class="scrolling-container ui-corner-all" style="margin:5px 10px 5px 10px;">
 		{{#each routeStack}}
 			<div style="margin:4px 0px 4px 0px;">
-				{{view ASTool.ButtonView action="gotoRoute" selected='true' argument=this.route label=this.label minWidth='350px' icon="ui-icon-circle-arrow-s"}}
+				{{view ASTool.ButtonView action="gotoRoute" selected='true' argument=this.route label=this.label minWidth='90%' icon="ui-icon-circle-arrow-s"}}
 			</div>
 		{{/each}}
 	</div>

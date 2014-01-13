@@ -22,7 +22,7 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 	uiType: 'button',
 	uiOptions: ['label', 'disabled', 'icons', 'text', 'selected'],
 	tagName: 'button',
-	classNames: ['controlShadow'],
+	classNames: ['button-shadow'],
 	minWidth: null,
 	maxWidth: null,
 	action: null,
@@ -71,11 +71,10 @@ ASTool.TextField = Em.TextField.extend({
 	width:null,
 	placeholder: null,
 	attributeBindings: ['placeholder'],
+	classNames: ['textfield', 'ui-corner-all'],
 	
 	didInsertElement: function() {
 		this._super();
-		var ui = $(this.get('element'));
-		ui.addClass('ui-corner-all');
 		if (this.width) {
 			var ui = $(this.get('element'));
 			ui.css('width', this.width);
@@ -121,7 +120,7 @@ ASTool.InlineTextField = Ember.View.extend({
   	},
 
   	textField: Ember.TextField.extend({
-  		classNames: ['inlinetextarea', 'ui-corner-all'],
+  		classNames: ['inline-textfield', 'ui-corner-all'],
 
     	focusOut: function() {
     		this.done();
@@ -237,20 +236,23 @@ ASTool.IgnoreWidget = ASTool.TextField.extend({
 ASTool.ElemAttributeView = ASTool.ButtonView.extend({
 	value: null,
 	attribute: null,
+	classNames: ['element-attribute-view'],
 	
 	didInsertElement: function() {
 		this._super();
 		var attribute = this.get('attribute');
 		var ui = $(this.get('element'));
 		var content = $('<div/>').
-			append($('<span/>', { text:attribute.name + ': ', class:'elementAttributeName' })).
-			append($('<span/>', { text:trim(attribute.value, 34), class:'elementAttributeValue' }));
+			append($('<span/>', { text:attribute.name + ': ', class:'name' })).
+			append($('<span/>', { text:trim(attribute.value, 30), class:'value' }));
 		if (this.mapped) {
 			content.append($('<div/>').
-			append($('<span/>', { text:'mapped to: ', class:'elementAttributeName' })).
-			append($('<span/>', { text:attribute.mappedField, class:'elementAttributeValue' })));
+			append($('<span/>', { text:'mapped to: ', class:'name' })).
+			append($('<span/>', { text:attribute.mappedField, class:'value' })));
 		}
-		content.css('text-align', 'left').css('margin-left', '5px');
+		content.css('text-align', 'left').
+		css('margin-left', '5px').
+		css('width: 70%');
 		ui.find('[class=ui-button-text]').html(
 			content);
 	},
@@ -295,6 +297,36 @@ ASTool.ExtractedItemView = Ember.View.extend({
 });
 
 
+ASTool.PageBrowserView = Ember.View.extend({
+	tagName: 'div',
+	expanded: false,
+
+	iconName: function() {
+		return this.get('expanded') ? 'ui-icon-triangle-1-e' : 'ui-icon-triangle-1-w';
+	}.property('expanded'),
+
+	itemsButtonLabel: function() {
+		return this.get('controller.showItems') ? "Hide Items " : "Show Items";
+	}.property('controller.showItems'),
+
+	click: function(event) {
+		if (event.target.id == 'page-browser') {
+			if (this.get('expanded')) {
+				this.set('expanded', false);
+				this.$(event.target).animate({ width: 12 }, 200);	
+			} else {
+				this.$(event.target).animate(
+					{ width: 400 },
+	      	 		{ complete: function() {
+	        				this.set('expanded', true);
+	        			}.bind(this),
+	        		}, 200);
+			}	
+		}
+	},
+});
+
+
 ASTool.AnnotatedDocumentView = Ember.View.extend({
 	templateName: 'annotated-document-view',
 	
@@ -302,7 +334,7 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 		this._super();
 		this.get('controller').pushRoute('project', 'Project: test');
 		this.get('controller.documentView').initCanvas();
-		$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
+		$('#scraped-doc-iframe').height(window.innerHeight);
 		$('#toolbar').height(window.innerHeight);
 	},
 });
@@ -333,36 +365,6 @@ ASTool.AnnotationView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.ItemsView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.SpiderView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.ProjectView = Ember.View.extend(ASTool.ToolbarViewMixin);
-
-ASTool.PageBrowserView = Ember.View.extend({
-	tagName: 'div',
-	classNames: ['pageBrowser'],
-	expanded: false,
-
-	iconName: function() {
-		return this.get('expanded') ? 'ui-icon-triangle-1-e' : 'ui-icon-triangle-1-w';
-	}.property('expanded'),
-
-	itemsButtonLabel: function() {
-		return this.get('controller.showItems') ? "Hide Items " : "Show Items";
-	}.property('controller.showItems'),
-
-	click: function(event) {
-		if (event.target == this.get('element')) {
-			if (this.get('expanded')) {
-				this.set('expanded', false);
-				$(this.get('element')).animate({ width: 12 }, 200);	
-			} else {
-				$(this.get('element')).animate(
-					{ width: 400 },
-	      	 		{ complete: function() {
-	        				this.set('expanded', true);
-	        			}.bind(this),
-	        		}, 200);
-			}	
-		}
-	},
-});
 
 
 /*************************** Helpers ******************************/

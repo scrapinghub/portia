@@ -1,6 +1,6 @@
-<div class="toolbar-container-noborder ui-corner-all">
+<div class="container ui-corner-all">
 	{{#view ASTool.RenameTextField value=id}}
-  		<h3 class="editableName">Spider {{id}}</h3>
+  		<h3 class="editable-name">Spider {{id}}</h3>
 	{{/view}}
 	<div class="accordion" style="margin-bottom: 10px">	
 		<h3>Start URLs</h3>
@@ -8,7 +8,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each start_urls}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='286px' title=this icon="ui-icon-folder-open"}}
+						{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='82%' title=this icon="ui-icon-folder-open"}}
 						{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
@@ -16,7 +16,7 @@
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view ASTool.TextField value=newStartUrl class="mediumtextarea" width='262px' name='startUrlTextField' placeholder='New start url'}}
+				{{view ASTool.TextField value=newStartUrl width='262px' name='startUrlTextField' placeholder='New start url'}}
 				{{view ASTool.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
 			</div>
 		</div>
@@ -26,7 +26,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each exclude_patterns}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='286px' title=this}}
+						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='82%' title=this}}
 						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 				{{else}}
@@ -34,7 +34,7 @@
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view ASTool.TextField value=newExcludePattern class="mediumtextarea" width='236px' name='excludePatternTextField' placeholder='New exclude pattern'}}
+				{{view ASTool.TextField value=newExcludePattern width='236px' name='excludePatternTextField' placeholder='New exclude pattern'}}
 				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasExcludePattern}}
 			</div>
 		</div>
@@ -48,7 +48,7 @@
 				<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 					{{#each follow_patterns}}
 						<div style="margin: 4px 0px 4px 0px">
-							{{view ASTool.ButtonView label=this minWidth='286px' title=this}}
+							{{view ASTool.ButtonView label=this minWidth='82%' title=this}}
 							{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button"}}
 						</div>
 					{{else}}
@@ -56,29 +56,29 @@
 					{{/each}}
 				</div>
 				<div style="margin-top:10px">
-					{{view ASTool.TextField value=newFollowPattern class="mediumtextarea" width='236px' name='followPatternTextField' placeholder='New follow pattern'}}
+					{{view ASTool.TextField value=newFollowPattern width='236px' name='followPatternTextField' placeholder='New follow pattern'}}
 					{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasFollowPattern}}
 				</div>
 			{{/if}}
 			<hr/>
 			{{view ASTool.CheckBox checked=respect_nofollow name="respectNoFollow"}}
-			<span class="mediumLabel">Respect nofollow</span>
+			<span>Respect nofollow</span>
 		</div>
 
 		<h3>Login</h3>
 		<div>
 			<div>
 				{{view ASTool.CheckBox checked=performLogin name="performLoginCheck"}}
-				<label class="mediumLabel">Perform login</label>
+				<label>Perform login</label>
 			</div>
 			{{#if performLogin}}
-				<div class="nonscrolling-container ui-corner-all">
-					<div class="mediumLabel">Url</div>
-					{{view ASTool.TextField value=loginUrl class="mediumtextarea" width='286px' name='loginUrlField' placeholder='Login URL'}}
-					<div style="margin-top:5px" class="mediumLabel">User</div>
-					{{view ASTool.TextField value=loginUser class="mediumtextarea" width='286px' name='loginUserField' placeholder='Login user'}}
-					<div style="margin-top:5px" class="mediumLabel">Password</div>
-					{{view ASTool.TextField value=loginPassword class="mediumtextarea" width='286px' name='loginPasswordField' placeholder='Login password'}}
+				<div class="scrolling-container ui-corner-all">
+					<div>Url</div>
+					{{view ASTool.TextField value=loginUrl width='286px' name='loginUrlField' placeholder='Login URL'}}
+					<div style="margin-top:5px">User</div>
+					{{view ASTool.TextField value=loginUser width='286px' name='loginUserField' placeholder='Login user'}}
+					<div style="margin-top:5px">Password</div>
+					{{view ASTool.TextField value=loginPassword width='286px' name='loginPasswordField' placeholder='Login password'}}
 					<div style="margin-top:10px"></div>
 				</div>
 			{{/if}}
@@ -89,7 +89,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
 				{{#each templates}}
 					<div style="margin: 4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editTemplate" argument=this label=templateName minWidth='260px' title=url icon="ui-icon-wrench"}}
+						{{view ASTool.ButtonView action="editTemplate" argument=this label=templateName minWidth='75%' title=url icon="ui-icon-wrench"}}
 						{{view ASTool.ButtonView action="loadTemplate" argument=this icon="ui-icon-folder-open" class="textless-button"}}
 						{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>

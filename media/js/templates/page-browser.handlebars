@@ -1,4 +1,5 @@
-	<span class="rotate pageBrowserTitle">Browse Tools</span>
+<div id="page-browser">
+	<span class="rotate title">Browse Tools</span>
 	{{#if view.expanded}}
 		<div style="margin-left: 15px;">
 			<div style="text-align: left; margin-top:10px">
@@ -20,11 +21,12 @@
 			{{/if}}
 			<div style="margin-top: 15px;">
 				<div style="text-align: center;">
-					<span class="mediumLabel">Overlay crawl graph</span>
+					<span>Overlay crawl graph</span>
 					{{view ASTool.CheckBox checked=showCrawlGraph name="showCrawlGraph"}}
-					<span class="mediumLabel">Overlay blocked links</span>
+					<span>Overlay blocked links</span>
 					{{view ASTool.CheckBox checked=showLinks name="showLinks"}}
 				</div>
 			</div>
 		</div>
 	{{/if}}
+</div>

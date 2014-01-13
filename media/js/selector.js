@@ -105,22 +105,22 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	showHoveredInfo: function() {
-		$("#hoveredInfo").css('display', 'inline');
+		$("#hovered-element-info").css('display', 'inline');
 	},
 
 	hideHoveredInfo: function() {
-		$("#hoveredInfo").css('display', 'none');
+		$("#hovered-element-info").css('display', 'none');
 	},
 
 	updateHoveredInfo: function(element) {
 		var path = $(element).getPath();
 		var attributes = $(element).getAttributeList();
-		var contents = '<div class="hoveredPathLine">' + path + '</div><hr style="background-color:#eaebda;"/>';
+		var contents = '<div class="path">' + path + '</div> <hr style="background-color:#eaebda;"/>';
 		$(attributes).each(function(i, attribute) {
 			var value = trim(attribute.get('value'), 60);
-			contents += '<div class="hoveredInfoLine">' + attribute.get('name') + ": " + value + '</div>';
+			contents += '<div class="attribute">' + attribute.get('name') + ": " + value + '</div>';
 		});
-		$("#hoveredInfo").html(contents);
+		$("#hovered-element-info").html(contents);
 	},
 
 	mouseOverHandler:  function(event) {
@@ -224,7 +224,7 @@ ASTool.DocumentView = Em.Object.extend({
 				});
 			}, 1000));
 			window.onresize = function() {
-				$('#scraped-doc-iframe').height(window.innerHeight * 0.99);
+				$('#scraped-doc-iframe').height(window.innerHeight);
 				$('#toolbar').height(window.innerHeight);
 				this.get('canvas').draw();
 				if (ASTool.graph) {
@@ -268,7 +268,7 @@ ASTool.DocumentView = Em.Object.extend({
 		this.set('canvas.interactionsBlocked', true);
 		var loader = this.get('loader');
 		if (!loader) {
-			loader = new CanvasLoader('loaderContainer');
+			loader = new CanvasLoader('loader-container');
 			loader.setColor('#2398c2');
 			loader.setShape('spiral');
 			loader.setDiameter(133);

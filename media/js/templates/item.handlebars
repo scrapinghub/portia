@@ -1,14 +1,14 @@
-<span class="smallLabel">Name </span>
-{{view ASTool.TextField owner=view.item value=view.item.name class="mediumtextarea"}}
+<span>Name </span>
+{{view ASTool.TextField owner=view.item value=view.item.name}}
 {{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="textless-button"}}
 {{view ASTool.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="New field"}}
 <div style="text-align: center; margin-top:10px">
 	{{#if view.item.fields}}
 		<table style="margin: 0 auto;">
-			<tr class="smallLabel"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
+			<tr style="font-size:0.8em"> <td>Field name</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 			{{#each view.item.fields}}
 				<tr>
-					<td>{{view ASTool.TextField value=name class="mediumtextarea" name="fieldName" width="60px"}}</td>
+					<td>{{view ASTool.TextField value=name name="fieldName" width="60px"}}</td>
 					<td class="typeBox">{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
 					<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
 					<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
