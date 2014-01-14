@@ -35,12 +35,10 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			item.get('fields').removeObject(field);
 		},
 	   
-		chooseField: function(field) {
-			var attribute = this.get('mappingAttribute');
-			var annotation = attribute.get('annotation');
-			annotation.addMapping(attribute.get('name'), field['name']);
+		chooseField: function(item, field) {
+			this.get('controllers.annotation').attributeMapped(this.get('mappingAttribute'), item, field)
+			this.set('mappingAttribute', null); 
 			this.popRoute();
-			this.set('mappingAttribute', null);	   
 		},
 
 		back: function() {

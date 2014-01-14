@@ -171,6 +171,14 @@ body{
 	pointer-events: none;
 }
 
+.highlighted-item {
+	padding: 5px 0px 5px 0px;
+	background-color: rgba(255,250,240,0.2);
+	border-style: solid;
+	border-width: 1px;
+	border-color: orange;
+}
+
 .element-attribute-view {
 	word-wrap: break-word;
 }
@@ -181,6 +189,11 @@ body{
 
 .element-attribute-view .value {
 	color: #53D1ED;
+}
+
+.element-attribute-view .item {
+	color: #53D1ED;
+	font-weight: bold;
 }
 
 .rotate {

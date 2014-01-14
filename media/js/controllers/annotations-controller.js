@@ -29,12 +29,19 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
+		annotation.set('template', this.get('template'));
 		this.pushRoute('annotation', 'Editing annotation', 'flip', annotation);
 	},
 	
 	deleteAllAnnotations: function() {
 		var annotations = this.get('content').toArray();
 		annotations.invoke('deleteRecord');
+		annotations.invoke('save');
+	},
+
+	removeMappings: function() {
+		var annotations = this.get('content').toArray();
+		annotations.invoke('removeMappings');
 		annotations.invoke('save');
 	},
 

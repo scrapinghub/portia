@@ -236,6 +236,7 @@ ASTool.IgnoreWidget = ASTool.TextField.extend({
 ASTool.ElemAttributeView = ASTool.ButtonView.extend({
 	value: null,
 	attribute: null,
+	item: null,
 	classNames: ['element-attribute-view'],
 	
 	didInsertElement: function() {
@@ -248,7 +249,7 @@ ASTool.ElemAttributeView = ASTool.ButtonView.extend({
 		if (this.mapped) {
 			content.append($('<div/>').
 			append($('<span/>', { text:'mapped to: ', class:'name' })).
-			append($('<span/>', { text:attribute.mappedField, class:'value' })));
+			append($('<span/>', { text:this.get('item') + '.' + attribute.mappedField, class:'item' })));
 		}
 		content.css('text-align', 'left').
 		css('margin-left', '5px').
@@ -263,6 +264,16 @@ ASTool.ItemView = Ember.View.extend({
 	templateName: 'item',
 	item: null,
 	mappingAttribute: null,
+	classNames: ['ui-corner-all'],
+	classNameBindings: ['highlighted:highlighted-item'],
+
+	highlighted: function() {
+		if (!this.mappingAttribute) {
+			return false;
+		} else {
+			return this.get('controller.controllers.annotation.scrapes') == this.item.get('name');
+		}
+	}.property(),
 });
 
 

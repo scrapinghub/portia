@@ -25,7 +25,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 	
 	createRecord: function(store, type, record) {
-		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
+		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
 		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
 		return this.wrapInPromise(function() {
 			return serializedRecord;
@@ -33,7 +33,7 @@ ASTool.IFrameAdapter = DS.Adapter.extend({
 	},
 	
 	updateRecord: function(store, type, record) {
-		serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
+		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
 		var oldAnnotatedElement = this.get('iframe').findAnnotatedElement(record.get('id'));
 		oldAnnotatedElement.removeAttr(this.get('storageAttribute'));
 		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
@@ -376,7 +376,7 @@ ASTool.Annotation = DS.Model.extend({
 		// Force reload of ignores from the document.
 		this.set('_ignores', null);
 		return this._super();
-	}
+	},
 });
 
 

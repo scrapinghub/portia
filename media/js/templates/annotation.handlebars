@@ -4,11 +4,11 @@
 		<h3>Selected region</h3>
 		<div class='rightIcon'>
 			<h5>CSS Path</h5>
-			
+
 			<div class="ui-corner-all scrolling-container" style="word-wrap:break-word; padding:10px;">
-			{{path}}
+				{{path}}
 			</div>
-			
+
 			{{#if path}}
 				<h5>Ancestors</h5>
 				<div class="scrolling-container ui-corner-all" style="max-height:180px;">
@@ -41,7 +41,7 @@
 			<div class="scrolling-container ui-corner-all" style="max-height:180px;">
 				{{#each mappedAttributes}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this minWidth='90%'
+						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this item=controller.template.scrapes minWidth='90%'
 						  maxWidth='336px' action="unmapAttribute" argument=this}}
 					</div>
 				{{/each}}

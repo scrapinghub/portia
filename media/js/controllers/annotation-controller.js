@@ -13,6 +13,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 	openAttributesOnShow: false,
 
 	highlightedElement: null,
+
+	scrapesBinding: 'controllers.annotations.template.scrapes',
 	
 	selectingIgnore: function(key, selectingIgnore) {
 		if (arguments.length > 1) {
@@ -85,6 +87,25 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		}
 		this.set('currentlySelectedElement', null);
 		this.popRoute('flip');
+	},
+
+	attributeMapped: function(attribute, item, field) {
+		if (this.get('template.scrapes') != item['name']) {
+			var mappedAnnotations = this.get('controllers.annotations.model').filter(function(annotation) {
+				return Object.keys(annotation.get('annotations')).length > 0;
+			});
+			if (mappedAnnotations.length) {
+				// Only one item type per template is supported.
+				if (confirm('Are you sure that you want to change the item scraped by this template? ' +
+							'You will lose all previously defined attribute mappings for this template!')) {
+					this.get('controllers.annotations').removeMappings();
+				} else {
+					return;
+				}	
+			}
+		}
+		this.get('content').addMapping(attribute.get('name'), field['name']);
+		this.set('template.scrapes', item['name']);
 	},
 	
 	actions: {

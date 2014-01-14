@@ -14,7 +14,7 @@
 					<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
 					<td style="padding:0px 5px 0px 5px;"{{action deleteField view.item this}}>{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button"}}</td>
 					{{#if view.mappingAttribute}}
-						<td style="padding-bottom:4px;">{{view ASTool.ButtonView action="chooseField" argument=this icon="ui-icon-circle-triangle-e" label="Map"}}</td>
+						<td style="padding-bottom:4px;"{{action chooseField view.item this}}>{{view ASTool.ButtonView icon="ui-icon-circle-triangle-e" label="Map"}}</td>
 					{{/if}}
 				</tr>
 			{{/each}}
