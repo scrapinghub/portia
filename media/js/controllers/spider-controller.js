@@ -96,6 +96,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			var followed = followedLinks.indexOf(link.href) >= 0;
 			sprites.pushObject(ASTool.ElementSprite.create({
 				element: link,
+				hasShadow: false,
 				fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
 				strokeColor: 'clear' }));
 		});
