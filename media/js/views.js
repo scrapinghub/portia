@@ -195,7 +195,8 @@ ASTool.VariantSelect = ASTool.Select.extend({
 
 
 ASTool.AnnotationWidget = ASTool.ButtonView.extend({
-
+	titleBinding: 'argument.name',
+	
 	mouseEnter: function() {
 		this.set('argument.highlighted', true);
 		this.get('controller').send('annotationHighlighted', this.argument);

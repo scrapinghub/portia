@@ -59,7 +59,12 @@ ASTool.AnnotationsRoute = Ember.Route.extend({
 	},
 
 	model: function() {
-		return this.store.find('annotation');
+		return this.store.find('annotation').then(function(annotations) {
+			annotations.forEach(function(annotation) {
+				annotation.set('template', this.controllerFor('annotations').get('template'));
+			}.bind(this));
+			return annotations;
+		}.bind(this));
 	},
 });
 

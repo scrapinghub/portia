@@ -212,10 +212,16 @@ ASTool.Spider = DS.Model.extend({
 	}.property('init_requests'),
 }),
 
-ASTool.Annotation = DS.Model.extend({	
+ASTool.Annotation = DS.Model.extend({
 	name: function() {
-		if (this.get('annotations') && Object.keys(this.get('annotations')).length) {
-			return JSON.stringify(this.get('annotations')).replace(/"/g, '');
+		var annotations = this.get('annotations');
+		if (annotations && Object.keys(annotations).length) {
+			var name = '';
+			Object.keys(annotations).forEach(function(key) {
+				name += name.length ? ', ' : '' + key + ' -> ';
+				name += this.get('template.scrapes') + '.' + annotations[key];
+			}.bind(this));
+			return name;
 		} else {
 			return 'Empty (' + this.get('id').substring(0, 5) + ')';
 		}
@@ -226,6 +232,8 @@ ASTool.Annotation = DS.Model.extend({
 	annotations: DS.attr(),
 
 	iframeBinding: 'ASTool.iframe',
+
+	template: null,
 	
 	addMapping: function(attribute, itemField) {
 		this.get('annotations')[attribute] = itemField;
