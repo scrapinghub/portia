@@ -104,8 +104,8 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 		}
 
 		context.fillStyle = this.get('fillColor');
-		context.fillRect(rect.left + 2,
-			         	 rect.top + 2,
+		context.fillRect(rect.left,
+			         	 rect.top,
 					 	 rect.width,
 						 rect.height);
 		context.restore();			 
@@ -121,10 +121,10 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 		    context.strokeStyle = 'orange';
 
 		}
-		context.strokeRect(rect.left + 2,
-			           rect.top + 2,
-					   rect.width,
-					   rect.height);
+		context.strokeRect(rect.left,
+			           	   rect.top,
+					       rect.width,
+					       rect.height);
 
 		if (this.get('text')) {
 			context.font = "12px sans-serif";
