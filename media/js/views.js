@@ -27,6 +27,7 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 	maxWidth: null,
 	action: null,
 	argument: null,
+	argument2: null,
 	attributeBindings: ['name', 'title'],
 	_label: null,
 	title: null,
@@ -41,7 +42,9 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
   
 	click: function() {
 		if (this.get('action')) {
-			this.get('controller').send(this.get('action'), this.get('argument'));	
+			this.get('controller').send(this.get('action'),
+										this.get('argument'),
+										this.get('argument2'));	
 		}
 	},
 

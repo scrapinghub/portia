@@ -12,9 +12,9 @@
 					<td class="typeBox">{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
 					<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
 					<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
-					<td style="padding:0px 5px 0px 5px;"{{action deleteField view.item this}}>{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button"}}</td>
+					<td style="padding:0px 5px 0px 5px;">{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button" action="deleteField" argument=view.item argument2=this}}</td>
 					{{#if view.mappingAttribute}}
-						<td style="padding-bottom:4px;"{{action chooseField view.item this}}>{{view ASTool.ButtonView icon="ui-icon-circle-triangle-e" label="Map"}}</td>
+						<td style="padding-bottom:4px;">{{view ASTool.ButtonView icon="ui-icon-circle-triangle-e" label="Map" action="chooseField" argument=view.item argument2=this}}</td>
 					{{/if}}
 				</tr>
 			{{/each}}
