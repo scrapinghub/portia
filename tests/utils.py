@@ -4,6 +4,7 @@ from twisted.web import server
 from twisted.web.test.test_web import DummyRequest
 from scrapy.settings import CrawlerSettings
 from slyd.crawlerspec import CrawlerSpecManager
+from slyd.projects import ProjectsResource
 import tests.settings as test_settings
 
 
@@ -11,6 +12,13 @@ def test_spec_manager():
     """Create a CrawlerSpecManager configured to use test settings"""
     crawler_settings = CrawlerSettings(settings_module=test_settings)
     return CrawlerSpecManager(crawler_settings)
+
+def test_projects_resource(temp_projects_dir):
+    """Create a ProjectsResource configured to use test settings"""
+    crawler_settings = CrawlerSettings(settings_module=test_settings)
+    projects = ProjectsResource(crawler_settings)
+    projects.projectsdir = temp_projects_dir
+    return projects
 
 
 class _SlydDummyRequest(DummyRequest):

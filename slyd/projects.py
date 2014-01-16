@@ -59,7 +59,7 @@ class ProjectsResource(SlydJsonResource):
             self.project_filename(to_name))
 
     def remove_project(self, name):
-        os.remove(self.project_filename(name))
+        shutil.rmtree(self.project_filename(name))
 
     def project_filename(self, project_name):
         return join(self.projectsdir, project_name)
@@ -82,6 +82,8 @@ class ProjectsResource(SlydJsonResource):
         except OSError as ex:
             if ex.errno == errno.ENOENT:
                 self.error(404, "Not Found", "No such resource")
+            elif ex.errno == errno.EEXIST or ex.errno == errno.ENOTEMPTY:
+                self.bad_request("A project with that name already exists")
             raise
         return retval or ''
 
