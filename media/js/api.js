@@ -1,23 +1,64 @@
 ASTool.SlydApi = Em.Object.extend({
 
-	baseUrl: function() {
-		return SLYD_URL || window.location.protocol + '//' + window.location.host + '/api/';
+	project: null,
+
+	apiUrl: function() {
+		return SLYD_URL || window.location.protocol + '//' + window.location.host + '/projects';
 	}.property(),
 
-	// FIXME: hardcoded 'test' project.
-	project: 'test',
+	projectSpecUrl: function() {
+		return this.get('apiUrl') + '/' + this.project + '/spec/';
+	}.property('project'),
+
+	botUrl: function() {
+		return this.get('apiUrl') + '/' + this.project + '/bot/';
+	}.property('project'),
+
+	getProjectNames: function() {
+		hash = {};
+		hash.type = 'GET';
+		hash.url = this.get('apiUrl');
+		return ic.ajax(hash);
+	},
+
+	createProject: function(projectName) {
+		hash = {};
+		hash.type = 'POST';
+		hash.url = this.get('apiUrl');
+		hash.data = JSON.stringify({ cmd: 'create', args: [projectName] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
+
+	deleteProject: function(projectName) {
+		hash = {};
+		hash.type = 'POST';
+		hash.url = this.get('apiUrl');
+		hash.data = JSON.stringify({ cmd: 'rm', args: [projectName] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
+
+	renameProject: function(oldProjectName, newProjectName) {
+		hash = {};
+		hash.type = 'POST';
+		hash.url = this.get('apiUrl');
+		hash.data = JSON.stringify({ cmd: 'mv', args: [oldProjectName, newProjectName] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
 
 	getSpiderNames: function() {
 		hash = {};
 		hash.type = 'GET';
-		hash.url = this.get('baseUrl') + this.project + '/spec/spiders';
+		hash.url = this.get('projectSpecUrl') + 'spiders';
 		return ic.ajax(hash);
 	},
 
 	loadSpiders: function(onSuccess, onError) {
 		hash = {};
 		hash.type = 'GET';
-		hash.url = this.get('baseUrl') + this.project + '/spec';
+		hash.url = this.get('projectSpecUrl');
 		ic.ajax(hash).then(function(projectData){
 			return projectData['spiders'];
 		});
@@ -26,7 +67,7 @@ ASTool.SlydApi = Em.Object.extend({
 	loadSpider: function(spiderName) {
 		hash = {};
 		hash.type = 'GET';
-		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/' + spiderName;
+		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
 		return ic.ajax(hash).then(function(spiderData) {
 			spiderData['id'] = spiderName;		
 			spiderData['templates'] = spiderData['templates'].map(function(template) {
@@ -40,7 +81,7 @@ ASTool.SlydApi = Em.Object.extend({
 	renameSpider: function(oldSpiderName, newSpiderName) {
 		hash = {};
 		hash.type = 'POST';
-		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/';
+		hash.url = this.get('projectSpecUrl') + 'spiders';
 		hash.data = JSON.stringify({ cmd: 'mv', args: [oldSpiderName, newSpiderName] });
 		hash.dataType = 'text';
 		return ic.ajax(hash);
@@ -50,7 +91,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash = {};
 		hash.type = 'POST';
 		hash.dataType = 'text';
-		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/';
+		hash.url = this.get('projectSpecUrl') + 'spiders';
 		hash.data = JSON.stringify({ cmd: 'rm', args: [spiderName] });
 		return ic.ajax(hash);
 	},
@@ -58,7 +99,7 @@ ASTool.SlydApi = Em.Object.extend({
 	loadItems: function() {
 		hash = {};
 		hash.type = 'GET';
-		hash.url = this.get('baseUrl') + this.project + '/spec/items';
+		hash.url = this.get('projectSpecUrl') + 'items';
 		return ic.ajax(hash).then(function(items) {
 			items = this.dictToList(items, ASTool.Item);
 			items.forEach(function(item) {
@@ -81,7 +122,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.type = 'POST';
 		hash.data = JSON.stringify(items);
 		hash.dataType = 'text';
-		hash.url = this.get('baseUrl') + this.project + '/spec/items';
+		hash.url = this.get('projectSpecUrl') + 'items';
 		return ic.ajax(hash);
 	},
 
@@ -90,7 +131,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.type = 'POST';
 		hash.data = JSON.stringify(spiderData);
 		hash.dataType = 'text';
-		hash.url = this.get('baseUrl') + this.project + '/spec/spiders/' + spiderName;
+		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
 		return ic.ajax(hash);
 	},
 
@@ -99,7 +140,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.type = 'POST';
 		hash.data = JSON.stringify({spider: spiderName,
 									request: {url: pageUrl}});
-		hash.url = this.get('baseUrl') + this.project + '/bot/fetch';
+		hash.url = this.get('botUrl') + 'fetch';
 		return ic.ajax(hash);
 	},
 

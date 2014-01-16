@@ -7,7 +7,7 @@ ASTool = Em.Application.create({
 });
 
 
-var SLYD_URL = 'http://localhost:9001/api/';
+var SLYD_URL = 'http://localhost:9001/projects';
 
 
 Ember.Application.initializer({

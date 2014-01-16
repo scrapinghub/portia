@@ -4,6 +4,8 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	documentView: null,
 
+	nameBinding: 'slyd.project',
+
 	actions: {
 
 		editSpider: function(spiderName) {
@@ -35,6 +37,22 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 		gotoItems: function() {
 			this.pushRoute('items', 'Items');
+		},
+
+		rename: function(oldName, newName) {
+			if (confirm('Are you sure you want to rename this project? This operation cannot be undone.')) {
+				this.get('slyd').renameProject(oldName, newName).then(
+					function() {
+						this.renameTop('Project: ' + newName);
+					},
+					function(reason) {
+						this.set('name', oldName);
+						alert('The name ' + newName + ' is not a valid project name.');
+					}.bind(this)
+				);
+			} else {
+				this.set('name', oldName);
+			}
 		},
 	},
 

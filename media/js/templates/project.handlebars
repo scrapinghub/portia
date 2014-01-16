@@ -1,4 +1,7 @@
 <div class="container ui-corner-all">
+	{{#view ASTool.RenameTextField value=name}}
+  		<h3 class="editable-name ui-corner-all">Project {{name}}</h3>
+	{{/view}}
 	<div class="accordion" style="margin-bottom:10px">
 		<h3>Spiders for this project:</h3>
 		<div>
@@ -17,5 +20,6 @@
 			</div>
 		</div>
 	</div>
+	{{view ASTool.ButtonView action="back" icon="ui-icon-circle-triangle-w" label='Back to project list'}}
 	{{view ASTool.ButtonView action="gotoItems" argument=this icon="ui-icon-circle-triangle-e" label='Items'}}
 </div>

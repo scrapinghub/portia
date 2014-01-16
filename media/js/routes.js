@@ -7,7 +7,8 @@ ASTool.Router.reopen({
 
 /* Route Map */
 ASTool.Router.map(function() {
-	this.resource('project');
+	this.resource('projects');
+	this.resource('project', {path: '/project/:project_id'});
 	this.resource('spider', {path: '/spiders/:spider_id'});
 	this.resource('annotations');
 	this.resource('annotation', {path: '/annotations/:annotation_id'});
@@ -16,8 +17,16 @@ ASTool.Router.map(function() {
 });
 
 
-ASTool.ProjectRoute = Ember.Route.extend({
+ASTool.ProjectsRoute = Ember.Route.extend({
 	model: function() {
+		return this.get('slyd').getProjectNames();
+	},
+});
+
+
+ASTool.ProjectRoute = Ember.Route.extend({
+	model: function(params) {
+		this.set('slyd.project', params.project_id);
 		return this.get('slyd').getSpiderNames();
 	},
 });

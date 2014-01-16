@@ -196,7 +196,7 @@ ASTool.VariantSelect = ASTool.Select.extend({
 
 ASTool.AnnotationWidget = ASTool.ButtonView.extend({
 	titleBinding: 'argument.name',
-	
+
 	mouseEnter: function() {
 		this.set('argument.highlighted', true);
 		this.get('controller').send('annotationHighlighted', this.argument);
@@ -298,7 +298,6 @@ ASTool.RenameTextField = ASTool.InlineTextField.extend({
 
 
 ASTool.ExtractedItemView = Ember.View.extend({
-	templateName: 'extracted-item',
 	item: null,
 
 	fields: function() {
@@ -347,7 +346,7 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 	
 	didInsertElement: function() {
 		this._super();
-		this.get('controller').pushRoute('project', 'Project: test');
+		this.get('controller').pushRoute('projects', 'Project list');
 		this.get('controller.documentView').initCanvas();
 		$('#scraped-doc-iframe').height(window.innerHeight);
 		$('#toolbar').height(window.innerHeight);
@@ -380,6 +379,7 @@ ASTool.AnnotationView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.ItemsView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.SpiderView = Ember.View.extend(ASTool.ToolbarViewMixin);
 ASTool.ProjectView = Ember.View.extend(ASTool.ToolbarViewMixin);
+ASTool.ProjectsView = Ember.View.extend(ASTool.ToolbarViewMixin);
 
 
 /*************************** Helpers ******************************/

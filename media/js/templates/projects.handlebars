@@ -1,0 +1,18 @@
+<div class="container ui-corner-all">
+	<div class="accordion" style="margin-bottom: 10px">
+		<h3>Projects</h3>
+		<div>
+			<div class="scrolling-container ui-corner-all">
+				{{#each}}
+					{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='82%' icon="ui-icon-folder-open"}}
+					{{view ASTool.ButtonView action="deleteProject" argument=this icon="ui-icon-trash" class="textless-button"}}
+				{{else}}
+					<h5>No projects have been created yet.</h5>
+				{{/each}}
+			</div>
+			<div style="margin-top:10px">
+				{{view ASTool.ButtonView action="createProject" icon="ui-icon-circle-plus" label="New project"}}
+			</div>
+		</div>
+	</div>
+</div>
