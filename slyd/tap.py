@@ -28,25 +28,26 @@ def create_root(config):
         create_crawler_spec_resource)
     from slyd.bot import create_bot_resource
     import slyd.settings
-    from slyd.project import Project
+    from slyd.projects import ProjectsResource
 
     root = Resource()
     root.putChild("static", File(config['docroot']))
 
-    # api/PROJECTID/child
-    project = Project()
-    root.putChild('api', project)
-
-    # add crawler at api/PROJECT/bot
     crawler_settings = CrawlerSettings(settings_module=slyd.settings)
     spec_manager = CrawlerSpecManager(crawler_settings)
+
+    # add project management at /projects
+    projects = ProjectsResource(crawler_settings)
+    root.putChild('projects', projects)
+
+    # add crawler at /projects/PROJECT_ID/bot
     log.msg("Slybot specs loading from %s/[PROJECT]" % spec_manager.basedir,
         level=log.DEBUG)
-    project.putChild("bot", create_bot_resource(spec_manager))
+    projects.putChild("bot", create_bot_resource(spec_manager))
 
-    # spec at api/PROJECT/spec
+    # add spec at /projects/PROJECT_ID/spec
     spec = create_crawler_spec_resource(spec_manager)
-    project.putChild("spec", spec)
+    projects.putChild("spec", spec)
     return root
 
 
