@@ -4,9 +4,16 @@ ASTool.rootElement = '#ember-testing';
 ASTool.setupForTesting();
 
 Ember.Test.registerAsyncHelper('iframeClick', function(app, selector, context) {
-    var $el =$('#scraped-doc-iframe').contents().find(selector);
+    var $el = $('#scraped-doc-iframe').contents().find(selector);
     Ember.run(function() {
         $el.mouseup();
+    });
+});
+
+Ember.Test.registerAsyncHelper('focus', function(app, selector, context) {
+    var $el = $(selector);
+    Ember.run(function() {
+        $el.focus();
     });
 });
 

@@ -102,7 +102,7 @@ ASTool.ToggleButton = Ember.Checkbox.extend(JQ.Widget, {
 
 
 ASTool.InlineTextField = Ember.View.extend({
-  layoutName: 'inline-textfield',
+  	layoutName: 'inline-textfield',
 
  	click: function() {
     	if (!this.get('isEditing'))  {
@@ -124,6 +124,8 @@ ASTool.InlineTextField = Ember.View.extend({
 
   	textField: Ember.TextField.extend({
   		classNames: ['inline-textfield', 'ui-corner-all'],
+  		attributeBindings: ['name'],
+  		name: 'inline_textfield',
 
     	focusOut: function() {
     		this.done();
@@ -283,6 +285,8 @@ ASTool.ItemView = Ember.View.extend({
 
 ASTool.RenameTextField = ASTool.InlineTextField.extend({
 	oldValue: null,
+	attributeBindings: ['name'],
+  	name: 'rename',
 
 	save: function() {
 		if (this.get('oldValue') != this.get('value')) {
