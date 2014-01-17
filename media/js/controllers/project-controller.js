@@ -44,7 +44,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 				this.get('slyd').renameProject(oldName, newName).then(
 					function() {
 						this.renameTop('Project: ' + newName);
-					},
+					}.bind(this),
 					function(reason) {
 						this.set('name', oldName);
 						alert('The name ' + newName + ' is not a valid project name.');
