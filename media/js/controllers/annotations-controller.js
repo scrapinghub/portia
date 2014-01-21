@@ -1,3 +1,9 @@
+ASTool.FieldExtractors = Em.Object.extend({
+	fieldName: null,
+	extractors: [],
+}),
+
+
 ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	
 	needs: ['application', 'annotation'],
@@ -9,6 +15,24 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	currentlySelectedElement: null,
 
 	nameBinding: 'template.templateName',
+
+	newReExtractor: null,
+
+	_newTypeExtractor: 'null',
+
+	newTypeExtractor: function(key, type) {
+		if (arguments.length > 1) {
+			this.set('_newTypeExtractor', type);
+			if (type) {
+				this.set('newReExtractor', null);
+			}
+		}
+		return this.get('_newTypeExtractor');
+	}.property('_newTypeExtractor'),
+
+	createExtractorDisabled: function() {
+		return !this.get('newTypeExtractor') && !this.get('newReExtractor');
+	}.property('newReExtractor', 'newTypeExtractor'),
 
 	sprites: function() {
 		return this.get('content').map(function(annotation) {
@@ -51,6 +75,14 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		}
 	},
 
+	saveExtractors: function() {
+		// Cleanup extractor objects.
+		this.get('extractors').forEach(function(extractor) {
+			delete extractor['dragging'];
+		});
+		this.get('slyd').saveExtractors(this.get('extractors'));
+	},
+
 	maxVariant: function() {
 		var maxVariant = 0;
 		this.get('content').forEach(function(annotation) {
@@ -60,6 +92,53 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		});
 		return maxVariant;
 	}.property('content.@each.variant'),
+
+	getAppliedExtractors: function(fieldName) {
+		var extractorIds = this.get('template.extractors.' + fieldName) || [];
+		return extractorIds.map(function(extractorId) {
+				var extractor = this.get('extractors').filterBy('name', extractorId)[0];
+				if (extractor) {
+					// Copy the extractor.
+					extractor = ASTool.Extractor.create(extractor);
+					extractor['fieldName'] = fieldName;
+					return extractor;
+				} else {
+					return null;	
+				}
+			}.bind(this)
+		).filter(function(extractor){ return !!extractor });
+	},
+
+	appliedExtractors: function() {
+		var appliedExtractors = [];
+		var mappedFields = new Em.Set();
+		this.get('content').forEach(function(annotation) {
+			var mappedAttributes = annotation.get('mappedAttributes');
+			mappedAttributes.forEach(function(attribute) {
+				var fieldName = attribute.get('mappedField');
+				mappedFields.add(fieldName);
+			}.bind(this));
+		}.bind(this));
+		mappedFields.forEach(function(fieldName) {
+			var fieldExtractors = new ASTool.FieldExtractors();
+			fieldExtractors.set('fieldName', fieldName);
+			fieldExtractors.set('extractors', this.getAppliedExtractors(fieldName));
+			appliedExtractors.pushObject(fieldExtractors);
+		}.bind(this));
+		return appliedExtractors;
+	}.property('content.@each.mappedAttributes', 'template.extractors', 'extractors.@each'),
+
+	createExtractor: function(extractorType, extractorDefinition) {
+		var extractor = ASTool.Extractor.create({
+			name: ASTool.guid(),
+		});
+		extractor.set(extractorType, extractorDefinition);
+		this.get('extractors').pushObject(extractor);
+	},
+
+	draggingExtractor: function() {
+		return this.get('extractors').anyBy('dragging');
+	}.property('extractors.@each.dragging'),
 
 	actions: {
 		
@@ -83,6 +162,37 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		rename: function(oldName, newName) {
 			this.renameTop('Template: ' + newName);
 		},
+
+		createExtractor: function() {
+			if (this.get('newReExtractor')) {
+				this.createExtractor('regular_expression', this.get('newReExtractor'));
+				this.set('newReExtractor', null);
+			} else {
+				this.createExtractor('type_extractor', this.get('newTypeExtractor'));	
+			}
+		},
+
+		deleteExtractor: function(extractor) {
+			this.get('extractors').removeObject(extractor);
+		},
+
+		applyExtractor: function(fieldName, extractorId) {
+			var currentExtractors = this.get('template.extractors')[fieldName];
+			if (!currentExtractors) {
+				currentExtractors = [];
+				this.set('template.extractors.' + fieldName, currentExtractors);
+			}
+			if (currentExtractors.indexOf(extractorId) == -1) {
+				currentExtractors.pushObject(extractorId);
+				this.notifyPropertyChange('template.extractors');
+			}
+		},
+
+		removeAppliedExtractor: function(appliedExtractor) {
+			var fieldName = appliedExtractor['fieldName'];
+			this.get('template.extractors')[fieldName].removeObject(appliedExtractor['name']);
+			this.notifyPropertyChange('template.extractors');
+		},
 	},
 
 	willEnter: function() {
@@ -90,4 +200,8 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 										  listener: this,
 										  dataSource: this, });
 	},
+
+	willLeave: function() {
+		this.saveExtractors();
+	}
 });

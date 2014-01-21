@@ -15,14 +15,14 @@ ASTool.SlydApi = Em.Object.extend({
 	}.property('project'),
 
 	getProjectNames: function() {
-		hash = {};
+		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('apiUrl');
 		return ic.ajax(hash);
 	},
 
 	createProject: function(projectName) {
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.url = this.get('apiUrl');
 		hash.data = JSON.stringify({ cmd: 'create', args: [projectName] });
@@ -31,7 +31,7 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	deleteProject: function(projectName) {
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.url = this.get('apiUrl');
 		hash.data = JSON.stringify({ cmd: 'rm', args: [projectName] });
@@ -40,7 +40,7 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	renameProject: function(oldProjectName, newProjectName) {
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.url = this.get('apiUrl');
 		hash.data = JSON.stringify({ cmd: 'mv', args: [oldProjectName, newProjectName] });
@@ -49,14 +49,14 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	getSpiderNames: function() {
-		hash = {};
+		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'spiders';
 		return ic.ajax(hash);
 	},
 
 	loadSpiders: function(onSuccess, onError) {
-		hash = {};
+		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl');
 		ic.ajax(hash).then(function(projectData){
@@ -65,7 +65,7 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	loadSpider: function(spiderName) {
-		hash = {};
+		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
 		return ic.ajax(hash).then(function(spiderData) {
@@ -79,7 +79,7 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	renameSpider: function(oldSpiderName, newSpiderName) {
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.url = this.get('projectSpecUrl') + 'spiders';
 		hash.data = JSON.stringify({ cmd: 'mv', args: [oldSpiderName, newSpiderName] });
@@ -88,7 +88,7 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	deleteSpider: function(spiderName) {
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders';
@@ -97,7 +97,7 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	loadItems: function() {
-		hash = {};
+		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'items';
 		return ic.ajax(hash).then(function(items) {
@@ -118,7 +118,7 @@ ASTool.SlydApi = Em.Object.extend({
 			}
 		}.bind(this));
 		items = this.listToDict(items);
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify(items);
 		hash.dataType = 'text';
@@ -126,8 +126,28 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	loadExtractors: function() {
+		var hash = {};
+		hash.type = 'GET';
+		hash.url = this.get('projectSpecUrl') + 'extractors';
+		return ic.ajax(hash).then(function(extractors) {
+				return this.dictToList(extractors, ASTool.Extractor);
+			}.bind(this)
+		);	
+	},
+
+	saveExtractors: function(extractors) {
+		extractors = this.listToDict(extractors);
+		var hash = {};
+		hash.type = 'POST';
+		hash.data = JSON.stringify(extractors);
+		hash.dataType = 'text';
+		hash.url = this.get('projectSpecUrl') + 'extractors';
+		return ic.ajax(hash);
+	},
+
 	saveSpider: function(spiderName, spiderData) {
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify(spiderData);
 		hash.dataType = 'text';
@@ -136,7 +156,7 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	fetchDocument: function(pageUrl, spiderName) {
-		hash = {};
+		var hash = {};
 		hash.type = 'POST';
 		hash.data = JSON.stringify({spider: spiderName,
 									request: {url: pageUrl}});

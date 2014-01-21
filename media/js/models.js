@@ -225,7 +225,7 @@ ASTool.Annotation = DS.Model.extend({
 		} else {
 			return 'Empty (' + this.get('id').substring(0, 5) + ')';
 		}
-	}.property('annotations'),
+	}.property('annotations', 'template'),
 
 	variant: DS.attr('string', { defaultValue: '0' }),
 	
@@ -415,4 +415,11 @@ ASTool.Ignore = Em.Object.extend({
 	element: null,
 	ignoreBeneath: false,
 	highlighted: false,
+});
+
+
+ASTool.Extractor = Em.Object.extend({
+	name: null,
+	regular_expression: null,
+	type_extractor: null,
 });

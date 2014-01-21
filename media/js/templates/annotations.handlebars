@@ -9,7 +9,7 @@
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.AnnotationWidget action="editAnnotation" argument=this label=name  minWidth="82%" icon="ui-icon-wrench"}}
+						{{view ASTool.AnnotationWidget action="editAnnotation" argument=this label=name minWidth="82%" icon="ui-icon-wrench"}}
 						{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button"}}
 					</div>
 					{{else}}
@@ -19,6 +19,57 @@
 			<div style="margin-top:10px">
 				{{view ASTool.ButtonView action="addAnnotation" icon="ui-icon-circle-plus" label="New annotation"}}
 			</div>
+		</div>
+		<h3>Extractors</h3>
+		<div>
+			<h5>Applied extractors</h5>
+			<div class="scrolling-container ui-corner-all" style="max-height:100px;">
+				{{#each appliedExtractors}}
+					<div style="margin:5px 0px 20px 0px">
+						{{#view ASTool.ExtractorDropTarget fieldName=fieldName dragging=controller.draggingExtractor}}
+							<b>{{controller.template.scrapes}}.{{fieldName}}</b> <span>[+Drop extractors here]</span>
+						{{/view}}
+						{{#if extractors}}
+							<div style="margin:10px 0px 0px 0px"></div>
+						{{/if}}
+						{{#each extractors}}
+							<div style="margin:4px 0px 4px 0px">
+								{{#view ASTool.ExtractorView extractor=this}}
+									<span>
+										{{view.extractorTypeLabel}} {{view.extractorDefinition}}
+									</span>
+								{{/view}}
+								{{view ASTool.ButtonView action="removeAppliedExtractor" argument=this icon="ui-icon-trash" class="textless-button"}}
+							</div>
+						{{/each}}
+					</div>
+				{{else}}
+					<h5>No field mappings have been defined yet.</h5>
+				{{/each}}
+			</div>
+			<div style="margin-top:10px"></div>
+			<h5>Drag extractors to the fields above to apply them</h5>
+			<div class="scrolling-container ui-corner-all" style="max-height:100px;">
+				{{#each extractors}}
+					<div style="margin:4px 0px 4px 0px">
+						{{#view ASTool.ExtractorView extractor=this}}
+							<span>
+								{{view.extractorTypeLabel}} {{view.extractorDefinition}}
+							</span>
+						{{/view}}
+						{{view ASTool.ButtonView action="deleteExtractor" argument=this icon="ui-icon-trash" class="textless-button"}}
+					</div>
+				{{else}}
+					<h5>No extractors have been created yet.</h5>
+				{{/each}}
+			</div>
+			<div style="margin:10px 0px 10px 0px">
+				{{view ASTool.TextField value=newReExtractor width='122px' name='reExtractorField' placeholder='Enter a RegEx'}}
+				<span class="small-label">or choose a type:</span>
+				<span class="typeBox">{{view ASTool.ExtractorTypeSelect value=newTypeExtractor name='typeExtractorCombo'}}</span>
+			</div>
+				{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled}}
+			
 		</div>
 	</div>
 	<hr/>

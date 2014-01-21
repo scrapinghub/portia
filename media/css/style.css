@@ -196,6 +196,46 @@ body{
 	font-weight: bold;
 }
 
+.drop-target {
+	padding: 4px;
+	margin: 10px;
+}
+
+.drop-target span {
+	padding: 5px;
+	border-style: dotted;
+	border-width: 1px;
+	border-color: #666;
+	color: #666;
+}
+
+.drop-target-dragging span {
+	color: orange;
+	border-color: orange;
+}
+
+.extractor-view {
+	width: 75%;
+	background-color: #383838;
+	padding: 5px 10px 5px 10px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #666;
+}
+
+.regular_expression {
+	color: orange;
+}
+
+.type_extractor {
+	color: cyan;
+}
+
+.small-label {
+	font-size: 0.9em;
+	color: #888;
+}
+
 .rotate {
   -webkit-transform: rotate(-90deg);
   -moz-transform: rotate(-90deg);
@@ -206,7 +246,6 @@ body{
   -moz-transform-origin: 50% 50%;
   transform-origin: 50% 50%;
 }
-
 
 hr {
 	background-color: #636363;

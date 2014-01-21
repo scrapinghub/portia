@@ -1,3 +1,27 @@
+/*************************** Drag & drop support ********************/
+
+DragNDrop = Ember.Namespace.create();
+
+DragNDrop.cancel = function(event) {
+    event.preventDefault();
+};
+
+DragNDrop.Draggable = Ember.Mixin.create({
+    attributeBindings: 'draggable',
+    draggable: 'true',
+});
+
+DragNDrop.Droppable = Ember.Mixin.create({
+    dragEnter: DragNDrop.cancel,
+    dragOver: DragNDrop.cancel,
+
+    drop: function(event) {
+        event.preventDefault();
+        return false;
+    }
+});
+
+
 /*************************** Base views *****************************/
 
 ASTool.Select = Ember.Select.extend(JQ.Widget, {
@@ -176,6 +200,15 @@ ASTool.TypeSelect = ASTool.Select.extend({
 });
 
 
+ASTool.ExtractorTypeSelect = ASTool.TypeSelect.extend({
+	
+	select: function(event, data) {
+		// FIXME: raise an event instead of directly setting the property.
+		this.set('controller.newTypeExtractor', data.item.value);
+	},
+});
+
+
 ASTool.VariantSelect = ASTool.Select.extend({
 
 	content: function() {
@@ -312,6 +345,70 @@ ASTool.ExtractedItemView = Ember.View.extend({
 		});
 		return fields;
 	}.property('item'),
+});
+
+
+ASTool.ExtractorView = Em.View.extend(DragNDrop.Draggable, {
+	tagName: 'span',
+	extractor: null,
+	typeLabels: {
+		'regular_expression': '<RegEx>',
+		'type_extractor': '<type>',
+	},
+	classNames: ['extractor-view', 'ui-corner-all', 'ui-button', 'button-shadow'],
+	classNameBindings: ['extractorType'],
+
+	dragStart: function(event) {
+        this._super(event);
+        this.set('extractor.dragging', true);
+        var dataTransfer = event.originalEvent.dataTransfer;
+        dataTransfer.setDragImage(this.get('element'),
+        	$(this.get('element')).width() / 2 , $(this.get('element')).height() / 2);
+        dataTransfer.setData('Text', this.get('extractor.name'));
+    },
+
+    dragEnd: function(event) {
+        this.set('extractor.dragging', false);
+    },
+
+    extractorType: function() {
+		if (this.get('extractor.regular_expression')) {
+			return 'regular_expression';
+		} else {
+			return 'type_extractor';
+		}
+	}.property('extractor'),
+
+	extractorTypeLabel: function() {
+		return this.typeLabels[this.get('extractorType')];
+	}.property('extractor'),
+
+	extractorDefinition: function() {
+		return this.get('extractor')[this.get('extractorType')];
+	}.property('extractor'),
+});
+
+
+ASTool.ExtractorDropTarget = Ember.View.extend(DragNDrop.Droppable, {
+    tagName: 'span',
+    classNames: ['drop-target'],
+    classNameBindings: ['dragAction'],
+    instructions: null,
+    fieldName: null,
+
+    dragAction: function() {
+        if(this.get('dragging')) {
+            return 'drop-target-dragging';
+        } else {
+        	return null;
+        }
+    }.property('dragging'),
+
+    drop: function(event) {
+    	var extractorId = event.originalEvent.dataTransfer.getData('Text');
+		this.get('controller').send('applyExtractor', this.get('fieldName'), extractorId);	
+        return this._super(event);
+    }
 });
 
 

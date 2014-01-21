@@ -75,6 +75,13 @@ ASTool.AnnotationsRoute = Ember.Route.extend({
 			return annotations;
 		}.bind(this));
 	},
+
+	afterModel: function() {
+		return this.get('slyd').loadExtractors().then(function(extractors) {
+			var controller = this.controllerFor('annotations');
+			controller.set('extractors', extractors);
+		}.bind(this));
+	},
 });
 
 
