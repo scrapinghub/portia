@@ -22,6 +22,11 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			}
 			newProjectName += i;			
 			this.get('slyd').createProject(newProjectName).then(function() {
+				this.set('slyd.project', newProjectName);
+				// Initialize items spec.
+				this.get('slyd').saveItems([]);
+				// Initialize extractors spec.
+				this.get('slyd').saveExtractors([]);
 				this.pushRoute('project', 'Project: ' + newProjectName, 'fade', newProjectName);
 			}.bind(this));
 		}
