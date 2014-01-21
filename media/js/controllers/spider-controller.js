@@ -191,6 +191,15 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	addFollowPattern: function(pattern) {
 		this.content.get('follow_patterns').pushObject(pattern);
 	},
+
+	saveSpider: function() {
+		this.content.save().then(function() {
+			if (this.get('loadedPageFp')) {
+				this.fetchPage(
+					this.get('pageMap')[this.get('loadedPageFp')].url);
+			}
+		}.bind(this));
+	},
 	
 	actions: {
 
@@ -211,12 +220,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		},
 
 		saveSpider: function() {
-			this.content.save().then(function() {
-				if (this.get('loadedPageFp')) {
-					this.fetchPage(
-						this.get('pageMap')[this.get('loadedPageFp')].url);
-				}
-			}.bind(this));
+			this.saveSpider();
 		},
 
 		fetchPage: function(url) {
@@ -324,6 +328,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			Ember.run.next(this, function() {
 				this.fetchPage(this.addStartUrl(newProjectSite));
 				this.set('controllers.application.newProjectSite', null);
+				this.saveSpider();
 			});
 		}
 	},
