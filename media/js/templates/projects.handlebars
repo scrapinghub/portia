@@ -12,8 +12,12 @@
 					<h5>No projects have been created yet.</h5>
 				{{/each}}
 			</div>
-			<div style="margin-top:10px">
-				{{view ASTool.ButtonView action="createProject" icon="ui-icon-circle-plus" label="New project"}}
+			<div class="big ui-corner-all" id="create-project-box">
+				<h3>Enter the site you want to scrape:</h3>
+				{{view ASTool.TextField value=projectSite width='300px' name='projectSiteTextField' placeholder='Enter site url'}}
+				<div style="margin-top:10px">
+					{{view ASTool.ButtonView action="createProject" icon="ui-icon-circle-plus" label="New project"}}
+				</div>
 			</div>
 		</div>
 	</div>

@@ -1,6 +1,8 @@
 ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	needs: ['application'],
 
+	projectSite: null,
+
 	actions: {
 		
 		openProject: function(projectName) {
@@ -27,6 +29,11 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 				this.get('slyd').saveItems([]);
 				// Initialize extractors spec.
 				this.get('slyd').saveExtractors([]);
+				// Setup automatic creation of an initial spider.
+				if (this.get('projectSite')) {
+					this.set('controllers.application.newProjectSite', this.get('projectSite'));
+					this.set('projectSite', null);
+				}
 				this.pushRoute('project', 'Project: ' + newProjectName, 'fade', newProjectName);
 			}.bind(this));
 		}

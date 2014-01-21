@@ -160,7 +160,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		},
 
 		rename: function(oldName, newName) {
-			this.renameTop('Template: ' + newName);
+			this.updateTop('Template: ' + newName);
 		},
 
 		createExtractor: function() {

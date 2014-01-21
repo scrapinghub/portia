@@ -61,8 +61,12 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
 		}
 	},
 
-	renameTop: function(newLabel) {
-		this.routeStack.get('lastObject').set('label', newLabel);
+	updateTop: function(newLabel, newModel) {
+		var topRoute = this.routeStack.get('lastObject');
+		topRoute.set('label', newLabel);
+		if (newModel) {
+			topRoute.set('model', newModel);
+		}
 	},
 	
 	actions: {

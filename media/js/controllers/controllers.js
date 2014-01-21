@@ -12,8 +12,8 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		this.get('controllers.application').popRoute(animation);
 	},
 
-	renameTop: function(newLabel) {
-		this.get('controllers.application').renameTop(newLabel);	
+	updateTop: function(newLabel, newModel) {
+		this.get('controllers.application').updateTop(newLabel, newModel);	
 	},
 
 	transitionToRouteAnimated: function(route, animation, model) {

@@ -181,6 +181,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			url = URI.build(parsedUrl);
 		}
 		this.content.get('start_urls').pushObject(url);
+		return url;
 	},
 
 	addExcludePattern: function(pattern) {
@@ -268,7 +269,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			if (confirm('Are you sure you want to rename this spider? This operation cannot be undone.')) {
 				this.get('slyd').renameSpider(oldName, newName).then(
 					function() {
-						this.renameTop('Spider: ' + newName);
+						this.updateTop('Spider: ' + newName);
 					}.bind(this),
 					function(reason) {
 						this.set('id', oldName);
@@ -317,7 +318,14 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		if (!ASTool.graph) {
 			ASTool.set('graph', ASTool.CrawlGraph.create());
 		}
-		ASTool.graph.set('hidden', false);
+		ASTool.graph.set('hidden', true);
+		var newProjectSite = this.get('controllers.application.newProjectSite')
+		if (newProjectSite) {
+			Ember.run.next(this, function() {
+				this.fetchPage(this.addStartUrl(newProjectSite));
+				this.set('controllers.application.newProjectSite', null);
+			});
+		}
 	},
 
 	willLeave: function() {
