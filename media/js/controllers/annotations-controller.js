@@ -170,10 +170,12 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			} else {
 				this.createExtractor('type_extractor', this.get('newTypeExtractor'));	
 			}
+			this.saveExtractors();
 		},
 
 		deleteExtractor: function(extractor) {
 			this.get('extractors').removeObject(extractor);
+			this.saveExtractors();
 		},
 
 		applyExtractor: function(fieldName, extractorId) {
@@ -200,8 +202,4 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 										  listener: this,
 										  dataSource: this, });
 	},
-
-	willLeave: function() {
-		this.saveExtractors();
-	}
 });
