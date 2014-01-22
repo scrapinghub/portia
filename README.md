@@ -38,19 +38,19 @@ project listing/creation/deletion/renaming
 
 To get list all existing projects, just GET http://localhost:9001/projects:
 
-$ curl http://localhost:9001/projects -> ["project1", "project2"]
+	$ curl http://localhost:9001/projects -> ["project1", "project2"]
 
 New projects can be created by posting to /projects, for example:
 
-$ curl -d '{"cmd": "create", "args": ["project_X"]}' http://localhost:9001/projects
+	$ curl -d '{"cmd": "create", "args": ["project_X"]}' http://localhost:9001/projects
 
 To delete a project:
 
-$ curl -d '{"cmd": "rm", "args": ["project_X"]}' http://localhost:9001/projects
+	$ curl -d '{"cmd": "rm", "args": ["project_X"]}' http://localhost:9001/projects
 
 To rename a project:
 
-$ curl -d '{"cmd": "mv", "args": ["oldname", "newname"]}' http://localhost:9001/projects
+	$ curl -d '{"cmd": "mv", "args": ["oldname", "newname"]}' http://localhost:9001/projects
 
 Please note that projects will not be overwritten when renaming or creating new ones (if a project
 with the given name already exists an error from the 400 family will be returned).
