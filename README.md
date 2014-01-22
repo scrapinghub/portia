@@ -33,10 +33,27 @@ This will be moved to separate docs - it's currently some notes for developers
 
 All resources are either under /static/ or /projects/.
 
-project creation/deletion/renaming
+
+project listing/creation/deletion/renaming
+
+To get list all existing projects, just GET http://localhost:9001/projects:
+
+$ curl http://localhost:9001/projects -> ["project1", "project2"]
 
 New projects can be created by posting to /projects, for example:
 
+$ curl -d '{"cmd": "create", "args": ["project_X"]}' http://localhost:9001/projects
+
+To delete a project:
+
+$ curl -d '{"cmd": "rm", "args": ["project_X"]}' http://localhost:9001/projects
+
+To rename a project:
+
+$ curl -d '{"cmd": "mv", "args": ["oldname", "newname"]}' http://localhost:9001/projects
+
+Please note that projects will not be overwritten when renaming or creating new ones (if a project
+with the given name already exists an error from the 400 family will be returned).
 
 spec
 
@@ -57,12 +74,12 @@ The entire spec is returned for a GET request to the root:
 
 A list of available spiders can be retrieved:
 
-  $ curl http://localhost:9001/api/78/spec/spiders
+  $ curl http://localhost:9001/projects/78/spec/spiders
 ["accommodationforstudents.com", "food.com", "pinterest.com", "pin", "mhvillage"]
 
 and specific resources can be requested:
 
-	$ curl http://localhost:9001/api/78/spec/spiders/accommodationforstudents.com
+	$ curl http://localhost:9001/projects/78/spec/spiders/accommodationforstudents.com
 	{
     	"templates":
     ...
@@ -71,13 +88,13 @@ and specific resources can be requested:
 
 The spec can be updating by POSTing:
 
-  $ curl --data @newlinkedin.js http://localhost:9001/api/78/spec/spiders/linkedin
+  $ curl --data @newlinkedin.js http://localhost:9001/projects/78/spec/spiders/linkedin
 
 An HTTP 400 will be returned if the uploaded spec does not validate.
 
-Basic commands are available for manipilating spider files. For example:
+Basic commands are available for manipulating spider files. For example:
 
-  $ curl -d '{"cmd": "rm", "args": ["spidername"]}' http://localhost:9001/api/78/spec/spiders
+  $ curl -d '{"cmd": "rm", "args": ["spidername"]}' http://localhost:9001/projects/78/spec/spiders
 
 Available commands are:
 * mv - move spider from first arg to second. If the second exists it is overwritten.
@@ -105,13 +122,13 @@ Coming soon in the response:
 * trace - textual trace of the matching process - for debugging
 
 
-To run put some data in data/projects/PROJECTID, these can be downloaded from dash or by:
+If you want to work on an existing project, put it in data/projects/PROJECTID, these can be downloaded from dash or by:
 
 $ bin/sh2sly data/projects -p 78 -k YOURAPIKEY
 
 Then you can extract data:
 
-$ curl -d '{"request": {"url": "http://www.pinterest.com/pin/339740365610932893/"}, "spider": "pinterest.com"}' http://localhost:9001/api/78/bot/fetch
+$ curl -d '{"request": {"url": "http://www.pinterest.com/pin/339740365610932893/"}, "spider": "pinterest.com"}' http://localhost:9001/projects/78/bot/fetch
 {
   "fp": "0f2686acdc6a71eeddc49045b7cea0b6f81e6b61",
    "items": [
