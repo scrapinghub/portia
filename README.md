@@ -31,12 +31,16 @@ Slyd API Notes
 
 This will be moved to separate docs - it's currently some notes for developers
 
-All resources are either under /static/ or /api/. All API requests require a
-project following the API, then the path to the endpoint.
+All resources are either under /static/ or /projects/.
+
+project creation/deletion/renaming
+
+New projects can be created by posting to /projects, for example:
+
 
 spec
 
-The project specification is available under /api/PROJECT/spec. The path format
+The project specification is available under /projects/PROJECT_ID/spec. The path format
 mirrors the slybot format documented here:
 http://slybot.readthedocs.org/en/latest/project.html
 
@@ -44,7 +48,7 @@ Currently, this is read only, but it will soon support PUT/POST.
 
 The entire spec is returned for a GET request to the root:
 
-	$ curl http://localhost:9001/api/78/spec
+	$ curl http://localhost:9001/projects/78/spec
 	{"project": {
     "version": "1308771278",
     "name": "demo"
