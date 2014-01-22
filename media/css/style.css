@@ -82,9 +82,9 @@ body{
 	padding:2px 10px 14px 10px;
 	margin:12px 6px 6px 6px;
 	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.3) inset;
-	border-style: dotted;
+	border-style: solid;
 	border-width: 1px;
-	border-color: #eaebda;
+	border-color: #888;
 }
 
 #hovered-element-info {
@@ -115,13 +115,16 @@ body{
 }
 
 .editable-name {
+	font: 1.2em Verdana,Helvetica,Arial,sans-serif;
+}
+
+.editable-name h3 {
 	align: center;
-	font: 1.1em Verdana,Helvetica,Arial,sans-serif;
 	border: 1px solid #535353;
 	background-color: #3A3A3A;
     text-decoration: none;
     padding: 4px;
-    box-shadow: 0px 0px 12px 1px rgba(0,0,0,0.3);
+    box-shadow: 0px 0px 12px 1px rgba(0,0,0,0.3) inset;
 }
 
 .editable-name:hover {

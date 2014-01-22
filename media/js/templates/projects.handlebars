@@ -2,6 +2,8 @@
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Projects</h3>
 		<div>
+			<div style="margin-top:15px"></div>
+			<h5>Open an existing project</h5>
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
 					<div style="margin:4px 0px 4px 0px">
@@ -12,6 +14,8 @@
 					<h5>No projects have been created yet.</h5>
 				{{/each}}
 			</div>
+			<div style="margin-top:20px"></div>
+			<h5>Start a new project</h5>
 			<div class="big ui-corner-all" id="create-project-box">
 				<h3>Enter the site you want to scrape:</h3>
 				{{view ASTool.TextField value=projectSite width='300px' name='projectSiteTextField' placeholder='Enter site url'}}

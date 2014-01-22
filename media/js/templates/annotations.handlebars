@@ -1,8 +1,8 @@
 <div class="container ui-corner-all">
+	<h3 style="font-size:0.8em;color:#888;word-wrap:break-word;margin 5px 0px 5px 0px"><b>Page URL:</b> {{template.url}}</h3>
 	{{#view ASTool.RenameTextField value=name}}
-  		<span style="word-wrap:break-word;"><h3 class="editable-name">Template {{name}}</h3></span>
+  		<span class="editable-name" style="word-wrap:break-word;"><h3>Template {{name}}</h3></span>
 	{{/view}}
-	<h3 style="color:#888;word-wrap:break-word;margin 5px 0px 5px 0px"><b>Page URL:</b> {{template.url}}</h3>
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Annotations</h3>
 		<div>
@@ -63,7 +63,7 @@
 					<h5>No extractors have been created yet.</h5>
 				{{/each}}
 			</div>
-			<div style="margin:10px 0px 10px 0px">
+			<div style="margin:20px 0px 10px 0px">
 				{{view ASTool.TextField value=newReExtractor width='122px' name='reExtractorField' placeholder='Enter a RegEx'}}
 				<span class="small-label">or choose a type:</span>
 				<span class="typeBox">{{view ASTool.ExtractorTypeSelect value=newTypeExtractor name='typeExtractorCombo'}}</span>
