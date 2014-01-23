@@ -369,15 +369,28 @@ ASTool.Annotation = DS.Model.extend({
 		return unmapped;
 	}.property('attributes.@each', 'annotations'),
 	
-	mappedAttributes: function() {
+	_mappedAttributes: function(filter) {
 		mapped = [];
 		this.get('attributes').forEach(function(attribute) {
-			if (this.get('annotations')[attribute.get('name')]) {
-				attribute.set('mappedField', this.get('annotations')[attribute.get('name')]);
+			var mappedTo = this.get('annotations')[attribute.get('name')];
+			if (filter(mappedTo)) {
+				attribute.set('mappedField', mappedTo);
 				mapped.addObject(attribute);
 			}
 		}.bind(this));
 		return mapped;
+	},
+
+	mappedAttributes: function() {
+		return this._mappedAttributes(function(fieldName) {
+			return fieldName && fieldName.indexOf('_sticky') != 0;
+		});
+	}.property('attributes.@each', 'annotations'),
+
+	stickyAttributes: function() {
+		return this._mappedAttributes(function(fieldName) {
+			return fieldName && fieldName.indexOf('_sticky') == 0;
+		});
 	}.property('attributes.@each', 'annotations'),
 
 	reload: function() {

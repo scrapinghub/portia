@@ -93,6 +93,20 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		return maxVariant;
 	}.property('content.@each.variant'),
 
+	maxSticky: function() {
+		var maxSticky = 0;
+		this.get('content').forEach(function(annotation) {
+			annotation.get('stickyAttributes').forEach(function(stickyAttribute) {
+				var sticky = parseInt(
+					stickyAttribute.get('mappedField').substring('_sticky'.length));
+				if (sticky > maxSticky) {
+					maxSticky = sticky;
+				}
+			});
+		});
+		return maxSticky;
+	}.property('content.@each.stickyAttributes.@each'),
+
 	getAppliedExtractors: function(fieldName) {
 		var extractorIds = this.get('template.extractors.' + fieldName) || [];
 		return extractorIds.map(function(extractorId) {

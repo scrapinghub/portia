@@ -91,10 +91,15 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 
 	attributeMapped: function(attribute, item, field) {
 		if (this.get('template.scrapes') != item['name']) {
-			var mappedAnnotations = this.get('controllers.annotations.model').filter(function(annotation) {
-				return Object.keys(annotation.get('annotations')).length > 0;
+			var foundMappedAnnotation = false;
+			this.get('controllers.annotations.model').forEach(function(annotation) {
+				Object.keys(annotation.get('annotations')).forEach(function(key) {
+					if (annotation.get('annotations')[key].indexOf('_sticky') != 0) {
+						foundMappedAnnotation = true;
+					}
+				});
 			});
-			if (mappedAnnotations.length) {
+			if (foundMappedAnnotation) {
 				// Only one item type per template is supported.
 				if (confirm('Are you sure that you want to change the item scraped by this template? ' +
 							'You will lose all previously defined attribute mappings for this template!')) {
@@ -127,6 +132,12 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			this.set('mappingAttribute', attribute);
 			this.set('openAttributesOnShow', true);
 			this.pushRoute('items', 'Mapping attribute: ' + attribute.get('name'), 'flip');
+		},
+
+		makeSticky: function(attribute) {
+			attribute.set('annotation', this.get('model'));
+			var maxSticky = this.get('controllers.annotations.maxSticky');
+			this.content.addMapping(attribute.get('name'), '_sticky' + (maxSticky + 1));
 		},
 
 		unmapAttribute: function(attribute) {

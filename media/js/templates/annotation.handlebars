@@ -37,6 +37,17 @@
 
 		<h3>Attributes</h3>
 		<div>
+			<h5>Not mapped</h5>
+			<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
+				{{#each unmappedAttributes}}
+					<div style="margin:4px 0px 4px 0px">
+						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='80%'
+					      maxWidth='336px' action="mapAttribute" argument=this}}
+					     {{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="textless-button"}}
+					</div>
+				{{/each}}
+			</div>
+
 			<h5>Mapped</h5>
 			<div class="scrolling-container ui-corner-all" style="max-height:180px;">
 				{{#each mappedAttributes}}
@@ -46,13 +57,13 @@
 					</div>
 				{{/each}}
 			</div>
-			
-			<h5>Not mapped</h5>
+
+			<h5>Sticky</h5>
 			<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
-				{{#each unmappedAttributes}}
+				{{#each stickyAttributes}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='90%'
-					      maxWidth='336px' action="mapAttribute" argument=this}}
+						{{view ASTool.ElemAttributeView icon="ui-icon-circle-close" attribute=this minWidth='90%'
+					      maxWidth='336px' action="unmapAttribute" argument=this}}
 					</div>
 				{{/each}}
 			</div>
