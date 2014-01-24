@@ -1,6 +1,7 @@
-ASTool.FieldExtractors = Em.Object.extend({
+ASTool.MappedFieldData = Em.Object.extend({
 	fieldName: null,
 	extractors: [],
+	required: false,
 }),
 
 
@@ -112,8 +113,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		return extractorIds.map(function(extractorId) {
 				var extractor = this.get('extractors').filterBy('name', extractorId)[0];
 				if (extractor) {
-					// Copy the extractor.
-					extractor = ASTool.Extractor.create(extractor);
+					extractor = extractor.copy();
 					extractor['fieldName'] = fieldName;
 					return extractor;
 				} else {
@@ -123,24 +123,39 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		).filter(function(extractor){ return !!extractor });
 	},
 
-	appliedExtractors: function() {
-		var appliedExtractors = [];
-		var mappedFields = new Em.Set();
+	mappedFieldsData: function() {
+		var mappedFieldsData = [];
+		var seenFields = new Em.Set();
 		this.get('content').forEach(function(annotation) {
 			var mappedAttributes = annotation.get('mappedAttributes');
 			mappedAttributes.forEach(function(attribute) {
 				var fieldName = attribute.get('mappedField');
-				mappedFields.add(fieldName);
+				// Avoid duplicates.
+				if (!seenFields.contains(fieldName)) {
+					seenFields.add(fieldName);
+					var mappedFieldData = ASTool.MappedFieldData.create();
+					mappedFieldData.set('fieldName', fieldName);
+					mappedFieldData.set('required', annotation.get('required').indexOf(fieldName) > -1);
+					mappedFieldData.set('extractors', this.getAppliedExtractors(fieldName));
+					mappedFieldsData.pushObject(mappedFieldData);
+				}
 			}.bind(this));
 		}.bind(this));
-		mappedFields.forEach(function(fieldName) {
-			var fieldExtractors = new ASTool.FieldExtractors();
-			fieldExtractors.set('fieldName', fieldName);
-			fieldExtractors.set('extractors', this.getAppliedExtractors(fieldName));
-			appliedExtractors.pushObject(fieldExtractors);
+		return mappedFieldsData;
+	}.property('content.@each.mappedAttributes','template.extractors', 'extractors.@each'),
+
+	annotationsMappingField: function(fieldName) {
+		var annotations = new Em.Set();
+		this.get('content').forEach(function(annotation) {
+			var mappedAttributes = annotation.get('mappedAttributes');
+			mappedAttributes.forEach(function(attribute) {
+				if (attribute.get('mappedField') == fieldName) {
+					annotations.add(annotation);
+				}
+			}.bind(this));
 		}.bind(this));
-		return appliedExtractors;
-	}.property('content.@each.mappedAttributes', 'template.extractors', 'extractors.@each'),
+		return annotations;
+	},
 
 	createExtractor: function(extractorType, extractorDefinition) {
 		var extractor = ASTool.Extractor.create({
@@ -205,9 +220,24 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		},
 
 		removeAppliedExtractor: function(appliedExtractor) {
+			// TODO: we need to automatically remove extractors when the field they
+			// extract is no longer mapped from any annotation.
 			var fieldName = appliedExtractor['fieldName'];
 			this.get('template.extractors')[fieldName].removeObject(appliedExtractor['name']);
 			this.notifyPropertyChange('template.extractors');
+		},
+
+		setRequired: function(fieldName, required) {
+			var annotations = this.annotationsMappingField(fieldName);
+			annotations.forEach(function(annotation) {
+				if (required) {
+					annotation.addRequired(fieldName);
+				} else {
+					annotation.removeRequired(fieldName);
+				}
+			});
+			this.get('content').invoke('save');
+			Ember.run.next(this, this.saveAnnotations)
 		},
 	},
 

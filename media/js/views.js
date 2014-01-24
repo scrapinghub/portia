@@ -412,6 +412,16 @@ ASTool.ExtractorDropTarget = Ember.View.extend(DragNDrop.Droppable, {
 });
 
 
+ASTool.RequiredFieldCheckbox = ASTool.CheckBox.extend({
+	fieldName: null,
+
+	change: function() {
+		this.get('controller').send(
+			'setRequired', this.get('fieldName'), this.get('checked'));
+	},
+});
+
+
 ASTool.PageBrowserView = Ember.View.extend({
 	tagName: 'div',
 	expanded: false,

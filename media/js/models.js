@@ -231,6 +231,8 @@ ASTool.Annotation = DS.Model.extend({
 	
 	annotations: DS.attr(),
 
+	required: DS.attr(),
+
 	iframeBinding: 'ASTool.iframe',
 
 	template: null,
@@ -241,13 +243,23 @@ ASTool.Annotation = DS.Model.extend({
 	},
 	
 	removeMapping: function(attribute) {
+		this.removeRequired(this.get('annotations')[attribute]);
 		delete this.get('annotations')[attribute];
 		this.notifyPropertyChange('annotations');
 	},
 
 	removeMappings: function() {
 		this.set('annotations', {});
+		this.set('required', []);
 		this.notifyPropertyChange('annotations');
+	},
+
+	addRequired: function(field) {
+		this.get('required').pushObject(field);
+	},
+
+	removeRequired: function(field) {
+		this.get('required').removeObject(field);
 	},
 	
 	isPartial: false,
@@ -371,13 +383,15 @@ ASTool.Annotation = DS.Model.extend({
 	
 	_mappedAttributes: function(filter) {
 		mapped = [];
-		this.get('attributes').forEach(function(attribute) {
-			var mappedTo = this.get('annotations')[attribute.get('name')];
-			if (filter(mappedTo)) {
-				attribute.set('mappedField', mappedTo);
-				mapped.addObject(attribute);
-			}
-		}.bind(this));
+		if (this.get('annotations')) {
+			this.get('attributes').forEach(function(attribute) {
+				var mappedTo = this.get('annotations')[attribute.get('name')];
+				if (filter(mappedTo)) {
+					attribute.set('mappedField', mappedTo);
+					mapped.addObject(attribute);
+				}
+			}.bind(this));	
+		}
 		return mapped;
 	},
 
@@ -400,39 +414,42 @@ ASTool.Annotation = DS.Model.extend({
 	},
 });
 
-
-ASTool.Item = Em.Object.extend({
+ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
 	name: null,
+
+	copy: function() {
+		return Em.run(this.constructor, 'create', this);
+	}
+});
+
+
+ASTool.Item = ASTool.SimpleModel.extend({
 	fields: null,
 });
 
 
-ASTool.ItemField = Em.Object.extend({
-	name: null,
+ASTool.ItemField = ASTool.SimpleModel.extend({
 	type: 'text',
 	required: false,
 	vary: false,
 });
 
 
-ASTool.Attribute = Em.Object.extend({
-	name: null,
+ASTool.Attribute = ASTool.SimpleModel.extend({
 	value: null,
 	mappedField: null,
 	annotation: null,
 });
 
 
-ASTool.Ignore = Em.Object.extend({
-	name: null,
+ASTool.Ignore = ASTool.SimpleModel.extend({
 	element: null,
 	ignoreBeneath: false,
 	highlighted: false,
 });
 
 
-ASTool.Extractor = Em.Object.extend({
-	name: null,
+ASTool.Extractor = ASTool.SimpleModel.extend({
 	regular_expression: null,
 	type_extractor: null,
 });
