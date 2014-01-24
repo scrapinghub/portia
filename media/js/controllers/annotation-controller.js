@@ -86,7 +86,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			this.clearGeneratedIns(this.get('currentlySelectedElement'));
 		}
 		this.set('currentlySelectedElement', null);
-		this.popRoute('flip');
+		this.popRoute();
 	},
 
 	attributeMapped: function(attribute, item, field) {
@@ -119,7 +119,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			annotation.save().then(function() {
 				annotation.set('selectedElement', null);
 				this.get('controllers.annotations').saveAnnotations();
-				this.popRoute('flip');
+				this.popRoute();
 			}.bind(this));
 		},
 		
@@ -131,7 +131,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			attribute.set('annotation', this.get('model'));
 			this.set('mappingAttribute', attribute);
 			this.set('openAttributesOnShow', true);
-			this.pushRoute('items', 'Mapping attribute: ' + attribute.get('name'), 'flip');
+			this.pushRoute('items', 'Mapping attribute: ' + attribute.get('name'));
 		},
 
 		makeSticky: function(attribute) {

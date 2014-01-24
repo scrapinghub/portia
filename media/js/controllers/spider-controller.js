@@ -331,6 +331,9 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 				this.saveSpider();
 			});
 		}
+		Ember.run.next(this, function() {
+			$('#page-browser').trigger('click');	
+		});
 	},
 
 	willLeave: function() {

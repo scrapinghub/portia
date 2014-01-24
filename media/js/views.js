@@ -443,9 +443,15 @@ ASTool.PageBrowserView = Ember.View.extend({
 				this.$(event.target).animate(
 					{ width: 400 },
 	      	 		{ complete: function() {
-	        				this.set('expanded', true);
+	      	 				Em.run(this, function() {
+	      	 					if (!this.isDestroyed) {
+	      	 						// The animation may end after the
+	      	 						// object was destroyed.
+	      	 						this.set('expanded', true);	
+	      	 					}
+	      	 				});
 	        			}.bind(this),
-	        		}, 200);
+	        	}, 200);
 			}	
 		}
 	},

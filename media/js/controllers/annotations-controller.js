@@ -55,7 +55,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
 		annotation.set('template', this.get('template'));
-		this.pushRoute('annotation', 'Editing annotation', 'flip', annotation);
+		this.pushRoute('annotation', 'Editing annotation', 'fade', annotation);
 	},
 	
 	deleteAllAnnotations: function() {
