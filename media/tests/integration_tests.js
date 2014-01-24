@@ -143,6 +143,7 @@ test('add spider test', function() {
     Ember.run(function() {
         click('[name*="openProject"]').
         click('[name*="addSpider"]').
+        click('[name*="back"]').
         then(function() {
             equal(exists('[name*="editSpider"]'), true);
             ASTool.guid = guid;

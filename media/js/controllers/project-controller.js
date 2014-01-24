@@ -18,8 +18,10 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			  'follow_patterns': [],
 			  'exclude_patterns': [],
 			  'init_requests': [] });
-		this.pushObject(spider.get('name'));
-		return spider.save();
+		this.pushObject(newSpiderName);
+		return spider.save().then(function() {
+				this.editSpider(newSpiderName);
+		}.bind(this));
 	},
 
 	editSpider: function(spiderName) {
@@ -67,11 +69,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	willEnter: function() {
 		this.get('documentView').showSpider();
 		if (this.get('controllers.application.newProjectSite')) {
-			Em.run.next(this, function() {
-				this.addSpider().then(function(spider) {
-					this.editSpider(spider.get('id'));
-				}.bind(this));
-			});
+			Em.run.next(this, this.addSpider);
 		}
 	},
 });
