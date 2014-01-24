@@ -137,7 +137,9 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		makeSticky: function(attribute) {
 			attribute.set('annotation', this.get('model'));
 			var maxSticky = this.get('controllers.annotations.maxSticky');
-			this.content.addMapping(attribute.get('name'), '_sticky' + (maxSticky + 1));
+			var stickyName = '_sticky' + (maxSticky + 1);
+			this.content.addMapping(attribute.get('name'), stickyName);
+			this.content.addRequired(stickyName);
 		},
 
 		unmapAttribute: function(attribute) {
