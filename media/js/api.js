@@ -167,6 +167,7 @@ ASTool.SlydApi = Em.Object.extend({
 	listToDict: function(list) {
 		var dict = {};
 		list.forEach(function(element) {
+			element = Em.copy(element);
 			var name = element['name'];
 			delete element['name'];
 			dict[name] = element;
