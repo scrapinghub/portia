@@ -193,12 +193,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	},
 
 	saveSpider: function() {
-		this.content.save().then(function() {
-			if (this.get('loadedPageFp')) {
-				this.fetchPage(
-					this.get('pageMap')[this.get('loadedPageFp')].url);
-			}
-		}.bind(this));
+		return this.content.save();
 	},
 	
 	actions: {
@@ -220,11 +215,18 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		},
 
 		saveSpider: function() {
-			this.saveSpider();
+			this.saveSpider().then(function() {
+				if (this.get('loadedPageFp')) {
+					this.fetchPage(
+						this.get('pageMap')[this.get('loadedPageFp')].url);
+				}
+			}.bind(this));
 		},
 
 		fetchPage: function(url) {
-			this.fetchPage(url);
+			this.saveSpider().then(function() {
+				this.fetchPage(url);	
+			}.bind(this));
 		},
 
 		browseBack: function() {
@@ -307,7 +309,9 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 				}
 				url = URI.build(parsedCurrentUrl);
 			}
-			this.fetchPage(url, this.get('loadedPageFp'));	
+			this.saveSpider().then(function() {
+				this.fetchPage(url, this.get('loadedPageFp'));	
+			}.bind(this));
 		}
 	},
 
