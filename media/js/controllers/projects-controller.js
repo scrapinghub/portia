@@ -26,7 +26,7 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			this.get('slyd').createProject(newProjectName).then(function() {
 				this.set('slyd.project', newProjectName);
 				// Initialize items spec.
-				this.get('slyd').saveItems([]);
+				this.get('slyd').saveItems([ ASTool.Item.create({ name: 'default', fields: null }) ]);
 				// Initialize extractors spec.
 				this.get('slyd').saveExtractors([]);
 				// Setup automatic creation of an initial spider.
