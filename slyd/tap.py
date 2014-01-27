@@ -16,7 +16,7 @@ DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
 
 class Options(usage.Options):
     optParameters = [
-        ['port', 'p', DEFAULT_PORT, 'Port number to listen on.'],
+        ['port', 'p', DEFAULT_PORT, 'Port number to listen on.', int],
         ['docroot', 'd', DEFAULT_DOCROOT, 'Default doc root for static media.'],
     ]
 
