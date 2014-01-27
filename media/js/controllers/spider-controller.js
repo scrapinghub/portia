@@ -84,6 +84,14 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		return items.toArray();
 	}.property('loadedPageFp'),
 
+	spiderDomains: function() {
+		var spiderDomains = new Em.Set();
+		this.get('content.start_urls').forEach(function(startUrl) {
+			spiderDomains.add(URI.parse(startUrl)['hostname']);
+		});
+		return spiderDomains;
+	}.property('content.start_urls.@each'),
+
 	sprites: function() {
 		if (!this.get('loadedPageFp') || !this.get('showLinks')) {
 			return [];
@@ -93,15 +101,16 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		var followedLinks = currentPageData.links;
 		var sprites = [];
 		allLinks.each(function(i, link) {
-			var followed = followedLinks.indexOf(link.href) >= 0;
+			var followed = followedLinks.indexOf(link.href) >= 0 &&
+				this.get('spiderDomains').contains(URI.parse(link.href)['hostname']);
 			sprites.pushObject(ASTool.ElementSprite.create({
 				element: link,
 				hasShadow: false,
 				fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
-				strokeColor: 'clear' }));
-		});
+				strokeColor: 'rgba(50, 50, 50, 1)' }));
+		}.bind(this));
 		return sprites;
-	}.property('loadedPageFp', 'showLinks'),
+	}.property('loadedPageFp', 'showLinks', 'spiderDomains'),
 
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
