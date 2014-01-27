@@ -80,17 +80,17 @@ ASTool.DocumentView = Em.Object.extend({
 
 	installEventHandlersForBrowsing: function() {
 		this.uninstallEventHandlers();
-		this.getIframe().bind('click', null, this.clickHandlerBrowse.bind(this));
+		this.getIframe().bind('click', this.clickHandlerBrowse.bind(this));
 	},
 
 	installEventHandlersForSelecting: function() {
 		this.uninstallEventHandlers();
-		this.getIframe().bind('click', null, this.clickHandler.bind(this));
-		this.getIframe().bind('mouseover', null, this.mouseOverHandler.bind(this));
-		this.getIframe().bind('mouseout', null, this.mouseOutHandler.bind(this));
-		this.getIframe().bind('mousedown', null, this.mouseDownHandler.bind(this));
-		this.getIframe().bind('mouseup', null, this.mouseUpHandler.bind(this));
-		this.getIframe().bind('hover', null, function(event) {event.preventDefault()});
+		this.getIframe().bind('click', this.clickHandler.bind(this));
+		this.getIframe().bind('mouseover', this.mouseOverHandler.bind(this));
+		this.getIframe().bind('mouseout', this.mouseOutHandler.bind(this));
+		this.getIframe().bind('mousedown', this.mouseDownHandler.bind(this));
+		this.getIframe().bind('mouseup', this.mouseUpHandler.bind(this));
+		this.getIframe().bind('hover', function(event) {event.preventDefault()});
 		this.redrawNow();
 	},
 
