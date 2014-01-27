@@ -6,9 +6,8 @@ ASTool = Em.Application.create({
 	} 
 });
 
-
-var SLYD_URL = 'http://localhost:9001/projects';
-
+// Leave 'null' for using window.location. Define it to override.
+var SLYD_URL = null;
 
 Ember.Application.initializer({
  	name: 'slydApiInitializer',

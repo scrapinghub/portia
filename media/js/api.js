@@ -2,29 +2,25 @@ ASTool.SlydApi = Em.Object.extend({
 
 	project: null,
 
-	apiUrl: function() {
-		return SLYD_URL || window.location.protocol + '//' + window.location.host + '/projects';
-	}.property(),
-
 	projectSpecUrl: function() {
-		return this.get('apiUrl') + '/' + this.project + '/spec/';
+		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/spec/';
 	}.property('project'),
 
 	botUrl: function() {
-		return this.get('apiUrl') + '/' + this.project + '/bot/';
+		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/bot/';
 	}.property('project'),
 
 	getProjectNames: function() {
 		var hash = {};
 		hash.type = 'GET';
-		hash.url = this.get('apiUrl');
+		hash.url = ASTool.SlydApi.getApiUrl();
 		return ic.ajax(hash);
 	},
 
 	createProject: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
-		hash.url = this.get('apiUrl');
+		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify({ cmd: 'create', args: [projectName] });
 		hash.dataType = 'text';
 		return ic.ajax(hash);
@@ -33,7 +29,7 @@ ASTool.SlydApi = Em.Object.extend({
 	deleteProject: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
-		hash.url = this.get('apiUrl');
+		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify({ cmd: 'rm', args: [projectName] });
 		hash.dataType = 'text';
 		return ic.ajax(hash);
@@ -42,7 +38,7 @@ ASTool.SlydApi = Em.Object.extend({
 	renameProject: function(oldProjectName, newProjectName) {
 		var hash = {};
 		hash.type = 'POST';
-		hash.url = this.get('apiUrl');
+		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify({ cmd: 'mv', args: [oldProjectName, newProjectName] });
 		hash.dataType = 'text';
 		return ic.ajax(hash);
@@ -188,5 +184,12 @@ ASTool.SlydApi = Em.Object.extend({
 		});
 		return entries;
 	},
+});
 
+
+ASTool.SlydApi.reopenClass ({
+
+	getApiUrl: function() {
+		return (SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
+	},
 });

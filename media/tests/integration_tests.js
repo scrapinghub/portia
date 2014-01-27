@@ -14,7 +14,8 @@ module('integration tests', {
 
 function stubEndpoint(endpoint, response, method) {
     method = method || 'GET';
-    var url = SLYD_URL + endpoint;
+    var url = ASTool.SlydApi.getApiUrl() + endpoint;
+    console.log(url);
     ic.ajax.defineFixture(url, method, {
         response: response,
         jqXHR: {},
@@ -24,7 +25,7 @@ function stubEndpoint(endpoint, response, method) {
 
 function callCount(endpoint, method) {
     method = method || 'GET';
-    var url = SLYD_URL + endpoint;
+    var url = ASTool.SlydApi.getApiUrl() + endpoint;
     return ic.ajax.callCount(url, method);
 }
 
@@ -69,7 +70,6 @@ test('create project no site', function() {
         });
     });
 });
-
 
 test('delete project', function() {
     stubEndpoint('', ['p1']);

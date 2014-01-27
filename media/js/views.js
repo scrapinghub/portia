@@ -158,9 +158,15 @@ ASTool.InlineTextField = Ember.View.extend({
   		attributeBindings: ['name'],
   		name: 'inline_textfield',
 
-  		change: function() {
-  			this.done();
-  		},
+    	focusOut: function() {
+    		this.done();
+    	},
+
+    	keyPress: function(e) {
+        	if (e.keyCode == $.ui.keyCode['ENTER']) {
+        		this.done();
+        	}
+    	},
 
     	done: function() {
 			var parentView = this.get('parentView');
