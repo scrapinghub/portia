@@ -64,7 +64,7 @@
 				{{/each}}
 			</div>
 			<div style="margin:20px 0px 10px 0px">
-				{{view ASTool.TextField value=newReExtractor width='122px' name='reExtractorField' placeholder='Enter a RegEx'}}
+				{{view ASTool.TextField value=newReExtractor width='122px' name='reExtractorField' placeholder='Enter a RegEx' action="createExtractor"}}
 				<span class="small-label">or choose a type:</span>
 				<span class="typeBox">{{view ASTool.ExtractorTypeSelect value=newTypeExtractor name='typeExtractorCombo'}}</span>
 			</div>

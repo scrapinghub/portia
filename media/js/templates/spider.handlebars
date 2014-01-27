@@ -1,6 +1,6 @@
 <div class="container ui-corner-all">
 	{{#view ASTool.RenameTextField value=id}}
-  		<span class="editable-name ui-corner-all"><h3>Spider {{id}}</h3></span>
+  		<span class="editable-name"><h3>Spider {{id}}</h3></span>
 	{{/view}}
 	<div class="accordion" style="margin-bottom:10px">	
 		<h3>Start URLs</h3>
@@ -16,7 +16,7 @@
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view ASTool.TextField value=newStartUrl width='262px' name='startUrlTextField' placeholder='New start url'}}
+				{{view ASTool.TextField value=newStartUrl width='262px' name='startUrlTextField' placeholder='New start url' action="addStartUrl"}}
 				{{view ASTool.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
 			</div>
 		</div>
@@ -34,7 +34,7 @@
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view ASTool.TextField value=newExcludePattern width='236px' name='excludePatternTextField' placeholder='New exclude pattern'}}
+				{{view ASTool.TextField value=newExcludePattern width='236px' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
 				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasExcludePattern}}
 			</div>
 		</div>
@@ -56,7 +56,7 @@
 					{{/each}}
 				</div>
 				<div style="margin-top:10px">
-					{{view ASTool.TextField value=newFollowPattern width='236px' name='followPatternTextField' placeholder='New follow pattern'}}
+					{{view ASTool.TextField value=newFollowPattern width='236px' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
 					{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasFollowPattern}}
 				</div>
 			{{/if}}

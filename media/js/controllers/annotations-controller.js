@@ -196,7 +196,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			if (this.get('newReExtractor')) {
 				this.createExtractor('regular_expression', this.get('newReExtractor'));
 				this.set('newReExtractor', null);
-			} else {
+			} else if (this.get('newTypeExtractor')) {
 				this.createExtractor('type_extractor', this.get('newTypeExtractor'));	
 			}
 			this.saveExtractors();

@@ -99,6 +99,13 @@ ASTool.TextField = Em.TextField.extend({
 	placeholder: null,
 	attributeBindings: ['placeholder'],
 	classNames: ['textfield', 'ui-corner-all'],
+
+	change: function() {
+		if (this.get('action')) {
+			this.get('controller').send(this.get('action'),
+										this.get('value'));
+		}
+	},
 	
 	didInsertElement: function() {
 		this._super();
@@ -151,15 +158,9 @@ ASTool.InlineTextField = Ember.View.extend({
   		attributeBindings: ['name'],
   		name: 'inline_textfield',
 
-    	focusOut: function() {
-    		this.done();
-    	},
-
-    	keyPress: function(e) {
-        	if (e.keyCode == $.ui.keyCode['ENTER']) {
-        		this.done();
-        	}
-    	},
+  		change: function() {
+  			this.done();
+  		},
 
     	done: function() {
 			var parentView = this.get('parentView');

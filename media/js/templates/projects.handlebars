@@ -18,7 +18,7 @@
 			<h5>Start a new project</h5>
 			<div class="big ui-corner-all" id="create-project-box">
 				<h3>Enter the site you want to scrape:</h3>
-				{{view ASTool.TextField value=projectSite width='300px' name='projectSiteTextField' placeholder='Enter site url'}}
+				{{view ASTool.TextField value=projectSite width='300px' name='projectSiteTextField' placeholder='Enter site url' action="createProject"}}
 				<div style="margin-top:10px">
 					{{view ASTool.ButtonView action="createProject" icon="ui-icon-circle-plus" label="New project"}}
 				</div>
