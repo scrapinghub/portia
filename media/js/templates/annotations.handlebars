@@ -72,14 +72,15 @@
 		</div>
 		<h3>Required fields</h3>
 		<div>
+			<h5>Check the fields whose required property you want to override</h5>
 			<div class="scrolling-container ui-corner-all">
 				{{#each mappedFieldsData}}
-					<div style="margin:4px 0px 4px 0px">
+					<div style="margin:4px 0px 4px 0px;">
 						{{controller.template.scrapes}}.{{this.fieldName}}
 						{{view ASTool.RequiredFieldCheckbox checked=this.required fieldName=this.fieldName}}
 					</div>
-					{{else}}
-						<h5>No field mappings have been defined yet.</h5>
+				{{else}}
+					<h5>No field mappings have been defined yet.</h5>
 				{{/each}}
 			</div>
 		</div>
