@@ -227,7 +227,7 @@ ASTool.Annotation = DS.Model.extend({
 		}
 	}.property('annotations', 'template'),
 
-	variant: DS.attr('string', { defaultValue: '0' }),
+	variant: DS.attr('number', { defaultValue: 0 }),
 	
 	annotations: DS.attr(),
 

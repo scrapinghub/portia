@@ -219,19 +219,19 @@ ASTool.ExtractorTypeSelect = ASTool.TypeSelect.extend({
 ASTool.VariantSelect = ASTool.Select.extend({
 
 	content: function() {
-		var options = [{ option: '0', label: "Base(0)" }];
+		var options = [{ option: 0, label: "Base(0)" }];
 		var maxVariant = this.get('controller.controllers.annotations.maxVariant');
 		var i;
 		for (i = 1; i <= maxVariant; i++) {
-			options.pushObject({ option: i + '', label: 'Variant ' + i });
+			options.pushObject({ option: i, label: 'Variant ' + i });
 		}
-		options.pushObject({ option: i + '', label: 'Add new variant (' + i + ')' });
+		options.pushObject({ option: i, label: 'Add new variant (' + i + ')' });
 		return options;
 	}.property('controller.controllers.annotations.maxVariant'),
 
 	select: function(event, data) {
 		// FIXME: raise an event instead of directly setting the property.
-		this.set('controller.model.variant', data.item.value);
+		this.set('controller.model.variant', parseInt(data.item.value));
 	},
 });
 
@@ -370,7 +370,7 @@ ASTool.ExtractorView = Em.View.extend(DragNDrop.Draggable, {
         this.set('extractor.dragging', true);
         var dataTransfer = event.originalEvent.dataTransfer;
         dataTransfer.setDragImage(this.get('element'),
-        	$(this.get('element')).width() / 2 , $(this.get('element')).height() / 2);
+        	$(this.get('element')).width() / 2 , $(this.get('element')).height() + 18);
         dataTransfer.setData('Text', this.get('extractor.name'));
     },
 
