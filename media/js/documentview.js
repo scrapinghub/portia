@@ -7,6 +7,34 @@
 	events to a registered event listener. It can also be configured to
 	render ASTool.Sprite instances by specifying an appropriate datasource.
 */
+
+
+/**
+	Datasources must include and implement this Mixin.
+*/
+ASTool.DocumentViewDataSource = Em.Mixin.create({
+	sprites: Em.required(),
+}),
+
+
+/**
+	Event listeners must include and implement this Mixin.
+*/
+ASTool.DocumentViewListener = Em.Mixin.create({
+	documentActions: {
+
+		// Browse mode.
+		linkClicked: function(href) {},
+
+		// Selection mode.
+		elementSelected: function(element) {},
+
+		// Selection mode with partial selections enabled.
+		partialSelection: function(textSelection) {},
+	}
+}),
+
+
 ASTool.DocumentView = Em.Object.extend({
 
 	iframeId: 'scraped-doc-iframe',
@@ -14,8 +42,6 @@ ASTool.DocumentView = Em.Object.extend({
 	dataSource: null,
 
 	listener: null,
-	
-	_spritesBinding: 'dataSource.sprites',
 
 	canvas: null,
 
@@ -24,6 +50,8 @@ ASTool.DocumentView = Em.Object.extend({
 	mouseDown: 0,
 
 	loader: null,
+
+	loadingDoc: false,
 
 	/**
 		Attaches this documentview to a datasource and event listener
@@ -82,9 +110,12 @@ ASTool.DocumentView = Em.Object.extend({
 			- The sprites exposed by the datasource change.
 	*/
 	redrawNow: function() {
+		if (this.loadingDoc) {
+			return
+		}
 		var canvas = this.get('canvas');
 		if (this.get('dataSource')) {
-			var sprites = this.get('sprites');
+			var sprites = this.get('dataSource.sprites') || [];
 			if (this.get('hoveredSprite')) {
 				sprites = sprites.concat([this.get('hoveredSprite')]);
 			}
@@ -94,13 +125,14 @@ ASTool.DocumentView = Em.Object.extend({
 		} else {
 			canvas.clear();
 		}
-	}.observes('sprites.@each', 'dataSource'),
+	}.observes('dataSource', 'dataSource.sprites.@each'),
 
 	/**
 		Displays a document by setting it as the content of the iframe.
 		readyCallback will be called when the document finishes rendering.
 	*/
 	displayDocument: function(documentContents, readyCallback) {
+		this.set('loadingDoc', true);
 		if (this.get('autoRedrawId')) {
 			clearInterval(this.get('autoRedrawId'));
 		}
@@ -126,6 +158,7 @@ ASTool.DocumentView = Em.Object.extend({
 			if (readyCallback) {
 				readyCallback(this.getIframe());
 			};
+			this.set('loadingDoc', false);
 		}, 1000);
 	},
 
@@ -199,14 +232,6 @@ ASTool.DocumentView = Em.Object.extend({
 		this.getIframe().scrollTop(rect.top - 100);
 		this.getIframe().scrollLeft(rect.left - 100);
 	},
-
-	sprites: function() {
-		if (!this.get('dataSource')) {
-			return [];
-		} else {
-			return this.get('_sprites') || [];
-		}
-	}.property('_sprites.@each'),
 
 	_elementSelectionEnabled: null,
 	

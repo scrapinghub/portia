@@ -1,4 +1,5 @@
-ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
+ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
+	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 
 	needs: ['application', 'annotations'],
 	

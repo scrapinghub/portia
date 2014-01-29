@@ -1,4 +1,5 @@
-ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
+ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
+	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
 	needs: ['application', 'annotations'],
 

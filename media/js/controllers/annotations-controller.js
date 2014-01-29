@@ -5,7 +5,8 @@ ASTool.MappedFieldData = Em.Object.extend({
 }),
 
 
-ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
+ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin,
+	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
 	needs: ['application', 'annotation'],
 
@@ -42,7 +43,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			} else {
 				return null;
 			}
-		}).filter(function(annotation) {return annotation});
+		}).filter(function(sprite) { return !!sprite; });
 	}.property('content.@each.element', 'content.@each.highlighted'),
 		
 	addAnnotation: function() {
@@ -185,7 +186,9 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		},
 
 		annotationHighlighted: function(annotation) {
-			this.get('documentView').scrollToElement(annotation.get('element'));
+			if (annotation.get('element')) {
+				this.get('documentView').scrollToElement(annotation.get('element'));	
+			}
 		},
 
 		rename: function(oldName, newName) {
