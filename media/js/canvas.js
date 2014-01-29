@@ -90,6 +90,9 @@ ASTool.Sprite = Em.Object.extend({
 });
 
 
+RECT_ZERO = { left: 0, top: 0, width: 0, height: 0};
+
+
 /**
 	Draws a rectangular sprite with a border, an optional shadow and an
 	optional caption.
@@ -183,7 +186,11 @@ ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 	}.property('annotation.highlighted'),
 
 	getBoundingBox: function() {
-		return $(this.get('annotation.element')).boundingBox();
+		if (this.get('annotation.element')) {
+			return $(this.get('annotation.element')).boundingBox();	
+		} else {
+			return RECT_ZERO;
+		}
 	},
 });
 
@@ -227,6 +234,6 @@ ASTool.ElementSprite = ASTool.RectSprite.extend({
 	hasShadow: 'true',
 
 	getBoundingBox: function() {
-		return $(this.get('element')).boundingBox();
+		return $(this.get('element')).boundingBox();	
 	},
 });
