@@ -78,13 +78,13 @@ body{
 }
 
 #create-project-box {
-	background-color:#3A3A3A;
+	background-color:#312A2A;
 	padding:2px 10px 14px 10px;
 	margin:12px 6px 6px 6px;
 	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.3) inset;
 	border-style: solid;
 	border-width: 1px;
-	border-color: #888;
+	border-color: #A88;
 }
 
 #hovered-element-info {
