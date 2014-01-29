@@ -233,6 +233,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 		},
 
 		fetchPage: function(url) {
+			// TODO: remove save on fetch.
+			this.get('documentView').showLoading();
 			this.saveSpider().then(function() {
 				this.fetchPage(url);	
 			}.bind(this));
@@ -318,6 +320,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 				}
 				url = URI.build(parsedCurrentUrl);
 			}
+			// TODO: remove save on fetch.
+			this.get('documentView').showLoading();
 			this.saveSpider().then(function() {
 				this.fetchPage(url, this.get('loadedPageFp'));	
 			}.bind(this));
