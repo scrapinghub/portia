@@ -72,11 +72,17 @@ ASTool.DocumentView = Em.Object.extend({
 	redrawNow: function() {
 		var canvas = this.get('canvas');
 		if (this.get('dataSource')) {
-			canvas.draw();	
+			var sprites = this.get('sprites');
+			if (this.get('hoveredSprite')) {
+				sprites = sprites.concat([this.get('hoveredSprite')]);
+			}
+			canvas.draw(sprites,
+						this.getIframe().scrollLeft(),
+						this.getIframe().scrollTop());	
 		} else {
 			canvas.clear();
 		}
-	}.observes('sprites', 'dataSource'),
+	}.observes('sprites.@each', 'dataSource'),
 
 	installEventHandlersForBrowsing: function() {
 		this.uninstallEventHandlers();
@@ -135,7 +141,7 @@ ASTool.DocumentView = Em.Object.extend({
 					this.updateHoveredInfo(target);
 					this.set('hoveredSprite',
 							 ASTool.ElementSprite.create({'element': target}));
-					this.get('canvas').draw();
+					this.redrawNow();
 				}
 			}
 		}
@@ -143,7 +149,7 @@ ASTool.DocumentView = Em.Object.extend({
 	
 	mouseOutHandler: function(event) {
 		this.set('hoveredSprite', null);
-		this.get('canvas').draw();
+		this.redrawNow();
 	},
 
 	clickHandler: function(event) {
@@ -162,7 +168,7 @@ ASTool.DocumentView = Em.Object.extend({
 	mouseDownHandler: function(event) {
 		this.set('hoveredSprite', null);
 		++this.mouseDown;
-		this.get('canvas').draw();
+		this.redrawNow();
 	},
 
 	mouseUpHandler: function(event) {
@@ -212,9 +218,7 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	initCanvas: function() {
-		var canvas = ASTool.Canvas.create({canvasId: 'infocanvas',
-										   datasource: this})
-		this.set('canvas', canvas);
+		this.set('canvas', ASTool.Canvas.create({ canvasId: 'infocanvas' }));
 		if (!Ember.testing){
 			// Disable automatic redrawing during tests.
 			var self = this;
@@ -226,7 +230,7 @@ ASTool.DocumentView = Em.Object.extend({
 			window.onresize = function() {
 				$('#scraped-doc-iframe').height(window.innerHeight);
 				$('#toolbar').height(window.innerHeight);
-				this.get('canvas').draw();
+				this.redrawNow();
 				if (ASTool.graph) {
 					// FIXME: move this to a good place.
 					ASTool.graph.resize();
@@ -256,7 +260,7 @@ ASTool.DocumentView = Em.Object.extend({
 		this.set('canvas.interactionsBlocked', true);
 		Em.run.later(this, function() {	
 			var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
-			doc.onscroll = this.get('canvas').draw.bind(this.get('canvas'));
+			doc.onscroll = this.redrawNow.bind(this);
 			this.set('canvas.interactionsBlocked', false);
 			if (readyCallback) {
 				readyCallback(this.getIframe());

@@ -1,41 +1,43 @@
+/**
+ 	Draws ASTool.Sprite instances on a canvas specified by the
+ 	canvasId property. 
+*/
 ASTool.Canvas = Em.Object.extend({
 
 	canvasId: null,
 
-	datasource: null,
+	canvas: null,
 
+	context: null,
+
+	init: function() {
+		this._super();
+		this.set('canvas', $('#' + this.get('canvasId')).get(0));
+		this.set('context', this.get('canvas').getContext("2d"));
+	},
+
+	/**
+		Clears the canvas.
+	*/
 	clear: function() {
-		var canvas = $('#' + this.get('canvasId')).get(0);
-		var context = canvas.getContext("2d");
+		var canvas = this.get('canvas');
+		var context = this.get('context');
 		context.clearRect(0, 0, canvas.width, canvas.height);
 	},
 
-	draw: function() {
-		var sprites = this.datasource.get('sprites');
-		var hoveredSprite = this.datasource.get('hoveredSprite');
-		var iframe = this.datasource.getIframe();
-
-		if (hoveredSprite) {
-			sprites = sprites.concat([hoveredSprite]);
-		}
-
-		_canvas = $('#' + this.get('canvasId'));
-
-		if (!_canvas.length) {
-			return;
-		}
-		
-		canvas = _canvas.get(0);
+	/**
+		Draws the given sprites translating the context by (xOffset, yOffset)
+		to compensate for the iframe current scroll position.
+	*/
+	draw: function(sprites, xOffset, yOffset) {
+		var canvas = this.get('canvas');
+		var context = this.get('context');
 
 		// Match intrinsic and extrinsic dimensions.
-		canvas.width = _canvas.outerWidth();
-		canvas.height = _canvas.outerHeight();
+		canvas.width = $(canvas).outerWidth();
+		canvas.height = $(canvas).outerHeight();
 
-		var context = canvas.getContext("2d");
-		var y_offset = iframe.scrollTop();
-		var x_offset = iframe.scrollLeft();
-		context.translate(-x_offset, -y_offset);
-
+		context.translate(-xOffset, -yOffset);
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		var sortedSprites = sprites.sort(function(a, b) {
 	    	return a.get('zPosition') - b.get('zPosition');
@@ -46,7 +48,12 @@ ASTool.Canvas = Em.Object.extend({
 	},
 
 	_interactionsBlocked: false,
-		
+
+	/**
+		By default the canvas is configured to let all events pass through.
+		Set this attribute to true to block interactions with the underlaying
+		layers.
+	*/	
 	interactionsBlocked: function(key, interactionsBlocked) {
 		if (arguments.length > 1) {
 			this.set('_interactionsBlocked', interactionsBlocked);
@@ -65,13 +72,28 @@ ASTool.Canvas = Em.Object.extend({
 });
 
 
+/**
+	Base class for all the sprites rendered by ASTool.Canvas. 
+	Subclasses must implement the draw method. 
+*/
 ASTool.Sprite = Em.Object.extend({
+
+	/**
+		Sprites with lower zPosition are drawn below sprites with
+		higher zPosition.
+	*/
 	zPosition: 0,
 
-	draw: function() {},
+	draw: function() {
+		throw('You must implement this method.')
+	},
 });
 
 
+/**
+	Draws a rectangular sprite with a border, an optional shadow and an
+	optional caption.
+*/
 ASTool.RectSprite = ASTool.Sprite.extend({
 	fillColor: 'blue',
 	boderWidth: 1,
@@ -208,6 +230,3 @@ ASTool.ElementSprite = ASTool.RectSprite.extend({
 		return $(this.get('element')).boundingBox();
 	},
 });
-
-
-
