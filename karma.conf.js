@@ -25,7 +25,7 @@ module.exports = function(karma) {
           "js/jqplugins.js",
           "js/models.js",
           "js/routes.js",
-          "js/selector.js",
+          "js/documentview.js",
           "js/views.js",
           "js/templates/*.handlebars",
 

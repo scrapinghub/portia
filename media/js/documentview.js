@@ -1,10 +1,19 @@
+/**
+	Displays an html document as the content of an iframe which
+	id is given by the iframeId property. A new document can be set at
+	any time by calling the displayDocument method.
+
+	Using the config method, it can be told to forward selection and browse
+	events to a registered event listener. It can also be configured to
+	render ASTool.Sprite instances by specifying an appropriate datasource.
+*/
 ASTool.DocumentView = Em.Object.extend({
+
+	iframeId: 'scraped-doc-iframe',
 
 	dataSource: null,
 
 	listener: null,
-	
-	restrictToDescendants: false,
 	
 	_spritesBinding: 'dataSource.sprites',
 
@@ -16,6 +25,181 @@ ASTool.DocumentView = Em.Object.extend({
 
 	loader: null,
 
+	/**
+		Attaches this documentview to a datasource and event listener
+		configuring it according to the options dictionary.
+		The options dictionary may contain:
+
+		datasource: the datasource that will be attached.
+		listener: the event listener will be attached.
+		mode: a string. Possible values are 'select' and 'browse'.
+		partialSelects: boolean. Whether to allow partial selections. It only
+			has effect for the 'select' mode.
+	*/
+	config: function(options) {
+		this.set('dataSource', options.dataSource);
+		this.set('listener', options.listener);
+		if (options.mode == 'select') {
+			this.set('elementSelectionEnabled', true);
+			this.set('partialSelectionEnabled', options.partialSelects);
+		} else if (options.mode == 'browse') {
+			this.installEventHandlersForBrowsing();
+		}
+	},
+
+	/**
+		Detaches the datasource and event listener. Internally,
+		it also unbinds all event handlers.
+	*/
+	reset: function() {
+		this.uninstallEventHandlers();
+		this.set('elementSelectionEnabled', false);
+		this.set('partialSelectionEnabled', false);
+		this.set('dataSource', null);
+		this.set('listener', null);	
+	},
+
+	/**
+		Set this property to a DOM element if you want to restrict element
+		selection to the children of the given element.
+	*/
+	restrictToDescendants: null,
+
+	/**
+		Returns the document iFrame contents.
+	*/
+	getIframe: function() {
+		return $('#' + this.get('iframeId')).contents();
+	},
+
+	/**
+		Redraws all datasource sprites and the hovered element (if in select
+		mode). This method can be called manually but it gets called
+		automatically:
+
+			- Once every second.
+			- After a window resize or iframe scroll.
+			- The sprites exposed by the datasource change.
+	*/
+	redrawNow: function() {
+		var canvas = this.get('canvas');
+		if (this.get('dataSource')) {
+			var sprites = this.get('sprites');
+			if (this.get('hoveredSprite')) {
+				sprites = sprites.concat([this.get('hoveredSprite')]);
+			}
+			canvas.draw(sprites,
+						this.getIframe().scrollLeft(),
+						this.getIframe().scrollTop());	
+		} else {
+			canvas.clear();
+		}
+	}.observes('sprites.@each', 'dataSource'),
+
+	/**
+		Displays a document by setting it as the content of the iframe.
+		readyCallback will be called when the document finishes rendering.
+	*/
+	displayDocument: function(documentContents, readyCallback) {
+		if (this.get('autoRedrawId')) {
+			clearInterval(this.get('autoRedrawId'));
+		}
+		
+		// FIXME!!
+		if (!Ember.testing){
+			document.getElementById(this.get('iframeId')).srcdoc = documentContents;
+		} else {
+			this.getIframe().find('html').html(documentContents);
+		}
+
+		if (!this.getCanvas) {
+			this.initCanvas();	
+		}
+		
+		// We need to disable all interactions with the document we are loading
+		// until we trigger the callback.
+		this.set('canvas.interactionsBlocked', true);
+		Em.run.later(this, function() {	
+			var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
+			doc.onscroll = this.redrawNow.bind(this);
+			this.set('canvas.interactionsBlocked', false);
+			if (readyCallback) {
+				readyCallback(this.getIframe());
+			};
+		}, 1000);
+	},
+
+	/**
+		Returns the content of the document currently displayed by the
+		iframe.
+	*/
+	getAnnotatedDocument: function() {
+		return this.getIframe().find('html').get(0).outerHTML;
+	},
+
+
+	/**
+		Displays a loading widget on top of the iframe. It should be removed
+		by calling hideLoading.
+	*/
+	showLoading: function() {
+		this.set('canvas.interactionsBlocked', true);
+		var loader = this.get('loader');
+		if (!loader) {
+			loader = new CanvasLoader('loader-container');
+			loader.setColor('#2398c2');
+			loader.setShape('spiral');
+			loader.setDiameter(133);
+			loader.setRange(0.9);
+			loader.setSpeed(1);
+			loader.setFPS(60);
+			var loaderObj = document.getElementById("canvasLoader");
+		  	loaderObj.style.position = "absolute";
+		  	loaderObj.style["top"] = loader.getDiameter() * -0.5 + "px";
+		  	loaderObj.style["left"] = loader.getDiameter() * -0.5 + "px";
+		  	this.set('loader', loader);
+		}
+		loader.show();
+	},
+
+	/**
+		Hides the loading widget displayed by a previous call to showLoading.
+	*/
+	hideLoading: function() {
+		if (this.get('loader')) { 
+			this.get('loader').hide();
+		}
+	},
+
+	/**
+		Displays an error message as the content of the iframe.
+	*/
+	showError: function(error) {
+		this.getIframe().find('html').html(error);
+	},
+
+	/**
+		Displays the spider image place holder as the content of the
+		iframe.
+	*/
+	showSpider: function() {
+		if (!Ember.testing){
+			ic.ajax('start.html').then(function(page) {
+				this.getIframe().find('html').html(page);
+			}.bind(this));
+		}
+	},
+
+	/**
+		Scrolls the iframe so the given element appears in the current
+		viewport.
+	*/
+	scrollToElement: function(element) {
+		var rect = $(element).boundingBox();
+		this.getIframe().scrollTop(rect.top - 100);
+		this.getIframe().scrollLeft(rect.left - 100);
+	},
+
 	sprites: function() {
 		if (!this.get('dataSource')) {
 			return [];
@@ -25,10 +209,6 @@ ASTool.DocumentView = Em.Object.extend({
 	}.property('_sprites.@each'),
 
 	_elementSelectionEnabled: null,
-
-	getIframe: function() {
-		return $('#scraped-doc-iframe').contents();
-	},
 	
 	elementSelectionEnabled: function(key, selectionEnabled) {
 		if (arguments.length > 1) {
@@ -49,40 +229,6 @@ ASTool.DocumentView = Em.Object.extend({
 	}.property('_elementSelectionEnabled'),
 
 	partialSelectionEnabled: false,
-
-	reset: function() {
-		this.uninstallEventHandlers();
-		this.set('elementSelectionEnabled', false);
-		this.set('partialSelectionEnabled', false);
-		this.set('dataSource', null);
-		this.set('listener', null);	
-	},
-
-	config: function(options) {
-		this.set('dataSource', options.dataSource);
-		this.set('listener', options.listener);
-		if (options.mode == 'select') {
-			this.set('elementSelectionEnabled', true);
-			this.set('partialSelectionEnabled', options.partialSelects);
-		} else if (options.mode == 'browse') {
-			this.installEventHandlersForBrowsing();
-		}
-	},
-	
-	redrawNow: function() {
-		var canvas = this.get('canvas');
-		if (this.get('dataSource')) {
-			var sprites = this.get('sprites');
-			if (this.get('hoveredSprite')) {
-				sprites = sprites.concat([this.get('hoveredSprite')]);
-			}
-			canvas.draw(sprites,
-						this.getIframe().scrollLeft(),
-						this.getIframe().scrollTop());	
-		} else {
-			canvas.clear();
-		}
-	}.observes('sprites.@each', 'dataSource'),
 
 	installEventHandlersForBrowsing: function() {
 		this.uninstallEventHandlers();
@@ -228,7 +374,7 @@ ASTool.DocumentView = Em.Object.extend({
 				});
 			}, 1000));
 			window.onresize = function() {
-				$('#scraped-doc-iframe').height(window.innerHeight);
+				$('#' + this.get('iframeId')).height(window.innerHeight);
 				$('#toolbar').height(window.innerHeight);
 				this.redrawNow();
 				if (ASTool.graph) {
@@ -237,82 +383,5 @@ ASTool.DocumentView = Em.Object.extend({
 				}
 			}.bind(this);
 		}
-	},
-
-	displayAnnotatedDocument: function(annotatedDocument, readyCallback) {
-		if (this.get('autoRedrawId')) {
-			clearInterval(this.get('autoRedrawId'));
-		}
-		
-		// FIXME!!
-		if (!Ember.testing){
-			document.getElementById('scraped-doc-iframe').srcdoc = annotatedDocument;
-		} else {
-			this.getIframe().find('html').html(annotatedDocument);
-		}
-
-		if (!this.getCanvas) {
-			this.initCanvas();	
-		}
-		
-		// We need to disable all interactions with the document we are loading
-		// until we trigger the callback.
-		this.set('canvas.interactionsBlocked', true);
-		Em.run.later(this, function() {	
-			var doc = document.getElementById('scraped-doc-iframe').contentWindow.document;
-			doc.onscroll = this.redrawNow.bind(this);
-			this.set('canvas.interactionsBlocked', false);
-			if (readyCallback) {
-				readyCallback(this.getIframe());
-			};
-		}, 1000);
-	},
-
-	showLoading: function() {
-		this.set('canvas.interactionsBlocked', true);
-		var loader = this.get('loader');
-		if (!loader) {
-			loader = new CanvasLoader('loader-container');
-			loader.setColor('#2398c2');
-			loader.setShape('spiral');
-			loader.setDiameter(133);
-			loader.setRange(0.9);
-			loader.setSpeed(1);
-			loader.setFPS(60);
-			var loaderObj = document.getElementById("canvasLoader");
-		  	loaderObj.style.position = "absolute";
-		  	loaderObj.style["top"] = loader.getDiameter() * -0.5 + "px";
-		  	loaderObj.style["left"] = loader.getDiameter() * -0.5 + "px";
-		  	this.set('loader', loader);
-		}
-		loader.show();
-	},
-
-	hideLoading: function() {
-		if (this.get('loader')) { 
-			this.get('loader').hide();
-		}
-	},
-
-	showError: function(error) {
-		this.getIframe().find('html').html(error);
-	},
-
-	showSpider: function() {
-		if (!Ember.testing){
-			ic.ajax('start.html').then(function(page) {
-				this.getIframe().find('html').html(page);
-			}.bind(this));
-		}
-	},
-
-	getAnnotatedDocument: function() {
-		return this.getIframe().find('html').get(0).outerHTML;
-	},
-
-	scrollToElement: function(element) {
-		var rect = $(element).boundingBox();
-		this.getIframe().scrollTop(rect.top - 100);
-		this.getIframe().scrollLeft(rect.left - 100);
 	},
 });

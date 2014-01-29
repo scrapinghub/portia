@@ -124,7 +124,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 								 url: template.get('url'),
 								 fp: template.get('page_id') };
 		this.get('browseHistory').pushObject(pageFp);
-		this.get('documentView').displayAnnotatedDocument(template.get('original_body'));
+		this.get('documentView').displayDocument(template.get('original_body'));
 	},
 
 	fetchPage: function(url, parentFp) {
@@ -136,7 +136,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 			if (!data.error) {
 				data.url = url;
 				this.get('browseHistory').pushObject(data.fp);
-				documentView.displayAnnotatedDocument(data.page,
+				documentView.displayDocument(data.page,
 					function(docIframe){
 						this.get('documentView').reset();
 						this.get('documentView').config({ mode: 'browse',
@@ -158,7 +158,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin, {
 	displayPage: function(fp) {
 		this.set('loadedPageFp', null);
 		var documentView = this.get('documentView');
-		documentView.displayAnnotatedDocument(this.get('pageMap')[fp].page,
+		documentView.displayDocument(this.get('pageMap')[fp].page,
 			function(){
 				this.get('documentView').reset();		
 				this.get('documentView').config({ mode: 'browse',

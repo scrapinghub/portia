@@ -56,7 +56,7 @@ ASTool.AnnotationsRoute = Ember.Route.extend({
 		var controller = this.controllerFor('annotations');
 		var promise = new Ember.RSVP.Promise(function(resolve) {
 			controller.deleteAllAnnotations();
-			controller.get('documentView').displayAnnotatedDocument(
+			controller.get('documentView').displayDocument(
 				controller.get('template.annotated_body'),
 				function(docIframe){
 					ASTool.set('iframe', docIframe);
