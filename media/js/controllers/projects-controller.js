@@ -41,4 +41,8 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			}.bind(this));
 		}
 	},
+
+	willEnter: function() {
+		this.get('documentView').showSpider();
+	}
 });
