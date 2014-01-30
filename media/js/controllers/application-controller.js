@@ -13,6 +13,6 @@ ASTool.ApplicationController = Em.Controller.extend(ASTool.RouteBrowseMixin, {
   	}.observes('currentPath'),
 
   	willDestroy: function() {
-  		this.routeStack.length = 0;
+  		this.clearRoutes();
   	},
 });

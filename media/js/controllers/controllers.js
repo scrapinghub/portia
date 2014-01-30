@@ -74,6 +74,10 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		}
 	},
 
+	clearRoutes: function() {
+		this.routeStack.length = 0;
+	},
+
 	openAccordion: function(accordionNumber) {
 		$( ".accordion" ).accordion("option", "active", accordionNumber);
 	},
