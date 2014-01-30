@@ -18,6 +18,7 @@ module.exports = function(karma) {
           "js/app.js",
           "js/api.js",
           "js/canvas.js",
+          "js/documentview.js",
           "js/controllers/controllers.js",
           "js/controllers/*.js",
           "js/crawlgraph.js",
@@ -25,7 +26,6 @@ module.exports = function(karma) {
           "js/jqplugins.js",
           "js/models.js",
           "js/routes.js",
-          "js/documentview.js",
           "js/views.js",
           "js/templates/*.handlebars",
 
