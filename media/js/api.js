@@ -1,5 +1,13 @@
+/**
+	A Proxy to the slyd backend API.
+*/
 ASTool.SlydApi = Em.Object.extend({
 
+	/**
+	@public
+
+	The name of the current project.
+	*/
 	project: null,
 
 	projectSpecUrl: function() {
@@ -10,6 +18,15 @@ ASTool.SlydApi = Em.Object.extend({
 		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/bot/';
 	}.property('project'),
 
+	/**
+  	@public
+
+  	Fetches project names.
+
+  	@method getProjectNames
+  	@for ASTool.SlydApi
+  	@return {Promise} a promise that fulfills with an {Array} of project names.
+	*/
 	getProjectNames: function() {
 		var hash = {};
 		hash.type = 'GET';
@@ -17,6 +34,18 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Creates a new project. A project with the same name must not exist or
+  	this operation will fail.
+  	Project names must only contain alphanum, '.'s and '_'s.
+
+  	@method createProject
+  	@for ASTool.SlydApi
+  	@param {String} [projectName] The name of the new project.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
 	createProject: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
@@ -26,6 +55,16 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Deletes an existing project.
+
+  	@method deleteProject
+  	@for ASTool.SlydApi
+  	@param {String} [projectName] The name of the project to delete.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
 	deleteProject: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
@@ -35,6 +74,19 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Renames an existing project. This operation will not overwrite
+  	existing projects.
+  	Project names must only contain alphanum, '.'s and '_'s.
+
+  	@method renameProject
+  	@for ASTool.SlydApi
+  	@param {String} [oldProjectName] The name of the project to rename.
+  	@param {String} [newProjectName] The new name for the project.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
 	renameProject: function(oldProjectName, newProjectName) {
 		var hash = {};
 		hash.type = 'POST';
@@ -44,6 +96,15 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Returns a list with the spider names for the current project.
+
+  	@method getSpiderNames
+  	@for ASTool.SlydApi
+  	@return {Promise} a promise that fulfills with an {Array} of spider names.
+	*/
 	getSpiderNames: function() {
 		var hash = {};
 		hash.type = 'GET';
@@ -51,6 +112,16 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Fetches all spiders for the current project.
+
+  	@method loadSpiders
+  	@for ASTool.SlydApi
+  	@return {Promise} a promise that fulfills with a JSON {Object}
+  		containing the spider specs.
+	*/
 	loadSpiders: function(onSuccess, onError) {
 		var hash = {};
 		hash.type = 'GET';
@@ -60,6 +131,18 @@ ASTool.SlydApi = Em.Object.extend({
 		});
 	},
 
+	/**
+  	@public
+
+  	Fetches a spider. The spider name is assigned as the spider id and
+  	a guid is generated as the id for each of the spider templates.
+
+  	@method loadSpider
+  	@for ASTool.SlydApi
+  	@param {String} [oldProjectName] The name of the spider.
+  	@return {Promise} a promise that fulfills with a JSON {Object}
+  		containing the spider spec.
+	*/
 	loadSpider: function(spiderName) {
 		var hash = {};
 		hash.type = 'GET';
@@ -74,6 +157,19 @@ ASTool.SlydApi = Em.Object.extend({
 		});
 	},
 
+	/**
+  	@public
+
+  	Renames an existing spider. This operation will overwrite
+  	existing spiders.
+  	Spider names must only contain alphanum, '.'s and '_'s.
+
+  	@method renameSpider
+  	@for ASTool.SlydApi
+  	@param {String} [oldSpiderName] The name of the spider to rename.
+  	@param {String} [newSpiderName] The new name for the spider.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
 	renameSpider: function(oldSpiderName, newSpiderName) {
 		var hash = {};
 		hash.type = 'POST';
@@ -83,6 +179,36 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Saves the a spider for the current project.
+
+  	@method saveSpider
+  	@for ASTool.SlydApi
+  	@param {String} [spiderName] the name of the spider.
+  	@param {Object} [spiderData] a JSON object containing the spider spec.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
+	saveSpider: function(spiderName, spiderData) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.data = JSON.stringify(spiderData);
+		hash.dataType = 'text';
+		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
+		return ic.ajax(hash);
+	},
+
+	/**
+  	@public
+
+  	Deletes an existing project.
+
+  	@method deleteProject
+  	@for ASTool.SlydApi
+  	@param {String} [projectName] The name of the project to delete.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
 	deleteSpider: function(spiderName) {
 		var hash = {};
 		hash.type = 'POST';
@@ -92,6 +218,17 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Fetches the current project items.
+
+  	@method loadItems
+  	@for ASTool.SlydApi
+  	@return {Promise} a promise that fulfills with an {Array} of JSON {Object}
+  		containing the items spec.
+  	}
+	*/
 	loadItems: function() {
 		var hash = {};
 		hash.type = 'GET';
@@ -107,6 +244,17 @@ ASTool.SlydApi = Em.Object.extend({
 		}.bind(this));
 	},
 
+	/**
+  	@public
+
+  	Saves the current project items.
+
+  	@method saveItems
+  	@for ASTool.SlydApi
+  	@param {Array} [items] an array of JSON {Object} containing the items
+  		spec.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
 	saveItems: function(items) {
 		items.forEach(function(item) {
 			if (item.get('fields')) {
@@ -122,6 +270,16 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	/**
+  	@public
+
+  	Fetches the current project extractors.
+
+  	@method loadExtractors
+  	@for ASTool.SlydApi
+  	@return {Promise} a promise that fulfills with an {Array} of JSON {Object}
+  		containing the extractors spec.
+	*/
 	loadExtractors: function() {
 		var hash = {};
 		hash.type = 'GET';
@@ -132,6 +290,17 @@ ASTool.SlydApi = Em.Object.extend({
 		);	
 	},
 
+	/**
+  	@public
+
+  	Saves the current project extractors.
+
+  	@method saveExtractors
+  	@for ASTool.SlydApi
+  	@param {Array} [extractors] an array of JSON {Object} containing the
+  		extractors spec.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
 	saveExtractors: function(extractors) {
 		extractors = this.listToDict(extractors);
 		var hash = {};
@@ -142,27 +311,56 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
-	saveSpider: function(spiderName, spiderData) {
-		var hash = {};
-		hash.type = 'POST';
-		hash.data = JSON.stringify(spiderData);
-		hash.dataType = 'text';
-		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
-		return ic.ajax(hash);
-	},
+	/**
+  	@public
 
-	fetchDocument: function(pageUrl, spiderName) {
+  	Fetches a page using the given spider.
+
+  	@method fetchDocument
+  	@for ASTool.SlydApi
+  	@param {String} [pageUrl] the URL of the page to fetch.
+  	@param {String} [spiderName] the name of the spider to use.
+  	@param {String} [parentFp] the fingerprint of the parent page.
+  	@return {Promise} a promise that fulfills with an {Object} containing
+  		the document contents (page), the response data (response), the
+  		extracted items (items), the request fingerprint (fp), an error
+  		message (error) and the links that will be followed (links).
+	*/
+	fetchDocument: function(pageUrl, spiderName, parentFp) {
 		var hash = {};
 		hash.type = 'POST';
-		hash.data = JSON.stringify({spider: spiderName,
-									request: {url: pageUrl}});
+		hash.data = JSON.stringify({ spider: spiderName,
+									 request: { url: pageUrl } });
+		if (parentFp) {
+			hash.data['parent_fp'] = parentFp;
+		}
 		hash.url = this.get('botUrl') + 'fetch';
 		return ic.ajax(hash);
 	},
 
+	/**
+	@private
+
+	Transforms a list of the form:
+		[ { name: 'obj1', x: 'a' }, { name: 'obj2', x: 'b' }]
+
+	into an object of the form:
+		{ 
+			obj1:
+				{ x: 'a' },
+			obj2:
+				{ x: 'b' }
+		}
+
+	@method listToDict
+	@for ASTool.SlydApi
+	@param {Array} [list] the array to trasnform.
+	@return {Object} the result object.
+	*/
 	listToDict: function(list) {
 		var dict = {};
 		list.forEach(function(element) {
+			// Don't modify the original object.
 			element = Em.copy(element);
 			var name = element['name'];
 			delete element['name'];
@@ -171,6 +369,25 @@ ASTool.SlydApi = Em.Object.extend({
 		return dict;
 	},
 
+	/**
+	@private
+
+	Transforms an object of the form:
+		{ 
+			obj1:
+				{ x: 'a' },
+			obj2:
+				{ x: 'b' }
+		}
+
+	into a list of the form:
+		[ { name: 'obj1', x: 'a' }, { name: 'obj2', x: 'b' }]
+
+	@method listToDict
+	@for ASTool.SlydApi
+	@param {Array} [list] the array to trasnform.
+	@return {Object} the result object.
+	*/
 	dictToList: function(dict, wrappingType) {
 		var entries = [];
 		var keys = Object.keys(dict);

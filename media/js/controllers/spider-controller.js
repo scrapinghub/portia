@@ -132,28 +132,30 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		this.set('loadedPageFp', null);
 		var documentView = this.get('documentView');
 		documentView.showLoading();
-		this.get('slyd').fetchDocument(url, this.content.get('name')).then(function(data) {
-			documentView.hideLoading();
-			if (!data.error) {
-				data.url = url;
-				this.get('browseHistory').pushObject(data.fp);
-				documentView.displayDocument(data.page,
-					function(docIframe){
-						this.get('documentView').reset();
-						this.get('documentView').config({ mode: 'browse',
-										  listener: this,
-										  dataSource: this });
-						this.set('loadedPageFp', data.fp);
-						this.get('pageMap')[data.fp] = data;
-						if (ASTool.graph) {
-							ASTool.graph.addPage(data, parentFp);
-						}
-					}.bind(this)
-				);
-			} else {
-				documentView.showError(data.error);
-			}
-		}.bind(this));
+		this.get('slyd').fetchDocument(url, this.content.get('name'), parentFp).
+			then(function(data) {
+				documentView.hideLoading();
+				if (!data.error) {
+					data.url = url;
+					this.get('browseHistory').pushObject(data.fp);
+					documentView.displayDocument(data.page,
+						function(docIframe){
+							this.get('documentView').reset();
+							this.get('documentView').config({ mode: 'browse',
+											  listener: this,
+											  dataSource: this });
+							this.set('loadedPageFp', data.fp);
+							this.get('pageMap')[data.fp] = data;
+							if (ASTool.graph) {
+								ASTool.graph.addPage(data, parentFp);
+							}
+						}.bind(this)
+					);
+				} else {
+					documentView.showError(data.error);
+				}
+			}.bind(this)
+		);
 	},
 
 	displayPage: function(fp) {
