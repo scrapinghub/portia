@@ -88,7 +88,7 @@ class ProjectsResource(SlydJsonResource):
         return retval or ''
 
     def render_GET(self, request):
-        request.write(json.dumps(list(self.list_projects())))
+        request.write(json.dumps(sorted(self.list_projects())))
         return '\n'
 
     def render_POST(self, request):
