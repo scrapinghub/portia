@@ -1,4 +1,14 @@
 /*************** Adapters & Serializers ****************/
+
+/**
+	NOTE: Templates, Annotations and Spiders make use of EmberData
+	(http://emberjs.com/api/data/) for persistence, while the rest o the
+	domain objects are persisted in an ad-hoc manner.
+	Ember data has proven to be too complicated and sometimes unreliable so
+	the best will be to rewrite persistence for the objects that make use
+	of EmberData.
+*/
+
 ASTool.IFrameAdapter = DS.Adapter.extend({
 	
 	storageAttribute: null,
@@ -413,6 +423,7 @@ ASTool.Annotation = DS.Model.extend({
 		return this._super();
 	},
 });
+
 
 ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
 	name: null,
