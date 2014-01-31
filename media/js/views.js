@@ -154,7 +154,7 @@ ASTool.InlineTextField = Ember.View.extend({
   	},
 
   	textField: Ember.TextField.extend({
-  		classNames: ['inline-textfield', 'ui-corner-all'],
+  		classNames: ['inline-textfield'],
   		attributeBindings: ['name'],
   		name: 'inline_textfield',
 
@@ -181,12 +181,14 @@ ASTool.InlineTextField = Ember.View.extend({
 /************************* Application views ****************************/
 
 ASTool.FollowSelect = ASTool.Select.extend({
-	content: [{ option: 'none', label: "Don't follow links" },
-			  { option: 'patterns', label: 'Follow links that match the following patterns' }],
+
+	content: [{ option: 'all', label: 'Follow all in-domain links' },
+			  { option: 'none', label: 'Don not follow links' },
+			  { option: 'patterns', label: 'Configure follow and exclude patterns' }],
 
 	select: function(event, data) {
 		// FIXME: raise an event instead of directly setting the property.
-		this.set('controller.model.links_to_follow', data.item.value);
+		this.set('controller.links_to_follow', data.item.value);
 	},
 });
 

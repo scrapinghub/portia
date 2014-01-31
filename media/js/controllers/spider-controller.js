@@ -27,8 +27,12 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		return !this.get('newFollowPattern');
 	}.property('newFollowPattern'),
 
-	displayLinksToFollow: function() {
-		return this.content.get('links_to_follow') == 'patterns';
+	displayEditPatterns: function() {
+		return this.get('links_to_follow') == 'patterns';
+	}.property('links_to_follow'),
+
+	displayNofollow: function() {
+		return this.content.get('links_to_follow') != 'none';
 	}.property('model.links_to_follow'),
 
 	showCrawlGraph: function(key, show) {
@@ -75,6 +79,26 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		}
 		return true;
 	}.property('loadedPageFp'),
+
+	links_to_follow: function(key, follow) {
+		// The spider spec only supports 'patterns' or 'none' for the
+		// 'links_to_follow' attribute; 'all' is only used for UI purposes.
+		var model = this.get('model');
+		var retVal = follow;
+		if (arguments.length > 1) {
+            model.set('links_to_follow', follow == 'none' ? 'none' : 'patterns');
+        } else {
+        	retVal = model.get('links_to_follow');
+	        if (retVal == 'patterns' &&
+	        	Em.isEmpty(model.get('follow_patterns')) &&
+				Em.isEmpty(model.get('exclude_patterns'))) {
+	        	retVal = 'all';
+	        }
+    	}
+    	return retVal;
+	}.property('model.links_to_follow',
+	 		   'model.follow_patterns',
+	 		   'model.exclude_patterns'),
 
 	extractedItems: function() {
 		var items = [];

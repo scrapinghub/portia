@@ -175,7 +175,7 @@ ASTool.Template = DS.Model.extend({
 ASTool.Spider = DS.Model.extend({
 	start_urls: DS.attr(null),
 	allowed_domains: DS.attr(null),
-	links_to_follow: DS.attr('string', { defaultValue:'none' }),
+	links_to_follow: DS.attr('string', { defaultValue:'patterns' }),
 	follow_patterns: DS.attr(null),
 	exclude_patterns: DS.attr(null),
 	respect_nofollow: DS.attr('boolean', { defaultValue:true }),

@@ -1,8 +1,8 @@
-/*! jQuery UI - v1.10.4 - 2014-01-31
+/*! jQuery UI - v1.10.3 - 2013-12-27
 * http://jqueryui.com
 * Includes: jquery.ui.core.css, jquery.ui.resizable.css, jquery.ui.selectable.css, jquery.ui.accordion.css, jquery.ui.autocomplete.css, jquery.ui.button.css, jquery.ui.datepicker.css, jquery.ui.dialog.css, jquery.ui.menu.css, jquery.ui.progressbar.css, jquery.ui.slider.css, jquery.ui.spinner.css, jquery.ui.tabs.css, jquery.ui.tooltip.css, jquery.ui.theme.css
-* To view and modify this theme, visit http://jqueryui.com/themeroller/?ffDefault=Verdana%2CArial%2Csans-serif&fwDefault=normal&fsDefault=1.0em&cornerRadius=0px&bgColorHeader=%231c1c1c&bgTextureHeader=flat&bgImgOpacityHeader=75&borderColorHeader=%231c1c1c&fcHeader=%23d9d9d9&iconColorHeader=%23d9d9d9&bgColorContent=%23FFFCF4&bgTextureContent=flat&bgImgOpacityContent=75&borderColorContent=%23FFFCF4&fcContent=%23333333&iconColorContent=%23333333&bgColorDefault=%23787878&bgTextureDefault=flat&bgImgOpacityDefault=75&borderColorDefault=%23787878&fcDefault=%23ffffff&iconColorDefault=%23ffffff&bgColorHover=%23696969&bgTextureHover=flat&bgImgOpacityHover=75&borderColorHover=%23696969&fcHover=%23ffffff&iconColorHover=%23ffffff&bgColorActive=%23b02727&bgTextureActive=flat&bgImgOpacityActive=65&borderColorActive=%23b02727&fcActive=%23ffffff&iconColorActive=%23ffffff&bgColorHighlight=%23fbf9ee&bgTextureHighlight=glass&bgImgOpacityHighlight=55&borderColorHighlight=%23fcefa1&fcHighlight=%23363636&iconColorHighlight=%232e83ff&bgColorError=%23fef1ec&bgTextureError=glass&bgImgOpacityError=95&borderColorError=%23cd0a0a&fcError=%23cd0a0a&iconColorError=%23cd0a0a&bgColorOverlay=%23aaaaaa&bgTextureOverlay=flat&bgImgOpacityOverlay=0&opacityOverlay=30&bgColorShadow=%23aaaaaa&bgTextureShadow=flat&bgImgOpacityShadow=0&opacityShadow=30&thicknessShadow=8px&offsetTopShadow=-8px&offsetLeftShadow=-8px&cornerRadiusShadow=8px
-* Copyright 2014 jQuery Foundation and other contributors; Licensed MIT */
+* To view and modify this theme, visit http://jqueryui.com/themeroller/?ffDefault=Verdana%2CArial%2Csans-serif&fwDefault=normal&fsDefault=1.1em&cornerRadius=2px&bgColorHeader=%239e9e9e&bgTextureHeader=highlight_soft&bgImgOpacityHeader=75&borderColorHeader=%23aaaaaa&fcHeader=%23222222&iconColorHeader=%23222222&bgColorContent=%23404040&bgTextureContent=inset_soft&bgImgOpacityContent=15&borderColorContent=%23636363&fcContent=%23eaebda&iconColorContent=%23eaebda&bgColorDefault=%23262626&bgTextureDefault=highlight_hard&bgImgOpacityDefault=25&borderColorDefault=%23636363&fcDefault=%23eaebda&iconColorDefault=%23eaebda&bgColorHover=%231e1a1a&bgTextureHover=highlight_hard&bgImgOpacityHover=45&borderColorHover=%23fe412f&fcHover=%23fe412f&iconColorHover=%23fe412f&bgColorActive=%23b72724&bgTextureActive=highlight_hard&bgImgOpacityActive=25&borderColorActive=%23636363&fcActive=%23eaebda&iconColorActive=%23eaebda&bgColorHighlight=%23fbf9ee&bgTextureHighlight=glass&bgImgOpacityHighlight=55&borderColorHighlight=%23fcefa1&fcHighlight=%23363636&iconColorHighlight=%232e83ff&bgColorError=%23fef1ec&bgTextureError=glass&bgImgOpacityError=95&borderColorError=%23cd0a0a&fcError=%23cd0a0a&iconColorError=%23cd0a0a&bgColorOverlay=%23aaaaaa&bgTextureOverlay=flat&bgImgOpacityOverlay=0&opacityOverlay=30&bgColorShadow=%23111111&bgTextureShadow=flat&bgImgOpacityShadow=0&opacityShadow=100&thicknessShadow=8px&offsetTopShadow=-8px&offsetLeftShadow=-8px&cornerRadiusShadow=8px
+* Copyright 2013 jQuery Foundation and other contributors; Licensed MIT */
 
 /* Layout helpers
 ----------------------------------*/
@@ -347,6 +347,9 @@ button.ui-button::-moz-focus-inner {
 	font-size: 1em;
 	margin: 1px 0;
 }
+.ui-datepicker select.ui-datepicker-month-year {
+	width: 100%;
+}
 .ui-datepicker select.ui-datepicker-month,
 .ui-datepicker select.ui-datepicker-year {
 	width: 49%;
@@ -463,7 +466,6 @@ button.ui-button::-moz-focus-inner {
 	border-left-width: 1px;
 }
 .ui-dialog {
-	overflow: hidden;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -486,7 +488,7 @@ button.ui-button::-moz-focus-inner {
 	position: absolute;
 	right: .3em;
 	top: 50%;
-	width: 20px;
+	width: 21px;
 	margin: -10px 0 0 0;
 	padding: 1px;
 	height: 20px;
@@ -702,13 +704,13 @@ button.ui-button::-moz-focus-inner {
 	overflow: hidden;
 	right: 0;
 }
-/* more specificity required here to override default borders */
+/* more specificity required here to overide default borders */
 .ui-spinner a.ui-spinner-button {
 	border-top: none;
 	border-bottom: none;
 	border-right: none;
 }
-/* vertically center icon */
+/* vertical centre icon */
 .ui-spinner .ui-icon {
 	position: absolute;
 	margin-top: -8px;
@@ -745,7 +747,7 @@ button.ui-button::-moz-focus-inner {
 	padding: 0;
 	white-space: nowrap;
 }
-.ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+.ui-tabs .ui-tabs-nav li a {
 	float: left;
 	padding: .5em 1em;
 	text-decoration: none;
@@ -754,12 +756,13 @@ button.ui-button::-moz-focus-inner {
 	margin-bottom: -1px;
 	padding-bottom: 1px;
 }
-.ui-tabs .ui-tabs-nav li.ui-tabs-active .ui-tabs-anchor,
-.ui-tabs .ui-tabs-nav li.ui-state-disabled .ui-tabs-anchor,
-.ui-tabs .ui-tabs-nav li.ui-tabs-loading .ui-tabs-anchor {
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a,
+.ui-tabs .ui-tabs-nav li.ui-state-disabled a,
+.ui-tabs .ui-tabs-nav li.ui-tabs-loading a {
 	cursor: text;
 }
-.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-active .ui-tabs-anchor {
+.ui-tabs .ui-tabs-nav li a, /* first selector in group seems obsolete, but required to overcome bug in Opera applying cursor: text overall if defined elsewhere... */
+.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-active a {
 	cursor: pointer;
 }
 .ui-tabs .ui-tabs-panel {
@@ -784,7 +787,7 @@ body .ui-tooltip {
 ----------------------------------*/
 .ui-widget {
 	font-family: Verdana,Arial,sans-serif;
-	font-size: 1.0em;
+	font-size: 1.1em;
 }
 .ui-widget .ui-widget {
 	font-size: 1em;
@@ -797,21 +800,21 @@ body .ui-tooltip {
 	font-size: 1em;
 }
 .ui-widget-content {
-	border: 1px solid #FFFCF4;
-	background: #FFFCF4 url(images/ui-bg_flat_75_FFFCF4_40x100.png) 50% 50% repeat-x;
-	color: #333333;
+	border: 1px solid #636363;
+	background: #404040 url(images/ui-bg_inset-soft_15_404040_1x100.png) 50% bottom repeat-x;
+	color: #eaebda;
 }
 .ui-widget-content a {
-	color: #333333;
+	color: #eaebda;
 }
 .ui-widget-header {
-	border: 1px solid #1c1c1c;
-	background: #1c1c1c url(images/ui-bg_flat_75_1c1c1c_40x100.png) 50% 50% repeat-x;
-	color: #d9d9d9;
+	border: 1px solid #aaaaaa;
+	background: #9e9e9e url(images/ui-bg_highlight-soft_75_9e9e9e_1x100.png) 50% 50% repeat-x;
+	color: #222222;
 	font-weight: bold;
 }
 .ui-widget-header a {
-	color: #d9d9d9;
+	color: #222222;
 }
 
 /* Interaction states
@@ -819,15 +822,15 @@ body .ui-tooltip {
 .ui-state-default,
 .ui-widget-content .ui-state-default,
 .ui-widget-header .ui-state-default {
-	border: 1px solid #787878;
-	background: #787878 url(images/ui-bg_flat_75_787878_40x100.png) 50% 50% repeat-x;
+	border: 1px solid #636363;
+	background: #262626 url(images/ui-bg_highlight-hard_25_262626_1x100.png) 50% 50% repeat-x;
 	font-weight: normal;
-	color: #ffffff;
+	color: #eaebda;
 }
 .ui-state-default a,
 .ui-state-default a:link,
 .ui-state-default a:visited {
-	color: #ffffff;
+	color: #eaebda;
 	text-decoration: none;
 }
 .ui-state-hover,
@@ -836,34 +839,30 @@ body .ui-tooltip {
 .ui-state-focus,
 .ui-widget-content .ui-state-focus,
 .ui-widget-header .ui-state-focus {
-	border: 1px solid #696969;
-	background: #696969 url(images/ui-bg_flat_75_696969_40x100.png) 50% 50% repeat-x;
+	border: 1px solid #fe412f;
+	background: #1e1a1a url(images/ui-bg_highlight-hard_45_1e1a1a_1x100.png) 50% 50% repeat-x;
 	font-weight: normal;
-	color: #ffffff;
+	color: #fe412f;
 }
 .ui-state-hover a,
 .ui-state-hover a:hover,
 .ui-state-hover a:link,
-.ui-state-hover a:visited,
-.ui-state-focus a,
-.ui-state-focus a:hover,
-.ui-state-focus a:link,
-.ui-state-focus a:visited {
-	color: #ffffff;
+.ui-state-hover a:visited {
+	color: #fe412f;
 	text-decoration: none;
 }
 .ui-state-active,
 .ui-widget-content .ui-state-active,
 .ui-widget-header .ui-state-active {
-	border: 1px solid #b02727;
-	background: #b02727 url(images/ui-bg_flat_65_b02727_40x100.png) 50% 50% repeat-x;
+	border: 1px solid #636363;
+	background: #b72724 url(images/ui-bg_highlight-hard_25_b72724_1x100.png) 50% 50% repeat-x;
 	font-weight: normal;
-	color: #ffffff;
+	color: #eaebda;
 }
 .ui-state-active a,
 .ui-state-active a:link,
 .ui-state-active a:visited {
-	color: #ffffff;
+	color: #eaebda;
 	text-decoration: none;
 }
 
@@ -931,20 +930,20 @@ body .ui-tooltip {
 }
 .ui-icon,
 .ui-widget-content .ui-icon {
-	background-image: url(images/ui-icons_333333_256x240.png);
+	background-image: url(images/ui-icons_eaebda_256x240.png);
 }
 .ui-widget-header .ui-icon {
-	background-image: url(images/ui-icons_d9d9d9_256x240.png);
+	background-image: url(images/ui-icons_222222_256x240.png);
 }
 .ui-state-default .ui-icon {
-	background-image: url(images/ui-icons_ffffff_256x240.png);
+	background-image: url(images/ui-icons_eaebda_256x240.png);
 }
 .ui-state-hover .ui-icon,
 .ui-state-focus .ui-icon {
-	background-image: url(images/ui-icons_ffffff_256x240.png);
+	background-image: url(images/ui-icons_fe412f_256x240.png);
 }
 .ui-state-active .ui-icon {
-	background-image: url(images/ui-icons_ffffff_256x240.png);
+	background-image: url(images/ui-icons_eaebda_256x240.png);
 }
 .ui-state-highlight .ui-icon {
 	background-image: url(images/ui-icons_2e83ff_256x240.png);
@@ -1141,25 +1140,25 @@ body .ui-tooltip {
 .ui-corner-top,
 .ui-corner-left,
 .ui-corner-tl {
-	border-top-left-radius: 0px;
+	border-top-left-radius: 2px;
 }
 .ui-corner-all,
 .ui-corner-top,
 .ui-corner-right,
 .ui-corner-tr {
-	border-top-right-radius: 0px;
+	border-top-right-radius: 2px;
 }
 .ui-corner-all,
 .ui-corner-bottom,
 .ui-corner-left,
 .ui-corner-bl {
-	border-bottom-left-radius: 0px;
+	border-bottom-left-radius: 2px;
 }
 .ui-corner-all,
 .ui-corner-bottom,
 .ui-corner-right,
 .ui-corner-br {
-	border-bottom-right-radius: 0px;
+	border-bottom-right-radius: 2px;
 }
 
 /* Overlays */
@@ -1171,8 +1170,8 @@ body .ui-tooltip {
 .ui-widget-shadow {
 	margin: -8px 0 0 -8px;
 	padding: 8px;
-	background: #aaaaaa url(images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x;
-	opacity: .3;
-	filter: Alpha(Opacity=30);
+	background: #111111 url(images/ui-bg_flat_0_111111_40x100.png) 50% 50% repeat-x;
+	opacity: 1;
+	filter: Alpha(Opacity=100);
 	border-radius: 8px;
 }

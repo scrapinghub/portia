@@ -1,25 +1,24 @@
 <div class="container ui-corner-all">
+	{{view ASTool.ButtonView action="back" icon="ui-icon-circle-triangle-w" label='Back to project list'}}
 	{{#view ASTool.RenameTextField value=name}}
-  		<span class="editable-name"><h3>Project {{name}}</h3></span>
+  		<span class="editable-name"><p>Project {{name}}</p></span>
 	{{/view}}
 	<div class="accordion" style="margin-bottom:10px">
-		<h3>Spiders for this project:</h3>
+		<h3>Spiders</h3>
 		<div>
 			<div class="scrolling-container ui-corner-all">
 				{{#each}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editSpider" argument=this label=this minWidth="82%" icon="ui-icon-wrench"}}
-						{{view ASTool.ButtonView action="deleteSpider" argument=this icon="ui-icon-trash" class="textless-button"}}
+						{{view ASTool.ButtonView action="editSpider" argument=this label=this minWidth="82%" icon="ui-icon-wrench" class="light-button"}}
+						{{view ASTool.ButtonView action="deleteSpider" argument=this icon="ui-icon-trash" class="textless-button dark-button"}}
 					</div>
 				{{else}}
 					<h3>No spiders for this project.</h3>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px">
-				{{view ASTool.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="New spider"}}
+				{{view ASTool.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="New spider" class="blue-button"}}
 			</div>
 		</div>
 	</div>
-	{{view ASTool.ButtonView action="back" icon="ui-icon-circle-triangle-w" label='Back to project list'}}
-	{{view ASTool.ButtonView action="gotoItems" argument=this icon="ui-icon-circle-triangle-e" label='Items'}}
 </div>

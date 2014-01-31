@@ -1,90 +1,105 @@
 <div class="container ui-corner-all">
-	{{#view ASTool.RenameTextField value=id}}
-  		<span class="editable-name"><h3>Spider {{id}}</h3></span>
-	{{/view}}
-	<div class="accordion" style="margin-bottom:10px">	
-		<h3>Start URLs</h3>
+	<div style="display:none">
+		{{#view ASTool.RenameTextField value=id}}
+	  		<span class="editable-name"><h3 class="important-label">Spider {{id}}</h3></span>
+		{{/view}}
+	
+		{{view ASTool.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
+	</div>
+	<div class="accordion" style="margin-bottom:30px">	
+		<h3>Initialize</h3>
 		<div>
-			<div class="scrolling-container ui-corner-all" style="max-height:150px;">
-				{{#each start_urls}}
-					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='82%' title=this icon="ui-icon-folder-open"}}
-						{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button"}}
+			<div style="margin:10px 0px 10px 10px;">
+				<h4>Start Pages</h4>
+				<div style="text-align:left; margin:10px 0px 30px 0px">
+					<div class="scrolling-container ui-corner-all" style="max-height:150px;">
+						{{#each start_urls}}
+							<div style="margin:4px 0px 4px 0px">
+								{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='86%' title=this class="clear-button"}}
+								{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button light-button"}}
+							</div>
+						{{else}}
+							<h5>No start pages for this spider.</h5>
+						{{/each}}
 					</div>
-				{{else}}
-					<h5>No start urls for this spider.</h5>
-				{{/each}}
-			</div>
-			<div style="margin-top:10px">
-				{{view ASTool.TextField value=newStartUrl width='262px' name='startUrlTextField' placeholder='New start url' action="addStartUrl"}}
-				{{view ASTool.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add url" disabled=hasStartUrl}}
-			</div>
-		</div>
-
-		<h3>Exclude Patterns</h3>
-		<div>
-			<div class="scrolling-container ui-corner-all" style="max-height:150px;">
-				{{#each exclude_patterns}}
-					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='82%' title=this}}
-						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button"}}
+				
+					<div style="margin-top:10px">
+						{{view ASTool.TextField value=newStartUrl width='248px' name='startUrlTextField' placeholder='Enter page url' action="addStartUrl"}}
+						{{view ASTool.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" label="Add page" disabled=hasStartUrl
+						class="blue-button"}}
 					</div>
-				{{else}}
-					<h5>No excluded patterns for this spider</h5>
-				{{/each}}
-			</div>
-			<div style="margin-top:10px">
-				{{view ASTool.TextField value=newExcludePattern width='236px' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
-				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasExcludePattern}}
+				</div>
+			
+				<div style="margin-top:20px">
+					<label class="important-label">Perform login</label>
+					{{view ASTool.CheckBox checked=performLogin name="performLoginCheck"}}
+				</div>
+				{{#if performLogin}}
+					<div class="scrolling-container ui-corner-all">
+						<div style="margin-top:15px"></div>
+						{{view ASTool.TextField value=loginUrl width='86%' name='loginUrlField' placeholder='Login URL'}}
+						<div style="margin-top:5px"></div>
+						{{view ASTool.TextField value=loginUser width='86%' name='loginUserField' placeholder='Login user'}}
+						<div style="margin-top:5px"></div>
+						{{view ASTool.TextField value=loginPassword width='86%' name='loginPasswordField' placeholder='Login password'}}
+					</div>
+				{{/if}}
 			</div>
 		</div>
 
-		<h3>Links to follow</h3>
+		<h3>Crawling</h3>
 		<div>
-			<div style="margin:5px 0px 12px -22px;">
-				{{view ASTool.FollowSelect value=links_to_follow}}
+			<div style="margin:10px 0px 10px 10px;">
+				<div style="margin:5px 0px 12px 0px;">
+					{{view ASTool.FollowSelect value=controller.links_to_follow}}
+				</div>
+				
+				{{#if displayNofollow}}
+					<div style="margin-top:20px; margin-bottom: 20px">
+						{{view ASTool.CheckBox checked=respect_nofollow name="respectNoFollow"}}
+						<span class="important-label">Respect nofollow</span>
+					</div>
+				{{/if}}
+				
+				{{#if displayEditPatterns}}
+					<h4>Follow links that match this patterns</h4>
+					<div class="scrolling-container ui-corner-all" style="max-height: 150px; margin-top:10px">
+						{{#each follow_patterns}}
+							<div style="margin:4px 0px 4px 0px">
+								{{view ASTool.ButtonView label=this minWidth='85%' title=this class="green-button"}}
+								{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button light-button"}}
+							</div>
+						{{else}}
+							<h5>No exclude patterns defined yet.</h5>
+						{{/each}}
+					</div>
+					<div style="margin-top:15px">
+						{{view ASTool.TextField value=newFollowPattern width='236px' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
+						{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasFollowPattern class="blue-button"}}
+					</div>
+				
+					<div style="margin-top:20px"></div>
+					
+					<h4>Exclude links that match this patterns</h4>
+					<div class="scrolling-container ui-corner-all" style="max-height:150px; margin-top:10px">
+						{{#each exclude_patterns}}
+							<div style="margin:4px 0px 4px 0px">
+								{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='85%' title=this class="red-button"}}
+								{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button light-button"}}
+							</div>
+						{{else}}
+							<h5>No exclude patterns defined yet.</h5>
+						{{/each}}
+					</div>
+					<div style="margin-top:15px">
+						{{view ASTool.TextField value=newExcludePattern width='236px' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
+						{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasExcludePattern class="blue-button"}}
+					</div>
+				{{/if}}
 			</div>
-			{{#if displayLinksToFollow}}
-				<div class="scrolling-container ui-corner-all" style="max-height: 150px;">
-					{{#each follow_patterns}}
-						<div style="margin:4px 0px 4px 0px">
-							{{view ASTool.ButtonView label=this minWidth='82%' title=this}}
-							{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button"}}
-						</div>
-					{{else}}
-						<h5>All links within the start urls' domains will be matched.</h5>
-					{{/each}}
-				</div>
-				<div style="margin-top:10px">
-					{{view ASTool.TextField value=newFollowPattern width='236px' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
-					{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" label="Add pattern" disabled=hasFollowPattern}}
-				</div>
-			{{/if}}
-			<hr/>
-			{{view ASTool.CheckBox checked=respect_nofollow name="respectNoFollow"}}
-			<span>Respect nofollow</span>
-		</div>
-
-		<h3>Login</h3>
-		<div>
-			<div>
-				{{view ASTool.CheckBox checked=performLogin name="performLoginCheck"}}
-				<label>Perform login</label>
-			</div>
-			{{#if performLogin}}
-				<div class="scrolling-container ui-corner-all">
-					<div>Url</div>
-					{{view ASTool.TextField value=loginUrl width='286px' name='loginUrlField' placeholder='Login URL'}}
-					<div style="margin-top:5px">User</div>
-					{{view ASTool.TextField value=loginUser width='286px' name='loginUserField' placeholder='Login user'}}
-					<div style="margin-top:5px">Password</div>
-					{{view ASTool.TextField value=loginPassword width='286px' name='loginPasswordField' placeholder='Login password'}}
-					<div style="margin-top:10px"></div>
-				</div>
-			{{/if}}
 		</div>
 		
-		<h3>Templates</h3>
+		<h3>Extraction</h3>
 		<div>
 			<div class="scrolling-container ui-corner-all" style="max-height:150px;">
 				{{#each templates}}
@@ -99,9 +114,9 @@
 			</div>
 		</div>
 	</div>
-	
 	<hr/>
-	{{view ASTool.ButtonView action="back" icon=" ui-icon-circle-triangle-w" label="Back to project"}}
-	{{view ASTool.ButtonView action="undoChanges" icon="ui-icon-arrowreturnthick-1-w" label="Undo changes"}}
-	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-disk" label="Apply changes"}}
+	<div style="margin-left: 10px; text-align: center">
+		{{view ASTool.ButtonView action="undoChanges" icon="ui-icon-arrowreturnthick-1-w" label="Undo changes" class="red-button big"}}
+		{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-disk" label="Apply changes" class="green-button big"}}
+	</div>
 </div>

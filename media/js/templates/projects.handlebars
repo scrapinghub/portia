@@ -2,25 +2,22 @@
 	<div class="accordion" style="margin-bottom: 10px">
 		<h3>Projects</h3>
 		<div>
-			<div style="margin-top:15px"></div>
-			<h5>Open an existing project</h5>
-			<div class="scrolling-container ui-corner-all">
-				{{#each}}
-					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='82%' icon="ui-icon-folder-open"}}
-						{{view ASTool.ButtonView action="deleteProject" argument=this icon="ui-icon-trash" class="textless-button"}}
-					</div>
-				{{else}}
-					<h5>No projects have been created yet.</h5>
-				{{/each}}
-			</div>
-			<div style="margin-top:20px"></div>
-			<h5>Start a new project</h5>
-			<div class="big ui-corner-all" id="create-project-box">
-				<h3>Enter the site you want to scrape:</h3>
-				{{view ASTool.TextField value=projectSite width='300px' name='projectSiteTextField' placeholder='Enter site url' action="createProject"}}
-				<div style="margin-top:10px">
-					{{view ASTool.ButtonView action="createProject" icon="ui-icon-circle-plus" label="New project"}}
+			<div style="margin:10px 0px 10px 10px;">
+				<div style="margin-top:20px"></div>
+				{{view ASTool.TextField value=projectSite width='230px' name='projectSiteTextField' placeholder='Enter site url' action="createProject"}}
+				{{view ASTool.ButtonView action="createProject" icon="ui-icon-circle-plus" label="New project" class="blue-button"}}
+				<div style="margin-top:35px"></div>
+				<h4>Open project</h4>
+				<div style="margin-top:10px"></div>
+				<div class="scrolling-container ui-corner-all">
+					{{#each}}
+						<div style="margin:4px 0px 4px 0px">
+							{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='82%' class="clear-button"}}
+							{{view ASTool.ButtonView action="deleteProject" argument=this icon="ui-icon-trash" class="textless-button light-button"}}
+						</div>
+					{{else}}
+						<h5>No projects have been created yet.</h5>
+					{{/each}}
 				</div>
 			</div>
 		</div>

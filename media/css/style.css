@@ -1,10 +1,10 @@
 html, body { height: 100% }
 
 body{
-	font: 62.5% "Verdana", sans-serif;
+	font: 71% "Verdana", sans-serif;
 	height: 100%;
 	overflow-x: hidden;
-	color: #eaebda;
+	color: #111;
 }
 
 #scraped-doc {
@@ -28,8 +28,9 @@ body{
 	width: 400px;
 	height: 100%;
 	min-height: 200px;
-	background-image: -webkit-linear-gradient(top, #333 0%, #555 100%);
-	background-image: -moz-linear-gradient(top, #333 0%, #555 100%);
+	/*background-image: -webkit-linear-gradient(top, #FFFCF4 0%, #FFF 100%);
+	background-image: -moz-linear-gradient(top, #FFFCF4 0%, #FFF 100%);*/
+	background-color: #FFFCF4;
 	z-index: 300;
 	box-shadow: 0px 0px 8px 1px rgba(0,0,0,0.5);
 }
@@ -58,33 +59,28 @@ body{
 	right: 400px;
 	top: 0px;
 	z-index: 1000;
-	box-shadow: -3px 4px 7px 0px rgba(0,0,0,0.45);
+	box-shadow: -3px 3px 3px 0px rgba(0,0,0,0.2);
 	padding: 5px 3px 3px 3px;
-	border: 1px solid #444;
-	border-bottom-left-radius: 3px;
-	border-top-left-radius: 3px;
-	background-image: -webkit-linear-gradient(left, #555 0%, #333 100%);
-	background-image: -moz-linear-gradient(left, #555 0%, #333 100%);
+	background-color: #EEE;
 }
 
 #page-browser .title {
 	float: left;
 	width: 72px;
 	height: 15px;
-	background-color: #222;
 	text-align: center;
 	margin: 28px 0px 0px -31px;
 	pointer-events: none;
 }
 
 #create-project-box {
-	background-color:#312A2A;
+	/*background-color:#312A2A;*/
 	padding:2px 10px 14px 10px;
 	margin:12px 6px 6px 6px;
-	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.3) inset;
-	border-style: solid;
+	/*box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.3) inset;*/
+	/*border-style: solid;
 	border-width: 1px;
-	border-color: #A88;
+	border-color: #999;*/
 }
 
 #hovered-element-info {
@@ -111,55 +107,49 @@ body{
 }
 
 .button-shadow {
-	box-shadow: 0px 0px 8px 1px rgba(0,0,0,0.3);
+	/*box-shadow: 0px 0px 4px 1px rgba(0,0,0,0.2);*/
 }
 
 .editable-name {
-	font: 1.2em Verdana,Helvetica,Arial,sans-serif;
+	font: 1.1em Verdana,Helvetica,Arial,sans-serif;
 }
 
 .editable-name h3 {
 	align: center;
-	border: 1px solid #535353;
-	background-color: #3A3A3A;
     text-decoration: none;
-    padding: 4px;
-    box-shadow: 0px 0px 12px 1px rgba(0,0,0,0.3) inset;
-    border-radius: 3px;
+    cursor: pointer;
 }
 
-.editable-name:hover {
+.editable-name h3:hover {
 	color: orange;
 }
 
 #toolbar .container {
-	text-align: center;
-	padding: 0px 0px 10px 0px;
-	margin: 0px 10px 10px 10px;
+	text-align: left;
+	padding: 0px 0px 0px 0px;
+	margin: 0px 0px 0px 0px;
 }
 
 .scrolling-container {
 	overflow: auto;
-	padding: 10px 0px 10px 0px;
 	max-height: 300px;
-	margin: 6px;
-	border-color: #242424;
+	/*border-color: #242424;
 	border-style: solid;
-	border-width: 1px;
-	background-color: #333;
-	box-shadow: 0px 0px 12px 1px rgba(0,0,0,0.3) inset;
+	border-width: 1px;*/
+	/*background-color: #333;*/
+	/*box-shadow: 0px 0px 12px 1px rgba(0,0,0,0.3) inset;*/
 }
 
 .textfield {
 	border-width: 1px;
 	margin-top: 0px;
 	border-style: solid;
-	border-color: #636363;
+	border-color: #AAA;
 	text-align: center;
-	color: #222;
-	background-color: #eaebda;
+	color: #111;
+	background-color: #FFF;
 	padding: 4px;
-	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.3) inset;
+	/*box-shadow: 0px 0px 5px 1px rgba(0,0,0,0.1) inset;*/
 }
 
 .big {
@@ -167,16 +157,13 @@ body{
 }
 
 .inline-textfield {
-	border-width: 1px;
-	margin-top: 11px;
+	border-style: none;
+	margin-top: 10px;
 	margin-bottom: 1px;
-	border-style: solid;
-	border-color: #5A5A5A;
 	text-align: center;
-	color:orange;
-	background-color: #252525;
-	padding: 4px;
-	width: 100%;
+	color:#222;
+	background-color: #DDD;
+	padding: 2px;
 }
 
 .doc-canvas {
@@ -265,32 +252,37 @@ body{
   transform-origin: 50% 50%;
 }
 
+.important-label {
+	color:#777;
+	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif;
+}
+
 hr {
-	background-color: #636363;
+	background-color: #BBB;
 	height: 1px;
-	margin: 10px 0px 10px 0px;
-	border: 0;
+	margin: 10px 0px 30px 0px;
+	
+	border-style: none;
+	
 	width:100%;
 }
 
 h3  {
-	color:#eaebda;
+	color:#111;
 	align: center;
-	font: 1.1em Verdana,Helvetica,Arial,sans-serif;
+	font: 1em Verdana,Helvetica,Arial,sans-serif;
 }
 
 h4 {
 	margin:0px;
-	color:#eaebda;
-	align: center;
-	font: 1.0em Verdana,Helvetica,Arial,sans-serif;
+	color:#777;
+	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif;
 }
 
 h5 {
 	margin:0px;
-	color:#dadbca;
-	align: center;
-	font: 0.9em Verdana,Helvetica,Arial,sans-serif;
+	color:#999;
+	font: 1em Verdana,Helvetica,Arial,sans-serif;
 }
 
 td {
@@ -316,10 +308,86 @@ div > * {
 	height: 1.8em;
 }
 
+.ui-button {
+	background: #999;
+	border-color: #FFF;
+}
+
+.ui-button:hover {
+	background: #AAA;
+}
+
+.ui-button.black-button {
+	background: #333;
+	border-color: blue !important;
+}
+
+.ui-button.orange-button {
+	background: #FF7700;
+	border-color: #FFFFFF;
+}
+
+.ui-button.red-button {
+	background: #9C5454;
+	border-color: #FFFFFF;
+}
+
+.ui-button.red-button:hover {
+	background: #C72E2E;
+}
+
+.ui-button.dark-button {
+	background: #555;
+	border-color: #FFF;
+}
+
+.ui-button.green-button {
+	background: #588559;
+	border-color: #FFF;
+}
+
+.ui-button.green-button:hover {
+	background: #4EAD51;
+}
+
+.ui-button.blue-button {
+	background: #6F92BF;
+	border-color: #FFF;
+}
+
+.ui-button.blue-button:hover {
+	background: #1BA8F3;
+}
+
+.ui-button.light-button {
+	background: #999;
+	border-color: #FFF;
+	color: #FFF;
+}
+
+.ui-button.light-button:hover {
+	background: #AAA;
+}
+
+.ui-button.clear-button {
+	background: rgba(0,0,0,0);
+	border-color: rgba(0,0,0,0.2);
+	border-style: dotted;
+	color: #333;
+}
+
+.ui-button.clear-button:hover {
+	color: orange;
+}
+
+.ui-button.big {
+	font-size:1.2em;
+}
+
 .custom-combobox-input {
 	margin: 0;
 	padding: 0.3em 1em 0.3em 1em;
-	font: 1.0emVerdana,Helvetica,Arial,sans-serif !important;
+	font: 1.0em Verdana,Helvetica,Arial,sans-serif !important;
 	width: 300px;
 }
 
@@ -340,12 +408,13 @@ div > * {
 .ui-accordion .ui-accordion-content {
 	padding: 0.5em 0.5em 1em 0.5em;
 	margin-bottom: 5px;
-	box-shadow:0px 0px 6px 1px rgba(0,0,0,0.3);
+	/*box-shadow:0px 0px 6px 0px rgba(0,0,0,0.2);*/
 }
 
 .ui-accordion .ui-accordion-header {
-	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.3);
-	margin-top: 5px;
+	/*box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.2);*/
+	text-align: left;
+	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif !important;
 }
 
 .ui-autocomplete .ui-menu-item {
@@ -359,3 +428,4 @@ div > * {
 
 .rightIcon .ui-button-icon-primary { left: auto; right: 0.5em; }
 .rightIcon .ui-button-text { padding-left: 1em; padding-right: 2.1em; }
+

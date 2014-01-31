@@ -37,6 +37,16 @@ ASTool.SpiderRoute = Ember.Route.extend({
 		return this.store.find('spider', params.spider_id);
 	},
 
+	afterModel: function(model) {
+		// The spider spec only supports 'patterns' or 'none' for the
+		// 'links_to_follow' attribute; 'all' is only used for UI purposes.
+		if (model.get('links_to_follow') == 'patterns' &&
+		    Em.isEmpty(model.get('follow_patterns')) &&
+			Em.isEmpty(model.get('exclude_patterns'))) {
+			model.set('links_to_follow', 'all');
+		}
+	},
+
 	renderTemplate: function() {
 		this.render('spider', {
       		outlet: 'main',
