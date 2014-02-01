@@ -451,6 +451,8 @@ type : string
   * ``module`` - value is a python module path. Link source is a ``scrapy.http.Response`` or subclass, depending on implementation requirements.
   * ``html`` - a shortcut for ``module`` type with value ``slybot.linkextractor.HtmlLinkExtractor``. The content of the value attribute is ignored. Source is a ``scrapely.htmlpage.HtmlPage`` object or a ``scrapy.http.HtmlResponse``.
   * ``rss`` - a shortcut for ``xpath`` type with value ``//item/link/text()``. The content of the value attribute is ignored.
+  * ``sitemap`` - shortcut for ``xpath`` type with value ``//urlset/url/loc/text()`` and removed namespaces. The content of the value attribute is ignored.
+  * ``atom`` - shortcut for ``xpath`` type with value ``//link/@href`` and removed namespaces. The content of the value attribute is ignored.
 
 value : any
   The content is specific to the defined type.
