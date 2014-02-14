@@ -74,6 +74,18 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		}
 	},
 
+	lastRoute: function() {
+
+	}.property('routeStack'),
+
+	currentRoute: function() {
+		return this.routeStack.get('lastObject');
+	}.property('routeStack'),
+
+	previousRoutes: function() {
+		return this.routeStack.slice(0, this.routeStack.length - 1);
+	}.property('routeStack'),
+
 	clearRoutes: function() {
 		this.routeStack.length = 0;
 	},
@@ -89,6 +101,7 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		},
 
 		gotoRoute: function(route, animation) {
+			ASTool.ToolboxViewMixin.expandToolbox = true;
 			this.popRoutes(route, animation);
 		},
 	},

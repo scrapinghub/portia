@@ -1,0 +1,50 @@
+<div id="topbar">
+	
+	<div style="float:left;text-align:left;width:400px">
+		{{view ASTool.NavigationView}}
+	</div>
+
+	<div style="float:left;margin-top:3px">
+		<span style="float:left">
+			{{view ASTool.ButtonView action="browseBack" class="textless-button" icon="ui-icon-arrowthick-1-w" disabled=browseBackDisabled}}
+		</span>
+		
+		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;">
+			{{controller.currentUrl}}
+		</span>
+
+		{{#unless addTemplateDisabled}}
+			<span style="float:left">
+				{{view ASTool.ButtonView action="addTemplate" label="Annotate this page" class="red-button"}}
+			</span>
+		{{/unless}}
+
+		{{#unless showItemsDisabled}}
+			<span style="float:left">
+				{{view ASTool.ButtonView action="toggleShowItems" icon="ui-icon-heart" label=view.itemsButtonLabel}}
+			</span>
+		{{/unless}}
+
+		{{#if showItems}}
+			{{#if this.extractedItems.length}}
+				<div style="pointer-events: none;background-color:rgba(0,0,0,0.8);padding:30px;width:400px;box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);position:fixed; left:400px; top:50px;">
+					<h3 style="color:#BBB;font-weight:bold;text-align:center">Displaying {{this.extractedItems.length}} extracted items</h3>
+					<div style="max-height:500px; padding:5px;" class="scrolling-container">
+						{{#each this.extractedItems}}
+							<div style="margin-bottom:20px">
+								{{#view ASTool.ExtractedItemView item=this}}
+									{{#each view.fields}}
+										<div style="margin-bottom:5px">
+											<span style="color:orange; font-weight:bold;">{{this.name}}:</span>
+											<span style="color:white;">{{this.value}}</span>
+										</div>
+									{{/each}}
+								{{/view}}
+							</div>
+						{{/each}}
+					</div>
+				</div>
+			{{/if}}
+		{{/if}}	
+	</div>
+</div>

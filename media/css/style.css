@@ -3,36 +3,42 @@ html, body { height: 100% }
 body{
 	font: 71% "Verdana", sans-serif;
 	height: 100%;
-	overflow-x: hidden;
+	overflow: hidden;
 	color: #111;
 }
 
 #scraped-doc {
-	margin-right: 412px;
-	position: relative;
+	top: 30px;
+	position:relative;
+	margin-right: 30px;
 }
 
 #scraped-doc-iframe {
 	background-color: clear;
-    frameborder: 0;
 	border-style: none;
-    padding: 0px;
 	width: 100%;
-	height: 100%;
-	scrolling: yes;
-	overflow-y: scroll;
+	height: 50%;
+	position:absolute;
 }
 
-#toolbar {
+#toolbox {
+	overflow: hidden;
+	margin-top:35px;
 	float: right;
 	width: 400px;
+	margin-right: -365px;
 	height: 100%;
 	min-height: 200px;
-	/*background-image: -webkit-linear-gradient(top, #FFFCF4 0%, #FFF 100%);
-	background-image: -moz-linear-gradient(top, #FFFCF4 0%, #FFF 100%);*/
-	background-color: #FFFCF4;
 	z-index: 300;
-	box-shadow: 0px 0px 8px 1px rgba(0,0,0,0.5);
+}
+
+#topbar {
+	width: 100%;
+	height: 30px;
+	z-index: 1000;
+	position: fixed;
+	box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);
+	background-color: white;
 }
 
 #title {
@@ -45,42 +51,14 @@ body{
 
 #loader-container {
 	position:absolute;
-	top:50%;
+	top:350px;
 	left:50%;
 	z-index: 30;
-	background-color: rgba(255,0,0,0.2);
-}
-
-#page-browser {
-	display:inline;
-	min-height: 78px;
-	width: 12px;
-	position: absolute;
-	right: 400px;
-	top: 0px;
-	z-index: 1000;
-	box-shadow: -3px 3px 3px 0px rgba(0,0,0,0.2);
-	padding: 5px 3px 3px 3px;
-	background-color: #EEE;
-}
-
-#page-browser .title {
-	float: left;
-	width: 72px;
-	height: 15px;
-	text-align: center;
-	margin: 28px 0px 0px -31px;
-	pointer-events: none;
 }
 
 #create-project-box {
-	/*background-color:#312A2A;*/
 	padding:2px 10px 14px 10px;
 	margin:12px 6px 6px 6px;
-	/*box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.3) inset;*/
-	/*border-style: solid;
-	border-width: 1px;
-	border-color: #999;*/
 }
 
 #hovered-element-info {
@@ -111,28 +89,30 @@ body{
 }
 
 .editable-name {
-	font: 1.1em Verdana,Helvetica,Arial,sans-serif;
-}
-
-.editable-name h3 {
-	align: center;
-    text-decoration: none;
+	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif;
+    text-align: center;
     cursor: pointer;
+    color: #6F92BF;
 }
 
-.editable-name h3:hover {
+.editable-name:hover {
 	color: orange;
 }
 
-#toolbar .container {
+#toolbox .container {
 	text-align: left;
 	padding: 0px 0px 0px 0px;
 	margin: 0px 0px 0px 0px;
 }
 
+#toolbox .section {
+	margin:10px 0px 10px 5px;
+}
+
 .scrolling-container {
 	overflow: auto;
 	max-height: 300px;
+	margin-top: 5px;
 	/*border-color: #242424;
 	border-style: solid;
 	border-width: 1px;*/
@@ -169,7 +149,6 @@ body{
 .doc-canvas {
 	width: 100%;
 	height: 100%;
-	background-color: clear;
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -293,6 +272,19 @@ div > * {
    vertical-align: middle;
 }
 
+a {
+	color: #0062B9;
+	text-decoration: none;
+	font-size: inherit;
+	font-weight: inherit;
+}
+
+a:hover {
+	color: orange;
+	text-decoration: underline;
+}
+
+
 .custom-combobox {
 	position: relative;
 	display: inline-block;
@@ -318,8 +310,8 @@ div > * {
 }
 
 .ui-button.black-button {
-	background: #333;
-	border-color: blue !important;
+	background: #222;
+	border-color: #FFF;
 }
 
 .ui-button.orange-button {
@@ -328,12 +320,12 @@ div > * {
 }
 
 .ui-button.red-button {
-	background: #9C5454;
-	border-color: #FFFFFF;
+	background-image: -webkit-linear-gradient(top, #9C5454 0%, #FF0000 100%);
+	border-color: #9C5454;
 }
 
 .ui-button.red-button:hover {
-	background: #C72E2E;
+	background: #FF0000;
 }
 
 .ui-button.dark-button {
@@ -351,12 +343,12 @@ div > * {
 }
 
 .ui-button.blue-button {
-	background: #6F92BF;
-	border-color: #FFF;
+	background-image: -webkit-linear-gradient(top, #0D5B9C 0%, #2295CE 100%);
+	border-color: #0D5B9C;
 }
 
 .ui-button.blue-button:hover {
-	background: #1BA8F3;
+	background: #2295CE;
 }
 
 .ui-button.light-button {
@@ -408,11 +400,9 @@ div > * {
 .ui-accordion .ui-accordion-content {
 	padding: 0.5em 0.5em 1em 0.5em;
 	margin-bottom: 5px;
-	/*box-shadow:0px 0px 6px 0px rgba(0,0,0,0.2);*/
 }
 
 .ui-accordion .ui-accordion-header {
-	/*box-shadow: 0px 0px 6px 0px rgba(0,0,0,0.2);*/
 	text-align: left;
 	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif !important;
 }

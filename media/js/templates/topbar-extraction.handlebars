@@ -1,0 +1,15 @@
+<div id="topbar">
+	<div style="width:100%; height: 30px;">
+		<div style="float:left;text-align:left;width:400px">
+			{{view ASTool.NavigationView}}
+		</div>
+		<div style="float:left;margin-top:3px">
+			<span style="color:#666;float:left;padding:4px;margin:1px 10px 0px 10px;">
+				{{controller.url}}
+			</span>
+			<span style="float:left;">
+				{{view ASTool.ButtonView action="back" label="Continue browsing" disabled=addTemplateDisabled class="blue-button"}}
+			</span>
+		</div>
+	</div>
+</div>

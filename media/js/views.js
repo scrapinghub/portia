@@ -24,21 +24,9 @@ DragNDrop.Droppable = Ember.Mixin.create({
 
 /*************************** Base views *****************************/
 
-ASTool.Select = Ember.Select.extend(JQ.Widget, {
-	uiType: 'combobox',
-	uiOptions: ['label', 'disabled'],
-	uiEvents: ['select'],
+ASTool.Select = Ember.Select.extend({
 	optionValuePath: 'content.option',
 	optionLabelPath: 'content.label',
-
-	/* Required to update the combobox selection when the model changes, for example
-	because of an undo. */
-	updateUi: function() {
-		if (this.get('ui')) {
-			var label = this.content.filterBy('option', this.get('value'))[0].label;
-			this.get('ui').input.val(label);	
-		}
-	}.property('value'),
 });
 
 
@@ -433,7 +421,7 @@ ASTool.RequiredFieldCheckbox = ASTool.CheckBox.extend({
 
 ASTool.PageBrowserView = Ember.View.extend({
 	tagName: 'div',
-	expanded: false,
+	expanded: true,
 
 	iconName: function() {
 		return this.get('expanded') ? 'ui-icon-triangle-1-e' : 'ui-icon-triangle-1-w';
@@ -442,28 +430,6 @@ ASTool.PageBrowserView = Ember.View.extend({
 	itemsButtonLabel: function() {
 		return this.get('controller.showItems') ? "Hide Items " : "Show Items";
 	}.property('controller.showItems'),
-
-	click: function(event) {
-		if (event.target.id == 'page-browser') {
-			if (this.get('expanded')) {
-				this.set('expanded', false);
-				this.$(event.target).animate({ width: 12 }, 200);	
-			} else {
-				this.$(event.target).animate(
-					{ width: 400 },
-	      	 		{ complete: function() {
-	      	 				Em.run(this, function() {
-	      	 					if (!this.isDestroyed) {
-	      	 						// The animation may end after the
-	      	 						// object was destroyed.
-	      	 						this.set('expanded', true);	
-	      	 					}
-	      	 				});
-	        			}.bind(this),
-	        	}, 200);
-			}	
-		}
-	},
 });
 
 
@@ -472,15 +438,25 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 	
 	didInsertElement: function() {
 		this._super();
-		this.get('controller').pushRoute('projects', 'Project list');
+		//this.get('controller').pushRoute('projects', 'Home');
 		this.get('controller.documentView').initCanvas();
-		$('#scraped-doc-iframe').height(window.innerHeight);
-		$('#toolbar').height(window.innerHeight);
 	},
 });
 
 
-ASTool.ToolbarViewMixin = Ember.Mixin.create({
+ASTool.NavigationView = Ember.View.extend({
+	templateName: 'navigation',
+
+	didInsertElement: function() {
+		$("#breadcrumb").jBreadCrumb();
+	},
+});
+
+
+ASTool.ToolboxViewMixin = Ember.Mixin.create({
+	layoutName: 'toolbox',
+	expandToolbox: false,
+
 	willInsertElement: function() {
 		if (this.get('controller.willEnter')) {
 			this.controller.willEnter();	
@@ -493,19 +469,50 @@ ASTool.ToolbarViewMixin = Ember.Mixin.create({
 		};
 	},
 
+	mouseEnter: function() {
+		if (this.get('timeoutHandle')) {
+			clearTimeout(this.get('timeoutHandle'));
+			this.set('timeoutHandle', null);
+		}
+		var timeoutHandle = setTimeout(function() {
+			$('#toolbox').animate({ 'margin-right': 0 }, 300);	
+			$('#scraped-doc').animate({ 'margin-right': 400 }, 300);		
+		}, 300);
+		this.set('timeoutHandle', timeoutHandle);
+	},
+
+	mouseLeave: function() {
+		if (this.get('timeoutHandle')) {
+			clearTimeout(this.get('timeoutHandle'));
+			this.set('timeoutHandle', null);
+		}
+		var timeoutHandle = setTimeout(function() {
+			$('#toolbox').animate({ 'margin-right': -365 }, 300);	
+			$('#scraped-doc').animate({ 'margin-right': 35 }, 300);		
+		}, 800);
+		this.set('timeoutHandle', timeoutHandle);
+	},
+
 	didInsertElement: function() {
+		if (ASTool.ToolboxViewMixin.expandToolbox) {
+			this.mouseEnter();
+			ASTool.ToolboxViewMixin.expandToolbox = false;
+		}
 		$('.accordion').accordion({ heightStyle: "content" });
 		this._super();
 	},
 });
 
 
-ASTool.AnnotationsView = Ember.View.extend(ASTool.ToolbarViewMixin);
-ASTool.AnnotationView = Ember.View.extend(ASTool.ToolbarViewMixin);
-ASTool.ItemsView = Ember.View.extend(ASTool.ToolbarViewMixin);
-ASTool.SpiderView = Ember.View.extend(ASTool.ToolbarViewMixin);
-ASTool.ProjectView = Ember.View.extend(ASTool.ToolbarViewMixin);
-ASTool.ProjectsView = Ember.View.extend(ASTool.ToolbarViewMixin);
+var ToolboxViewMixin = ASTool.ToolboxViewMixin;
+
+
+ASTool.AnnotationsView = Ember.View.extend(ToolboxViewMixin);
+ASTool.AnnotationView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ItemsView = Ember.View.extend(ToolboxViewMixin);
+ASTool.SpiderView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ProjectView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ProjectsView = Ember.View.extend(ToolboxViewMixin);
 
 
 /*************************** Helpers ******************************/

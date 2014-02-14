@@ -1,8 +1,5 @@
-<div id="toolbar">
-	
-	<div style="position:relative;">
-		{{animated-outlet name="main"}}
-	</div>
-</div>
-{{view ASTool.AnnotatedDocumentView}}
 {{outlet pageBrowser}}
+{{view ASTool.AnnotatedDocumentView}}
+<div id="toolbox">
+	{{animated-outlet name="main"}}
+</div>

@@ -17,9 +17,29 @@ ASTool.Router.map(function() {
 });
 
 
+ASTool.ApplicationRoute = Ember.Route.extend({
+	activate: function() {
+		var controller = this.controllerFor('application');
+		controller.pushRoute('projects', 'Home');
+	},
+}),
+
+
 ASTool.ProjectsRoute = Ember.Route.extend({
 	model: function() {
 		return this.get('slyd').getProjectNames();
+	},
+
+	renderTemplate: function() {
+		this.render('projects', {
+      		outlet: 'main',
+      		controller: 'projects',
+    	});
+
+    	this.render('topbar-projects', {
+      		outlet: 'pageBrowser',
+      		controller: 'projects',
+    	});
 	},
 });
 
@@ -29,6 +49,18 @@ ASTool.ProjectRoute = Ember.Route.extend({
 		this.set('slyd.project', params.project_id);
 		return this.get('slyd').getSpiderNames();
 	},
+
+	renderTemplate: function() {
+		this.render('project', {
+      		outlet: 'main',
+      		controller: 'project',
+    	});
+
+    	this.render('topbar-project', {
+      		outlet: 'pageBrowser',
+      		controller: 'project',
+    	});
+	},
 });
 
 
@@ -37,23 +69,13 @@ ASTool.SpiderRoute = Ember.Route.extend({
 		return this.store.find('spider', params.spider_id);
 	},
 
-	afterModel: function(model) {
-		// The spider spec only supports 'patterns' or 'none' for the
-		// 'links_to_follow' attribute; 'all' is only used for UI purposes.
-		if (model.get('links_to_follow') == 'patterns' &&
-		    Em.isEmpty(model.get('follow_patterns')) &&
-			Em.isEmpty(model.get('exclude_patterns'))) {
-			model.set('links_to_follow', 'all');
-		}
-	},
-
 	renderTemplate: function() {
 		this.render('spider', {
       		outlet: 'main',
       		controller: 'spider',
     	});
 
-    	this.render('page-browser', {
+    	this.render('topbar-browse', {
       		outlet: 'pageBrowser',
       		controller: 'spider',
     	});
@@ -91,6 +113,18 @@ ASTool.AnnotationsRoute = Ember.Route.extend({
 			var controller = this.controllerFor('annotations');
 			controller.set('extractors', extractors);
 		}.bind(this));
+	},
+
+	renderTemplate: function() {
+		this.render('annotations', {
+      		outlet: 'main',
+      		controller: 'annotations',
+    	});
+
+    	this.render('topbar-extraction', {
+      		outlet: 'pageBrowser',
+      		controller: 'annotations',
+    	});
 	},
 });
 

@@ -1,0 +1,9 @@
+<div id="topbar">
+	<div style="float:left;text-align:left;width:400px">
+		{{view ASTool.NavigationView}}
+	</div>
+	<div style="float:left;margin-top:3px">
+		{{view ASTool.TextField value=spiderPage width='320px' name='spiderPageTextField' placeholder='Enter page url' action="addSpider"}}
+		{{view ASTool.ButtonView action="addSpider" icon="ui-icon-circle-plus" label="New spider" class="blue-button"}}
+	</div>
+</div>

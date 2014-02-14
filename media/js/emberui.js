@@ -30,8 +30,13 @@ $.widget( "custom.combobox", {
  
         this._on( this.input, {
             autocompleteselect: function( event, ui ) {
+                console.log('here here here');
                 ui.item.option.selected = true;
                 this._trigger( "select", event, { item: ui.item.option });
+            },
+
+            autocompletefocus: function () {
+                console.log('CCCCCCC');
             },
  
             autocompletechange: "_removeIfInvalid" }

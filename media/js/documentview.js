@@ -388,8 +388,15 @@ ASTool.DocumentView = Em.Object.extend({
 		}
 	},
 
+	adjustSizes: function() {
+		$('#' + this.get('iframeId')).height(window.innerHeight - 30);
+		$('#toolbox').height(window.innerHeight - 30);
+		$('#infocanvas').height(window.innerHeight - 30);
+	},
+
 	initCanvas: function() {
 		this.set('canvas', ASTool.Canvas.create({ canvasId: 'infocanvas' }));
+		this.adjustSizes();
 		if (!Ember.testing){
 			// Disable automatic redrawing during tests.
 			var self = this;
@@ -399,8 +406,7 @@ ASTool.DocumentView = Em.Object.extend({
 				});
 			}, 1000));
 			window.onresize = function() {
-				$('#' + this.get('iframeId')).height(window.innerHeight);
-				$('#toolbar').height(window.innerHeight);
+				this.adjustSizes();
 				this.redrawNow();
 				if (ASTool.graph) {
 					// FIXME: move this to a good place.

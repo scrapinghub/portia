@@ -22,6 +22,14 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 
 	_newTypeExtractor: 'null',
 
+	url: function() {
+		var url = this.get('template.url');
+		if (url.length > 80) {
+			url = url.substring(0, 80) + '...';
+		}
+		return url;
+	}.property('template.url'),
+
 	newTypeExtractor: function(key, type) {
 		if (arguments.length > 1) {
 			this.set('_newTypeExtractor', type);

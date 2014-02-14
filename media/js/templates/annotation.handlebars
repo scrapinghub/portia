@@ -1,108 +1,106 @@
-<div class="container ui-corner-all">
-	<div style="margin-top:10px"/>
-	<div class="accordion" style="margin-bottom:10px">
-		<h3>Selected region</h3>
-		<div class='rightIcon'>
-			<h5>CSS Path</h5>
+<div style="margin-top:10px"/>
+<div class="accordion" style="margin-bottom:10px">
+	<h3>Selected region</h3>
+	<div class='rightIcon'>
+		<h5>CSS Path</h5>
 
-			<div class="ui-corner-all scrolling-container" style="word-wrap:break-word; padding:10px;">
-				{{path}}
-			</div>
-
-			{{#if path}}
-				<h5>Ancestors</h5>
-				<div class="scrolling-container ui-corner-all" style="max-height:180px;">
-					<ul style="list-style-type:none; padding:0px; margin:0px 12px 0px 12px;">
-						{{#each ancestorPaths}}
-							<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
-								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="73px"}}
-							</li>
-						{{/each}}
-					</ul>
-				</div>
-				<h5>Children</h5>
-				<div class="scrolling-container ui-corner-all" style="max-height:180px;">
-					<ul style="list-style-type:none; padding:0px; margin:0px 12px 0px 12px;">
-						{{#each childPaths}}
-							<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
-								{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="73px"}}
-							</li>
-						{{/each}}
-					</ul>
-				</div>
-			{{else}}
-				<h5>Please select an element or region from the document.</h5>
-			{{/if}}	
+		<div class="ui-corner-all scrolling-container" style="word-wrap:break-word; padding:10px;">
+			{{path}}
 		</div>
 
-		<h3>Attributes</h3>
-		<div>
-			<h5>Not mapped</h5>
-			<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
-				{{#each unmappedAttributes}}
-					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='80%'
-					      maxWidth='80%' action="mapAttribute" argument=this}}
-					     {{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="textless-button"}}
-					</div>
-				{{/each}}
-			</div>
-
-			<h5>Mapped</h5>
+		{{#if path}}
+			<h5>Ancestors</h5>
 			<div class="scrolling-container ui-corner-all" style="max-height:180px;">
-				{{#each mappedAttributes}}
-					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this item=controller.template.scrapes minWidth='90%' maxWidth='90%' action="unmapAttribute" argument=this}}
-					</div>
-				{{/each}}
-			</div>
-
-			<h5>Sticky</h5>
-			<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
-				{{#each stickyAttributes}}
-					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ElemAttributeView icon="ui-icon-circle-close" attribute=this minWidth='90%'
-					      maxWidth='90%' action="unmapAttribute" argument=this}}
-					</div>
-				{{/each}}
-			</div>
-		</div>
-		
-		<h3>Ignored subregions</h3>
-		<div>
-			{{#if path}}
-				<div class="scrolling-container ui-corner-all">
-					{{#each model.ignores}}
-						<div style="margin:4px 0px 4px 0px">
-							<label style="margin:0px -1px 0px 5px">Ignore beneath</label>
-							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
-							{{view ASTool.IgnoreWidget ignore=this width='180px'}}
-							{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
-						</div>
-					{{else}}
-						<h5>No ignored subregions defined.</h5>
+				<ul style="list-style-type:none; padding:0px; margin:0px 12px 0px 12px;">
+					{{#each ancestorPaths}}
+						<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
+							{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="73px"}}
+						</li>
 					{{/each}}
+				</ul>
+			</div>
+			<h5>Children</h5>
+			<div class="scrolling-container ui-corner-all" style="max-height:180px;">
+				<ul style="list-style-type:none; padding:0px; margin:0px 12px 0px 12px;">
+					{{#each childPaths}}
+						<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
+							{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="73px"}}
+						</li>
+					{{/each}}
+				</ul>
+			</div>
+		{{else}}
+			<h5>Please select an element or region from the document.</h5>
+		{{/if}}	
+	</div>
+
+	<h3>Attributes</h3>
+	<div>
+		<h5>Not mapped</h5>
+		<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
+			{{#each unmappedAttributes}}
+				<div style="margin:4px 0px 4px 0px">
+					{{view ASTool.ElemAttributeView icon="ui-icon-transferthick-e-w" attribute=this minWidth='80%'
+				      maxWidth='80%' action="mapAttribute" argument=this}}
+				     {{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="textless-button"}}
 				</div>
-				<div style="margin-top:10px">
-					{{view ASTool.ToggleButton checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
-					<label for="addIgnore">Ignore region</label>
-				</div>
-			{{else}}
-				<h5>Please select an element or region from the document.</h5>
-			{{/if}}
+			{{/each}}
 		</div>
 
-		<h3>Variant</h3>
-		<div>
-			<div class="variantBox" style="margin-right:20px">
-				<label>Choose a variant:</label>
-				{{view ASTool.VariantSelect value=variant}}
-			</div>
+		<h5>Mapped</h5>
+		<div class="scrolling-container ui-corner-all" style="max-height:180px;">
+			{{#each mappedAttributes}}
+				<div style="margin:4px 0px 4px 0px">
+					{{view ASTool.ElemAttributeView mapped=true icon="ui-icon-circle-close" attribute=this item=controller.template.scrapes minWidth='90%' maxWidth='90%' action="unmapAttribute" argument=this}}
+				</div>
+			{{/each}}
+		</div>
+
+		<h5>Sticky</h5>
+		<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
+			{{#each stickyAttributes}}
+				<div style="margin:4px 0px 4px 0px">
+					{{view ASTool.ElemAttributeView icon="ui-icon-circle-close" attribute=this minWidth='90%'
+				      maxWidth='90%' action="unmapAttribute" argument=this}}
+				</div>
+			{{/each}}
 		</div>
 	</div>
-	<hr/>
-	{{#if element}}
-		{{view ASTool.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
-	{{/if}}
-	{{view ASTool.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Cancel"}}
+	
+	<h3>Ignored subregions</h3>
+	<div>
+		{{#if path}}
+			<div class="scrolling-container ui-corner-all">
+				{{#each model.ignores}}
+					<div style="margin:4px 0px 4px 0px">
+						<label style="margin:0px -1px 0px 5px">Ignore beneath</label>
+						{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
+						{{view ASTool.IgnoreWidget ignore=this width='180px'}}
+						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
+					</div>
+				{{else}}
+					<h5>No ignored subregions defined.</h5>
+				{{/each}}
+			</div>
+			<div style="margin-top:10px">
+				{{view ASTool.ToggleButton checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
+				<label for="addIgnore">Ignore region</label>
+			</div>
+		{{else}}
+			<h5>Please select an element or region from the document.</h5>
+		{{/if}}
+	</div>
+
+	<h3>Variant</h3>
+	<div>
+		<div class="variantBox" style="margin-right:20px">
+			<label>Choose a variant:</label>
+			{{view ASTool.VariantSelect value=variant}}
+		</div>
+	</div>
 </div>
+<hr/>
+{{#if element}}
+	{{view ASTool.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
+{{/if}}
+{{view ASTool.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Cancel"}}

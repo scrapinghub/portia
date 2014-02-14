@@ -4,6 +4,8 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	documentView: null,
 
+	spiderPage: null,
+
 	nameBinding: 'slyd.project',
 
 	addSpider: function() {
@@ -11,6 +13,10 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		var newSpiderName = ASTool.guid().substring(0, 5);
 		while(this.content.any(function(spiderName){ return spiderName == newSpiderName })) {
 			newSpiderName += '0';
+		}
+		
+		if (this.get('spiderPage')) {
+			this.set('controllers.application.newSpiderSite', this.get('spiderPage'));
 		}
 		var spider = this.store.createRecord('spider', 
 			{ 'id': newSpiderName,
@@ -25,7 +31,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	},
 
 	editSpider: function(spiderName) {
-		this.pushRoute('spider', 'Spider: ' + spiderName, 'fade', spiderName);
+		this.pushRoute('spider', spiderName, 'fade', spiderName);
 	},
 
 	actions: {
@@ -53,7 +59,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			if (confirm('Are you sure you want to rename this project? This operation cannot be undone.')) {
 				this.get('slyd').renameProject(oldName, newName).then(
 					function() {
-						this.updateTop('Project: ' + newName, newName);
+						this.updateTop(newName, newName);
 					}.bind(this),
 					function(reason) {
 						this.set('name', oldName);
@@ -68,7 +74,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	willEnter: function() {
 		this.get('documentView').showSpider();
-		if (this.get('controllers.application.newProjectSite')) {
+		if (this.get('controllers.application.newSpiderSite')) {
 			Em.run.next(this, this.addSpider);
 		}
 	},

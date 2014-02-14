@@ -1,13 +1,20 @@
-<div style="text-align:center;">
-	<div id="title">
-		<label style="color:#DDD; font:bold 1.2em Verdana,Helvetica,Arial,sans-serif;">Scraping Hub Autoscraping v0.3</label>
-		<img style="margin-left:5px;" src="minispider.png"/>
-	</div>
-	<div class="scrolling-container ui-corner-all" style="margin:5px 10px 5px 10px;">
-		{{#each routeStack}}
-			<div style="margin:4px 0px 4px 0px;">
-				{{view ASTool.ButtonView action="gotoRoute" selected='true' argument=this.route label=this.label minWidth='90%' icon="ui-icon-circle-arrow-s"}}
-			</div>
-		{{/each}}
-	</div>
+<div id="breadcrumb" class="breadCrumb">
+	<ul>
+		{{#if previousRoutes}}		
+			{{#each previousRoutes}}
+				<li>
+					<a href="#"{{action "gotoRoute" this.route}}>{{this.label}}</a>
+				</li>
+			{{/each}}
+			<li>
+				{{currentRoute.label}}
+			</li>
+		{{else}}
+			<li>
+				<a href="#"{{action "gotoRoute" this.route}}>{{currentRoute.label}}</a>
+			</li>
+		{{/if}}
+	</ul>
 </div>
+	
+
