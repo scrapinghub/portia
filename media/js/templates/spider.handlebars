@@ -1,6 +1,7 @@
-<div style="margin-top:10px">
+
+<div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
 	{{#view ASTool.RenameTextField value=id}}
-  		<div class="editable-name">Spider {{id}}</div>
+  		<span class="editable-name">Spider {{id}}</span>
 	{{/view}}
 </div>
 
@@ -12,7 +13,7 @@
 			{{#each start_urls}}
 				<div style="margin:4px 0px 4px 0px">
 					{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='86%' title=this class="clear-button"}}
-					{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button light-button"}}
+					{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 				</div>
 			{{else}}
 				<h5>No start pages for this spider.</h5>
@@ -32,12 +33,12 @@
 		
 		{{#if performLogin}}
 			<div class="scrolling-container">
-				<div style="margin-top:15px"></div>
-				{{view ASTool.TextField value=loginUrl width='86%' name='loginUrlField' placeholder='Login URL'}}
+				<div style="margin-top:10px"></div>
+				{{view ASTool.TextField value=loginUrl width='94%' name='loginUrlField' placeholder='Login URL'}}
 				<div style="margin-top:5px"></div>
-				{{view ASTool.TextField value=loginUser width='86%' name='loginUserField' placeholder='Login user'}}
+				{{view ASTool.TextField value=loginUser width='94%' name='loginUserField' placeholder='Login user'}}
 				<div style="margin-top:5px"></div>
-				{{view ASTool.TextField value=loginPassword width='86%' name='loginPasswordField' placeholder='Login password'}}
+				{{view ASTool.TextField value=loginPassword width='94%' name='loginPasswordField' placeholder='Login password'}}
 			</div>
 		{{/if}}
 	</div>
@@ -59,8 +60,8 @@
 			<div class="scrolling-container" style="max-height:150px">
 				{{#each follow_patterns}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView label=this minWidth='86%' title=this class="green-button"}}
-						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button light-button"}}
+						{{view ASTool.ButtonView label=this minWidth='86%' title=this class="clear-button"}}
+						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 					</div>
 				{{else}}
 					<h5>No follow patterns defined yet.</h5>
@@ -77,8 +78,8 @@
 			<div class="scrolling-container" style="max-height:150px">
 				{{#each exclude_patterns}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='86%' title=this class="red-button"}}
-						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button light-button"}}
+						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='86%' title=this class="clear-button"}}
+						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 					</div>
 				{{else}}
 					<h5>No exclude patterns defined yet.</h5>
@@ -100,12 +101,11 @@
 	
 	<div class="section">
 		<h4>Templates</h4>
-		<div class="scrolling-container" style="max-height:150px;">
+		<div class="scrolling-container" style="max-height:350px;">
 			{{#each templates}}
 				<div style="margin:4px 0px 4px 0px">
-					{{view ASTool.ButtonView action="editTemplate" argument=this label=templateName minWidth='75%' title=url class="clear-button"}}
-					{{view ASTool.ButtonView action="loadTemplate" argument=this icon="ui-icon-folder-open" class="textless-button"}}
-					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="textless-button"}}
+					{{view ASTool.ButtonView action="editTemplate" argument=this label=templateName minWidth='86%' title=url class="clear-button"}}
+					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
 				</div>
 			{{else}}
 				<h5>No templates exist for this spider yet.</h5>

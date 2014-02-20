@@ -11,6 +11,16 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	needs: ['application', 'annotation'],
 
 	template: null,
+
+	items: null,
+
+	scrapedItem: function() {
+		if (!Em.isEmpty(this.get('items'))) {
+			return this.get('items').findBy('name', this.get('template.scrapes'));	
+		} else {
+			return null;
+		}
+	}.property('template.scrapes', 'items.@each'),
 	
 	documentView: null,
 
@@ -53,12 +63,42 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			}
 		}).filter(function(sprite) { return !!sprite; });
 	}.property('content.@each.element', 'content.@each.highlighted'),
+
+	guessInitialMapping: function(annotation) {
+		// Very simple implementation. Only works if we are scraping the 
+		// default item.
+		if (this.get('template.scrapes') != 'default') {
+			annotation.addMapping('content', this.get('scrapedItem.fields').get('firstObject.name'));
+		} else {
+			var element = annotation.get('element');
+			var attributes = annotation.get('attributes');
+			if (attributes.findBy('name', 'src')) {
+				annotation.addMapping('src', 'image');
+			} else if (attributes.findBy('name', 'href')) {
+				annotation.addMapping('href', 'link');
+			} else {
+				annotation.addMapping('content', 'text');
+			}
+		}
+	},
 		
-	addAnnotation: function() {
+	addAnnotation: function(element, isPartial) {
 		var annotation = this.store.createRecord('annotation');
+		annotation.set('selectedElement', element);
+		annotation.set('annotations', {});
+		annotation.set('required', []);
+		annotation.set('isPartial', !!isPartial);
+		this.guessInitialMapping(annotation);
 		annotation.save().then(function() {
-			this.editAnnotation(annotation);
+			annotation.set('selectedElement', null);
+			this.saveAnnotations();
 		}.bind(this));
+	},
+
+	mapAttribute: function(annotation, attribute, field) {
+		annotation.removeMappings();
+		annotation.addMapping(attribute, field);
+		annotation.save().then(this.saveAnnotations.bind(this));
 	},
 	
 	editAnnotation: function(annotation) {
@@ -80,6 +120,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	},
 
 	saveAnnotations: function() {
+		console.log('saving annotations...');
 		if (this.get('template')) {
 			this.set('template.annotated_body', this.get('documentView').getAnnotatedDocument());
 		}
@@ -184,8 +225,8 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			this.editAnnotation(annotation);
 		},
 
-		addAnnotation: function() {
-			this.addAnnotation();
+		mapAttribute: function(annotation, attribute, field) {
+			this.mapAttribute(annotation, attribute, field);
 		},
 		
 		deleteAnnotation: function(annotation) {
@@ -248,13 +289,32 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 				}
 			});
 			this.get('content').invoke('save');
-			Ember.run.next(this, this.saveAnnotations)
+			Ember.run.next(this, this.saveAnnotations);
+		},
+
+		editItems: function() {
+			this.pushRoute('items', 'Items');
+		},
+	},
+
+	documentActions: {
+		
+		elementSelected: function(element, partialSelection) {
+			this.addAnnotation(element);
+		},
+		
+		partialSelection: function(selection) {
+			var element = $('<ins/>').get(0);
+			selection.getRangeAt(0).surroundContents(element);
+			this.addAnnotation(element, true);
+			selection.collapse();
 		},
 	},
 
 	willEnter: function() {
-		this.get('documentView').config({ mode: 'browse',
-										  listener: this,
-										  dataSource: this, });
+		this.get('documentView').config({ mode: 'select',
+								  listener: this,
+								  dataSource: this,
+								  partialSelects: true });
 	},
 });

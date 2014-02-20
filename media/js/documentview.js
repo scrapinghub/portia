@@ -229,8 +229,10 @@ ASTool.DocumentView = Em.Object.extend({
 	*/
 	scrollToElement: function(element) {
 		var rect = $(element).boundingBox();
-		this.getIframe().scrollTop(rect.top - 100);
-		this.getIframe().scrollLeft(rect.left - 100);
+		this.getIframe().children().animate({ 'scrollTop': (rect.top - 100),
+								   			  'scrollLeft': (rect.left - 100) },
+								 150);
+		this.updateHoveredInfo(element);
 	},
 
 	_elementSelectionEnabled: null,
@@ -292,10 +294,11 @@ ASTool.DocumentView = Em.Object.extend({
 	updateHoveredInfo: function(element) {
 		var path = $(element).getPath();
 		var attributes = $(element).getAttributeList();
-		var contents = '<div class="path">' + path + '</div> <hr style="background-color:#eaebda;"/>';
+		var contents = '<div class="path">' + path + '</div><br/>';
 		$(attributes).each(function(i, attribute) {
 			var value = trim(attribute.get('value'), 60);
-			contents += '<div class="attribute">' + attribute.get('name') + ": " + value + '</div>';
+			contents += '<div><span>' + attribute.get('name') + ": </span>";
+			contents += '<span style="color:#AAA">' + value + '</span></div>';
 		});
 		$("#hovered-element-info").html(contents);
 	},
@@ -337,6 +340,12 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	mouseDownHandler: function(event) {
+		if (event.target.draggable) {
+			// Disable dragging of images, links, etc...
+			// This interferes with partial selection of links,
+			// but it's a lesser evil than dragging.
+			event.preventDefault();
+		}
 		this.set('hoveredSprite', null);
 		++this.mouseDown;
 		this.redrawNow();

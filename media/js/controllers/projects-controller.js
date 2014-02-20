@@ -6,6 +6,7 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	actions: {
 		
 		openProject: function(projectName) {
+			this.set('slyd.project', projectName);
 			this.pushRoute('project', projectName, 'fade', projectName);
 		},
 
@@ -27,7 +28,9 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 				this.set('slyd.project', newProjectName);
 				this.get('slyd').saveItems([
 					ASTool.Item.create({ name: 'default', fields: [
-						{ name: 'f1', required: false, type: "text", vary: false } ]
+						{ name: 'image', required: false, type: "image", vary: false },
+						{ name: 'text', required: false, type: "text", vary: false },
+						{ name: 'link', required: false, type: "url", vary: false } ]
 					})
 				]);
 				// Initialize extractors spec.

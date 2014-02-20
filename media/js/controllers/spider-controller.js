@@ -17,6 +17,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 
 	loading: false,
 
+	autoloadTemplate: null,
+
 	hasStartUrl: function() {
 		return !this.get('newStartUrl');
 	}.property('newStartUrl'),
@@ -82,12 +84,20 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		return true;
 	}.property('loadedPageFp'),
 
+	itemsButtonLabel: function() {
+		return this.get('showItems') ? "Hide Items " : "Show Items";
+	}.property('showItems'),
+
 	links_to_follow: function(key, follow) {
 		// The spider spec only supports 'patterns' or 'none' for the
 		// 'links_to_follow' attribute; 'all' is only used for UI purposes.
 		var model = this.get('model');
 		var retVal = follow;
 		if (arguments.length > 1) {
+			if (follow != 'patterns') {
+				model.get('exclude_patterns').setObjects([]);
+				model.get('follow_patterns').setObjects([]);
+			}
             model.set('links_to_follow', follow == 'none' ? 'none' : 'patterns');
         } else {
         	retVal = model.get('links_to_follow');
@@ -106,9 +116,12 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		var items = [];
 		var loadedPageFp = this.get('loadedPageFp');
 		if (this.pageMap[loadedPageFp]) {
-			items = this.pageMap[loadedPageFp].items;	
+			items = this.pageMap[loadedPageFp].items;
+			if (items) {
+				items = items.toArray();
+			}
 		}
-		return items.toArray();
+		return items;
 	}.property('loadedPageFp'),
 
 	spiderDomains: function() {
@@ -156,6 +169,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
 		this.pushRoute('annotations', template.get('templateName'));
+		this.set('autoloadTemplate', template);
 	},
 
 	loadTemplate: function(template) {
@@ -169,6 +183,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	},
 
 	fetchPage: function(url, parentFp) {
+		console.log('FETCH PAGE!');
 		this.set('loadedPageFp', null);
 		this.set('loading', true);
 		var documentView = this.get('documentView');
@@ -249,6 +264,17 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		this.content.get('follow_patterns').pushObject(pattern);
 	},
 
+	autoFetch: function() 
+	{
+		if (this.get('loadedPageFp') && this.get('showLinks')) {
+			this.saveSpider().then(function() {
+				this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url);	
+			}.bind(this));
+		}
+	}.observes('follow_patterns.@each',
+			   'exclude_patterns.@each',
+			   'links_to_follow'),
+
 	saveSpider: function() {
 		return this.content.save();
 	},
@@ -281,9 +307,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		},
 
 		fetchPage: function(url) {
-
-			// TODO: remove save on fetch.
-			this.get('documentView').showLoading();
 			this.saveSpider().then(function() {
 				this.fetchPage(url);	
 			}.bind(this));
@@ -308,10 +331,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		addExcludePattern: function() {
 			this.addExcludePattern(this.get('newExcludePattern'));
 			this.set('newExcludePattern', '');
-		},
-
-		editExcludePattern: function() {
-			//TODO: implement this.
 		},
 
 		deleteExcludePattern: function(pattern) {
@@ -378,8 +397,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	},
 
 	willEnter: function() {
-		this.get('browseHistory').setObjects([]);
-		this.set('pageMap', {});
+		//this.get('browseHistory').setObjects([]);
+		//this.set('pageMap', {});
 		this.set('loadedPageFp', null);
 		this.get('documentView').config({ mode: 'browse',
 										  listener: this,
@@ -397,9 +416,14 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 				this.saveSpider();
 			});
 		}
-		Ember.run.next(this, function() {
-			$('#page-browser').trigger('click');	
-		});
+		if (this.get('autoloadTemplate')) {
+			Ember.run.next(this, function() {
+				this.saveSpider().then(function() {
+					this.fetchPage(this.get('autoloadTemplate.url'));	
+					this.set('autoloadTemplate', null);
+				}.bind(this));
+			});	
+		}
 	},
 
 	willLeave: function() {

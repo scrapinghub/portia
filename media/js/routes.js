@@ -86,17 +86,20 @@ ASTool.SpiderRoute = Ember.Route.extend({
 ASTool.AnnotationsRoute = Ember.Route.extend({
 	beforeModel: function() {
 		var controller = this.controllerFor('annotations');
-		var promise = new Ember.RSVP.Promise(function(resolve) {
-			controller.deleteAllAnnotations();
-			controller.get('documentView').displayDocument(
-				controller.get('template.annotated_body'),
-				function(docIframe){
-					ASTool.set('iframe', docIframe);
-					resolve();
-				}
-			);
-		});
-		return promise;
+		return this.get('slyd').loadItems().then(function(items) {
+			controller.set('items', items);
+			var promise = new Ember.RSVP.Promise(function(resolve) {
+				controller.deleteAllAnnotations();
+				controller.get('documentView').displayDocument(
+					controller.get('template.annotated_body'),
+					function(docIframe){
+						ASTool.set('iframe', docIframe);
+						resolve();
+					}
+				);
+			});
+			return promise;
+		}.bind(this));
 	},
 
 	model: function() {
@@ -133,11 +136,35 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 	model: function(params) {
 		return this.store.find(params.annotation_id);
 	},
+
+	renderTemplate: function() {
+		this.render('annotation', {
+      		outlet: 'main',
+      		controller: 'annotation',
+    	});
+
+    	this.render('topbar-extraction', {
+      		outlet: 'pageBrowser',
+      		controller: 'annotation',
+    	});
+	},
 });
 
 
 ASTool.ItemsRoute = Ember.Route.extend({
 	model: function() {
 		return this.get('slyd').loadItems();
-	}
+	},
+
+	renderTemplate: function() {
+		this.render('items', {
+      		outlet: 'main',
+      		controller: 'items',
+    	});
+
+    	this.render('topbar-extraction', {
+      		outlet: 'pageBrowser',
+      		controller: 'items',
+    	});
+	},
 });

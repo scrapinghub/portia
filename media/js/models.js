@@ -228,14 +228,14 @@ ASTool.Annotation = DS.Model.extend({
 		if (annotations && Object.keys(annotations).length) {
 			var name = '';
 			Object.keys(annotations).forEach(function(key) {
-				name += name.length ? ', ' : '' + key + ' -> ';
-				name += this.get('template.scrapes') + '.' + annotations[key];
-			}.bind(this));
+				name += (name.length ? ', ' : '') + key + '  >  ';
+				name += annotations[key];
+			});
 			return name;
 		} else {
 			return 'Empty (' + this.get('id').substring(0, 5) + ')';
 		}
-	}.property('annotations', 'template'),
+	}.property('annotations'),
 
 	variant: DS.attr('number', { defaultValue: 0 }),
 	
@@ -244,8 +244,6 @@ ASTool.Annotation = DS.Model.extend({
 	required: DS.attr(),
 
 	iframeBinding: 'ASTool.iframe',
-
-	template: null,
 	
 	addMapping: function(attribute, itemField) {
 		this.get('annotations')[attribute] = itemField;
@@ -292,7 +290,7 @@ ASTool.Annotation = DS.Model.extend({
 	}.property('_ignores'),
 
 	addIgnore: function(element) {
-		var ignore = ASTool.Ignore.create({element: element, name: 'unnamed ignored region'});
+		var ignore = ASTool.Ignore.create({element: element});
 		this.get('ignores').pushObject(ignore);
 	},
 

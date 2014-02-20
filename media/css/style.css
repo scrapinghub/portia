@@ -62,21 +62,18 @@ body{
 }
 
 #hovered-element-info {
-	font: 1.1em Verdana,Helvetica,Arial,sans-serif;
+	font: 1.0em Verdana,Helvetica,Arial,sans-serif;
+	color:white;
 	min-width: 100px;
 	padding: 8px;
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	background-color: rgba(30,30,30,0.6);
+	background-color: rgba(0,0,0,0.7);
 	z-index: 100;
 	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.6);
 	pointer-events: none;
 	display: none;
-}
-
-#hovered-element-info .attribute {
-	margin-bottom:4px;
 }
 
 #hovered-element-info .path {
@@ -89,8 +86,7 @@ body{
 }
 
 .editable-name {
-	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif;
-    text-align: center;
+	font: bold 1.0em Verdana,Helvetica,Arial,sans-serif;
     cursor: pointer;
     color: #6F92BF;
 }
@@ -112,7 +108,7 @@ body{
 .scrolling-container {
 	overflow: auto;
 	max-height: 300px;
-	margin-top: 5px;
+	margin-top: 10px;
 	/*border-color: #242424;
 	border-style: solid;
 	border-width: 1px;*/
@@ -138,11 +134,7 @@ body{
 
 .inline-textfield {
 	border-style: none;
-	margin-top: 10px;
-	margin-bottom: 1px;
 	text-align: center;
-	color:#222;
-	background-color: #DDD;
 	padding: 2px;
 }
 
@@ -181,30 +173,24 @@ body{
 }
 
 .drop-target {
-	padding: 4px;
-	margin: 10px;
 }
 
-.drop-target span {
-	padding: 5px;
-	border-style: dotted;
-	border-width: 1px;
-	border-color: #666;
+.drop-target .target {
+	padding: 4px;
 	color: #666;
 }
 
-.drop-target-dragging span {
+.drop-target-dragging .target {
 	color: orange;
-	border-color: orange;
 }
 
 .extractor-view {
 	width: 75%;
-	background-color: #383838;
+	background-color: #FFF;
 	padding: 5px 10px 5px 10px;
-	border-style: solid;
+	border-style: dotted;
 	border-width: 1px;
-	border-color: #666;
+	border-color: #AAA;
 }
 
 .regular_expression {
@@ -218,6 +204,43 @@ body{
 .small-label {
 	font-size: 0.9em;
 	color: #888;
+}
+
+.very-small-label {
+	font-size: 0.7em;
+	color: #AAA;
+}
+
+.attribute-select {
+	width: 115px;
+	margin: 2px 5px 0px 5px;
+}
+
+.field-select {
+	width: 115px;
+	margin: 2px 0px 0px 0px;
+}
+
+.annotation-widget {
+	margin:4px 0px 4px 0px;
+	padding: 4px 0px 4px 4px;
+	border: dotted 1px #CCC;
+	min-height: 24px;
+}
+
+.annotation-widget:hover {
+	border-color: orange;
+}
+
+.annotation-widget:hover div {
+    display: block;
+}
+
+.attribute-value {
+	margin:4px;
+	padding:4px;
+	color:#555;
+	display: none;
 }
 
 .rotate {
@@ -234,6 +257,11 @@ body{
 .important-label {
 	color:#777;
 	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif;
+}
+
+.small-label {
+	color:#777;
+	font: bold 1.0em Verdana,Helvetica,Arial,sans-serif;
 }
 
 hr {
@@ -265,7 +293,7 @@ h5 {
 }
 
 td {
-	padding:2px 0px 2px 0px;
+	padding:2px 4px 2px 4px;
 }
 
 div > * {
@@ -284,22 +312,6 @@ a:hover {
 	text-decoration: underline;
 }
 
-
-.custom-combobox {
-	position: relative;
-	display: inline-block;
-	align: center;
-}
-
-.custom-combobox-toggle {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	margin-left: -1px;
-	padding: 0.1;
-	height: 1.8em;
-}
-
 .ui-button {
 	background: #999;
 	border-color: #FFF;
@@ -311,7 +323,12 @@ a:hover {
 
 .ui-button.black-button {
 	background: #222;
-	border-color: #FFF;
+	border-color: #000;
+}
+
+.ui-button.black-button:hover {
+	background: #333;
+	border-color: #111;
 }
 
 .ui-button.orange-button {
@@ -320,7 +337,7 @@ a:hover {
 }
 
 .ui-button.red-button {
-	background-image: -webkit-linear-gradient(top, #9C5454 0%, #FF0000 100%);
+	background: #9C5454;
 	border-color: #9C5454;
 }
 
@@ -343,7 +360,7 @@ a:hover {
 }
 
 .ui-button.blue-button {
-	background-image: -webkit-linear-gradient(top, #0D5B9C 0%, #2295CE 100%);
+	background: #0D5B9C;
 	border-color: #0D5B9C;
 }
 
@@ -365,7 +382,7 @@ a:hover {
 	background: rgba(0,0,0,0);
 	border-color: rgba(0,0,0,0.2);
 	border-style: dotted;
-	color: #333;
+	color: #6F92BF;
 }
 
 .ui-button.clear-button:hover {
@@ -387,14 +404,6 @@ a:hover {
 	width: 140px;
 }
 
-.typeBox .custom-combobox {
-	margin: -1px 20px 0px 6px;
-}
-
-.typeBox .custom-combobox-input {
-	width: 56px;
-}
-
 .ui-state-focus { outline: none; }
 
 .ui-accordion .ui-accordion-content {
@@ -413,7 +422,7 @@ a:hover {
 }
 
 .textless-button .ui-button-text {
-	padding: 16px 20px 6px 6px !important;
+	padding: 14px 24px 8px 4px !important;
 }
 
 .rightIcon .ui-button-icon-primary { left: auto; right: 0.5em; }

@@ -74,10 +74,6 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		}
 	},
 
-	lastRoute: function() {
-
-	}.property('routeStack'),
-
 	currentRoute: function() {
 		return this.routeStack.get('lastObject');
 	}.property('routeStack'),
@@ -94,10 +90,14 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 		$( ".accordion" ).accordion("option", "active", accordionNumber);
 	},
 
+	back: function(animation) {
+		this.popRoute(animation);
+	},
+
 	actions: {
 
 		back: function(animation) {
-			this.popRoute(animation);	
+			this.back(animation);	
 		},
 
 		gotoRoute: function(route, animation) {

@@ -1,7 +1,9 @@
 <div style="margin:10px 0px 0px 10px">
+	<div style="text-align:center;font-size:1.1em;margin-bottom:5px">
 	{{#view ASTool.RenameTextField value=name}}
-		<div class="editable-name">Project {{name}}</div>
+		<span class="editable-name">Project {{name}}</span>
 	{{/view}}
+	</div>
 
 	<h4>Spiders</h4>
 	<div>
@@ -9,7 +11,7 @@
 			{{#each}}
 				<div style="margin:4px 0px 4px 0px">
 					{{view ASTool.ButtonView action="editSpider" argument=this label=this minWidth="82%" icon="ui-icon-wrench" class="clear-button"}}
-					{{view ASTool.ButtonView action="deleteSpider" argument=this icon="ui-icon-trash" class="textless-button dark-button"}}
+					{{view ASTool.ButtonView action="deleteSpider" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 				</div>
 			{{else}}
 				<h3>No spiders for this project.</h3>

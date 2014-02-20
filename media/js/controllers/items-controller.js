@@ -41,14 +41,17 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			this.popRoute();
 		},
 
-		back: function() {
-			this.set('mappingAttribute', null);
-			this._super();
+		saveChanges: function() {
+			this.get('slyd').saveItems(this.content.toArray()).then(function() {
+				this.set('mappingAttribute', null);
+				this.back();
+			}.bind(this));
 		},
 
 		undoChanges: function() {
 			this.get('slyd').loadItems().then(function(items) {
 				this.set('content', items);
+				this.back();
 			}.bind(this));
 		},
 	},
@@ -59,6 +62,5 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	willLeave: function() {
 		this.set('documentView.canvas.interactionsBlocked', false);
-		this.get('slyd').saveItems(this.content.toArray());
 	},
 });

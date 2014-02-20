@@ -256,10 +256,12 @@ ASTool.SlydApi = Em.Object.extend({
   	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	saveItems: function(items) {
-		items.forEach(function(item) {
+		items = items.map(function(item) {
+			item = Em.copy(item);
 			if (item.get('fields')) {
 				item.set('fields', this.listToDict(item.get('fields')));	
 			}
+			return item;
 		}.bind(this));
 		items = this.listToDict(items);
 		var hash = {};

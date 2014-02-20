@@ -154,6 +154,9 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 
 		highlightElement: function(element) {
 			this.set('highlightedElement', element);
+			if (element) {
+				this.documentView.scrollToElement(element);	
+			}
 		},
 
 		selectElement: function(element) {

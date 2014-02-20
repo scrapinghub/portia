@@ -1,37 +1,31 @@
-<div style="margin-top:10px"/>
-<div class="accordion" style="margin-bottom:10px">
+
+<div style="text-align:center;margin:10px 0px 10px 0px">
+	<h4>Anotation options</h4>
+</div>
+<div class="accordion">
 	<h3>Selected region</h3>
-	<div class='rightIcon'>
-		<h5>CSS Path</h5>
-
-		<div class="ui-corner-all scrolling-container" style="word-wrap:break-word; padding:10px;">
-			{{path}}
+	<div>
+		<h4>Ancestors</h4>
+		<div class="scrolling-container" style="max-height:180px;">
+			<ul style="list-style-type:none;padding:0px;margin:0px">
+				{{#each ancestorPaths}}
+					<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
+						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label minWidth="73px" class="clear-button"}}
+					</li>
+				{{/each}}
+			</ul>
 		</div>
-
-		{{#if path}}
-			<h5>Ancestors</h5>
-			<div class="scrolling-container ui-corner-all" style="max-height:180px;">
-				<ul style="list-style-type:none; padding:0px; margin:0px 12px 0px 12px;">
-					{{#each ancestorPaths}}
-						<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
-							{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-e" minWidth="73px"}}
-						</li>
-					{{/each}}
-				</ul>
-			</div>
-			<h5>Children</h5>
-			<div class="scrolling-container ui-corner-all" style="max-height:180px;">
-				<ul style="list-style-type:none; padding:0px; margin:0px 12px 0px 12px;">
-					{{#each childPaths}}
-						<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
-							{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label icon="ui-icon-carat-1-s" minWidth="73px"}}
-						</li>
-					{{/each}}
-				</ul>
-			</div>
-		{{else}}
-			<h5>Please select an element or region from the document.</h5>
-		{{/if}}	
+		<br/>
+		<h4>Children</h4>
+		<div class="scrolling-container" style="max-height:180px;">
+			<ul style="list-style-type:none;padding:0px;margin:0px">
+				{{#each childPaths}}
+					<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
+						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label  minWidth="73px" class="clear-button"}}
+					</li>
+				{{/each}}
+			</ul>
+		</div>
 	</div>
 
 	<h3>Attributes</h3>
@@ -68,39 +62,39 @@
 	</div>
 	
 	<h3>Ignored subregions</h3>
-	<div>
-		{{#if path}}
-			<div class="scrolling-container ui-corner-all">
-				{{#each model.ignores}}
-					<div style="margin:4px 0px 4px 0px">
-						<label style="margin:0px -1px 0px 5px">Ignore beneath</label>
-						{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
-						{{view ASTool.IgnoreWidget ignore=this width='180px'}}
-						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button"}}
-					</div>
+	<div style="text-align:center">
+		<div class="scrolling-container">
+			{{#each model.ignores}}
+				<div>
+					{{#view ASTool.IgnoreWidget ignore=this}}
+						<div style="margin:4px 0px 4px 0px;border:dotted 1px #CCC;width:250px;padding:3px;text-align:center;display:inline-block">
+							<label class="small-label">Ignore elements beneath</label>
+							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
+						</div>
+						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+					{{/view}}
+					
+				</div>
 				{{else}}
 					<h5>No ignored subregions defined.</h5>
-				{{/each}}
-			</div>
-			<div style="margin-top:10px">
-				{{view ASTool.ToggleButton checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
-				<label for="addIgnore">Ignore region</label>
-			</div>
-		{{else}}
-			<h5>Please select an element or region from the document.</h5>
-		{{/if}}
+			{{/each}}
+		</div>
+		<div style="margin-top:10px;">
+			{{view ASTool.ToggleButton checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
+			<label for="addIgnore">Ignore region</label>
+		</div>
 	</div>
 
 	<h3>Variant</h3>
 	<div>
 		<div class="variantBox" style="margin-right:20px">
-			<label>Choose a variant:</label>
+			<label class="important-label">Choose a variant:</label>
 			{{view ASTool.VariantSelect value=variant}}
 		</div>
 	</div>
 </div>
-<hr/>
-{{#if element}}
-	{{view ASTool.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Ok"}}
-{{/if}}
-{{view ASTool.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Cancel"}}
+<br/>
+<div style="text-align:center">
+{{view ASTool.ButtonView action="doneEditing" argument=model icon="ui-icon-circle-check" label="Save changes" class="blue-button"}}
+{{view ASTool.ButtonView action="cancelEdit" argument=model icon="ui-icon-circle-close" label="Discard changes" class="red-button"}}
+</div>
