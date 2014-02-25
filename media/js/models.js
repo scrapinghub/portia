@@ -168,8 +168,8 @@ ASTool.Template = DS.Model.extend({
 		if (arguments.length > 1) {
 			this.set('name', templateName); 
 		}
-		return this.get('name') || this.get('url');
-	}.property('url'),
+		return this.get('name') || this.get('id').substring(0, 5);
+	}.property('id'),
 }),
 
 ASTool.Spider = DS.Model.extend({

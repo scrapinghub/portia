@@ -222,7 +222,7 @@ body{
 }
 
 .annotation-widget {
-	margin:4px 0px 4px 0px;
+	margin:7px 0px 7px 0px;
 	padding: 4px 0px 4px 4px;
 	border: dotted 1px #CCC;
 	min-height: 24px;
@@ -387,6 +387,11 @@ a:hover {
 
 .ui-button.clear-button:hover {
 	color: orange;
+}
+
+.ui-button.pin-button {
+	background: #888;
+	border-color: #888;
 }
 
 .ui-button.big {

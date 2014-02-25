@@ -1,13 +1,13 @@
 <div style="margin:10px 0px 0px 10px">
 	<div style="text-align:center;font-size:1.1em;margin-bottom:5px">
-	{{#view ASTool.RenameTextField value=name}}
-		<span class="editable-name">Project {{name}}</span>
-	{{/view}}
+		{{#view ASTool.RenameTextField value=name}}
+			<span class="editable-name">Project {{name}}</span>
+		{{/view}}
 	</div>
 
 	<h4>Spiders</h4>
 	<div>
-		<div class="scrolling-container ui-corner-all">
+		<div class="scrolling-container" style="max-height:600px">
 			{{#each}}
 				<div style="margin:4px 0px 4px 0px">
 					{{view ASTool.ButtonView action="editSpider" argument=this label=this minWidth="82%" icon="ui-icon-wrench" class="clear-button"}}

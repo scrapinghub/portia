@@ -3,7 +3,7 @@
 	<div>
 		<div class="scrolling-container" style="max-height:500px">
 			{{#each model}}
-				{{view ASTool.ItemView item=this mappingAttribute=controller.mappingAttribute}}
+				{{view ASTool.EditItemView item=this}}
 		 	{{else}}
 		 		<h4>No items have been defined yet.</h4>
 		 	{{/each}}

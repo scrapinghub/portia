@@ -3,18 +3,25 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 	needs: ['application', 'annotation'],
 
 	documentView: null,
-	
-	mappingAttributeBinding: 'controllers.annotation.mappingAttribute',
 
 	addItem: function() {
 		var newItem = ASTool.Item.create({ name: 'new item ' + ASTool.guid().substring(0, 5) });
 		this.pushObject(newItem);
 	},
 	
-	addField: function(owner) {
-		var newField = ASTool.ItemField.create({ name: 'new field' });
+	addField: function(owner, name, type) {
+		var newField = ASTool.ItemField.create({ name: name || 'new field',
+										         type: type || 'text',
+										         required: false,
+										         vary: false });
 		owner.set('fields', owner.fields || []);
 		owner.fields.pushObject(newField);
+	},
+
+	saveChanges: function() {
+		this.get('slyd').saveItems(this.content.toArray()).then(function() {
+				this.back();
+			}.bind(this));
 	},
 
 	actions: {
@@ -34,18 +41,9 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		deleteField: function(item, field) {
 			item.get('fields').removeObject(field);
 		},
-	   
-		chooseField: function(item, field) {
-			this.get('controllers.annotation').attributeMapped(this.get('mappingAttribute'), item, field)
-			this.set('mappingAttribute', null); 
-			this.popRoute();
-		},
 
 		saveChanges: function() {
-			this.get('slyd').saveItems(this.content.toArray()).then(function() {
-				this.set('mappingAttribute', null);
-				this.back();
-			}.bind(this));
+			this.saveChanges();
 		},
 
 		undoChanges: function() {

@@ -47,7 +47,7 @@ ASTool.DocumentView = Em.Object.extend({
 
 	ignoredElementTags: ['html', 'body'],
 
-	mouseDown: 0,
+	mouseDown: false,
 
 	loader: null,
 
@@ -202,6 +202,7 @@ ASTool.DocumentView = Em.Object.extend({
 		if (this.get('loader')) { 
 			this.get('loader').hide();
 		}
+		this.set('canvas.interactionsBlocked', false);
 	},
 
 	/**
@@ -229,8 +230,10 @@ ASTool.DocumentView = Em.Object.extend({
 	*/
 	scrollToElement: function(element) {
 		var rect = $(element).boundingBox();
-		this.getIframe().children().animate({ 'scrollTop': (rect.top - 100),
-								   			  'scrollLeft': (rect.left - 100) },
+		// This looks much better animated, but it does not work with linux.
+		
+		this.getIframe().contents().children().animate({ 'scrollTop': (rect.top - 100) + 'px',
+								   			  'scrollLeft': (rect.left - 100) + 'px'},
 								 150);
 		this.updateHoveredInfo(element);
 	},
@@ -308,7 +311,7 @@ ASTool.DocumentView = Em.Object.extend({
 		var target = event.target;
 		var tagName = $(target).prop("tagName").toLowerCase();
 		if ($.inArray(tagName, this.get('ignoredElementTags')) == -1 &&
-			this.mouseDown == 0) {
+			!this.mouseDown) {
 			if (!this.get('restrictToDescendants') ||
 				$(target).isDescendant(this.get('restrictToDescendants'))) {
 				if (!this.get('hoveredSprite')) {
@@ -347,12 +350,12 @@ ASTool.DocumentView = Em.Object.extend({
 			event.preventDefault();
 		}
 		this.set('hoveredSprite', null);
-		++this.mouseDown;
+		this.set('mouseDown', true);
 		this.redrawNow();
 	},
 
 	mouseUpHandler: function(event) {
-		--this.mouseDown;
+		this.set('mouseDown', false);
 		var selectedText = this.getIframeSelectedText();
 		if (selectedText) {
 			if (this.get('partialSelectionEnabled')) {

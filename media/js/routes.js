@@ -37,7 +37,7 @@ ASTool.ProjectsRoute = Ember.Route.extend({
     	});
 
     	this.render('topbar-projects', {
-      		outlet: 'pageBrowser',
+      		outlet: 'topbar',
       		controller: 'projects',
     	});
 	},
@@ -57,7 +57,7 @@ ASTool.ProjectRoute = Ember.Route.extend({
     	});
 
     	this.render('topbar-project', {
-      		outlet: 'pageBrowser',
+      		outlet: 'topbar',
       		controller: 'project',
     	});
 	},
@@ -76,7 +76,7 @@ ASTool.SpiderRoute = Ember.Route.extend({
     	});
 
     	this.render('topbar-browse', {
-      		outlet: 'pageBrowser',
+      		outlet: 'topbar',
       		controller: 'spider',
     	});
 	},
@@ -125,7 +125,7 @@ ASTool.AnnotationsRoute = Ember.Route.extend({
     	});
 
     	this.render('topbar-extraction', {
-      		outlet: 'pageBrowser',
+      		outlet: 'topbar',
       		controller: 'annotations',
     	});
 	},
@@ -144,7 +144,7 @@ ASTool.AnnotationRoute = Ember.Route.extend({
     	});
 
     	this.render('topbar-extraction', {
-      		outlet: 'pageBrowser',
+      		outlet: 'topbar',
       		controller: 'annotation',
     	});
 	},
@@ -163,7 +163,7 @@ ASTool.ItemsRoute = Ember.Route.extend({
     	});
 
     	this.render('topbar-extraction', {
-      		outlet: 'pageBrowser',
+      		outlet: 'topbar',
       		controller: 'items',
     	});
 	},

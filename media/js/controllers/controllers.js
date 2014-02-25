@@ -8,6 +8,7 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 	documentView: null,
 
 	pushRoute: function(route, label, animation, model) {
+	
 		if (this.routeStack.filterBy('route', route).length) {
 			// Don't go if the route is already in the stack.
 			return;
@@ -76,11 +77,11 @@ ASTool.RouteBrowseMixin = Ember.Mixin.create({
 
 	currentRoute: function() {
 		return this.routeStack.get('lastObject');
-	}.property('routeStack'),
+	}.property('routeStack.@each'),
 
 	previousRoutes: function() {
 		return this.routeStack.slice(0, this.routeStack.length - 1);
-	}.property('routeStack'),
+	}.property('routeStack.@each'),
 
 	clearRoutes: function() {
 		this.routeStack.length = 0;

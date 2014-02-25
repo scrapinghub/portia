@@ -8,7 +8,7 @@ ASTool.MappedFieldData = Em.Object.extend({
 ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
-	needs: ['application', 'annotation'],
+	needs: ['application', 'annotation', 'items'],
 
 	template: null,
 
@@ -72,12 +72,14 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		} else {
 			var element = annotation.get('element');
 			var attributes = annotation.get('attributes');
-			if (attributes.findBy('name', 'src')) {
+			if (attributes.findBy('name', 'src') && this.get('scrapedItem.fields').anyBy('name', 'image')) {
 				annotation.addMapping('src', 'image');
-			} else if (attributes.findBy('name', 'href')) {
+			} else if (attributes.findBy('name', 'href') && this.get('scrapedItem.fields').anyBy('name', 'link')) {
 				annotation.addMapping('href', 'link');
-			} else {
+			} else if (this.get('scrapedItem.fields').anyBy('name', 'text')){
 				annotation.addMapping('content', 'text');
+			} else {
+				annotation.addMapping('content', null);
 			}
 		}
 	},
@@ -120,7 +122,6 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	},
 
 	saveAnnotations: function() {
-		console.log('saving annotations...');
 		if (this.get('template')) {
 			this.set('template.annotated_body', this.get('documentView').getAnnotatedDocument());
 		}
@@ -234,6 +235,12 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			annotation.save().then(this.saveAnnotations.bind(this));
 		},
 
+		createField: function(fieldName, fieldType) {
+			console.log(this.get('items'));
+			this.get('controllers.items').addField(this.get('scrapedItem'), fieldName, fieldType);
+			this.get('slyd').saveItems(this.get('items').toArray());
+		},
+
 		annotationHighlighted: function(annotation) {
 			if (annotation.get('element')) {
 				this.get('documentView').scrollToElement(annotation.get('element'));	
@@ -241,7 +248,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		},
 
 		rename: function(oldName, newName) {
-			this.updateTop('Template: ' + newName);
+			this.updateTop('Template ' + newName);
 		},
 
 		createExtractor: function() {

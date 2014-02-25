@@ -1,7 +1,7 @@
 <div style="margin:10px 0px 0px 10px">
 	<div style="margin-top:10px"></div>
 	<h4>Open project</h4>
-	<div class="scrolling-container ui-corner-all">
+	<div class="scrolling-container" style="max-height:600px">
 		{{#each}}
 			<div style="margin:4px 0px 4px 0px">
 				{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='85%' class="clear-button"}}

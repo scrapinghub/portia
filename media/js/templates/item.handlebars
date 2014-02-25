@@ -1,41 +1,22 @@
-
-<div style="border:dotted 1px #CCC;margin:10px 10px 1px 0px;padding:5px">
-	<div>
-		<span style="margin: 2px 0px 0px 10px">
-			{{#view ASTool.InlineTextField value=name}}
-				<span class="editable-name">Item {{name}}</span>
-			{{/view}}
-		</span>
-		<span style="float: right">
-			{{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
-		</span>
-	</div>
+<div>
+	<h5>Choose an item field</h5>
 	<div style="text-align:center; margin-top:20px">
-		{{#if view.item.fields}}
+		<h4>Item {{name}}</h4>
+		{{#if fields}}
 			<table style="margin:0 auto;">
 				<tr style="font-size:0.9em;font-weight:bold;color:#999"> <td>Field</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
-				{{#each view.item.fields}}
+				{{#each fields}}
 					<tr>
-						<td>
-							{{#view ASTool.InlineTextField value=name}}
-								<span class="editable-name">{{name}}</span>
-							{{/view}}
-						</td>
-						<td>{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
-						<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
-						<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
-						<td>{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button red-button" action="deleteField" argument=view.item argument2=this}}</td>
-						{{#if view.mappingAttribute}}
-							<td style="padding-bottom:4px;">{{view ASTool.ButtonView icon="ui-icon-circle-triangle-e" label="Map" action="chooseField" argument=view.item argument2=this}}</td>
-						{{/if}}
+						<td><h4 style="color:#333">{{name}}</h4></td>
+						<td><h4>type</h4></td>
+						<td><h4>{{#if required}}yes{{else}}no{{/if}}</h4></td>
+						<td><h4>{{#if vary}}yes{{else}}no{{/if}}</h4></td>
+						<td style="padding-bottom:4px;">{{view ASTool.ButtonView icon="ui-icon-circle-triangle-e"  action="fieldSelected" argument=name class="textless-button blue-button"}}</td>
 					</tr>
 				{{/each}}
 			</table>
 		{{else}}
-			<h5>No fields defined yet.</h5>
+			<h5>The item has no fields.</h5>
 		{{/if}}
-		<div style="text-align:center; margin-top:10px">
-			{{view ASTool.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="Field" class="blue-button"}}
-		</div>
 	</div>
 </div>

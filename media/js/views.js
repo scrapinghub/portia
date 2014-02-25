@@ -187,11 +187,6 @@ ASTool.TypeSelect = ASTool.Select.extend({
 			  { option: 'safe html', label: 'safe html' },
 			  { option: 'text', label: 'text'},
 			  { option: 'url', label: 'url' }],
-
-	select: function(event, data) {
-		console.log('lalalalal');
-		this.get('itemField').set('type', data.item.value);
-	},
 });
 
 
@@ -242,6 +237,11 @@ ASTool.AnnotationWidget = Em.View.extend({
 	annotation: null,
 	attributeName: null,
 	fieldName: null,
+	fieldType: null,
+	creatingField: false,
+	createFieldDisabled: function() {
+		return Em.isEmpty(this.get('fieldName'));
+	}.property('fieldName'),
 
 	attributeValue: function() {
 		if (this.get('attributeName') && !Em.isEmpty(this.get('annotation.attributes'))) {
@@ -252,14 +252,28 @@ ASTool.AnnotationWidget = Em.View.extend({
 	}.property('attributeName', 'fieldName'),
 
 	change: function() {
-		this.newMapping();
-	},
-
-	newMapping: function() {
-		this.get('controller').send('mapAttribute',
+		if (this.get('fieldName') == 'create_field') {
+			this.set('creatingField', true);
+			this.set('fieldName', '');
+		} else {
+			this.get('controller').send('mapAttribute',
 							   		this.get('annotation'),
 							   		this.get('attributeName'),
-							   		this.get('fieldName'));
+							   		this.get('fieldName'));	
+		}
+	},
+
+	actions: {
+		createField: function() {
+			this.set('creatingField', false);
+			this.get('controller').send('createField',
+								   		this.get('fieldName'),
+								   		this.get('fieldType'));
+			this.get('controller').send('mapAttribute',
+								   		this.get('annotation'),
+								   		this.get('attributeName'),
+								   		this.get('fieldName'));	
+		},
 	},
 
 	attributeSelect: ASTool.Select.extend({
@@ -285,8 +299,18 @@ ASTool.AnnotationWidget = Em.View.extend({
 				var name = field.get('name');
 				return { option: name, label: name };
 			});
+			options.pushObject({ option: 'create_field', label: '-create new-' });
 			return options;
-		}.property('controller.scrapedItem.fields'),
+		}.property('controller.scrapedItem.fields.@each'),
+	}),
+
+	typeSelect: ASTool.TypeSelect.extend({
+		valueBinding: 'parentView.fieldType',
+	}),
+
+	fieldTextField: ASTool.TextField.extend({
+		valueBinding: 'parentView.fieldName',
+		placeholder: 'enter name',
 	}),
 
 	mappings: function() {
@@ -294,7 +318,6 @@ ASTool.AnnotationWidget = Em.View.extend({
 	}.property('annotation.mappedAttributes'),
 
 	hasMultipleMappings: function() {
-		console.log(this.get('annotation.mappedAttributes').length);
 		return this.get('annotation.mappedAttributes').length > 1;
 	}.property('annotation.mappedAttributes'),
 
@@ -357,11 +380,11 @@ ASTool.ElemAttributeView = ASTool.ButtonView.extend({
 	value: null,
 	attribute: null,
 	item: null,
-	classNames: ['element-attribute-view'],
+	classNames: ['element-attribute-view', 'clear-button'],
 	
 	didInsertElement: function() {
 		this._super();
-		var attribute = this.get('attribute');
+		var attribute = this.get('argument');
 		var ui = $(this.get('element'));
 		var content = $('<div/>').
 			append($('<span/>', { text:attribute.name + ': ', class:'name' })).
@@ -369,7 +392,7 @@ ASTool.ElemAttributeView = ASTool.ButtonView.extend({
 		if (this.mapped) {
 			content.append($('<div/>').
 			append($('<span/>', { text:'mapped to: ', class:'name' })).
-			append($('<span/>', { text:this.get('item') + '.' + attribute.mappedField, class:'item' })));
+			append($('<span/>', { text: attribute.mappedField, class:'item' })));
 		}
 		content.css('text-align', 'left').
 		css('margin-left', '5px').
@@ -380,8 +403,8 @@ ASTool.ElemAttributeView = ASTool.ButtonView.extend({
 });
 
 
-ASTool.ItemView = Ember.View.extend({
-	templateName: 'item',
+ASTool.EditItemView = Ember.View.extend({
+	templateName: 'edit-item',
 	item: null,
 	mappingAttribute: null,
 	classNameBindings: ['highlighted:highlighted-item'],
@@ -531,6 +554,7 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 	layoutName: 'toolbox',
 	expandToolbox: false,
 	fixedToolbox: false,
+	pinned: false,
 
 	willInsertElement: function() {
 		if (this.get('controller.willEnter')) {
@@ -572,20 +596,41 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 		this.showToolbox();
 	},
 
-	mouseLeave: function() {
-		if (!this.get('fixedToolbox')) {
-			this.hideToolbox();
+	mouseLeave: function(e) {
+		if (!this.get('fixedToolbox') &&
+			!ASTool.ToolboxViewMixin.pinned) {
+			if (e.target.tagName.toLowerCase() != 'select') {
+				this.hideToolbox();	
+			}
 		}
 	},
 
 	didInsertElement: function() {
 		if (ASTool.ToolboxViewMixin.expandToolbox ||
+			ASTool.ToolboxViewMixin.pinned ||
 			this.get('fixedToolbox')) {
 			this.showToolbox();
 			ASTool.ToolboxViewMixin.expandToolbox = false;
 		}
 		$('.accordion').accordion({ heightStyle: "content" });
 		this._super();
+	},
+});
+
+
+ASTool.PinToolBoxButton = ASTool.ButtonView.extend({
+	icon: function() {
+		return ASTool.ToolboxViewMixin.pinned ? 'ui-icon-pin-s' : 'ui-icon-pin-w';
+	}.property('pinned'),
+
+	disabled: function() {
+		return this.get('parentView.fixedToolbox');
+	}.property('parentView.fixedToolbox'),
+
+	click: function() {
+		console.log(ASTool.ToolboxViewMixin.pinned);
+		ASTool.ToolboxViewMixin.pinned = !ASTool.ToolboxViewMixin.pinned;
+		this.notifyPropertyChange('pinned');
 	},
 });
 
@@ -621,6 +666,10 @@ function trim(text, maxLength) {
 
 Ember.Handlebars.helper('trim', function(text, length) {
 	return trim(text, length);
+});
+
+Ember.Handlebars.helper('isEmpty', function(text) {
+	return Em.isEmpty(text);
 });
 
 

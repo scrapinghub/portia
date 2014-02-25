@@ -15,7 +15,9 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 
 	highlightedElement: null,
 
-	scrapesBinding: 'controllers.annotations.template.scrapes',
+	scrapedItemBinding: 'controllers.annotations.scrapedItem',
+
+	editingAnnotation: true,
 	
 	selectingIgnore: function(key, selectingIgnore) {
 		if (arguments.length > 1) {
@@ -90,7 +92,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		this.popRoute();
 	},
 
-	attributeMapped: function(attribute, item, field) {
+	/*attributeMapped: function(attribute, item, field) {
 		if (this.get('template.scrapes') != item['name']) {
 			var foundMappedAnnotation = false;
 			this.get('controllers.annotations.model').forEach(function(annotation) {
@@ -112,7 +114,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		}
 		this.get('content').addMapping(attribute.get('name'), field['name']);
 		this.set('template.scrapes', item['name']);
-	},
+	},*/
 	
 	actions: {
 		
@@ -130,9 +132,15 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		
 		mapAttribute: function(attribute) {
 			attribute.set('annotation', this.get('model'));
-			this.set('mappingAttribute', attribute);
+			/*this.set('mappingAttribute', attribute);
 			this.set('openAttributesOnShow', true);
-			this.pushRoute('items', 'Mapping attribute: ' + attribute.get('name'));
+			this.pushRoute('items', 'Mapping attribute: ' + attribute.get('name'));*/
+			this.set('mappingAttribute', attribute);
+		},
+
+		fieldSelected: function(field) {
+			this.content.addMapping(this.get('mappingAttribute.name'), field);
+			this.set('mappingAttribute', null);
 		},
 
 		makeSticky: function(attribute) {

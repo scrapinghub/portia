@@ -7,7 +7,9 @@
 			{{controller.url}}
 		</span>
 		<span style="float:left;">
-			{{view ASTool.ButtonView action="back" label="Continue browsing" disabled=addTemplateDisabled class="blue-button"}}
+			{{#unless editingAnnotation}}
+				{{view ASTool.ButtonView action="back" label="Continue browsing" disabled=addTemplateDisabled class="blue-button"}}
+			{{/unless}}
 		</span>
 	</div>
 </div>

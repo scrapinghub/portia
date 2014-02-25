@@ -15,9 +15,9 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 
 	loadedPageFp: null,
 
-	loading: false,
-
 	autoloadTemplate: null,
+
+	pendingFetches: [],
 
 	hasStartUrl: function() {
 		return !this.get('newStartUrl');
@@ -153,10 +153,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	}.property('loadedPageFp', 'showLinks', 'spiderDomains'),
 
 	currentUrl: function() {
-		if (this.get('loading')) {
+		if (!Em.isEmpty(this.get('pendingFetches'))) {
 			return 'Fetching page...';
 		} else if (this.get('loadedPageFp')) {
-			var url = this.get('pageMap')[this.get('loadedPageFp')].url;
+			var url = this.get('pageMap')[this.get('loadedPageFp')].url;	
 			if (url.length > 80) {
 				url = url.substring(0, 80) + '...';
 			}
@@ -164,39 +164,33 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		} else {
 			return 'No page loaded';
 		}
-	}.property('loadedPageFp', 'loading'),
+	}.property('loadedPageFp', 'pendingFetches.@each'),
 
 	editTemplate: function(template) {
 		this.set('controllers.annotations.template', template);
-		this.pushRoute('annotations', template.get('templateName'));
+		this.pushRoute('annotations', 'Template ' + template.get('templateName'));
 		this.set('autoloadTemplate', template);
 	},
 
-	loadTemplate: function(template) {
-		var pageFp = template.get('page_id');
-		this.set('loadedPageFp', pageFp);
-		this.pageMap[pageFp] = { page: template.get('original_body'),
-								 url: template.get('url'),
-								 fp: template.get('page_id') };
-		this.get('browseHistory').pushObject(pageFp);
-		this.get('documentView').displayDocument(template.get('original_body'));
-	},
-
 	fetchPage: function(url, parentFp) {
-		console.log('FETCH PAGE!');
 		this.set('loadedPageFp', null);
-		this.set('loading', true);
 		var documentView = this.get('documentView');
 		documentView.showLoading();
-		this.get('slyd').fetchDocument(url, this.content.get('name'), parentFp).
+		var fetchId = ASTool.guid();
+		this.get('pendingFetches').pushObject(fetchId);
+		this.get('slyd').fetchDocument(url, this.get('content.name'), parentFp).
 			then(function(data) {
-				documentView.hideLoading();
+				if (this.get('pendingFetches').indexOf(fetchId) == -1) {
+					// This fetch has been cancelled.
+					return;
+				}
 				if (!data.error) {
 					data.url = url;
 					this.get('browseHistory').pushObject(data.fp);
 					documentView.displayDocument(data.page,
 						function(docIframe){
-							this.set('loading', false);
+							documentView.hideLoading();
+							this.get('pendingFetches').removeObject(fetchId);
 							this.get('documentView').reset();
 							this.get('documentView').config({ mode: 'browse',
 											  listener: this,
@@ -209,7 +203,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 						}.bind(this)
 					);
 				} else {
-					this.set('loading', false);
+					documentView.hideLoading();
+					this.get('pendingFetches').removeObject(fetchId);
 					documentView.showError(data.error);
 				}
 			}.bind(this)
@@ -219,10 +214,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	displayPage: function(fp) {
 		this.set('loadedPageFp', null);
 		var documentView = this.get('documentView');
-		this.set('loading', true);
 		documentView.displayDocument(this.get('pageMap')[fp].page,
 			function(){
-				this.set('loading', false);
 				this.get('documentView').reset();		
 				this.get('documentView').config({ mode: 'browse',
 					listener: this,
@@ -278,6 +271,14 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	saveSpider: function() {
 		return this.content.save();
 	},
+
+	reset: function() {
+		// TODO: This is hacky and needs to be improved.
+		console.log('reset');
+		this.set('autoloadTemplate', null);
+		this.set('browseHistory', []);
+		this.set('pageMap', {});
+	},
 	
 	actions: {
 
@@ -293,10 +294,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 			this.content.get('templates').removeObject(template);
 		},
 
-		loadTemplate: function(template) {
-			this.loadTemplate(template);
-		},
-
 		saveSpider: function() {
 			this.saveSpider().then(function() {
 				if (this.get('loadedPageFp')) {
@@ -307,6 +304,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 		},
 
 		fetchPage: function(url) {
+			// Cancel all pending fetches.
+			this.get('pendingFetches').setObjects([]);
 			this.saveSpider().then(function() {
 				this.fetchPage(url);	
 			}.bind(this));
@@ -354,7 +353,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 			if (confirm('Are you sure you want to rename this spider? This operation cannot be undone.')) {
 				this.get('slyd').renameSpider(oldName, newName).then(
 					function() {
-						this.updateTop('Spider: ' + newName);
+						this.updateTop('Spider ' + newName);
 					}.bind(this),
 					function(reason) {
 						this.set('id', oldName);
@@ -397,8 +396,6 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	},
 
 	willEnter: function() {
-		//this.get('browseHistory').setObjects([]);
-		//this.set('pageMap', {});
 		this.set('loadedPageFp', null);
 		this.get('documentView').config({ mode: 'browse',
 										  listener: this,
@@ -429,5 +426,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	willLeave: function() {
 		ASTool.graph.clear();
 		ASTool.graph.set('hidden', true);
+		// Cancel all pending fetches.
+		this.get('pendingFetches').setObjects([]);
+		this.get('documentView').hideLoading();
 	},
 });

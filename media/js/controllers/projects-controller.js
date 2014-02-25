@@ -3,11 +3,15 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	projectSite: null,
 
+	createProjectDisabled: function() {
+		return Em.isEmpty(this.get('projectSite'));
+	}.property('projectSite'),
+
 	actions: {
 		
 		openProject: function(projectName) {
 			this.set('slyd.project', projectName);
-			this.pushRoute('project', projectName, 'fade', projectName);
+			this.pushRoute('project', 'Project ' + projectName, 'fade', projectName);
 		},
 
 		deleteProject: function(projectName) {
@@ -18,12 +22,16 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		},
 
 		createProject: function() {
-			var newProjectName = 'new_project_';
-			var i = 1;
-			while(this.content.any(function(projectName){ return projectName == newProjectName + i })) {
-				i++;
+			var siteUrl = this.get('projectSite');
+			if (siteUrl.indexOf('http') != 0) {
+				siteUrl = 'http://' + siteUrl;
 			}
-			newProjectName += i;			
+			var parsedUrl = URI.parse(siteUrl);
+			var newProjectName = parsedUrl.hostname;
+			var i = 1;
+			while(this.content.any(function(projectName){ return projectName == newProjectName})) {
+				newProjectName = parsedUrl.hostname + '_' + i++;
+			}
 			this.get('slyd').createProject(newProjectName).then(function() {
 				this.set('slyd.project', newProjectName);
 				this.get('slyd').saveItems([
@@ -40,7 +48,7 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 					this.set('controllers.application.newSpiderSite', this.get('projectSite'));
 					this.set('projectSite', null);
 				}
-				this.pushRoute('project', newProjectName, 'fade', newProjectName);
+				this.pushRoute('project', 'Project ' + newProjectName, 'fade', newProjectName);
 			}.bind(this));
 		}
 	},
