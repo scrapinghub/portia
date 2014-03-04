@@ -1,7 +1,7 @@
 
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
-	{{#view ASTool.RenameTextField value=id}}
-  		<span class="editable-name">Spider {{id}}</span>
+	{{#view ASTool.RenameTextField value=name}}
+  		<span class="editable-name">Spider {{name}}</span>
 	{{/view}}
 </div>
 
@@ -104,7 +104,7 @@
 		<div class="scrolling-container" style="max-height:350px;">
 			{{#each templates}}
 				<div style="margin:4px 0px 4px 0px">
-					{{view ASTool.ButtonView action="editTemplate" argument=this label=templateName minWidth='86%' title=url class="clear-button"}}
+					{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='86%' title=url class="clear-button"}}
 					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
 				</div>
 			{{else}}

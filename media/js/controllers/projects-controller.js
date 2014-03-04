@@ -1,4 +1,4 @@
-ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
+ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	needs: ['application'],
 
 	projectSite: null,
@@ -11,7 +11,7 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		
 		openProject: function(projectName) {
 			this.set('slyd.project', projectName);
-			this.pushRoute('project', 'Project ' + projectName, 'fade', projectName);
+			this.transitionToRoute('project', { id: projectName });
 		},
 
 		deleteProject: function(projectName) {
@@ -36,9 +36,9 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 				this.set('slyd.project', newProjectName);
 				this.get('slyd').saveItems([
 					ASTool.Item.create({ name: 'default', fields: [
-						{ name: 'image', required: false, type: "image", vary: false },
-						{ name: 'text', required: false, type: "text", vary: false },
-						{ name: 'link', required: false, type: "url", vary: false } ]
+						ASTool.ItemField.create({ name: 'image', required: false, type: "image", vary: false }),
+						ASTool.ItemField.create({ name: 'text', required: false, type: "text", vary: false }),
+						ASTool.ItemField.create({ name: 'link', required: false, type: "url", vary: false }) ]
 					})
 				]);
 				// Initialize extractors spec.
@@ -48,7 +48,7 @@ ASTool.ProjectsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 					this.set('controllers.application.newSpiderSite', this.get('projectSite'));
 					this.set('projectSite', null);
 				}
-				this.pushRoute('project', 'Project ' + newProjectName, 'fade', newProjectName);
+				this.transitionToRoute('project', { id: newProjectName });
 			}.bind(this));
 		}
 	},

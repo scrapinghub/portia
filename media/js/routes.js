@@ -1,44 +1,48 @@
 /* Router config */
 ASTool.Router.reopen({
 	// TODO: use 'hash' here.
-	location: 'none',
+	location: 'hash',
 });
 
 
 /* Route Map */
 ASTool.Router.map(function() {
-	this.resource('projects');
-	this.resource('project', {path: '/project/:project_id'});
-	this.resource('spider', {path: '/spiders/:spider_id'});
-	this.resource('annotations');
-	this.resource('annotation', {path: '/annotations/:annotation_id'});
-	this.resource('items');
-	this.resource('item', {path: '/items/:item_id'});
+	this.resource('projects', function() {
+		this.resource('project', { path: ':project_id' }, function() {
+			this.resource('spider', { path: ':spider_id' }, function() {
+				this.resource('template', { path: ':template_id' }, function() {
+					this.resource('items');
+					this.resource('annotation', { path: ':annotation_id' });
+				});
+			});
+			
+		});
+	});
 });
 
 
-ASTool.ApplicationRoute = Ember.Route.extend({
+ASTool.IndexRoute = Ember.Route.extend({
 	activate: function() {
-		var controller = this.controllerFor('application');
-		controller.pushRoute('projects', 'Home');
+		this.transitionTo('projects');
 	},
 }),
 
 
-ASTool.ProjectsRoute = Ember.Route.extend({
+ASTool.ProjectsIndexRoute = Ember.Route.extend({
 	model: function() {
 		return this.get('slyd').getProjectNames();
 	},
 
 	renderTemplate: function() {
-		this.render('projects', {
-      		outlet: 'main',
-      		controller: 'projects',
+		var controller = this.controllerFor('projects.index');
+		this.render('projects/index', {
+      		controller: controller,
     	});
 
     	this.render('topbar-projects', {
+    		into: 'application',
       		outlet: 'topbar',
-      		controller: 'projects',
+      		controller: controller,
     	});
 	},
 });
@@ -47,103 +51,150 @@ ASTool.ProjectsRoute = Ember.Route.extend({
 ASTool.ProjectRoute = Ember.Route.extend({
 	model: function(params) {
 		this.set('slyd.project', params.project_id);
+		return { id: params.project_id };
+	},
+});
+
+
+ASTool.ProjectIndexRoute = Ember.Route.extend({
+	model: function() {
 		return this.get('slyd').getSpiderNames();
 	},
 
 	renderTemplate: function() {
-		this.render('project', {
-      		outlet: 'main',
-      		controller: 'project',
+		var controller = this.controllerFor('project.index');
+		this.render('project/index', {
+      		controller: controller,
     	});
 
     	this.render('topbar-project', {
+    		into: 'application',
       		outlet: 'topbar',
-      		controller: 'project',
+      		controller: controller,
     	});
+	},
+
+	serialize: function(model, params) {
+		var controller = this.controllerFor('project');
+		return { project_id: controller.get('name') };
 	},
 });
 
 
 ASTool.SpiderRoute = Ember.Route.extend({
 	model: function(params) {
-		return this.store.find('spider', params.spider_id);
+		return this.get('slyd').loadSpider(params.spider_id);
+	},
+}),
+
+
+ASTool.SpiderIndexRoute = Ember.Route.extend({
+	model: function(params) {
+		return this.modelFor('spider');
 	},
 
 	renderTemplate: function() {
-		this.render('spider', {
-      		outlet: 'main',
-      		controller: 'spider',
+		var controller = this.controllerFor('spider.index');
+		this.render('spider/index', {
+      		controller: controller,
     	});
 
     	this.render('topbar-browse', {
+    		into: 'application',
       		outlet: 'topbar',
-      		controller: 'spider',
+      		controller: controller,
     	});
 	},
 });
 
 
-ASTool.AnnotationsRoute = Ember.Route.extend({
-	beforeModel: function() {
-		var controller = this.controllerFor('annotations');
-		return this.get('slyd').loadItems().then(function(items) {
-			controller.set('items', items);
-			var promise = new Ember.RSVP.Promise(function(resolve) {
+ASTool.TemplateRoute = Ember.Route.extend({
+	model: function(params) {
+		var spider = this.modelFor('spider');
+		return spider.get('templates').findBy('id', params.template_id);
+	},
+});
+
+
+ASTool.TemplateIndexRoute = Ember.Route.extend({
+	
+	model: function(params) {
+		return this.modelFor('template');
+	},
+
+	afterModel: function(model) {
+		var controller = this.controllerFor('template.index');
+		var slyd = this.get('slyd');
+		// Load the annotations if we can.
+		if (controller.get('documentView').getIframe().length) {
+			var annotationsPromise = new Ember.RSVP.Promise(function(resolve) {
 				controller.deleteAllAnnotations();
 				controller.get('documentView').displayDocument(
-					controller.get('template.annotated_body'),
+					model.get('annotated_body'),
 					function(docIframe){
 						ASTool.set('iframe', docIframe);
 						resolve();
 					}
 				);
-			});
-			return promise;
-		}.bind(this));
-	},
-
-	model: function() {
-		return this.store.find('annotation').then(function(annotations) {
-			annotations.forEach(function(annotation) {
-				annotation.set('template', this.controllerFor('annotations').get('template'));
-			}.bind(this));
-			return annotations;
-		}.bind(this));
-	},
-
-	afterModel: function() {
-		return this.get('slyd').loadExtractors().then(function(extractors) {
-			var controller = this.controllerFor('annotations');
+			}).then(function() {
+				return this.store.find('annotation');
+			}.bind(this)).then(function(annotations) {
+				controller.set('annotationsLoaded', true);
+				controller.set('annotations', annotations);
+			});	
+		} else {
+			// If we fall here, the iframe was not yet inserted in the DOM
+			// thus preventing loading the annotations. We just mark the
+			// controller so it can fix the issue later.
+			controller.set('annotationsLoaded', false);
+		}
+		
+		// Load the items.
+		var itemsPromise = slyd.loadItems().then(function(items) {
+			controller.set('items', items);
+		});
+		// Load the extractors.
+		var extractorsPromise = slyd.loadExtractors().then(function(extractors) {
 			controller.set('extractors', extractors);
-		}.bind(this));
+		});
+		return Em.RSVP.all([annotationsPromise, itemsPromise, extractorsPromise])
 	},
 
 	renderTemplate: function() {
-		this.render('annotations', {
-      		outlet: 'main',
-      		controller: 'annotations',
+		var controller = this.controllerFor('template.index');
+		this.render('template/index', {
+      		controller: controller,
     	});
-
     	this.render('topbar-extraction', {
+    		into: 'application',
       		outlet: 'topbar',
-      		controller: 'annotations',
+      		controller: controller,
     	});
 	},
 });
 
 
 ASTool.AnnotationRoute = Ember.Route.extend({
-	model: function(params) {
-		return this.store.find(params.annotation_id);
+	
+	model: function() {
+		return null;
+	},
+
+	afterModel: function(model) {
+		if (Em.isEmpty(model)) {
+			this.transitionTo('template');	
+		}
 	},
 
 	renderTemplate: function() {
 		this.render('annotation', {
+			into: 'application',
       		outlet: 'main',
       		controller: 'annotation',
     	});
 
     	this.render('topbar-extraction', {
+    		into: 'application',
       		outlet: 'topbar',
       		controller: 'annotation',
     	});
@@ -158,11 +209,13 @@ ASTool.ItemsRoute = Ember.Route.extend({
 
 	renderTemplate: function() {
 		this.render('items', {
+			into: 'application',
       		outlet: 'main',
       		controller: 'items',
     	});
 
     	this.render('topbar-extraction', {
+    		into: 'application',
       		outlet: 'topbar',
       		controller: 'items',
     	});

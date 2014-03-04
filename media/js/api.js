@@ -115,27 +115,7 @@ ASTool.SlydApi = Em.Object.extend({
 	/**
   	@public
 
-  	Fetches all spiders for the current project.
-
-  	@method loadSpiders
-  	@for ASTool.SlydApi
-  	@return {Promise} a promise that fulfills with a JSON {Object}
-  		containing the spider specs.
-	*/
-	loadSpiders: function(onSuccess, onError) {
-		var hash = {};
-		hash.type = 'GET';
-		hash.url = this.get('projectSpecUrl');
-		ic.ajax(hash).then(function(projectData){
-			return projectData['spiders'];
-		});
-	},
-
-	/**
-  	@public
-
-  	Fetches a spider. The spider name is assigned as the spider id and
-  	a guid is generated as the id for each of the spider templates.
+  	Fetches a spider.
 
   	@method loadSpider
   	@for ASTool.SlydApi
@@ -148,12 +128,11 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
 		return ic.ajax(hash).then(function(spiderData) {
-			spiderData['id'] = spiderName;		
+			spiderData['name'] = spiderName;		
 			spiderData['templates'] = spiderData['templates'].map(function(template) {
-				template['id'] = ASTool.guid();
-				return template;
+				return ASTool.Template.create(template);
 			});
-			return spiderData;
+			return ASTool.Spider.create(spiderData);
 		});
 	},
 
@@ -190,10 +169,11 @@ ASTool.SlydApi = Em.Object.extend({
   	@param {Object} [spiderData] a JSON object containing the spider spec.
   	@return {Promise} a promise that fulfills when the server responds.
 	*/
-	saveSpider: function(spiderName, spiderData) {
+	saveSpider: function(spider) {
 		var hash = {};
 		hash.type = 'POST';
-		hash.data = JSON.stringify(spiderData);
+		var spiderName = spider.get('name');
+		hash.data = JSON.stringify(spider.serialize());
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
 		return ic.ajax(hash);
@@ -257,9 +237,9 @@ ASTool.SlydApi = Em.Object.extend({
 	*/
 	saveItems: function(items) {
 		items = items.map(function(item) {
-			item = Em.copy(item);
-			if (item.get('fields')) {
-				item.set('fields', this.listToDict(item.get('fields')));	
+			item = item.serialize();
+			if (item.fields) {
+				item.fields = this.listToDict(item.fields);	
 			}
 			return item;
 		}.bind(this));

@@ -1,6 +1,6 @@
-ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
+ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 
-	needs: ['application', 'spider'],
+	needs: ['application', 'spider-index'],
 
 	documentView: null,
 
@@ -14,7 +14,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	addSpider: function() {
 		// Find a unique spider name.
-		var newSpiderName = ASTool.guid().substring(0, 5);
+		var newSpiderName = ASTool.shortGuid();
 		while(this.content.any(function(spiderName){ return spiderName == newSpiderName })) {
 			newSpiderName += '0';
 		}
@@ -22,21 +22,26 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		if (this.get('spiderPage')) {
 			this.set('controllers.application.newSpiderSite', this.get('spiderPage'));
 		}
-		var spider = this.store.createRecord('spider', 
-			{ 'id': newSpiderName,
+		var spider = ASTool.Spider.create( 
+			{ 'name': newSpiderName,
 			  'start_urls': [],
 			  'follow_patterns': [],
 			  'exclude_patterns': [],
-			  'init_requests': [] });
+			  'init_requests': [],
+			  'templates': [] });
 		this.pushObject(newSpiderName);
-		return spider.save().then(function() {
+		return this.get('slyd').saveSpider(spider, newSpiderName).then(function() {
 				this.editSpider(newSpiderName);
-		}.bind(this));
+		}.bind(this), function(error) {
+			console.log(error);
+		});
 	},
 
 	editSpider: function(spiderName) {
-		this.get('controllers.spider').reset();
-		this.pushRoute('spider', 'Spider ' + spiderName, 'fade', spiderName);
+		this.get('controllers.spider-index').reset();
+		this.get('slyd').loadSpider(spiderName).then(function(spider) {
+			this.transitionToRoute('spider', spider);
+		}.bind(this));
 	},
 
 	actions: {
@@ -60,7 +65,7 @@ ASTool.ProjectController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 			if (confirm('Are you sure you want to rename this project? This operation cannot be undone.')) {
 				this.get('slyd').renameProject(oldName, newName).then(
 					function() {
-						this.updateTop('Project ' + newName, newName);
+						this.replaceRoute('project', { id: newName });
 					}.bind(this),
 					function(reason) {
 						this.set('name', oldName);

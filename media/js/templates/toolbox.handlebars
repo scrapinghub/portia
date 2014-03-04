@@ -1,15 +1,16 @@
-<div class="container" style="height:100%;width:400px;">
-
-	<div style="margin:-10px 0px 0px 5px;width:33px;height:100%;float:left;background-color:#888;box-shadow: -2px 0px 2px 0px rgba(0,0,0,0.7);">
-		<div style="position:absolute;left:8px;top:45%">
-			<img src="images/toolbox_show.png">
+<div style="position:absolute;height:100%;width:100%">
+	<div class="container" style="height:100%;width:400px;">
+		<div style="margin:-10px 0px 0px 5px;width:33px;height:100%;float:left;background-color:#888;box-shadow: -2px 0px 2px 0px rgba(0,0,0,0.7);">
+			<div style="position:absolute;left:8px;top:45%">
+				<img src="images/toolbox_show.png">
+			</div>
 		</div>
-	</div>
 
-	<span style="float:left;margin:0px 5px 0px -32px">
-		{{view ASTool.PinToolBoxButton action="editAnnotation" class="textless-button pin-button"}}
-	</span>
-	<div style="padding-top:10px;margin-left:40px;padding-right:2px">
-		{{yield}}
-	</div>	
+		<span style="float:left;margin:0px 5px 0px -32px">
+			{{view ASTool.PinToolBoxButton action="editAnnotation" class="textless-button pin-button"}}
+		</span>
+		<div style="padding-top:10px;margin-left:40px;padding-right:2px">
+			{{yield}}
+		</div>	
+	</div>
 </div>

@@ -96,7 +96,7 @@ ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
 });
 
 
-ASTool.SlydAdapter = DS.Adapter.extend({
+/*ASTool.SlydAdapter = DS.Adapter.extend({
 	
 	find: function(store, type, id) {
 		var methodName = ('load ' + type.typeKey).camelize();
@@ -149,42 +149,61 @@ ASTool.SpiderSerializer = DS.RESTSerializer.extend({
 	}
 });
 
-ASTool.SpiderAdapter = ASTool.SlydAdapter.extend();
+ASTool.SpiderAdapter = ASTool.SlydAdapter.extend();*/
 
 
 /*************************** Models **************************/
 
-ASTool.Template = DS.Model.extend({
-	page_id: DS.attr('string', {defaultValue:''}),
-	scrapes: DS.attr('string', {defaultValue:'default'}),
-	page_type: DS.attr('string', {defaultValue:'item'}),
-	url: DS.attr('string', {defaultValue:''}),
-	annotated_body: DS.attr('string', {defaultValue:''}),
-	original_body: DS.attr('string', {defaultValue:''}),
-	extractors: DS.attr(null),
-	name: DS.attr('string'),
+ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
+	idBinding: 'name',
+	name: null,
+	serializedProperties: null,
+	serializedRelations: null,
 
-	templateName: function(key, templateName) {
-		if (arguments.length > 1) {
-			this.set('name', templateName); 
+	copy: function() {
+		return Em.run(this.constructor, 'create', this);
+	},
+
+	serialize: function() {
+		var serialized = this.getProperties(this.get('serializedProperties'));
+		if (!Em.isEmpty(this.get('serializedRelations'))) {
+			this.get('serializedRelations').forEach(function(relation) {
+				serialized[relation] = this.get(relation).map(function(relatedObject) {
+					return relatedObject.serialize();
+				});
+			}.bind(this));	
 		}
-		return this.get('name') || this.get('id').substring(0, 5);
-	}.property('id'),
+		return serialized;
+	},
+});
+
+
+ASTool.Template = ASTool.SimpleModel.extend({
+	serializedProperties: ['page_id', 'default', 'scrapes',
+		'page_type', 'url', 'annotated_body', 'original_body',
+		'extractors', 'name'],
+	page_id: '',
+	scrapes: 'default',
+	page_type: 'item',
+	url: '',
+	annotated_body: '',
+	original_body: '',
+	extractors: null,
 }),
 
-ASTool.Spider = DS.Model.extend({
-	start_urls: DS.attr(null),
-	allowed_domains: DS.attr(null),
-	links_to_follow: DS.attr('string', { defaultValue:'patterns' }),
-	follow_patterns: DS.attr(null),
-	exclude_patterns: DS.attr(null),
-	respect_nofollow: DS.attr('boolean', { defaultValue:true }),
-	templates: DS.hasMany('template'),
-	init_requests: DS.attr(null),
-
-	name: function() {
-		return this.get('id');
-	}.property('id'),
+ASTool.Spider = ASTool.SimpleModel.extend({
+	serializedProperties: ['start_urls',
+		'start_urls', 'links_to_follow', 'follow_patterns',
+		'exclude_patterns', 'respect_nofollow',
+		'init_requests'],
+	serializedRelations: ['templates'],
+	start_urls: null,
+	links_to_follow: 'patterns',
+	follow_patterns: null,
+	exclude_patterns: null,
+	respect_nofollow: true,
+	templates: null,
+	init_requests: null,
 
 	performLogin: function(key, performLogin) {
 		if (arguments.length > 1) {
@@ -423,21 +442,15 @@ ASTool.Annotation = DS.Model.extend({
 });
 
 
-ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
-	name: null,
-
-	copy: function() {
-		return Em.run(this.constructor, 'create', this);
-	}
-});
-
-
 ASTool.Item = ASTool.SimpleModel.extend({
+	serializedRelations: ['fields'],
+	serializedProperties: ['name'],
 	fields: null,
 });
 
 
 ASTool.ItemField = ASTool.SimpleModel.extend({
+	serializedProperties: ['name', 'type', 'required', 'vary'],
 	type: 'text',
 	required: false,
 	vary: false,

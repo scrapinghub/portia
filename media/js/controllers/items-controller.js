@@ -1,11 +1,11 @@
-ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
+ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	
 	needs: ['application', 'annotation'],
 
 	documentView: null,
 
 	addItem: function() {
-		var newItem = ASTool.Item.create({ name: 'new item ' + ASTool.guid().substring(0, 5) });
+		var newItem = ASTool.Item.create({ name: ASTool.shortGuid() });
 		this.pushObject(newItem);
 	},
 	
@@ -20,7 +20,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 
 	saveChanges: function() {
 		this.get('slyd').saveItems(this.content.toArray()).then(function() {
-				this.back();
+				this.transitionToRoute('template');
 			}.bind(this));
 	},
 
@@ -49,16 +49,20 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin, {
 		undoChanges: function() {
 			this.get('slyd').loadItems().then(function(items) {
 				this.set('content', items);
-				this.back();
+				this.transitionToRoute('template');
 			}.bind(this));
 		},
 	},
 
 	willEnter: function() {
-		this.set('documentView.canvas.interactionsBlocked', true);
+		if (this.get('documentView.canvas')) {
+			this.set('documentView.canvas.interactionsBlocked', true);	
+		}	
 	},
 
 	willLeave: function() {
-		this.set('documentView.canvas.interactionsBlocked', false);
+		if (this.get('documentView.canvas')) {
+			this.set('documentView.canvas.interactionsBlocked', false);	
+		}	
 	},
 });

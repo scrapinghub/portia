@@ -4,7 +4,6 @@
 	<link href="css/normalize.css" rel="stylesheet">
 	<link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 	<link href="css/style.css" rel="stylesheet">
-	<link href="css/ember-animated-outlet.css" rel="stylesheet">
 	<link href="css/breadcrumb.css" rel="stylesheet">
 
 	<script src="http://heartcode-canvasloader.googlecode.com/files/heartcode-canvasloader-min-0.9.1.js"></script>
@@ -13,7 +12,6 @@
 	<script src="js/vendor/jquery-ui-1.10.3.js"></script>
     <script src="js/vendor/handlebars-1.0.0.js"></script>
 	<script src="js/vendor/ember-debug.js"></script>
-	<script src="js/vendor/ember-animated-outlet.js"></script>
 	<script src="js/vendor/ic-ajax.js"></script>
 	<script src="js/vendor/ember-data.js"></script>
 	<script src="js/vendor/arbor.js"></script>
@@ -28,8 +26,9 @@
 	<script src="js/emberui.js"></script>
 	<script src="js/views.js"></script>
 	<script src="js/controllers/controllers.js"></script>
+	<script src="js/controllers/navigation-controller.js"></script>
 	<script src="js/controllers/annotation-controller.js"></script>
-	<script src="js/controllers/annotations-controller.js"></script>
+	<script src="js/controllers/template-controller.js"></script>
 	<script src="js/controllers/application-controller.js"></script>
 	<script src="js/controllers/items-controller.js"></script>
 	<script src="js/controllers/project-controller.js"></script>
@@ -52,15 +51,15 @@
 		compile('js/templates/inline-textfield.handlebars');
 		compile('js/templates/annotated-document-view.handlebars');
 		compile('js/templates/annotation.handlebars');
-		compile('js/templates/annotations.handlebars');
+		compile('js/templates/template/index.handlebars');
 		compile('js/templates/application.handlebars');
 		compile('js/templates/edit-item.handlebars');
 		compile('js/templates/item.handlebars');
 		compile('js/templates/items.handlebars');
 		compile('js/templates/navigation.handlebars');
-		compile('js/templates/projects.handlebars');
-		compile('js/templates/project.handlebars');
-		compile('js/templates/spider.handlebars');
+		compile('js/templates/projects/index.handlebars');
+		compile('js/templates/project/index.handlebars');
+		compile('js/templates/spider/index.handlebars');
 		compile('js/templates/topbar-project.handlebars');
 		compile('js/templates/topbar-projects.handlebars');
 		compile('js/templates/topbar-browse.handlebars');

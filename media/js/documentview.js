@@ -110,7 +110,8 @@ ASTool.DocumentView = Em.Object.extend({
 			- The sprites exposed by the datasource change.
 	*/
 	redrawNow: function() {
-		if (this.loadingDoc) {
+		var canvas = this.get('canvas');
+		if (!canvas || this.loadingDoc) {
 			return
 		}
 		var canvas = this.get('canvas');

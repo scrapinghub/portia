@@ -42,4 +42,9 @@ function guid() {
 		s4() + '-' + s4() + s4() + s4();
 }
 
+function shortGuid() {
+	return s4() + '.' + s4() + '.' + s4();
+}
+
 ASTool.guid = guid;
+ASTool.shortGuid = shortGuid;

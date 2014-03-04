@@ -1,6 +1,6 @@
 <div id="topbar">
 	<div style="float:left;text-align:left;width:400px">
-		{{view ASTool.NavigationView}}
+		{{render "navigation"}}
 	</div>
 	<div style="float:left;margin-top:3px">
 		{{view ASTool.TextField value=projectSite width='320px' name='projectSiteTextField' placeholder='Enter site url' action="createProject"}}

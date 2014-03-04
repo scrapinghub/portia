@@ -1,7 +1,7 @@
-ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
+ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
-	needs: ['application', 'annotations'],
+	needs: ['application', 'template-index'],
 
 	documentView: null,
 
@@ -167,8 +167,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	}.property('loadedPageFp', 'pendingFetches.@each'),
 
 	editTemplate: function(template) {
-		this.set('controllers.annotations.template', template);
-		this.pushRoute('annotations', 'Template ' + template.get('templateName'));
+		this.transitionToRoute('template', template);
 		this.set('autoloadTemplate', template);
 	},
 
@@ -225,17 +224,21 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	},
 
 	addTemplate: function() {
-		var template = this.store.createRecord('template', 
-			{ 'id': ASTool.guid(),
-			  'extractors': {} });
-		this.content.get('templates').pushObject(template);
-		this.get('controllers.annotations').deleteAllAnnotations();
 		var page = this.get('pageMap')[this.get('loadedPageFp')];
-		template.set('annotated_body', page.page);
-		template.set('original_body', page.page);
-		template.set('page_id', page.fp);
-		template.set('url', page.url);
-		this.editTemplate(template);
+		var template = ASTool.Template.create( 
+			{ name: ASTool.shortGuid(),
+			  extractors: {},
+			  annotated_body: page.page,
+			  original_body: page.page,
+			  page_id: page.fp,
+			  url: page.url });
+		this.get('content.templates').pushObject(template);
+		this.get('controllers.template-index').deleteAllAnnotations();
+		this.saveSpider().then(
+			function() {
+				this.editTemplate(template);
+			}.bind(this)
+		);
 	},
 
 	addStartUrl: function(url) {
@@ -269,12 +272,11 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 			   'links_to_follow'),
 
 	saveSpider: function() {
-		return this.content.save();
+		return this.get('slyd').saveSpider(this.get('content'));
 	},
 
 	reset: function() {
 		// TODO: This is hacky and needs to be improved.
-		console.log('reset');
 		this.set('autoloadTemplate', null);
 		this.set('browseHistory', []);
 		this.set('pageMap', {});
@@ -353,7 +355,7 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 			if (confirm('Are you sure you want to rename this spider? This operation cannot be undone.')) {
 				this.get('slyd').renameSpider(oldName, newName).then(
 					function() {
-						this.updateTop('Spider ' + newName);
+						this.replaceRoute('spider', this.get('model'));
 					}.bind(this),
 					function(reason) {
 						this.set('id', oldName);
@@ -401,10 +403,10 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 										  listener: this,
 										  dataSource: this });
 		this.get('documentView').showSpider();
-		if (!ASTool.graph) {
+		/*if (!ASTool.graph) {
 			ASTool.set('graph', ASTool.CrawlGraph.create());
 		}
-		ASTool.graph.set('hidden', true);
+		ASTool.graph.set('hidden', true);*/
 		var newSpiderSite = this.get('controllers.application.newSpiderSite')
 		if (newSpiderSite) {
 			Ember.run.next(this, function() {
@@ -424,8 +426,8 @@ ASTool.SpiderController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
 	},
 
 	willLeave: function() {
-		ASTool.graph.clear();
-		ASTool.graph.set('hidden', true);
+		/*ASTool.graph.clear();
+		ASTool.graph.set('hidden', true);*/
 		// Cancel all pending fetches.
 		this.get('pendingFetches').setObjects([]);
 		this.get('documentView').hideLoading();

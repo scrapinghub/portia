@@ -3,15 +3,15 @@
 		{{#if previousRoutes}}		
 			{{#each previousRoutes}}
 				<li>
-					<a href="#"{{action "gotoRoute" this.route}}>{{this.label}}</a>
+					<a href="#"{{action "gotoRoute" this}}>{{this}}</a>
 				</li>
 			{{/each}}
 			<li>
-				{{currentRoute.label}}
+				{{currentRoute}}
 			</li>
 		{{else}}
 			<li>
-				<a href="#"{{action "gotoRoute" this.route}}>{{currentRoute.label}}</a>
+				<a href="#">{{currentRoute}}</a>
 			</li>
 		{{/if}}
 	</ul>

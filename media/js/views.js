@@ -203,14 +203,14 @@ ASTool.VariantSelect = ASTool.Select.extend({
 
 	content: function() {
 		var options = [{ option: 0, label: "Base(0)" }];
-		var maxVariant = this.get('controller.controllers.annotations.maxVariant');
+		var maxVariant = this.get('controller.controllers.template-index.maxVariant');
 		var i;
 		for (i = 1; i <= maxVariant; i++) {
 			options.pushObject({ option: i, label: 'Variant ' + i });
 		}
 		options.pushObject({ option: i, label: 'Add new variant (' + i + ')' });
 		return options;
-	}.property('controller.controllers.annotations.maxVariant'),
+	}.property('controller.controllers.template-index.maxVariant'),
 
 	select: function(event, data) {
 		// FIXME: raise an event instead of directly setting the property.
@@ -534,7 +534,6 @@ ASTool.AnnotatedDocumentView = Ember.View.extend({
 	
 	didInsertElement: function() {
 		this._super();
-		//this.get('controller').pushRoute('projects', 'Home');
 		this.get('controller.documentView').initCanvas();
 	},
 });
@@ -552,9 +551,7 @@ ASTool.NavigationView = Ember.View.extend({
 
 ASTool.ToolboxViewMixin = Ember.Mixin.create({
 	layoutName: 'toolbox',
-	expandToolbox: false,
 	fixedToolbox: false,
-	pinned: false,
 
 	willInsertElement: function() {
 		if (this.get('controller.willEnter')) {
@@ -628,7 +625,6 @@ ASTool.PinToolBoxButton = ASTool.ButtonView.extend({
 	}.property('parentView.fixedToolbox'),
 
 	click: function() {
-		console.log(ASTool.ToolboxViewMixin.pinned);
 		ASTool.ToolboxViewMixin.pinned = !ASTool.ToolboxViewMixin.pinned;
 		this.notifyPropertyChange('pinned');
 	},
@@ -637,11 +633,13 @@ ASTool.PinToolBoxButton = ASTool.ButtonView.extend({
 
 var ToolboxViewMixin = ASTool.ToolboxViewMixin;
 
-ASTool.AnnotationsView = Ember.View.extend(ToolboxViewMixin, {
-	fixedToolbox: true,
-});
+ASTool.ProjectsIndexView = Ember.View.extend(ToolboxViewMixin);
 
-ASTool.AnnotationView = Ember.View.extend(ToolboxViewMixin, {
+ASTool.ProjectIndexView = Ember.View.extend(ToolboxViewMixin);
+
+ASTool.SpiderIndexView = Ember.View.extend(ToolboxViewMixin);
+
+ASTool.TemplateIndexView = Ember.View.extend(ToolboxViewMixin, {
 	fixedToolbox: true,
 });
 
@@ -649,11 +647,9 @@ ASTool.ItemsView = Ember.View.extend(ToolboxViewMixin, {
 	fixedToolbox: true,
 });
 
-ASTool.SpiderView = Ember.View.extend(ToolboxViewMixin);
-
-ASTool.ProjectView = Ember.View.extend(ToolboxViewMixin);
-
-ASTool.ProjectsView = Ember.View.extend(ToolboxViewMixin);
+ASTool.AnnotationView = Ember.View.extend(ToolboxViewMixin, {
+	fixedToolbox: true,
+});
 
 
 /*************************** Helpers ******************************/

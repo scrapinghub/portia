@@ -1,7 +1,7 @@
-ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin,
+ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 
-	needs: ['application', 'annotations'],
+	needs: ['application', 'template-index'],
 	
 	mappingAttribute: null,
 	
@@ -15,7 +15,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 
 	highlightedElement: null,
 
-	scrapedItemBinding: 'controllers.annotations.scrapedItem',
+	scrapedItemBinding: 'controllers.template-index.scrapedItem',
 
 	editingAnnotation: true,
 	
@@ -50,7 +50,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			}));
 		}
 
-		var annotationSprites = this.get('controllers.annotations.sprites').filter(function(sprite) {
+		var annotationSprites = this.get('controllers.template-index.sprites').filter(function(sprite) {
 			return sprite.get('annotation.id') != this.content.get('id');
 		}.bind(this));
 
@@ -60,7 +60,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 
 		return sprites.concat(annotationSprites).concat(ignoredElements);
 	}.property('currentlySelectedElement',
-			   'controllers.annotations.sprites',
+			   'controllers.template-index.sprites',
 			   'model.ignores.@each.highlighted',
 			   'model.ignores.@each.ignoreBeneath',
 			   'highlightedElement'),
@@ -89,7 +89,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 			this.clearGeneratedIns(this.get('currentlySelectedElement'));
 		}
 		this.set('currentlySelectedElement', null);
-		this.popRoute();
+		this.transitionToRoute('template');
 	},
 
 	/*attributeMapped: function(attribute, item, field) {
@@ -121,8 +121,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 		doneEditing: function(annotation) {
 			annotation.save().then(function() {
 				annotation.set('selectedElement', null);
-				this.get('controllers.annotations').saveAnnotations();
-				this.popRoute();
+				this.get('controllers.template-index').saveAnnotations();
+				this.transitionToRoute('template');
 			}.bind(this));
 		},
 		
@@ -145,7 +145,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.RouteBrowseMixin
 
 		makeSticky: function(attribute) {
 			attribute.set('annotation', this.get('model'));
-			var maxSticky = this.get('controllers.annotations.maxSticky');
+			var maxSticky = this.get('controllers.template-index.maxSticky');
 			var stickyName = '_sticky' + (maxSticky + 1);
 			this.content.addMapping(attribute.get('name'), stickyName);
 			this.content.addRequired(stickyName);

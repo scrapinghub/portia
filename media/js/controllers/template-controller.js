@@ -5,40 +5,42 @@ ASTool.MappedFieldData = Em.Object.extend({
 }),
 
 
-ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin,
+ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
 	needs: ['application', 'annotation', 'items'],
 
-	template: null,
+	annotations: [],
 
-	items: null,
+	items: [],
+
+	extractors: [],
+
+	annotationsLoaded: false,
 
 	scrapedItem: function() {
 		if (!Em.isEmpty(this.get('items'))) {
-			return this.get('items').findBy('name', this.get('template.scrapes'));	
+			return this.get('items').findBy('name', this.get('content.scrapes'));	
 		} else {
 			return null;
 		}
-	}.property('template.scrapes', 'items.@each'),
+	}.property('content.scrapes', 'items.@each'),
 	
 	documentView: null,
 
 	currentlySelectedElement: null,
-
-	nameBinding: 'template.templateName',
 
 	newReExtractor: null,
 
 	_newTypeExtractor: 'null',
 
 	url: function() {
-		var url = this.get('template.url');
+		var url = this.get('content.url');
 		if (url.length > 80) {
 			url = url.substring(0, 80) + '...';
 		}
 		return url;
-	}.property('template.url'),
+	}.property('content.url'),
 
 	newTypeExtractor: function(key, type) {
 		if (arguments.length > 1) {
@@ -55,19 +57,19 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	}.property('newReExtractor', 'newTypeExtractor'),
 
 	sprites: function() {
-		return this.get('content').map(function(annotation) {
+		return this.get('annotations').map(function(annotation) {
 			if (annotation.get('element')) {
 				return ASTool.AnnotationSprite.create({'annotation': annotation});
 			} else {
 				return null;
 			}
 		}).filter(function(sprite) { return !!sprite; });
-	}.property('content.@each.element', 'content.@each.highlighted'),
+	}.property('annotations.@each.element', 'annotations.@each.highlighted'),
 
 	guessInitialMapping: function(annotation) {
 		// Very simple implementation. Only works if we are scraping the 
 		// default item.
-		if (this.get('template.scrapes') != 'default') {
+		if (this.get('content.scrapes') != 'default') {
 			annotation.addMapping('content', this.get('scrapedItem.fields').get('firstObject.name'));
 		} else {
 			var element = annotation.get('element');
@@ -105,25 +107,25 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
-		annotation.set('template', this.get('template'));
-		this.pushRoute('annotation', 'Editing annotation', 'fade', annotation);
+		//annotation.set('template', this.get('template'));
+		this.transitionToRoute('annotation', annotation);
 	},
 	
 	deleteAllAnnotations: function() {
-		var annotations = this.get('content').toArray();
+		var annotations = this.get('annotations').toArray();
 		annotations.invoke('deleteRecord');
 		annotations.invoke('save');
 	},
 
 	removeMappings: function() {
-		var annotations = this.get('content').toArray();
+		var annotations = this.get('annotations').toArray();
 		annotations.invoke('removeMappings');
 		annotations.invoke('save');
 	},
 
 	saveAnnotations: function() {
-		if (this.get('template')) {
-			this.set('template.annotated_body', this.get('documentView').getAnnotatedDocument());
+		if (this.get('content')) {
+			this.set('content.annotated_body', this.get('documentView').getAnnotatedDocument());
 		}
 	},
 
@@ -137,17 +139,17 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 
 	maxVariant: function() {
 		var maxVariant = 0;
-		this.get('content').forEach(function(annotation) {
+		this.get('annotations').forEach(function(annotation) {
 			var stringVariant = annotation.get('variant');
 			var variant = stringVariant ? parseInt(stringVariant) : 0;
 			maxVariant = variant > maxVariant ? variant : maxVariant;
 		});
 		return maxVariant;
-	}.property('content.@each.variant'),
+	}.property('annotations.@each.variant'),
 
 	maxSticky: function() {
 		var maxSticky = 0;
-		this.get('content').forEach(function(annotation) {
+		this.get('annotations').forEach(function(annotation) {
 			annotation.get('stickyAttributes').forEach(function(stickyAttribute) {
 				var sticky = parseInt(
 					stickyAttribute.get('mappedField').substring('_sticky'.length));
@@ -157,10 +159,10 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			});
 		});
 		return maxSticky;
-	}.property('content.@each.stickyAttributes.@each'),
+	}.property('annotations.@each.stickyAttributes.@each'),
 
 	getAppliedExtractors: function(fieldName) {
-		var extractorIds = this.get('template.extractors.' + fieldName) || [];
+		var extractorIds = this.get('content.extractors.' + fieldName) || [];
 		return extractorIds.map(function(extractorId) {
 				var extractor = this.get('extractors').filterBy('name', extractorId)[0];
 				if (extractor) {
@@ -177,7 +179,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	mappedFieldsData: function() {
 		var mappedFieldsData = [];
 		var seenFields = new Em.Set();
-		this.get('content').forEach(function(annotation) {
+		this.get('annotations').forEach(function(annotation) {
 			var mappedAttributes = annotation.get('mappedAttributes');
 			mappedAttributes.forEach(function(attribute) {
 				var fieldName = attribute.get('mappedField');
@@ -193,11 +195,13 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			}.bind(this));
 		}.bind(this));
 		return mappedFieldsData;
-	}.property('content.@each.mappedAttributes','template.extractors', 'extractors.@each'),
+	}.property('annotations.@each.mappedAttributes',
+			   'content.extractors',
+			   'extractors.@each'),
 
 	annotationsMappingField: function(fieldName) {
 		var annotations = new Em.Set();
-		this.get('content').forEach(function(annotation) {
+		this.get('annotations').forEach(function(annotation) {
 			var mappedAttributes = annotation.get('mappedAttributes');
 			mappedAttributes.forEach(function(attribute) {
 				if (attribute.get('mappedField') == fieldName) {
@@ -210,7 +214,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 
 	createExtractor: function(extractorType, extractorDefinition) {
 		var extractor = ASTool.Extractor.create({
-			name: ASTool.guid(),
+			name: ASTool.shortGuid(),
 		});
 		extractor.set(extractorType, extractorDefinition);
 		this.get('extractors').pushObject(extractor);
@@ -236,7 +240,6 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		},
 
 		createField: function(fieldName, fieldType) {
-			console.log(this.get('items'));
 			this.get('controllers.items').addField(this.get('scrapedItem'), fieldName, fieldType);
 			this.get('slyd').saveItems(this.get('items').toArray());
 		},
@@ -248,7 +251,7 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		},
 
 		rename: function(oldName, newName) {
-			this.updateTop('Template ' + newName);
+			this.replaceRoute('template', this.get('model'));
 		},
 
 		createExtractor: function() {
@@ -267,14 +270,14 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 		},
 
 		applyExtractor: function(fieldName, extractorId) {
-			var currentExtractors = this.get('template.extractors')[fieldName];
+			var currentExtractors = this.get('content.extractors')[fieldName];
 			if (!currentExtractors) {
 				currentExtractors = [];
-				this.set('template.extractors.' + fieldName, currentExtractors);
+				this.set('content.extractors.' + fieldName, currentExtractors);
 			}
 			if (currentExtractors.indexOf(extractorId) == -1) {
 				currentExtractors.pushObject(extractorId);
-				this.notifyPropertyChange('template.extractors');
+				this.notifyPropertyChange('content.extractors');
 			}
 		},
 
@@ -282,8 +285,8 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 			// TODO: we need to automatically remove extractors when the field they
 			// extract is no longer mapped from any annotation.
 			var fieldName = appliedExtractor['fieldName'];
-			this.get('template.extractors')[fieldName].removeObject(appliedExtractor['name']);
-			this.notifyPropertyChange('template.extractors');
+			this.get('content.extractors')[fieldName].removeObject(appliedExtractor['name']);
+			this.notifyPropertyChange('content.extractors');
 		},
 
 		setRequired: function(fieldName, required) {
@@ -295,12 +298,16 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 					annotation.removeRequired(fieldName);
 				}
 			});
-			this.get('content').invoke('save');
+			this.get('annotations').invoke('save');
 			Ember.run.next(this, this.saveAnnotations);
 		},
 
 		editItems: function() {
-			this.pushRoute('items', 'Items');
+			this.transitionToRoute('items');
+		},
+
+		continueBrowsing: function() {
+			this.transitionToRoute('spider');
 		},
 	},
 
@@ -319,9 +326,26 @@ ASTool.AnnotationsController = Em.ArrayController.extend(ASTool.RouteBrowseMixin
 	},
 
 	willEnter: function() {
-		this.get('documentView').config({ mode: 'select',
-								  listener: this,
-								  dataSource: this,
-								  partialSelects: true });
+		if (!this.get('annotationsLoaded')) {
+			// When landing here from a shared URL there is an issue that prevents
+			// the annotations from being correctly loaded. This hack (reloading
+			// the route) ensures that they do load.
+			Em.run.later(this, function() {
+				// Forces a full model reload.
+				this.replaceRoute('template', this.get('id'));
+				Ember.run.later(this, function() {
+					this.get('documentView').config({ mode: 'select',
+							  listener: this,
+							  dataSource: this,
+							  partialSelects: true });
+				}, 100);	
+			}, 100);	
+		} else {
+			this.get('documentView').config({ mode: 'select',
+							  listener: this,
+							  dataSource: this,
+							  partialSelects: true });	
+		}
+		
 	},
 });

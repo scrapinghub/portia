@@ -1,4 +1,3 @@
-
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
 	{{#view ASTool.RenameTextField value=name}}
 		<div class="editable-name">Template {{name}}</div>
@@ -8,13 +7,13 @@
 <div class="accordion">
 	<h3>Annotations</h3>
 	<div class="section">
-		{{#if content}}
+		{{#if annotations}}
 			<div style="height:10px;font-weight:bold;color:#999">
 				<span style="float:left;margin-left:5px;margin-right:5px;width:120px;text-align:center">Map attribute</span>
 				<span style="float:left;width:120px;text-align:center">To field</span>
 			</div>
 			<div class="scrolling-container">
-				{{#each}}	
+				{{#each annotations}}	
 					{{#view ASTool.AnnotationWidget annotation=this action="editAnnotation"}}
 						{{#unless view.creatingField}}
 							<div style="float:right; margin-right:4px">

@@ -1,6 +1,6 @@
 <div id="topbar">
 	<div style="float:left;text-align:left;width:400px">
-		{{view ASTool.NavigationView}}
+		{{render "navigation"}}
 	</div>
 	<div style="float:left;margin-top:3px">
 		<span style="color:#666;float:left;padding:4px;margin:1px 10px 0px 10px;">
@@ -8,7 +8,7 @@
 		</span>
 		<span style="float:left;">
 			{{#unless editingAnnotation}}
-				{{view ASTool.ButtonView action="back" label="Continue browsing" disabled=addTemplateDisabled class="blue-button"}}
+				{{view ASTool.ButtonView action="continueBrowsing" label="Continue browsing" class="blue-button"}}
 			{{/unless}}
 		</span>
 	</div>
