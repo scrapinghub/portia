@@ -3,6 +3,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	
 	needs: ['application'],
 
+	navigationLabelBinding: 'content.name',
+
 	documentView: null,
 
 	newStartUrl: '',
@@ -154,7 +156,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	editTemplate: function(template) {
 		this.transitionToRoute('template', template);
-		this.set('autoloadTemplate', template);
 	},
 
 	fetchPage: function(url, parentFp) {
@@ -258,11 +259,9 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	},
 
 	reset: function() {
-		// TODO: This is hacky and needs to be improved.
-		this.set('autoloadTemplate', null);
 		this.set('browseHistory', []);
 		this.set('pageMap', {});
-	},
+	}.observes('content'),
 	
 	actions: {
 
@@ -385,11 +384,11 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 										  listener: this,
 										  dataSource: this });
 		this.get('documentView').showSpider();
-		var newSpiderSite = this.get('controllers.application.newSpiderSite')
+		var newSpiderSite = this.get('controllers.application.siteWizard')
 		if (newSpiderSite) {
 			Ember.run.next(this, function() {
 				this.fetchPage(this.addStartUrl(newSpiderSite));
-				this.set('controllers.application.newSpiderSite', null);
+				this.set('controllers.application.siteWizard', null);
 				this.saveSpider();
 			});
 		}

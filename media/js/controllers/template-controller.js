@@ -8,7 +8,9 @@ ASTool.MappedFieldData = Em.Object.extend({
 ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
-	needs: ['application', 'items'],
+	needs: ['application', 'items', 'spider_index'],
+
+	navigationLabelBinding: 'content.name',
 
 	annotations: [],
 
@@ -296,6 +298,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		continueBrowsing: function() {
 			this.saveAnnotations();
+			this.set('controllers.spider_index.autoloadTemplate', this.get('content'));
 			this.transitionToRoute('spider');
 		},
 	},

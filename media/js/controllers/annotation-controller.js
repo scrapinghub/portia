@@ -2,6 +2,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 
 	needs: ['application', 'template_index'],
+
+	navigationLabelBinding: 'content.name',
 	
 	mappingAttribute: null,
 	

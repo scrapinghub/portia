@@ -7,6 +7,17 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		return Em.isEmpty(this.get('projectSite'));
 	}.property('projectSite'),
 
+	getUnusedProjectName: function(baseName) {
+		var i = 1;
+		var newProjectName = baseName;
+		while(this.get('content').any(function(projectName) {
+			return projectName == newProjectName
+		})) {
+			newProjectName = baseName + '_' + i++;
+		}
+		return newProjectName;
+	},
+
 	actions: {
 		
 		openProject: function(projectName) {
@@ -26,14 +37,10 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 			if (siteUrl.indexOf('http') != 0) {
 				siteUrl = 'http://' + siteUrl;
 			}
-			var parsedUrl = URI.parse(siteUrl);
-			var newProjectName = parsedUrl.hostname;
-			var i = 1;
-			while(this.content.any(function(projectName){ return projectName == newProjectName})) {
-				newProjectName = parsedUrl.hostname + '_' + i++;
-			}
+			var newProjectName = this.getUnusedProjectName(URI.parse(siteUrl).hostname);
 			this.get('slyd').createProject(newProjectName).then(function() {
 				this.set('slyd.project', newProjectName);
+				// Initialize items spec.
 				this.get('slyd').saveItems([
 					ASTool.Item.create({ name: 'default', fields: [
 						ASTool.ItemField.create({ name: 'image', required: false, type: "image", vary: false }),
@@ -44,10 +51,8 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 				// Initialize extractors spec.
 				this.get('slyd').saveExtractors([]);
 				// Setup automatic creation of an initial spider.
-				if (this.get('projectSite')) {
-					this.set('controllers.application.newSpiderSite', this.get('projectSite'));
-					this.set('projectSite', null);
-				}
+				this.set('controllers.application.siteWizard', this.get('projectSite'));
+				this.set('projectSite', null);
 				this.transitionToRoute('project', { id: newProjectName });
 			}.bind(this));
 		}

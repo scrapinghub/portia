@@ -8,6 +8,8 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 
 	nameBinding: 'slyd.project',
 
+	navigationLabelBinding: 'slyd.project',
+
 	createSpiderDisabled: function() {
 		return Em.isEmpty(this.get('spiderPage'));
 	}.property('spiderPage'),
@@ -38,7 +40,6 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 	},
 
 	editSpider: function(spiderName) {
-		this.get('controllers.spider_index').reset();
 		this.get('slyd').loadSpider(spiderName).then(function(spider) {
 			this.transitionToRoute('spider', spider);
 		}.bind(this));
@@ -80,7 +81,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 
 	willEnter: function() {
 		this.get('documentView').showSpider();
-		if (this.get('controllers.application.newSpiderSite')) {
+		if (this.get('controllers.application.siteWizard')) {
 			Em.run.next(this, this.addSpider);
 		}
 	},
