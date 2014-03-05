@@ -1,6 +1,6 @@
 ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 
-	needs: ['application', 'spider-index'],
+	needs: ['application', 'spider_index'],
 
 	documentView: null,
 
@@ -38,7 +38,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 	},
 
 	editSpider: function(spiderName) {
-		this.get('controllers.spider-index').reset();
+		this.get('controllers.spider_index').reset();
 		this.get('slyd').loadSpider(spiderName).then(function(spider) {
 			this.transitionToRoute('spider', spider);
 		}.bind(this));

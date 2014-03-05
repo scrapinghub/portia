@@ -1,7 +1,7 @@
 ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 
-	needs: ['application', 'template-index'],
+	needs: ['application', 'template_index'],
 	
 	mappingAttribute: null,
 	
@@ -11,11 +11,9 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 
 	_selectingIgnore: false,
 
-	openAttributesOnShow: false,
-
 	highlightedElement: null,
 
-	scrapedItemBinding: 'controllers.template-index.scrapedItem',
+	scrapedItemBinding: 'controllers.template_index.scrapedItem',
 
 	editingAnnotation: true,
 	
@@ -23,7 +21,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		if (arguments.length > 1) {
 			this.set('_selectingIgnore', selectingIgnore);
 			if (selectingIgnore) {
-				this.set('documentView.restrictToDescendants', this.get('element'));
+				this.set('documentView.restrictToDescendants', this.get('content.element'));
 				this.set('documentView.partialSelectionEnabled', false);
 			} else {
 				this.set('documentView.restrictToDescendants', null);
@@ -37,10 +35,9 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		var sprites = [];
 		if (this.get('currentlySelectedElement')) {
 			sprites.pushObject(ASTool.AnnotationSprite.create(
-				{'annotation': this.content,
-				 'highlighted': 'true'}));
+				{ 'annotation': this.content,
+				  'highlighted': 'true' }));
 		}
-
 		if (this.highlightedElement) {
 			sprites.pushObject(ASTool.ElementSprite.create({
 				element: this.highlightedElement,
@@ -50,80 +47,43 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 			}));
 		}
 
-		var annotationSprites = this.get('controllers.template-index.sprites').filter(function(sprite) {
+		var annotationSprites = this.get('controllers.template_index.sprites').filter(function(sprite) {
 			return sprite.get('annotation.id') != this.content.get('id');
 		}.bind(this));
 
-		var ignoredElements = this.get('model.ignores').map(function(ignore) {
+		var ignoredElements = this.get('content.ignores').map(function(ignore) {
 			return ASTool.IgnoreSprite.create({ ignore: ignore });
 		});
 
 		return sprites.concat(annotationSprites).concat(ignoredElements);
 	}.property('currentlySelectedElement',
-			   'controllers.template-index.sprites',
-			   'model.ignores.@each.highlighted',
-			   'model.ignores.@each.ignoreBeneath',
+			   'controllers.template_index.sprites',
+			   'content.ignores.@each.highlighted',
+			   'content.ignores.@each.ignoreBeneath',
 			   'highlightedElement'),
 	
 	clearGeneratedIns: function(insElement) {
 		$(insElement).removePartialAnnotation();
 	},
 	
-	cancelEdit: function(annotation) {
-		// FIXME: If we are editing a partial annotation and we cancel we
-		// may lose the partial annotation.
-		this.set('selectingIgnore', false);
-		this.set('documentView.restrictToDescendants', false);
-		this.set('documentView.partialSelectionEnabled', true);
-		annotation.set('selectedElement', null);
-		var isPartial = this.get('isPartial');
-
-		if (!annotation.get('element')) {
-			annotation.deleteRecord();
-			annotation.save();	
-		} else {
-			annotation.reload();
-		}
-		if (isPartial &&
-			annotation.get('element') != this.get('currentlySelectedElement')) {
+	cancelEdit: function() {
+		this.set('content.selectedElement', null);
+		if (this.get('content.generated') &&
+			this.get('content.element') != this.get('currentlySelectedElement')) {
 			this.clearGeneratedIns(this.get('currentlySelectedElement'));
 		}
-		this.set('currentlySelectedElement', null);
 		this.transitionToRoute('template');
 	},
 
-	/*attributeMapped: function(attribute, item, field) {
-		if (this.get('template.scrapes') != item['name']) {
-			var foundMappedAnnotation = false;
-			this.get('controllers.annotations.model').forEach(function(annotation) {
-				Object.keys(annotation.get('annotations')).forEach(function(key) {
-					if (annotation.get('annotations')[key].indexOf('_sticky') != 0) {
-						foundMappedAnnotation = true;
-					}
-				});
-			});
-			if (foundMappedAnnotation) {
-				// Only one item type per template is supported.
-				if (confirm('Are you sure that you want to change the item scraped by this template? ' +
-							'You will lose all previously defined attribute mappings for this template!')) {
-					this.get('controllers.annotations').removeMappings();
-				} else {
-					return;
-				}	
-			}
-		}
-		this.get('content').addMapping(attribute.get('name'), field['name']);
-		this.set('template.scrapes', item['name']);
-	},*/
+	saveEdit: function() {
+		this.get('controllers.template_index').saveAnnotations();
+		this.transitionToRoute('template');
+	},
 	
 	actions: {
 		
 		doneEditing: function(annotation) {
-			annotation.save().then(function() {
-				annotation.set('selectedElement', null);
-				this.get('controllers.template-index').saveAnnotations();
-				this.transitionToRoute('template');
-			}.bind(this));
+			this.saveEdit(annotation);
 		},
 		
 		cancelEdit: function(annotation) {
@@ -131,33 +91,27 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		},
 		
 		mapAttribute: function(attribute) {
-			attribute.set('annotation', this.get('model'));
-			/*this.set('mappingAttribute', attribute);
-			this.set('openAttributesOnShow', true);
-			this.pushRoute('items', 'Mapping attribute: ' + attribute.get('name'));*/
 			this.set('mappingAttribute', attribute);
 		},
 
 		fieldSelected: function(field) {
-			this.content.addMapping(this.get('mappingAttribute.name'), field);
+			this.get('content').addMapping(this.get('mappingAttribute.name'), field);
 			this.set('mappingAttribute', null);
 		},
 
 		makeSticky: function(attribute) {
-			attribute.set('annotation', this.get('model'));
-			var maxSticky = this.get('controllers.template-index.maxSticky');
+			var maxSticky = this.get('controllers.template_index.maxSticky');
 			var stickyName = '_sticky' + (maxSticky + 1);
-			this.content.addMapping(attribute.get('name'), stickyName);
-			this.content.addRequired(stickyName);
+			this.get('content').addMapping(attribute.get('name'), stickyName);
+			this.get('content').addRequired(stickyName);
 		},
 
 		unmapAttribute: function(attribute) {
-			this.content.removeMapping(attribute.name);
+			this.get('content').removeMapping(attribute.name);
 		},
 
 		deleteIgnore: function(ignore) {
-			var ignores = this.get('ignores');
-			ignores.removeObject(ignore);
+			this.get('content.ignores').removeObject(ignore);
 		},
 
 		highlightElement: function(element) {
@@ -181,21 +135,21 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		elementSelected: function(element, partialSelection) {
 			if (this.get('selectingIgnore')) {
 				if (element) {
-					this.content.addIgnore(element);	
+					this.get('content').addIgnore(element);	
 				}
 				this.set('selectingIgnore', false);
 			} else {
-				var needsConfirmation = this.get('ignores').length || this.get('mappedAttributes').length;
+				var needsConfirmation = this.get('content.ignores').length ||
+					this.get('content.mappedAttributes').length;
 				if (!needsConfirmation || this.confirmChangeSelection()) {
-					if (this.get('isPartial')) {
-						this.clearGeneratedIns(this.get('currentlySelectedElement'));	
+					if (this.get('content.generated')) {
+						this.clearGeneratedIns(this.get('content.element'));	
 					}
-					this.openAccordion(0);
 					this.set('highlightedElement', null);
-					this.content.set('selectedElement', element);
-					this.content.set('isPartial', !!partialSelection);
-					this.content.removeIgnores();
-					this.content.removeMappings();
+					this.set('content.selectedElement', element);
+					this.set('content.generated', !!partialSelection);
+					this.get('content').removeIgnores();
+					this.get('content').removeMappings();
 					this.set('currentlySelectedElement', element);
 				}
 			}
@@ -214,16 +168,11 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 										  listener: this,
 										  dataSource: this,
 										  partialSelects: true });
-		this.set('currentlySelectedElement', this.get('element'));
-		if (this.get('openAttributesOnShow')) {
-			Em.run.later(this, function() {
-				this.openAccordion(1);
-			}, 100);
-			this.set('openAttributesOnShow', false);
-		}
+		this.set('currentlySelectedElement', this.get('content.element'));
 	},
 
 	willLeave: function() {
 		this.set('selectingIgnore', false);
+		this.set('currentlySelectedElement', null);
 	},
 });

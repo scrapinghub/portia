@@ -128,7 +128,6 @@ ASTool.TemplateIndexRoute = Ember.Route.extend({
 		// Load the annotations if we can.
 		if (controller.get('documentView').getIframe().length) {
 			var annotationsPromise = new Ember.RSVP.Promise(function(resolve) {
-				controller.deleteAllAnnotations();
 				controller.get('documentView').displayDocument(
 					model.get('annotated_body'),
 					function(docIframe){
@@ -137,7 +136,7 @@ ASTool.TemplateIndexRoute = Ember.Route.extend({
 					}
 				);
 			}).then(function() {
-				return this.store.find('annotation');
+				return this.get('annotationsStore').findAll();
 			}.bind(this)).then(function(annotations) {
 				controller.set('annotationsLoaded', true);
 				controller.set('annotations', annotations);
@@ -187,10 +186,9 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 	},
 
 	renderTemplate: function() {
+		var controller = this.controllerFor('annotation');
 		this.render('annotation', {
-			into: 'application',
-      		outlet: 'main',
-      		controller: 'annotation',
+      		controller: controller,
     	});
 
     	this.render('topbar-extraction', {

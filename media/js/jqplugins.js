@@ -76,7 +76,12 @@ jQuery.fn.findAnnotatedElement = function(annotationId) {
 };
 
 jQuery.fn.findIgnoredElements = function(annotationId) {
-	var selector = '[data-scrapy-ignore*="' + annotationId + '"], [data-scrapy-ignore-beneath*="' + annotationId + '"]';
+	var selector;
+	if (annotationId) {
+		selector = '[data-scrapy-ignore*="' + annotationId + '"], [data-scrapy-ignore-beneath*="' + annotationId + '"]';
+	} else {
+		selector = '[data-scrapy-ignore], [data-scrapy-ignore-beneath]';
+	}
 	return this.find(selector);
 };
 

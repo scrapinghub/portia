@@ -31,6 +31,17 @@ Ember.Application.initializer({
 });
 
 
+Ember.Application.initializer({
+ 	name: 'annotationsStoreInitializer',
+  
+	initialize: function(container, application) {
+    	container.register('annotations:store', ASTool.AnnotationsStore);
+    	application.inject('route', 'annotationsStore', 'annotations:store');
+    	application.inject('controller', 'annotationsStore', 'annotations:store');
+  	}
+});
+
+
 function s4() {
 	return Math.floor((1 + Math.random()) * 0x10000)
 		.toString(16)

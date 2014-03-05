@@ -203,14 +203,14 @@ ASTool.VariantSelect = ASTool.Select.extend({
 
 	content: function() {
 		var options = [{ option: 0, label: "Base(0)" }];
-		var maxVariant = this.get('controller.controllers.template-index.maxVariant');
+		var maxVariant = this.get('controller.controllers.template_index.maxVariant');
 		var i;
 		for (i = 1; i <= maxVariant; i++) {
 			options.pushObject({ option: i, label: 'Variant ' + i });
 		}
 		options.pushObject({ option: i, label: 'Add new variant (' + i + ')' });
 		return options;
-	}.property('controller.controllers.template-index.maxVariant'),
+	}.property('controller.controllers.template_index.maxVariant'),
 
 	select: function(event, data) {
 		// FIXME: raise an event instead of directly setting the property.

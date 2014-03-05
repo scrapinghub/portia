@@ -1,7 +1,7 @@
 ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
-	needs: ['application', 'template-index'],
+	needs: ['application'],
 
 	documentView: null,
 
@@ -38,20 +38,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	displayNofollow: function() {
 		return this.content.get('links_to_follow') != 'none';
 	}.property('model.links_to_follow'),
-
-	showCrawlGraph: function(key, show) {
-		if (!ASTool.graph) {
-			return false;
-		}
-		if (arguments.length > 1) {
-            if (show) {
-                ASTool.graph.set('hidden', false);
-            } else {
-                ASTool.graph.set('hidden', true);
-            }
-        }
-        return  !ASTool.graph.get('hidden');
-	}.property('ASTool.graph.hidden'),
 
 	_showLinks: false,
 
@@ -196,9 +182,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 											  dataSource: this });
 							this.set('loadedPageFp', data.fp);
 							this.get('pageMap')[data.fp] = data;
-							if (ASTool.graph) {
-								ASTool.graph.addPage(data, parentFp);
-							}
 						}.bind(this)
 					);
 				} else {
@@ -233,7 +216,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			  page_id: page.fp,
 			  url: page.url });
 		this.get('content.templates').pushObject(template);
-		this.get('controllers.template-index').deleteAllAnnotations();
 		this.saveSpider().then(
 			function() {
 				this.editTemplate(template);
@@ -403,10 +385,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 										  listener: this,
 										  dataSource: this });
 		this.get('documentView').showSpider();
-		/*if (!ASTool.graph) {
-			ASTool.set('graph', ASTool.CrawlGraph.create());
-		}
-		ASTool.graph.set('hidden', true);*/
 		var newSpiderSite = this.get('controllers.application.newSpiderSite')
 		if (newSpiderSite) {
 			Ember.run.next(this, function() {
@@ -426,9 +404,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	},
 
 	willLeave: function() {
-		/*ASTool.graph.clear();
-		ASTool.graph.set('hidden', true);*/
-		// Cancel all pending fetches.
 		this.get('pendingFetches').setObjects([]);
 		this.get('documentView').hideLoading();
 	},

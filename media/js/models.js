@@ -1,156 +1,41 @@
 /*************** Adapters & Serializers ****************/
 
-/**
-	NOTE: Templates, Annotations and Spiders make use of EmberData
-	(http://emberjs.com/api/data/) for persistence, while the rest o the
-	domain objects are persisted in an ad-hoc manner.
-	Ember data has proven to be too complicated and sometimes unreliable so
-	the best will be to rewrite persistence for the objects that make use
-	of EmberData.
-*/
-
-ASTool.IFrameAdapter = DS.Adapter.extend({
-	
-	storageAttribute: null,
-
+ASTool.AnnotationsStore = Em.Object.extend({
 	iframeBinding: 'ASTool.iframe',
-	
-	generateIdForRecord: function(store, record) {
-		return ASTool.guid();
-	},
-	
-	find: function(store, type, id) {
-		var annotatedElement = this.get('iframe').findAnnotatedElement(id);
-		var annotationJSON = $.parseJSON($(annotatedElement).attr(this.get('storageAttribute')));
-		return annotationJSON;
-	},
-	
-	findAll: function(store, type) {
+
+	findAll: function() {
 		var annotatedElements = this.get('iframe').findAnnotatedElements();
-		var annotationsJSON = [];
+		var annotations = [];
 		annotatedElements.each(function(i, element) {
-			annotationsJSON.pushObject($.parseJSON($(element).attr(this.get('storageAttribute'))));
+			var annotationJSON = $.parseJSON($(element).attr('data-scrapy-annotate'));
+			annotations.pushObject(ASTool.Annotation.create(annotationJSON));
 		}.bind(this));
-		return annotationsJSON;
+		return annotations;
 	},
-	
-	createRecord: function(store, type, record) {
-		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
-		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
-		return this.wrapInPromise(function() {
-			return serializedRecord;
-		}, this);
-	},
-	
-	updateRecord: function(store, type, record) {
-		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: true });
-		var oldAnnotatedElement = this.get('iframe').findAnnotatedElement(record.get('id'));
-		oldAnnotatedElement.removeAttr(this.get('storageAttribute'));
-		$(record.get('element')).attr(this.get('storageAttribute'), JSON.stringify(serializedRecord));
-		return this.wrapInPromise(function() {
-			return serializedRecord;
-		}, this);
-	},
-	
-	deleteRecord: function(store, type, record) {
-		if (record.get('isPartial') && record.get('element')) {
-			$(record.get('element')).removePartialAnnotation();
-		} else {
-			$(record.get('element')).removeAttr(this.get('storageAttribute'));
-		}
-		return this.wrapInPromise(function(){}, this);
-	},
-	
-	wrapInPromise: function(callback, context) {
-		return new Ember.RSVP.Promise(function(resolve) {
-			Ember.run.once(function() {
-				resolve(callback.call(context));
-			});
-		});
-	},
-});
 
-
-ASTool.AnnotationAdapter = ASTool.IFrameAdapter.extend({
-
-	storageAttribute: 'data-scrapy-annotate',
-
-	deleteRecord: function(store, type, record) {
-		var ignoredElements = this.get('iframe').findIgnoredElements(record.get('id'));
+	_prepareToSave: function() {
+		var ignoredElements = this.get('iframe').findIgnoredElements();
 		ignoredElements.removeAttr('data-scrapy-ignore');
 		ignoredElements.removeAttr('data-scrapy-ignore-beneath');
-		return this._super(store, type, record);
+		var annotatedElements = this.get('iframe').findAnnotatedElements();
+		annotatedElements.each(function(i, element) {
+			$(element).attr('data-scrapy-annotate', null);
+		}.bind(this));
 	},
 
-	updateRecord: function(store, type, record) {
-		var oldIgnoredElements = this.get('iframe').findIgnoredElements(record.get('id'));
-		oldIgnoredElements.removeAttr('data-scrapy-ignore');
-		oldIgnoredElements.removeAttr('data-scrapy-ignore-beneath');
-		record.get('ignores').forEach(function(ignore) {
-			var ignoreJSON = {id: record.get('id'), name: ignore.get('name')};
-			var attrName = ignore.get('ignoreBeneath') ? 'data-scrapy-ignore-beneath' : 'data-scrapy-ignore';
-			$(ignore.get('element')).attr(attrName, JSON.stringify(ignoreJSON));
-		});
-		return this._super(store, type, record);		
-	},
-});
-
-
-/*ASTool.SlydAdapter = DS.Adapter.extend({
-	
-	find: function(store, type, id) {
-		var methodName = ('load ' + type.typeKey).camelize();
-		return this.get('slyd.' + methodName).call(this.get('slyd'), id);
-	},
-	
-	findAll: function(store, type) {
-		var methodName = ('load ' + type.typeKey.pluralize()).camelize();
-		return this.get('slyd.' + methodName).call(this.get('slyd'));
-	},
-
-	createRecord: function(store, type, record) {
-		return this.updateRecord(store, type, record);
-	},
-	
-	updateRecord: function(store, type, record) {
-		var serializedRecord = store.serializerFor(type).serialize(record, { includeId: false });
-		var methodName = ('save ' + type.typeKey).camelize();
-		return this.get('slyd.' + methodName).call(this.get('slyd'), record.get('id'), serializedRecord);
-	},
-	
-	deleteRecord: function(store, type, record) {
-		var methodName = ('delete ' + type.typeKey).camelize();
-		return this.get('slyd.' + methodName).call(this.get('slyd'), record.get('id'));
-	},
-});
-
-ASTool.SpiderSerializer = DS.RESTSerializer.extend({
-
-	extractSingle: function(store, type, payload, id, requestType) {
-		payload = {spider: payload};
-		var templates = payload.spider.templates;
-		var templateIds = templates.mapProperty('id');
-		payload.templates = templates;
-		payload.spider.templates = templateIds;
-		return this._super(store, type, payload, id, requestType);
-  	},
-
-	serializeHasMany: function(record, json, relationship) {
-		var key = relationship.key;
-		var relationshipType = DS.RelationshipChange.determineRelationshipType(record.constructor, relationship);
-
-	    if (relationshipType === 'manyToNone' || 
-		    relationshipType === 'manyToMany' ||
-			relationshipType === 'manyToOne') {
-			json[key] = record.get(key).map(function(relative) {
-				return record.store.serializerFor(relationship.type).serialize(relative, { includeId: false });
+	saveAll: function(annotations) {
+		this._prepareToSave();
+		annotations.forEach(function(annotation) {
+			annotation.get('ignores').forEach(function(ignore) {
+				var ignoreJSON = {id: annotation.get('id'), name: ignore.get('name')};
+				var attrName = ignore.get('ignoreBeneath') ? 'data-scrapy-ignore-beneath' : 'data-scrapy-ignore';
+				$(ignore.get('element')).attr(attrName, JSON.stringify(ignoreJSON));
 			});
-	    }
-	}
+			$(annotation.get('element')).attr('data-scrapy-annotate',
+				JSON.stringify(annotation.serialize()));
+		}.bind(this));
+	},
 });
-
-ASTool.SpiderAdapter = ASTool.SlydAdapter.extend();*/
-
 
 /*************************** Models **************************/
 
@@ -241,7 +126,25 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 	}.property('init_requests'),
 }),
 
-ASTool.Annotation = DS.Model.extend({
+ASTool.Annotation = ASTool.SimpleModel.extend({
+
+	init: function() {
+		this._super();
+		var ignoredElements = this.get('iframe').findIgnoredElements(this.get('id')).toArray();
+		var ignores = ignoredElements.map(function(element) {
+			var attributeName = $(element).attr('data-scrapy-ignore') ? 'data-scrapy-ignore' : 'data-scrapy-ignore-beneath';
+			var name = $.parseJSON($(element).attr(attributeName))['name'];
+			return ASTool.Ignore.create({element: element,
+										 name: name,
+										 ignoreBeneath: attributeName == 'data-scrapy-ignore-beneath'});
+		});
+		this.set('ignores', ignores);
+	},
+
+	idBinding: null,
+
+	serializedProperties: ['id', 'variant', 'annotations', 'required', 'generated'],
+
 	name: function() {
 		var annotations = this.get('annotations');
 		if (annotations && Object.keys(annotations).length) {
@@ -256,11 +159,15 @@ ASTool.Annotation = DS.Model.extend({
 		}
 	}.property('annotations'),
 
-	variant: DS.attr('number', { defaultValue: 0 }),
+	variant: 0,
 	
-	annotations: DS.attr(),
+	annotations: null,
 
-	required: DS.attr(),
+	required: false,
+
+	generated: false,
+
+	ignores: null,
 
 	iframeBinding: 'ASTool.iframe',
 	
@@ -288,25 +195,6 @@ ASTool.Annotation = DS.Model.extend({
 	removeRequired: function(field) {
 		this.get('required').removeObject(field);
 	},
-	
-	isPartial: false,
-	
-	_ignores: null,
-	
-	ignores: function() {
-		if (this.get('_ignores') == null) {
-			var ignoredElements = this.get('iframe').findIgnoredElements(this.get('id')).toArray();
-			var ignores = ignoredElements.map(function(element) {
-				var attributeName = $(element).attr('data-scrapy-ignore') ? 'data-scrapy-ignore' : 'data-scrapy-ignore-beneath';
-				var name = $.parseJSON($(element).attr(attributeName))['name'];
-				return ASTool.Ignore.create({element: element,
-											 name: name,
-											 ignoreBeneath: attributeName == 'data-scrapy-ignore-beneath'});
-			});
-			this.set('_ignores', ignores);
-		} 
-		return this.get('_ignores');
-	}.property('_ignores'),
 
 	addIgnore: function(element) {
 		var ignore = ASTool.Ignore.create({element: element});
@@ -318,11 +206,11 @@ ASTool.Annotation = DS.Model.extend({
 	},
 
 	removeIgnores: function() {
-		this.get('_ignores').setObjects([]);
+		this.get('ignores').setObjects([]);
 	},
 
 	partialText: function() {
-		if (this.get('element') && this.get('isPartial')) {
+		if (this.get('element') && this.get('generated')) {
 			return $(this.get('element')).text();
 		} else {
 			return '';
@@ -433,12 +321,6 @@ ASTool.Annotation = DS.Model.extend({
 			return fieldName && fieldName.indexOf('_sticky') == 0;
 		});
 	}.property('attributes.@each', 'annotations'),
-
-	reload: function() {
-		// Force reload of ignores from the document.
-		this.set('_ignores', null);
-		return this._super();
-	},
 });
 
 

@@ -8,7 +8,7 @@ ASTool.MappedFieldData = Em.Object.extend({
 ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
-	needs: ['application', 'annotation', 'items'],
+	needs: ['application', 'items'],
 
 	annotations: [],
 
@@ -86,44 +86,31 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		}
 	},
 		
-	addAnnotation: function(element, isPartial) {
-		var annotation = this.store.createRecord('annotation');
-		annotation.set('selectedElement', element);
-		annotation.set('annotations', {});
-		annotation.set('required', []);
-		annotation.set('isPartial', !!isPartial);
+	addAnnotation: function(element, generated) {
+		var annotation = ASTool.Annotation.create({
+			id: ASTool.shortGuid(),
+			selectedElement: element,
+			annotations: {},
+			required: [],
+			generated: !!generated,
+		});
+		this.get('annotations').pushObject(annotation);
 		this.guessInitialMapping(annotation);
-		annotation.save().then(function() {
-			annotation.set('selectedElement', null);
-			this.saveAnnotations();
-		}.bind(this));
 	},
 
 	mapAttribute: function(annotation, attribute, field) {
 		annotation.removeMappings();
 		annotation.addMapping(attribute, field);
-		annotation.save().then(this.saveAnnotations.bind(this));
 	},
 	
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
-		//annotation.set('template', this.get('template'));
+		this.saveAnnotations();
 		this.transitionToRoute('annotation', annotation);
-	},
-	
-	deleteAllAnnotations: function() {
-		var annotations = this.get('annotations').toArray();
-		annotations.invoke('deleteRecord');
-		annotations.invoke('save');
-	},
-
-	removeMappings: function() {
-		var annotations = this.get('annotations').toArray();
-		annotations.invoke('removeMappings');
-		annotations.invoke('save');
 	},
 
 	saveAnnotations: function() {
+		this.get('annotationsStore').saveAll(this.get('annotations'));
 		if (this.get('content')) {
 			this.set('content.annotated_body', this.get('documentView').getAnnotatedDocument());
 		}
@@ -235,8 +222,11 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 		
 		deleteAnnotation: function(annotation) {
-			annotation.deleteRecord();
-			annotation.save().then(this.saveAnnotations.bind(this));
+			if (annotation.get('generated')) {
+				$(annotation.get('element')).removePartialAnnotation();
+			}
+			this.get('annotations').removeObject(annotation);
+
 		},
 
 		createField: function(fieldName, fieldType) {
@@ -298,8 +288,6 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 					annotation.removeRequired(fieldName);
 				}
 			});
-			this.get('annotations').invoke('save');
-			Ember.run.next(this, this.saveAnnotations);
 		},
 
 		editItems: function() {
@@ -307,6 +295,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 
 		continueBrowsing: function() {
+			this.saveAnnotations();
 			this.transitionToRoute('spider');
 		},
 	},

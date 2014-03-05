@@ -421,10 +421,6 @@ ASTool.DocumentView = Em.Object.extend({
 			window.onresize = function() {
 				this.adjustSizes();
 				this.redrawNow();
-				if (ASTool.graph) {
-					// FIXME: move this to a good place.
-					ASTool.graph.resize();
-				}
 			}.bind(this);
 		}
 	},
