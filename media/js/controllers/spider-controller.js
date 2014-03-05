@@ -1,7 +1,7 @@
 ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
-	needs: ['application'],
+	needs: ['application', 'project_index'],
 
 	navigationLabelBinding: 'content.name',
 
@@ -333,19 +333,18 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		rename: function(oldName, newName) {
-			if (confirm('Are you sure you want to rename this spider? This operation cannot be undone.')) {
-				this.get('slyd').renameSpider(oldName, newName).then(
-					function() {
-						this.replaceRoute('spider', this.get('model'));
-					}.bind(this),
-					function(reason) {
-						this.set('id', oldName);
-						alert('The name ' + newName + ' is not a valid spider name.');
-					}.bind(this)
-				);
-			} else {
-				this.set('id', oldName);
-			}
+			var spidersForProject = this.get('controllers.project_index.content');
+			newName = this.getUnusedName(newName, spidersForProject);
+			this.set('content.name', newName);
+			this.get('slyd').renameSpider(oldName, newName).then(
+				function() {
+					this.replaceRoute('spider', this.get('content'));
+				}.bind(this),
+				function(reason) {
+					this.set('name', oldName);
+					alert('The name ' + newName + ' is not a valid spider name.');
+				}.bind(this)
+			);
 		},
 
 		undoChanges: function() {

@@ -7,17 +7,6 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		return Em.isEmpty(this.get('projectSite'));
 	}.property('projectSite'),
 
-	getUnusedProjectName: function(baseName) {
-		var i = 1;
-		var newProjectName = baseName;
-		while(this.get('content').any(function(projectName) {
-			return projectName == newProjectName
-		})) {
-			newProjectName = baseName + '_' + i++;
-		}
-		return newProjectName;
-	},
-
 	actions: {
 		
 		openProject: function(projectName) {
@@ -37,7 +26,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 			if (siteUrl.indexOf('http') != 0) {
 				siteUrl = 'http://' + siteUrl;
 			}
-			var newProjectName = this.getUnusedProjectName(URI.parse(siteUrl).hostname);
+			var newProjectName = this.getUnusedName(URI.parse(siteUrl).hostname, this.get('content'));
 			this.get('slyd').createProject(newProjectName).then(function() {
 				this.set('slyd.project', newProjectName);
 				// Initialize items spec.

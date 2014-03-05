@@ -63,19 +63,15 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		},
 
 		rename: function(oldName, newName) {
-			if (confirm('Are you sure you want to rename this project? This operation cannot be undone.')) {
-				this.get('slyd').renameProject(oldName, newName).then(
-					function() {
-						this.replaceRoute('project', { id: newName });
-					}.bind(this),
-					function(reason) {
-						this.set('name', oldName);
-						alert('The name ' + newName + ' is not a valid project name.');
-					}.bind(this)
-				);
-			} else {
-				this.set('name', oldName);
-			}
+			this.get('slyd').renameProject(oldName, newName).then(
+				function() {
+					this.replaceRoute('project', { id: newName });
+				}.bind(this),
+				function(reason) {
+					this.set('name', oldName);
+					alert('The name ' + newName + ' is not a valid project name.');
+				}.bind(this)
+			);
 		},
 	},
 
