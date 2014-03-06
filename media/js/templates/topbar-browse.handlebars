@@ -8,6 +8,9 @@
 		<span style="float:left">
 			{{view ASTool.ButtonView action="browseBack" class="textless-button" icon="ui-icon-arrowthick-1-w" disabled=browseBackDisabled}}
 		</span>
+		<span style="float:left">
+			{{view ASTool.ButtonView action="reload" class="textless-button" icon="ui-icon-arrowrefresh-1-e" disabled=reloadDisabled}}
+		</span>
 		
 		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;">
 			{{controller.currentUrl}}
@@ -24,6 +27,12 @@
 				{{view ASTool.ButtonView action="toggleShowItems" label=itemsButtonLabel class="black-button"}}
 			</span>
 		{{/unless}}
+
+		{{#if showNoItemsExtracted}}
+			<span style="float:left;margin:5px 0px 0px 10px;color:#999">
+				No items extracted
+			</span>
+		{{/if}}
 
 		{{#if showItems}}
 			{{#if this.extractedItems.length}}

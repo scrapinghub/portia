@@ -64,12 +64,20 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		return this.get('browseHistory').length <= 1;
 	}.property('browseHistory.@each'),
 
+	reloadDisabled: function() {
+		return !this.get('loadedPageFp');
+	}.property('loadedPageFp'),
+
 	showItemsDisabled: function() {
 		var loadedPageFp = this.get('loadedPageFp');
 		if (this.pageMap[loadedPageFp]) {
 			return !loadedPageFp ? true : !this.pageMap[loadedPageFp].items.length;	
 		}
 		return true;
+	}.property('loadedPageFp'),
+
+	showNoItemsExtracted: function() {
+		return this.get('loadedPageFp') && Em.isEmpty(this.get('extractedItems'));
 	}.property('loadedPageFp'),
 
 	itemsButtonLabel: function() {
@@ -158,7 +166,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		this.transitionToRoute('template', template);
 	},
 
-	fetchPage: function(url, parentFp) {
+	fetchPage: function(url, parentFp, skipHistory) {
 		this.set('loadedPageFp', null);
 		var documentView = this.get('documentView');
 		documentView.showLoading();
@@ -172,7 +180,9 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				}
 				if (!data.error) {
 					data.url = url;
-					this.get('browseHistory').pushObject(data.fp);
+					if (!skipHistory) {
+						this.get('browseHistory').pushObject(data.fp);
+					}
 					documentView.displayDocument(data.page,
 						function(docIframe){
 							documentView.hideLoading();
@@ -243,11 +253,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		this.content.get('follow_patterns').pushObject(pattern);
 	},
 
-	autoFetch: function() 
-	{
+	autoFetch: function() {
 		if (this.get('loadedPageFp') && this.get('showLinks')) {
 			this.saveSpider().then(function() {
-				this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url);	
+				this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);	
 			}.bind(this));
 		}
 	}.observes('follow_patterns.@each',
@@ -281,7 +290,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.saveSpider().then(function() {
 				if (this.get('loadedPageFp')) {
 					this.fetchPage(
-						this.get('pageMap')[this.get('loadedPageFp')].url);
+						this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
 				}
 			}.bind(this));
 		},
@@ -292,6 +301,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.saveSpider().then(function() {
 				this.fetchPage(url);	
 			}.bind(this));
+		},
+
+		reload: function() {
+			this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
 		},
 
 		browseBack: function() {
