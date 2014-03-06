@@ -66,21 +66,23 @@ body{
 #hovered-element-info {
 	font: 1.0em Verdana,Helvetica,Arial,sans-serif;
 	color:white;
-	min-width: 100px;
 	padding: 8px;
-	position: absolute;
-	top: 0px;
-	left: 0px;
+	float: left;
 	background-color: rgba(0,0,0,0.7);
-	z-index: 100;
 	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.6);
-	pointer-events: none;
+	margin-right: 15px;
 	display: none;
+	pointer-events:all;
 }
 
 #hovered-element-info .path {
 	font-weight:bold;
 	color:orange;
+}
+
+#hovered-element-info button {
+	float:right;
+	margin: -3px -3px 0px 5px;
 }
 
 .button-shadow {

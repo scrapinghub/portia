@@ -20,6 +20,8 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	annotationsLoaded: false,
 
+	showContinueBrowsing: true,
+
 	scrapedItem: function() {
 		if (!Em.isEmpty(this.get('items'))) {
 			return this.get('items').findBy('name', this.get('content.scrapes'));	

@@ -134,19 +134,12 @@ ASTool.DocumentView = Em.Object.extend({
 	*/
 	displayDocument: function(documentContents, readyCallback) {
 		this.set('loadingDoc', true);
-		if (this.get('autoRedrawId')) {
-			clearInterval(this.get('autoRedrawId'));
-		}
 		
 		// FIXME!!
 		if (!Ember.testing){
 			document.getElementById(this.get('iframeId')).srcdoc = documentContents;
 		} else {
 			this.getIframe().find('html').html(documentContents);
-		}
-
-		if (!this.getCanvas) {
-			this.initCanvas();	
 		}
 		
 		// We need to disable all interactions with the document we are loading
@@ -295,16 +288,40 @@ ASTool.DocumentView = Em.Object.extend({
 		$("#hovered-element-info").css('display', 'none');
 	},
 
+	initHoveredInfo: function() {
+		var contents = '<div>' +
+			'<span class="path"/>' +
+			'<button class="clear-button textless-button"/>' +
+			'</div>' +
+			'<div class="attributes"/>';
+		$('#hovered-element-info').html(contents);
+		$('#hovered-element-info button').button({ icons: { primary: 'ui-icon-arrowthickstop-1-e' } })
+			.click(function() {
+				var floatPos = $('#hovered-element-info').css('float');
+				var icon;
+				if (floatPos == 'left') {
+					floatPos = 'right';
+					icon = 'ui-icon-arrowthickstop-1-w';
+				} else {
+					floatPos = 'left';
+					icon = 'ui-icon-arrowthickstop-1-e';
+				}
+				$("#hovered-element-info").css('float', floatPos);
+				$('#hovered-element-info button').button({ icons: { primary: icon } })
+			});
+	},
+
 	updateHoveredInfo: function(element) {
 		var path = $(element).getPath();
 		var attributes = $(element).getAttributeList();
-		var contents = '<div class="path">' + path + '</div><br/>';
+		var attributesHtml = '';
 		$(attributes).each(function(i, attribute) {
-			var value = trim(attribute.get('value'), 60);
-			contents += '<div><span>' + attribute.get('name') + ": </span>";
-			contents += '<span style="color:#AAA">' + value + '</span></div>';
+			var value = trim(attribute.get('value'), 50);
+			attributesHtml += '<div><span>' + attribute.get('name') + ": </span>";
+			attributesHtml += '<span style="color:#AAA">' + value + '</span></div>';
 		});
-		$("#hovered-element-info").html(contents);
+		$('#hovered-element-info .attributes').html(attributesHtml);
+		$('#hovered-element-info .path').html(path);
 	},
 
 	mouseOverHandler:  function(event) {
@@ -408,20 +425,23 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	initCanvas: function() {
-		this.set('canvas', ASTool.Canvas.create({ canvasId: 'infocanvas' }));
-		this.adjustSizes();
-		if (!Ember.testing){
-			// Disable automatic redrawing during tests.
-			var self = this;
-			this.set('autoRedrawId', setInterval(function() {
-				Ember.run(function(){
-					self.redrawNow();
-				});
-			}, 1000));
-			window.onresize = function() {
-				this.adjustSizes();
-				this.redrawNow();
-			}.bind(this);
+		if (!this.get('canvas')) {
+			this.set('canvas', ASTool.Canvas.create({ canvasId: 'infocanvas' }));
+			this.initHoveredInfo();
+			this.adjustSizes();
+			if (!Ember.testing){
+				// Disable automatic redrawing during tests.
+				var self = this;
+				this.set('autoRedrawId', setInterval(function() {
+					Ember.run(function(){
+						self.redrawNow();
+					});
+				}, 1000));
+				window.onresize = function() {
+					this.adjustSizes();
+					this.redrawNow();
+				}.bind(this);
+			}
 		}
 	},
 });
