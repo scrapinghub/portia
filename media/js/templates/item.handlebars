@@ -1,17 +1,18 @@
 <div>
-	<h5>Choose an item field</h5>
-	<div style="text-align:center; margin-top:20px">
+	<h5 style="text-align:center;">Choose an item field</h5>
+	<div style="text-align:center; margin-top:10px">
 		<h4>Item {{name}}</h4>
 		{{#if fields}}
+			<div style="margin-top:10px">
 			<table style="margin:0 auto;">
 				<tr style="font-size:0.9em;font-weight:bold;color:#999"> <td>Field</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 				{{#each fields}}
 					<tr>
-						<td><h4 style="color:#333">{{name}}</h4></td>
-						<td><h4>type</h4></td>
-						<td><h4>{{#if required}}yes{{else}}no{{/if}}</h4></td>
-						<td><h4>{{#if vary}}yes{{else}}no{{/if}}</h4></td>
-						<td style="padding-bottom:4px;">{{view ASTool.ButtonView icon="ui-icon-circle-triangle-e"  action="fieldSelected" argument=name class="textless-button blue-button"}}</td>
+						<td><h5 style="color:#333">{{name}}</h5></td>
+						<td><h5>type</h5></td>
+						<td><h5>{{#if required}}yes{{else}}no{{/if}}</h5></td>
+						<td><h5>{{#if vary}}yes{{else}}no{{/if}}</h5></td>
+						<td style="padding-bottom:4px;">{{view ASTool.ButtonView icon="ui-icon-circle-check"  action="fieldSelected" argument=name class="textless-button blue-button"}}</td>
 					</tr>
 				{{/each}}
 			</table>
