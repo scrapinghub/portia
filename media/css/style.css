@@ -68,8 +68,8 @@ body{
 	color:white;
 	padding: 8px;
 	float: left;
-	background-color: rgba(0,0,0,0.7);
-	box-shadow: 0px 0px 6px 1px rgba(0,0,0,0.6);
+	background-color: rgba(0,0,0,0.8);
+	box-shadow: 0px 4px 6px 0px rgba(0,0,0,0.8);
 	margin-right: 15px;
 	display: none;
 	pointer-events:all;
@@ -113,11 +113,6 @@ body{
 	overflow: auto;
 	max-height: 300px;
 	margin-top: 10px;
-	/*border-color: #242424;
-	border-style: solid;
-	border-width: 1px;*/
-	/*background-color: #333;*/
-	/*box-shadow: 0px 0px 12px 1px rgba(0,0,0,0.3) inset;*/
 }
 
 .textfield {
@@ -129,7 +124,6 @@ body{
 	color: #111;
 	background-color: #FFF;
 	padding: 4px;
-	/*box-shadow: 0px 0px 5px 1px rgba(0,0,0,0.1) inset;*/
 }
 
 .big {
@@ -238,6 +232,16 @@ body{
 
 .annotation-widget:hover div {
     display: block;
+}
+
+.in-doc {
+	padding: 4px 4px 8px 8px;
+	position: fixed;
+	z-index: 100000;
+	background-color: rgba(0,0,0,0.8);
+	width: 252px;
+	box-shadow: 0px 0px 9px 1px rgba(0,0,0,0.8);
+	border: none;
 }
 
 .attribute-value {

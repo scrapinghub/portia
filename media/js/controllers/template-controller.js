@@ -22,6 +22,10 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	showContinueBrowsing: true,
 
+	showFloatingAnnotationWidgetAt: null,
+
+	floatingAnnotation: null,
+
 	scrapedItem: function() {
 		if (!Em.isEmpty(this.get('items'))) {
 			return this.get('items').findBy('name', this.get('content.scrapes'));	
@@ -94,12 +98,11 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		var annotation = ASTool.Annotation.create({
 			id: ASTool.shortGuid(),
 			selectedElement: element,
-			annotations: {},
-			required: [],
 			generated: !!generated,
 		});
 		this.get('annotations').pushObject(annotation);
 		this.guessInitialMapping(annotation);
+		return annotation;
 	},
 
 	mapAttribute: function(annotation, attribute, field) {
@@ -215,6 +218,16 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		return this.get('extractors').anyBy('dragging');
 	}.property('extractors.@each.dragging'),
 
+	showFloatingAnnotationWidget: function(annotation, x, y) {
+		this.set('floatingAnnotation', annotation);
+		this.set('showFloatingAnnotationWidgetAt', { x: x, y: y });
+	},
+
+	hideFloatingAnnotationWidget: function() {
+		this.set('floatingAnnotation', null);
+		this.set('showFloatingAnnotationWidgetAt', null);
+	},
+
 	actions: {
 		
 		editAnnotation: function(annotation) {
@@ -229,8 +242,9 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			if (annotation.get('generated')) {
 				$(annotation.get('element')).removePartialAnnotation();
 			}
+			this.set('floatingAnnotation', null);
+			this.set('showFloatingAnnotationWidgetAt', null);
 			this.get('annotations').removeObject(annotation);
-
 		},
 
 		createField: function(fieldName, fieldType) {
@@ -307,8 +321,11 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	documentActions: {
 		
-		elementSelected: function(element, partialSelection) {
-			this.addAnnotation(element);
+		elementSelected: function(element, mouseX, mouseY) {
+			if (element) {
+				var annotation = this.addAnnotation(element);
+				this.showFloatingAnnotationWidget(annotation, mouseX, mouseY);
+			}
 		},
 		
 		partialSelection: function(selection) {
@@ -316,6 +333,15 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			selection.getRangeAt(0).surroundContents(element);
 			this.addAnnotation(element, true);
 			selection.collapse();
+		},
+
+		elementHovered: function(element, mouseX, mouseY) {	
+			var annotation = this.get('annotations').findBy('element', element);
+			if (annotation) {
+				this.showFloatingAnnotationWidget(annotation, mouseX, mouseY);
+			} else {
+				this.hideFloatingAnnotationWidget();
+			}
 		},
 	},
 

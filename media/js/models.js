@@ -139,6 +139,12 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 										 ignoreBeneath: attributeName == 'data-scrapy-ignore-beneath'});
 		});
 		this.set('ignores', ignores);
+		if (this.get('required') == null) {
+			this.set('required', []);	
+		}
+		if (this.get('annotations') == null) {
+			this.set('annotations', {});
+		}
 	},
 
 	idBinding: null,
@@ -163,7 +169,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 	
 	annotations: null,
 
-	required: false,
+	required: null,
 
 	generated: false,
 

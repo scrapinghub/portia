@@ -1,0 +1,34 @@
+{{#unless view.creatingField}}
+	<div style="float:right; margin-right:4px">
+			{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="textless-button blue-button"}}
+			{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+	</div>
+	{{#unless view.hasMultipleMappings}}
+		{{view view.attributeSelect}}
+		{{view view.fieldSelect}}
+		<div class="attribute-value">
+			<h5 style="margin-bottom:4px">Attribute value:</h5>
+			{{view.attributeValue}}
+		</div>
+	{{else}}
+		<div>
+			{{#each view.mappings}}
+				<div style="">
+					<div class="attribute-select" style="display:inline-block;text-align:center;
+					font-size:1.1em;border:dotted 1px #AAA;background-color:white">{{this.name}}</div>
+					<div class="field-select" style="display:inline-block;text-align:center;
+					font-size:1.1em;border:dotted 1px #AAA;background-color:white">{{this.mappedField}}</div>
+				</div>
+			{{/each}}
+		</div>
+	{{/unless}}
+{{else}}
+	<div style="float:right; margin-right:4px"{{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="textless-button blue-button" disabled=view.createFieldDisabled}}</div>
+	
+	<label class="small-label" style="margin-left:40px">Field name</label>
+	<label class="small-label" style="margin-left:64px">Field type</label>
+	<div style="margin-top:5px">
+		{{view view.fieldTextField}}
+		<span style="margin-left:15px">{{view view.typeSelect}}</span>
+	</div>
+{{/unless}}

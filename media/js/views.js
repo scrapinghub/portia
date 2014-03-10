@@ -234,11 +234,15 @@ ASTool.ItemSelect = ASTool.Select.extend({
 ASTool.AnnotationWidget = Em.View.extend({
 	tagName: 'div',
 	classNames: 'annotation-widget',
+	classNameBindings: 'inDoc: in-doc',
 	annotation: null,
 	attributeName: null,
 	fieldName: null,
 	fieldType: null,
 	creatingField: false,
+	inDoc: false,
+	pos: null,
+
 	createFieldDisabled: function() {
 		return Em.isEmpty(this.get('fieldName'));
 	}.property('fieldName'),
@@ -321,13 +325,19 @@ ASTool.AnnotationWidget = Em.View.extend({
 		return this.get('annotation.mappedAttributes').length > 1;
 	}.property('annotation.mappedAttributes'),
 
-	mouseEnter: function() {
-		this.set('annotation.highlighted', true);
-		this.get('controller').send('annotationHighlighted', this.get('annotation'));
+	mouseEnter: function(event) {
+		if (!this.get('inDoc')) {
+			this.set('annotation.highlighted', true);
+			this.get('controller').send('annotationHighlighted', this.get('annotation'));
+		}
+		event.stopPropagation();
 	},
 
-	mouseLeave: function() {
-		this.set('annotation.highlighted', false);
+	mouseLeave: function(event) {
+		if (!this.get('inDoc')) {
+			this.set('annotation.highlighted', false);
+		}
+		event.stopPropagation();
 	},
 
 	updateValue: function() {
@@ -339,10 +349,14 @@ ASTool.AnnotationWidget = Em.View.extend({
 				this.set('attributeName', mapping.get('name'));
 				this.set('fieldName', mapping.get('mappedField'));	
 			}
-		}, 1);
-	}.observes('controller.scrapedItem.fields'),
+		}, 0.5);
+	}.observes('controller.scrapedItem.fields', 'annotation.annotations'),
 
 	didInsertElement: function() {
+		if (this.get('inDoc')) {
+ 			$(this.get('element')).css({ 'top': this.get('pos.y'),
+ 								 		 'left': this.get('pos.x') - 100});
+ 		}
 		this._super();
 		this.updateValue();
 	},
@@ -639,9 +653,7 @@ ASTool.ProjectIndexView = Ember.View.extend(ToolboxViewMixin);
 
 ASTool.SpiderIndexView = Ember.View.extend(ToolboxViewMixin);
 
-ASTool.TemplateIndexView = Ember.View.extend(ToolboxViewMixin, {
-	fixedToolbox: true,
-});
+ASTool.TemplateIndexView = Ember.View.extend(ToolboxViewMixin);
 
 ASTool.ItemsView = Ember.View.extend(ToolboxViewMixin, {
 	fixedToolbox: true,

@@ -27,7 +27,10 @@ ASTool.DocumentViewListener = Em.Mixin.create({
 		linkClicked: function(href) {},
 
 		// Selection mode.
-		elementSelected: function(element) {},
+		elementSelected: function(element, mouseX, mouseY) {},
+
+		// Selection mode.
+		elementHovered: function(element, mouseX, mouseY) {},
 
 		// Selection mode with partial selections enabled.
 		partialSelection: function(textSelection) {},
@@ -324,6 +327,22 @@ ASTool.DocumentView = Em.Object.extend({
 		$('#hovered-element-info .path').html(path);
 	},
 
+	sendElementHoveredEvent: function(element, delay, mouseX, mouseY) {
+		var handle = this.get('elementHoveredHandle');
+		if (handle) {
+			Em.run.cancel(handle);
+			this.set('elementHoveredHandle', null);
+		}
+		if (delay) {
+			handle = Em.run.later(this, function() {
+				this.sendDocumentEvent('elementHovered', element, mouseX, mouseY);
+			}, delay);	
+			this.set('elementHoveredHandle', handle);
+		} else {
+			this.sendDocumentEvent('elementHovered', element, mouseX, mouseY);
+		}
+	},
+
 	mouseOverHandler:  function(event) {
 		event.preventDefault();
 		var target = event.target;
@@ -337,6 +356,7 @@ ASTool.DocumentView = Em.Object.extend({
 					this.set('hoveredSprite',
 							 ASTool.ElementSprite.create({'element': target}));
 					this.redrawNow();
+					this.sendElementHoveredEvent(target, 100, event.clientX, event.clientY);
 				}
 			}
 		}
@@ -344,6 +364,7 @@ ASTool.DocumentView = Em.Object.extend({
 	
 	mouseOutHandler: function(event) {
 		this.set('hoveredSprite', null);
+		this.sendElementHoveredEvent(null, 0);
 		this.redrawNow();
 	},
 
@@ -356,7 +377,7 @@ ASTool.DocumentView = Em.Object.extend({
 		var linkingElement = $(event.target).closest('[href]');
 		if (linkingElement.length) {
 			var href = $(linkingElement).attr('href');
-        	this.sendEvent('linkClicked', href);	
+        	this.sendDocumentEvent('linkClicked', href);	
 		}
 	},
 
@@ -378,7 +399,7 @@ ASTool.DocumentView = Em.Object.extend({
 		if (selectedText) {
 			if (this.get('partialSelectionEnabled')) {
 				if (selectedText.anchorNode == selectedText.focusNode) {
-					this.sendEvent('partialSelection', selectedText);
+					this.sendDocumentEvent('partialSelection', selectedText);
 				} else {
 					alert('The selected text must belong to a single HTML element');
 					selectedText.collapse();
@@ -392,19 +413,20 @@ ASTool.DocumentView = Em.Object.extend({
 			if ($.inArray(tagName, this.get('ignoredElementTags')) == -1) {
 				if (!this.get('restrictToDescendants') ||
 					$(target).isDescendant(this.get('restrictToDescendants'))) {
-					this.sendEvent('elementSelected', target);
+					this.sendDocumentEvent('elementSelected', target, event.clientX, event.clientY);
 				} else {
-					this.sendEvent('elementSelected', null);
+					this.sendDocumentEvent('elementSelected', null);
 				}
 			}
 		}
 	},
 
-	sendEvent: function(name, target) {
+	sendDocumentEvent: function(name) {
 		var actions = this.get('listener.documentActions');
+		var args = Array.prototype.slice.call(arguments, 1);
 		if (actions && actions[name]) {
 			Em.run(function(){
-				actions[name].call(this.get('listener'), target);
+				actions[name].apply(this.get('listener'), args);
 			}.bind(this));
 		}
 	},

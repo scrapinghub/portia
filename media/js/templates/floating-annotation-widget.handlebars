@@ -1,0 +1,33 @@
+{{#unless view.creatingField}}
+	<div style="color:#EEE">
+		<span class="attribute-select">Map attribute</span>
+		<span style="margin-left:40px" class="field-select">To field</span>
+		<span style="margin-left:20px">
+			{{view ASTool.ButtonView action="editAnnotation" argument=controller.floatingAnnotation icon="ui-icon-gear" class="textless-button clear-button"}}
+		</span>
+		<span style="margin-left:-10px">
+			{{view ASTool.ButtonView action="deleteAnnotation" argument=controller.floatingAnnotation icon="ui-icon-trash" class="textless-button clear-button"}}
+		</span>
+	</div>
+	{{#unless view.hasMultipleMappings}}
+		{{view view.attributeSelect}}
+		{{view view.fieldSelect}}
+	{{else}}
+		<div>
+			{{#each view.mappings}}
+				<div style="border:solid 1px rgba(255,255,255,0.3);background-color:rgba(200,200,200,0.3);margin:2px;padding:2px;color:white">
+					<div style="display:inline-block;width:120px">{{this.name}}</div>
+					<div style="display:inline-block;">{{this.mappedField}}</div>
+				</div>
+			{{/each}}
+		</div>
+	{{/unless}}
+{{else}}
+	<label style="margin-left:0px;color:#EEE">Field name</label>
+	<label style="margin-left:90px;color:#EEE">Field type</label>
+	<div style="margin-top:5px">
+		{{view view.fieldTextField}}
+		<span style="margin-left:6px">{{view view.typeSelect}}</span>
+		<span {{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="textless-button clear-button" disabled=view.createFieldDisabled}}</span>
+	</div>
+{{/unless}}
