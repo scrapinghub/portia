@@ -100,10 +100,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		},
 
 		makeSticky: function(attribute) {
-			var maxSticky = this.get('controllers.template_index.maxSticky');
-			var stickyName = '_sticky' + (maxSticky + 1);
-			this.get('content').addMapping(attribute.get('name'), stickyName);
-			this.get('content').addRequired(stickyName);
+			this.get('controllers.template_index').makeSticky(this.get('content'),
+				attribute.get('name'));
 		},
 
 		unmapAttribute: function(attribute) {

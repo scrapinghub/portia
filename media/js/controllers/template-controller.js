@@ -109,6 +109,13 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		annotation.removeMappings();
 		annotation.addMapping(attribute, field);
 	},
+
+	makeSticky: function(annotation, attributeName) {
+		var maxSticky = this.get('maxSticky');
+		var stickyName = '_sticky' + (maxSticky + 1);
+		annotation.addMapping(attributeName, stickyName);
+		annotation.addRequired(stickyName);
+	},
 	
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
@@ -236,6 +243,10 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		mapAttribute: function(annotation, attribute, field) {
 			this.mapAttribute(annotation, attribute, field);
+		},
+
+		makeSticky: function(annotation, attribute) {
+			this.makeSticky(annotation, attribute);
 		},
 		
 		deleteAnnotation: function(annotation) {

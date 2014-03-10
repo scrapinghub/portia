@@ -249,7 +249,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 
 	attributeValue: function() {
 		if (this.get('attributeName') && !Em.isEmpty(this.get('annotation.attributes'))) {
-			return this.get('annotation.attributes').findBy('name', this.get('attributeName')).get('value');	
+			return trim(this.get('annotation.attributes').findBy('name', this.get('attributeName')).get('value'), 200);	
 		} else {
 			return '< Empty attribute >';
 		}
@@ -259,6 +259,10 @@ ASTool.AnnotationWidget = Em.View.extend({
 		if (this.get('fieldName') == 'create_field') {
 			this.set('creatingField', true);
 			this.set('fieldName', '');
+		} else if (this.get('fieldName') == 'sticky') {
+			this.get('controller').send('makeSticky',
+							   		this.get('annotation'),
+							   		this.get('attributeName'));
 		} else {
 			this.get('controller').send('mapAttribute',
 							   		this.get('annotation'),
@@ -303,6 +307,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 				var name = field.get('name');
 				return { option: name, label: name };
 			});
+			options.pushObject({ option: 'sticky', label: '-make sticky-' });
 			options.pushObject({ option: 'create_field', label: '-create new-' });
 			return options;
 		}.property('controller.scrapedItem.fields.@each'),
@@ -348,6 +353,10 @@ ASTool.AnnotationWidget = Em.View.extend({
 				var mapping = this.get('annotation.mappedAttributes.firstObject');
 				this.set('attributeName', mapping.get('name'));
 				this.set('fieldName', mapping.get('mappedField'));	
+			} else if (!Em.isEmpty(this.get('annotation.stickyAttributes'))) {
+				var mapping = this.get('annotation.stickyAttributes.firstObject');
+				this.set('attributeName', mapping.get('name'));
+				this.set('fieldName', 'sticky');
 			}
 		}, 0.5);
 	}.observes('controller.scrapedItem.fields', 'annotation.annotations'),
@@ -390,30 +399,20 @@ ASTool.IgnoreWidget = Em.View.extend({
 });
 
 
-ASTool.ElemAttributeView = ASTool.ButtonView.extend({
-	value: null,
+ASTool.ElemAttributeView = Em.View.extend({
 	attribute: null,
-	item: null,
-	classNames: ['element-attribute-view', 'clear-button'],
-	
-	didInsertElement: function() {
-		this._super();
-		var attribute = this.get('argument');
-		var ui = $(this.get('element'));
-		var content = $('<div/>').
-			append($('<span/>', { text:attribute.name + ': ', class:'name' })).
-			append($('<span/>', { text:trim(attribute.value, 30), class:'value' }));
-		if (this.mapped) {
-			content.append($('<div/>').
-			append($('<span/>', { text:'mapped to: ', class:'name' })).
-			append($('<span/>', { text: attribute.mappedField, class:'item' })));
-		}
-		content.css('text-align', 'left').
-		css('margin-left', '5px').
-		css('width: 70%');
-		ui.find('[class=ui-button-text]').html(
-			content);
-	},
+
+	name: function() {
+		return this.get('attribute.name');
+	}.property('attribute'),
+
+	value: function() {
+		return trim(this.get('attribute.value'), 80);
+	}.property('attribute'),
+
+	field: function() {
+		return this.get('attribute.mappedField');
+	}.property('attribute'),
 });
 
 

@@ -20,10 +20,6 @@
 			{{else}}
 				<h5>No annotations have been created yet.</h5>
 		{{/if}}
-
-		{{#if controller.showFloatingAnnotationWidgetAt}}
-			{{view ASTool.AnnotationWidget annotation=controller.floatingAnnotation inDoc=true pos=controller.showFloatingAnnotationWidgetAt templateName="floating-annotation-widget"}}
-		{{/if}}
 	</div>
 	
 	<h3>Extracted item</h3>
@@ -97,3 +93,7 @@
 		</div>
 	</div>
 </div>
+
+{{#if controller.showFloatingAnnotationWidgetAt}}
+	{{view ASTool.AnnotationWidget annotation=controller.floatingAnnotation inDoc=true pos=controller.showFloatingAnnotationWidgetAt templateName="floating-annotation-widget"}}
+{{/if}}
