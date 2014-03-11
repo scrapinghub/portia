@@ -307,7 +307,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 				var name = field.get('name');
 				return { option: name, label: name };
 			});
-			options.pushObject({ option: 'sticky', label: '-make sticky-' });
+			options.pushObject({ option: 'sticky', label: '-just required-' });
 			options.pushObject({ option: 'create_field', label: '-create new-' });
 			return options;
 		}.property('controller.scrapedItem.fields.@each'),
@@ -436,10 +436,13 @@ ASTool.RenameTextField = ASTool.InlineTextField.extend({
 	oldValue: null,
 	attributeBindings: ['name'],
   	name: 'rename',
+  	action: 'rename',
 
 	save: function() {
 		if (this.get('oldValue') != this.get('value')) {
-			this.get('controller').send('rename', this.get('oldValue'), this.get('value'));	
+			this.get('controller').send(this.get('action'),
+				this.get('oldValue'),
+				this.get('value'));	
 		}
 		this.set('oldValue',  this.get('value'));
 	},
@@ -447,6 +450,31 @@ ASTool.RenameTextField = ASTool.InlineTextField.extend({
 	focusIn: function() {
 		this.set('oldValue', this.get('value'));
 	},
+});
+
+
+ASTool.PatternTextField = ASTool.InlineTextField.extend({
+	attributeBindings: ['name'],
+  	name: 'pattern',
+  	pattern: null,
+  	newPattern: null,
+
+  	save: function() {
+  		if (!Em.isEmpty(this.get('newPattern')) && this.get('pattern') != this.get('newPattern')) {
+  			Ember.run.scheduleOnce('afterRender', this, function() {
+				this.get('controller').send(this.get('action'),
+					this.get('pattern'),
+					this.get('newPattern'));
+  			});
+		}
+  	},
+
+  	value: function(key, val) {
+		if (arguments.length > 1) {
+			this.set('newPattern', val);
+		} 
+		return this.get('pattern');
+	}.property('pattern'),
 });
 
 
@@ -644,6 +672,19 @@ ASTool.PinToolBoxButton = ASTool.ButtonView.extend({
 });
 
 
+ASTool.InlineHelp = Em.View.extend({
+	tagName: 'img',
+	src: 'images/info.png',
+	message: null,
+	attributeBindings: ['name', 'title', 'src'],
+	classNames: ['inline-help'],
+
+	title: function() {
+		return ASTool.Messages.get(this.get('message'));
+	}.property('message'),
+});
+
+
 var ToolboxViewMixin = ASTool.ToolboxViewMixin;
 
 ASTool.ProjectsIndexView = Ember.View.extend(ToolboxViewMixin);
@@ -677,6 +718,10 @@ Ember.Handlebars.helper('trim', function(text, length) {
 
 Ember.Handlebars.helper('isEmpty', function(text) {
 	return Em.isEmpty(text);
+});
+
+Ember.Handlebars.registerHelper('message', function(messageName) {
+	return ASTool.Messages.get('messageName');
 });
 
 

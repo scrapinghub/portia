@@ -7,6 +7,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	documentView: null,
 
+	saving: false,
+
 	newStartUrl: '',
 
 	newExcludePattern: '',
@@ -246,11 +248,19 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	},
 
 	addExcludePattern: function(pattern) {
-		this.content.get('exclude_patterns').pushObject(pattern);
+		this.get('content.exclude_patterns').pushObject(pattern);
+	},
+
+	deleteExcludePattern: function(pattern) {
+		this.get('content.exclude_patterns').removeObject(pattern);
 	},
 
 	addFollowPattern: function(pattern) {
-		this.content.get('follow_patterns').pushObject(pattern);
+		this.get('content.follow_patterns').pushObject(pattern);
+	},
+
+	deleteFollowPattern: function(pattern) {
+		this.get('content.follow_patterns').removeObject(pattern);
 	},
 
 	autoFetch: function() {
@@ -264,7 +274,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			   'links_to_follow'),
 
 	saveSpider: function() {
-		return this.get('slyd').saveSpider(this.get('content'));
+		this.set('saving', true);
+		return this.get('slyd').saveSpider(this.get('content')).then(function() {
+			this.set('saving', false);
+		}.bind(this));
 	},
 
 	reset: function() {
@@ -329,7 +342,12 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		deleteExcludePattern: function(pattern) {
-			this.content.get('exclude_patterns').removeObject(pattern);
+			this.deleteExcludePattern(pattern);
+		},
+
+		editExcludePattern: function(oldVal, newVal) {
+			this.deleteExcludePattern(oldVal);
+			this.addExcludePattern(newVal);
 		},
 
 		addFollowPattern: function() {
@@ -338,7 +356,13 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		deleteFollowPattern: function(pattern) {
-			this.content.get('follow_patterns').removeObject(pattern);
+			this.deleteFollowPattern(pattern);
+		},
+
+		editFollowPattern: function(oldVal, newVal) {
+			console.log(oldVal, newVal);
+			this.deleteFollowPattern(oldVal);
+			this.addFollowPattern(newVal);
 		},
 
 		toggleShowItems: function() {

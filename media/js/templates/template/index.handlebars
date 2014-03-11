@@ -25,6 +25,7 @@
 	<h3>Extracted item</h3>
 	<div class="section" style="text-align:center;">
 		<label class="small-label">Item type extracted by this template:</label> {{view ASTool.ItemSelect value=template.scrapes}}
+		{{view ASTool.InlineHelp message="select_item"}}
 		<div style="margin-top:10px">
 			{{view ASTool.ButtonView action="editItems" argument=this label="Edit items" class="blue-button"}}
 		</div>
@@ -56,7 +57,8 @@
 			{{/each}}
 		</div>
 		<div style="margin-top:10px"></div>
-		<h4>Drag extractors to the fields above to apply them</h4>
+		<h4>Drag extractors to the fields above</h4>
+		{{view ASTool.InlineHelp message="extractors"}}
 		<div class="scrolling-container ui-corner-all" style="max-height:100px;">
 			{{#each extractors}}
 				<div style="margin:4px 0px 4px 0px">
@@ -76,11 +78,12 @@
 			<span class="very-small-label" style="margin-left:10px">or choose a type:</span>
 			<span class="typeBox">{{view ASTool.ExtractorTypeSelect value=newTypeExtractor name='typeExtractorCombo'}}</span>
 		</div>
-			{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled class="blue-button"}}
+		{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled class="blue-button"}}
 	</div>
 	<h3>Required fields</h3>
 	<div class="section">
-		<h5>Check the fields whose required property you want to override:</h5>
+		<span style="float:right">{{view ASTool.InlineHelp message="template_required"}}</span>
+		<h4 style="width:92%">Check the fields you want to make required for this template:</h4>
 		<div class="scrolling-container">
 			{{#each mappedFieldsData}}
 				<div style="margin:4px 0px 4px 10px;">

@@ -29,6 +29,7 @@
 		<div style="margin-top:20px">
 			<label class="important-label">Perform login</label>
 			{{view ASTool.CheckBox checked=performLogin name="performLoginCheck"}}
+			{{view ASTool.InlineHelp message="perform_login"}}
 		</div>
 		
 		{{#if performLogin}}
@@ -45,7 +46,6 @@
 	
 	<h3>Crawling</h3>
 	<div class="section">
-		
 		{{view ASTool.FollowSelect value=controller.links_to_follow}}
 		
 		{{#if displayNofollow}}
@@ -57,10 +57,13 @@
 		
 		{{#if displayEditPatterns}}
 			<h4>Follow links that match this patterns</h4>
+			{{view ASTool.InlineHelp message="follow_links"}}
 			<div class="scrolling-container" style="max-height:150px">
 				{{#each follow_patterns}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView label=this minWidth='86%' title=this class="clear-button"}}
+						{{#view ASTool.PatternTextField pattern=this action="editFollowPattern"}}
+  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="clear-button"}}
+						{{/view}}
 						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 					</div>
 				{{else}}
@@ -75,10 +78,13 @@
 			<div style="margin-top:10px"></div>
 			
 			<h4>Exclude links that match this patterns</h4>
+			{{view ASTool.InlineHelp message="exclude_links"}}
 			<div class="scrolling-container" style="max-height:150px">
 				{{#each exclude_patterns}}
 					<div style="margin:4px 0px 4px 0px">
-						{{view ASTool.ButtonView action="editExcludePattern" label=this minWidth='86%' title=this class="clear-button"}}
+						{{#view ASTool.PatternTextField pattern=this action="editExcludePattern"}}
+  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="clear-button"}}
+						{{/view}}
 						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 					</div>
 				{{else}}
@@ -94,6 +100,7 @@
 		<div style="margin-top:10px">
 			{{view ASTool.CheckBox checked=showLinks name="showLinks"}}
 			<span class="important-label">Overlay blocked links</span>
+			{{view ASTool.InlineHelp message="overlay_blocked_links"}}
 		</div>
 	</div>
 	
@@ -114,7 +121,6 @@
 	</div>
 </div>
 
-<div style="margin-left: 10px; text-align: center;display:none">
-	{{view ASTool.ButtonView action="undoChanges" icon="ui-icon-arrowreturnthick-1-w" label="Undo changes" class="red-button big"}}
-	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-disk" label="Apply changes" class="green-button big"}}
+<div style="margin-top:10px;text-align:center">
+	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-circle-arrow-n" label="Save spider" class="blue-button big"}}
 </div>

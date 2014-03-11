@@ -5,7 +5,7 @@
 <div class="accordion">
 	<h3>Selected region</h3>
 	<div>
-		<h4>Ancestors</h4>
+		<h4>Ancestors</h4>{{view ASTool.InlineHelp message="selected_region_ancestors"}}
 		<div class="scrolling-container" style="max-height:180px;">
 			<ul style="list-style-type:none;padding:0px;margin:0px">
 				{{#each ancestorPaths}}
@@ -16,7 +16,7 @@
 			</ul>
 		</div>
 		<br/>
-		<h4>Children</h4>
+		<h4>Children</h4>{{view ASTool.InlineHelp message="selected_region_children"}}
 		<div class="scrolling-container" style="max-height:180px;">
 			<ul style="list-style-type:none;padding:0px;margin:0px">
 				{{#each childPaths}}
@@ -71,7 +71,7 @@
 
 			<div style="margin-bottom:10px"></div>
 
-			<h4>Sticky</h4>
+			<h4>Required attributes</h4>{{view ASTool.InlineHelp message="sticky_fields"}}
 			<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
 				{{#each stickyAttributes}}
 					<div style="margin:4px 0px 4px 0px;border:dotted 1px #CCC;padding:5px 5px 14px 5px">
@@ -83,7 +83,7 @@
 						{{/view}}
 					</div>
 				{{else}}
-					<h5>No sticky attributes.</h5>
+					<h5>No required attributes.</h5>
 				{{/each}}
 			</div>
 		{{else}}
@@ -111,7 +111,7 @@
 		</div>
 		<div style="margin-top:10px;">
 			{{view ASTool.ToggleButton checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
-			<label for="addIgnore">Ignore region</label>
+			<label for="addIgnore">Ignore region</label>{{view ASTool.InlineHelp message="ignored_subregions"}}
 		</div>
 	</div>
 
@@ -120,6 +120,7 @@
 		<div class="variantBox" style="margin-right:20px">
 			<label class="important-label">Choose a variant:</label>
 			{{view ASTool.VariantSelect value=variant}}
+			{{view ASTool.InlineHelp message="variant"}}
 		</div>
 	</div>
 </div>

@@ -131,9 +131,12 @@ body{
 }
 
 .inline-textfield {
-	border-style: none;
+	border-style: solid;
+	border-color: #AAA;
 	text-align: center;
-	padding: 2px;
+	padding: 4px;
+	width: 84%;
+	color: #111;
 }
 
 .doc-canvas {
@@ -272,6 +275,10 @@ body{
 	font: bold 1.0em Verdana,Helvetica,Arial,sans-serif;
 }
 
+.inline-help {
+	margin: 0px 4px 0px 4px;
+}
+
 hr {
 	background-color: #BBB;
 	height: 1px;
@@ -292,12 +299,14 @@ h4 {
 	margin:0px;
 	color:#777;
 	font: bold 1.1em Verdana,Helvetica,Arial,sans-serif;
+	display:inline-block;
 }
 
 h5 {
 	margin:0px;
 	color:#999;
 	font: 1em Verdana,Helvetica,Arial,sans-serif;
+	display:inline-block;
 }
 
 td {

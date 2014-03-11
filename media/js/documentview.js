@@ -206,6 +206,7 @@ ASTool.DocumentView = Em.Object.extend({
 		Displays an error message as the content of the iframe.
 	*/
 	showError: function(error) {
+		error = '<div style="color:red;font-size:1.2em;padding:15px">' + error + '</div>';
 		this.getIframe().find('html').html(error);
 	},
 
