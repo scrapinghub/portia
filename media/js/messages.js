@@ -11,5 +11,5 @@ ASTool.Messages = Ember.Namespace.create({
 	selected_region_ancestors: 'Refine your selection by navigating its ancestors.',
 	selected_region_children: 'Refine your selection by navigating its children.',
 	sticky_fields: 'Required attributes are not extracted, but they must be present for a page to match the template.',
-
+	annotation_widget: 'Some inline help fot the annotation widget should go in here.',
 });

@@ -2,12 +2,15 @@
 	<div style="color:#EEE">
 		<span class="attribute-select">Map attribute</span>
 		<span style="margin-left:40px" class="field-select">To field</span>
-		<span style="margin-left:20px">
+		<div style="display:inline-block;margin-top:2px">
+			{{view ASTool.InlineHelp message="annotation_widget"}}
+		</div>
+		<div style="display:inline-block;margin-left:-10px;margin-top:-1px">
 			{{view ASTool.ButtonView action="editAnnotation" argument=controller.floatingAnnotation icon="ui-icon-gear" class="textless-button clear-button"}}
-		</span>
-		<span style="margin-left:-10px">
+		</div>
+		<div style="display:inline-block;margin-left:-10px;margin-top:-1px">
 			{{view ASTool.ButtonView action="deleteAnnotation" argument=controller.floatingAnnotation icon="ui-icon-trash" class="textless-button clear-button"}}
-		</span>
+		</div>
 	</div>
 	{{#unless view.hasMultipleMappings}}
 		{{view view.attributeSelect}}
