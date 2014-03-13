@@ -34,7 +34,6 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 	uiType: 'button',
 	uiOptions: ['label', 'disabled', 'icons', 'text', 'selected'],
 	tagName: 'button',
-	classNames: ['button-shadow'],
 	minWidth: null,
 	maxWidth: null,
 	action: null,
@@ -256,18 +255,20 @@ ASTool.AnnotationWidget = Em.View.extend({
 	}.property('attributeName', 'fieldName'),
 
 	change: function() {
-		if (this.get('fieldName') == 'create_field') {
-			this.set('creatingField', true);
-			this.set('fieldName', '');
-		} else if (this.get('fieldName') == 'sticky') {
-			this.get('controller').send('makeSticky',
-							   		this.get('annotation'),
-							   		this.get('attributeName'));
-		} else {
-			this.get('controller').send('mapAttribute',
-							   		this.get('annotation'),
-							   		this.get('attributeName'),
-							   		this.get('fieldName'));	
+		if (this.get('fieldName')) {
+			if (this.get('fieldName') == 'create_field') {
+				this.set('creatingField', true);
+				this.set('fieldName', '');
+			} else if (this.get('fieldName') == 'sticky') {
+				this.get('controller').send('makeSticky',
+								   		this.get('annotation'),
+								   		this.get('attributeName'));
+			} else {
+				this.get('controller').send('mapAttribute',
+								   		this.get('annotation'),
+								   		this.get('attributeName'),
+								   		this.get('fieldName'));	
+			}
 		}
 	},
 
@@ -280,7 +281,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 			this.get('controller').send('mapAttribute',
 								   		this.get('annotation'),
 								   		this.get('attributeName'),
-								   		this.get('fieldName'));	
+								   		this.get('fieldName'));
 		},
 	},
 
@@ -311,6 +312,24 @@ ASTool.AnnotationWidget = Em.View.extend({
 			options.pushObject({ option: 'create_field', label: '-create new-' });
 			return options;
 		}.property('controller.scrapedItem.fields.@each'),
+
+		fixSelection: function() {
+			// When content is repopulated, the Select component loses its selection.
+			// This hack resets the selection to its correct value.
+			var tempFieldName = this.get('parentView.fieldName');
+			if (tempFieldName) {
+				Ember.run.later(this, function() {
+						if (!this.get('isDestroyed')) {
+							this.set('value', null);
+						}
+					}, 500);
+				Ember.run.later(this, function() {
+						if (!this.get('isDestroyed')) {
+							this.set('value', tempFieldName);
+						}
+					}, 510);
+			}
+		}.observes('controller.scrapedItem.fields.@each'),
 	}),
 
 	typeSelect: ASTool.TypeSelect.extend({
@@ -345,21 +364,17 @@ ASTool.AnnotationWidget = Em.View.extend({
 		event.stopPropagation();
 	},
 
-	updateValue: function() {
-		this.set('attributeName', null);
-		this.set('fieldName', null);
-		Em.run.later(this, function() {
-			if (!Em.isEmpty(this.get('annotation.mappedAttributes'))) {
-				var mapping = this.get('annotation.mappedAttributes.firstObject');
-				this.set('attributeName', mapping.get('name'));
-				this.set('fieldName', mapping.get('mappedField'));	
-			} else if (!Em.isEmpty(this.get('annotation.stickyAttributes'))) {
-				var mapping = this.get('annotation.stickyAttributes.firstObject');
-				this.set('attributeName', mapping.get('name'));
-				this.set('fieldName', 'sticky');
-			}
-		}, 0.5);
-	}.observes('controller.scrapedItem.fields', 'annotation.annotations'),
+	initValues: function() {
+		if (!Em.isEmpty(this.get('annotation.mappedAttributes'))) {
+			var mapping = this.get('annotation.mappedAttributes.firstObject');
+			this.set('attributeName', mapping.get('name'));
+			this.set('fieldName', mapping.get('mappedField'));	
+		} else if (!Em.isEmpty(this.get('annotation.stickyAttributes'))) {
+			var mapping = this.get('annotation.stickyAttributes.firstObject');
+			this.set('attributeName', mapping.get('name'));
+			this.set('fieldName', 'sticky');
+		}
+	}.observes('annotation.annotations'),
 
 	didInsertElement: function() {
 		if (this.get('inDoc')) {
@@ -367,7 +382,7 @@ ASTool.AnnotationWidget = Em.View.extend({
  								 		 'left': this.get('pos.x') - 100});
  		}
 		this._super();
-		this.updateValue();
+		this.initValues();
 	},
 });
 
