@@ -320,6 +320,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 
 		editItems: function() {
+			this.saveAnnotations();
 			this.transitionToRoute('items');
 		},
 
