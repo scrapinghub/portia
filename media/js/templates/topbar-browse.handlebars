@@ -1,6 +1,6 @@
 <div id="topbar">
 	
-	<div style="float:left;text-align:left;width:400px">
+	<div style="float:left;text-align:left;width:30%">
 		{{render "navigation"}}
 	</div>
 
@@ -12,7 +12,7 @@
 			{{view ASTool.ButtonView action="reload" class="textless-button" icon="ui-icon-arrowrefresh-1-e" disabled=reloadDisabled}}
 		</span>
 		
-		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;">
+		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;width: 300px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
 			{{controller.currentUrl}}
 		</span>
 
