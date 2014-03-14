@@ -22,11 +22,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		},
 
 		createProject: function() {
-			var siteUrl = this.get('projectSite');
-			if (siteUrl.indexOf('http') != 0) {
-				siteUrl = 'http://' + siteUrl;
-			}
-			var newProjectName = this.getUnusedName(URI.parse(siteUrl).hostname, this.get('content'));
+			var newProjectName = this.getUnusedName('new_project', this.get('content'));
 			this.get('slyd').createProject(newProjectName).then(function() {
 				this.set('slyd.project', newProjectName);
 				// Initialize items spec.

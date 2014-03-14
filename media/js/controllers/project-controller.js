@@ -15,15 +15,12 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 	}.property('spiderPage'),
 
 	addSpider: function() {
-		// Find a unique spider name.
-		var newSpiderName = ASTool.shortGuid();
-		while(this.content.any(function(spiderName){ return spiderName == newSpiderName })) {
-			newSpiderName += '0';
+		var siteUrl = this.get('spiderPage') || this.get('controllers.application.siteWizard');
+		if (siteUrl.indexOf('http') != 0) {
+			siteUrl = 'http://' + siteUrl;
 		}
-		
-		if (this.get('spiderPage')) {
-			this.set('controllers.application.newSpiderSite', this.get('spiderPage'));
-		}
+		var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, this.get('content'));
+		this.set('controllers.application.siteWizard', siteUrl);
 		var spider = ASTool.Spider.create( 
 			{ 'name': newSpiderName,
 			  'start_urls': [],
@@ -32,6 +29,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 			  'init_requests': [],
 			  'templates': [] });
 		this.pushObject(newSpiderName);
+		this.set('spiderPage', null);
 		return this.get('slyd').saveSpider(spider, newSpiderName).then(function() {
 				this.editSpider(newSpiderName);
 		}.bind(this), function(error) {
