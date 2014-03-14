@@ -6,6 +6,7 @@ from distutils.dir_util import copy_tree
 from twisted.trial import unittest
 from twisted.internet.defer import inlineCallbacks
 from slyd.crawlerspec import create_crawler_spec_resource
+from slyd.crawlerspec import convert_spider_templates
 from .utils import TestSite, test_spec_manager
 from .settings import SPEC_DATA_DIR
 
@@ -37,16 +38,19 @@ class CrawlerSpecTest(unittest.TestCase):
         copy_tree(test_project_dir, self.temp_project_dir)
 
     @inlineCallbacks
-    def _get_check_resource(self, resource):
+    def _get_check_resource(self, resource, converter=None):
         result = yield self.specsite.get(resource)
         ffile = join(self.temp_project_dir, resource + ".json")
         fdata = json.load(open(ffile))
+        if converter:
+            converter(fdata)
         rdata = json.loads(result.value())
         self.assertEqual(fdata, rdata)
 
     def test_get_resource(self):
         self._get_check_resource("project")
-        self._get_check_resource("spiders/pinterest.com")
+        self._get_check_resource("spiders/pinterest.com",
+            convert_spider_templates)
 
     @inlineCallbacks
     def post_command(self, spider, cmd, *args, **kwargs):

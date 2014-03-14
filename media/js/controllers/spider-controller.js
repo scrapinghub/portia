@@ -225,7 +225,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			{ name: ASTool.shortGuid(),
 			  extractors: {},
 			  annotated_body: page.page,
-			  original_body: page.page,
+			  original_body: page.original,
 			  page_id: page.fp,
 			  url: page.url });
 		this.get('content.templates').pushObject(template);

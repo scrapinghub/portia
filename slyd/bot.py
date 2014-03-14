@@ -26,7 +26,7 @@ from scrapy.http import HtmlResponse
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
 from slybot.spider import IblSpider
-from .html import html4annotation
+from .html import html4annotation, extract_html
 from .resource import SlydJsonResource
 
 
@@ -102,12 +102,13 @@ class Fetch(BotResource):
             finish_request(request, error=msg)
         try:
             params = response.meta['slyd_request_params']
-            cleaned_html = html4annotation(response)
+            original_html = extract_html(response)
+            cleaned_html = html4annotation(original_html, response.url)
             # we may want to include some headers
             fingerprint = request_fingerprint(response.request)
             result_response = dict(status=response.status,
                 headers=response.headers.to_string())
-            result = dict(page=cleaned_html, fp=fingerprint,
+            result = dict(page=cleaned_html, original=original_html, fp=fingerprint,
                 response=result_response)
             spider = self.create_spider(request.project, params)
             if spider is not None:

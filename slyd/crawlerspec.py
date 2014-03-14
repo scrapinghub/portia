@@ -13,6 +13,8 @@ from jsonschema.exceptions import ValidationError
 from slybot.utils import open_project_from_dir
 from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
+from .annotations import apply_annotations
+from .html import html4annotation
 
 
 def create_crawler_spec_resource(spec_manager):
@@ -24,6 +26,22 @@ _INVALID_SPIDER_RE = re.compile('[^A-Za-z0-9._]|^\.*$')
 
 def allowed_spider_name(name):
     return not _INVALID_SPIDER_RE.search(name)
+
+
+def convert_spider_templates(spider):
+    """Converts the spider templates annotated body for being used in the UI"""
+    for template in spider['templates']:
+            template['annotated_body'] = html4annotation(
+                template['annotated_body'], template['url'])
+
+
+def annotate_templates(spider):
+    "Applies the annotations into the templates original body"
+    if spider.get('templates', None):
+        for template in spider['templates']:
+            template['annotated_body'] = apply_annotations(
+                template['annotated_body'], template['original_body'])
+
 
 class CrawlerSpecManager(object):
 
@@ -53,6 +71,21 @@ class ProjectSpec(object):
                     yield splitext(fname)[0]
         except OSError as ex:
             if ex.errno != errno.ENOENT:
+                raise
+
+    def spider_json(self, name):
+        """Loads the spider spec for the give spider name
+
+        Also converts the annotated body of the templates to be used by
+        the annotation UI"""
+        try:
+            spider = self.resource('spiders', name)
+            convert_spider_templates(spider)
+            return spider
+        except IOError as ex:
+            if ex.errno == errno.ENOENT:
+                return({})
+            else:
                 raise
 
     def rename_spider(self, from_name, to_name):
@@ -143,7 +176,11 @@ class SpecResource(SlydJsonResource):
             spiders = project_spec.list_spiders()
             request.write(json.dumps(list(spiders)))
         else:
-            project_spec.writejson(request, *rpath)
+            if rpath[0] == 'spiders' and len(rpath) == 2:
+                spider = project_spec.spider_json(rpath[1])
+                request.write(json.dumps(spider))
+            else:
+                project_spec.writejson(request, *rpath)
         return '\n'
 
     def render_POST(self, request):
@@ -155,6 +192,7 @@ class SpecResource(SlydJsonResource):
             if resource == 'spiders':
                 if len(request.postpath) == 1 or not request.postpath[1]:
                     return self.handle_spider_command(project_spec, obj)
+                annotate_templates(obj)
                 resource = 'spider'
             get_schema_validator(resource).validate(obj)
         except (KeyError, IndexError) as _ex:
