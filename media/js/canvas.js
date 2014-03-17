@@ -60,10 +60,13 @@ ASTool.Canvas = Em.Object.extend({
 			var canvas = $('#' + this.get('canvasId'));
 			if (interactionsBlocked) {
 				canvas.css('pointer-events', 'auto');
+				;
 				canvas.css('background-color', 'rgba(0,0,30,0.2)');
+				canvas.css('background', '-webkit-radial-gradient(circle, rgba(0,0,0,0.0), rgba(0,0,0,0.6)');
 			} else {
 				canvas.css('pointer-events', 'none');
 				canvas.css('background-color', 'rgba(0,0,0,0)');
+				canvas.css('background', 'rgba(0,0,0,0)');
 			}
 		} else {
 			return this.get('_interactionsBlocked');

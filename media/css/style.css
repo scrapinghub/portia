@@ -136,7 +136,7 @@ body{
 }
 
 .doc-canvas {
-	width: 100%;
+	width: 100.1%;
 	height: 100%;
 	position: absolute;
 	top: 0px;
@@ -400,8 +400,9 @@ a:hover {
     padding: 10px 20px;
     color: #333;
     border-radius: 4px;
-    border-color: #999;
-    font: bold 12px Verdana,Helvetica,Arial,sans-serif;
+    border-color: #BBB;
+    border-width: #1px;
+    font: normal 12px Verdana,Helvetica,Arial,sans-serif;
     box-shadow: 0 0 7px black;
     z-index: 500;
   }
