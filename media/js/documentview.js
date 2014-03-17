@@ -132,6 +132,13 @@ ASTool.DocumentView = Em.Object.extend({
 	}.observes('dataSource', 'dataSource.sprites.@each'),
 
 	/**
+		Blocks/unblocks interactions with the document.
+	*/
+	setInteractionsBlocked: function(blocked) {
+		this.set('canvas.interactionsBlocked', blocked);
+	},
+
+	/**
 		Displays a document by setting it as the content of the iframe.
 		readyCallback will be called when the document finishes rendering.
 	*/
@@ -147,11 +154,11 @@ ASTool.DocumentView = Em.Object.extend({
 		
 		// We need to disable all interactions with the document we are loading
 		// until we trigger the callback.
-		this.set('canvas.interactionsBlocked', true);
+		this.setInteractionsBlocked(true);
 		Em.run.later(this, function() {	
 			var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
 			doc.onscroll = this.redrawNow.bind(this);
-			this.set('canvas.interactionsBlocked', false);
+			this.setInteractionsBlocked(false);
 			if (readyCallback) {
 				readyCallback(this.getIframe());
 			};
@@ -173,7 +180,7 @@ ASTool.DocumentView = Em.Object.extend({
 		by calling hideLoading.
 	*/
 	showLoading: function() {
-		this.set('canvas.interactionsBlocked', true);
+		this.setInteractionsBlocked(true);
 		var loader = this.get('loader');
 		if (!loader) {
 			loader = new CanvasLoader('loader-container');
@@ -199,7 +206,7 @@ ASTool.DocumentView = Em.Object.extend({
 		if (this.get('loader')) { 
 			this.get('loader').hide();
 		}
-		this.set('canvas.interactionsBlocked', false);
+		this.setInteractionsBlocked(false);
 	},
 
 	/**

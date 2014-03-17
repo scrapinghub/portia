@@ -27,9 +27,9 @@
 	{{/unless}}
 {{else}}
 	<label style="margin-left:0px;color:#EEE">Field name</label>
-	<label style="margin-left:90px;color:#EEE">Field type</label>
+	<label style="margin-left:70px;color:#EEE">Field type</label>
 	<div style="margin-top:5px">
-		{{view view.fieldTextField}}
+		{{view view.fieldTextField width=115}}
 		<span style="margin-left:6px">{{view view.typeSelect}}</span>
 		<span {{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="textless-button clear-button" disabled=view.createFieldDisabled}}</span>
 	</div>

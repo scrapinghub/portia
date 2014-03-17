@@ -84,8 +84,8 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 ASTool.TextField = Em.TextField.extend({
 	width:null,
 	placeholder: null,
-	attributeBindings: ['placeholder'],
-	classNames: ['textfield', 'ui-corner-all'],
+	attributeBindings: ['placeholder', 'width'],
+	classNames: ['textfield'],
 
 	change: function() {
 		if (this.get('action')) {
@@ -178,13 +178,13 @@ ASTool.FollowSelect = ASTool.Select.extend({
 
 ASTool.TypeSelect = ASTool.Select.extend({
 
-	content: [{ option: 'geopoint', label: 'geopoint' },
+	content: [{ option: 'text', label: 'text' },
 			  { option: 'number', label: 'number' },
 			  { option: 'image', label: 'image' },
 			  { option: 'price', label: 'price' },
 			  { option: 'raw html', label: 'raw html' },
 			  { option: 'safe html', label: 'safe html' },
-			  { option: 'text', label: 'text'},
+			  { option: 'geopoint', label: 'geopoint' },
 			  { option: 'url', label: 'url' }],
 });
 
@@ -259,6 +259,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 			if (this.get('fieldName') == 'create_field') {
 				this.set('creatingField', true);
 				this.set('fieldName', '');
+				this.get('controller.documentView').setInteractionsBlocked(true);
 			} else if (this.get('fieldName') == 'sticky') {
 				this.get('controller').send('makeSticky',
 								   		this.get('annotation'),
@@ -282,6 +283,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 								   		this.get('annotation'),
 								   		this.get('attributeName'),
 								   		this.get('fieldName'));
+			this.get('controller.documentView').setInteractionsBlocked(false);
 		},
 	},
 
@@ -383,6 +385,10 @@ ASTool.AnnotationWidget = Em.View.extend({
  		}
 		this._super();
 		this.initValues();
+	},
+
+	willDestroyElement: function() {
+		this.get('controller.documentView').setInteractionsBlocked(false);
 	},
 });
 
@@ -697,6 +703,17 @@ ASTool.InlineHelp = Em.View.extend({
 	title: function() {
 		return ASTool.Messages.get(this.get('message'));
 	}.property('message'),
+});
+
+
+ASTool.LabelWithTooltip = Em.View.extend ({
+	attributeBindings: ['title'],
+
+	updateTooltip: function() {
+		try {
+			$(this.get('element')).tooltip('refresh');
+		} catch (err) {}
+	}.observes('title'),
 });
 
 
