@@ -27,10 +27,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 				this.set('slyd.project', newProjectName);
 				// Initialize items spec.
 				this.get('slyd').saveItems([
-					ASTool.Item.create({ name: 'default', fields: [
-						ASTool.ItemField.create({ name: 'image', required: false, type: "image", vary: false }),
-						ASTool.ItemField.create({ name: 'text', required: false, type: "text", vary: false }),
-						ASTool.ItemField.create({ name: 'link', required: false, type: "url", vary: false }) ]
+					ASTool.Item.create({ name: 'default', fields: [ ]
 					})
 				]);
 				// Initialize extractors spec.
