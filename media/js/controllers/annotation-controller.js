@@ -16,6 +16,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	highlightedElement: null,
 
 	scrapedItemBinding: 'controllers.template_index.scrapedItem',
+
+	urlBinding: 'controllers.template_index.url',
 	
 	selectingIgnore: function(key, selectingIgnore) {
 		if (arguments.length > 1) {

@@ -12,7 +12,7 @@
 		<div class="scrolling-container" style="max-height:150px;">
 			{{#each start_urls}}
 				<div style="margin:4px 0px 4px 0px">
-					{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='86%' title=this class="clear-button"}}
+					{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='86%' title=this class="light-button"}}
 					{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 				</div>
 			{{else}}
@@ -62,7 +62,7 @@
 				{{#each follow_patterns}}
 					<div style="margin:4px 0px 4px 0px">
 						{{#view ASTool.PatternTextField pattern=this action="editFollowPattern"}}
-  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="clear-button"}}
+  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
 						{{/view}}
 						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 					</div>
@@ -83,7 +83,7 @@
 				{{#each exclude_patterns}}
 					<div style="margin:4px 0px 4px 0px">
 						{{#view ASTool.PatternTextField pattern=this action="editExcludePattern"}}
-  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="clear-button"}}
+  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
 						{{/view}}
 						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
 					</div>
@@ -111,7 +111,7 @@
 		<div class="scrolling-container" style="max-height:350px;">
 			{{#each templates}}
 				<div style="margin:4px 0px 4px 0px">
-					{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='86%' title=url class="clear-button"}}
+					{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='86%' title=url class="light-button"}}
 					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
 				</div>
 			{{else}}

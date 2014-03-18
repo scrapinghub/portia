@@ -3,8 +3,10 @@
 		{{render "navigation"}}
 	</div>
 	<div style="float:left;margin-top:3px">
-		<span style="color:#666;float:left;padding:4px;margin:1px 10px 0px 10px;">
-			{{controller.url}}
+		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;width: 300px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
+			{{#view ASTool.LabelWithTooltip title=controller.url}}
+				{{controller.url}}
+			{{/view}}
 		</span>
 		<span style="float:left;">
 			{{#if showContinueBrowsing}}

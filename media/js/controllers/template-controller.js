@@ -42,14 +42,6 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	_newTypeExtractor: 'null',
 
-	url: function() {
-		var url = this.get('content.url');
-		if (url.length > 80) {
-			url = url.substring(0, 80) + '...';
-		}
-		return url;
-	}.property('content.url'),
-
 	newTypeExtractor: function(key, type) {
 		if (arguments.length > 1) {
 			this.set('_newTypeExtractor', type);
@@ -73,26 +65,6 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			}
 		}).filter(function(sprite) { return !!sprite; });
 	}.property('annotations.@each.element', 'annotations.@each.highlighted'),
-
-	guessInitialMapping: function(annotation) {
-		// Very simple implementation. Only works if we are scraping the 
-		// default item.
-		if (this.get('content.scrapes') != 'default') {
-			annotation.addMapping('content', this.get('scrapedItem.fields').get('firstObject.name'));
-		} else {
-			var element = annotation.get('element');
-			var attributes = annotation.get('attributes');
-			if (attributes.findBy('name', 'src') && this.get('scrapedItem.fields').anyBy('name', 'image')) {
-				annotation.addMapping('src', 'image');
-			} else if (attributes.findBy('name', 'href') && this.get('scrapedItem.fields').anyBy('name', 'link')) {
-				annotation.addMapping('href', 'link');
-			} else if (this.get('scrapedItem.fields').anyBy('name', 'text')){
-				annotation.addMapping('content', 'text');
-			} else {
-				annotation.addMapping('content', null);
-			}
-		}
-	},
 		
 	addAnnotation: function(element, generated) {
 		var annotation = ASTool.Annotation.create({
@@ -101,7 +73,6 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			generated: !!generated,
 		});
 		this.get('annotations').pushObject(annotation);
-		this.guessInitialMapping(annotation);
 		return annotation;
 	},
 
@@ -347,7 +318,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			selection.collapse();
 		},
 
-		elementHovered: function(element, mouseX, mouseY) {	
+		elementHovered: function(element, mouseX, mouseY) {
 			var annotation = this.get('annotations').findBy('element', element);
 			if (annotation) {
 				this.showFloatingAnnotationWidget(annotation, mouseX, mouseY);
@@ -378,6 +349,5 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 							  dataSource: this,
 							  partialSelects: true });	
 		}
-		
 	},
 });

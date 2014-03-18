@@ -346,24 +346,19 @@ a:hover {
 }
 
 .ui-button.light-button {
-	background: #999;
-	border-color: #FFF;
-	color: #FFF;
-}
-
-.ui-button.light-button:hover {
-	background: #AAA;
-}
-
-.ui-button.clear-button {
 	background: rgba(0,0,0,0);
 	border-color: rgba(0,0,0,0.2);
 	border-style: dotted;
 	color: #6F92BF;
 }
 
-.ui-button.clear-button:hover {
+.ui-button.light-button:hover {
 	color: orange;
+}
+
+.ui-button.clear-button {
+	background: rgba(0,0,0,0);
+	border-style: none;
 }
 
 .ui-button.pin-button {
@@ -405,4 +400,5 @@ a:hover {
     font: normal 12px Verdana,Helvetica,Arial,sans-serif;
     box-shadow: 0 0 7px black;
     z-index: 500;
+    word-wrap:break-word;
   }
