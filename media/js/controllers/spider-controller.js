@@ -23,6 +23,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	pendingFetches: [],
 
+	itemDefinitions: null,
+
 	hasStartUrl: function() {
 		return !this.get('newStartUrl');
 	}.property('newStartUrl'),
@@ -119,7 +121,13 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				items = items.toArray();
 			}
 		}
-		return items;
+		var extractedItems = items.map(function(item) {
+			var templatePageId = item['_template'];
+			var template = this.get('templates').findBy('page_id', templatePageId);
+			var itemDefinition = this.get('itemDefinitions').findBy('name', template.get('scrapes'));
+			return ASTool.ExtractedItem.create({ extracted: item, definition: itemDefinition });
+		}.bind(this));
+		return extractedItems;
 	}.property('loadedPageFp'),
 
 	spiderDomains: function() {
@@ -154,11 +162,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		if (!Em.isEmpty(this.get('pendingFetches'))) {
 			return 'Fetching page...';
 		} else if (this.get('loadedPageFp')) {
-			var url = this.get('pageMap')[this.get('loadedPageFp')].url;	
-			if (url.length > 80) {
-				url = url.substring(0, 80) + '...';
-			}
-			return url;
+			return this.get('pageMap')[this.get('loadedPageFp')].url;;
 		} else {
 			return 'No page loaded';
 		}

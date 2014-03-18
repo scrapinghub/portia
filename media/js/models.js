@@ -363,3 +363,29 @@ ASTool.Extractor = ASTool.SimpleModel.extend({
 	regular_expression: null,
 	type_extractor: null,
 });
+
+
+ASTool.ExtractedItem = Em.Object.extend({
+	definition: null,
+	extracted: null,
+	
+	fields: function() {
+		var fields = [];
+		var item = this.get('extracted');
+		Object.keys(item).forEach(function(key) {
+			var fieldDefinition = this.get('definition.fields').findBy('name', key);
+			if (fieldDefinition) {
+				fields.pushObject(ASTool.ExtractedField.create(
+					{ name: key, type: fieldDefinition.get('type'), value: item[key] }));	
+			}
+		}.bind(this));
+		return fields;
+	}.property('extracted', 'definition'),
+});
+
+
+ASTool.ExtractedField = Em.Object.extend({
+	name: null,
+	type: null,
+	value: null,
+});

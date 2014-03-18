@@ -13,7 +13,9 @@
 		</span>
 		
 		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;width: 300px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
-			{{controller.currentUrl}}
+			{{#view ASTool.LabelWithTooltip title=controller.currentUrl}}
+				{{controller.currentUrl}}
+			{{/view}}
 		</span>
 
 		{{#unless addTemplateDisabled}}
@@ -42,21 +44,32 @@
 
 
 		{{#if showItems}}
-			{{#if this.extractedItems.length}}
+			{{#if controller.extractedItems.length}}
 				<div style="pointer-events: none;background-color:rgba(0,0,0,0.8);padding:10px;width:400px;box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);position:fixed;left:400px;top:30px;">
 					<span style="float:right;pointer-events:all">
 						{{view ASTool.ButtonView action="toggleShowItems" class="clear-button textless-button" icon="ui-icon-closethick"}}
 					</span>
-					<h3 style="color:#BBB;font-weight:bold;text-align:center">Displaying {{this.extractedItems.length}} extracted items</h3>
-					<div style="max-height:500px; padding:5px;" class="scrolling-container">
-						{{#each this.extractedItems}}
+					<h3 style="color:#BBB;font-weight:bold;text-align:center">Displaying {{controller.extractedItems.length}} extracted items</h3>
+					<div style="max-height:500px; padding:8px;" class="scrolling-container">
+						{{#each controller.extractedItems}}
 							<div style="margin-bottom:20px">
-								{{#view ASTool.ExtractedItemView item=this}}
-									{{#each view.fields}}
+								{{#view ASTool.ExtractedItemView extractedItem=this}}
+									{{#each view.textFields}}
 										<div style="margin-bottom:5px">
 											<span style="color:orange; font-weight:bold;">{{this.name}}:</span>
-											<span style="color:white;">{{this.value}}</span>
+											<span style="color:white;word-wrap:break-word;">{{this.value}}</span>
 										</div>
+									{{/each}}
+									{{#each view.imageFields}}
+										<div style="margin-bottom:5px">
+											<span style="color:orange; font-weight:bold;">{{this.name}}:</span>
+											{{#each this.value}}
+												<span style="color:white;word-wrap:break-word;">{{this}}</span>
+												<div style="margin:10px;text-align:center">{{view ASTool.ImageView src=this width="200px"}}</div>
+										{{/each}}
+											
+										</div>
+										
 									{{/each}}
 								{{/view}}
 							</div>

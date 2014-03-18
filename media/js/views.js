@@ -500,16 +500,23 @@ ASTool.PatternTextField = ASTool.InlineTextField.extend({
 
 
 ASTool.ExtractedItemView = Ember.View.extend({
-	item: null,
+	extractedItem: null,
 
 	fields: function() {
-		var fields = [];
-		var item = this.get('item');
-		Object.keys(item).forEach(function(key) {
-			fields.pushObject({ name: key, value: item[key] });
+		return this.get('extractedItem.fields');
+	}.property('extractedItem'),
+
+	textFields: function() {
+		return this.get('fields').filter(function(field) {
+			return field.get('type') != 'image';
 		});
-		return fields;
-	}.property('item'),
+	}.property('fields'),
+
+	imageFields: function() {
+		return this.get('fields').filter(function(field) {
+			return field.get('type') == 'image';
+		});
+	}.property('fields'),
 });
 
 
@@ -520,7 +527,7 @@ ASTool.ExtractorView = Em.View.extend(DragNDrop.Draggable, {
 		'regular_expression': '<RegEx>',
 		'type_extractor': '<type>',
 	},
-	classNames: ['extractor-view', 'ui-button', 'clear-button'],
+	classNames: ['extractor-view', 'ui-button', 'light-button'],
 	classNameBindings: ['extractorType'],
 
 	dragStart: function(event) {
@@ -714,6 +721,11 @@ ASTool.LabelWithTooltip = Em.View.extend ({
 			$(this.get('element')).tooltip('refresh');
 		} catch (err) {}
 	}.observes('title'),
+});
+
+ASTool.ImageView = Em.View.extend({
+	tagName: 'img',
+	attributeBindings: ['src', 'width'],
 });
 
 

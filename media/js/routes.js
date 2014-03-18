@@ -93,6 +93,14 @@ ASTool.SpiderIndexRoute = Ember.Route.extend({
 		return this.modelFor('spider');
 	},
 
+	afterModel: function() {
+		// Load the items.
+		var controller = this.controllerFor('spider.index');
+		return this.get('slyd').loadItems().then(function(items) {
+			controller.set('itemDefinitions', items);
+		});
+	},
+
 	renderTemplate: function() {
 		var controller = this.controllerFor('spider.index');
 		this.render('spider/index', {
