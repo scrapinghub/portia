@@ -3,7 +3,7 @@
 		{{render "navigation"}}
 	</div>
 	<div style="float:left;margin-top:3px">
-		{{view ASTool.TextField value=projectSite width='320px' name='projectSiteTextField' placeholder='Enter site url' action="createProject"}}
+		{{view ASTool.TextField value=projectSite width='320px' name='projectSiteTextField' placeholder='Enter site url' action="createProject" id="projectSiteTextField"}}
 		{{view ASTool.ButtonView action="createProject" icon="ui-icon-circle-plus" label="Start" class="blue-button" disabled=createProjectDisabled}}
 	</div>
 </div>

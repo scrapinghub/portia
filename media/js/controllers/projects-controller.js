@@ -40,7 +40,27 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		}
 	},
 
+	animateProjectSiteInput: function() {
+		var animateBorderColor = function () {
+			$('#projectSiteTextField')
+				.animate({ 'border-color': '#FF9900', 'background-color': '#FCECDE' }, 1000)
+				.animate({ 'border-color': '#BBBBB', 'background-color': '#FFFFFF' }, 1000, animateBorderColor)
+		};
+		Em.run.schedule('afterRender', this, function() {
+			$('#projectSiteTextField')
+				.hide()
+				.show('fast', animateBorderColor)
+				.click(function(e) {
+					$('#projectSiteTextField').stop(true)
+					.css({ 'border-color': '#BBBBB', 'background-color': '#FFFFFF' });
+				});
+		});
+	},
+
 	willEnter: function() {
 		this.get('documentView').showSpider();
+		if (Em.isEmpty(this.get('content'))) {
+			this.animateProjectSiteInput();	
+		}
 	}
 });
