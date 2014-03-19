@@ -1,7 +1,7 @@
 html, body { height: 100% }
 
 body{
-	font: 71% "Verdana", sans-serif;
+	font: 0.68em "Verdana", sans-serif;
 	height: 100%;
 	overflow: hidden;
 	color: #111;
@@ -208,7 +208,7 @@ body{
 	position: fixed;
 	z-index: 400;
 	background-color: rgba(0,0,0,0.8);
-	width: 252px;
+	width: 254px;
 	box-shadow: 0px 0px 9px 1px rgba(0,0,0,0.8);
 	border: none;
 }

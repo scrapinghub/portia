@@ -63,6 +63,7 @@ ASTool.Canvas = Em.Object.extend({
 				;
 				canvas.css('background-color', 'rgba(0,0,30,0.2)');
 				canvas.css('background', '-webkit-radial-gradient(circle, rgba(0,0,0,0.0), rgba(0,0,0,0.6)');
+				canvas.css('background', '-moz-radial-gradient(circle, rgba(0,0,0,0.0), rgba(0,0,0,0.6)');
 			} else {
 				canvas.css('pointer-events', 'none');
 				canvas.css('background-color', 'rgba(0,0,0,0)');
