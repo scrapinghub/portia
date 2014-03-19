@@ -342,7 +342,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 							  dataSource: this,
 							  partialSelects: true });
 				}, 100);	
-			}, 100);	
+			}, 500);	
 		} else {
 			this.get('documentView').config({ mode: 'select',
 							  listener: this,

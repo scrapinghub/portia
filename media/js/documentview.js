@@ -143,27 +143,22 @@ ASTool.DocumentView = Em.Object.extend({
 		readyCallback will be called when the document finishes rendering.
 	*/
 	displayDocument: function(documentContents, readyCallback) {
-		this.set('loadingDoc', true);
-		
-		// FIXME!!
-		if (!Ember.testing){
-			document.getElementById(this.get('iframeId')).srcdoc = documentContents;
-		} else {
-			this.getIframe().find('html').html(documentContents);
-		}
-		
-		// We need to disable all interactions with the document we are loading
-		// until we trigger the callback.
-		this.setInteractionsBlocked(true);
-		Em.run.later(this, function() {	
-			var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
-			doc.onscroll = this.redrawNow.bind(this);
-			this.setInteractionsBlocked(false);
-			if (readyCallback) {
-				readyCallback(this.getIframe());
-			};
-			this.set('loadingDoc', false);
-		}, 1000);
+		Em.run.schedule('afterRender', this, function() {
+			this.set('loadingDoc', true);
+			this.setIframeContent(documentContents);
+			// We need to disable all interactions with the document we are loading
+			// until we trigger the callback.
+			this.setInteractionsBlocked(true);
+			Em.run.later(this, function() {	
+				var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
+				doc.onscroll = this.redrawNow.bind(this);
+				this.setInteractionsBlocked(false);
+				if (readyCallback) {
+					readyCallback(this.getIframe());
+				};
+				this.set('loadingDoc', false);
+			}, 1000);
+		});
 	},
 
 	/**
@@ -214,7 +209,9 @@ ASTool.DocumentView = Em.Object.extend({
 	*/
 	showError: function(error) {
 		error = '<div style="color:red;font-size:1.2em;padding:15px">' + error + '</div>';
-		this.getIframe().find('html').html(error);
+		Em.run.schedule('afterRender', this, function() {
+			this.setIframeContent(error);
+		});
 	},
 
 	/**
@@ -222,11 +219,13 @@ ASTool.DocumentView = Em.Object.extend({
 		iframe.
 	*/
 	showSpider: function() {
-		if (!Ember.testing){
-			ic.ajax('start.html').then(function(page) {
-				this.getIframe().find('html').html(page);
-			}.bind(this));
-		}
+		Em.run.schedule('afterRender', this, function() {
+			if (!Ember.testing){
+				ic.ajax('start.html').then(function(page) {
+					this.setIframeContent(page);
+				}.bind(this));
+			}
+		});
 	},
 
 	/**
@@ -289,6 +288,14 @@ ASTool.DocumentView = Em.Object.extend({
 		this.getIframe().unbind('mouseup');
 		this.getIframe().unbind('hover');
 		this.set('hoveredSprite', null);
+	},
+
+	setIframeContent: function(contents) {
+		if (Ember.testing || Ember.browser.isMozilla) {
+			this.getIframe().find('html').html(contents);
+		} else {
+			document.getElementById(this.get('iframeId')).srcdoc = contents;
+		}
 	},
 
 	showHoveredInfo: function() {
@@ -372,7 +379,13 @@ ASTool.DocumentView = Em.Object.extend({
 	
 	mouseOutHandler: function(event) {
 		this.set('hoveredSprite', null);
-		this.sendElementHoveredEvent(null, 0);
+		if (!Em.browser.isMozilla) {
+			// Firefox fires this event when the annotation widget
+			// pops up, causing for the widget to disappear. Supressing
+			// the call to sendElementHoveredEvent deals with the issue
+			// but may prevent the widget from hiding appropriately.
+			this.sendElementHoveredEvent(null, 0);	
+		}
 		this.redrawNow();
 	},
 
