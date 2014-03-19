@@ -211,10 +211,19 @@ ASTool.VariantSelect = ASTool.Select.extend({
 		return options;
 	}.property('controller.controllers.template_index.maxVariant'),
 
-	select: function(event, data) {
-		// FIXME: raise an event instead of directly setting the property.
-		this.set('controller.model.variant', parseInt(data.item.value));
+	change: function() {
+		this.get('controller').send('variantSelected', parseInt(this.get('value')));
 	},
+
+	fixSelection: function() {
+		// When content is repopulated, the Select component loses its selection.
+		// This hack resets the selection to its correct value.
+		var tempValue = this.get('value');
+		this.set('value', null);
+		Ember.run.scheduleOnce('afterRender', this, function() {		
+			this.set('value', tempValue);
+		});
+	}.observes('content'),
 });
 
 
@@ -306,7 +315,8 @@ ASTool.AnnotationWidget = Em.View.extend({
 		prompt: '-select field-',
 
 		content: function() {
-			var options = this.get('controller.scrapedItem.fields').map(function(field) {
+			var fields = this.get('controller.scrapedItem.fields') || [];
+			var options = fields.map(function(field) {
 				var name = field.get('name');
 				return { option: name, label: name };
 			});

@@ -243,8 +243,6 @@ ASTool.DocumentView = Em.Object.extend({
 				{ 'scrollTop': (rect.top - 100) + 'px', 'scrollLeft': (rect.left - 100) + 'px'},
 				150);	
 		}
-		
-	
 		this.updateHoveredInfo(element);
 	},
 

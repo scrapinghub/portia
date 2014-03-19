@@ -18,6 +18,8 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	scrapedItemBinding: 'controllers.template_index.scrapedItem',
 
 	urlBinding: 'controllers.template_index.url',
+
+	currentVariantBinding: Em.Binding.oneWay("content.variant"),
 	
 	selectingIgnore: function(key, selectingIgnore) {
 		if (arguments.length > 1) {
@@ -99,6 +101,10 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		fieldSelected: function(field) {
 			this.get('content').addMapping(this.get('mappingAttribute.name'), field);
 			this.set('mappingAttribute', null);
+		},
+
+		variantSelected: function(variant) {
+			this.set('content.variant', variant);
 		},
 
 		makeSticky: function(attribute) {

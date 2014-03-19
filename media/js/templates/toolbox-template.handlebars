@@ -24,7 +24,7 @@
 	
 	<h3>Extracted item</h3>
 	<div class="section" style="text-align:center;">
-		<label class="small-label">Extracted item type:</label> {{view ASTool.ItemSelect value=template.scrapes}}
+		<label class="small-label">Extracted item type:</label> {{view ASTool.ItemSelect value=scrapes}}
 		{{view ASTool.InlineHelp message="select_item"}}
 		<div style="margin-top:10px">
 			{{view ASTool.ButtonView action="editItems" argument=this label="Edit items" class="blue-button"}}
@@ -76,7 +76,7 @@
 		<div style="margin:20px 0px 10px 0px">
 			{{view ASTool.TextField value=newReExtractor width='140px' name='reExtractorField' placeholder='Enter a RegEx' action="createExtractor"}}
 			<span class="very-small-label" style="margin-left:10px">or choose a type:</span>
-			<span class="typeBox">{{view ASTool.ExtractorTypeSelect value=newTypeExtractor name='typeExtractorCombo'}}</span>
+			<span class="typeBox">{{view ASTool.TypeSelect value=newTypeExtractor name='typeExtractorCombo'}}</span>
 		</div>
 		{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled class="blue-button"}}
 	</div>

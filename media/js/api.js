@@ -284,6 +284,10 @@ ASTool.SlydApi = Em.Object.extend({
   	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	saveExtractors: function(extractors) {
+		console.log(extractors);
+		extractors = extractors.map(function(extractor) {
+			return extractor.serialize();
+		});
 		extractors = this.listToDict(extractors);
 		var hash = {};
 		hash.type = 'POST';
