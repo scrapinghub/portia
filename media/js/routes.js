@@ -35,7 +35,7 @@ ASTool.ProjectsIndexRoute = Ember.Route.extend({
 
 	renderTemplate: function() {
 		var controller = this.controllerFor('projects.index');
-		this.render('projects/index', {
+		this.render('toolbox-projects', {
       		controller: controller,
     	});
 
@@ -63,7 +63,7 @@ ASTool.ProjectIndexRoute = Ember.Route.extend({
 
 	renderTemplate: function() {
 		var controller = this.controllerFor('project.index');
-		this.render('project/index', {
+		this.render('toolbox-project', {
       		controller: controller,
     	});
 
@@ -103,7 +103,7 @@ ASTool.SpiderIndexRoute = Ember.Route.extend({
 
 	renderTemplate: function() {
 		var controller = this.controllerFor('spider.index');
-		this.render('spider/index', {
+		this.render('toolbox-spider', {
       		controller: controller,
     	});
 
@@ -169,7 +169,7 @@ ASTool.TemplateIndexRoute = Ember.Route.extend({
 
 	renderTemplate: function() {
 		var controller = this.controllerFor('template.index');
-		this.render('template/index', {
+		this.render('toolbox-template', {
       		controller: controller,
     	});
     	this.render('topbar-extraction', {
@@ -195,7 +195,7 @@ ASTool.AnnotationRoute = Ember.Route.extend({
 
 	renderTemplate: function() {
 		var controller = this.controllerFor('annotation');
-		this.render('annotation', {
+		this.render('toolbox-annotation', {
       		controller: controller,
     	});
 
@@ -214,7 +214,7 @@ ASTool.ItemsRoute = Ember.Route.extend({
 	},
 
 	renderTemplate: function() {
-		this.render('items', {
+		this.render('toolbox-items', {
 			into: 'application',
       		outlet: 'main',
       		controller: 'items',

@@ -731,19 +731,19 @@ ASTool.ImageView = Em.View.extend({
 
 var ToolboxViewMixin = ASTool.ToolboxViewMixin;
 
-ASTool.ProjectsIndexView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ToolboxProjectsView = Ember.View.extend(ToolboxViewMixin);
 
-ASTool.ProjectIndexView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ToolboxProjectView = Ember.View.extend(ToolboxViewMixin);
 
-ASTool.SpiderIndexView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ToolboxSpiderView = Ember.View.extend(ToolboxViewMixin);
 
-ASTool.TemplateIndexView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ToolboxTemplateView = Ember.View.extend(ToolboxViewMixin);
 
-ASTool.ItemsView = Ember.View.extend(ToolboxViewMixin, {
+ASTool.ToolboxItemsView = Ember.View.extend(ToolboxViewMixin, {
 	fixedToolbox: true,
 });
 
-ASTool.AnnotationView = Ember.View.extend(ToolboxViewMixin, {
+ASTool.ToolboxAnnotationView = Ember.View.extend(ToolboxViewMixin, {
 	fixedToolbox: true,
 });
 
