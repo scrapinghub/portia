@@ -234,11 +234,17 @@ ASTool.DocumentView = Em.Object.extend({
 	*/
 	scrollToElement: function(element) {
 		var rect = $(element).boundingBox();
-		// This looks much better animated, but it does not work with linux.
+		if (Em.browser.isMozilla) {
+			// Just scroll in FF as I couldn't make the animation work.
+			this.getIframe().scrollTop(rect.top - 100);
+			this.getIframe().scrollLeft(rect.left - 100);	
+		} else {
+			this.getIframe().contents().children().animate(
+				{ 'scrollTop': (rect.top - 100) + 'px', 'scrollLeft': (rect.left - 100) + 'px'},
+				150);	
+		}
 		
-		this.getIframe().contents().children().animate({ 'scrollTop': (rect.top - 100) + 'px',
-								   			  'scrollLeft': (rect.left - 100) + 'px'},
-								 150);
+	
 		this.updateHoveredInfo(element);
 	},
 
