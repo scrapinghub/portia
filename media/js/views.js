@@ -189,15 +189,6 @@ ASTool.TypeSelect = ASTool.Select.extend({
 });
 
 
-ASTool.ExtractorTypeSelect = ASTool.TypeSelect.extend({
-	
-	select: function(event, data) {
-		// FIXME: raise an event instead of directly setting the property.
-		this.set('controller.newTypeExtractor', data.item.value);
-	},
-});
-
-
 ASTool.VariantSelect = ASTool.Select.extend({
 
 	content: function() {
@@ -450,16 +441,6 @@ ASTool.ElemAttributeView = Em.View.extend({
 ASTool.EditItemView = Ember.View.extend({
 	templateName: 'edit-item',
 	item: null,
-	mappingAttribute: null,
-	classNameBindings: ['highlighted:highlighted-item'],
-
-	highlighted: function() {
-		if (!this.mappingAttribute) {
-			return false;
-		} else {
-			return this.get('controller.controllers.annotation.scrapes') == this.item.get('name');
-		}
-	}.property(),
 });
 
 
