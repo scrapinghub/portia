@@ -1,9 +1,9 @@
 <div id="topbar">
-	<div style="float:left;text-align:left;width:400px">
+	<div  class="nav-container">
 		{{render "navigation"}}
 	</div>
-	<div style="float:left;margin-top:3px">
-		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;width: 300px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
+	<div style="float:left;margin-top:2px">
+		<span class="url">
 			{{#view ASTool.LabelWithTooltip title=controller.url}}
 				{{controller.url}}
 			{{/view}}

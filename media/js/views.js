@@ -289,7 +289,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 
 	attributeSelect: ASTool.Select.extend({
 		valueBinding: 'parentView.attributeName',
-		classNames: 'attribute-select',
+		classNames: 'attribute',
 
 		content: function() {
 			var options = this.get('parentView.annotation.attributes').map(function(attribute) {
@@ -302,7 +302,7 @@ ASTool.AnnotationWidget = Em.View.extend({
 
 	fieldSelect: ASTool.Select.extend({
 		valueBinding: 'parentView.fieldName',
-		classNames: 'field-select',
+		classNames: 'field',
 		prompt: '-select field-',
 
 		content: function() {

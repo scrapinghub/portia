@@ -1,10 +1,9 @@
 <div id="topbar">
-	
-	<div style="float:left;text-align:left;width:30%">
+	<div class="nav-container">
 		{{render "navigation"}}
 	</div>
 
-	<div style="float:left;margin-top:3px">
+	<div style="float:left;margin-top:2px">
 		<span style="float:left">
 			{{view ASTool.ButtonView action="browseBack" class="textless-button" icon="ui-icon-arrowthick-1-w" disabled=browseBackDisabled}}
 		</span>
@@ -12,7 +11,7 @@
 			{{view ASTool.ButtonView action="reload" class="textless-button" icon="ui-icon-arrowrefresh-1-e" disabled=reloadDisabled}}
 		</span>
 		
-		<span style="color:#444;float:left;padding:4px;margin:1px 30px 0px 6px;width: 300px;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;">
+		<span class="url">
 			{{#view ASTool.LabelWithTooltip title=controller.currentUrl}}
 				{{controller.currentUrl}}
 			{{/view}}
@@ -31,13 +30,13 @@
 		{{/unless}}
 
 		{{#if showNoItemsExtracted}}
-			<span style="float:left;margin:5px 0px 0px 10px;color:#999">
+			<span class="small-label" style="float:left;margin:5px 0px 0px 10px;">
 				No items extracted
 			</span>
 		{{/if}}
 
 		{{#if saving}}
-			<span style="float:left;margin:5px 0px 0px 10px;color:red;font-weight:bold">
+			<span class="small-label red-label" style="float:left;margin:5px 0px 0px 10px;">
 				Saving spider...
 			</span>
 		{{/if}}
@@ -45,31 +44,29 @@
 
 		{{#if showItems}}
 			{{#if controller.extractedItems.length}}
-				<div style="pointer-events: none;background-color:rgba(0,0,0,0.8);padding:10px;width:400px;box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);position:fixed;left:400px;top:30px;">
+				<div class="extracted-items-container">
 					<span style="float:right;pointer-events:all">
 						{{view ASTool.ButtonView action="toggleShowItems" class="clear-button textless-button" icon="ui-icon-closethick"}}
 					</span>
-					<h3 style="color:#BBB;font-weight:bold;text-align:center">Displaying {{controller.extractedItems.length}} extracted items</h3>
+					<h3 style="text-align:center" class="important-label">Displaying {{controller.extractedItems.length}} extracted items</h3>
 					<div style="max-height:500px; padding:8px;" class="scrolling-container">
 						{{#each controller.extractedItems}}
 							<div style="margin-bottom:20px">
 								{{#view ASTool.ExtractedItemView extractedItem=this}}
 									{{#each view.textFields}}
 										<div style="margin-bottom:5px">
-											<span style="color:orange; font-weight:bold;">{{this.name}}:</span>
+											<span class="small-label blue-label">{{this.name}}:</span>
 											<span style="color:white;word-wrap:break-word;">{{this.value}}</span>
 										</div>
 									{{/each}}
 									{{#each view.imageFields}}
 										<div style="margin-bottom:5px">
-											<span style="color:orange; font-weight:bold;">{{this.name}}:</span>
+											<span class="small-label blue-label">{{this.name}}:</span>
 											{{#each this.value}}
 												<span style="color:white;word-wrap:break-word;">{{this}}</span>
 												<div style="margin:10px;text-align:center">{{view ASTool.ImageView src=this width="200px"}}</div>
-										{{/each}}
-											
+											{{/each}}	
 										</div>
-										
 									{{/each}}
 								{{/view}}
 							</div>

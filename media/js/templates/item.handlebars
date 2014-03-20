@@ -5,11 +5,11 @@
 		{{#if fields}}
 			<div style="margin-top:10px">
 			<table style="margin:0 auto;">
-				<tr style="font-size:0.9em;font-weight:bold;color:#999"> <td>Field</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
+				<tr class="small-label"> <td>Field</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
 				{{#each fields}}
 					<tr>
-						<td><h5 style="color:#333">{{name}}</h5></td>
-						<td><h5>type</h5></td>
+						<td><h5 style="color:#666">{{name}}</h5></td>
+						<td><h5>{{type}}</h5></td>
 						<td><h5>{{#if required}}yes{{else}}no{{/if}}</h5></td>
 						<td><h5>{{#if vary}}yes{{else}}no{{/if}}</h5></td>
 						<td style="padding-bottom:4px;">{{view ASTool.ButtonView icon="ui-icon-circle-check"  action="fieldSelected" argument=name class="textless-button blue-button"}}</td>

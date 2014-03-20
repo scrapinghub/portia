@@ -179,11 +179,11 @@ ASTool.DocumentView = Em.Object.extend({
 		var loader = this.get('loader');
 		if (!loader) {
 			loader = new CanvasLoader('loader-container');
-			loader.setColor('#2398c2');
+			loader.setColor('#2398b2');
 			loader.setShape('spiral');
-			loader.setDiameter(133);
+			loader.setDiameter(110);
 			loader.setRange(0.9);
-			loader.setSpeed(1);
+			loader.setSpeed(1.0);
 			loader.setFPS(60);
 			var loaderObj = document.getElementById("canvasLoader");
 		  	loaderObj.style.position = "absolute";
@@ -339,7 +339,7 @@ ASTool.DocumentView = Em.Object.extend({
 		var attributesHtml = '';
 		$(attributes).each(function(i, attribute) {
 			var value = trim(attribute.get('value'), 50);
-			attributesHtml += '<div><span>' + attribute.get('name') + ": </span>";
+			attributesHtml += '<div style="margin:2px 0px 2px 0px"><span>' + attribute.get('name') + ": </span>";
 			attributesHtml += '<span style="color:#AAA">' + value + '</span></div>';
 		});
 		$('#hovered-element-info .attributes').html(attributesHtml);

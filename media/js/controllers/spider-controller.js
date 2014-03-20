@@ -153,7 +153,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				element: link,
 				hasShadow: false,
 				fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
-				strokeColor: 'rgba(50, 50, 50, 1)' }));
+				strokeColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)' }));
 		}.bind(this));
 		return sprites;
 	}.property('loadedPageFp', 'showLinks', 'spiderDomains'),
@@ -435,7 +435,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		if (this.get('autoloadTemplate')) {
 			Ember.run.next(this, function() {
 				this.saveSpider().then(function() {
-					this.fetchPage(this.get('autoloadTemplate.url'));	
+					this.fetchPage(this.get('autoloadTemplate.url'), null, true);	
 					this.set('autoloadTemplate', null);
 				}.bind(this));
 			});	

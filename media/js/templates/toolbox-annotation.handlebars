@@ -9,7 +9,7 @@
 		<div class="scrolling-container" style="max-height:180px;">
 			<ul style="list-style-type:none;padding:0px;margin:0px">
 				{{#each ancestorPaths}}
-					<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
+					<li style="float:left; padding:3px 2px 3px 2px;">
 						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label minWidth="73px" class="light-button"}}
 					</li>
 				{{/each}}
@@ -20,7 +20,7 @@
 		<div class="scrolling-container" style="max-height:180px;">
 			<ul style="list-style-type:none;padding:0px;margin:0px">
 				{{#each childPaths}}
-					<li style="float:left; padding:3px 2px 3px 2px; font-size:0.8em !important;">
+					<li style="float:left;padding:3px 2px 3px 2px;">
 						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label  minWidth="73px" class="light-button"}}
 					</li>
 				{{/each}}
@@ -32,18 +32,18 @@
 	<div>
 		{{#unless mappingAttribute}}
 			<h4>Not mapped</h4>
-			<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
+			<div class="scrolling-container" style="max-height:180px;">	
 				{{#each unmappedAttributes}}
-					<div style="margin:4px 0px 4px 0px;border:dotted 1px #CCC;padding:5px">
+					<div class="attribute-field-mapping">
 						{{#view ASTool.ElemAttributeView attribute=this}}
 							<div>
-								<div style="display:inline-block;font-weight:bold">{{view.name}}</div>
+								<div class="attribute-name">{{view.name}}</div>
 								<span style="float:right">
 									{{view ASTool.ButtonView action="mapAttribute" argument=this icon="ui-icon-transferthick-e-w" class="blue-button textless-button"}}
 							    	{{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="blue-button textless-button"}}
 						    	</span>
 						    </div>
-						    <div style="display:inline-block;color:#999;margin-top:10px">{{view.value}}</div>
+						    <div class="attribute-val">{{view.value}}</div>
 						{{/view}}
 					</div>
 				{{else}}
@@ -54,11 +54,11 @@
 			<div style="margin-bottom:10px"></div>
 
 			<h4>Mapped</h4>
-			<div class="scrolling-container ui-corner-all" style="max-height:180px;">
+			<div class="scrolling-container" style="max-height:180px;">
 				{{#each mappedAttributes}}
-					<div style="margin:4px 0px 4px 0px;border:dotted 1px #CCC;padding:5px 5px 14px 5px">
+					<div class="attribute-field-mapping" style="padding-bottom:14px">
 						{{#view ASTool.ElemAttributeView attribute=this}}
-							<div style="display:inline-block;font-weight:bold">{{view.name}} -> {{view.field}}</div>
+							<div class="attribute-name">{{view.name}} -> {{view.field}}</div>
 							<span style="float:right">
 								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
 							</span>
@@ -72,11 +72,11 @@
 			<div style="margin-bottom:10px"></div>
 
 			<h4>Required attributes</h4>{{view ASTool.InlineHelp message="sticky_fields"}}
-			<div class="scrolling-container ui-corner-all" style="max-height:180px;">	
+			<div class="scrolling-container" style="max-height:180px;">	
 				{{#each stickyAttributes}}
-					<div style="margin:4px 0px 4px 0px;border:dotted 1px #CCC;padding:5px 5px 14px 5px">
+					<div class="attribute-field-mapping" style="padding-bottom:14px">
 						{{#view ASTool.ElemAttributeView attribute=this}}
-							<div style="display:inline-block;font-weight:bold">{{view.name}}</div>
+							<div class="attribute-name">{{view.name}}</div>
 							<span style="float:right">
 								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
 							</span>
@@ -97,7 +97,7 @@
 			{{#each model.ignores}}
 				<div>
 					{{#view ASTool.IgnoreWidget ignore=this}}
-						<div style="margin:4px 0px 4px 0px;border:dotted 1px #CCC;width:250px;padding:3px;text-align:center;display:inline-block">
+						<div class="ignore-widget">
 							<label class="small-label">Ignore elements beneath</label>
 							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
 						</div>

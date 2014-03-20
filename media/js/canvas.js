@@ -148,26 +148,23 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 		    context.shadowBlur = 5;
 		    context.lineWidth = 2;
 		    context.strokeStyle = 'orange';
-
 		}
 		context.strokeRect(rect.left,
 			           	   rect.top,
 					       rect.width,
 					       rect.height);
+		context.shadowColor = 'transparent';
 
 		if (this.get('text')) {
 			context.font = "12px sans-serif";
-			context.shadowColor   = 'rgba(0,0,0,0.5)';
-		    context.shadowBlur    = 4;
-			context.lineWidth = 2;
-			context.strokeStyle = '#333';
-			context.strokeText(this.get('text'),
-					 	 	  rect.left + 6,
-				 		 	  rect.top + 14);
+			var textWidth = context.measureText(this.get('text')).width;
+			context.fillStyle = 'orange';
+			context.fillRect(rect.left, rect.top - 18, textWidth + 11, 18);
+			context.fillRect(rect.left, rect.top - 1, rect.width, 2);
 			context.fillStyle = this.get('textColor');
 			context.fillText(this.get('text'),
 					 	 	 rect.left + 6,
-				 		 	 rect.top + 14);
+				 		 	 rect.top - 4);
 		}
 		context.restore();
 	}
@@ -176,9 +173,9 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 
 ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 	annotation: null,
-	fillColor: 'rgba(88,120,220,0.4)',
-	strokeColor: 'white',
-	hasShadow: 'true',
+	fillColor: 'rgba(88,150,220,0.4)',
+	strokeColor: 'rgba(88,150,220,0.4)',
+	hasShadow: false,
 	textColor: 'white',
 
 	text: function() {
@@ -233,9 +230,10 @@ ASTool.IgnoreSprite = ASTool.RectSprite.extend({
 
 ASTool.ElementSprite = ASTool.RectSprite.extend({
 	element: null,
-	fillColor: 'rgba(88,120,220,0.3)',
-	strokeColor: 'orange',
-	hasShadow: 'true',
+	fillColor: 'rgba(103,175,255,0.4)',
+	strokeColor: 'white',
+	hasShadow: false,
+	boderWidth: 2,
 
 	getBoundingBox: function() {
 		return $(this.get('element')).boundingBox();	

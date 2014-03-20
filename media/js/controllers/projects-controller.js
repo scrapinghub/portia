@@ -43,7 +43,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 	animateProjectSiteInput: function() {
 		var animateBorderColor = function () {
 			$('#projectSiteTextField')
-				.animate({ 'border-color': '#FF9900', 'background-color': '#FCECDE' }, 1000)
+				.animate({ 'border-color': 'rgba(88,150,220,0.4)', 'background-color': 'rgba(130,210,230,0.1)' }, 1000)
 				.animate({ 'border-color': '#BBBBB', 'background-color': '#FFFFFF' }, 1000, animateBorderColor)
 		};
 		Em.run.schedule('afterRender', this, function() {

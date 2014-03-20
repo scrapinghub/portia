@@ -13,17 +13,15 @@
 	{{else}}
 		<div>
 			{{#each view.mappings}}
-				<div style="">
-					<div class="attribute-select" style="display:inline-block;text-align:center;
-					font-size:1.1em;border:dotted 1px #AAA;background-color:white">{{this.name}}</div>
-					<div class="field-select" style="display:inline-block;text-align:center;
-					font-size:1.1em;border:dotted 1px #AAA;background-color:white">{{this.mappedField}}</div>
+				<div>
+					<div class="attribute multimap">{{this.name}}</div>
+					<div class="field multimap" >{{this.mappedField}}</div>
 				</div>
 			{{/each}}
 		</div>
 	{{/unless}}
 {{else}}
-	<div style="float:right; margin-right:4px"{{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="textless-button blue-button" disabled=view.createFieldDisabled}}</div>
+	<div style="float:right;margin-right:4px"{{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="textless-button blue-button" disabled=view.createFieldDisabled}}</div>
 	
 	<label class="small-label" style="margin-left:40px">Field name</label>
 	<label class="small-label" style="margin-left:64px">Field type</label>

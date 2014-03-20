@@ -8,9 +8,9 @@
 	<h3>Annotations</h3>
 	<div class="section">
 		{{#if annotations}}
-			<div style="height:10px;font-weight:bold;color:#999">
-				<span style="float:left;margin-left:5px;margin-right:5px;width:120px;text-align:center">Map attribute</span>
-				<span style="float:left;width:120px;text-align:center">To field</span>
+			<div style="height:10px">
+				<span class="small-label" style="float:left;margin-left:5px;margin-right:5px;width:120px;text-align:center">Map attribute</span>
+				<span class="small-label" style="float:left;width:120px;text-align:center">To field</span>
 			</div>
 			<div class="scrolling-container">
 				{{#each annotations}}
@@ -36,10 +36,10 @@
 		<div class="scrolling-container" style="max-height:250px;margin-top:0px">
 			{{#each mappedFieldsData}}
 				{{#view ASTool.ExtractorDropTarget fieldName=fieldName dragging=controller.draggingExtractor}}
-					<div style="margin:10px 0px 10px 0px;border:solid 1px #EEE;padding:5px">
+					<div class="target-container">
 						 <span class="target"><b style="margin-right:10px">{{fieldName}}</b>[+Drop here]</span>
 						 {{#if extractors}}
-							<div style="margin:10px 0px 0px 0px"></div>
+							<div style="margin-top:10px"></div>
 						{{/if}}
 						{{#each extractors}}
 							<div style="margin:4px 0px 4px 0px">
@@ -91,7 +91,7 @@
 					<span class="important-label">{{this.fieldName}}</span>
 				</div>
 			{{else}}
-				<h5 style="text-align:center;color:#BBB">No field mappings have been defined yet.</h5>
+				<h5 style="text-align:center">No field mappings have been defined yet.</h5>
 			{{/each}}
 		</div>
 	</div>
