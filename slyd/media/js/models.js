@@ -161,7 +161,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 			});
 			return name;
 		} else {
-			return 'Empty (' + this.get('id').substring(0, 5) + ')';
+			return 'No mappings';
 		}
 	}.property('annotations'),
 

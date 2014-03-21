@@ -339,8 +339,10 @@ ASTool.DocumentView = Em.Object.extend({
 		var attributesHtml = '';
 		$(attributes).each(function(i, attribute) {
 			var value = trim(attribute.get('value'), 50);
-			attributesHtml += '<div style="margin:2px 0px 2px 0px"><span>' + attribute.get('name') + ": </span>";
-			attributesHtml += '<span style="color:#AAA">' + value + '</span></div>';
+			attributesHtml += '<div class="attribute" style="margin:2px 0px 2px 0px">' +
+							  	'<span>' + attribute.get('name') + ": </span>" +
+							  	'<span style="color:#AAA">' + value + '</span>' +
+							  '</div>';
 		});
 		$('#hovered-element-info .attributes').html(attributesHtml);
 		$('#hovered-element-info .path').html(path);
