@@ -769,3 +769,11 @@ Ember.Handlebars.registerHelper('message', function(messageName) {
 $(function() {
     $( document ).tooltip({ track: true });
  });
+
+$(function () {
+	$(document).tooltip({
+    	content: function () {
+        	return $(this).prop('title');
+      	}
+  	});
+});
