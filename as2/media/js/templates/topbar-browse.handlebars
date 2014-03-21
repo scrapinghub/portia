@@ -1,0 +1,79 @@
+<div id="topbar">
+	<div class="nav-container">
+		{{render "navigation"}}
+	</div>
+
+	<div style="float:left;margin-top:2px">
+		<span style="float:left">
+			{{view ASTool.ButtonView action="browseBack" class="textless-button" icon="ui-icon-arrowthick-1-w" disabled=browseBackDisabled}}
+		</span>
+		<span style="float:left">
+			{{view ASTool.ButtonView action="reload" class="textless-button" icon="ui-icon-arrowrefresh-1-e" disabled=reloadDisabled}}
+		</span>
+		
+		<span class="url">
+			{{#view ASTool.LabelWithTooltip title=controller.currentUrl}}
+				{{controller.currentUrl}}
+			{{/view}}
+		</span>
+
+		{{#unless addTemplateDisabled}}
+			<span style="float:left">
+				{{view ASTool.ButtonView action="addTemplate" label="Annotate this page" class="red-button"}}
+			</span>
+		{{/unless}}
+
+		{{#unless showItemsDisabled}}
+			<span style="float:left;margin-left:2px">
+				{{view ASTool.ButtonView action="toggleShowItems" label=itemsButtonLabel class="black-button"}}
+			</span>
+		{{/unless}}
+
+		{{#if showNoItemsExtracted}}
+			<span class="small-label" style="float:left;margin:5px 0px 0px 10px;">
+				No items extracted
+			</span>
+		{{/if}}
+
+		{{#if saving}}
+			<span class="small-label red-label" style="float:left;margin:5px 0px 0px 10px;">
+				Saving spider...
+			</span>
+		{{/if}}
+
+
+		{{#if showItems}}
+			{{#if controller.extractedItems.length}}
+				<div class="extracted-items-container">
+					<span style="float:right;pointer-events:all">
+						{{view ASTool.ButtonView action="toggleShowItems" class="clear-button textless-button" icon="ui-icon-closethick"}}
+					</span>
+					<h3 style="text-align:center" class="important-label">Displaying {{controller.extractedItems.length}} extracted items</h3>
+					<div style="max-height:500px; padding:8px;" class="scrolling-container">
+						{{#each controller.extractedItems}}
+							<div style="margin-bottom:20px">
+								{{#view ASTool.ExtractedItemView extractedItem=this}}
+									{{#each view.textFields}}
+										<div style="margin-bottom:5px">
+											<span class="small-label blue-label">{{this.name}}:</span>
+											<span style="color:white;word-wrap:break-word;">{{this.value}}</span>
+										</div>
+									{{/each}}
+									{{#each view.imageFields}}
+										<div style="margin-bottom:5px">
+											<span class="small-label blue-label">{{this.name}}:</span>
+											{{#each this.value}}
+												<span style="color:white;word-wrap:break-word;">{{this}}</span>
+												<div style="margin:10px;text-align:center">{{view ASTool.ImageView src=this width="200px"}}</div>
+											{{/each}}	
+										</div>
+									{{/each}}
+								{{/view}}
+							</div>
+						{{/each}}
+					</div>
+				</div>
+			{{/if}}
+		{{/if}}	
+	</div>
+</div>

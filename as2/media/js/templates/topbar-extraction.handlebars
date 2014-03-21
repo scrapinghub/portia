@@ -1,0 +1,17 @@
+<div id="topbar">
+	<div  class="nav-container">
+		{{render "navigation"}}
+	</div>
+	<div style="float:left;margin-top:2px">
+		<span class="url">
+			{{#view ASTool.LabelWithTooltip title=controller.url}}
+				{{controller.url}}
+			{{/view}}
+		</span>
+		<span style="float:left;">
+			{{#if showContinueBrowsing}}
+				{{view ASTool.ButtonView action="continueBrowsing" label="Continue browsing" class="blue-button"}}
+			{{/if}}
+		</span>
+	</div>
+</div>

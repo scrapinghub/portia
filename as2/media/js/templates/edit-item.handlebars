@@ -1,0 +1,37 @@
+<div class="editable-item-container">
+	<div>
+		<span style="margin:2px 0px 0px 10px">
+			{{#view ASTool.InlineTextField value=name}}
+				<span class="editable-name">Item {{name}}</span>
+			{{/view}}
+		</span>
+		<span style="float:right">
+			{{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+		</span>
+	</div>
+	<div style="text-align:center;margin-top:20px">
+		{{#if view.item.fields}}
+			<table style="margin:0 auto;">
+				<tr class="small-label"> <td>Field</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
+				{{#each view.item.fields}}
+					<tr>
+						<td>
+							{{#view ASTool.InlineTextField value=name}}
+								<span class="editable-name">{{name}}</span>
+							{{/view}}
+						</td>
+						<td>{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
+						<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
+						<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
+						<td>{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button red-button" action="deleteField" argument=view.item argument2=this}}</td>
+					</tr>
+				{{/each}}
+			</table>
+		{{else}}
+			<h5>No fields defined yet.</h5>
+		{{/if}}
+		<div style="text-align:center;margin-top:10px">
+			{{view ASTool.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="Field" class="blue-button"}}
+		</div>
+	</div>
+</div>

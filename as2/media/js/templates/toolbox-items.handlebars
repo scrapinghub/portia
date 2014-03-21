@@ -1,0 +1,17 @@
+<div style="margin:10px 0px 0px 10px">
+	<h4>Items</h4>
+	<div>
+		<div class="scrolling-container" style="max-height:500px">
+			{{#each model}}
+				{{view ASTool.EditItemView item=this}}
+		 	{{else}}
+		 		<h4>No items have been defined yet.</h4>
+		 	{{/each}}
+		</div>
+		<div style="text-align:center;margin-top:10px">
+			{{view ASTool.ButtonView action="addItem" icon="ui-icon-circle-plus" label="Item" class="blue-button"}}
+			{{view ASTool.ButtonView action="saveChanges" icon="ui-icon-circle-triangle-w" label="Save changes" class="blue-button"}}
+			{{view ASTool.ButtonView action="undoChanges" icon="ui-icon-arrowreturnthick-1-w" label="Discard changes" class="red-button"}}
+		</div>
+	</div>
+</div>

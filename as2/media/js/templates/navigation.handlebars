@@ -1,0 +1,20 @@
+<div id="breadcrumb" class="breadCrumb">
+	<ul>
+		{{#if previousRoutes}}		
+			{{#each previousRoutes}}
+				<li>
+					<a href="#"{{action "gotoRoute" this.route}}>{{this.route}} <b>{{this.label}}</b></a>
+				</li>
+			{{/each}}
+			<li>
+				{{currentRoute.route}} <b>{{currentRoute.label}}</b>
+			</li>
+		{{else}}
+			<li>
+				<a href="#">{{currentRoute.route}} <b>{{currentRoute.label}}</b></a>
+			</li>
+		{{/if}}
+	</ul>
+</div>
+	
+

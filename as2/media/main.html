@@ -1,0 +1,74 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+
+	<link href="css/normalize.css" rel="stylesheet">
+	<link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
+	<link href="css/breadcrumb.css" rel="stylesheet">
+	
+	<script src="js/vendor/jquery-1.9.1.js"></script>
+	<script src="js/vendor/jquery-ui-1.10.3.js"></script>
+	<script src="js/vendor/handlebars-1.0.0.js"></script>
+	<script src="js/vendor/ember-debug.js"></script>
+	<script src="js/vendor/ember-browser-detect.js"></script>
+	<script src="js/vendor/loading.js"></script>
+	<script src="js/vendor/ic-ajax.js"></script>
+	<script src="js/vendor/uri.js"></script>
+	<script src="js/vendor/jBreadCrumb.1.1.js"></script>
+	<script src="js/jqplugins.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/api.js"></script>
+	<script src="js/documentview.js"></script>
+	<script src="js/canvas.js"></script>
+	<script src="js/models.js"></script>
+	<script src="js/routes.js"></script>
+	<script src="js/emberui.js"></script>
+	<script src="js/views.js"></script>
+	<script src="js/messages.js"></script>
+	<script src="js/controllers/controllers.js"></script>
+	<script src="js/controllers/navigation-controller.js"></script>
+	<script src="js/controllers/annotation-controller.js"></script>
+	<script src="js/controllers/template-controller.js"></script>
+	<script src="js/controllers/application-controller.js"></script>
+	<script src="js/controllers/items-controller.js"></script>
+	<script src="js/controllers/project-controller.js"></script>
+	<script src="js/controllers/projects-controller.js"></script>
+	<script src="js/controllers/spider-controller.js"></script>
+	
+	<script>
+		function compile(template) {
+		  var templateName = template.split('/templates/').reverse()[0].replace('.handlebars', '');
+		  $.ajax({
+		    url: template,
+		    cache: false,
+		    async: false,
+		    success: function (source) {
+		      var input = Ember.Handlebars.precompile(source.toString());
+		      Ember.TEMPLATES[templateName] = Ember.Handlebars.template(input);
+		    }
+		  });
+		}
+		compile('js/templates/inline-textfield.handlebars');
+		compile('js/templates/annotated-document-view.handlebars');
+		compile('js/templates/application.handlebars');
+		compile('js/templates/annotation-widget.handlebars');
+		compile('js/templates/floating-annotation-widget.handlebars');
+		compile('js/templates/edit-item.handlebars');
+		compile('js/templates/item.handlebars');
+		compile('js/templates/navigation.handlebars');
+		compile('js/templates/toolbox.handlebars');
+		compile('js/templates/toolbox-projects.handlebars');
+		compile('js/templates/toolbox-project.handlebars');
+		compile('js/templates/toolbox-spider.handlebars');
+		compile('js/templates/toolbox-template.handlebars');
+		compile('js/templates/toolbox-annotation.handlebars');
+		compile('js/templates/toolbox-items.handlebars');
+		compile('js/templates/topbar-project.handlebars');
+		compile('js/templates/topbar-projects.handlebars');
+		compile('js/templates/topbar-browse.handlebars');
+		compile('js/templates/topbar-extraction.handlebars');
+	</script>
+</head>
+<body>
+</body>

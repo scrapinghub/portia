@@ -1,0 +1,9 @@
+<span>
+	{{#if view.isEditing}}
+		<span class="editable-name">
+	 		{{view view.textField value=view.value}}
+	 	</span>
+	{{else}}
+		{{yield}}
+	{{/if}}
+</span>

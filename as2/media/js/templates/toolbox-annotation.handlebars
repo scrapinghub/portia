@@ -1,0 +1,131 @@
+
+<div style="text-align:center;margin:10px 0px 10px 0px">
+	<h4>Annotation options</h4>
+</div>
+<div class="accordion">
+	<h3>Selected region</h3>
+	<div>
+		<h4>Ancestors</h4>{{view ASTool.InlineHelp message="selected_region_ancestors"}}
+		<div class="scrolling-container" style="max-height:180px;">
+			<ul style="list-style-type:none;padding:0px;margin:0px">
+				{{#each ancestorPaths}}
+					<li style="float:left; padding:3px 2px 3px 2px;">
+						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label minWidth="73px" class="light-button"}}
+					</li>
+				{{/each}}
+			</ul>
+		</div>
+		<br/>
+		<h4>Children</h4>{{view ASTool.InlineHelp message="selected_region_children"}}
+		<div class="scrolling-container" style="max-height:180px;">
+			<ul style="list-style-type:none;padding:0px;margin:0px">
+				{{#each childPaths}}
+					<li style="float:left;padding:3px 2px 3px 2px;">
+						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label  minWidth="73px" class="light-button"}}
+					</li>
+				{{/each}}
+			</ul>
+		</div>
+	</div>
+
+	<h3>Attribute mappings</h3>
+	<div>
+		{{#unless mappingAttribute}}
+			<h4>Not mapped</h4>
+			<div class="scrolling-container" style="max-height:180px;">	
+				{{#each unmappedAttributes}}
+					<div class="attribute-field-mapping">
+						{{#view ASTool.ElemAttributeView attribute=this}}
+							<div>
+								<div class="attribute-name">{{view.name}}</div>
+								<span style="float:right">
+									{{view ASTool.ButtonView action="mapAttribute" argument=this icon="ui-icon-transferthick-e-w" class="blue-button textless-button"}}
+							    	{{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="blue-button textless-button"}}
+						    	</span>
+						    </div>
+						    <div class="attribute-val">{{view.value}}</div>
+						{{/view}}
+					</div>
+				{{else}}
+					<h5>No unmapped attributes.</h5>
+				{{/each}}
+			</div>
+
+			<div style="margin-bottom:10px"></div>
+
+			<h4>Mapped</h4>
+			<div class="scrolling-container" style="max-height:180px;">
+				{{#each mappedAttributes}}
+					<div class="attribute-field-mapping" style="padding-bottom:14px">
+						{{#view ASTool.ElemAttributeView attribute=this}}
+							<div class="attribute-name">{{view.name}} -> {{view.field}}</div>
+							<span style="float:right">
+								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
+							</span>
+						{{/view}}
+					</div>
+				{{else}}
+					<h5>No mapped attributes.</h5>
+				{{/each}}
+			</div>
+
+			<div style="margin-bottom:10px"></div>
+
+			<h4>Required attributes</h4>{{view ASTool.InlineHelp message="sticky_fields"}}
+			<div class="scrolling-container" style="max-height:180px;">	
+				{{#each stickyAttributes}}
+					<div class="attribute-field-mapping" style="padding-bottom:14px">
+						{{#view ASTool.ElemAttributeView attribute=this}}
+							<div class="attribute-name">{{view.name}}</div>
+							<span style="float:right">
+								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
+							</span>
+						{{/view}}
+					</div>
+				{{else}}
+					<h5>No required attributes.</h5>
+				{{/each}}
+			</div>
+		{{else}}
+			{{render "item" controller.scrapedItem}}
+		{{/unless}}
+	</div>
+	
+	<h3>Ignored subregions</h3>
+	<div style="text-align:center">
+		<div class="scrolling-container">
+			{{#each model.ignores}}
+				<div>
+					{{#view ASTool.IgnoreWidget ignore=this}}
+						<div class="ignore-widget">
+							<label class="small-label">Ignore elements beneath</label>
+							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
+						</div>
+						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+					{{/view}}
+					
+				</div>
+				{{else}}
+					<h5>No ignored subregions defined.</h5>
+			{{/each}}
+		</div>
+		<div style="margin-top:10px;">
+			{{view ASTool.ToggleButton checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
+			<label for="addIgnore">Ignore region</label>{{view ASTool.InlineHelp message="ignored_subregions"}}
+		</div>
+	</div>
+
+	<h3>Variant</h3>
+	<div>
+		<div class="variantBox" style="margin-right:20px">
+			<label class="important-label">Choose a variant:</label>
+			{{view ASTool.VariantSelect value=currentVariant}}
+			{{view ASTool.InlineHelp message="variant"}}
+		</div>
+	</div>
+</div>
+<br/>
+<div style="text-align:center">
+{{view ASTool.ButtonView action="doneEditing" icon="ui-icon-circle-check" label="Save changes" class="blue-button"}}
+{{view ASTool.ButtonView action="cancelEdit" icon="ui-icon-circle-close" label="Discard changes" class="red-button"}}
+</div>

@@ -1,0 +1,21 @@
+# python
+*.py[cod]
+
+# editor files
+*.orig
+*.bak
+*.swp
+*.project
+*.sublime-*
+
+# twisted
+dropin.cache
+twistd.log
+twistd.pid
+_trial_temp*
+
+# local data files
+data/*
+
+# npm files
+node_modules/*

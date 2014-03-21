@@ -1,0 +1,36 @@
+{{#unless view.creatingField}}
+	<div>
+		<span class="attribute">Map attribute</span>
+		<span style="margin-left:40px" class="field">To field</span>
+		<div style="display:inline-block;margin-top:2px">
+			{{view ASTool.InlineHelp message="annotation_widget"}}
+		</div>
+		<div style="display:inline-block;margin-left:-10px;margin-top:-1px">
+			{{view ASTool.ButtonView action="editAnnotation" argument=controller.floatingAnnotation icon="ui-icon-gear" class="textless-button clear-button"}}
+		</div>
+		<div style="display:inline-block;margin-left:-10px;margin-top:-1px">
+			{{view ASTool.ButtonView action="deleteAnnotation" argument=controller.floatingAnnotation icon="ui-icon-trash" class="textless-button clear-button"}}
+		</div>
+	</div>
+	{{#unless view.hasMultipleMappings}}
+		{{view view.attributeSelect}}
+		{{view view.fieldSelect}}
+	{{else}}
+		<div>
+			{{#each view.mappings}}
+				<div class="multimapf">
+					<div style="display:inline-block;width:120px">{{this.name}}</div>
+					<div style="display:inline-block;">{{this.mappedField}}</div>
+				</div>
+			{{/each}}
+		</div>
+	{{/unless}}
+{{else}}
+	<label style="margin-left:0px;">Field name</label>
+	<label style="margin-left:70px;">Field type</label>
+	<div style="margin-top:5px">
+		{{view view.fieldTextField width=115}}
+		<span style="margin-left:6px">{{view view.typeSelect}}</span>
+		<span {{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="textless-button clear-button" disabled=view.createFieldDisabled}}</span>
+	</div>
+{{/unless}}

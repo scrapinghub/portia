@@ -1,0 +1,126 @@
+
+<div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
+	{{#view ASTool.RenameTextField value=name}}
+  		<span class="editable-name">Spider {{name}}</span>
+	{{/view}}
+</div>
+
+<div class="accordion">	
+	<h3>Initialize</h3>
+	<div class="section">
+		<h4>Start Pages</h4>
+		<div class="scrolling-container" style="max-height:150px;">
+			{{#each start_urls}}
+				<div style="margin:4px 0px 4px 0px">
+					{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='86%' title=this class="light-button"}}
+					{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+				</div>
+			{{else}}
+				<h5>No start pages for this spider.</h5>
+			{{/each}}
+		</div>
+	
+		<div style="margin-top:5px">
+			{{view ASTool.TextField value=newStartUrl width='83%' name='startUrlTextField' placeholder='Enter page url' action="addStartUrl"}}
+			{{view ASTool.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" disabled=hasStartUrl
+			class="blue-button textless-button"}}
+		</div>
+		
+		<div style="margin-top:20px">
+			<label class="important-label">Perform login</label>
+			{{view ASTool.CheckBox checked=performLogin name="performLoginCheck"}}
+			{{view ASTool.InlineHelp message="perform_login"}}
+		</div>
+		
+		{{#if performLogin}}
+			<div class="scrolling-container">
+				<div style="margin-top:10px"></div>
+				{{view ASTool.TextField value=loginUrl width='94%' name='loginUrlField' placeholder='Login URL'}}
+				<div style="margin-top:5px"></div>
+				{{view ASTool.TextField value=loginUser width='94%' name='loginUserField' placeholder='Login user'}}
+				<div style="margin-top:5px"></div>
+				{{view ASTool.TextField value=loginPassword width='94%' name='loginPasswordField' placeholder='Login password'}}
+			</div>
+		{{/if}}
+	</div>
+	
+	<h3>Crawling</h3>
+	<div class="section">
+		{{view ASTool.FollowSelect value=controller.links_to_follow}}
+		
+		{{#if displayNofollow}}
+			<div style="margin-top:10px; margin-bottom: 10px">
+				{{view ASTool.CheckBox checked=respect_nofollow name="respectNoFollow"}}
+				<span class="important-label">Respect nofollow</span>
+			</div>
+		{{/if}}
+		
+		{{#if displayEditPatterns}}
+			<h4>Follow links that match this patterns</h4>
+			{{view ASTool.InlineHelp message="follow_links"}}
+			<div class="scrolling-container" style="max-height:150px">
+				{{#each follow_patterns}}
+					<div style="margin:4px 0px 4px 0px">
+						{{#view ASTool.PatternTextField pattern=this action="editFollowPattern"}}
+  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
+						{{/view}}
+						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+					</div>
+				{{else}}
+					<h5>No follow patterns defined yet.</h5>
+				{{/each}}
+			</div>
+			<div style="margin-top:5px">
+				{{view ASTool.TextField value=newFollowPattern width='83%' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
+				{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" disabled=hasFollowPattern class="textless-button blue-button"}}
+			</div>
+		
+			<div style="margin-top:10px"></div>
+			
+			<h4>Exclude links that match this patterns</h4>
+			{{view ASTool.InlineHelp message="exclude_links"}}
+			<div class="scrolling-container" style="max-height:150px">
+				{{#each exclude_patterns}}
+					<div style="margin:4px 0px 4px 0px">
+						{{#view ASTool.PatternTextField pattern=this action="editExcludePattern"}}
+  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
+						{{/view}}
+						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+					</div>
+				{{else}}
+					<h5>No exclude patterns defined yet.</h5>
+				{{/each}}
+			</div>
+			<div style="margin-top:5px">
+				{{view ASTool.TextField value=newExcludePattern width='83%' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
+				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" disabled=hasExcludePattern class="blue-button textless-button"}}
+			</div>
+		{{/if}}
+
+		<div style="margin-top:10px">
+			{{view ASTool.CheckBox checked=showLinks name="showLinks"}}
+			<span class="important-label">Overlay blocked links</span>
+			{{view ASTool.InlineHelp message="overlay_blocked_links"}}
+		</div>
+	</div>
+	
+	<h3>Extraction</h3>
+	
+	<div class="section">
+		<h4>Templates</h4>
+		<div class="scrolling-container" style="max-height:350px;">
+			{{#each templates}}
+				<div style="margin:4px 0px 4px 0px">
+					{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='86%' title=url class="light-button"}}
+					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
+				</div>
+			{{else}}
+				<h5>No templates exist for this spider yet.</h5>
+			{{/each}}
+		</div>
+	</div>
+</div>
+
+<div style="margin-top:10px;text-align:center">
+	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-circle-arrow-n" label="Save spider" class="blue-button big"}}
+</div>
