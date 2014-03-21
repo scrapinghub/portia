@@ -364,7 +364,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		editFollowPattern: function(oldVal, newVal) {
-			console.log(oldVal, newVal);
 			this.deleteFollowPattern(oldVal);
 			this.addFollowPattern(newVal);
 		},
