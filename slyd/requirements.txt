@@ -4,4 +4,4 @@ loginform
 lxml
 jsonschema
 -e git://github.com/scrapy/scrapely.git#egg=scrapely
--e git://github.com/scrapy/slybot.git#egg=slybot
+-e ../slybot
