@@ -6,7 +6,7 @@ ASTool.Messages = Ember.Namespace.create({
 	template_required: 'This setting is equivalent to marking the fields as required in the item definition, but limiting the scope to this template only.',
 	extractors: 'With regular expression extractors, the extracted data is matched against the specified expression and replaced by the match group enclosed between parentheses. If there is no match, the field is not extracted.',
 	select_item: 'You can choose what item type is extracted by this template using the combobox. You can also create and modify items by clicking on the Edit Items button.',
-	variant: 'Describe how variants work here.',
+	variant: 'By selecting a different variant than <b>Base(0)</b> in your annotation, the resulting extracted data will be assigned to the base item special field variants, which is a list of objects similar to an item.',
 	ignored_subregions: 'Allows you to define subregions that should be excluded from the extraction process.',
 	selected_region_ancestors: 'Refine your selection by navigating its ancestors.',
 	selected_region_children: 'Refine your selection by navigating its children.',
