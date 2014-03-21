@@ -11,5 +11,5 @@ ASTool.Messages = Ember.Namespace.create({
 	selected_region_ancestors: 'Refine your selection by navigating its ancestors.',
 	selected_region_children: 'Refine your selection by navigating its children.',
 	sticky_fields: 'Required attributes are not extracted, but they must be present for a page to match the template.',
-	annotation_widget: 'Select the attribute you want to extract and an item field to map it. You can add new fields by selecting -create new-. Choose -just required- to indicate that the template must match a particular feature without generating any extracted data.',
+	annotation_widget: 'Select the attribute you want to extract and an item field to map it. You can add new fields by selecting <b>-create new-</b>. Choose <b>-just required-</b> to indicate that the template must match a particular feature without generating any extracted data.',
 });
