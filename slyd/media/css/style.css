@@ -99,11 +99,18 @@ body{
 	margin-right: 15px;
 	display: none;
 	pointer-events:all;
+	max-width: 350px;
 }
 
 #hovered-element-info .path {
 	font-weight:bold;
 	color:rgba(103,175,255,1);
+}
+
+#hovered-element-info .attribute {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 #hovered-element-info button {
