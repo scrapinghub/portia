@@ -1,0 +1,210 @@
+{
+    "default": {
+        "fields": {
+            "determinate": { 
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "description": { 
+                "required": true, 
+                "vary": false, 
+                "type": "safe html"
+            },
+            "weight": { 
+                "required": false, 
+                "vary": false, 
+                "type": "number"
+            },
+            "color": { 
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "season": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "price": {
+                "required": false, 
+                "vary": false, 
+                "type": "price"
+            },
+            "lifecycle": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "categories": {
+                "required": false, 
+                "vary": true, 
+                "type": "safe html"
+            },
+            "product_id": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "name": {
+                "required": true, 
+                "vary": false, 
+                "type": "text"
+            },
+            "url": {
+                "required": false, 
+                "vary": true, 
+                "type": "url"
+            },
+            "days": {
+                "required": false, 
+                "vary": false, 
+                "type": "number"
+            },
+            "species": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            },
+            "size": {
+                "required": false, 
+                "vary": false, 
+                "type": "number"
+            },
+            "type": {
+                "required": false, 
+                "vary": false, 
+                "type": "text"
+            }
+        }
+    },
+    "doctor": {
+        "fields": {
+            "body": {
+                "vary": false, 
+                "required": false, 
+                "type": "raw html"
+            }, 
+            "area_interest": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "address_state": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "address_line2": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "address_line3": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "address_line1": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "title": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "orgname": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "languages": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "fellowship": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "location": {
+                "vary": false, 
+                "required": false, 
+                "type": "safe html"
+            }, 
+            "phone_number": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "internship": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "fax_number": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "specialty": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "clinical_interest": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "key": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "address_city": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "name": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "url": {
+                "vary": true, 
+                "required": false, 
+                "type": "url"
+            }, 
+            "other_certifications": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "residency": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "graduate_education": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "medical_education": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }, 
+            "address_zipcode": {
+                "vary": false, 
+                "required": false, 
+                "type": "text"
+            }
+        }
+    }
+}

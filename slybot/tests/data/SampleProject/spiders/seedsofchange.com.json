@@ -1,0 +1,16 @@
+{
+    "templates": [],
+    "start_urls": [
+        "http://www.seedsofchange.com/garden_center/browse_category.aspx?id=123"
+    ], 
+    "exclude_patterns": [
+        "/tellafriend.aspx.+"
+    ], 
+    "follow_patterns": [
+        "/garden_center/browse_category.aspx.+", 
+        "/garden_center/detailedCategoryDisplay.aspx.+", 
+        "/garden_center/product_details.aspx.+"
+    ], 
+    "links_to_follow": "patterns", 
+    "respect_nofollow": true
+}

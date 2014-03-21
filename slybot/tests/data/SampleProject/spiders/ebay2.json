@@ -1,0 +1,34 @@
+{
+    "templates": [], 
+    "start_urls": [
+        "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc"
+    ], 
+    "init_requests": [
+        {
+            "type": "form",
+            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "xpath": "//form[@name='adv_search_from']",
+            "fields": [
+                {
+                  "xpath": ".//*[@name='_nkw']",
+                  "type": "inurl",
+                  "value": "file://tmp/test_params.txt"
+                },
+                {
+                  "name": "_nkw2",
+                  "type": "inurl",
+                  "value": "file://tmp/test_params.txt"
+                },
+                {
+                  "xpath": ".//*[@name='_in_kw']",
+                  "type": "iterate"
+                }
+            ]
+        }
+    ],
+    "exclude_patterns": [], 
+    "respect_nofollow": true, 
+    "follow_patterns": [], 
+    "scrapes": "default", 
+    "links_to_follow": "none"
+}

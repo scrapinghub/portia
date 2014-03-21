@@ -1,0 +1,18 @@
+{
+    "templates": [], 
+    "start_urls": [
+        "http://pinterest.com/popular/"
+    ], 
+    "init_requests": [
+        {
+            "username": "test", 
+            "loginurl": "https://pinterest.com/login/", 
+            "password": "testpass", 
+            "type": "login"
+        }
+    ], 
+    "exclude_patterns": [], 
+    "respect_nofollow": true, 
+    "follow_patterns": [], 
+    "links_to_follow": "patterns"
+}

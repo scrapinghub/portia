@@ -1,0 +1,8 @@
+{
+    "templates": [],
+    "start_urls": ["http://www.example.com/index.html"],
+    "exclude_patterns": [], 
+    "follow_patterns": [], 
+    "links_to_follow": "patterns", 
+    "respect_nofollow": true
+}

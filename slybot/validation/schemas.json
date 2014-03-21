@@ -1,0 +1,90 @@
+[
+    {
+        "id": "project",
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "required": true},
+            "version": {"type": "string", "required": true},
+            "comment": {"type": "string"}
+        }
+    },
+    {
+        "id": "items",
+        "additionalProperties": {
+            "$ref": "item"
+        }
+    },
+    {
+        "id": "item",
+        "type": "object",
+        "properties": {
+            "fields": {"additionalProperties": {"$ref": "field"}, "required": true}
+        }
+    },
+    {
+        "id": "field",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "required": true},
+            "required": {"type": "boolean", "required": true},
+            "vary": {"type": "boolean", "required": true}
+        }
+    },
+    {
+        "id": "extractors",
+        "additionalProperties": {"$ref": "extractor"}
+    },
+    {
+        "id": "extractor",
+        "type": "object",
+        "properties": {
+            "type_extractor": {"type": "string"},
+            "regular_expression": {"type": "string", "format": "regex"}
+        }
+    },
+    {
+        "id": "spider",
+        "type": "object",
+        "properties": {
+            "start_urls": {"type": "array", "items": {"type": "string", "format": "url"}, "required": true},
+            "links_to_follow": {"type": "string", "enum": ["none", "patterns"], "required": true},
+            "follow_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
+            "exclude_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
+            "respect_nofollow": {"type": "boolean", "required": true},
+            "allowed_domains": {"type": "array", "items": {"type": "string"}},
+            "templates": {"type": "array", "items": {"$ref": "template"}, "required": true},
+            "init_requests": {"type": "array", "items": {"$ref": "request"}}
+        }
+    },
+    {
+        "id": "template",
+        "type": "object",
+        "properties": {
+            "page_id": {"type": "string", "required": true},
+            "page_type": {"type": "string", "enum": ["links", "item"], "required": true},
+            "scrapes": {"type": "string", "required": true},
+            "url": {"type": "string", "format": "url", "required": true},
+            "extractors": {"additionalProperties": {"type": "array", "items": {"type": "string"}}, "required": true},
+            "annotated_body": {"type": "string", "required": true},
+            "original_body": {"type": "string", "required": true}
+        }
+    },
+    {
+        "id": "link_extractor",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "required": true},
+            "value": {"type": "any", "required": true},
+            "additionalProperties": {"type": "any"}
+        }
+    },
+    {
+        "id": "request",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "required": true},
+            "link_extractor": {"$ref": "link_extractor"},
+            "additionalProperties": {"type": "any"}
+        }
+    }
+]

@@ -1,0 +1,18 @@
+Source: python-slybot
+Section: python
+Priority: extra
+Maintainer: Scrapinghub Team <info@scrapinghub.com>
+Build-Depends: debhelper (>= 7), python (>=2.5)
+Standards-Version: 3.8.3
+Homepage: https://github.com/scrapy/slybot
+
+Package: python-slybot
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends},
+ scrapy-0.18 | scrapy-0.20 | scrapy-0.22 | scrapy-0.23,
+ python-scrapely,
+ python-loginform,
+ python-lxml
+Description: A web crawler implemented in Python.
+ Slybot is a Python web crawler for doing web scraping. It's implemented on top
+ of the Scrapy web crawling framework and the Scrapely extraction library.

@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+import os
+os.environ['SCRAPY_SETTINGS_MODULE'] = 'slybot.settings'
+
+from scrapy.cmdline import execute
+execute()

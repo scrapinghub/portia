@@ -1,0 +1,5 @@
+#!/bin/sh
+
+version=$(python setup.py --version)-r$(git log --oneline | wc -l)+$(date +%Y%m%d%H%M)${BUILD_CODE:+~$BUILD_CODE}
+debchange -m -D unstable --force-distribution -v $version "Automatic build"
+debuild --no-lintian -us -uc -b
