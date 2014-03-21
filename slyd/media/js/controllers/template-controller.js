@@ -350,4 +350,8 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 							  partialSelects: true });	
 		}
 	},
-});
+
+	willLeave: function() {
+		this.hideFloatingAnnotationWidget();
+	}
+}); 
