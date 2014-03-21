@@ -13,18 +13,7 @@ Run the server using:
 and point your browser to:
 	http://localhost:9001/static/main.html
 
-Only chrome is tested
-
-What to expect:
----------------
-
-It will load the now classical hoffman.html document. You will be able
-to add annotations, delete them and map the attributes from the selected
-document to item fields.
-
-Most of the code is still an early prototype - expect it to be messy and
-buggy for a while.
-
+Chrome and Firefox are supported, but it works better with chrome.
 
 Slyd API Notes
 --------------
@@ -150,7 +139,7 @@ $ curl -d '{"request": {"url": "http://www.pinterest.com/pin/339740365610932893/
 Testing
 -------
 
-A Karma test eviroment is now available. To run the ui tests:
+A Karma test eviroment is available. To run the ui tests:
 
     npm install
     export PATH="./node_modules/.bin:$PATH"
