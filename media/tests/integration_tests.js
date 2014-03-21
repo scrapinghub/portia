@@ -30,51 +30,32 @@ function callCount(endpoint, method) {
 }
 
 test ('create project for site', function() {
-    ASTool.guid = function() {
-        return 'tguid';
-    };
     stubEndpoint('', []);
     stubEndpoint('', '', 'POST');
-    stubEndpoint('/new_project_1/spec/items', [], 'POST');
-    stubEndpoint('/new_project_1/spec/extractors', [], 'POST');
-    stubEndpoint('/new_project_1/spec/spiders/tguid', null, 'POST');
-    stubEndpoint('/new_project_1/spec/spiders', []);
-    stubEndpoint('/new_project_1/spec/spiders/tguid', $.extend(true, {}, spider1Json));
-    stubEndpoint('/new_project_1/bot/fetch', { page: '' }, 'POST');
+    stubEndpoint('/new_project/spec/items', {}, 'POST');
+    stubEndpoint('/new_project/spec/extractors', {}, 'POST');
+    stubEndpoint('/new_project/spec/spiders/scrapinghub.com', null, 'POST');
+    stubEndpoint('/new_project/spec/spiders', []);
+    stubEndpoint('/new_project/spec/items', itemsJson);
+    stubEndpoint('/new_project/spec/spiders/scrapinghub.com', $.extend(true, {}, spider1Json));
+    stubEndpoint('/new_project/bot/fetch', fetchedPageJson, 'POST');
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         fillIn('[name*="projectSite"]', 'scrapinghub.com').
         click('[name*="createProject"]').
         then(function() {
-            equal(callCount('/new_project_1/spec/items', 'POST'), 1);
-            equal(callCount('/new_project_1/spec/extractors', 'POST'), 1);
-            equal(callCount('/new_project_1/spec/spiders/tguid', 'POST'), 2);
-            equal(callCount('/new_project_1/bot/fetch', 'POST'), 1);
+            equal(callCount('/new_project/spec/items', 'POST'), 1);
+            equal(callCount('/new_project/spec/extractors', 'POST'), 1);
+            equal(callCount('/new_project/spec/spiders/scrapinghub.com', 'POST'), 2);
+            equal(callCount('/new_project/bot/fetch', 'POST'), 1);
             equal(exists('[name*="fetchPage_http://scrapinghub.com"]'), true);
-            ASTool.guid = guid;
-        });
-    });
-});
-
-test('create project no site', function() {
-    stubEndpoint('', []);
-    stubEndpoint('', '', 'POST');
-    stubEndpoint('/new_project_1/spec/spiders', []);
-    stubEndpoint('/new_project_1/spec/items', [], 'POST');
-    stubEndpoint('/new_project_1/spec/extractors', [], 'POST');
-    Ember.run(ASTool, 'advanceReadiness');
-    Ember.run(function() {
-        click('[name*="createProject"]').
-        then(function() {
-            equal(callCount('', 'POST'), 1);
         });
     });
 });
 
 test('delete project', function() {
-    stubEndpoint('', ['p1']);
+    stubEndpoint('', ['project1']);
     stubEndpoint('', '', 'POST');
-    stubEndpoint('/new_project_1/spec/spiders', []);
     window.confirm = function() { return true };
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
@@ -99,6 +80,7 @@ test('rename project', function() {
     stubEndpoint('', ['p1']);
     stubEndpoint('', '', 'POST');
     stubEndpoint('/p1/spec/spiders', []);
+    stubEndpoint('/newname/spec/spiders', []);
     window.confirm = function() { return true };
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
@@ -107,7 +89,7 @@ test('rename project', function() {
         fillIn('[name*="inline_textfield"]', 'newname').
         blur('[name*="inline_textfield"]').
         then(function() {
-            equal(exists('[name*="newname"]'), true);
+            equal(exists('span.editable-name:contains("newname")'), true);
             equal(callCount('', 'POST'), 1);
         });
     });
@@ -115,44 +97,52 @@ test('rename project', function() {
 
 test('add item & field test', function() {
     stubEndpoint('', ['p1']);
-    stubEndpoint('/p1/spec/spiders', []);
-    stubEndpoint('/p1/spec/spiders', []);
+    stubEndpoint('/p1/spec/spiders', spiderNamesJson);
+    stubEndpoint('/p1/spec/spiders/spider1', $.extend(true, {}, spider1Json));
     stubEndpoint('/p1/spec/items', {}, 'POST'); 
+    stubEndpoint('/p1/spec/extractors', {});
     stubEndpoint('/p1/spec/items', {});
+    ASTool.shortGuid = function() { return 'guid' };
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         click('[name*="openProject"]').
-        click('[name*="gotoItems"]').
+        click('[name*="editSpider"]').
+        click('[name*="editTemplate"]').
+        click('[name*="editItems"]').
         click('[name*="addItem"]').
         click('[name*="addField"]').
         then(function() {
-            equal(exists('[name*="fieldName"]'), true);
-        }).
-        click('[name*="back"]')
+            equal(exists('span.editable-name:contains("Item guid")'), true);
+            equal(exists('span.editable-name:contains("new field")'), true);
+            ASTool.shortGuid = shortGuid;
+        });
     });
 });
 
 test('add spider test', function() {
-    ASTool.guid = function() {
-        return 'test_guid'
-    };
     stubEndpoint('', ['p1']);
     stubEndpoint('/p1/spec/spiders', []);
-    stubEndpoint('/p1/spec/spiders/test_', null, 'POST');
+    stubEndpoint('/p1/spec/items', {});
+    stubEndpoint('/p1/spec/spiders/newurl.com', null, 'POST');
+    stubEndpoint('/p1/spec/spiders/newurl.com', $.extend(true, {}, spider1Json));
+    stubEndpoint('/p1/bot/fetch', fetchedPageJson, 'POST');
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         click('[name*="openProject"]').
+        fillIn('[name*="spiderPageTextField"]', 'http://newurl.com').
         click('[name*="addSpider"]').
-        click('[name*="back"]').
         then(function() {
-            equal(exists('[name*="editSpider"]'), true);
-            ASTool.guid = guid;
+            equal(exists('span.editable-name:contains("newurl.com")'), true);
+            equal(callCount('/p1/bot/fetch', 'POST'), 1);
+            equal(callCount('/p1/spec/spiders/newurl.com', 'POST'), 2);
         })
     });
 });
 
 test('add starturl test', function() {
     stubEndpoint('', ['p1']);
+    stubEndpoint('/p1/spec/extractors', {});
+    stubEndpoint('/p1/spec/items', {});
     stubEndpoint('/p1/spec/spiders', spiderNamesJson);
     stubEndpoint('/p1/spec/spiders/spider1', $.extend(true, {}, spider1Json));
     Ember.run(ASTool, 'advanceReadiness');
@@ -168,81 +158,77 @@ test('add starturl test', function() {
 });
 
 test('map attribute test', function() {
+    var spider = $.extend(true, {}, spider1Json);
     stubEndpoint('', ['p1']);
     stubEndpoint('/p1/spec/spiders', spiderNamesJson);
-    stubEndpoint('/p1/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
+    stubEndpoint('/p1/spec/spiders/spider1', spider); 
+    stubEndpoint('/p1/spec/spiders/spider1', null, 'POST');
     stubEndpoint('/p1/spec/items', itemsJson);
     stubEndpoint('/p1/spec/items', {}, 'POST');
     stubEndpoint('/p1/spec/extractors', {});
     stubEndpoint('/p1/spec/extractors', {}, 'POST');
+    stubEndpoint('/p1/bot/fetch', fetchedPageJson, 'POST');
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         click('[name*="openProject"]').
         click('[name*="editSpider"]').
         // This should't be needed but fixes Firefox flakyness for this test.
         sleep().
-        click('[name*="editTemplate_http://site1"]').
-        click('[name*="editAnnotation"]').
-        click('[name*="mapAttribute"]').
-        click('[name*="chooseField"]').
+        click('[name*="editTemplate_t1"]').
         then(function() {
-            equal(exists('[name*="unmapAttribute"]'), true);
+            equal(hasAnnotation(spider.templates[0].annotated_body, 'content', 'description'), false);
+        }).
+        fillIn('[name*="fieldSelect"]', 'description').
+        click('[name*="continueBrowsing"]').
+        then(function() {
+            equal(hasAnnotation(spider.templates[0].annotated_body, 'content', 'description'), true);
         })
     });
 });
 
 test('delete annotation test', function() {
+    var spider = $.extend(true, {}, spider1Json);
     stubEndpoint('', ['p1']);
     stubEndpoint('/p1/spec/spiders', spiderNamesJson);
-    stubEndpoint('/p1/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
+    stubEndpoint('/p1/spec/spiders/spider1', spider);
+    stubEndpoint('/p1/spec/spiders/spider1', null, 'POST');
+    stubEndpoint('/p1/spec/items', itemsJson);
     stubEndpoint('/p1/spec/extractors', {});
     stubEndpoint('/p1/spec/extractors', {}, 'POST');
+    stubEndpoint('/p1/bot/fetch', fetchedPageJson, 'POST');
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         click('[name*="openProject"]').
         click('[name*="editSpider"]').
         // This should't be needed but fixes Firefox flakyness for this test.
         sleep().
-        click('[name*="editTemplate_http://site1"]').
+        click('[name*="editTemplate_t2"]').
         then(function() {
-            equal(exists('[name*="editAnnotation"]'), true);
+            equal(hasAnnotation(spider.templates[1].annotated_body, 'content', 'description'), true);
         }).
         click('[name*="deleteAnnotation"]').
+        click('[name*="continueBrowsing"]').
         then(function() {
-            equal(exists('[name*="editAnnotation"]'), false);
-        })
-    });
-});
-
-test('items saved automatically', function() {
-    stubEndpoint('', ['p1']);
-    stubEndpoint('/p1/spec/spiders', []);
-    stubEndpoint('/p1/spec/items', $.extend(true, {}, itemsJson));
-    stubEndpoint('/p1/spec/items', {}, 'POST');
-    Ember.run(ASTool, 'advanceReadiness');
-    Ember.run(function() {
-        click('[name*="openProject"]').
-        click('[name*="gotoItems"]').
-        click('[name*="back"]').
-        then(function() {
-            // Items should be saved when we leave the items screen.
-            equal(callCount('/p1/spec/items', 'POST'), 1);
+            equal(hasAnnotation(spider.templates[1].annotated_body, 'content', 'description'), false);
         })
     });
 });
 
 test('add exclude pattern', function() {
     stubEndpoint('', ['p1']);
+    stubEndpoint('/p1/spec/extractors', {});
+    stubEndpoint('/p1/spec/items', {});
     stubEndpoint('/p1/spec/spiders', spiderNamesJson);
-    stubEndpoint('/p1/spec/spiders/spider1', $.extend(true, {}, spider1Json)); 
+    stubEndpoint('/p1/spec/spiders/spider1', $.extend(true, {}, spider1Json));
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         click('[name*="openProject"]').
         click('[name*="editSpider"]').
-        fillIn('[name*="excludePatternTextField"]', 'test_pattern').
+        fillIn('[name*="followSelect"]', 'patterns').
+        fillIn('[name*="excludePatternTextField"]', 'my_test_pattern').
         click('[name*="addExcludePattern"]').
         then(function() {
-           equal(exists('[name*="editExcludePattern_test_pattern"]'), true);
+           equal(exists('[name*="my_test_pattern"]'), true);
         })
     });
 });
@@ -252,23 +238,23 @@ test('ignore subregion & delete ignore', function() {
     stubEndpoint('/p1/spec/spiders', spiderNamesJson);
     stubEndpoint('/p1/spec/spiders/spider1', $.extend(true, {}, spider1Json));
     stubEndpoint('/p1/spec/extractors', {});
-    stubEndpoint('/p1/spec/extractors', {}, 'POST');
+    stubEndpoint('/p1/spec/items', {});
     Ember.run(ASTool, 'advanceReadiness');
     Ember.run(function() {
         click('[name*="openProject"]').
         click('[name*="editSpider"]').
         // This should't be needed but fixes Firefox flakyness for this test.
         sleep().
-        click('[name*="editTemplate_http://site1"]').
+        click('[name*="editTemplate_t1"]').
         click('[name*="editAnnotation"]').
-        click('[name*="addIgnore"]').
+        click('[name*="addIgnore"]')
         iframeClick('#xxx').
         then(function() {
-            equal(exists('[name*="ignore_"]'), true);
+            equal(exists(':contains("Ignore elements beneath")'), true);
         }).
         click('[name*="deleteIgnore"]').
         then(function() {
-            equal(exists('[name*="ignore_"]'), false);
+            equal(exists(':contains("Ignore elements beneath")'), false);
         })
     });
 });

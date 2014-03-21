@@ -48,6 +48,12 @@ function exists(selector) {
     return !!find(selector).length;
 }
 
+function hasAnnotation(annotatedDoc, attribute, field) {
+    var pattern = "annotations&quot;:{&quot;" + attribute + "&quot;:&quot;" + field + "&quot;}";
+    
+    return annotatedDoc.indexOf(pattern) != -1;
+}
+
 /* Define Function.prototype.bind in case the installed version of
    PhantomJS does not implement it.
    Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind#Compatibility

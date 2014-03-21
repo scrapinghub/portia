@@ -3,30 +3,36 @@ module.exports = function(karma) {
         basePath: 'media',
 
         files: [
-          "http://heartcode-canvasloader.googlecode.com/files/heartcode-canvasloader-min-0.9.1.js",
           "js/vendor/jquery-1.9.1.js",
           "js/vendor/jquery-ui-1.10.3.js",
-          "js/vendor/uri.js",
           "js/vendor/handlebars-1.0.0.js",
           "js/vendor/ember-debug.js",
-          "js/vendor/ember-animated-outlet.js",
-          "js/vendor/ic-ajax.js",
-          "js/vendor/ember-data.js",
+          "js/vendor/ember-browser-detect.js",
           "js/vendor/loading.js",
-          "js/vendor/arbor.js",
+          "js/vendor/ic-ajax.js",
+          "js/vendor/uri.js",
+          "js/vendor/jBreadCrumb.1.1.js",
           
+          "js/jqplugins.js",
           "js/app.js",
           "js/api.js",
-          "js/canvas.js",
           "js/documentview.js",
-          "js/controllers/controllers.js",
-          "js/controllers/*.js",
-          "js/crawlgraph.js",
-          "js/emberui.js",
-          "js/jqplugins.js",
+          "js/canvas.js",
           "js/models.js",
           "js/routes.js",
+          "js/emberui.js",
           "js/views.js",
+          "js/messages.js",
+          "js/controllers/controllers.js",
+          "js/controllers/navigation-controller.js",
+          "js/controllers/annotation-controller.js",
+          "js/controllers/template-controller.js",
+          "js/controllers/application-controller.js",
+          "js/controllers/items-controller.js",
+          "js/controllers/project-controller.js",
+          "js/controllers/projects-controller.js",
+          "js/controllers/spider-controller.js",
+          
           "js/templates/*.handlebars",
 
           "tests/fixtures.js",
@@ -35,12 +41,12 @@ module.exports = function(karma) {
           "css/normalize.css",
           "css/jquery-ui-1.10.3.custom.css",
           "css/style.css",
-          "css/ember-animated-outlet.css",
+          "css/breadcrumb.css",
         ],
 
         logLevel: karma.LOG_WARN,
 
-        browsers: ['Chrome', 'Firefox', 'PhantomJS'],
+        browsers: ['Chrome', 'PhantomJS', 'Firefox'],
 
         // Disable security to avoid XSS errors.
         customLaunchers: {

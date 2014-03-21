@@ -25,6 +25,7 @@ DragNDrop.Droppable = Ember.Mixin.create({
 /*************************** Base views *****************************/
 
 ASTool.Select = Ember.Select.extend({
+	attributeBindings: ['name'],
 	optionValuePath: 'content.option',
 	optionLabelPath: 'content.label',
 });
@@ -169,7 +170,7 @@ ASTool.InlineTextField = Ember.View.extend({
 /************************* Application views ****************************/
 
 ASTool.FollowSelect = ASTool.Select.extend({
-
+	name: 'followSelect',
 	content: [{ option: 'all', label: 'Follow all in-domain links' },
 			  { option: 'none', label: 'Don not follow links' },
 			  { option: 'patterns', label: 'Configure follow and exclude patterns' }],
@@ -290,6 +291,8 @@ ASTool.AnnotationWidget = Em.View.extend({
 	attributeSelect: ASTool.Select.extend({
 		valueBinding: 'parentView.attributeName',
 		classNames: 'attribute',
+		attributeBindings: ['name'],
+		name: 'attributeSelect',
 
 		content: function() {
 			var options = this.get('parentView.annotation.attributes').map(function(attribute) {
@@ -303,6 +306,8 @@ ASTool.AnnotationWidget = Em.View.extend({
 	fieldSelect: ASTool.Select.extend({
 		valueBinding: 'parentView.fieldName',
 		classNames: 'field',
+		attributeBindings: ['name'],
+		name: 'fieldSelect',
 		prompt: '-select field-',
 
 		content: function() {
