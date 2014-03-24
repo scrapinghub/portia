@@ -52,6 +52,8 @@ class ProjectsResource(SlydJsonResource):
     def create_project(self, project_name):
     	project_filename = self.project_filename(project_name)
         os.makedirs(project_filename)
+        with open(join(project_filename, 'project.json'), 'wb') as outf:
+            outf.write('{}')
         os.makedirs(join(project_filename, 'spiders'))
 
     def rename_project(self, from_name, to_name):
