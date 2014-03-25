@@ -1,7 +1,7 @@
 {{#unless view.creatingField}}
 	<div style="float:right; margin-right:4px">
-			{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="textless-button blue-button"}}
-			{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+			{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="blue-button"}}
+			{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="red-button"}}
 	</div>
 	{{#unless view.hasMultipleMappings}}
 		{{view view.attributeSelect}}
@@ -21,7 +21,7 @@
 		</div>
 	{{/unless}}
 {{else}}
-	<div style="float:right;margin-right:4px"{{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="textless-button blue-button" disabled=view.createFieldDisabled}}</div>
+	<div style="float:right;margin-right:4px"{{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="blue-button fix_plus_icon" disabled=view.createFieldDisabled}}</div>
 	
 	<label class="small-label" style="margin-left:40px">Field name</label>
 	<label class="small-label" style="margin-left:64px">Field type</label>

@@ -498,6 +498,11 @@ a:hover {
 	padding: 14px 22px 8px 4px !important;
 }
 
+.fix_plus_icon .ui-icon {
+	margin-left: -7px !important;
+	margin-top: -7.5px !important;
+}
+
 .ui-tooltip {
     padding: 10px 20px;
     color: #333;

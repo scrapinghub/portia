@@ -41,8 +41,9 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 	argument: null,
 	argument2: null,
 	attributeBindings: ['name', 'title'],
-	_label: null,
+	_label: 'default label',
 	title: null,
+	text: false,
 
 	name: function() {
 		return this.get('action') + '_' + this.get('label');
@@ -64,6 +65,7 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 		if (arguments.length > 1) {
 			label = trim(label, 32);
 			this.set('_label', label);
+			this.set('text', true);
 		} 
 		return this.get('_label');
 	}.property('_label'),

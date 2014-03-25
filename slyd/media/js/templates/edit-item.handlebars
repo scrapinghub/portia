@@ -6,7 +6,7 @@
 			{{/view}}
 		</span>
 		<span style="float:right">
-			{{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+			{{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="red-button"}}
 		</span>
 	</div>
 	<div style="text-align:center;margin-top:20px">
@@ -23,7 +23,7 @@
 						<td>{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
 						<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
 						<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
-						<td>{{view ASTool.ButtonView icon="ui-icon-trash" class="textless-button red-button" action="deleteField" argument=view.item argument2=this}}</td>
+						<td>{{view ASTool.ButtonView icon="ui-icon-trash" class="red-button" action="deleteField" argument=view.item argument2=this}}</td>
 					</tr>
 				{{/each}}
 			</table>

@@ -13,7 +13,7 @@
 			{{#each start_urls}}
 				<div style="margin:4px 0px 4px 0px">
 					{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='86%' title=this class="light-button"}}
-					{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+					{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="red-button"}}
 				</div>
 			{{else}}
 				<h5>No start pages for this spider.</h5>
@@ -23,7 +23,7 @@
 		<div style="margin-top:5px">
 			{{view ASTool.TextField value=newStartUrl width='83%' name='startUrlTextField' placeholder='Enter page url' action="addStartUrl"}}
 			{{view ASTool.ButtonView action="addStartUrl" icon="ui-icon-circle-plus" disabled=hasStartUrl
-			class="blue-button textless-button"}}
+			class="blue-button fix_plus_icon"}}
 		</div>
 		
 		<div style="margin-top:20px">
@@ -64,7 +64,7 @@
 						{{#view ASTool.PatternTextField pattern=this action="editFollowPattern"}}
   							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
 						{{/view}}
-						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="red-button"}}
 					</div>
 				{{else}}
 					<h5>No follow patterns defined yet.</h5>
@@ -72,7 +72,7 @@
 			</div>
 			<div style="margin-top:5px">
 				{{view ASTool.TextField value=newFollowPattern width='83%' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
-				{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" disabled=hasFollowPattern class="textless-button blue-button"}}
+				{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" disabled=hasFollowPattern class="blue-button fix_plus_icon"}}
 			</div>
 		
 			<div style="margin-top:10px"></div>
@@ -85,7 +85,7 @@
 						{{#view ASTool.PatternTextField pattern=this action="editExcludePattern"}}
   							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
 						{{/view}}
-						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="red-button"}}
 					</div>
 				{{else}}
 					<h5>No exclude patterns defined yet.</h5>
@@ -93,7 +93,7 @@
 			</div>
 			<div style="margin-top:5px">
 				{{view ASTool.TextField value=newExcludePattern width='83%' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
-				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" disabled=hasExcludePattern class="blue-button textless-button"}}
+				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" disabled=hasExcludePattern class="blue-button fix_plus_icon"}}
 			</div>
 		{{/if}}
 
@@ -112,7 +112,7 @@
 			{{#each templates}}
 				<div style="margin:4px 0px 4px 0px">
 					{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='86%' title=url class="light-button"}}
-					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
+					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button"}}
 				</div>
 			{{else}}
 				<h5>No templates exist for this spider yet.</h5>

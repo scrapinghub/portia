@@ -5,7 +5,7 @@
 		{{#each}}
 			<div style="margin:4px 0px 4px 0px">
 				{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='85%' class="light-button"}}
-				{{view ASTool.ButtonView action="deleteProject" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+				{{view ASTool.ButtonView action="deleteProject" argument=this icon="ui-icon-trash" class="red-button"}}
 			</div>
 		{{else}}
 			<h5>No projects have been created yet.</h5>

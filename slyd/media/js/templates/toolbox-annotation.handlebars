@@ -39,8 +39,8 @@
 							<div>
 								<div class="attribute-name">{{view.name}}</div>
 								<span style="float:right">
-									{{view ASTool.ButtonView action="mapAttribute" argument=this icon="ui-icon-transferthick-e-w" class="blue-button textless-button"}}
-							    	{{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="blue-button textless-button"}}
+									{{view ASTool.ButtonView action="mapAttribute" argument=this icon="ui-icon-transferthick-e-w" class="blue-button"}}
+							    	{{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="blue-button"}}
 						    	</span>
 						    </div>
 						    <div class="attribute-val">{{view.value}}</div>
@@ -60,7 +60,7 @@
 						{{#view ASTool.ElemAttributeView attribute=this}}
 							<div class="attribute-name">{{view.name}} -> {{view.field}}</div>
 							<span style="float:right">
-								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
+								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button"}}
 							</span>
 						{{/view}}
 					</div>
@@ -78,7 +78,7 @@
 						{{#view ASTool.ElemAttributeView attribute=this}}
 							<div class="attribute-name">{{view.name}}</div>
 							<span style="float:right">
-								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button textless-button"}}
+								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button"}}
 							</span>
 						{{/view}}
 					</div>
@@ -101,7 +101,7 @@
 							<label class="small-label">Ignore elements beneath</label>
 							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
 						</div>
-						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="textless-button red-button"}}
+						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="red-button"}}
 					{{/view}}
 					
 				</div>
