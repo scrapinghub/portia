@@ -503,6 +503,10 @@ a:hover {
 	margin-top: -7.5px !important;
 }
 
+.ui-button-icon-only {
+	padding: 7px !important;
+}
+
 .ui-tooltip {
     padding: 10px 20px;
     color: #333;

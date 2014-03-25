@@ -41,7 +41,7 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 	argument: null,
 	argument2: null,
 	attributeBindings: ['name', 'title'],
-	_label: 'default label',
+	_label: null,
 	title: null,
 	text: false,
 
