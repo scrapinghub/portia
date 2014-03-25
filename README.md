@@ -22,7 +22,7 @@ Requirements
 Repository structure
 ====================
 
-The are two main components in this repo, __slyd__ and __slybot__:
+The are two main components in this repository, __slyd__ and __slybot__:
 
 ###slyd
 
@@ -34,40 +34,43 @@ The Python web crawler that performs the actual site scraping. It's implemented 
 framework and the [Scrapely] extraction library. It uses projects created with __slyd__ as input.
 
 
-How to install and run slyd
-===========================
+How to install portia
+=============================
 
 The recommended way to install dependencies is to use __virtualenv__ and then do:
 
 	cd slyd
 	pip install -r requirements.txt
 
-Run the server using:
+As __slybot__ is a __slyd__ dependency, it will also get installed.
 
+Running portia
+==============
+
+First, you need to start the ui and create a project. Run __slyd__ using:
+
+	cd slyd
 	twistd -n slyd
 
 and point your browser to: `http://localhost:9001/static/main.html`
 
-The projects created with __slyd__ can be found in:
+Choose the site you want to scrape and create a project. Every project is created with a default spider named after the domain of the site you are scraping. When you are ready, you can run your project with __slybot__ to do the actual crawling/extraction.
+
+Projects created with __slyd__ can be found at:
 
 	slyd/data/projects
 
-How to install and run slybot
-=============================
+To run one of those projects use:
 
-Again, using __virtualenv__:
+	portiacrawl project_path spidername
 
-	cd slybot
-	pip install slybot
+Where `spidername` should be one of the project spiders. If you don't remember the name of the spider, just use:
 
-Choose the __slyd__ created project you want to run and copy its contents to a directory called `slybot-project`, `cd` into it and run:
+	portiacrawl project_path
 
-	slybot crawl spidername
+and you will get the list of spiders for that project.
 
-Where `spidername` is one of the project's spiders.
 
 [Twisted]: https://twistedmatrix.com
 [Scrapely]: https://github.com/scrapy/scrapely
 [Scrapy]: http://scrapy.org
-
-
