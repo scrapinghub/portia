@@ -1,2 +1,3 @@
 *.pyc
 docs/_build
+slybot.egg-info/
