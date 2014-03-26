@@ -233,7 +233,7 @@ ASTool.ItemSelect = ASTool.Select.extend({
 });
 
 
-ASTool.AnnotationWidget = Em.View.extend({
+ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 	tagName: 'div',
 	classNames: 'annotation-widget',
 	classNameBindings: 'inDoc: in-doc',
@@ -373,6 +373,12 @@ ASTool.AnnotationWidget = Em.View.extend({
 		}
 		event.stopPropagation();
 	},
+
+	keyDown: function(e) {
+    	if (this.get('fieldName') && e.keyCode == 13) {
+    		this.triggerAction({ action: 'createField', target: this });
+    	}
+  	},
 
 	initValues: function() {
 		if (!Em.isEmpty(this.get('annotation.mappedAttributes'))) {

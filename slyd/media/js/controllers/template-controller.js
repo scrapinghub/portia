@@ -94,6 +94,15 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		this.transitionToRoute('annotation', annotation);
 	},
 
+	deleteAnnotation: function(annotation) {
+		if (annotation.get('generated')) {
+			$(annotation.get('element')).removePartialAnnotation();
+		}
+		this.set('floatingAnnotation', null);
+		this.set('showFloatingAnnotationWidgetAt', null);
+		this.get('annotations').removeObject(annotation);
+	},
+
 	saveAnnotations: function() {
 		this.get('annotationsStore').saveAll(this.get('annotations'));
 		if (this.get('content')) {
@@ -206,6 +215,12 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		this.set('showFloatingAnnotationWidgetAt', null);
 	},
 
+	emptyAnnotations: function() {
+		return this.get('annotations').filter(function(annotation) {
+			return !annotation.get('mappedAttributes').length;
+		});
+	}.observes('annotations.@each.mappedAttributes'),
+
 	actions: {
 		
 		editAnnotation: function(annotation) {
@@ -221,12 +236,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 		
 		deleteAnnotation: function(annotation) {
-			if (annotation.get('generated')) {
-				$(annotation.get('element')).removePartialAnnotation();
-			}
-			this.set('floatingAnnotation', null);
-			this.set('showFloatingAnnotationWidgetAt', null);
-			this.get('annotations').removeObject(annotation);
+			this.deleteAnnotation(annotation);
 		},
 
 		createField: function(fieldName, fieldType) {
@@ -296,6 +306,10 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 
 		continueBrowsing: function() {
+			this.emptyAnnotations().forEach(function(annotation) {
+				console.log(this);
+				this.deleteAnnotation(annotation);
+			}.bind(this));
 			this.saveAnnotations();
 			this.set('controllers.spider_index.autoloadTemplate', this.get('content'));
 			this.transitionToRoute('spider');
