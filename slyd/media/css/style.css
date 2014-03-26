@@ -100,6 +100,7 @@ body{
 	display: none;
 	pointer-events:all;
 	max-width: 350px;
+	border-radius: 3px;
 }
 
 #hovered-element-info .path {
@@ -165,6 +166,13 @@ body{
 	padding: 4px;
 }
 
+.darktextfield {
+	color: white;
+	background-color: rgba(0,0,0,0.3);
+	border-color: #999;
+	border-radius: 3px;
+}
+
 .big {
 	font-size: 1.1em !important;
 }
@@ -227,7 +235,7 @@ body{
 }
 
 .annotation-widget {
-	margin:7px 0px 7px 0px;
+	margin:7px 5px 7px 0px;
 	padding: 4px 0px 4px 4px;
 	border: dotted 1px #CCC;
 	min-height: 24px;
@@ -244,11 +252,13 @@ body{
 .annotation-widget .attribute {
 	width: 115px;
 	margin: 2px 5px 0px 5px;
+	color: #CCC;
 }
 
 .annotation-widget .field {
 	width: 115px;
 	margin: 2px 0px 0px 0px;
+	color: #CCC;
 }
 
 .annotation-widget:hover {
@@ -271,12 +281,12 @@ body{
 
 .in-doc {
 	color :white;
-	padding: 4px 4px 8px 8px;
+	padding: 6px 4px 10px 8px;
 	position: fixed;
 	z-index: 400;
 	background-color: rgba(0,0,0,0.8);
-	width: 254px;
 	box-shadow: 0px 0px 9px 1px rgba(0,0,0,0.8);
+	border-radius: 3px;
 	border: none;
 }
 

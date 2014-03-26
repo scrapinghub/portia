@@ -1,11 +1,11 @@
 {{#unless view.creatingField}}
 	<div>
 		<span class="attribute">Map attribute</span>
-		<span style="margin-left:40px" class="field">To field</span>
-		<div style="display:inline-block;margin-top:2px">
+		<span style="margin-left:44px" class="field">To field</span>
+		<div style="display:inline-block;margin-top:2px;margin-left:50px">
 			{{view ASTool.InlineHelp message="annotation_widget"}}
 		</div>
-		<div style="display:inline-block;margin-left:-10px;margin-top:-1px">
+		<div style="display:inline-block;margin-left:6px;margin-top:-1px">
 			{{view ASTool.ButtonView action="editAnnotation" argument=controller.floatingAnnotation icon="ui-icon-gear" class="clear-button"}}
 		</div>
 		<div style="display:inline-block;margin-left:-10px;margin-top:-1px">
@@ -13,8 +13,13 @@
 		</div>
 	</div>
 	{{#unless view.hasMultipleMappings}}
-		{{view view.attributeSelect}}
-		{{view view.fieldSelect}}
+		<div style="margin-top:2px">
+			{{view view.attributeSelect}}
+			{{view view.fieldSelect}}
+			<div style="display:inline-block;margin-top:1px">
+			<span {{action showCreateFieldWidget target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="clear-button" label="field"}}</span>
+			</div>
+		</div>
 	{{else}}
 		<div>
 			{{#each view.mappings}}
@@ -29,8 +34,8 @@
 	<label style="margin-left:0px;">Field name</label>
 	<label style="margin-left:70px;">Field type</label>
 	<div style="margin-top:5px">
-		{{view view.fieldTextField width=115}}
+		{{view view.fieldTextField width=115 class="darktextfield"}}
 		<span style="margin-left:6px">{{view view.typeSelect}}</span>
-		<span {{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="clear-button" disabled=view.createFieldDisabled}}</span>
+		<span {{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-check" class="clear-button" disabled=view.createFieldDisabled}}</span>
 	</div>
 {{/unless}}

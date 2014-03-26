@@ -257,26 +257,29 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 		}
 	}.property('attributeName', 'fieldName'),
 
-	change: function() {
-		if (this.get('fieldName')) {
-			if (this.get('fieldName') == 'create_field') {
-				this.set('creatingField', true);
-				this.set('fieldName', '');
-				this.get('controller.documentView').setInteractionsBlocked(true);
-			} else if (this.get('fieldName') == 'sticky') {
-				this.get('controller').send('makeSticky',
-								   		this.get('annotation'),
-								   		this.get('attributeName'));
-			} else {
-				this.get('controller').send('mapAttribute',
-								   		this.get('annotation'),
-								   		this.get('attributeName'),
-								   		this.get('fieldName'));	
-			}
+	change: function() {	
+		if (this.get('fieldName') == 'create_field') {
+			this.triggerAction({ action: 'showCreateFieldWidget', target: this });
+		} else if (this.get('fieldName') == 'sticky') {
+			this.get('controller').send('makeSticky',
+							   		this.get('annotation'),
+							   		this.get('attributeName'));
+		} else if (this.get('fieldName')) {
+			this.get('controller').send('mapAttribute',
+							   		this.get('annotation'),
+							   		this.get('attributeName'),
+							   		this.get('fieldName'));	
 		}
 	},
 
 	actions: {
+
+		showCreateFieldWidget: function() {
+			this.set('creatingField', true);
+			this.set('fieldName', '');
+			this.get('controller.documentView').setInteractionsBlocked(true);
+		},
+
 		createField: function() {
 			this.set('creatingField', false);
 			this.get('controller').send('createField',
