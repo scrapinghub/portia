@@ -133,7 +133,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	},
 
 	confirmChangeSelection: function() {
-		return confirm('If you select a different region you will lose all the ignored regions and attribute mappings you defined, proceed anyway?');
+		return confirm(ASTool.Messages.get('confirm_change_selection'));
 	},
 	
 	documentActions: {

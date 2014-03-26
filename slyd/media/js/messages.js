@@ -1,6 +1,7 @@
 ASTool.Messages = Ember.Namespace.create({
+	// Inline help messages.
 	overlay_blocked_links: 'Enable this options to highlight links not followed at crawl time in red and followed links in green.',
-	follow_links: 'Links that match any of the regular expressions in this list will be followed (they should also be in the domain of one of the start URLs).',
+	follow_links: 'Links that match any of the regular expressions in this list will be followed (they should also be in the domain of one of the start pages).',
 	exclude_links: 'Links that match any of the regular expressions in this list will be excluded.',
 	perform_login: 'Select this option if the site you are crawling requires login credentials.',
 	template_required: 'This setting is equivalent to marking the fields as required in the item definition, but limiting the scope to this template only.',
@@ -12,4 +13,7 @@ ASTool.Messages = Ember.Namespace.create({
 	selected_region_children: 'Refine your selection by navigating its children.',
 	sticky_fields: 'Required attributes are not extracted, but they must be present for a page to match the template.',
 	annotation_widget: 'Select the attribute you want to extract and an item field to map it. You can add new fields by selecting <b>-create new-</b>. Choose <b>-just required-</b> to indicate that the template must match a particular feature without generating any extracted data.',
+
+	// Other messages.
+	confirm_change_selection: 'If you select a different region you will lose all current attribute mappings and ignored subregions, proceed anyway?',
 });
