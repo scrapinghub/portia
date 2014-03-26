@@ -405,17 +405,12 @@ a:hover {
 
 .ui-button.black-button {
 	background: #222;
-	border-color: #000;
+	border-color: #222;
 }
 
 .ui-button.black-button:hover {
 	background: #333;
-	border-color: #111;
-}
-
-.ui-button.orange-button {
-	background: #FF7700;
-	border-color: #FFFFFF;
+	border-color: #333;
 }
 
 .ui-button.red-button {
@@ -426,20 +421,6 @@ a:hover {
 .ui-button.red-button:hover {
 	background: #FF0000;
 	border-color: #FF0000;
-}
-
-.ui-button.dark-button {
-	background: #555;
-	border-color: #FFF;
-}
-
-.ui-button.green-button {
-	background: #588559;
-	border-color: #588559;
-}
-
-.ui-button.green-button:hover {
-	background: #4EAD51;
 }
 
 .ui-button.blue-button {
@@ -487,11 +468,6 @@ a:hover {
 .ui-accordion .ui-accordion-header {
 	text-align: left;
 	font:  1.2em Helvetica,Arial,sans-serif !important;
-}
-
-.ui-autocomplete .ui-menu-item {
-	color: red;
-	font: 1em Helvetica,Arial,sans-serif !important;
 }
 
 .textless-button .ui-button-text {
