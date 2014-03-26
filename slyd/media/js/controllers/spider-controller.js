@@ -386,13 +386,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				}.bind(this)
 			);
 		},
-
-		undoChanges: function() {
-			if (confirm('Are you sure you want to abandon your changes?')) {
-				this.content.rollback();
-				this.content.reload();
-			}
-		},
 	},
 
 	documentActions: {
