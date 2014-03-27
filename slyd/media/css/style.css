@@ -1,7 +1,7 @@
 html, body { height: 100% }
 
 body{
-	font: 0.76em "Helvetica, Arial", sans-serif;
+	font: 12px "Helvetica, Arial", sans-serif;
 	height: 100%;
 	overflow: hidden;
 	color: #111;
