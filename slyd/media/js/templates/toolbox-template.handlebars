@@ -73,12 +73,17 @@
 				<h5>No extractors have been created yet.</h5>
 			{{/each}}
 		</div>
-		<div style="margin:20px 0px 10px 0px">
-			{{view ASTool.TextField value=newReExtractor width='140px' name='reExtractorField' placeholder='Enter a RegEx' action="createExtractor"}}
-			<span class="very-small-label" style="margin-left:10px">or choose a type:</span>
-			<span class="typeBox">{{view ASTool.TypeSelect value=newTypeExtractor name='typeExtractorCombo'}}</span>
+		<div class="create-extractor-container">
+			<div style="float:left;width:53%;text-align:right">
+				{{view ASTool.TextField value=newReExtractor width='160px' name='reExtractorField' placeholder='Enter a RegEx' action="createExtractor"}}
+				<div class="small-label" style="margin:5px 0px 5px 0px">- or choose a type -</div>
+				<div class="typeBox">{{view ASTool.TypeSelect value=newTypeExtractor name='typeExtractorCombo' width='140px'}}</div>
+			</div>
+			<div style="float:left;width:47%;margin-top: 23px">
+				{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled class="blue-button"}}
+			</div>
 		</div>
-		{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled class="blue-button"}}
+		
 	</div>
 	<h3>Required fields</h3>
 	<div class="section">

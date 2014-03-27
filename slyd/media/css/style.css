@@ -155,6 +155,14 @@ body{
 	left:400px;top:30px;
 }
 
+.create-extractor-container {
+	margin:10px 0px 0px 0px;
+	border:solid 1px #DDD;
+	height:68px;
+	padding:8px;
+	border-radius:5px;
+}
+
 .textfield {
 	border-width: 1px;
 	margin-top: 0px;
@@ -238,6 +246,7 @@ body{
 	margin:7px 5px 7px 0px;
 	padding: 4px 0px 4px 4px;
 	border: dotted 1px #CCC;
+	border-radius: 5px;
 	min-height: 24px;
 }
 
@@ -311,7 +320,8 @@ body{
 	margin:4px 5px 4px 0px;
 	border:dotted 1px #CCC;
 	padding:5px;
-	background-color:#f4f4f4
+	background-color:#f4f4f4;
+	border-radius: 5px;
 }
 
 .attribute-field-mapping .attribute-name {
