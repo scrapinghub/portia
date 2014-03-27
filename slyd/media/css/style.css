@@ -353,6 +353,10 @@ body{
 	color:rgba(88,150,220,1);
 }
 
+.green-label {
+	color:rgba(186,246,161,1);
+}
+
 .very-small-label {
 	font-size: 0.7em;
 	color: #AAA;

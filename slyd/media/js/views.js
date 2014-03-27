@@ -524,6 +524,10 @@ ASTool.ExtractedItemView = Ember.View.extend({
 			return field.get('type') == 'image';
 		});
 	}.property('fields'),
+
+	variants: function() {
+		return this.get('extractedItem.variants');
+	}.property('extractedItem'),
 });
 
 

@@ -392,6 +392,27 @@ ASTool.ExtractedItem = Em.Object.extend({
 		}.bind(this));
 		return fields;
 	}.property('extracted', 'definition'),
+
+	variants: function() {
+		var variants = [];
+		var item = this.get('extracted');
+		if (!Em.isEmpty(item['variants'])) {
+			item.variants.forEach(function(variant) {
+				var fields = [];
+				Object.keys(variant).forEach(function(key) {
+					fields.pushObject(ASTool.ExtractedField.create(
+						{ name: key, type: 'variant', value: variant[key] }));
+				}.bind(this))
+				variants.pushObject(ASTool.ExtractedVariant.create({ fields: fields }));
+			}.bind(this))
+		};
+		return variants;
+	}.property('extracted', 'definition'),
+});
+
+
+ASTool.ExtractedVariant = Em.Object.extend({
+	fields: null,
 });
 
 
