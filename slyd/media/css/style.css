@@ -1,7 +1,7 @@
 html, body { height: 100% }
 
 body{
-	font: 0.72em "Helvetica, Arial", sans-serif;
+	font: 0.76em "Helvetica, Arial", sans-serif;
 	height: 100%;
 	overflow: hidden;
 	color: #111;
@@ -99,7 +99,7 @@ body{
 	margin-right: 15px;
 	display: none;
 	pointer-events:all;
-	max-width: 350px;
+	max-width: 450px;
 	border-radius: 3px;
 }
 
@@ -261,13 +261,12 @@ body{
 .annotation-widget .attribute {
 	width: 115px;
 	margin: 2px 5px 0px 5px;
-	color: #CCC;
+	
 }
 
 .annotation-widget .field {
 	width: 115px;
 	margin: 2px 0px 0px 0px;
-	color: #CCC;
 }
 
 .annotation-widget:hover {
@@ -411,6 +410,11 @@ a {
 a:hover {
 	color: orange;
 	text-decoration: underline;
+}
+
+select {
+  color: #333;
+  height: 1.0em;
 }
 
 .ui-button {
