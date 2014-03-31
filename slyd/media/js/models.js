@@ -5,12 +5,48 @@ ASTool.AnnotationsStore = Em.Object.extend({
 
 	findAll: function() {
 		var annotatedElements = this.get('iframe').findAnnotatedElements();
+		var annotationJSONs = [];
 		var annotations = [];
 		annotatedElements.each(function(i, element) {
 			var annotationJSON = $.parseJSON($(element).attr('data-scrapy-annotate'));
-			annotations.pushObject(ASTool.Annotation.create(annotationJSON));
+			if (!annotationJSON['id']) {
+				// This looks like an old Austoscraping project annotation as it doesn't have
+				// an assigned id. Create one for it.
+				annotationJSON['id'] = ASTool.shortGuid();
+				$(element).attr('data-scrapy-annotate', JSON.stringify(annotationJSON));
+			}
+			annotationJSONs.pushObject(annotationJSON);
 		}.bind(this));
-		return annotations;
+		// If the project is an Autoscraping project, the ignored regions are not
+		// explicitly linked to a parent annotation. Calling _fixOrphanIgnores solves that.
+		this._fixOrphanIgnores();
+		return annotationJSONs.map(function(annotationJSON) {
+			return ASTool.Annotation.create(annotationJSON);
+		});
+	},
+
+	_fixOrphanIgnores: function() {
+		var ignoredElements = this.get('iframe').findIgnoredElements();
+		ignoredElements.each(function(index, ignoredElement) {
+			var ignore;
+			var attributeName;
+			if ($(ignoredElement).attr('data-scrapy-ignore')) {
+				attributeName = 'data-scrapy-ignore';
+			} else {
+				attributeName = 'data-scrapy-ignore-beneath';
+			}
+			ignore = $.parseJSON($(ignoredElement).attr(attributeName));
+			if (!ignore['id']) {
+				ignore = {};
+				$(ignoredElement).parents().each(function(index, parent) {
+					if ($(parent).attr('data-scrapy-annotate')) {
+						ignore['id'] = $.parseJSON($(parent).attr('data-scrapy-annotate'))['id']
+						$(ignoredElement).attr(attributeName, JSON.stringify(ignore));
+						return false;
+					}
+				});
+			}
+		});
 	},
 
 	_prepareToSave: function() {
@@ -90,6 +126,12 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 	templates: null,
 	init_requests: null,
 
+	init: function() {
+		if (this.get('init_requests') == null) {
+			this.set('init_requests', []);
+		}
+	},
+
 	performLogin: function(key, performLogin) {
 		if (arguments.length > 1) {
 			if (performLogin) {
@@ -98,7 +140,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 				this.get('init_requests').setObjects([]);
 			}
 		}
-		return !!this.get('init_requests').length;
+		return !Ember.isEmpty(this.get('init_requests'));
 	}.property('init_requests'),
 
 	loginUrl: function(key, loginUrl) {

@@ -130,6 +130,11 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash).then(function(spiderData) {
 			spiderData['name'] = spiderName;		
 			spiderData['templates'] = spiderData['templates'].map(function(template) {
+				// Assign a name to templates. This is needed as Autoscraping templates
+				// are not named.
+				if (Em.isEmpty(template['name'])) {
+					template['name'] = ASTool.shortGuid();
+				}
 				return ASTool.Template.create(template);
 			});
 			return ASTool.Spider.create(spiderData);
