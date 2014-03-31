@@ -255,7 +255,8 @@ body{
 	text-align:center;
 	font-size:1.1em;
 	border:dotted 1px #AAA;
-	background-color:white
+	background-color:white;
+	width: 110px !important;
 }
 
 .annotation-widget .attribute {
