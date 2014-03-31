@@ -17,15 +17,13 @@ ASTool.AnnotationsStore = Em.Object.extend({
 			}
 			annotationJSONs.pushObject(annotationJSON);
 		}.bind(this));
-		// If the project is an Autoscraping project, the ignored regions are not
-		// explicitly linked to a parent annotation. Calling _fixOrphanIgnores solves that.
-		this._fixOrphanIgnores();
+		this._findIgnoresParentAnnotation();
 		return annotationJSONs.map(function(annotationJSON) {
 			return ASTool.Annotation.create(annotationJSON);
 		});
 	},
 
-	_fixOrphanIgnores: function() {
+	_findIgnoresParentAnnotation: function() {
 		var ignoredElements = this.get('iframe').findIgnoredElements();
 		ignoredElements.each(function(index, ignoredElement) {
 			var ignore;
@@ -63,9 +61,8 @@ ASTool.AnnotationsStore = Em.Object.extend({
 		this._prepareToSave();
 		annotations.forEach(function(annotation) {
 			annotation.get('ignores').forEach(function(ignore) {
-				var ignoreJSON = {id: annotation.get('id'), name: ignore.get('name')};
 				var attrName = ignore.get('ignoreBeneath') ? 'data-scrapy-ignore-beneath' : 'data-scrapy-ignore';
-				$(ignore.get('element')).attr(attrName, JSON.stringify(ignoreJSON));
+				$(ignore.get('element')).attr(attrName, 'true');
 			});
 			$(annotation.get('element')).attr('data-scrapy-annotate',
 				JSON.stringify(annotation.serialize()));
