@@ -207,6 +207,12 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	showFloatingAnnotationWidget: function(annotation, x, y) {
 		this.set('floatingAnnotation', annotation);
+		if (x < 200) {
+			x = 100;
+		}
+		if (x > window.innerWidth - 250) {
+			x = window.innerWidth - 250;
+		}
 		this.set('showFloatingAnnotationWidgetAt', { x: x, y: y });
 	},
 
