@@ -22,7 +22,7 @@ Requirements
 Repository structure
 ====================
 
-The are two main components in this repository, __slyd__ and __slybot__:
+There are two main components in this repository, __slyd__ and __slybot__:
 
 ###slyd
 
