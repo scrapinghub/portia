@@ -174,7 +174,7 @@ ASTool.InlineTextField = Ember.View.extend({
 ASTool.FollowSelect = ASTool.Select.extend({
 	name: 'followSelect',
 	content: [{ option: 'all', label: 'Follow all in-domain links' },
-			  { option: 'none', label: 'Don not follow links' },
+			  { option: 'none', label: "Don't follow links" },
 			  { option: 'patterns', label: 'Configure follow and exclude patterns' }],
 });
 
