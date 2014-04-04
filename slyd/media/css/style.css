@@ -367,6 +367,13 @@ body{
 	margin: 0px 4px 0px 4px;
 }
 
+.collapse-button {
+	pointer-events:all;
+	cursor:pointer;
+	font-weight:bold;
+	word-wrap:normal;
+}
+
 hr {
 	background-color: #BBB;
 	height: 1px;
@@ -419,7 +426,7 @@ a:hover {
 
 select {
   color: #333;
-  height: 1.0em;
+  height: 24px;
 }
 
 .ui-button {
