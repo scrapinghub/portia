@@ -56,7 +56,11 @@
 									{{#each view.textFields}}
 										<div style="margin-bottom:5px">
 											<span class="small-label blue-label">{{this.name}}:</span>
-											<span style="color:white;word-wrap:break-word;">{{this.value}}</span>
+											{{#each this.value}}
+												<span style="color:white;word-wrap:break-word;">
+													{{view ASTool.CollapsibleText fullText=this}}
+												</span>
+											{{/each}}
 										</div>
 									{{/each}}
 									{{#each view.imageFields}}

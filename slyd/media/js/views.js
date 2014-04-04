@@ -739,6 +739,30 @@ ASTool.ImageView = Em.View.extend({
 	attributeBindings: ['src', 'width'],
 });
 
+ASTool.CollapsibleText = Em.View.extend({
+	fullText: null,
+	tagName: 'span',
+	collapsed: true,
+	trimTo: 400,
+	templateName: 'collapsible-text',
+
+	collapsible: function() {
+		return this.get('fullText').length > this.get('trimTo');
+	}.property('fullText', 'trimTo'),
+
+	displayedText: function() {
+		if (!this.get('collapsed')) {
+			return this.get('fullText');
+		} else {
+			return trim(this.get('fullText'), this.get('trimTo'));
+		}
+	}.property('collapsed', 'fullText', 'trimTo'),
+
+	click: function() {
+		this.set('collapsed', !this.get('collapsed'));
+	},
+});
+
 
 var ToolboxViewMixin = ASTool.ToolboxViewMixin;
 
