@@ -161,7 +161,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 		if (arguments.length > 1) {
 			reqs[0]['password'] = loginPassword;
 		}
-		return reqs.length ? reqs[0]['loginPassword'] : null;
+		return reqs.length ? reqs[0]['password'] : null;
 	}.property('init_requests'),
 }),
 
