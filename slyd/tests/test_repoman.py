@@ -208,18 +208,3 @@ class RepomanTest(unittest.TestCase):
         # f1 in b2 has an unresolved conflict
         self.assertIn('__CONFLICT',
             j(repoman.file_contents_for_branch('f1', 'b2')))
-
-
-
-
-   
-
- 
-        
-
-
-
-
-
-
-
