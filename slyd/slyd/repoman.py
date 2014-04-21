@@ -6,6 +6,7 @@ from shutil import rmtree
 from dulwich.repo import Repo
 from dulwich.objects import Blob, Tree, Commit, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
+from dulwich.errors import NotGitRepository
 
 from slyd.jsondiff import merge_jsons
 
@@ -69,7 +70,7 @@ class Repoman(object):
         '''Returns true iff a repository named repo_name can be opened.'''
         try:
             Repoman.open_repo(repo_name)
-        except OSError as ex:
+        except NotGitRepository as ex:
             return False
         else:
             return True
@@ -91,7 +92,8 @@ class Repoman(object):
     def create_branch(self, branch_name, at_revision=None):
         '''Creates a new branch.
 
-        If no revision is specified, the branch is created from head.
+        If no revision is specified, the branch is created from the latest
+        commit in master.
         '''
         at_revision = at_revision or self._get_head()
         self._repo.refs['refs/heads/%s' % branch_name] = at_revision
@@ -106,10 +108,7 @@ class Repoman(object):
 
     def has_branch(self, branch_name):
         '''Returns true iff the specified branch exists in this repo.'''
-        try:
-            return self._repo.refs['refs/heads/%s' % branch_name] and True
-        except KeyError as ex:
-            return False
+        return 'refs/heads/%s' % branch_name in self._repo.refs
 
     def get_branch(self, branch_name):
         '''Returns the branch with name branch_name'''
