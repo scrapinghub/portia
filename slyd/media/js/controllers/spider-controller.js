@@ -400,6 +400,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				} else {
 					parsedCurrentUrl.path += parsedUrl.path;	
 				}
+				parsedCurrentUrl.query = parsedUrl.query;
 				url = URI.build(parsedCurrentUrl);
 			}
 			// TODO: remove save on fetch.
