@@ -403,7 +403,7 @@ ASTool.DocumentView = Em.Object.extend({
 		event.preventDefault();
 		var linkingElement = $(event.target).closest('[href]');
 		if (linkingElement.length) {
-			var href = $(linkingElement).attr('href');
+			var href = $(linkingElement).get(0).href;
         	this.sendDocumentEvent('linkClicked', href);	
 		}
 	},

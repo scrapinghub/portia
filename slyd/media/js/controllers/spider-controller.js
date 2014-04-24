@@ -391,18 +391,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	documentActions: {
 
 		linkClicked: function(url) {
-			var parsedUrl = URI.parse(url);
-			var parsedCurrentUrl = URI.parse(this.get('pageMap')[this.get('loadedPageFp')].url);
-
-			if (!parsedUrl.protocol) {
-				if (url.indexOf('/') == 0) {
-					parsedCurrentUrl.path = parsedUrl.path.substring(1);
-				} else {
-					parsedCurrentUrl.path += parsedUrl.path;	
-				}
-				parsedCurrentUrl.query = parsedUrl.query;
-				url = URI.build(parsedCurrentUrl);
-			}
 			// TODO: remove save on fetch.
 			this.get('documentView').showLoading();
 			this.saveSpider().then(function() {
