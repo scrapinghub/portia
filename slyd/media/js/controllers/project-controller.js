@@ -43,6 +43,14 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		}.bind(this));
 	},
 
+	publishProject: function() {
+		return this.get('slyd').publishProject(this.get('name'));
+	},
+
+	discardChanges: function() {
+		return this.get('slyd').discardChanges(this.get('name'));
+	},
+
 	actions: {
 
 		editSpider: function(spiderName) {
@@ -70,6 +78,23 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 					alert('The name ' + newName + ' is not a valid project name.');
 				}.bind(this)
 			);
+		},
+
+		publishProject: function() {
+			this.publishProject().then(function(result){
+				if (result == 'OK') {
+					alert(ASTool.Messages.get('publish_ok'));
+					this.transitionToRoute('projects');
+				} else {
+					alert(ASTool.Messages.get('publish_conflict'));
+				}
+			}.bind(this));
+		},
+
+		discardChanges: function() {
+			this.discardChanges().then(function(success){
+				this.transitionToRoute('projects');
+			}.bind(this));
 		},
 	},
 

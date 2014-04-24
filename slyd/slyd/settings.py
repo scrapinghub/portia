@@ -13,6 +13,7 @@ LOG_LEVEL = 'DEBUG'
 # location of slybot projects - assumes a subdir per project
 DATA_DIR = join(dirname(dirname(__file__)), 'data')
 SPEC_DATA_DIR = join(DATA_DIR, 'projects')
+GIT_SPEC_DATA_DIR = join(DATA_DIR, 'gitprojects')
 
 # recommended for development - use scrapy to cache http responses
 # add them to local_settings.py

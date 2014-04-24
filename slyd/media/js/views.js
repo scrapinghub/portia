@@ -834,6 +834,18 @@ ASTool.CopyClipboard = Em.View.extend({
 		'type', 'pluginspage', 'flashvars', 'scale'],
 });
 
+ASTool.ProjectListView = Em.View.extend({
+	projectName: null,
+
+	showRevisions: function() {
+		return !Em.isEmpty(this.get('controller').revisionsForProject(this.get('projectName')));
+	}.property('controller.projectRevisions'),
+
+	revisions: function() {
+		return this.get('controller').revisionsForProject(this.get('projectName'));
+	}.property('controller.projectRevisions'),
+});
+
 
 var ToolboxViewMixin = ASTool.ToolboxViewMixin;
 
