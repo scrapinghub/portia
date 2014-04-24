@@ -8,8 +8,8 @@ class JsonDiff(object):
     into nested objects.
     """
     def __init__(self, old, new):
-        set_new, set_old = set(new.keys()), set(old.keys())
-        common = set_new.intersection(set_old)
+        set_new, set_old = set(new), set(old)
+        common = set_new & set_old
         self.added = list(set_new - common)
         self.removed = list(set_old - common)
         self.changed = [k for k in common if new[k] != old[k]]
@@ -58,11 +58,11 @@ def merge_jsons(base, mine, other):
         merge_dict = {}
         for k in all_fields:
             base_val, my_val, other_val = (
-                base.get(k, None), mine.get(k, None), other.get(k, None))
+                base.get(k), mine.get(k), other.get(k))
             if isinstance(my_val, dict) and isinstance(other_val, dict):
                 merge_dict[k] = build_merge_dict(base_val, my_val, other_val)
             else:
-                merge_dict[k] = FieldDiff(base_val=base.get(k, None),
+                merge_dict[k] = FieldDiff(base_val=base.get(k),
                                           my_val=my_val,
                                           my_op=my_diff.op_for_field(k),
                                           other_val=other_val,

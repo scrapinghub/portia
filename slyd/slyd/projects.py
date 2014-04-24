@@ -2,7 +2,7 @@
 Projects Resource
 
 Manages listing/creation/deletion/renaming of slybot projects on
-the local filesystem. Routes to the appropiate resource for fetching
+the local filesystem. Routes to the appropriate resource for fetching
 pages and project spec manipulation.
 """
 
@@ -10,6 +10,7 @@ import json, re, shutil, errno, os
 from os.path import join
 from twisted.web.resource import NoResource
 from .resource import SlydJsonResource
+from .repoman import Repoman
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -23,8 +24,8 @@ def allowed_project_name(name):
 class ProjectsResource(SlydJsonResource):
 
     def __init__(self, settings):
-    	SlydJsonResource.__init__(self)
-    	self.projectsdir = settings['SPEC_DATA_DIR']
+        SlydJsonResource.__init__(self)
+        self.projectsdir = settings['SPEC_DATA_DIR']
 
     def getChildWithDefault(self, project_path_element, request):
         # TODO: check exists, user has access, etc.
@@ -50,7 +51,7 @@ class ProjectsResource(SlydJsonResource):
                 raise
 
     def create_project(self, project_name):
-    	project_filename = self.project_filename(project_name)
+        project_filename = self.project_filename(project_name)
         os.makedirs(project_filename)
         with open(join(project_filename, 'project.json'), 'wb') as outf:
             outf.write('{}')
@@ -101,4 +102,57 @@ class ProjectsResource(SlydJsonResource):
         'create': create_project,
         'mv': rename_project,
         'rm': remove_project
+    }
+
+
+class GitProjectsResource(ProjectsResource):
+
+    def __init__(self, settings):
+        SlydJsonResource.__init__(self)
+        self.projectsdir = settings['GIT_SPEC_DATA_DIR']
+
+    def create_project(self, project_name):
+        project_filename = self.project_filename(project_name)
+        repoman = Repoman.create_repo(project_filename)
+        repoman.save_file('project.json', '{}', 'master')
+
+    def remove_project(self, name):
+        Repoman.delete_repo(self.project_filename(name))
+
+    def edit_project(self, name, revision):
+        project_filename = self.project_filename(name)
+        repoman = Repoman.open_repo(project_filename)
+        if revision == 'master':
+            revision = repoman.get_branch('master')
+        if not repoman.has_branch(self.user):
+            repoman.create_branch(self.user, revision)
+
+    def publish_project(self, name):
+        project_filename = self.project_filename(name)
+        repoman = Repoman.open_repo(project_filename)
+        if repoman.publish_branch(self.user):
+            repoman.delete_branch(self.user)
+            return 'OK'
+        else:
+            return 'CONFLICT'
+
+    def discard_changes(self, name):
+        project_filename = self.project_filename(name)
+        repoman = Repoman.open_repo(project_filename)
+        repoman.delete_branch(self.user)
+
+    def project_revisions(self, name):
+        project_filename = self.project_filename(name)
+        repoman = Repoman.open_repo(project_filename)
+        revisions = repoman.get_published_revisions()
+        return json.dumps({ 'revisions': revisions })
+
+    project_commands = {
+        'create': create_project,
+        'mv': ProjectsResource.rename_project,
+        'rm': remove_project,
+        'edit': edit_project,
+        'publish': publish_project,
+        'discard': discard_changes,
+        'revisions': project_revisions,
     }

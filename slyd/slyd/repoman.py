@@ -2,6 +2,7 @@ from time import time
 from collections import defaultdict
 from json import dumps, loads
 from shutil import rmtree
+from itertools import chain
 
 from dulwich.repo import Repo
 from dulwich.objects import Blob, Tree, Commit, parse_timezone
@@ -119,22 +120,24 @@ class Repoman(object):
 
         If the branch does not exist yet, it will be created.
         '''
-        if not self.has_branch(branch_name):
-            self.create_branch(branch_name)
-        parent_commit = self.get_branch(branch_name)
-        commit = self._save_file(file_path, contents, parent_commit)
-        self._advance_branch(branch_name, commit)
+        self._perform_file_operation(
+            branch_name, self._save_file, file_path, contents)
 
     def delete_file(self, file_path, branch_name):
         '''Deletes a file from the repo and advances the specified branch head.
 
         If the branch does not exist yet, it will be created.
         '''
-        if not self.has_branch(branch_name):
-            self.create_branch(branch_name)
-        parent_commit = self.get_branch(branch_name)
-        commit = self._delete_file(file_path, parent_commit)
-        self._advance_branch(branch_name, commit)
+        self._perform_file_operation(
+            branch_name, self._delete_file, file_path)
+
+    def rename_file(self, old_file_path, new_file_path, branch_name):
+        '''Renames a file in the repo and advances the specified branch head.
+
+        If the branch does not exist yet, it will be created.
+        '''
+        self._perform_file_operation(
+            branch_name, self._rename_file, old_file_path, new_file_path)
 
     def blob_for_branch(self, file_path, branch_name):
         '''Returns the blob with the contents of file_path.
@@ -163,7 +166,7 @@ class Repoman(object):
         items = repo.get_object(repo.get_object(revision).tree).items()
         return [i.path for i in items]
 
-    def publish_branch(self, branch_name, force=False):
+    def publish_branch(self, branch_name, force=False, message=None):
         '''Merges a branch into master.
 
         If master@head is an ancestor of the given branch (or force=True), all
@@ -189,7 +192,7 @@ class Repoman(object):
             #commit.parents = [head, branch]
             commit.parents = [head]
             commit.tree = tree.id
-            commit.message = 'Publishing changes'
+            commit.message = message or 'Publishing changes'
             self._update_store(commit, tree)
             self._advance_branch('master', commit)
             return True
@@ -247,16 +250,18 @@ class Repoman(object):
         base_tree, my_tree, other_tree = (self._get_tree(x)
             for x in (base, mine, other))
         ren_detector = RenameDetector(self._repo.object_store)
+
         my_changes, other_changes = (
             tree_changes(
                 self._repo.object_store,
                 base_tree.id,
                 x.id,
+                want_unchanged=True,
                 rename_detector=ren_detector)
             for x in (my_tree, other_tree))
 
-        changes_by_path = defaultdict(lambda: [])
-        for change in list(my_changes) + list(other_changes):
+        changes_by_path = defaultdict(list)
+        for change in chain(my_changes, other_changes):
             if change.type == CHANGE_DELETE or change.type == CHANGE_RENAME:
                 path = change.old.path
             else:
@@ -267,7 +272,7 @@ class Repoman(object):
         for path, changes in changes_by_path.iteritems():
             if len(changes) == 2:
                 my_changes, other_changes = changes
-                if (my_changes.type, other_changes.type) == (CHANGE_DELETE)*2:
+                if my_changes.type == other_changes.type == CHANGE_DELETE:
                     # skip this path, it will not appear in the merge tree
                     continue
                 else:
@@ -292,7 +297,14 @@ class Repoman(object):
         self._update_store(merge_tree)
         return merge_tree, had_conflict
 
-    def _save_file(self, file_path, contents, parent_commit):
+    def _perform_file_operation(self, branch_name, operation, *args):
+        if not self.has_branch(branch_name):
+            self.create_branch(branch_name)
+        parent_commit = self.get_branch(branch_name)
+        commit = operation(parent_commit, *args)
+        self._advance_branch(branch_name, commit)
+
+    def _save_file(self,  parent_commit, file_path, contents):
         blob = Blob.from_string(contents)
         tree = self._get_tree(parent_commit)
         tree.add(file_path, FILE_MODE, blob.id)
@@ -303,13 +315,24 @@ class Repoman(object):
         self._update_store(commit, tree, blob)
         return commit
 
-    def _delete_file(self, file_path, parent_commit):
+    def _delete_file(self,  parent_commit, file_path):
         tree = self._get_tree(parent_commit)
         del tree[file_path]
         commit = self._create_commit()
         commit.parents = [parent_commit]
         commit.tree = tree.id
         commit.message = 'Deleting %s' % file_path
+        self._update_store(commit, tree)
+        return commit
+
+    def _rename_file(self, parent_commit, old_file_path, new_file_path):
+        tree = self._get_tree(parent_commit)
+        tree[new_file_path] = tree[old_file_path]
+        del tree[old_file_path]
+        commit = self._create_commit()
+        commit.parents = [parent_commit]
+        commit.tree = tree.id
+        commit.message = 'Renaming %s to %s' % (old_file_path, new_file_path)
         self._update_store(commit, tree)
         return commit
             
