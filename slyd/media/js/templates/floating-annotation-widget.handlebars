@@ -17,7 +17,13 @@
 			{{view view.attributeSelect}}
 			{{view view.fieldSelect}}
 			<div style="display:inline-block;margin-top:1px">
-			<span {{action showCreateFieldWidget target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="clear-button" label="field"}}</span>
+				<span {{action showCreateFieldWidget target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="light-button" label="field"}}</span>
+			</div>
+			<div style="width:320px;margin:5px;overflow-y:auto;max-height:50px;padding-right:4px">
+				<span style="color:#777">Attribute value:</span>
+				<span style="color:color:#BBB;word-wrap:break-word;">
+					{{view ASTool.CollapsibleText fullText=view.attributeValue trimTo=30}}
+				</span>
 			</div>
 		</div>
 	{{else}}
@@ -30,6 +36,9 @@
 			{{/each}}
 		</div>
 	{{/unless}}
+	<div style="text-align:center">
+	<span {{action dismiss target="view"}}>{{view ASTool.ButtonView label="Done" icon="ui-icon-circle-check" class="light-button"}}</span>
+</div>
 {{else}}
 	<label style="margin-left:0px;">Field name</label>
 	<label style="margin-left:70px;">Field type</label>

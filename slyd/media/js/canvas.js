@@ -41,9 +41,9 @@ ASTool.Canvas = Em.Object.extend({
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		var sortedSprites = sprites.sort(function(a, b) {
 	    	return a.get('zPosition') - b.get('zPosition');
-		}); 
-		sortedSprites.forEach(function(sprite){
-			sprite.draw(context);	
+		});
+		sortedSprites.forEach(function(sprite) { 
+			sprite.draw(context);
 		});
 	},
 
@@ -60,7 +60,6 @@ ASTool.Canvas = Em.Object.extend({
 			var canvas = $('#' + this.get('canvasId'));
 			if (interactionsBlocked) {
 				canvas.css('pointer-events', 'auto');
-				;
 				canvas.css('background-color', 'rgba(0,0,30,0.2)');
 				canvas.css('background', '-webkit-radial-gradient(circle, rgba(0,0,0,0.0), rgba(0,0,0,0.6)');
 				canvas.css('background', '-moz-radial-gradient(circle, rgba(0,0,0,0.0), rgba(0,0,0,0.6)');
@@ -115,6 +114,7 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 	rect: null,
 	blend: null,
 	highlighted: null,
+	textBackgroundColor: 'orange',
 
 	draw: function(context) {
 		this.drawRect(context, this.getBoundingBox());
@@ -158,13 +158,18 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 		if (this.get('text')) {
 			context.font = "12px sans-serif";
 			var textWidth = context.measureText(this.get('text')).width;
-			context.fillStyle = 'orange';
+			context.fillStyle = this.get('textBackgroundColor');
+			if (!this.get('highlighted')) {
+				context.globalAlpha = 0.5;
+			}
 			context.fillRect(rect.left, rect.top - 18, textWidth + 11, 18);
 			context.fillRect(rect.left, rect.top - 1, rect.width, 2);
 			context.fillStyle = this.get('textColor');
+			context.globalAlpha = 1.0;
 			context.fillText(this.get('text'),
 					 	 	 rect.left + 6,
 				 		 	 rect.top - 4);
+
 		}
 		context.restore();
 	}
@@ -177,6 +182,7 @@ ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 	strokeColor: 'rgba(88,150,220,0.4)',
 	hasShadow: false,
 	textColor: 'white',
+	_zPosition: 0,
 
 	text: function() {
 		return this.get('annotation.name');
@@ -193,6 +199,17 @@ ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 			return RECT_ZERO;
 		}
 	},
+
+	zPosition: function(key, zPos) {
+		if (arguments.length > 1) {
+			this.set('_zPosition', zPos)
+		}
+		if (this.get('annotation.highlighted')) {
+			return 1000;
+		} else {
+			return this.get('_zPosition');
+		}
+	}.property('annotation.highlighted'),
 });
 
 
@@ -234,6 +251,7 @@ ASTool.ElementSprite = ASTool.RectSprite.extend({
 	strokeColor: 'white',
 	hasShadow: false,
 	boderWidth: 2,
+	zPosition: 10,
 
 	getBoundingBox: function() {
 		return $(this.get('element')).boundingBox();	

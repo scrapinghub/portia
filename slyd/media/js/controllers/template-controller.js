@@ -213,6 +213,9 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		if (x > window.innerWidth - 250) {
 			x = window.innerWidth - 250;
 		}
+		if (y > window.innerHeight - 160) {
+			y = window.innerHeight - 160;
+		}
 		this.set('showFloatingAnnotationWidgetAt', { x: x, y: y });
 	},
 
@@ -271,6 +274,10 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 
 		deleteExtractor: function(extractor) {
+			// Remove all references to this extractor.
+			Object.keys(this.get('content.extractors')).forEach(function(fieldName) {
+				this.get('content.extractors')[fieldName].removeObject(extractor['name']);
+			}.bind(this));
 			this.get('extractors').removeObject(extractor);
 			this.saveExtractors();
 		},
@@ -320,31 +327,42 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			this.set('controllers.spider_index.autoloadTemplate', this.get('content'));
 			this.transitionToRoute('spider');
 		},
+
+		hideFloatingAnnotationWidget: function() {
+			this.hideFloatingAnnotationWidget();
+		}
 	},
 
 	documentActions: {
 		
 		elementSelected: function(element, mouseX, mouseY) {
 			if (element) {
-				var annotation = this.addAnnotation(element);
+				var annotation = this.get('annotations').findBy('element', element);
+				if (!annotation) {
+					var annotation = this.addAnnotation(element);	
+				}
 				this.showFloatingAnnotationWidget(annotation, mouseX, mouseY);
 			}
 		},
 		
-		partialSelection: function(selection) {
+		partialSelection: function(selection, mouseX, mouseY) {
 			var element = $('<ins/>').get(0);
 			selection.getRangeAt(0).surroundContents(element);
-			this.addAnnotation(element, true);
+			this.showFloatingAnnotationWidget(this.addAnnotation(element, true), mouseX, mouseY);
 			selection.collapse();
 		},
 
 		elementHovered: function(element, mouseX, mouseY) {
+			this.get('annotations').forEach(function(annotation){
+				annotation.set('highlighted', false);
+			});
 			var annotation = this.get('annotations').findBy('element', element);
 			if (annotation) {
-				this.showFloatingAnnotationWidget(annotation, mouseX, mouseY);
+				annotation.set('highlighted', true);
 			} else {
 				this.hideFloatingAnnotationWidget();
 			}
+			this.get('documentView').redrawNow();
 		},
 	},
 

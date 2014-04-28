@@ -1,23 +1,35 @@
 {{#unless view.creatingField}}
-	<div style="float:right; margin-right:4px">
-			{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="blue-button"}}
-			{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="red-button"}}
-	</div>
+	
 	{{#unless view.hasMultipleMappings}}
 		{{view view.attributeSelect}}
 		{{view view.fieldSelect}}
-		<div class="attribute-value">
-			<h5 style="margin-bottom:4px">Attribute value:</h5>
-			{{view.attributeValue}}
+		{{view ASTool.VariantSelect annotation=view.annotation}}
+		<div style="margin-top:5px;padding:5px">
+			<div style="display:inline-block;width:72%">
+				<h5>Attribute value:</h5>
+				<span style="color:black;word-wrap:break-word;">
+					{{view ASTool.CollapsibleText fullText=view.attributeValue trimTo=40}}
+				</span>
+			</div>
+			<div style="text-align:right;display:inline-block;width:24%">
+				{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="blue-button"}}
+				{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="red-button"}}
+			</div>
 		</div>
+
 	{{else}}
 		<div>
-			{{#each view.mappings}}
-				<div>
+			<div style="display:inline-block;width:75%">
+				{{#each view.mappings}}
 					<div class="attribute multimap">{{this.name}}</div>
 					<div class="field multimap" >{{this.mappedField}}</div>
-				</div>
-			{{/each}}
+				{{/each}}
+			</div>
+			<div style="text-align:right;display:inline-block;width:21%;">
+				<div style="text-align:center;display:inline-block;width:60px;margin:4px">{{view.annotation.variant}}</div>
+				{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="blue-button"}}
+				{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="red-button"}}
+			</div>
 		</div>
 	{{/unless}}
 {{else}}

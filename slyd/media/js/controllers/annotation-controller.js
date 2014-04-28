@@ -19,7 +19,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 
 	urlBinding: 'controllers.template_index.url',
 
-	currentVariantBinding: Em.Binding.oneWay("content.variant"),
+	maxVariantBinding: 'controllers.template_index.maxVariant',
 	
 	selectingIgnore: function(key, selectingIgnore) {
 		if (arguments.length > 1) {
@@ -103,10 +103,6 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 			this.set('mappingAttribute', null);
 		},
 
-		variantSelected: function(variant) {
-			this.set('content.variant', variant);
-		},
-
 		makeSticky: function(attribute) {
 			this.get('controllers.template_index').makeSticky(this.get('content'),
 				attribute.get('name'));
@@ -138,7 +134,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	
 	documentActions: {
 		
-		elementSelected: function(element, partialSelection) {
+		elementSelected: function(element, mouseX, mouseY, partialSelection) {
 			if (this.get('selectingIgnore')) {
 				if (element) {
 					this.get('content').addIgnore(element);	
@@ -161,10 +157,11 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 			}
 		},
 		
-		partialSelection: function(selection) {
+		partialSelection: function(selection, mouseX, mouseY) {
 			var element = $('<ins/>').get(0);
 			selection.getRangeAt(0).surroundContents(element);
-			this.documentActions['elementSelected'].call(this, element, true);
+			this.documentActions['elementSelected'].call(
+				this, element, mouseX, mouseY, true);
 			selection.collapse();
 		},
 	},

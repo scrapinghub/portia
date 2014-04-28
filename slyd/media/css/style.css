@@ -267,6 +267,11 @@ body{
 
 .annotation-widget .field {
 	width: 115px;
+	margin: 2px 5px 0px 0px;
+}
+
+.annotation-widget .variant-select {
+	width: 60px;
 	margin: 2px 0px 0px 0px;
 }
 
@@ -313,7 +318,7 @@ body{
 	margin:4px;
 	padding:4px;
 	color:#555;
-	display: none;
+	display: block;
 }
 
 .attribute-field-mapping {
@@ -425,8 +430,8 @@ a:hover {
 }
 
 select {
-  color: #333;
-  height: 24px;
+	color: #333;
+	height: 24px;
 }
 
 .ui-button {
