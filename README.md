@@ -18,31 +18,16 @@ Requirements
 * Works on Linux, Windows, Mac OSX, BSD
 * Supported browsers: Latest versions of Chrome (recommended) or Firefox
 
-
-Repository structure
-====================
-
-There are two main components in this repository, __slyd__ and __slybot__:
-
-###slyd
-
-The visual editor used to create your scraping projects.
-
-###slybot
-
-The Python web crawler that performs the actual site scraping. It's implemented on top of the [Scrapy] web crawling
-framework and the [Scrapely] extraction library. It uses projects created with __slyd__ as input.
-
-
-How to install portia
-=============================
+Installation
+============
 
 The recommended way to install dependencies is to use __virtualenv__ and then do:
 
-	cd slyd
-	pip install -r requirements.txt
+    cd slyd
+    pip install -r slyd/requirements.txt
 
 As __slybot__ is a __slyd__ dependency, it will also get installed.
+
 
 Running portia
 ==============
@@ -69,6 +54,20 @@ Where `spidername` should be one of the project spiders. If you don't remember t
 	portiacrawl project_path
 
 and you will get the list of spiders for that project.
+
+Repository structure
+====================
+
+There are two main components in this repository, __slyd__ and __slybot__:
+
+###slyd
+
+The visual editor used to create your scraping projects.
+
+###slybot
+
+The Python web crawler that performs the actual site scraping. It's implemented on top of the [Scrapy] web crawling
+framework and the [Scrapely] extraction library. It uses projects created with __slyd__ as input.
 
 
 [Twisted]: https://twistedmatrix.com
