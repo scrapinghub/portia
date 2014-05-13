@@ -55,6 +55,8 @@ Where `spidername` should be one of the project spiders. If you don't remember t
 
 and you will get the list of spiders for that project.
 
+Portia spiders are ultimately [Scrapy] spiders. You can pass __scrapy__ spider arguments when running them with ```portiacrawl``` by using the ```-a``` command line option. A custom settings module may also be specified using the ```--settings``` command line option. Please refer to the [scrapy documentation] for details on arguments and settings.
+
 Repository structure
 ====================
 
@@ -73,3 +75,4 @@ framework and the [Scrapely] extraction library. It uses projects created with _
 [Twisted]: https://twistedmatrix.com
 [Scrapely]: https://github.com/scrapy/scrapely
 [Scrapy]: http://scrapy.org
+[scrapy documentation]: http://doc.scrapy.org/en/latest
