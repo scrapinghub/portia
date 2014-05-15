@@ -24,7 +24,7 @@ Installation
 The recommended way to install dependencies is to use __virtualenv__ and then do:
 
     cd slyd
-    pip install -r slyd/requirements.txt
+    sudo pip install -r requirements.txt
 
 As __slybot__ is a __slyd__ dependency, it will also get installed.
 
