@@ -24,9 +24,9 @@ Installation
 The recommended way to install dependencies is to use __virtualenv__ and then do:
 
     cd slyd
-    sudo pip install -r requirements.txt
+    pip install -r requirements.txt
 
-As __slybot__ is a __slyd__ dependency, it will also get installed.
+As `slybot` is a `slyd` dependency, it will also get installed. Note that you may also need to use `sudo` or `pip --user` if you get permissions problems while installing. 
 
 
 Running portia
