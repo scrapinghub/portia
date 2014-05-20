@@ -21,7 +21,7 @@ def create_crawler_spec_resource(spec_manager):
     return SpecResource(spec_manager)
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
-_INVALID_SPIDER_RE = re.compile('[^A-Za-z0-9._]|^\.*$')
+_INVALID_SPIDER_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
 
 
 def allowed_spider_name(name):
