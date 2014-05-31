@@ -18,13 +18,17 @@ from functools import partial
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
 from scrapy.http import Request
-from scrapy.spider import BaseSpider
 from scrapy.item import DictItem
 from scrapy import signals, log
 from scrapy.crawler import Crawler
 from scrapy.http import HtmlResponse
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
+try:
+    from scrapy.spider import Spider
+except ImportError:
+    # BaseSpider class was deprecated in Scrapy 0.21
+    from scrapy.spider import BaseSpider as Spider
 from slybot.spider import IblSpider
 from .html import html4annotation, extract_html
 from .resource import SlydJsonResource
@@ -37,7 +41,7 @@ def create_bot_resource(spec_manager):
 
 
 class Bot(Resource):
-    spider = BaseSpider('slyd')
+    spider = Spider('slyd')
 
     def __init__(self, settings, spec_manager):
         # twisted base class is old-style so we cannot user super()
