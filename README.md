@@ -57,6 +57,24 @@ and you will get the list of spiders for that project.
 
 Portia spiders are ultimately [Scrapy] spiders. You can pass __scrapy__ spider arguments when running them with ```portiacrawl``` by using the ```-a``` command line option. A custom settings module may also be specified using the ```--settings``` command line option. Please refer to the [scrapy documentation] for details on arguments and settings.
 
+Running portia with [vagrant]
+=============================
+
+This is probably the easiest way to install and run portia.
+
+First, you need to get:
+
+* Vagrant: http://www.vagrantup.com/downloads.html
+* VirtualBox: https://www.virtualbox.org/wiki/Downloads
+
+After that ```cd``` into the repo directory and run:
+
+    vagrant up
+
+This will setup and start an ubuntu virtual machine, build portia and launch the ```slyd``` server for you. Just point your browser to `http://localhost:8000/static/main.html` after vagrant has finished the whole process (you should see ```default: slyd start/running, process XXXX``` in your console) and you can start using portia. You can stop the server with ```vagrant suspend``` or ```vagrant halt```.
+
+The repository directory is shared with the VM, so you don't need to do anything special to keep it in sync. You can __ssh__ into the virtual machine by running ```vagrant ssh```. The repo dir will be mounted at ```/vagrant``` in the VM. Please note that you __need to ssh into the VM to run the ```portiacrawl``` script__.
+
 Repository structure
 ====================
 
@@ -76,3 +94,4 @@ framework and the [Scrapely] extraction library. It uses projects created with _
 [Scrapely]: https://github.com/scrapy/scrapely
 [Scrapy]: http://scrapy.org
 [scrapy documentation]: http://doc.scrapy.org/en/latest
+[vagrant]: http://www.vagrantup.com
