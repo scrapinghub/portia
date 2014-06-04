@@ -58,7 +58,7 @@ def merge_jsons(base, mine, other):
         merge_dict = {}
         for k in all_fields:
             base_val, my_val, other_val = (
-                base.get(k), mine.get(k), other.get(k))
+                base.get(k, {}), mine.get(k), other.get(k))
             if isinstance(my_val, dict) and isinstance(other_val, dict):
                 merge_dict[k] = build_merge_dict(base_val, my_val, other_val)
             else:
