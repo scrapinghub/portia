@@ -46,7 +46,7 @@ def annotate_templates(spider):
 
 class CrawlerSpecManager(object):
 
-    def __init__(self, settings, user, use_git_storage=False):
+    def __init__(self, settings, user='default', use_git_storage=False):
         self.settings = settings
         self.use_git = use_git_storage
         settings_key = self.use_git and 'GIT_SPEC_DATA_DIR' or 'SPEC_DATA_DIR'
@@ -68,10 +68,6 @@ class ProjectSpec(object):
 
     def __init__(self, projectdir):
         self.projectdir = projectdir
-
-    def load_slybot_spec(self, project):
-        """load the spec for a given project"""
-        return open_project_from_dir(self.projectdir)
 
     def list_spiders(self):
         try:
@@ -160,9 +156,6 @@ class GitProjectSpec(ProjectSpec):
         self.repoman = Repoman.open_repo(repodir)
         self.projectdir = ''
         self.user = None
-
-    def load_slybot_spec(self, project):
-        raise NotImplementedError
 
     def list_spiders(self):
         for fname in self.repoman.list_files_for_branch(self.user):
