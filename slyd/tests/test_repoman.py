@@ -2,7 +2,8 @@ import unittest
 from tempfile import mkdtemp
 from os.path import join
 from shutil import rmtree
-from json import dumps
+from json import dumps, loads
+import copy
 
 from .settings import SPEC_DATA_DIR
 
@@ -156,6 +157,23 @@ class RepomanTest(unittest.TestCase):
             repoman.file_contents_for_branch('f2', 'master'))
         self.assertEqual(len(repoman.get_published_revisions()), 3)
 
+    def test_modify_delete(self):
+        # Although this is usually treated as a conflict, here we just keep the
+        # modified version and ignore the delete.
+        repoman = Repoman.create_repo(self.get_full_name('my_repo'))
+        repoman.save_file('f1', j({ 'a': 1 }), 'b1')
+        self.assertTrue(repoman.publish_branch('b1'))
+        repoman.delete_branch('b1')
+        # b1 deletes f1 and b2 modifies it.
+        repoman.delete_file('f1', 'b1')
+        repoman.save_file('f1', j({ 'a': 2, 'c': 3 }), 'b2')
+        self.assertTrue(repoman.publish_branch('b1'))
+        self.assertTrue(repoman.publish_branch('b2'))
+        # master has f1.
+        self.assertEqual(['f1'], repoman.list_files_for_branch('master'))
+        self.assertEqual(j({ 'a': 2, 'c': 3 }),
+            repoman.file_contents_for_branch('f1', 'master'))
+
     def test_unresolved_conflicts_both_modify(self):
         repoman = Repoman.create_repo(self.get_full_name('my_repo'))
         repoman.save_file('f1', j({ 'a': 1 }), 'b1')
@@ -190,21 +208,5 @@ class RepomanTest(unittest.TestCase):
         self.assertEqual(j({ 'a': 1 }),
             repoman.file_contents_for_branch('f1', 'master'))
         # the file in b2 has an unresolved conflict
-        self.assertIn('__CONFLICT',
-            j(repoman.file_contents_for_branch('f1', 'b2')))
-
-    def test_unresolved_conflicts_modify_delete(self):
-        repoman = Repoman.create_repo(self.get_full_name('my_repo'))
-        repoman.save_file('f1', j({ 'a': 1 }), 'b1')
-        self.assertTrue(repoman.publish_branch('b1'))
-        repoman.delete_branch('b1')
-        # b1 deletes f1 and b2 modifies it.
-        repoman.delete_file('f1', 'b1')
-        repoman.save_file('f1', j({ 'a': 2, 'c': 3 }), 'b2')
-        self.assertTrue(repoman.publish_branch('b1'))
-        self.assertFalse(repoman.publish_branch('b2'))
-        # master has no files
-        self.assertEqual([], repoman.list_files_for_branch('master'))
-        # f1 in b2 has an unresolved conflict
         self.assertIn('__CONFLICT',
             j(repoman.file_contents_for_branch('f1', 'b2')))

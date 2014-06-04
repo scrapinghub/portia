@@ -236,6 +236,30 @@ class Repoman(object):
                 break
         return branch_checkpoints
 
+    def get_branch_changed_files(self, branch_name):
+        '''Returns the name of all changed files within the branch.'''
+        master_tree = self._get_tree(self.get_branch('master'))
+        branch_tree = self._get_tree(self.get_branch(branch_name))
+        changes = tree_changes(
+            self._repo.object_store, branch_tree.id, master_tree.id)
+        return [entry.new.path or entry.old.path for entry in changes]
+
+    def get_branch_conflicted_files(self, branch_name):
+        '''Returns a dict with the conflicted files for a given branch.'''
+
+        def has_conflict(json):
+            for key in json.keys():
+                if (key == '__CONFLICT' or
+                    isinstance(json[key], dict) and has_conflict(json[key])):
+                    return True
+            return False
+
+        files_content = ((file_path, loads(self.file_contents_for_branch(
+            file_path, branch_name))) for
+                file_path in self.list_files_for_branch(branch_name))
+        return { file_path: content for file_path, content in files_content if
+            has_conflict(content) }
+
     def _merge_branches(self, base, mine, other):
 
         def load_json(path, branch):
@@ -272,9 +296,18 @@ class Repoman(object):
         for path, changes in changes_by_path.iteritems():
             if len(changes) == 2:
                 my_changes, other_changes = changes
-                if my_changes.type == other_changes.type == CHANGE_DELETE:
-                    # skip this path, it will not appear in the merge tree
-                    continue
+                if my_changes.type == CHANGE_DELETE:
+                    if other_changes.type in (CHANGE_RENAME, CHANGE_MODIFY):
+                        merge_tree.add(other_changes.new.path,
+                            FILE_MODE, other_changes.new.sha)
+                    else:
+                        continue
+                elif other_changes.type == CHANGE_DELETE:
+                    if my_changes.type in (CHANGE_RENAME, CHANGE_MODIFY):
+                        merge_tree.add(my_changes.new.path,
+                            FILE_MODE, my_changes.new.sha)
+                    else:
+                        continue
                 else:
                     jsons = [load_json(path, x) for x in (base, mine, other)]
                     # When dealing with renames, file contents are under the
@@ -292,7 +325,7 @@ class Repoman(object):
                         dumps(merged_json, sort_keys=True, indent=4))
                     self._update_store(merged_blob)
                     merge_tree.add(path, FILE_MODE, merged_blob.id)
-            elif changes[0].type != CHANGE_DELETE:
+            else:
                 merge_tree.add(path, FILE_MODE, changes[0].new.sha)
         self._update_store(merge_tree)
         return merge_tree, had_conflict
