@@ -356,22 +356,50 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);	
 	},
 
-	publishProject: function(project_name) {
+	conflictedFiles: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
-			{ cmd: 'publish', args: [project_name] });
+			{ cmd: 'conflicts', args: [projectName] });
+		return ic.ajax(hash);	
+	},
+
+	changedFiles: function(projectName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'changes', args: [projectName] });
+		return ic.ajax(hash);	
+	},
+
+	publishProject: function(projectName, force) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'publish', args: [projectName, !!force] });
 		hash.dataType = 'text';
 		return ic.ajax(hash);
 	},
 
-	discardChanges: function(project_name) {
+	discardChanges: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
-			{ cmd: 'discard', args: [project_name] });
+			{ cmd: 'discard', args: [projectName] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
+
+	saveFile: function(projectName, fileName, contents) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'save', args: [projectName, fileName, contents] });
 		hash.dataType = 'text';
 		return ic.ajax(hash);
 	},
