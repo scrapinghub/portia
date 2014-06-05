@@ -15,7 +15,7 @@ ASTool.Router.map(function() {
 					this.resource('annotation', { path: ':annotation_id' });
 				});
 			});
-			
+			this.resource('conflicts');
 		});
 	});
 });
@@ -59,6 +59,25 @@ ASTool.ProjectRoute = Ember.Route.extend({
 ASTool.ProjectIndexRoute = Ember.Route.extend({
 	model: function() {
 		return this.get('slyd').getSpiderNames();
+	},
+
+	afterModel: function() {
+		if (this.get('slyd.server_capabilities.version_control')) {
+			var controller = this.controllerFor('project.index');
+			return this.get('slyd').conflictedFiles(this.get('slyd.project')).then(
+				function(conflictedFiles) {
+					if (Object.keys(conflictedFiles).length != 0) {
+						// If there are conflicted files, redirect the user to
+						// automated concept resolution.
+						this.transitionTo('conflicts');	
+					}
+				}.bind(this)
+			).then(function() {
+				return this.get('slyd').changedFiles(this.get('slyd.project'));
+			}.bind(this)).then(function(changes) {
+				controller.set('changedFiles', changes);
+			});
+		}
 	},
 
 	renderTemplate: function() {
@@ -224,6 +243,32 @@ ASTool.ItemsRoute = Ember.Route.extend({
     		into: 'application',
       		outlet: 'topbar',
       		controller: 'items',
+    	});
+	},
+});
+
+ASTool.ConflictsRoute = Ember.Route.extend({
+	model: function() {
+		return this.get('slyd').conflictedFiles(this.get('slyd.project'));
+	},
+
+	renderTemplate: function() {
+		this.render('toolbox-conflicts', {
+			into: 'application',
+      		outlet: 'main',
+      		controller: 'conflicts',
+    	});
+
+    	this.render('topbar-conflicts', {
+    		into: 'application',
+      		outlet: 'topbar',
+      		controller: 'conflicts',
+    	});
+
+    	this.render('conflict-resolver', {
+    		into: 'application',
+      		outlet: 'conflictResolver',
+      		controller: 'conflicts',
     	});
 	},
 });

@@ -35,6 +35,7 @@
 	<script src="js/controllers/project-controller.js"></script>
 	<script src="js/controllers/projects-controller.js"></script>
 	<script src="js/controllers/spider-controller.js"></script>
+	<script src="js/controllers/conflicts-controller.js"></script>
 	
 	<script>
 		function compile(template) {
@@ -56,6 +57,8 @@
 		compile('js/templates/floating-annotation-widget.handlebars');
 		compile('js/templates/edit-item.handlebars');
 		compile('js/templates/collapsible-text.handlebars');
+		compile('js/templates/conflict-resolver.handlebars');
+		compile('js/templates/json-view.handlebars');
 		compile('js/templates/item.handlebars');
 		compile('js/templates/navigation.handlebars');
 		compile('js/templates/toolbox.handlebars');
@@ -65,10 +68,12 @@
 		compile('js/templates/toolbox-template.handlebars');
 		compile('js/templates/toolbox-annotation.handlebars');
 		compile('js/templates/toolbox-items.handlebars');
+		compile('js/templates/toolbox-conflicts.handlebars');
 		compile('js/templates/topbar-project.handlebars');
 		compile('js/templates/topbar-projects.handlebars');
 		compile('js/templates/topbar-browse.handlebars');
 		compile('js/templates/topbar-extraction.handlebars');
+		compile('js/templates/topbar-conflicts.handlebars');
 	</script>
 </head>
 <body>

@@ -1,0 +1,10 @@
+<div style="margin:10px 0px 0px 10px">
+	<h4>Conflicted files</h4>
+	<div>
+		{{#each controller.conflictedFileNames}}
+			<div style="margin:4px 0px 4px 0px">
+				{{view ASTool.ButtonView action="displayConflictedFile" argument=this label=this minWidth='85%' class="light-button"}}
+			</div>
+		{{/each}}
+	</div>
+</div>

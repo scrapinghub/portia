@@ -218,7 +218,7 @@ class GitProjectsResource(ProjectsResource):
     def save_file(self, project_name, file_path, file_contents):
         repoman = self.open_repo(project_name)
         repoman.save_file(file_path,
-                          json.dumps(json_contents, sort_keys=True, indent=4),
+                          json.dumps(file_contents, sort_keys=True, indent=4),
                           self.user)
 
     project_commands = {
