@@ -320,7 +320,6 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		continueBrowsing: function() {
 			this.emptyAnnotations().forEach(function(annotation) {
-				console.log(this);
 				this.deleteAnnotation(annotation);
 			}.bind(this));
 			this.saveAnnotations();
