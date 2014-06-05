@@ -6,6 +6,8 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 
 	spiderPage: null,
 
+	changedFiles: [],
+
 	nameBinding: 'slyd.project',
 
 	navigationLabelBinding: 'slyd.project',
@@ -13,6 +15,10 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 	createSpiderDisabled: function() {
 		return Em.isEmpty(this.get('spiderPage'));
 	}.property('spiderPage'),
+
+	hasChanges: function() {
+		return !Em.isEmpty(this.get('changedFiles'));
+	}.property('changedFiles.[]'),
 
 	addSpider: function() {
 		var siteUrl = this.get('spiderPage') || this.get('controllers.application.siteWizard');
@@ -32,9 +38,9 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		this.set('spiderPage', null);
 		return this.get('slyd').saveSpider(spider, newSpiderName).then(function() {
 				this.editSpider(newSpiderName);
-		}.bind(this), function(error) {
-			console.log(error);
-		});
+			}.bind(this), function(error) {
+				console.log(error);
+			});
 	},
 
 	editSpider: function(spiderName) {
@@ -65,6 +71,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 			if (confirm('Are you sure you want to delete spider ' + spiderName + '?')) {
 				this.get('slyd').deleteSpider(spiderName);
 				this.removeObject(spiderName);
+				this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
 			}
 		},
 
@@ -85,8 +92,9 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 				if (result == 'OK') {
 					alert(ASTool.Messages.get('publish_ok'));
 					this.transitionToRoute('projects');
-				} else {
+				} else if (result == 'CONFLICT') {
 					alert(ASTool.Messages.get('publish_conflict'));
+					this.transitionToRoute('conflicts');
 				}
 			}.bind(this));
 		},
@@ -95,6 +103,10 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 			this.discardChanges().then(function(success){
 				this.transitionToRoute('projects');
 			}.bind(this));
+		},
+
+		conflictedFiles: function() {
+			this.transitionToRoute('conflicts');
 		},
 	},
 

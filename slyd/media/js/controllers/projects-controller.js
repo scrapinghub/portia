@@ -47,16 +47,18 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 				this.get('slyd').editProject(newProjectName).then(function() {
 					this.set('slyd.project', newProjectName);
 					// Initialize items spec.
-					this.get('slyd').saveItems([
+					itemsPromise = this.get('slyd').saveItems([
 						ASTool.Item.create({ name: 'default', fields: [ ]
 						})
 					]);
 					// Initialize extractors spec.
-					this.get('slyd').saveExtractors([]);
+					extractorsPromise = this.get('slyd').saveExtractors([]);
 					// Setup automatic creation of an initial spider.
 					this.set('controllers.application.siteWizard', this.get('projectSite'));
 					this.set('projectSite', null);
-					this.transitionToRoute('project', { id: newProjectName });
+					Em.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
+  			  			this.transitionToRoute('project', { id: newProjectName });
+					}.bind(this)) 
 				}.bind(this));
 			}.bind(this));
 		},
