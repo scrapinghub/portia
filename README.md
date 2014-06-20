@@ -18,16 +18,30 @@ Requirements
 * Works on Linux, Windows, Mac OSX, BSD
 * Supported browsers: Latest versions of Chrome (recommended) or Firefox
 
+Prerequisites
+=============
+
+You might need to run the following commands to install the required tools & libraries before building portia:
+
+    apt-get install python-pip python-dev libxml2-dev libxslt1-dev libffi-dev libssl-dev
+    pip install virtualenv
+
 Installation
 ============
 
-The recommended way to install dependencies is to use __virtualenv__ and then do:
+The recommended way to install dependencies is to use __virtualenv__:
 
+    virtualenv YOUR_ENV_NAME --no-site-packages
+
+and then do:
+
+    source YOUR_ENV_NAME/bin/activate
     cd slyd
     pip install -r requirements.txt
 
-As `slybot` is a `slyd` dependency, it will also get installed. Note that you may also need to use `sudo` or `pip --user` if you get permissions problems while installing. 
+As `slybot` is a `slyd` dependency, it will also get installed.
 
+**Note:** you may need to use `sudo` or `pip --user` if you get permissions problems while installing.
 
 Running portia
 ==============
