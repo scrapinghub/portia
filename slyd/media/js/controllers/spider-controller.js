@@ -25,6 +25,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	itemDefinitions: null,
 
+	extractedItems: [],
+
 	hasStartUrl: function() {
 		return !this.get('newStartUrl');
 	}.property('newStartUrl'),
@@ -112,24 +114,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	 		   'model.follow_patterns',
 	 		   'model.exclude_patterns'),
 
-	extractedItems: function() {
-		var items = [];
-		var loadedPageFp = this.get('loadedPageFp');
-		if (this.pageMap[loadedPageFp]) {
-			items = this.pageMap[loadedPageFp].items;
-			if (items) {
-				items = items.toArray();
-			}
-		}
-		var extractedItems = items.map(function(item) {
-			var templatePageId = item['_template'];
-			var template = this.get('templates').findBy('page_id', templatePageId);
-			var itemDefinition = this.get('itemDefinitions').findBy('name', template.get('scrapes'));
-			return ASTool.ExtractedItem.create({ extracted: item, definition: itemDefinition });
-		}.bind(this));
-		return extractedItems;
-	}.property('loadedPageFp'),
-
 	spiderDomains: function() {
 		var spiderDomains = new Em.Set();
 		this.get('content.start_urls').forEach(function(startUrl) {
@@ -171,6 +155,28 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	editTemplate: function(template) {
 		this.transitionToRoute('template', template);
 	},
+	
+	viewTemplate: function(template) {
+		var newWindow = window.open('about:blank',
+			'_blank',
+			'resizable=yes, scrollbars=yes');
+		newWindow.document.write(template.get('annotated_body'));
+		newWindow.document.title = ('Template ' + template.get('name'));
+	},
+	
+	wrapItem: function(item) {
+		var templatePageId = item['_template'];
+		var template = this.get('templates').findBy('page_id', templatePageId);
+		var itemDefinition = this.get('itemDefinitions').findBy('name', template.get('scrapes'));
+		return ASTool.ExtractedItem.create({ extracted: item,
+											 definition: itemDefinition,
+											 matchedTemplate: template });
+	},
+
+	updateExtractedItems: function(items) {
+		var extractedItems = items.map(this.wrapItem, this);
+		this.set('extractedItems', extractedItems);
+	},
 
 	fetchPage: function(url, parentFp, skipHistory) {
 		this.set('loadedPageFp', null);
@@ -199,6 +205,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 											  dataSource: this });
 							this.set('loadedPageFp', data.fp);
 							this.get('pageMap')[data.fp] = data;
+							this.updateExtractedItems(data.items);
 						}.bind(this)
 					);
 				} else {
@@ -240,15 +247,15 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		);
 	},
 
-	addStartUrl: function(url) {
-		var parsedUrl = URI.parse(url);
-
-		if (!parsedUrl.protocol) {
-			parsedUrl.protocol = 'http';
-			url = URI.build(parsedUrl);
-		}
-		this.content.get('start_urls').pushObject(url);
-		return url;
+	addStartUrls: function(urls) {
+		urls.match(/[^\s,]+/g).forEach(function(url) {
+			parsed = URI.parse(url);
+			if (!parsed.protocol) {
+				parsed.protocol = 'http';
+				url = URI.build(parsed);
+			}
+			this.get('content.start_urls').pushObject(url);
+		}.bind(this));
 	},
 
 	addExcludePattern: function(pattern) {
@@ -288,6 +295,26 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		this.set('browseHistory', []);
 		this.set('pageMap', {});
 	}.observes('content'),
+
+	testSpider: function(urls) {
+		if (urls.length) {
+			var fetchId = ASTool.guid();
+			this.get('pendingFetches').pushObject(fetchId);
+			this.get('slyd').fetchDocument(urls[0], this.get('content.name')).then(
+				function(data) {
+					if (this.get('pendingFetches').indexOf(fetchId) != -1) {
+						this.get('pendingFetches').removeObject(fetchId);
+						data.items.forEach(function(item) {
+							this.get('extractedItems').pushObject(this.wrapItem(item));
+						}, this);
+						this.testSpider(urls.splice(1));
+					}
+				}.bind(this)
+			);
+		} else {
+			this.get('documentView').hideLoading();
+		}
+	},
 	
 	actions: {
 
@@ -304,6 +331,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		saveSpider: function() {
+			this.get('pendingFetches').setObjects([]);
 			this.saveSpider().then(function() {
 				if (this.get('loadedPageFp')) {
 					this.fetchPage(
@@ -331,8 +359,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.displayPage(lastPageFp);
 		},
 
-		addStartUrl: function() {
-			this.addStartUrl(this.get('newStartUrl'));
+		addStartUrls: function() {
+			this.addStartUrls(this.get('newStartUrl'));
 			this.set('newStartUrl', '');
 		},
 
@@ -386,6 +414,14 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				}.bind(this)
 			);
 		},
+
+		testSpider: function() {
+			this.get('documentView').showLoading();
+			this.get('pendingFetches').setObjects([]);
+			this.get('extractedItems').setObjects([]);
+			this.set('showItems', true);
+			this.testSpider(this.get('start_urls').copy());
+		},
 	},
 
 	documentActions: {
@@ -401,6 +437,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	willEnter: function() {
 		this.set('loadedPageFp', null);
+		this.get('extractedItems').setObjects([]);
 		this.get('documentView').config({ mode: 'browse',
 										  listener: this,
 										  dataSource: this });
@@ -408,7 +445,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		var newSpiderSite = this.get('controllers.application.siteWizard')
 		if (newSpiderSite) {
 			Ember.run.next(this, function() {
-				this.fetchPage(this.addStartUrl(newSpiderSite));
+				this.addStartUrls(newSpiderSite);
+				this.fetchPage(this.get('start_urls')[0]);
 				this.set('controllers.application.siteWizard', null);
 				this.saveSpider();
 			});

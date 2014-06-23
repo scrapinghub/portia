@@ -418,6 +418,11 @@ ASTool.Extractor = ASTool.SimpleModel.extend({
 ASTool.ExtractedItem = Em.Object.extend({
 	definition: null,
 	extracted: null,
+	matchedTemplate: null,
+	
+	url: function() {
+		return this.get('extracted.url');
+	}.property('extracted'),
 	
 	fields: function() {
 		var fields = [];

@@ -45,7 +45,7 @@
 		{{#if showItems}}
 			{{#if controller.extractedItems.length}}
 				<div class="extracted-items-container">
-					<span style="float:right;pointer-events:all">
+					<span style="float:right">
 						{{view ASTool.ButtonView action="toggleShowItems" class="clear-button" icon="ui-icon-closethick"}}
 					</span>
 					<h3 style="text-align:center" class="important-label">Displaying {{controller.extractedItems.length}} extracted items</h3>
@@ -53,8 +53,22 @@
 						{{#each controller.extractedItems}}
 							<div style="margin-bottom:20px">
 								{{#view ASTool.ExtractedItemView extractedItem=this}}
+									<div style="text-align:left;margin-bottom:5px">
+										<div style="margin-bottom:2px">
+											<span class="small-label yellow-label">URL:</span>
+											<span class="link" {{action fetchPage view.url}}>
+												{{trim view.url 45}}
+											</span>
+										</div>
+										<div>
+											<span class="small-label yellow-label">Matched template:</span>
+											<span class="link" {{action editTemplate view.matchedTemplate}}>
+												{{view.matchedTemplate.name}}
+											</span>
+										</div>
+									</div>
 									{{#each view.textFields}}
-										<div style="margin-bottom:5px">
+										<div style="margin-bottom:2px">
 											<span class="small-label blue-label">{{this.name}}:</span>
 											{{#each this.value}}
 												<span style="color:white;word-wrap:break-word;">
@@ -64,7 +78,7 @@
 										</div>
 									{{/each}}
 									{{#each view.imageFields}}
-										<div style="margin-bottom:5px">
+										<div style="margin-bottom:2px">
 											<span class="small-label blue-label">{{this.name}}:</span>
 											{{#each this.value}}
 												<span style="color:white;word-wrap:break-word;">{{this}}</span>
@@ -73,11 +87,11 @@
 										</div>
 									{{/each}}
 									{{#if view.variants}}
-										<h3 class="important-label">Item variants</h3>
+										<h3 class="important-label" style="margin:3px 0px 2px 0px">Variants</h3>
 										{{#each view.variants}}
-											<div style="margin-bottom:8px">
+											<div style="margin-bottom:3px">
 												{{#each fields}}
-													<div style="margin-bottom:3px">
+													<div style="margin-bottom:2px">
 														<span class="small-label green-label">{{this.name}}:</span>
 														<span style="color:white;word-wrap:break-word;">{{this.value}}</span>
 													</div>
