@@ -146,13 +146,18 @@ body{
 }
 
 .extracted-items-container {
-	pointer-events: none;
 	background-color:rgba(0,0,0,0.8);
 	padding:10px;
 	width:400px;
 	box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);
 	position:fixed;
 	left:400px;top:30px;
+}
+
+.extracted-items-container .link {
+	color:white;
+	text-decoration:underline;
+	cursor:pointer;
 }
 
 .create-extractor-container {
@@ -361,6 +366,10 @@ body{
 
 .green-label {
 	color:rgba(186,246,161,1);
+}
+
+.yellow-label {
+	color:#F8D900;
 }
 
 .very-small-label {

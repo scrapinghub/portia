@@ -63,7 +63,7 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 
 	label: function(key, label) {
 		if (arguments.length > 1) {
-			label = trim(label, 32);
+			label = trim(label, 38);
 			this.set('_label', label);
 			this.set('text', true);
 		} 
@@ -287,14 +287,16 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 		},
 
 		createField: function() {
-			this.set('creatingField', false);
-			this.get('controller').send('createField',
-								   		this.get('fieldName'),
-								   		this.get('fieldType'));
-			this.get('controller').send('mapAttribute',
-								   		this.get('annotation'),
-								   		this.get('attributeName'),
-								   		this.get('fieldName'));
+			if (this.get('fieldName') && this.get('fieldType')) {
+				this.set('creatingField', false);
+				this.get('controller').send('createField',
+									   		this.get('fieldName'),
+									   		this.get('fieldType'));
+				this.get('controller').send('mapAttribute',
+									   		this.get('annotation'),
+									   		this.get('attributeName'),
+									   		this.get('fieldName'));
+			}
 		},
 
 		switchTrim: function() {
@@ -542,6 +544,14 @@ ASTool.ExtractedItemView = Ember.View.extend({
 	variants: function() {
 		return this.get('extractedItem.variants');
 	}.property('extractedItem'),
+
+	matchedTemplate: function() {
+		return this.get('extractedItem.matchedTemplate');
+	}.property('extractedItem'),
+
+	url: function() {
+		return this.get('extractedItem.url');
+	}.property('extractedItem'),
 });
 
 
@@ -768,13 +778,34 @@ ASTool.CollapsibleText = Em.View.extend({
 		if (!this.get('collapsed')) {
 			return this.get('fullText');
 		} else {
-			return trim(this.get('fullText'), this.get('trimTo'));
+			return trim(this.get('fullText').trim(), this.get('trimTo'));
 		}
 	}.property('collapsed', 'fullText', 'trimTo'),
 
 	click: function() {
 		this.set('collapsed', !this.get('collapsed'));
 	},
+});
+
+ASTool.CopyClipboard = Em.View.extend({
+	tagName: 'embed',
+	text: '',
+	src: 'clippy.swf',
+	width:"14", 
+	height: "14",
+	scale: "noscale",	
+	name: "clippy",
+	quality: "high",
+	allowScriptAccess: "always",
+	type: "application/x-shockwave-flash",
+	pluginspage: "http://www.macromedia.com/go/getflashplayer",
+
+	flashvars: function() {
+		return 'text=' + this.get('text');
+	}.property('text'),
+
+	attributeBindings: ['src', 'width', 'height', 'name', 'quality', 'allowScriptAccess',
+		'type', 'pluginspage', 'flashvars', 'scale'],
 });
 
 
