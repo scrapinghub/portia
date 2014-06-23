@@ -3,5 +3,6 @@ scrapy
 loginform
 lxml
 jsonschema
+dulwich
 -e git://github.com/scrapy/scrapely.git#egg=scrapely
 -e ../slybot

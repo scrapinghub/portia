@@ -469,9 +469,7 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	adjustSizes: function() {
-		$('#' + this.get('iframeId')).height(window.innerHeight - 30);
-		$('#toolbox').height(window.innerHeight - 30);
-		$('#infocanvas').height(window.innerHeight - 30);
+		$('.adjust-height').height(window.innerHeight - 30);
 	},
 
 	initCanvas: function() {

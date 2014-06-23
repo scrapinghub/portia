@@ -7,7 +7,7 @@ This will save, validate, potentially cache, etc. Right now it just
 loads data from the filesystem.
 """
 import json, re, shutil, errno, os
-from os.path import join, splitext
+from os.path import join, splitext, split
 from twisted.web.resource import NoResource, ForbiddenResource
 from jsonschema.exceptions import ValidationError
 from slybot.utils import open_project_from_dir
@@ -15,6 +15,7 @@ from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 from .annotations import apply_annotations
 from .html import html4annotation
+from .repoman import Repoman
 
 
 def create_crawler_spec_resource(spec_manager):
@@ -45,12 +46,20 @@ def annotate_templates(spider):
 
 class CrawlerSpecManager(object):
 
-    def __init__(self, settings):
+    def __init__(self, settings, user='default', use_git_storage=False):
         self.settings = settings
-        self.basedir = self.settings['SPEC_DATA_DIR']
+        self.use_git = use_git_storage
+        settings_key = self.use_git and 'GIT_SPEC_DATA_DIR' or 'SPEC_DATA_DIR'
+        self.basedir = self.settings[settings_key]
+        self.user = user
+
+    def project_spec_class(self):
+        return self.use_git and GitProjectSpec or ProjectSpec
 
     def project_spec(self, project):
-        return ProjectSpec(join(self.basedir, str(project)))
+        spec = self.project_spec_class()(join(self.basedir, str(project)))
+        spec.user = self.user
+        return spec
 
 
 class ProjectSpec(object):
@@ -59,10 +68,6 @@ class ProjectSpec(object):
 
     def __init__(self, projectdir):
         self.projectdir = projectdir
-
-    def load_slybot_spec(self, project):
-        """load the spec for a given project"""
-        return open_project_from_dir(self.projectdir)
 
     def list_spiders(self):
         try:
@@ -145,17 +150,50 @@ class ProjectSpec(object):
         out.write(json_template[last:])
 
 
+class GitProjectSpec(ProjectSpec):
+
+    def __init__(self, repodir):
+        self.repoman = Repoman.open_repo(repodir)
+        self.projectdir = ''
+        self.user = None
+
+    def list_spiders(self):
+        for fname in self.repoman.list_files_for_branch(self.user):
+            if fname.startswith("spiders/") and fname.endswith(".json"):
+                yield splitext(split(fname)[1])[0]
+
+    def rename_spider(self, from_name, to_name):
+        self.repoman.rename_file(self._rfilename('spiders', from_name),
+            self._rfilename('spiders', to_name), self.user)
+
+    def remove_spider(self, name):
+        self.repoman.delete_file(self._rfilename('spiders', name), self.user)
+
+    def _rfile_contents(self, resources):
+        return self.repoman.file_contents_for_branch(
+            self._rfilename(*resources), self.user)
+
+    def resource(self, *resources):
+        return json.loads(self._rfile_contents(resources))
+
+    def writejson(self, outf, *resources):
+        outf.write(self._rfile_contents(resources))
+
+    def savejson(self, obj, resources):
+        self.repoman.save_file(self._rfilename(*resources),
+            json.dumps(obj, sort_keys=True, indent=4), self.user)
+
+
 class SpecResource(SlydJsonResource):
     isLeaf = True
-
-    spider_commands = {
-        'mv': ProjectSpec.rename_spider,
-        'rm': ProjectSpec.remove_spider
-    }
 
     def __init__(self, spec_manager):
         SlydJsonResource.__init__(self)
         self.spec_manager = spec_manager
+        self.spider_commands = {
+            'mv': spec_manager.project_spec_class().rename_spider,
+            'rm': spec_manager.project_spec_class().remove_spider
+        }
 
     def render(self, request):
         # make sure the path is safe
@@ -209,7 +247,7 @@ class SpecResource(SlydJsonResource):
             self.bad_request(
                 "unrecognised cmd arg %s, available commands: %s" %
                 (command, ', '.join(self.spider_commands.keys())))
-        args = command_spec.get('args', [])
+        args = map(str, command_spec.get('args', []))
         for spider in args:
             if not allowed_spider_name(spider):
                 self.bad_request('invlalid spider name %s' % spider)

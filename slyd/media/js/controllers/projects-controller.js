@@ -7,11 +7,31 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		return Em.isEmpty(this.get('projectSite'));
 	}.property('projectSite'),
 
+	projectRevisions: {},
+
+	revisionsForProject: function(projectName) {
+		if (projectName in this.get('projectRevisions')) {
+			return this.get('projectRevisions')[projectName];
+		} else {
+			return [];
+		}
+	},
+
+	openProject: function(projectName, revision) {
+		this.get('slyd').editProject(projectName, revision).then(function() {
+			this.set('slyd.project', projectName);
+			this.transitionToRoute('project', { id: projectName });
+		}.bind(this));
+	},
+
 	actions: {
 		
 		openProject: function(projectName) {
-			this.set('slyd.project', projectName);
-			this.transitionToRoute('project', { id: projectName });
+			this.openProject(projectName, 'master');
+		},
+
+		openProjectRevision: function(projectName, revision) {
+			this.openProject(projectName, revision);
 		},
 
 		deleteProject: function(projectName) {
@@ -24,20 +44,36 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		createProject: function() {
 			var newProjectName = this.getUnusedName('new_project', this.get('content'));
 			this.get('slyd').createProject(newProjectName).then(function() {
-				this.set('slyd.project', newProjectName);
-				// Initialize items spec.
-				this.get('slyd').saveItems([
-					ASTool.Item.create({ name: 'default', fields: [ ]
-					})
-				]);
-				// Initialize extractors spec.
-				this.get('slyd').saveExtractors([]);
-				// Setup automatic creation of an initial spider.
-				this.set('controllers.application.siteWizard', this.get('projectSite'));
-				this.set('projectSite', null);
-				this.transitionToRoute('project', { id: newProjectName });
+				this.get('slyd').editProject(newProjectName).then(function() {
+					this.set('slyd.project', newProjectName);
+					// Initialize items spec.
+					itemsPromise = this.get('slyd').saveItems([
+						ASTool.Item.create({ name: 'default', fields: [ ]
+						})
+					]);
+					// Initialize extractors spec.
+					extractorsPromise = this.get('slyd').saveExtractors([]);
+					// Setup automatic creation of an initial spider.
+					this.set('controllers.application.siteWizard', this.get('projectSite'));
+					this.set('projectSite', null);
+					Em.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
+  			  			this.transitionToRoute('project', { id: newProjectName });
+					}.bind(this)) 
+				}.bind(this));
 			}.bind(this));
-		}
+		},
+
+		showProjectRevisions: function(projectName) {
+			this.get('slyd').projectRevisions(projectName).then(function(revisions) {
+				this.get('projectRevisions')[projectName] = revisions['revisions'];
+				this.notifyPropertyChange('projectRevisions');
+			}.bind(this));
+		},
+
+		hideProjectRevisions: function(projectName) {
+			delete this.get('projectRevisions')[projectName];
+			this.notifyPropertyChange('projectRevisions');
+		},
 	},
 
 	animateProjectSiteInput: function() {

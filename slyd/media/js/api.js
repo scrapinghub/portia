@@ -3,12 +3,23 @@
 */
 ASTool.SlydApi = Em.Object.extend({
 
+	init: function() {
+		this.getServerCapabilities();
+	},
+
 	/**
 	@public
 
 	The name of the current project.
 	*/
 	project: null,
+
+	/**
+	@public
+
+	The capabilities of the slyd server.
+	*/
+	server_capabilities: null,
 
 	projectSpecUrl: function() {
 		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/spec/';
@@ -17,6 +28,23 @@ ASTool.SlydApi = Em.Object.extend({
 	botUrl: function() {
 		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/bot/';
 	}.property('project'),
+
+	/**
+  	@public
+
+  	Fetches server capabilities.
+
+  	@method getServerCapabilities
+  	@for ASTool.SlydApi
+	*/
+	getServerCapabilities: function() {
+		var hash = {};
+		hash.type = 'GET';
+		hash.url = ASTool.SlydApi.getCapabilitiesUrl();
+		ic.ajax(hash).then(function(capabilities) {
+			this.set('server_capabilities', capabilities);
+		}.bind(this));
+	},
 
 	/**
   	@public
@@ -289,7 +317,6 @@ ASTool.SlydApi = Em.Object.extend({
   	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	saveExtractors: function(extractors) {
-		console.log(extractors);
 		extractors = extractors.map(function(extractor) {
 			return extractor.serialize();
 		});
@@ -299,6 +326,81 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(extractors);
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'extractors';
+		return ic.ajax(hash);
+	},
+
+	editProject: function(project_name, revision) {
+		if (!this.get('server_capabilities.version_control')) {
+			// if the server does not support version control, do 
+			// nothing.
+			return new Em.RSVP.Promise(function(resolve, reject) {
+  				resolve();
+			});
+		}
+		revision = revision ? revision : 'master';
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'edit', args: [project_name, revision] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
+
+	projectRevisions: function(projectName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'revisions', args: [projectName] });
+		return ic.ajax(hash);	
+	},
+
+	conflictedFiles: function(projectName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'conflicts', args: [projectName] });
+		return ic.ajax(hash);	
+	},
+
+	changedFiles: function(projectName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'changes', args: [projectName] });
+		return ic.ajax(hash);	
+	},
+
+	publishProject: function(projectName, force) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'publish', args: [projectName, !!force] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
+
+	discardChanges: function(projectName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'discard', args: [projectName] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
+
+	saveFile: function(projectName, fileName, contents) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'save', args: [projectName, fileName, contents] });
+		hash.dataType = 'text';
 		return ic.ajax(hash);
 	},
 
@@ -399,5 +501,9 @@ ASTool.SlydApi.reopenClass ({
 
 	getApiUrl: function() {
 		return (SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
+	},
+
+	getCapabilitiesUrl: function() {
+		return (SLYD_URL || window.location.protocol + '//' + window.location.host) + '/server_capabilities';
 	},
 });

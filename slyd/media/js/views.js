@@ -677,9 +677,11 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 			this.set('timeoutHandle', null);
 		}
 		var timeoutHandle = setTimeout(function() {
-			$('#toolbox').animate({ 'margin-right': -365 }, 300);	
-			$('#scraped-doc').animate({ 'margin-right': 35 }, 300);		
-		}, 800);
+			if (!this.get('fixedToolbox')) {
+				$('#toolbox').animate({ 'margin-right': -365 }, 300);	
+				$('#scraped-doc').animate({ 'margin-right': 35 }, 300);
+			}
+		}.bind(this), 800);
 		this.set('timeoutHandle', timeoutHandle);
 	},
 
@@ -777,6 +779,97 @@ ASTool.CollapsibleText = Em.View.extend({
 	},
 });
 
+ASTool.ProjectListView = Em.View.extend({
+	projectName: null,
+
+	showRevisions: function() {
+		return !Em.isEmpty(this.get('controller').revisionsForProject(this.get('projectName')));
+	}.property('controller.projectRevisions'),
+
+	revisions: function() {
+		return this.get('controller').revisionsForProject(this.get('projectName'));
+	}.property('controller.projectRevisions'),
+});
+
+ASTool.ConflictResolverView = Em.View.extend({
+	templateName: 'conflict-resolver',
+	classNameBindings: ['bgColor'],
+  	
+  	bgColor: function() {
+  		var controller = this.get('controller');
+  		if (controller.get('currentFileName')) {
+  			if (controller.get('hasUnresolvedConflict')) {
+  				return 'conflict-resolver-red';
+  			} else {
+  				return 'conflict-resolver-green';
+  			}
+  		} else {
+  			return 'conflict-resolver-white';
+  		}
+  	}.property('controller.currentFileName', 'controller.hasUnresolvedConflict'),
+
+	didInsertElement: function() {
+		$('.adjust-height').height(window.innerHeight - 30);	
+	}
+});
+
+ASTool.JSONView = Em.View.extend({
+	templateName: 'json-view',
+	tagName: 'span',
+	json: null,
+	path: '',
+
+	selectedOption: function() {
+		return this.get('controller.conflictedKeyPaths')[this.get('path')];
+	}.property('controller.conflictedKeyPaths'),
+
+	v: function(json) {
+		return trim(JSON.stringify(json), 500);
+	},
+
+	isObject: function() {
+		return toType(this.get('json')) == 'object';
+	}.property('json'),
+
+	isConflict: function() {
+		return this.get('isObject') && '__CONFLICT' in this.get('json');
+	}.property('json'),
+
+	conflictValues: function() {
+		return [
+			{ key: 'base_val', value: this.v(this.get('json.__CONFLICT.base_val')), label: 'Original' },
+			{ key: 'my_val', value: this.v(this.get('json.__CONFLICT.my_val')), label: 'Your change' },
+			{ key: 'other_val', value: this.v(this.get('json.__CONFLICT.other_val')), label: 'Other change' }
+		]
+	}.property('json'),
+
+	resolved: function() {
+		return !!this.get('selectedOption');
+	}.property('selectedOption'),
+
+	resolvedValue: function() {
+		return this.v(this.get('json.__CONFLICT.' + this.get('selectedOption')));
+	}.property('selectedOption'),
+
+	value: function() {
+		return this.v(this.get('json'));
+	}.property('json'),
+
+	entries: function() {
+		if (this.get('json')) {
+			return Object.keys(this.get('json')).sort().map(function(key) {
+				return {
+					path: this.get('path') ? this.get('path') + '.' + key : key,
+					key: key,
+					json: this.get('json')[key]
+				}
+			}.bind(this));
+		} else {
+			return null;
+		}
+	}.property('json'),
+});
+
 
 var ToolboxViewMixin = ASTool.ToolboxViewMixin;
 
@@ -793,6 +886,10 @@ ASTool.ToolboxItemsView = Ember.View.extend(ToolboxViewMixin, {
 });
 
 ASTool.ToolboxAnnotationView = Ember.View.extend(ToolboxViewMixin, {
+	fixedToolbox: true,
+});
+
+ASTool.ToolboxConflictsView = Ember.View.extend(ToolboxViewMixin, {
 	fixedToolbox: true,
 });
 

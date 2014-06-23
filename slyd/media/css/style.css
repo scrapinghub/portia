@@ -379,6 +379,31 @@ body{
 	word-wrap:normal;
 }
 
+.conflict-resolver-red .conflicted-file {
+	background:#FEE;
+}
+
+.conflict-resolver-green .conflicted-file {
+	background:#EFE;
+}
+
+.conflict-resolver-white .conflicted-file {
+	background:#FFF;
+}
+
+.conflict-option {
+	border:dotted 1px #999;
+	margin:2px;
+	padding:3px;
+	background:#EAA;
+	word-wrap:break-word;
+}
+
+.conflict-option:hover {
+	border:dotted 1px green;
+	background:#AEA;
+}
+
 hr {
 	background-color: #BBB;
 	height: 1px;

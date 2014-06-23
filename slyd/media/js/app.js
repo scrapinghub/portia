@@ -57,5 +57,9 @@ function shortGuid() {
 	return s4() + '.' + s4() + '.' + s4();
 }
 
+function toType(obj) {
+  return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
+}
+
 ASTool.guid = guid;
 ASTool.shortGuid = shortGuid;

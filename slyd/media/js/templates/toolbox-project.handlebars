@@ -18,5 +18,13 @@
 			{{/each}}
 		</div>
 	</div>
+	{{#if controller.versionControl}}
+		{{#if controller.hasChanges}}
+			<div style="text-align:center;font-size:1.1em;margin-top:10px">
+				{{view ASTool.ButtonView action="publishProject" icon="ui-icon-circle-arrow-n" label="Publish changes" class="blue-button"}}
+				{{view ASTool.ButtonView action="discardChanges" icon="ui-icon-trash" label="Discard changes" class="red-button"}}
+			</div>
+		{{/if}}
+	{{/if}}
 </div>
 
