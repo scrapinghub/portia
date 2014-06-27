@@ -1,5 +1,5 @@
 twisted
-scrapy>=0.24 
+scrapy>=0.24
 loginform
 lxml
 jsonschema
