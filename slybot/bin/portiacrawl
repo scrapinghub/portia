@@ -10,8 +10,10 @@ def main():
     parser.add_option("--settings", help="Give specific settings module (must be on python path)", default='slybot.settings')
     parser.add_option("--logfile", help="Specify log file")
     parser.add_option("-a", help="Add spider arguments", dest="spargs", action="append", default=[], metavar="NAME=VALUE")
+    parser.add_option("-s", help="Add extra scrapy settings", dest="extra_settings", action="append", default=[], metavar="NAME=VALUE")
     parser.add_option("--output", "-o", help='dump scraped items into FILE (use - for stdout)', metavar='FILE')
     parser.add_option("--output-format", "-t", metavar='FORMAT', help='format to use for dumping items with -o (default: jsonlines)')
+    parser.add_option("--verbose", "-v", action="store_true", default=True, help="more verbose")
 
     opts, args = parser.parse_args()
 
@@ -23,8 +25,8 @@ def main():
     except IndexError:
         parser.print_help()
         return
-    
-    
+
+
     if opts.settings:
         os.environ["SCRAPY_SETTINGS_MODULE"] = opts.settings
 
@@ -50,6 +52,13 @@ def main():
     for sparg in opts.spargs:
         command_spec.append("-a")
         command_spec.append(sparg)
+
+    for setting in opts.extra_settings:
+        command_spec.append("-s")
+        command_spec.append(setting)
+
+    if opts.verbose:
+        print " ".join(command_spec)
 
     subprocess.call(command_spec)
 
