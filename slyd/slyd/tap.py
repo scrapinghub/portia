@@ -23,7 +23,7 @@ class Options(usage.Options):
 
 def create_root(config):
     from scrapy import log
-    from scrapy.settings import CrawlerSettings
+    from scrapy.settings import Settings
     from slyd.crawlerspec import (CrawlerSpecManager,
         create_crawler_spec_resource)
     from slyd.bot import create_bot_resource
@@ -33,7 +33,8 @@ def create_root(config):
     root = Resource()
     root.putChild("static", File(config['docroot']))
 
-    crawler_settings = CrawlerSettings(settings_module=slyd.settings)
+    crawler_settings = Settings()
+    crawler_settings.setmodule(slyd.settings)
     spec_manager = CrawlerSpecManager(crawler_settings)
 
     # add project management at /projects
