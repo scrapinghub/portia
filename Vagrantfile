@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
     		v.customize ["modifyvm", :id, "--rtcuseutc", "on"]
     		v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
     		v.customize ["modifyvm", :id, "--memory", "512"]
-    		v.customize ["modifyvm", :id, "--cpus", 12]
+    		v.customize ["modifyvm", :id, "--cpus", 2]
   	end
 
 	config.vm.provider :vmware_fusion do |v, override|
