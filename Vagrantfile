@@ -13,10 +13,8 @@ Vagrant.configure("2") do |config|
 	config.ssh.forward_agent = true
 	
 	config.vm.provider "virtualbox" do |v, override|
-    		v.customize ["modifyvm", :id, "--rtcuseutc", "on"]
-    		v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
     		v.customize ["modifyvm", :id, "--memory", "512"]
-    		v.customize ["modifyvm", :id, "--cpus", 2]
+    		v.customize ["modifyvm", :id, "--cpus", 1]
   	end
 
 	config.vm.provider :vmware_fusion do |v, override|
