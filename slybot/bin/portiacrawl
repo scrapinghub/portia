@@ -13,7 +13,7 @@ def main():
     parser.add_option("-s", help="Add extra scrapy settings", dest="extra_settings", action="append", default=[], metavar="NAME=VALUE")
     parser.add_option("--output", "-o", help='dump scraped items into FILE (use - for stdout)', metavar='FILE')
     parser.add_option("--output-format", "-t", metavar='FORMAT', help='format to use for dumping items with -o (default: jsonlines)')
-    parser.add_option("--verbose", "-v", action="store_true", default=True, help="more verbose")
+    parser.add_option("--verbose", "-v", action="store_true", default=False, help="more verbose")
 
     opts, args = parser.parse_args()
 
