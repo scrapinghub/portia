@@ -14,7 +14,12 @@ LOG_LEVEL = 'DEBUG'
 DATA_DIR = join(dirname(dirname(__file__)), 'data')
 SPEC_DATA_DIR = join(DATA_DIR, 'projects')
 
-
 # recommended for development - use scrapy to cache http responses
-HTTPCACHE_ENABLED = True
-HTTPCACHE_DIR = join(DATA_DIR, 'cache')
+# add them to local_settings.py
+# HTTPCACHE_ENABLED = True
+# HTTPCACHE_DIR = join(DATA_DIR, 'cache')
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
