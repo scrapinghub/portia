@@ -1,9 +1,9 @@
 #!/bin/bash
 # based on http://stackoverflow.com/questions/23453054/how-to-install-portia-a-python-application-from-github-mac
 
-if [ "$(ls -A 2> /dev/null)" != "" ]; then
-	echo "Please, create an empty folder and run an external install.sh from inside it."
-    exit -1
+if [ "$(ls -A 2> /dev/null)" != "install.sh" ]; then
+	echo "Please, create an empty folder, then copy and run install.sh from inside it."
+	exit -1
 fi
 
 echo "Installing portia . . ."
