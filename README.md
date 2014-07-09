@@ -39,7 +39,7 @@ Go inside:
 
 Then simply run:
 
-    wget https://raw.githubusercontent.com/cauerego/portia/master/install.sh && (chmod 755 install.sh; ./install.sh)
+     wget -q https://raw.githubusercontent.com/cauerego/portia/master/install.sh -0 install.sh && (chmod 755 install.sh; ./install.sh)
 
 
 Manual Installation
