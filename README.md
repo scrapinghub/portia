@@ -29,6 +29,22 @@ You might need to run the following commands to install the required tools & lib
 Installation
 ============
 
+Create a folder with any name you like, anywhere you want:
+
+    mkdir ~/portia
+
+Go inside:
+
+    cd ~/portia
+
+Then simply run:
+
+    wget https://raw.githubusercontent.com/cauerego/portia/master/install.sh && (chmod 755 install.sh; ./install.sh)
+
+
+Manual Installation
+===================
+
 The recommended way to install dependencies is to use __virtualenv__:
 
     virtualenv YOUR_ENV_NAME --no-site-packages
