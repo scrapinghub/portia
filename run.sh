@@ -1,6 +1,5 @@
 #!/bin/bash
-# this assumes portia is installed under ~/scrapinghub
-cd ~/scrapinghub
+# this assumes portia is installed over './portia' folder
 virtualenv portia
 source portia/bin/activate
 cd portia/portia/slyd
