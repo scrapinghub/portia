@@ -26,6 +26,6 @@ pip install twisted
 pip install Scrapy
 pip install -r requirements.txt
 
-wget -q https://raw.githubusercontent.com/cauerego/portia/master/run.sh -0 run.sh && chmod 755 run.sh
+wget -q https://raw.githubusercontent.com/cauerego/portia/master/run.sh -O run.sh && chmod 755 run.sh
 
 echo "Finished portia installation! Run it with $ ./run.sh"
