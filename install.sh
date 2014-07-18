@@ -20,10 +20,11 @@ source portia/bin/activate
 cd portia
 git clone https://github.com/scrapinghub/portia
 
-# pip install twisted, Scrapy and the requirements.txt:
+# python installer for all requirements, including ones not listed on the txt:
 cd portia/slyd
 pip install twisted
 pip install Scrapy
+pip install service_identity
 pip install -r requirements.txt
 
 wget -q https://raw.githubusercontent.com/cauerego/portia/master/run.sh -O run.sh && chmod 755 run.sh
