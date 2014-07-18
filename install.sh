@@ -8,6 +8,8 @@ fi
 
 echo "Installing portia . . ."
 
+wget -q https://raw.githubusercontent.com/cauerego/portia/master/run.sh -O run.sh && chmod 755 run.sh
+
 pip install virtualenv
 
 # Create the virtual environment
@@ -26,7 +28,5 @@ pip install twisted
 pip install Scrapy
 pip install service_identity
 pip install -r requirements.txt
-
-wget -q https://raw.githubusercontent.com/cauerego/portia/master/run.sh -O run.sh && chmod 755 run.sh
 
 echo "Finished portia installation! Run it with $ ./run.sh"
