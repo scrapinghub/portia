@@ -22,11 +22,8 @@ source portia/bin/activate
 cd portia
 git clone https://github.com/scrapinghub/portia
 
-# python installer for all requirements, including ones not listed on the txt:
+# install python requirements for portia
 cd portia/slyd
-pip install twisted
-pip install Scrapy
-pip install service_identity
 pip install -r requirements.txt
 
 echo "Finished portia installation! Run it with $ ./run.sh"
