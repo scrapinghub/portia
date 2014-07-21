@@ -173,26 +173,28 @@ class GitProjectsResource(ProjectsResource):
         SlydJsonResource.__init__(self)
         self.projectsdir = settings['GIT_SPEC_DATA_DIR']
 
-    def open_repo(self, name):
-        return Repoman.open_repo(self.project_filename(name))
+    def _open_repo(self, name):
+        return Repoman.open_repo(name)
+
+    def list_projects(self):
+        return Repoman.list_repos()
 
     def create_project(self, name):
         self.validate_project_name(name)
-        repoman = Repoman.create_repo(self.project_filename(name))
-        repoman.save_file('project.json', '{}', 'master')
+        Repoman.create_repo(name).save_file('project.json', '{}', 'master')
 
     def remove_project(self, name):
-        Repoman.delete_repo(self.project_filename(name))
+        Repoman.delete_repo(name)
 
     def edit_project(self, name, revision):
-        repoman = self.open_repo(name)
+        repoman = self._open_repo(name)
         if revision == 'master':
             revision = repoman.get_branch('master')
         if not repoman.has_branch(self.user):
             repoman.create_branch(self.user, revision)
 
     def publish_project(self, name, force):
-        repoman = self.open_repo(name)
+        repoman = self._open_repo(name)
         if repoman.publish_branch(self.user, force):
             repoman.delete_branch(self.user)
             return 'OK'
@@ -200,26 +202,23 @@ class GitProjectsResource(ProjectsResource):
             return 'CONFLICT'
 
     def discard_changes(self, name):
-        repoman = self.open_repo(name)
-        repoman.delete_branch(self.user)
+        self._open_repo(name).delete_branch(self.user)
 
     def project_revisions(self, name):
-        repoman = self.open_repo(name)
+        repoman = self._open_repo(name)
         return json.dumps({ 'revisions': repoman.get_published_revisions() })
 
     def conflicted_files(self, name):        
-        repoman = self.open_repo(name)
+        repoman = self._open_repo(name)
         return json.dumps(repoman.get_branch_conflicted_files(self.user))
 
-    def changed_files(self, name):        
-        repoman = self.open_repo(name)
+    def changed_files(self, name):
+        repoman = self._open_repo(name)
         return json.dumps(repoman.get_branch_changed_files(self.user))
 
-    def save_file(self, project_name, file_path, file_contents):
-        repoman = self.open_repo(project_name)
-        repoman.save_file(file_path,
-                          json.dumps(file_contents, sort_keys=True, indent=4),
-                          self.user)
+    def save_file(self, name, file_path, file_contents):
+        self._open_repo(name).save_file(file_path,
+            json.dumps(file_contents, sort_keys=True, indent=4), self.user)
 
     project_commands = {
         'create': create_project,

@@ -57,7 +57,7 @@ class CrawlerSpecManager(object):
         return self.use_git and GitProjectSpec or ProjectSpec
 
     def project_spec(self, project):
-        spec = self.project_spec_class()(join(self.basedir, str(project)))
+        spec = GitProjectSpec(str(project)) if self.use_git else ProjectSpec(join(self.basedir, str(project)))
         spec.user = self.user
         return spec
 
@@ -152,25 +152,29 @@ class ProjectSpec(object):
 
 class GitProjectSpec(ProjectSpec):
 
-    def __init__(self, repodir):
-        self.repoman = Repoman.open_repo(repodir)
+    def __init__(self, project_name):
         self.projectdir = ''
+        self.project_name = project_name
         self.user = None
 
-    def list_spiders(self):
-        for fname in self.repoman.list_files_for_branch(self.user):
-            if fname.startswith("spiders/") and fname.endswith(".json"):
-                yield splitext(split(fname)[1])[0]
+    def _open_repo(self):
+        return Repoman.open_repo(self.project_name)
 
+    def list_spiders(self):
+        files = self._open_repo().list_files_for_branch(self.user)
+        return [splitext(split(f)[1])[0] for f in files
+            if f.startswith("spiders/") and f.endswith(".json")]
+            
     def rename_spider(self, from_name, to_name):
-        self.repoman.rename_file(self._rfilename('spiders', from_name),
+        self._open_repo().rename_file(self._rfilename('spiders', from_name),
             self._rfilename('spiders', to_name), self.user)
 
     def remove_spider(self, name):
-        self.repoman.delete_file(self._rfilename('spiders', name), self.user)
+        self._open_repo().delete_file(
+            self._rfilename('spiders', name), self.user)
 
     def _rfile_contents(self, resources):
-        return self.repoman.file_contents_for_branch(
+        return self._open_repo().file_contents_for_branch(
             self._rfilename(*resources), self.user)
 
     def resource(self, *resources):
@@ -180,7 +184,7 @@ class GitProjectSpec(ProjectSpec):
         outf.write(self._rfile_contents(resources))
 
     def savejson(self, obj, resources):
-        self.repoman.save_file(self._rfilename(*resources),
+        self._open_repo().save_file(self._rfilename(*resources),
             json.dumps(obj, sort_keys=True, indent=4), self.user)
 
 
@@ -250,7 +254,7 @@ class SpecResource(SlydJsonResource):
         args = map(str, command_spec.get('args', []))
         for spider in args:
             if not allowed_spider_name(spider):
-                self.bad_request('invlalid spider name %s' % spider)
+                self.bad_request('invalid spider name %s' % spider)
         try:
             retval = dispatch_func(project_spec, *args)
         except TypeError:

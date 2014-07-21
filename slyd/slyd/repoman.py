@@ -4,7 +4,7 @@ from json import dumps, loads
 from shutil import rmtree
 from itertools import chain
 
-from dulwich.repo import Repo
+from dulwich.mysqlrepo import MysqlRepo
 from dulwich.objects import Blob, Tree, Commit, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
 from dulwich.errors import NotGitRepository
@@ -50,7 +50,7 @@ class Repoman(object):
     def create_repo(cls, repo_name, author=None):
         '''Creates a new repository named repo_name.'''
         repoman = Repoman(author)
-        repoman._repo = Repo.init(repo_name, mkdir=True)
+        repoman._repo = MysqlRepo.init_bare(repo_name)
         tree = Tree()
         commit = repoman._create_commit()
         commit.tree = tree.id
@@ -63,26 +63,23 @@ class Repoman(object):
     def open_repo(cls, repo_name, author=None):
         '''Opens an existing repository.'''
         repoman = Repoman(author)
-        repoman._repo = Repo(repo_name)
+        repoman._repo = MysqlRepo.open(repo_name)
         return repoman
 
     @classmethod
     def repo_exists(cls, repo_name):
         '''Returns true iff a repository named repo_name can be opened.'''
-        try:
-            Repoman.open_repo(repo_name)
-        except NotGitRepository as ex:
-            return False
-        else:
-            return True
+        return MysqlRepo.repo_exists(repo_name)
+
+    @classmethod
+    def list_repos(cls):
+        '''Returns true iff a repository named repo_name can be opened.'''
+        return MysqlRepo.list_repos()
 
     @classmethod
     def delete_repo(cls, repo_name):
         '''Deletes an existing repo.'''
-        try:
-            rmtree(repo_name)
-        except OSError as ex:
-            pass
+        MysqlRepo.delete_repo(repo_name)
 
     def __init__(self, author):
         '''Do not instantiate directly, use create_repo or open_repo.'''
