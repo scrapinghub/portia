@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+try:
+    import slyd
+except ImportError:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+    try:
+        import slyd
+    except ImportError:
+        sys.stderr.write("Error: Can't find the project package 'slyd'.\n")
+        sys.exit(1)
+
+from slyd.repoman import Repoman
+
+
+def main():
+	Repoman.init_backend()
+
+
+if __name__ == '__main__':
+	main()

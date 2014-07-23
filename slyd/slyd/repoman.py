@@ -47,6 +47,10 @@ class Repoman(object):
     '''
 
     @classmethod
+    def init_backend(cls):
+        MysqlRepo._init_db()
+
+    @classmethod
     def create_repo(cls, repo_name, author=None):
         '''Creates a new repository named repo_name.'''
         repoman = Repoman(author)
