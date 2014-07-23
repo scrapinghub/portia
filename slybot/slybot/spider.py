@@ -13,6 +13,8 @@ except ImportError:
 
 from scrapely.htmlpage import HtmlPage, dict_to_page
 from scrapely.extraction import InstanceBasedLearningExtractor
+from scrapely.extraction.regionextract import (BasicTypeExtractor, TraceExtractor, RepeatedDataExtractor, MdrExtractor,
+                                              AdjacentVariantExtractor, RecordExtractor, TemplatePageExtractor)
 
 from loginform import fill_login_form
 
@@ -21,6 +23,29 @@ from slybot.extractors import apply_extractors
 from slybot.utils import iter_unique_scheme_hostname, htmlpage_from_response
 from slybot.linkextractor import HtmlLinkExtractor, RssLinkExtractor, create_linkextractor_from_specs
 from slybot.generic_form import GenericForm
+
+class SlybotIBL(InstanceBasedLearningExtractor):
+
+    def build_extraction_tree(self, template, type_descriptor, trace=True):
+        """Build a tree of region extractors corresponding to the
+        template
+        """
+        attribute_map = type_descriptor.attribute_map if type_descriptor else None
+        extractors = BasicTypeExtractor.create(template.annotations, attribute_map)
+        mdr_extractor, extractors = MdrExtractor.apply(template, extractors)
+
+        if trace:
+            extractors = TraceExtractor.apply(template, extractors)
+        for cls in (RepeatedDataExtractor, AdjacentVariantExtractor, RepeatedDataExtractor, AdjacentVariantExtractor, RepeatedDataExtractor,
+                    RecordExtractor):
+            extractors = cls.apply(template, extractors)
+            if trace:
+                extractors = TraceExtractor.apply(template, extractors)
+
+        if mdr_extractor:
+            extractors.append(mdr_extractor)
+
+        return TemplatePageExtractor(template, extractors)
 
 def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
     processed_data = []
@@ -78,7 +103,7 @@ class IblSpider(Spider):
                 apply_extractors(item_descriptor, template_extractors, all_extractors)
                 page_descriptor_pairs.append((page, item_descriptor))
 
-            extractor = InstanceBasedLearningExtractor(page_descriptor_pairs)
+            extractor = SlybotIBL(page_descriptor_pairs)
 
             self.itemcls_info[itemclass_name] = {
                 'class': item_cls,
