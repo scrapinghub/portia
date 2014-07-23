@@ -330,7 +330,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		hideFloatingAnnotationWidget: function() {
 			this.hideFloatingAnnotationWidget();
-		}
+		},
 	},
 
 	documentActions: {
@@ -391,5 +391,15 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	willLeave: function() {
 		this.hideFloatingAnnotationWidget();
+	},
+
+	listingData: function(key, set) {
+		if (arguments.length > 1) {
+	        if (set) {
+	        	this.floatingAnnotation.listingData = true;
+	        } else {
+	        	this.floatingAnnotation.listingData = false;
+	        }
 	}
+	}.property('_listingData'),
 });

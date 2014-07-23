@@ -38,6 +38,8 @@
 	{{/unless}}
 	<div style="text-align:center">
 	<span {{action dismiss target="view"}}>{{view ASTool.ButtonView label="Done" icon="ui-icon-circle-check" class="light-button"}}</span>
+	<span>{{view ASTool.CheckBox checked=this.listingData name="asListingData"}}</span>
+	<span>as listing data</span>
 </div>
 {{else}}
 	<label style="margin-left:0px;">Field name</label>

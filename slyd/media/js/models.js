@@ -188,7 +188,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 
 	idBinding: null,
 
-	serializedProperties: ['id', 'variant', 'annotations', 'required', 'generated'],
+	serializedProperties: ['id', 'variant', 'annotations', 'required', 'generated', 'listingData'],
 
 	name: function() {
 		var annotations = this.get('annotations');
@@ -215,6 +215,8 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 	ignores: null,
 
 	iframeBinding: 'ASTool.iframe',
+
+	listingData: false,
 
 	addMapping: function(attribute, itemField) {
 		this.get('annotations')[attribute] = itemField;
