@@ -16,4 +16,5 @@ ASTool.Messages = Ember.Namespace.create({
 
 	// Other messages.
 	confirm_change_selection: 'If you select a different region you will lose all current attribute mappings and ignored subregions, proceed anyway?',
+	no_items_extracted: 'No items were extracted',
 });

@@ -8,7 +8,7 @@
 <div class="accordion">	
 	<h3>Initialize</h3>
 	<div class="section">
-		<h4>Start Pages</h4>
+		<h4>Start Pages {{startUrlCount}}</h4>
 		<div class="scrolling-container" style="max-height:150px;">
 			{{#each start_urls}}
 				<div style="margin:4px 0px 4px 0px">
@@ -21,10 +21,13 @@
 			{{/each}}
 		</div>
 	
-		<div style="margin-top:5px">
-			{{view ASTool.TextField value=newStartUrl width='83%' name='startUrlTextField' placeholder='Enter page url' action="addStartUrls"}}
-			{{view ASTool.ButtonView action="addStartUrls" icon="ui-icon-circle-plus" disabled=hasStartUrl
-			class="blue-button fix_plus_icon"}}
+		<div style="margin-top:10px">
+			<div>
+				{{view ASTool.TextArea value=newStartUrl width='93%' name='startUrlTextField' placeholder='Enter one or multiple start page urls here' action="addStartUrls"}}
+			</div>
+			<div style="margin-top:5px;text-align:center">
+				{{view ASTool.ButtonView action="addStartUrls" icon="ui-icon-circle-plus" disabled=hasStartUrl	class="blue-button" label="Add urls"}}
+			</div>
 		</div>
 		
 		<div style="margin-top:20px">
@@ -125,5 +128,5 @@
 
 <div style="margin-top:10px;text-align:center">
 	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-circle-arrow-n" label="Save spider" class="blue-button big"}}
-	{{view ASTool.ButtonView action="testSpider" argument=this icon="ui-icon-check" label="Test spider" class="blue-button" title="Tests the spider on every start URL"}}
+	{{view ASTool.ButtonView action="testSpider" argument=this icon="ui-icon-check" label=controller.testButtonLabel class="blue-button" title="Tests the spider on every start URL"}}
 </div>
