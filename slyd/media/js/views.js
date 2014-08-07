@@ -107,6 +107,32 @@ ASTool.TextField = Em.TextField.extend({
 });
 
 
+ASTool.TextArea = Em.TextArea.extend({
+	width:null,
+	placeholder: null,
+	resize: false,
+	attributeBindings: ['placeholder', 'width', 'resize'],
+	classNames: ['textarea'],
+
+	change: function() {
+		if (this.get('action')) {
+			this.get('controller').send(this.get('action'),
+										this.get('value'));
+		}
+	},
+	
+	didInsertElement: function() {
+		this._super();
+		var ui = $(this.get('element'));
+		if (this.width) {
+			ui.css('width', this.width);
+		}
+		if (!this.resize) {
+			ui.css('resize', 'none');
+		}
+	},
+});
+
 ASTool.CheckBox = Ember.Checkbox.extend();
 
 

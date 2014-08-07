@@ -51,7 +51,8 @@
 					<h3 style="text-align:center" class="important-label">Displaying {{controller.extractedItems.length}} extracted items</h3>
 					<div style="max-height:500px; padding:8px;" class="scrolling-container">
 						{{#each controller.extractedItems}}
-							<div style="margin-bottom:20px">
+							<hr style="margin:0px;background-color:rgba(70,70,70,1)"/>
+							<div style="padding:10px 0px 10px 0px;">
 								{{#view ASTool.ExtractedItemView extractedItem=this}}
 									<div style="text-align:left;margin-bottom:5px">
 										<div style="margin-bottom:2px">

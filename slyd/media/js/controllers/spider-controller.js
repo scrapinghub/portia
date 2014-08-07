@@ -27,6 +27,16 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	extractedItems: [],
 
+	testing: false,
+
+	startUrlCount: function() {
+		if (!Em.isEmpty(this.get('start_urls'))) {
+			return '[' + this.get('start_urls').length + ']';	
+		} else {
+			return '';
+		}
+	}.property('start_urls.[]'),
+
 	hasStartUrl: function() {
 		return !this.get('newStartUrl');
 	}.property('newStartUrl'),
@@ -89,6 +99,14 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	itemsButtonLabel: function() {
 		return this.get('showItems') ? "Hide Items " : "Show Items";
 	}.property('showItems'),
+
+	testButtonLabel: function() {
+		if (this.get('testing')) {
+			return "Stop testing";
+		} else {
+			return "Test spider";
+		}
+	}.property('testing'),
 
 	links_to_follow: function(key, follow) {
 		// The spider spec only supports 'patterns' or 'none' for the
@@ -297,7 +315,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	}.observes('content'),
 
 	testSpider: function(urls) {
-		if (urls.length) {
+		if (this.get('testing') && urls.length) {
 			var fetchId = ASTool.guid();
 			this.get('pendingFetches').pushObject(fetchId);
 			this.get('slyd').fetchDocument(urls[0], this.get('content.name')).then(
@@ -308,11 +326,17 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 							this.get('extractedItems').pushObject(this.wrapItem(item));
 						}, this);
 						this.testSpider(urls.splice(1));
+					} else {
+						this.set('testing', false);
 					}
 				}.bind(this)
 			);
 		} else {
 			this.get('documentView').hideLoading();
+			if (Em.isEmpty(this.get('extractedItems'))) {
+				alert(ASTool.Messages.get('no_items_extracted'));
+			}
+			this.set('testing', false);
 		}
 	},
 	
@@ -416,11 +440,16 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		testSpider: function() {
-			this.get('documentView').showLoading();
-			this.get('pendingFetches').setObjects([]);
-			this.get('extractedItems').setObjects([]);
-			this.set('showItems', true);
-			this.testSpider(this.get('start_urls').copy());
+			if (this.get('testing')) {
+				this.set('testing', false);
+			} else {
+				this.set('testing', true)
+				this.get('documentView').showLoading();
+				this.get('pendingFetches').setObjects([]);
+				this.get('extractedItems').setObjects([]);
+				this.set('showItems', true);
+				this.testSpider(this.get('start_urls').copy());
+			}
 		},
 	},
 

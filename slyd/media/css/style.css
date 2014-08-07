@@ -179,6 +179,17 @@ body{
 	padding: 4px;
 }
 
+.textarea {
+	border-width: 1px;
+	border-style: solid;
+	border-color: #BBB;
+	text-align: center;
+	color: #111;
+	background-color: #FFF;
+	padding: 4px;
+	outline: none;
+}
+
 .darktextfield {
 	color: white;
 	background-color: rgba(0,0,0,0.3);
