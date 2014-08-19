@@ -61,13 +61,17 @@ Projects created with __slyd__ can be found at:
 
 To run one of those projects use:
 
-	portiacrawl project_path spidername
+	slybot/bin/portiacrawl project_path spidername -o output_data.json
 
 Where `spidername` should be one of the project spiders. If you don't remember the name of the spider, just use:
 
-	portiacrawl project_path
+	slybot/bin/portiacrawl project_path
 
 and you will get the list of spiders for that project.
+
+To get the full list of portiacrawl options, run:
+
+	slybot/bin/portiacrawl -h
 
 Portia spiders are ultimately [Scrapy] spiders. You can pass __scrapy__ spider arguments when running them with ```portiacrawl``` by using the ```-a``` command line option. A custom settings module may also be specified using the ```--settings``` command line option. Please refer to the [scrapy documentation] for details on arguments and settings.
 
