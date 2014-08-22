@@ -152,6 +152,11 @@ class ProjectsResource(SlydJsonResource):
             raise
         return retval or ''
 
+    def render(self, request):
+        if hasattr(request, 'keystone_token_info'):
+            self.user = request.keystone_token_info['token']['user']['name']
+        return SlydJsonResource.render(self, request)
+
     def render_GET(self, request):
         request.write(json.dumps(sorted(self.list_projects())))
         return '\n'
@@ -170,7 +175,7 @@ class ProjectsResource(SlydJsonResource):
 class GitProjectsResource(ProjectsResource):
 
     def __init__(self, settings):
-        SlydJsonResource.__init__(self)
+        ProjectsResource.__init__(self)
         self.projectsdir = settings['GIT_SPEC_DATA_DIR']
 
     def _open_repo(self, name):
