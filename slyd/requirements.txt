@@ -5,4 +5,5 @@ lxml
 jsonschema
 -e git://github.com/duendex/dulwich.git@mysql#egg=dulwich
 -e git://github.com/scrapy/scrapely.git#egg=scrapely
+-e git://github.com/scrapinghub/tx-keystone-auth.git#egg=txKeystoneAuth
 -e ../slybot

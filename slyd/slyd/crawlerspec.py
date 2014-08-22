@@ -200,6 +200,8 @@ class SpecResource(SlydJsonResource):
         }
 
     def render(self, request):
+        if hasattr(request, 'keystone_token_info'):
+            self.user = request.keystone_token_info['token']['user']['name']
         # make sure the path is safe
         for pathelement in request.postpath:
             if pathelement and not allowed_spider_name(pathelement):
