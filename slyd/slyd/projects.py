@@ -175,7 +175,7 @@ class ProjectsResource(SlydJsonResource):
 class GitProjectsResource(ProjectsResource):
 
     def __init__(self, settings):
-        ProjectsResource.__init__(self)
+        SlydJsonResource.__init__(self)
         self.projectsdir = settings['GIT_SPEC_DATA_DIR']
 
     def _open_repo(self, name):
