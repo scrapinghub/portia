@@ -1,3 +1,4 @@
+--allow-external mysql-connector-python
 twisted
 scrapy>=0.24
 loginform
