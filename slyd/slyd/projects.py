@@ -16,6 +16,50 @@ from .resource import SlydJsonResource
 _INVALID_PROJECT_RE = re.compile('[^A-Za-z0-9._]|^\.*$')
 
 
+_SETTINGS_TEMPLATE = \
+"""# Automatically created by: slyd
+import os
+
+SPIDER_MANAGER_CLASS = 'slybot.spidermanager.ZipfileSlybotSpiderManager'
+EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
+ITEM_PIPELINES = ['slybot.dupefilter.DupeFilterPipeline']
+SPIDER_MIDDLEWARES = {'slybot.spiderlets.SpiderletsMiddleware': 999} # as close as possible to spider output
+SLYDUPEFILTER_ENABLED = True
+
+PROJECT_ZIPFILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+try:
+    from local_slybot_settings import *
+except ImportError:
+    pass
+
+"""
+
+_SETUP_PY_TEMPLATE = \
+"""# Automatically created by: slyd
+
+from setuptools import setup, find_packages
+
+setup(
+    name         = '%s',
+    version      = '1.0',
+    packages     = find_packages(),
+    package_data = {
+        'spiders': ['*.json']
+    },
+    data_files = [('', ['project.json', 'items.json', 'extractors.json'])],
+    entry_points = {'scrapy': ['settings = spiders.settings']},
+    zip_safe = True
+)
+"""
+
+_SCRAPY_TEMPLATE = \
+"""# Automatically created by: slyd
+
+[settings]
+default = slybot.settings
+"""
+
 def allowed_project_name(name):
     return not _INVALID_PROJECT_RE.search(name)
 
@@ -51,10 +95,25 @@ class ProjectsResource(SlydJsonResource):
 
     def create_project(self, project_name):
     	project_filename = self.project_filename(project_name)
+
         os.makedirs(project_filename)
         with open(join(project_filename, 'project.json'), 'wb') as outf:
             outf.write('{}')
+
+        with open(join(project_filename, 'scrapy.cfg'), 'w') as outf:
+            outf.write(_SCRAPY_TEMPLATE)
+
+        with open(join(project_filename, 'setup.py'), 'w') as outf:
+            outf.write(_SETUP_PY_TEMPLATE % project_name)
+
         os.makedirs(join(project_filename, 'spiders'))
+
+        with open(join(project_filename, 'spiders', '__init__.py'), 'w') as outf:
+            outf.write('')
+
+        with open(join(project_filename, 'spiders', 'settings.py'), 'w') as outf:
+            outf.write(_SETTINGS_TEMPLATE)
+
 
     def rename_project(self, from_name, to_name):
         os.rename(self.project_filename(from_name),
