@@ -57,6 +57,13 @@ and you will get the list of spiders for that project.
 
 Portia spiders are ultimately [Scrapy] spiders. You can pass __scrapy__ spider arguments when running them with ```portiacrawl``` by using the ```-a``` command line option. A custom settings module may also be specified using the ```--settings``` command line option. Please refer to the [scrapy documentation] for details on arguments and settings.
 
+Deploy with [scrapyd]
+=====================
+
+Portia spiders can be deployed to [scrapyd] just like a scrapy spider: go to ``slyd/projects/project_namae`` and run
+
+	scrapy-deploy your_scrapyd_target -p project_name
+
 Running portia with [vagrant]
 =============================
 
@@ -80,11 +87,11 @@ Repository structure
 
 There are two main components in this repository, __slyd__ and __slybot__:
 
-###slyd
+### slyd
 
 The visual editor used to create your scraping projects.
 
-###slybot
+### slybot
 
 The Python web crawler that performs the actual site scraping. It's implemented on top of the [Scrapy] web crawling
 framework and the [Scrapely] extraction library. It uses projects created with __slyd__ as input.
@@ -95,3 +102,4 @@ framework and the [Scrapely] extraction library. It uses projects created with _
 [Scrapy]: http://scrapy.org
 [scrapy documentation]: http://doc.scrapy.org/en/latest
 [vagrant]: http://www.vagrantup.com
+[scrapyd]: http://scrapyd.readthedocs.org/en/latest/
