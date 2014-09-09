@@ -3,7 +3,7 @@ Link extraction for auto scraping
 """
 import re
 from urlparse import urljoin
-from scrapy.utils.markup import remove_entities
+from scrapy.utils.markup import replace_entities
 from scrapy.link import Link
 from scrapy.http import HtmlResponse
 
@@ -112,10 +112,10 @@ def iterlinks(htmlpage):
     >>> list(iterlinks(p))
     [Link(url='http://www.blogger.com/profile/987372', text=None, fragment='', nofollow=False)]
     """
-    base_href = remove_entities(htmlpage.url, encoding=htmlpage.encoding)
+    base_href = replace_entities(htmlpage.url, encoding=htmlpage.encoding)
     def mklink(url, anchortext=None, nofollow=False):
         url = url.strip()
-        fullurl = urljoin(base_href, remove_entities(url, encoding=htmlpage.encoding))
+        fullurl = urljoin(base_href, replace_entities(url, encoding=htmlpage.encoding))
         return Link(fullurl.encode(htmlpage.encoding), text=anchortext, nofollow=nofollow)
 
     # iter to quickly scan only tags
@@ -151,7 +151,7 @@ def iterlinks(htmlpage):
                     if href:
                         joined_base = urljoin(htmlpage.url, href.strip(),
                             htmlpage.encoding)
-                        base_href = remove_entities(joined_base, 
+                        base_href = replace_entities(joined_base, 
                             encoding=htmlpage.encoding)
                 elif tagname == 'meta':
                     attrs = nexttag.attributes
