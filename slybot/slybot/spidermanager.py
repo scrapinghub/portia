@@ -28,6 +28,19 @@ class SlybotSpiderManager(object):
         spider_cls = settings['SLYBOT_SPIDER_CLASS']
         return cls(datadir, spider_cls)
 
+    def load(self, spider_name):
+        spec = self._specs["spiders"][spider_name]
+        items = self._specs["items"]
+        extractors = self._specs["extractors"]
+
+        class SlybotSpider(self.spider_cls):
+            def __init__(self, **kwargs):
+                super(SlybotSpider, self).__init__(
+                    spider_name, spec, items, extractors, **kwargs
+                )
+
+        return SlybotSpider
+
     def create(self, name, **args):
         # backwards compatibility with Scrapy < 0.25
         spec = self._specs["spiders"][name]
