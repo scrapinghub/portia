@@ -77,6 +77,10 @@ class Fetch(BotResource):
 
     def render_POST(self, request):
         #TODO: validate input data, handle errors, etc.
+        if hasattr(request, 'keystone_token_info'):
+            self.user = request.keystone_token_info['token']['user']['name']
+        elif hasattr(request, 'auth_info'):
+            self.user = request.auth_info['username']
         params = self.read_json(request)
         scrapy_request_kwargs = params['request']
         scrapy_request_kwargs.update(
@@ -138,7 +142,7 @@ class Fetch(BotResource):
         spider = params.get('spider')
         if spider is None:
             return
-        pspec = self.bot.spec_manager.project_spec(project)
+        pspec = self.bot.spec_manager.project_spec(project, self.user)
         try:
             spider_spec = pspec.resource('spiders', spider)
             items_spec = pspec.resource('items')

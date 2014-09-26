@@ -11,6 +11,7 @@ from os.path import join
 from twisted.web.resource import NoResource
 from .resource import SlydJsonResource
 from .repoman import Repoman
+import dashclient
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -155,6 +156,10 @@ class ProjectsResource(SlydJsonResource):
     def render(self, request):
         if hasattr(request, 'keystone_token_info'):
             self.user = request.keystone_token_info['token']['user']['name']
+        elif hasattr(request, 'auth_info'):
+            self.user = request.auth_info['username']
+            self.authorized_projects = request.auth_info['projects']
+            self.apikey = request.auth_info['apikey']
         return SlydJsonResource.render(self, request)
 
     def render_GET(self, request):
@@ -182,7 +187,10 @@ class GitProjectsResource(ProjectsResource):
         return Repoman.open_repo(name)
 
     def list_projects(self):
-        return Repoman.list_repos()
+        #portia_projects = Repoman.list_repos()
+        #dash_projects = map(str, dashclient.list_projects())
+        #return sorted(set(portia_projects + dash_projects))
+        return self.authorized_projects
 
     def create_project(self, name):
         self.validate_project_name(name)
@@ -192,7 +200,10 @@ class GitProjectsResource(ProjectsResource):
         Repoman.delete_repo(name)
 
     def edit_project(self, name, revision):
-        repoman = self._open_repo(name)
+        if Repoman.repo_exists(name):
+            repoman = self._open_repo(name)
+        else:
+            repoman = dashclient.import_project(name, self.apikey)
         if revision == 'master':
             revision = repoman.get_branch('master')
         if not repoman.has_branch(self.user):
@@ -205,6 +216,10 @@ class GitProjectsResource(ProjectsResource):
             return 'OK'
         else:
             return 'CONFLICT'
+
+    def export_project(self, name):
+        dashclient.export_project(name, self.apikey)
+        return 'OK'
 
     def discard_changes(self, name):
         self._open_repo(name).delete_branch(self.user)
@@ -225,12 +240,16 @@ class GitProjectsResource(ProjectsResource):
         self._open_repo(name).save_file(file_path,
             json.dumps(file_contents, sort_keys=True, indent=4), self.user)
 
+    def dash_projects(self):
+        return json.dumps(dashclient.list_projects(self.apikey))
+
     project_commands = {
         'create': create_project,
         'mv': ProjectsResource.rename_project,
         'rm': remove_project,
         'edit': edit_project,
         'publish': publish_project,
+        'export': export_project,
         'discard': discard_changes,
         'revisions': project_revisions,
         'conflicts': conflicted_files,

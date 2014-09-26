@@ -51,7 +51,9 @@ ASTool.ProjectsIndexRoute = Ember.Route.extend({
 ASTool.ProjectRoute = Ember.Route.extend({
 	model: function(params) {
 		this.set('slyd.project', params.project_id);
-		return { id: params.project_id };
+		return this.get('slyd').editProject(params.project_id, 'master').then(function() {
+			return { id: params.project_id };
+		});
 	},
 });
 

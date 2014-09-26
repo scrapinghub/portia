@@ -384,6 +384,16 @@ ASTool.SlydApi = Em.Object.extend({
 		return ic.ajax(hash);
 	},
 
+	exportProject: function(projectName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = ASTool.SlydApi.getApiUrl();
+		hash.data = JSON.stringify(
+			{ cmd: 'export', args: [projectName] });
+		hash.dataType = 'text';
+		return ic.ajax(hash);
+	},
+
 	discardChanges: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
