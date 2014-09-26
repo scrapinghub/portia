@@ -24,10 +24,18 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		}.bind(this));
 	},
 
+	exportProject: function(projectName) {
+		return this.get('slyd').exportProject(projectName);
+	},
+
 	actions: {
 		
 		openProject: function(projectName) {
 			this.openProject(projectName, 'master');
+		},
+
+		exportProject: function(projectName) {
+			this.exportProject(projectName);
 		},
 
 		openProjectRevision: function(projectName, revision) {

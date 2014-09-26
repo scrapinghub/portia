@@ -56,9 +56,9 @@ class CrawlerSpecManager(object):
     def project_spec_class(self):
         return self.use_git and GitProjectSpec or ProjectSpec
 
-    def project_spec(self, project):
+    def project_spec(self, project, user=None):
         spec = GitProjectSpec(str(project)) if self.use_git else ProjectSpec(join(self.basedir, str(project)))
-        spec.user = self.user
+        spec.user = user or self.user
         return spec
 
 
@@ -202,6 +202,8 @@ class SpecResource(SlydJsonResource):
     def render(self, request):
         if hasattr(request, 'keystone_token_info'):
             self.user = request.keystone_token_info['token']['user']['name']
+        elif hasattr(request, 'auth_info'):
+            self.user = request.auth_info['username']
         # make sure the path is safe
         for pathelement in request.postpath:
             if pathelement and not allowed_spider_name(pathelement):
@@ -212,7 +214,8 @@ class SpecResource(SlydJsonResource):
         return SlydJsonResource.render(self, request)
 
     def render_GET(self, request):
-        project_spec = self.spec_manager.project_spec(request.project)
+        project_spec = self.spec_manager.project_spec(request.project,
+            self.user)
         rpath = request.postpath
         if not rpath:
             project_spec.json(request)
@@ -229,7 +232,8 @@ class SpecResource(SlydJsonResource):
 
     def render_POST(self, request):
         obj = self.read_json(request)
-        project_spec = self.spec_manager.project_spec(request.project)
+        project_spec = self.spec_manager.project_spec(request.project,
+            self.user)
         try:
             # validate the request path and data
             resource = request.postpath[0]

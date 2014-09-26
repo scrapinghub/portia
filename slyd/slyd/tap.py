@@ -10,7 +10,8 @@ from twisted.application.internet import TCPServer
 from twisted.web.server import Site
 from twisted.web.static import File
 from slyd.resource import SlydJsonObjectResource
-from txkeystoneauth.shield import ResourceShield, ServiceRoot
+#from txkeystoneauth.shield import ResourceShield, ServiceRoot
+from .dashauth import ResourceShield, ServiceRoot
 
 DEFAULT_PORT = 9001
 DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
@@ -78,7 +79,8 @@ def create_root(config):
     # add spec at /projects/PROJECT_ID/spec
     spec = create_crawler_spec_resource(spec_manager)
     projects.putChild("spec", spec)
-    return shield.protectResource(root, enforce_roles=['portia'])
+    #return root
+    return shield.protectResource(root)
 
 
 def makeService(config):
