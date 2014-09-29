@@ -2,6 +2,7 @@ import requests
 import os
 import json
 
+from datetime import datetime, timedelta
 from requests import exceptions as request_exceptions
 from zope.interface import implements
 from twisted.cred import portal, checkers, credentials, error as credError
@@ -15,6 +16,12 @@ from twisted.web.guard import BasicCredentialFactory
 
 
 DASH_API_URL = os.environ.get('DASH_API_URL', 'http://33.33.33.51:8000/api/')
+
+
+auth_cache = {}
+
+
+AUTH_EXPIRATION_TIME = 30
 
 
 class InvalidApiKey(Exception):
@@ -35,7 +42,12 @@ class ApiKeyChecker(object):
         if auth_info['status'] != 'ok':
             raise InvalidApiKey('Invalid apikey')
         auth_info['apikey'] = apikey
+        auth_info['expires_at'] = datetime.now() + timedelta(
+            seconds=AUTH_EXPIRATION_TIME)
         return auth_info
+
+    def _expired(self, auth_info):
+        return datetime.now() > auth_info['expires_at']
       
     def requestAvatarId(self, credentials):
         auth_info = None
@@ -45,7 +57,10 @@ class ApiKeyChecker(object):
             if user != 'APIKEY' or not apikey:
                 raise InvalidApiKey(
                     "Credentials must follow the APIKEY:<user_apikey> pattern")
-            auth_info = self._validate_apikey(apikey)
+            auth_info = auth_cache.get(apikey)
+            if not auth_info or self._expired(auth_info):
+                auth_info = self._validate_apikey(apikey)
+                auth_cache[apikey] = auth_info
             return defer.succeed(auth_info)
         except InvalidApiKey as ex:
             return defer.fail(credError.UnauthorizedLogin(
