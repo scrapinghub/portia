@@ -18,6 +18,7 @@ ASTool.Messages = Ember.Namespace.create({
 	confirm_change_selection: 'If you select a different region you will lose all current attribute mappings and ignored subregions, proceed anyway?',
 	no_items_extracted: 'No items were extracted',
 	publish_ok: 'The project was successfully published.',
+	export_ok: 'The project was successfully exported to dash.',
 	publish_conflict: 'There was a conflict that could not be automatically resolved. You will have to resolve the conflict manually.',
 	conflicts_solved: 'You have resolved all conflicts, your changes have been published.',
 });
