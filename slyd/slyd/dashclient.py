@@ -22,7 +22,7 @@ def import_project(name, apikey):
 def export_project(name, apikey):
     """Archive a GIT project and upload it to Dash."""
     zbuff = StringIO()
-    _archive_project(name, zbuff, apikey)
+    _archive_project(name, zbuff)
     zbuff.reset()
     payload = {'apikey': apikey, 'project': name}
     req = requests.post(DASH_API_URL + 'as/import.json',
