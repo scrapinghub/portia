@@ -330,13 +330,14 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	editProject: function(project_name, revision) {
+		/*
 		if (!this.get('server_capabilities.version_control')) {
 			// if the server does not support version control, do 
 			// nothing.
 			return new Em.RSVP.Promise(function(resolve, reject) {
   				resolve();
 			});
-		}
+		}*/
 		revision = revision ? revision : 'master';
 		var hash = {};
 		hash.type = 'POST';
