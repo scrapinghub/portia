@@ -35,7 +35,11 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		},
 
 		exportProject: function(projectName) {
-			this.exportProject(projectName);
+			this.exportProject(projectName).then(function(result){
+				if (result == 'OK') {
+					alert(ASTool.Messages.get('export_ok'));
+				}
+			}.bind(this));
 		},
 
 		openProjectRevision: function(projectName, revision) {
