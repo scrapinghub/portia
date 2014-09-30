@@ -257,7 +257,7 @@ class Repoman(object):
 
         files_content = ((file_path, loads(self.file_contents_for_branch(
             file_path, branch_name))) for
-                file_path in self.list_files_for_branch(branch_name))
+                file_path in self.get_branch_changed_files(branch_name))
         return { file_path: content for file_path, content in files_content if
             has_conflict(content) }
 
