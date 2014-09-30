@@ -1,6 +1,7 @@
 import os
 import requests
 import zipfile
+import json
 
 from cStringIO import StringIO
 from datetime import datetime
@@ -14,8 +15,11 @@ def import_project(name, apikey):
     """Download a project from Dash and create a GIT repo for it."""
     archive = zipfile.ZipFile(StringIO(_download_project(name, apikey)))
     repo = Repoman.create_repo(name)
-    for filename in archive.namelist(): 
-        repo.save_file(filename, archive.read(filename), 'master')
+    for filename in archive.namelist():
+        contents = archive.read(filename)
+        if filename == 'items.json':
+            contents = _fix_items(contents)
+        repo.save_file(filename, contents, 'master')
     return repo
 
 
@@ -29,6 +33,15 @@ def export_project(name, apikey):
         files=[('archive', ('archive', zbuff, 'application/zip'))],
         params=payload)
     return req.text
+
+
+def _fix_items(raw_items):
+    """Fixes issues with the imported items."""
+    items = json.loads(raw_items)
+    for _, item in items.iteritems():
+        if 'url' in item['fields']:
+            del item['fields']['url']
+    return json.dumps(items) 
 
 
 def _download_project(name, apikey):
