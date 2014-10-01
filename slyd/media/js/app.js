@@ -2,9 +2,7 @@
 ASTool = Em.Application.create({
      LOG_TRANSITIONS: true, 
 
-    ready: function() {
-        LOG_TRANSITIONS: true, 
-    } 
+    ready: function() {  }
 });
 
 
