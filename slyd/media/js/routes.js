@@ -64,7 +64,7 @@ ASTool.ProjectIndexRoute = Ember.Route.extend({
 	},
 
 	afterModel: function() {
-		if (this.get('slyd.server_capabilities.version_control')) {
+		if (ASTool.get('serverCapabilities.version_control')) {
 			var controller = this.controllerFor('project.index');
 			return this.get('slyd').conflictedFiles(this.get('slyd.project')).then(
 				function(conflictedFiles) {
