@@ -39,7 +39,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		var sprites = [];
 		if (this.get('currentlySelectedElement')) {
 			sprites.pushObject(ASTool.AnnotationSprite.create(
-				{ 'annotation': this.content,
+				{ 'annotation': this.get('model'),
 				  'highlighted': 'true' }));
 		}
 		if (this.highlightedElement) {
@@ -52,7 +52,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		}
 
 		var annotationSprites = this.get('controllers.template_index.sprites').filter(function(sprite) {
-			return sprite.get('annotation.id') != this.content.get('id');
+			return sprite.get('annotation.id') != this.get('id');
 		}.bind(this));
 
 		var ignoredElements = this.get('content.ignores').map(function(ignore) {

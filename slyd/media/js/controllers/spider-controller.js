@@ -54,7 +54,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	}.property('links_to_follow'),
 
 	displayNofollow: function() {
-		return this.content.get('links_to_follow') != 'none';
+		return this.get('links_to_follow') != 'none';
 	}.property('model.links_to_follow'),
 
 	_showLinks: false,
@@ -351,7 +351,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		deleteTemplate: function(template) {
-			this.content.get('templates').removeObject(template);
+			this.get('templates').removeObject(template);
 		},
 
 		saveSpider: function() {
@@ -367,9 +367,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		fetchPage: function(url) {
 			// Cancel all pending fetches.
 			this.get('pendingFetches').setObjects([]);
-			this.saveSpider().then(function() {
-				this.fetchPage(url);	
-			}.bind(this));
+			this.fetchPage(url);
 		},
 
 		reload: function() {
@@ -389,7 +387,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		deleteStartUrl: function(url) {
-			this.content.get('start_urls').removeObject(url);
+			this.get('start_urls').removeObject(url);
 		},
 
 		addExcludePattern: function() {

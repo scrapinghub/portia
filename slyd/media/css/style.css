@@ -78,10 +78,13 @@ body{
 }
 
 #loader-container {
-	position:absolute;
-	top:350px;
-	left:50%;
+	width: 100.1%;
+	height: 100%;
+	position: absolute;
+	top: 0px;
+	left: 0px;
 	z-index: 300;
+	pointer-events: none;
 }
 
 #create-project-box {
