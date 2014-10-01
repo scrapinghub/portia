@@ -15,5 +15,5 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 		return newName;
 	},
 
-	versionControlBinding: 'slyd.server_capabilities.version_control',
+	versionControlBinding: 'ASTool.serverCapabilities.version_control',
 });

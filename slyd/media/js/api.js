@@ -3,23 +3,12 @@
 */
 ASTool.SlydApi = Em.Object.extend({
 
-	init: function() {
-		this.getServerCapabilities();
-	},
-
 	/**
 	@public
 
 	The name of the current project.
 	*/
 	project: null,
-
-	/**
-	@public
-
-	The capabilities of the slyd server.
-	*/
-	server_capabilities: null,
 
 	projectSpecUrl: function() {
 		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/spec/';
@@ -29,23 +18,7 @@ ASTool.SlydApi = Em.Object.extend({
 		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/bot/';
 	}.property('project'),
 
-	/**
-  	@public
-
-  	Fetches server capabilities.
-
-  	@method getServerCapabilities
-  	@for ASTool.SlydApi
-	*/
-	getServerCapabilities: function() {
-		var hash = {};
-		hash.type = 'GET';
-		hash.url = ASTool.SlydApi.getCapabilitiesUrl();
-		ic.ajax(hash).then(function(capabilities) {
-			this.set('server_capabilities', capabilities);
-		}.bind(this));
-	},
-
+	
 	/**
   	@public
 
@@ -330,22 +303,22 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	editProject: function(project_name, revision) {
-		/*
-		if (!this.get('server_capabilities.version_control')) {
+		if (!ASTool.get('serverCapabilities.version_control')) {
 			// if the server does not support version control, do 
 			// nothing.
 			return new Em.RSVP.Promise(function(resolve, reject) {
   				resolve();
 			});
-		}*/
-		revision = revision ? revision : 'master';
-		var hash = {};
-		hash.type = 'POST';
-		hash.url = ASTool.SlydApi.getApiUrl();
-		hash.data = JSON.stringify(
-			{ cmd: 'edit', args: [project_name, revision] });
-		hash.dataType = 'text';
-		return ic.ajax(hash);
+		} else {
+			revision = revision ? revision : 'master';
+			var hash = {};
+			hash.type = 'POST';
+			hash.url = ASTool.SlydApi.getApiUrl();
+			hash.data = JSON.stringify(
+				{ cmd: 'edit', args: [project_name, revision] });
+			hash.dataType = 'text';
+			return ic.ajax(hash);
+		}
 	},
 
 	projectRevisions: function(projectName) {
@@ -512,9 +485,5 @@ ASTool.SlydApi.reopenClass ({
 
 	getApiUrl: function() {
 		return (SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
-	},
-
-	getCapabilitiesUrl: function() {
-		return (SLYD_URL || window.location.protocol + '//' + window.location.host) + '/server_capabilities';
 	},
 });
