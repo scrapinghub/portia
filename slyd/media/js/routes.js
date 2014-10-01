@@ -153,6 +153,7 @@ ASTool.TemplateIndexRoute = Ember.Route.extend({
 
 	afterModel: function(model) {
 		var controller = this.controllerFor('template.index');
+		controller.set('annotationsLoaded', false);
 		var slyd = this.get('slyd');
 		// Load the annotations if we can.
 		if (controller.get('documentView').getIframe().length) {
@@ -167,14 +168,14 @@ ASTool.TemplateIndexRoute = Ember.Route.extend({
 			}).then(function() {
 				return this.get('annotationsStore').findAll();
 			}.bind(this)).then(function(annotations) {
-				controller.set('annotationsLoaded', true);
 				controller.set('annotations', annotations);
-			});	
+				controller.set('annotationsLoaded', true);
+			});
 		} else {
 			// If we fall here, the iframe was not yet inserted in the DOM
-			// thus preventing loading the annotations. We just mark the
-			// controller so it can fix the issue later.
-			controller.set('annotationsLoaded', false);
+			// thus preventing loading the annotations. We just reload the
+			// route in a while.
+			Em.run.later(this, this.refresh, 500);
 		}
 		
 		// Load the items.

@@ -230,6 +230,16 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		});
 	}.observes('annotations.@each.mappedAttributes'),
 
+	checkAnnotations: function() {
+		if (this.get('annotationsLoaded')) {
+			this.get('documentView').config(
+				{ mode: 'select',
+				  listener: this,
+				  dataSource: this,
+				  partialSelects: true });
+		}
+	}.observes('annotationsLoaded'),
+
 	actions: {
 		
 		editAnnotation: function(annotation) {
@@ -366,25 +376,11 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 	},
 
 	willEnter: function() {
-		if (!this.get('annotationsLoaded')) {
-			// When landing here from a shared URL there is an issue that prevents
-			// the annotations from being correctly loaded. This hack (reloading
-			// the route) ensures that they do load.
-			Em.run.later(this, function() {
-				// Forces a full model reload.
-				this.replaceRoute('template', this.get('id'));
-				Ember.run.later(this, function() {
-					this.get('documentView').config({ mode: 'select',
-							  listener: this,
-							  dataSource: this,
-							  partialSelects: true });
-				}, 100);	
-			}, 500);	
-		} else {
+		if (this.get('annotationsLoaded')) {
 			this.get('documentView').config({ mode: 'select',
-							  listener: this,
-							  dataSource: this,
-							  partialSelects: true });	
+					  listener: this,
+					  dataSource: this,
+					  partialSelects: true });
 		}
 	},
 

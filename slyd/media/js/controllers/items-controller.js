@@ -20,7 +20,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	},
 
 	saveChanges: function() {
-		this.get('slyd').saveItems(this.content.toArray()).then(function() {
+		this.get('slyd').saveItems(this.toArray()).then(function() {
 				this.transitionToRoute('template');
 			}.bind(this));
 	},
