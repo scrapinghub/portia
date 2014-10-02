@@ -6,47 +6,7 @@
 	<link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 	<link href="css/style.css" rel="stylesheet">
 	<link href="css/breadcrumb.css" rel="stylesheet">
-	
 	<script src="js/portia.min.js"></script>
-	
-	<script>
-		function compile(template) {
-		  var templateName = template.split('/templates/').reverse()[0].replace('.handlebars', '');
-		  $.ajax({
-		    url: template,
-		    cache: false,
-		    async: false,
-		    success: function (source) {
-		      var input = Ember.Handlebars.precompile(source.toString());
-		      Ember.TEMPLATES[templateName] = Ember.Handlebars.template(input);
-		    }
-		  });
-		}
-		compile('js/templates/inline-textfield.handlebars');
-		compile('js/templates/annotated-document-view.handlebars');
-		compile('js/templates/application.handlebars');
-		compile('js/templates/annotation-widget.handlebars');
-		compile('js/templates/floating-annotation-widget.handlebars');
-		compile('js/templates/edit-item.handlebars');
-		compile('js/templates/collapsible-text.handlebars');
-		compile('js/templates/conflict-resolver.handlebars');
-		compile('js/templates/json-view.handlebars');
-		compile('js/templates/item.handlebars');
-		compile('js/templates/navigation.handlebars');
-		compile('js/templates/toolbox.handlebars');
-		compile('js/templates/toolbox-projects.handlebars');
-		compile('js/templates/toolbox-project.handlebars');
-		compile('js/templates/toolbox-spider.handlebars');
-		compile('js/templates/toolbox-template.handlebars');
-		compile('js/templates/toolbox-annotation.handlebars');
-		compile('js/templates/toolbox-items.handlebars');
-		compile('js/templates/toolbox-conflicts.handlebars');
-		compile('js/templates/topbar-project.handlebars');
-		compile('js/templates/topbar-projects.handlebars');
-		compile('js/templates/topbar-browse.handlebars');
-		compile('js/templates/topbar-extraction.handlebars');
-		compile('js/templates/topbar-conflicts.handlebars');
-	</script>
 </head>
 <body>
 </body>
