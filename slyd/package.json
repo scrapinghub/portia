@@ -1,8 +1,20 @@
 {
-  "dependencies": {
-    "bower": "*",
-    "karma-ember-preprocessor": "*",
-    "karma-qunit": "*",
-    "karma": "0.10.2"
-  }
+	"name": "portia",
+	"url" : "http://github.com/scrapinghub/portia",
+
+	"dependencies": {
+	    "bower": "*",
+	    "karma-ember-preprocessor": "*",
+	    "karma-qunit": "*",
+	    "karma": "0.10.2"
+  	},
+  
+  	"devDependencies": {
+	    "ember-template-compiler": "^1.6.1",
+	    "grunt": "^0.4.5",
+	    "grunt-contrib-concat": "^0.5.0",
+	    "grunt-contrib-uglify": "^0.6.0",
+	    "grunt-ember-templates": "^0.4.21",
+	    "handlebars": "^1.3.0"
+  	}
 }

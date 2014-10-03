@@ -1,3 +1,7 @@
 # Vagrant files
 .vagrant/
 /.idea/
+
+# npm files
+node_modules/*
+npm-debug.log
