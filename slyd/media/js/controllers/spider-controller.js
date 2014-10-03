@@ -454,11 +454,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	documentActions: {
 
 		linkClicked: function(url) {
-			// TODO: remove save on fetch.
 			this.get('documentView').showLoading();
-			this.saveSpider().then(function() {
-				this.fetchPage(url, this.get('loadedPageFp'));	
-			}.bind(this));
+			this.fetchPage(url, this.get('loadedPageFp'));	
 		}
 	},
 
