@@ -63,12 +63,12 @@
 			<h4>Follow links that match this patterns</h4>
 			{{view ASTool.InlineHelp message="follow_links"}}
 			<div class="scrolling-container" style="max-height:150px">
-				{{#each follow_patterns}}
+				{{#each pattern in follow_patterns}}
 					<div style="margin:4px 0px 4px 0px">
-						{{#view ASTool.PatternTextField pattern=this action="editFollowPattern"}}
-  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
+						{{#view ASTool.PatternTextField pattern=pattern action="editFollowPattern"}}
+  							{{view ASTool.ButtonView label=pattern minWidth='86%' title=pattern class="light-button"}}
 						{{/view}}
-						{{view ASTool.ButtonView action="deleteFollowPattern" argument=this icon="ui-icon-trash" class="red-button"}}
+						{{view ASTool.ButtonView action="deleteFollowPattern" argument=pattern icon="ui-icon-trash" class="red-button"}}
 					</div>
 				{{else}}
 					<h5>No follow patterns defined yet.</h5>
@@ -84,12 +84,12 @@
 			<h4>Exclude links that match this patterns</h4>
 			{{view ASTool.InlineHelp message="exclude_links"}}
 			<div class="scrolling-container" style="max-height:150px">
-				{{#each exclude_patterns}}
+				{{#each pattern in exclude_patterns}}
 					<div style="margin:4px 0px 4px 0px">
-						{{#view ASTool.PatternTextField pattern=this action="editExcludePattern"}}
-  							{{view ASTool.ButtonView label=this minWidth='86%' title=this class="light-button"}}
+						{{#view ASTool.PatternTextField pattern=pattern action="editExcludePattern"}}
+  							{{view ASTool.ButtonView label=pattern minWidth='86%' title=pattern class="light-button"}}
 						{{/view}}
-						{{view ASTool.ButtonView action="deleteExcludePattern" argument=this icon="ui-icon-trash" class="red-button"}}
+						{{view ASTool.ButtonView action="deleteExcludePattern" argument=pattern icon="ui-icon-trash" class="red-button"}}
 					</div>
 				{{else}}
 					<h5>No exclude patterns defined yet.</h5>
