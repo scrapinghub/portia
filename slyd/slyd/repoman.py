@@ -116,29 +116,38 @@ class Repoman(object):
         '''Returns the branch with name branch_name'''
         return self._repo.refs['refs/heads/%s' % branch_name]
 
-    def save_file(self, file_path, contents, branch_name):
+    def save_file(self, file_path, contents, branch_name, commit_message=None):
         '''Saves a file into the repo and advances the specified branch head.
 
         If the branch does not exist yet, it will be created.
         '''
         self._perform_file_operation(
-            branch_name, self._save_file, file_path, contents)
+            branch_name, self._save_file, file_path, contents, commit_message)
 
-    def delete_file(self, file_path, branch_name):
+    def save_files(self, files, branch_name, commit_message=None):
+        '''Saves a multiple files and advances the specified branch head.
+
+        If the branch does not exist yet, it will be created.
+        '''
+        self._perform_file_operation(
+            branch_name, self._save_files, files, commit_message)
+
+    def delete_file(self, file_path, branch_name, commit_message=None):
         '''Deletes a file from the repo and advances the specified branch head.
 
         If the branch does not exist yet, it will be created.
         '''
         self._perform_file_operation(
-            branch_name, self._delete_file, file_path)
+            branch_name, self._delete_file, file_path, commit_message)
 
-    def rename_file(self, old_file_path, new_file_path, branch_name):
+    def rename_file(self, old_file_path, new_file_path, branch_name,
+        commit_message=None):
         '''Renames a file in the repo and advances the specified branch head.
 
         If the branch does not exist yet, it will be created.
         '''
-        self._perform_file_operation(
-            branch_name, self._rename_file, old_file_path, new_file_path)
+        self._perform_file_operation(branch_name, self._rename_file,
+            old_file_path, new_file_path, commit_message)
 
     def blob_for_branch(self, file_path, branch_name):
         '''Returns the blob with the contents of file_path.
@@ -338,42 +347,50 @@ class Repoman(object):
         commit = operation(parent_commit, *args)
         self._advance_branch(branch_name, commit)
 
-    def _save_file(self,  parent_commit, file_path, contents):
-        blob = Blob.from_string(contents)
+    def _save_file(self,  parent_commit, file_path, contents, commit_message):
+        commit_message = commit_message or 'Saving %s' % file_path
+        return self._save_files(
+            parent_commit, {file_path: contents}, commit_message)
+
+    def _save_files(self, parent_commit, files, commit_message):
         tree = self._get_tree(parent_commit)
-        tree.add(file_path, FILE_MODE, blob.id)
+        blobs = []
+        for file_path, contents in files.iteritems():
+            blob = Blob.from_string(contents)
+            tree.add(file_path, FILE_MODE, blob.id)
+            blobs.append(blob)
         commit = self._create_commit()
         commit.parents = [parent_commit]
         commit.tree = tree.id
-        commit.message = 'Saving %s' % file_path
-        self._update_store(commit, tree, blob)
+        commit.message = commit_message or 'Saving multiple files'
+        self._update_store(commit, tree, *blobs)
         return commit
 
-    def _delete_file(self,  parent_commit, file_path):
+    def _delete_file(self,  parent_commit, file_path, commit_message):
         tree = self._get_tree(parent_commit)
         del tree[file_path]
         commit = self._create_commit()
         commit.parents = [parent_commit]
         commit.tree = tree.id
-        commit.message = 'Deleting %s' % file_path
+        commit.message = commit_message or 'Deleting %s' % file_path
         self._update_store(commit, tree)
         return commit
 
-    def _rename_file(self, parent_commit, old_file_path, new_file_path):
+    def _rename_file(self, parent_commit, old_file_path, new_file_path,
+        commit_message):
         tree = self._get_tree(parent_commit)
         tree[new_file_path] = tree[old_file_path]
         del tree[old_file_path]
         commit = self._create_commit()
         commit.parents = [parent_commit]
         commit.tree = tree.id
-        commit.message = 'Renaming %s to %s' % (old_file_path, new_file_path)
+        commit.message = (commit_message or
+            'Renaming %s to %s' % (old_file_path, new_file_path))
         self._update_store(commit, tree)
         return commit
             
     def _update_store(self, *args):
-        object_store = self._repo.object_store
-        for obj in args:
-            object_store.add_object(obj)
+        self._repo.object_store.add_objects(args)
 
     def _advance_branch(self, branch_name, commit):
         self._repo.refs['refs/heads/%s' % branch_name] = commit.id
