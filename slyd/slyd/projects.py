@@ -8,7 +8,11 @@ pages and project spec manipulation.
 
 import json, re, shutil, errno, os
 from os.path import join
+from functools import wraps
 from twisted.web.resource import NoResource
+from twisted.internet.threads import deferToThread
+from twisted.web.server import NOT_DONE_YET
+from twisted.internet.defer import Deferred
 from .resource import SlydJsonResource
 from .repoman import Repoman
 import dashclient
@@ -167,14 +171,34 @@ class ProjectsResource(SlydJsonResource):
         return '\n'
 
     def render_POST(self, request):
+
+        def finish_request(val):
+            val and request.write(val)
+            request.finish()
+        
         obj = self.read_json(request)
-        return self.handle_project_command(obj)
+        retval = self.handle_project_command(obj)
+        if isinstance(retval, Deferred):    
+            retval.addCallbacks(finish_request, None)
+            return NOT_DONE_YET
+        else:
+            return retval
 
     project_commands = {
         'create': create_project,
         'mv': rename_project,
         'rm': remove_project
     }
+
+
+def run_in_thread(func):
+    '''A decorator to defer execution to a thread'''
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return deferToThread(func, *args, **kwargs)
+
+    return wrapper
 
 
 class GitProjectsResource(ProjectsResource):
@@ -199,16 +223,17 @@ class GitProjectsResource(ProjectsResource):
     def remove_project(self, name):
         Repoman.delete_repo(name)
 
+    @run_in_thread
     def edit_project(self, name, revision):
         if Repoman.repo_exists(name):
             repoman = self._open_repo(name)
         else:
             repoman = dashclient.import_project(name, self.apikey)
-        if revision == 'master':
-            revision = repoman.get_branch('master')
+        revision = repoman.get_branch(revision)
         if not repoman.has_branch(self.user):
             repoman.create_branch(self.user, revision)
 
+    @run_in_thread
     def publish_project(self, name, force):
         repoman = self._open_repo(name)
         if repoman.publish_branch(self.user, force):
@@ -217,6 +242,7 @@ class GitProjectsResource(ProjectsResource):
         else:
             return 'CONFLICT'
 
+    @run_in_thread
     def export_project(self, name):
         dashclient.export_project(name, self.apikey)
         return 'OK'
@@ -228,10 +254,12 @@ class GitProjectsResource(ProjectsResource):
         repoman = self._open_repo(name)
         return json.dumps({ 'revisions': repoman.get_published_revisions() })
 
+    @run_in_thread
     def conflicted_files(self, name):        
         repoman = self._open_repo(name)
         return json.dumps(repoman.get_branch_conflicted_files(self.user))
 
+    @run_in_thread
     def changed_files(self, name):
         repoman = self._open_repo(name)
         return json.dumps(repoman.get_branch_changed_files(self.user))
