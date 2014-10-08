@@ -187,9 +187,10 @@ ASTool.DocumentView = Em.Object.extend({
 			loader.setFPS(60);
 			var loaderObj = document.getElementById("canvasLoader");
 		  	loaderObj.style.position = "absolute";
-		  	 //+ loader.getDiameter() * -0.5 + "px"
-		  	loaderObj.style["top"] = '45%';
-		  	loaderObj.style["left"] = '45%';
+		  	loaderObj.style["margin-left"] = -loader.getDiameter() / 2 + "px";
+		  	loaderObj.style["margin-top"] = '180px';
+		  	loaderObj.style["width"] = loader.getDiameter() + "px";
+		  	loaderObj.style["left"] = '50%';
 		  	this.set('loader', loader);
 		}
 		loader.show();
