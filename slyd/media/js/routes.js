@@ -275,3 +275,14 @@ ASTool.ConflictsRoute = Ember.Route.extend({
     	});
 	},
 });
+
+
+ASTool.LoadingRoute = Ember.Route.extend({
+	renderTemplate: function() {
+		this.render('loading', {
+			into: 'application',
+      		outlet: 'conflictResolver',
+      		controller: 'items',
+    	});
+	},
+});
