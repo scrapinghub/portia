@@ -20,7 +20,6 @@ from twisted.web.server import NOT_DONE_YET
 from scrapy.http import Request
 from scrapy.item import DictItem
 from scrapy import signals, log
-from scrapy.crawler import Crawler
 from scrapy.http import HtmlResponse
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
@@ -30,31 +29,27 @@ except ImportError:
     # BaseSpider class was deprecated in Scrapy 0.21
     from scrapy.spider import BaseSpider as Spider
 from slybot.spider import IblSpider
+from scrapy.crawler import CrawlerRunner
+
 from .html import html4annotation, extract_html
 from .resource import SlydJsonResource
-
 
 def create_bot_resource(spec_manager):
     bot = Bot(spec_manager.settings, spec_manager)
     bot.putChild('fetch', Fetch(bot))
     return bot
 
+class SlydSpider(Spider):
+    name = 'slyd'
 
 class Bot(Resource):
-    spider = Spider('slyd')
+    spider = SlydSpider()
 
     def __init__(self, settings, spec_manager):
         # twisted base class is old-style so we cannot user super()
         Resource.__init__(self)
         self.spec_manager = spec_manager
-        # initialize scrapy crawler
-        crawler = Crawler(settings)
-        crawler.configure()
-        crawler.signals.connect(self.keep_spider_alive, signals.spider_idle)
-        crawler.crawl(self.spider)
-        crawler.start()
-
-        self.crawler = crawler
+        self.runner = CrawlerRunner(settings)
         log.msg("bot initialized", level=log.DEBUG)
 
     def keep_spider_alive(self, spider):
@@ -62,7 +57,7 @@ class Bot(Resource):
 
     def stop(self):
         """Stop the crawler"""
-        self.crawler.stop()
+        self.runner.stop()
         log.msg("bot stopped", level=log.DEBUG)
 
 
@@ -90,7 +85,10 @@ class Fetch(BotResource):
             )
         )
         request = Request(**scrapy_request_kwargs)
-        self.bot.crawler.engine.schedule(request, self.bot.spider)
+        self.bot.runner.crawl(SlydSpider)
+        crawler = list(self.bot.runner.crawlers)[0]
+        crawler.signals.connect(self.bot.keep_spider_alive, signals.spider_idle)
+        crawler.engine.schedule(request, crawler.spider)
         return NOT_DONE_YET
 
     def fetch_callback(self, response):
