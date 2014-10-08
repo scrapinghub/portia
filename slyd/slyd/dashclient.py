@@ -15,11 +15,13 @@ def import_project(name, apikey):
     """Download a project from Dash and create a GIT repo for it."""
     archive = zipfile.ZipFile(StringIO(_download_project(name, apikey)))
     repo = Repoman.create_repo(name)
+    files = {}
     for filename in archive.namelist():
         contents = archive.read(filename)
         if filename == 'items.json':
             contents = _fix_items(contents)
-        repo.save_file(filename, contents, 'master')
+        files[filename] = contents
+    repo.save_files(files, 'master', 'Initial import.')
     return repo
 
 
