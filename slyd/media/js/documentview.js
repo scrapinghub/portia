@@ -181,7 +181,7 @@ ASTool.DocumentView = Em.Object.extend({
 			loader = new CanvasLoader('loader-container');
 			loader.setColor('#2398b2');
 			loader.setShape('spiral');
-			loader.setDiameter(110);
+			loader.setDiameter(90);
 			loader.setRange(0.9);
 			loader.setSpeed(1.0);
 			loader.setFPS(60);
