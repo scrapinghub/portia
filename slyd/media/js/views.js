@@ -950,6 +950,8 @@ ASTool.ToolboxConflictsView = Ember.View.extend(ToolboxViewMixin, {
 	fixedToolbox: true,
 });
 
+ASTool.ToolboxEmptyView = Ember.View.extend(ToolboxViewMixin);
+
 
 /*************************** Helpers ******************************/
 function trim(text, maxLength) {
