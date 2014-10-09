@@ -557,6 +557,7 @@ select {
 .ui-accordion .ui-accordion-header {
 	text-align: left;
 	font:  1.2em Helvetica,Arial,sans-serif !important;
+	margin-bottom: 2px;
 }
 
 .textless-button .ui-button-text {
@@ -582,4 +583,4 @@ select {
     box-shadow: 0 0 7px black;
     z-index: 500;
     word-wrap:break-word;
-  }
+}
