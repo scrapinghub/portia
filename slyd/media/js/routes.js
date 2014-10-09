@@ -277,12 +277,26 @@ ASTool.ConflictsRoute = Ember.Route.extend({
 });
 
 
-ASTool.LoadingRoute = Ember.Route.extend({
+ASTool.LoadingRoute = ASTool.ProjectLoadingRoute = ASTool.SpiderLoadingRoute = Ember.Route.extend({
+
 	renderTemplate: function() {
+
+		this.render('toolbox-empty', {
+			into: 'application',
+      		outlet: 'main',
+      		controller: 'loading',
+    	});
+
 		this.render('loading', {
 			into: 'application',
       		outlet: 'conflictResolver',
-      		controller: 'items',
+      		controller: 'loading',
+    	});
+
+    	this.render('topbar-empty', {
+    		into: 'application',
+      		outlet: 'topbar',
+      		controller: 'loading',
     	});
 	},
 });
