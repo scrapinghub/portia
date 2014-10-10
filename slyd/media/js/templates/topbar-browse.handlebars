@@ -50,10 +50,10 @@
 					</span>
 					<h3 style="text-align:center" class="important-label">Displaying {{controller.extractedItems.length}} extracted items</h3>
 					<div style="max-height:500px; padding:8px;" class="scrolling-container">
-						{{#each controller.extractedItems}}
+						{{#each item in controller.extractedItems}}
 							<hr style="margin:0px;background-color:rgba(70,70,70,1)"/>
 							<div style="padding:10px 0px 10px 0px;">
-								{{#view ASTool.ExtractedItemView extractedItem=this}}
+								{{#view ASTool.ExtractedItemView extractedItem=item}}
 									<div style="text-align:left;margin-bottom:5px">
 										<div style="margin-bottom:2px">
 											<span class="small-label yellow-label">URL:</span>
@@ -68,33 +68,37 @@
 											</span>
 										</div>
 									</div>
-									{{#each view.textFields}}
+									{{#each textField in view.textFields}}
 										<div style="margin-bottom:2px">
-											<span class="small-label blue-label">{{this.name}}:</span>
-											{{#each this.value}}
+											<span class="small-label blue-label">{{textField.name}}:</span>
+											{{#each value in textField.value}}
 												<span style="color:white;word-wrap:break-word;">
-													{{view ASTool.CollapsibleText fullText=this}}
+													{{view ASTool.CollapsibleText fullText=value}}
 												</span>
 											{{/each}}
 										</div>
 									{{/each}}
-									{{#each view.imageFields}}
+									{{#each imageField in view.imageFields}}
 										<div style="margin-bottom:2px">
-											<span class="small-label blue-label">{{this.name}}:</span>
-											{{#each this.value}}
-												<span style="color:white;word-wrap:break-word;">{{this}}</span>
-												<div style="margin:10px;text-align:center">{{view ASTool.ImageView src=this width="200px"}}</div>
+											<span class="small-label blue-label">{{imageField.name}}:</span>
+											{{#each value in imageField.value}}
+												<span style="color:white;word-wrap:break-word;">{{value}}</span>
+												<div style="margin:10px;text-align:center">{{view ASTool.ImageView src=value width="200px"}}</div>
 											{{/each}}	
 										</div>
 									{{/each}}
 									{{#if view.variants}}
 										<h3 class="important-label" style="margin:3px 0px 2px 0px">Variants</h3>
-										{{#each view.variants}}
+										{{#each variant in view.variants}}
 											<div style="margin-bottom:3px">
-												{{#each fields}}
+												{{#each field in variant.fields}}
 													<div style="margin-bottom:2px">
-														<span class="small-label green-label">{{this.name}}:</span>
-														<span style="color:white;word-wrap:break-word;">{{this.value}}</span>
+														<span class="small-label green-label">{{field.name}}:</span>
+														{{#each value in field.value}}
+															<span style="color:white;word-wrap:break-word;">
+																{{view ASTool.CollapsibleText fullText=value}}
+															</span>
+														{{/each}}
 													</div>
 												{{/each}}
 											</div>
