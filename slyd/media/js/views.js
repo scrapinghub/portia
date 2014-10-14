@@ -89,13 +89,6 @@ ASTool.TextField = Em.TextField.extend({
 	placeholder: null,
 	attributeBindings: ['placeholder', 'width'],
 	classNames: ['textfield'],
-
-	change: function() {
-		if (this.get('action')) {
-			this.get('controller').send(this.get('action'),
-										this.get('value'));
-		}
-	},
 	
 	didInsertElement: function() {
 		this._super();
@@ -107,19 +100,21 @@ ASTool.TextField = Em.TextField.extend({
 });
 
 
+ASTool.LoginField = ASTool.TextField.extend({
+	change: function() {
+		if (this.get('action')) {
+			this.triggerAction(this.get('action'));
+		}
+	},
+});
+
+
 ASTool.TextArea = Em.TextArea.extend({
 	width:null,
 	placeholder: null,
 	resize: false,
 	attributeBindings: ['placeholder', 'width', 'resize'],
 	classNames: ['textarea'],
-
-	change: function() {
-		if (this.get('action')) {
-			this.get('controller').send(this.get('action'),
-										this.get('value'));
-		}
-	},
 	
 	didInsertElement: function() {
 		this._super();

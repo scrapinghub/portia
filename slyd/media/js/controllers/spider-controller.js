@@ -208,13 +208,14 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 					// This fetch has been cancelled.
 					return;
 				}
-				if (!data.error) {
+				if (!data.error && data.response.status == 200) {
 					data.url = url;
 					if (!skipHistory) {
 						this.get('browseHistory').pushObject(data.fp);
 					}
 					documentView.displayDocument(data.page,
 						function(docIframe){
+							console.log('DATA:', data);
 							documentView.hideLoading();
 							this.get('pendingFetches').removeObject(fetchId);
 							this.get('documentView').reset();
@@ -223,13 +224,13 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 											  dataSource: this });
 							this.set('loadedPageFp', data.fp);
 							this.get('pageMap')[data.fp] = data;
-							this.updateExtractedItems(data.items);
+							this.updateExtractedItems(data.items || []);
 						}.bind(this)
 					);
 				} else {
 					documentView.hideLoading();
 					this.get('pendingFetches').removeObject(fetchId);
-					documentView.showError(data.error);
+					documentView.showError(data.error || data.response.status);
 				}
 			}.bind(this)
 		);
@@ -302,6 +303,12 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			   'exclude_patterns.@each',
 			   'links_to_follow'),
 
+	attachAutoSave: function() {
+		this.get('model').addObserver('dirty', function() {
+			Ember.run.once(this, 'saveSpider');	
+		}.bind(this));
+	}.observes('model'),
+
 	saveSpider: function() {
 		this.set('saving', true);
 		return this.get('slyd').saveSpider(this.get('content')).then(function() {
@@ -352,16 +359,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 		deleteTemplate: function(template) {
 			this.get('templates').removeObject(template);
-		},
-
-		saveSpider: function() {
-			this.get('pendingFetches').setObjects([]);
-			this.saveSpider().then(function() {
-				if (this.get('loadedPageFp')) {
-					this.fetchPage(
-						this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
-				}
-			}.bind(this));
+			Ember.run.once(this, 'saveSpider');
 		},
 
 		fetchPage: function(url) {
@@ -449,6 +447,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				this.testSpider(this.get('start_urls').copy());
 			}
 		},
+
+		updateLoginInfo: function() {
+			Ember.run.once(this, 'saveSpider');
+		},
 	},
 
 	documentActions: {
@@ -472,7 +474,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				this.addStartUrls(newSpiderSite);
 				this.fetchPage(this.get('start_urls')[0]);
 				this.set('controllers.application.siteWizard', null);
-				this.saveSpider();
+				Ember.run.once(this, 'saveSpider');
 			});
 		}
 		if (this.get('autoloadTemplate')) {

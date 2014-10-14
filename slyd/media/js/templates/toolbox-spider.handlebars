@@ -39,11 +39,11 @@
 		{{#if performLogin}}
 			<div class="scrolling-container">
 				<div style="margin-top:10px"></div>
-				{{view ASTool.TextField value=loginUrl width='94%' name='loginUrlField' placeholder='Login URL'}}
+				{{view ASTool.LoginField value=loginUrl width='94%' name='loginUrlField' placeholder='Login URL' action='updateLoginInfo'}}
 				<div style="margin-top:5px"></div>
-				{{view ASTool.TextField value=loginUser width='94%' name='loginUserField' placeholder='Login user'}}
+				{{view ASTool.LoginField value=loginUser width='94%' name='loginUserField' placeholder='Login user' action='updateLoginInfo'}}
 				<div style="margin-top:5px"></div>
-				{{view ASTool.TextField value=loginPassword width='94%' name='loginPasswordField' placeholder='Login password'}}
+				{{view ASTool.LoginField value=loginPassword width='94%' name='loginPasswordField' placeholder='Login password' action='updateLoginInfo'}}
 			</div>
 		{{/if}}
 	</div>
@@ -127,6 +127,5 @@
 </div>
 
 <div style="margin-top:10px;text-align:center">
-	{{view ASTool.ButtonView action="saveSpider" icon="ui-icon-circle-arrow-n" label="Save spider" class="blue-button big"}}
 	{{view ASTool.ButtonView action="testSpider" argument=this icon="ui-icon-check" label=controller.testButtonLabel class="blue-button" title="Tests the spider on every start URL"}}
 </div>
