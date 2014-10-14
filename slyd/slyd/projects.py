@@ -66,15 +66,23 @@ _SCRAPY_TEMPLATE = \
 default = slybot.settings
 """
 
-def allowed_project_name(name):
-    return not _INVALID_PROJECT_RE.search(name)
+
+def run_in_thread(func):
+    '''A decorator to defer execution to a thread'''
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return deferToThread(func, *args, **kwargs)
+
+    return wrapper
 
 
 class ProjectsResource(SlydJsonResource):
 
-    def __init__(self, settings):
+    def __init__(self, settings, use_git):
         SlydJsonResource.__init__(self)
-        self.projectsdir = settings['SPEC_DATA_DIR']
+        self.settings = settings
+        self.use_git = use_git
 
     def getChildWithDefault(self, project_path_element, request):
         # TODO: check exists, user has access, etc.
@@ -89,6 +97,69 @@ class ProjectsResource(SlydJsonResource):
             raise NoResource("No such child resource.")
         request.prepath.append(project_path_element)
         return self.children[next_path_element]
+
+    def handle_project_command(self, projects_manager, command_spec):
+        command = command_spec.get('cmd')
+        dispatch_func = projects_manager.project_commands.get(command)
+        if dispatch_func is None:
+            self.bad_request(
+                "unrecognised cmd arg %s, available commands: %s" %
+                (command, ', '.join(projects_manager.project_commands.keys())))
+        args = command_spec.get('args', [])        
+        try:
+            retval = dispatch_func(*args)
+        except TypeError:
+            self.bad_request("incorrect args for %s" % command)
+        except OSError as ex:
+            if ex.errno == errno.ENOENT:
+                self.error(404, "Not Found", "No such resource")
+            elif ex.errno == errno.EEXIST or ex.errno == errno.ENOTEMPTY:
+                self.bad_request("A project with that name already exists")
+            raise
+        return retval or ''
+
+    def project_manager(self, request):
+        manager_class = self.use_git and GitProjectsManager or ProjectsManager
+        return manager_class(self.settings, request.user,
+            request.authorized_projects, request.apikey)
+
+    def render_GET(self, request):
+        project_manager = self.project_manager(request)
+        request.write(json.dumps(sorted(project_manager.list_projects())))
+        return '\n'
+
+    def render_POST(self, request):
+
+        def finish_request(val):
+            val and request.write(val)
+            request.finish()
+        
+        project_manager = self.project_manager(request)
+        obj = self.read_json(request)
+        retval = self.handle_project_command(project_manager, obj)
+        if isinstance(retval, Deferred):    
+            retval.addCallbacks(finish_request, None)
+            return NOT_DONE_YET
+        else:
+            return retval
+
+
+def allowed_project_name(name):
+    return not _INVALID_PROJECT_RE.search(name)
+
+
+class ProjectsManager(object):
+
+    def __init__(self, settings, user, auth_projects, apikey):
+        self.user = user
+        self.auth_projects = auth_projects
+        self.apikey = apikey
+        self.projectsdir = settings['SPEC_DATA_DIR']
+        self.project_commands = {
+            'create': self.create_project,
+            'mv': self.rename_project,
+            'rm': self.remove_project
+        }
 
     def list_projects(self):
         try:
@@ -137,75 +208,25 @@ class ProjectsResource(SlydJsonResource):
         if not allowed_project_name(name):
             self.bad_request('invalid project name %s' % project)
 
-    def handle_project_command(self, command_spec):
-        command = command_spec.get('cmd')
-        dispatch_func = self.project_commands.get(command)
-        if dispatch_func is None:
-            self.bad_request(
-                "unrecognised cmd arg %s, available commands: %s" %
-                (command, ', '.join(self.project_commands.keys())))
-        args = command_spec.get('args', [])        
-        try:
-            retval = dispatch_func(self, *args)
-        except TypeError:
-            self.bad_request("incorrect args for %s" % command)
-        except OSError as ex:
-            if ex.errno == errno.ENOENT:
-                self.error(404, "Not Found", "No such resource")
-            elif ex.errno == errno.EEXIST or ex.errno == errno.ENOTEMPTY:
-                self.bad_request("A project with that name already exists")
-            raise
-        return retval or ''
 
-    def render(self, request):
-        if hasattr(request, 'keystone_token_info'):
-            self.user = request.keystone_token_info['token']['user']['name']
-        elif hasattr(request, 'auth_info'):
-            self.user = request.auth_info['username']
-            self.authorized_projects = request.auth_info['projects']
-            self.apikey = request.auth_info['apikey']
-        return SlydJsonResource.render(self, request)
+class GitProjectsManager(ProjectsManager):
 
-    def render_GET(self, request):
-        request.write(json.dumps(sorted(self.list_projects())))
-        return '\n'
-
-    def render_POST(self, request):
-
-        def finish_request(val):
-            val and request.write(val)
-            request.finish()
-        
-        obj = self.read_json(request)
-        retval = self.handle_project_command(obj)
-        if isinstance(retval, Deferred):    
-            retval.addCallbacks(finish_request, None)
-            return NOT_DONE_YET
-        else:
-            return retval
-
-    project_commands = {
-        'create': create_project,
-        'mv': rename_project,
-        'rm': remove_project
-    }
-
-
-def run_in_thread(func):
-    '''A decorator to defer execution to a thread'''
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return deferToThread(func, *args, **kwargs)
-
-    return wrapper
-
-
-class GitProjectsResource(ProjectsResource):
-
-    def __init__(self, settings):
-        SlydJsonResource.__init__(self)
+    def __init__(self, settings, user, auth_projects, apikey):
+        ProjectsManager.__init__(self, settings, user, auth_projects, apikey)
         self.projectsdir = settings['GIT_SPEC_DATA_DIR']
+        self.project_commands = {
+            'create': self.create_project,
+            'mv': self.rename_project,
+            'rm': self.remove_project,
+            'edit': self.edit_project,
+            'publish': self.publish_project,
+            'export': self.export_project,
+            'discard': self.discard_changes,
+            'revisions': self.project_revisions,
+            'conflicts': self.conflicted_files,
+            'changes': self.changed_files,
+            'save': self.save_file,
+    }
 
     def _open_repo(self, name):
         return Repoman.open_repo(name)
@@ -214,7 +235,7 @@ class GitProjectsResource(ProjectsResource):
         #portia_projects = Repoman.list_repos()
         #dash_projects = map(str, dashclient.list_projects())
         #return sorted(set(portia_projects + dash_projects))
-        return self.authorized_projects
+        return self.auth_projects
 
     def create_project(self, name):
         self.validate_project_name(name)
@@ -270,17 +291,3 @@ class GitProjectsResource(ProjectsResource):
 
     def dash_projects(self):
         return json.dumps(dashclient.list_projects(self.apikey))
-
-    project_commands = {
-        'create': create_project,
-        'mv': ProjectsResource.rename_project,
-        'rm': remove_project,
-        'edit': edit_project,
-        'publish': publish_project,
-        'export': export_project,
-        'discard': discard_changes,
-        'revisions': project_revisions,
-        'conflicts': conflicted_files,
-        'changes': changed_files,
-        'save': save_file,
-    }

@@ -46,19 +46,18 @@ def annotate_templates(spider):
 
 class CrawlerSpecManager(object):
 
-    def __init__(self, settings, user='default', use_git_storage=False):
+    def __init__(self, settings, use_git_storage=False):
         self.settings = settings
         self.use_git = use_git_storage
         settings_key = self.use_git and 'GIT_SPEC_DATA_DIR' or 'SPEC_DATA_DIR'
         self.basedir = self.settings[settings_key]
-        self.user = user
 
     def project_spec_class(self):
         return self.use_git and GitProjectSpec or ProjectSpec
 
-    def project_spec(self, project, user=None):
+    def project_spec(self, project, user):
         spec = GitProjectSpec(str(project)) if self.use_git else ProjectSpec(join(self.basedir, str(project)))
-        spec.user = user or self.user
+        spec.user = user
         return spec
 
 
@@ -200,10 +199,6 @@ class SpecResource(SlydJsonResource):
         }
 
     def render(self, request):
-        if hasattr(request, 'keystone_token_info'):
-            self.user = request.keystone_token_info['token']['user']['name']
-        elif hasattr(request, 'auth_info'):
-            self.user = request.auth_info['username']
         # make sure the path is safe
         for pathelement in request.postpath:
             if pathelement and not allowed_spider_name(pathelement):
@@ -214,8 +209,8 @@ class SpecResource(SlydJsonResource):
         return SlydJsonResource.render(self, request)
 
     def render_GET(self, request):
-        project_spec = self.spec_manager.project_spec(request.project,
-            self.user)
+        project_spec = self.spec_manager.project_spec(
+            request.project, request.user)
         rpath = request.postpath
         if not rpath:
             project_spec.json(request)
@@ -232,8 +227,8 @@ class SpecResource(SlydJsonResource):
 
     def render_POST(self, request):
         obj = self.read_json(request)
-        project_spec = self.spec_manager.project_spec(request.project,
-            self.user)
+        project_spec = self.spec_manager.project_spec(
+            request.project, request.user)
         try:
             # validate the request path and data
             resource = request.postpath[0]
