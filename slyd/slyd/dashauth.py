@@ -104,13 +104,16 @@ class ServiceRoot(Resource):
 
     def getChildWithDefault(self, path, request):
         request.auth_info = self.auth_info
-        return resource.Resource.getChildWithDefault(self, path, request)
+        request.user = request.auth_info['username']
+        request.authorized_projects = request.auth_info['projects']
+        request.apikey = request.auth_info['apikey']
+        return Resource.getChildWithDefault(self, path, request)
 
 
 class MyResource(Resource):
 
     def __init__(self):
-        resource.Resource.__init__(self)
+        Resource.__init__(self)
 
     def getChild(self, path, request):
         text = "AUTHORIZED. This is your auth info: %s" % json.dumps(
