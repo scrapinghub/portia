@@ -127,7 +127,13 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 		if (this.get('init_requests') == null) {
 			this.set('init_requests', []);
 		}
-	},
+    	
+    	this.get('serializedProperties').forEach(function(prop) {
+    		this.addObserver(prop + '.[]', function() {
+    			this.notifyPropertyChange('dirty');
+    		}.bind(this));	
+    	}.bind(this));
+  	},
 
 	performLogin: function(key, performLogin) {
 		if (arguments.length > 1) {
@@ -143,7 +149,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 	loginUrl: function(key, loginUrl) {
 		var reqs = this.get('init_requests');
 		if (arguments.length > 1) {
-			reqs[0]['loginurl'] = loginUrl;	
+			reqs[0]['loginurl'] = loginUrl;
 		}
 		return reqs.length ? reqs[0]['loginurl'] : null;
 	}.property('init_requests'),
