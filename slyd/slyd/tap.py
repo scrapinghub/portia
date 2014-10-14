@@ -15,15 +15,12 @@ from .dashauth import ResourceShield, ServiceRoot
 
 DEFAULT_PORT = 9001
 DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
-DEFAULT_USER = 'defaultuser'
 
 
 class Options(usage.Options):
     optParameters = [
         ['port', 'p', DEFAULT_PORT, 'Port number to listen on.', int],
         ['docroot', 'd', DEFAULT_DOCROOT, 'Default doc root for static media.'],
-        # This flag is for development purposes only. It will be removed soon.
-        ['user', 'u', DEFAULT_USER, 'A user to attribute changes to.'],
     ]
     optFlags = [
         ['use_git', 'g', 'Use git storage instead of plain json files.']
@@ -45,14 +42,13 @@ def create_root(config):
         create_crawler_spec_resource)
     from slyd.bot import create_bot_resource
     import slyd.settings
-    from slyd.projects import ProjectsResource, GitProjectsResource
+    from slyd.projects import ProjectsResource
 
     shield = ResourceShield()
     root = ServiceRoot('portia')
     root.putChild("static", File(config['docroot']))
 
     use_git = config['use_git']
-    user = config['user']
 
     # add server capabilities at /server_capabilities
     capabilities = Capabilities()
@@ -61,14 +57,10 @@ def create_root(config):
 
     crawler_settings = Settings()
     crawler_settings.setmodule(slyd.settings)
-    spec_manager = CrawlerSpecManager(crawler_settings, user, use_git)
+    spec_manager = CrawlerSpecManager(crawler_settings, use_git)
 
     # add project management at /projects
-    if use_git:
-        projects = GitProjectsResource(crawler_settings)
-        projects.user = user
-    else:
-        projects = ProjectsResource(crawler_settings)
+    projects = ProjectsResource(crawler_settings, use_git)    
     root.putChild('projects', projects)
 
     # add crawler at /projects/PROJECT_ID/bot
