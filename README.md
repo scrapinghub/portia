@@ -74,9 +74,15 @@ Portia spiders are ultimately [Scrapy] spiders. You can pass __scrapy__ spider a
 Deploy with [scrapyd]
 =====================
 
-Portia spiders can be deployed to [scrapyd] just like a scrapy spider: go to ``slyd/projects/project_namae`` and run
+Portia spiders can be deployed to [scrapyd] just like a scrapy spider: change directory to ``slyd/projects/your_project_name`` and run:
 
-	scrapy-deploy your_scrapyd_target -p project_name
+	scrapyd-deploy your_scrapyd_target -p project_name
+
+and then schedule your spider with:
+
+    curl http://your_scrapyd_host:6800/schedule.json -d project=your_project_name -d spider=your_spider_name
+
+you can find more documents from [scrapyd].
 
 Running portia with [vagrant]
 =============================
