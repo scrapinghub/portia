@@ -86,9 +86,11 @@ ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
 		var serialized = this.getProperties(this.get('serializedProperties'));
 		if (!Em.isEmpty(this.get('serializedRelations'))) {
 			this.get('serializedRelations').forEach(function(relation) {
-				serialized[relation] = this.get(relation).map(function(relatedObject) {
-					return relatedObject.serialize();
-				});
+				if (!Em.isEmpty(this.get(relation))) {
+					serialized[relation] = this.get(relation).map(function(relatedObject) {
+						return relatedObject.serialize();
+					});	
+				}
 			}.bind(this));	
 		}
 		return serialized;

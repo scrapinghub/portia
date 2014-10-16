@@ -305,13 +305,13 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	attachAutoSave: function() {
 		this.get('model').addObserver('dirty', function() {
-			Ember.run.once(this, 'saveSpider');	
+			Ember.run.once(this, 'saveSpider', [true]);	
 		}.bind(this));
 	}.observes('model'),
 
-	saveSpider: function() {
+	saveSpider: function(exclude_templates) {
 		this.set('saving', true);
-		return this.get('slyd').saveSpider(this.get('content')).then(function() {
+		return this.get('slyd').saveSpider(this.get('content'), exclude_templates).then(function() {
 			this.set('saving', false);
 		}.bind(this));
 	},
@@ -426,7 +426,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.set('content.name', newName);
 			this.get('slyd').renameSpider(oldName, newName).then(
 				function() {
-					this.replaceRoute('spider', this.get('content'));
+					this.replaceRoute('spider', newName);
 				}.bind(this),
 				function(reason) {
 					this.set('name', oldName);
@@ -449,7 +449,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		updateLoginInfo: function() {
-			Ember.run.once(this, 'saveSpider');
+			Ember.run.once(this, 'saveSpider', [true]);
 		},
 	},
 

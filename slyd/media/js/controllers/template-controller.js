@@ -270,7 +270,8 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 
 		rename: function(oldName, newName) {
-			this.replaceRoute('template', this.get('model'));
+			this.saveAnnotations();
+			this.replaceRoute('template', newName);
 		},
 
 		createExtractor: function() {

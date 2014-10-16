@@ -36,11 +36,12 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 			  'templates': [] });
 		this.pushObject(newSpiderName);
 		this.set('spiderPage', null);
-		return this.get('slyd').saveSpider(spider, newSpiderName).then(function() {
+		return this.get('slyd').saveSpider(spider).then(function() {
 				this.editSpider(newSpiderName);
 			}.bind(this), function(error) {
 				console.log(error);
-			});
+			}
+		);
 	},
 
 	editSpider: function(spiderName) {
