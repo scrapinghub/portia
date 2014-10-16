@@ -67,6 +67,10 @@ default = slybot.settings
 """
 
 
+def create_projects_manager_resource(spec_manager):
+    return ProjectsManagerResource(spec_manager)
+
+
 def run_in_thread(func):
     '''A decorator to defer execution to a thread'''
 
@@ -77,17 +81,13 @@ def run_in_thread(func):
     return wrapper
 
 
-class ProjectsResource(SlydJsonResource):
+class ProjectsManagerResource(SlydJsonResource):
 
-    def __init__(self, settings, use_git):
+    def __init__(self, spec_manager):
         SlydJsonResource.__init__(self)
-        self.settings = settings
-        self.use_git = use_git
+        self.spec_manager = spec_manager
 
     def getChildWithDefault(self, project_path_element, request):
-        # TODO: check exists, user has access, etc.
-        # rely on the CrawlerSpec for this as storage and auth
-        # can be customized
         request.project = project_path_element
         try:
             next_path_element = request.postpath.pop(0)
@@ -118,13 +118,8 @@ class ProjectsResource(SlydJsonResource):
             raise
         return retval or ''
 
-    def project_manager(self, request):
-        manager_class = self.use_git and GitProjectsManager or ProjectsManager
-        return manager_class(self.settings, request.user,
-            request.authorized_projects, request.apikey)
-
     def render_GET(self, request):
-        project_manager = self.project_manager(request)
+        project_manager = self.spec_manager.project_manager(request)
         request.write(json.dumps(sorted(project_manager.list_projects())))
         return '\n'
 
@@ -134,7 +129,7 @@ class ProjectsResource(SlydJsonResource):
             val and request.write(val)
             request.finish()
         
-        project_manager = self.project_manager(request)
+        project_manager = self.spec_manager.project_manager(request)
         obj = self.read_json(request)
         retval = self.handle_project_command(project_manager, obj)
         if isinstance(retval, Deferred):    
@@ -150,11 +145,11 @@ def allowed_project_name(name):
 
 class ProjectsManager(object):
 
-    def __init__(self, settings, user, auth_projects, apikey):
+    def __init__(self, projectsdir, user, auth_projects, apikey):
         self.user = user
         self.auth_projects = auth_projects
         self.apikey = apikey
-        self.projectsdir = settings['SPEC_DATA_DIR']
+        self.projectsdir = projectsdir
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,
@@ -211,9 +206,8 @@ class ProjectsManager(object):
 
 class GitProjectsManager(ProjectsManager):
 
-    def __init__(self, settings, user, auth_projects, apikey):
-        ProjectsManager.__init__(self, settings, user, auth_projects, apikey)
-        self.projectsdir = settings['GIT_SPEC_DATA_DIR']
+    def __init__(self, projectsdir, user, auth_projects, apikey):
+        ProjectsManager.__init__(self, projectsdir, user, auth_projects, apikey)
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,
@@ -288,6 +282,3 @@ class GitProjectsManager(ProjectsManager):
     def save_file(self, name, file_path, file_contents):
         self._open_repo(name).save_file(file_path,
             json.dumps(file_contents, sort_keys=True, indent=4), self.user)
-
-    def dash_projects(self):
-        return json.dumps(dashclient.list_projects(self.apikey))
