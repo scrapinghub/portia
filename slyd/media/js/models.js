@@ -90,6 +90,8 @@ ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
 					serialized[relation] = this.get(relation).map(function(relatedObject) {
 						return relatedObject.serialize();
 					});	
+				} else {
+					serialized[relation] = [];
 				}
 			}.bind(this));	
 		}
