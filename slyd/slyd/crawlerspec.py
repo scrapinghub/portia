@@ -10,7 +10,6 @@ import json, re, shutil, errno, os
 from os.path import join, splitext, split
 from twisted.web.resource import NoResource, ForbiddenResource
 from jsonschema.exceptions import ValidationError
-from slybot.utils import open_project_from_dir
 from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 from .annotations import apply_annotations
@@ -18,8 +17,8 @@ from .html import html4annotation
 from .repoman import Repoman
 
 
-def create_crawler_spec_resource(spec_manager):
-    return SpecResource(spec_manager)
+def create_project_resource(spec_manager):
+    return ProjectResource(spec_manager)
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
 _INVALID_SPIDER_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
@@ -42,23 +41,6 @@ def annotate_templates(spider):
         for template in spider['templates']:
             template['annotated_body'] = apply_annotations(
                 template['annotated_body'], template['original_body'])
-
-
-class CrawlerSpecManager(object):
-
-    def __init__(self, settings, use_git_storage=False):
-        self.settings = settings
-        self.use_git = use_git_storage
-        settings_key = self.use_git and 'GIT_SPEC_DATA_DIR' or 'SPEC_DATA_DIR'
-        self.basedir = self.settings[settings_key]
-
-    def project_spec_class(self):
-        return self.use_git and GitProjectSpec or ProjectSpec
-
-    def project_spec(self, project, user):
-        spec = GitProjectSpec(str(project)) if self.use_git else ProjectSpec(join(self.basedir, str(project)))
-        spec.user = user
-        return spec
 
 
 class ProjectSpec(object):
@@ -187,7 +169,7 @@ class GitProjectSpec(ProjectSpec):
             json.dumps(obj, sort_keys=True, indent=4), self.user)
 
 
-class SpecResource(SlydJsonResource):
+class ProjectResource(SlydJsonResource):
     isLeaf = True
 
     def __init__(self, spec_manager):

@@ -9,8 +9,7 @@ from twisted.web.resource import Resource
 from twisted.application.internet import TCPServer
 from twisted.web.server import Site
 from twisted.web.static import File
-from slyd.resource import SlydJsonObjectResource
-#from txkeystoneauth.shield import ResourceShield, ServiceRoot
+from .resource import SlydJsonObjectResource
 from .dashauth import ResourceShield, ServiceRoot
 
 DEFAULT_PORT = 9001
@@ -23,7 +22,7 @@ class Options(usage.Options):
         ['docroot', 'd', DEFAULT_DOCROOT, 'Default doc root for static media.'],
     ]
     optFlags = [
-        ['use_git', 'g', 'Use git storage instead of plain json files.']
+        ['use_git', 'g', 'Use git storage instead of plain json files.'],
     ]
 
 
@@ -32,17 +31,20 @@ class Capabilities(SlydJsonObjectResource):
     version_control = False
 
     def render_GET(self, request):
-        return { 'version_control': self.version_control }
+        return {
+            'version_control': self.version_control,
+        }
 
 
 def create_root(config):
     from scrapy import log
     from scrapy.settings import Settings
-    from slyd.crawlerspec import (CrawlerSpecManager,
-        create_crawler_spec_resource)
+    from .configmanager import ConfigManager
+    from .crawlerspec import create_project_resource
     from slyd.bot import create_bot_resource
+    from slyd.projects import create_projects_manager_resource
+
     import slyd.settings
-    from slyd.projects import ProjectsResource
 
     shield = ResourceShield()
     root = ServiceRoot('portia')
@@ -55,21 +57,21 @@ def create_root(config):
     capabilities.version_control = bool(use_git)
     root.putChild('server_capabilities', capabilities)
 
-    crawler_settings = Settings()
-    crawler_settings.setmodule(slyd.settings)
-    spec_manager = CrawlerSpecManager(crawler_settings, use_git)
+    settings = Settings()
+    settings.setmodule(slyd.settings)
+    config_manager = ConfigManager(settings, use_git)
 
-    # add project management at /projects
-    projects = ProjectsResource(crawler_settings, use_git)    
+    # add projects manager at /projects
+    projects = create_projects_manager_resource(config_manager)
     root.putChild('projects', projects)
 
     # add crawler at /projects/PROJECT_ID/bot
-    log.msg("Slybot specs loading from %s/[PROJECT]" % spec_manager.basedir,
+    log.msg("Slybot specs loading from %s/[PROJECT]" % config_manager.basedir,
         level=log.DEBUG)
-    projects.putChild("bot", create_bot_resource(spec_manager))
+    projects.putChild("bot", create_bot_resource(config_manager))
 
-    # add spec at /projects/PROJECT_ID/spec
-    spec = create_crawler_spec_resource(spec_manager)
+    # add project spec at /projects/PROJECT_ID/spec
+    spec = create_project_resource(config_manager)
     projects.putChild("spec", spec)
     #return root
     return shield.protectResource(root)
