@@ -164,7 +164,10 @@ class Repoman(object):
 
     def file_contents_for_branch(self, file_path, branch_name):
         '''Returns the the contents of file_path for the given branch.'''
-        return self.blob_for_branch(file_path, branch_name).as_raw_string()
+        try:
+            return self.blob_for_branch(file_path, branch_name).as_raw_string()
+        except KeyError:
+            return None
 
     def list_files_for_branch(self, branch_name):
         '''Returns a list containing all file names for the given branch.'''
@@ -265,7 +268,7 @@ class Repoman(object):
             return False
 
         files_content = ((file_path, loads(self.file_contents_for_branch(
-            file_path, branch_name))) for
+            file_path, branch_name) or '{}')) for
                 file_path in self.get_branch_changed_files(branch_name))
         return { file_path: content for file_path, content in files_content if
             has_conflict(content) }
