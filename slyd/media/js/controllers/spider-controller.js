@@ -215,7 +215,6 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 					}
 					documentView.displayDocument(data.page,
 						function(docIframe){
-							console.log('DATA:', data);
 							documentView.hideLoading();
 							this.get('pendingFetches').removeObject(fetchId);
 							this.get('documentView').reset();
@@ -329,9 +328,11 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				function(data) {
 					if (this.get('pendingFetches').indexOf(fetchId) != -1) {
 						this.get('pendingFetches').removeObject(fetchId);
-						data.items.forEach(function(item) {
-							this.get('extractedItems').pushObject(this.wrapItem(item));
-						}, this);
+						if (!Em.isEmpty(data.items)) {
+							data.items.forEach(function(item) {
+								this.get('extractedItems').pushObject(this.wrapItem(item));
+							}, this);	
+						}
 						this.testSpider(urls.splice(1));
 					} else {
 						this.set('testing', false);
