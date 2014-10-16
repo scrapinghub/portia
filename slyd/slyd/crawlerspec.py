@@ -225,7 +225,7 @@ class SpecResource(SlydJsonResource):
                 project_spec.writejson(request, *rpath)
         return '\n'
 
-    def render_POST(self, request):
+    def render_POST(self, request, merge=False):
         obj = self.read_json(request)
         project_spec = self.spec_manager.project_spec(
             request.project, request.user)
@@ -237,6 +237,11 @@ class SpecResource(SlydJsonResource):
                     return self.handle_spider_command(project_spec, obj)
                 annotate_templates(obj)
                 resource = 'spider'
+            if merge:
+                current = json.loads(
+                    project_spec._rfile_contents(request.postpath))
+                current.update(obj)
+                obj = current
             get_schema_validator(resource).validate(obj)
         except (KeyError, IndexError) as _ex:
             self.error(404, "Not Found", "No such resource")
@@ -244,6 +249,9 @@ class SpecResource(SlydJsonResource):
             self.bad_request("Json failed validation: %s" % ex.message)
         project_spec.savejson(obj, request.postpath)
         return ''
+
+    def render_PUT(self, request):
+        return self.render_POST(request, merge=True)
 
     def handle_spider_command(self, project_spec, command_spec):
         command = command_spec.get('cmd')

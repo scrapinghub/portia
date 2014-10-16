@@ -173,12 +173,17 @@ ASTool.SlydApi = Em.Object.extend({
   	@for ASTool.SlydApi
   	@param {String} [spiderName] the name of the spider.
   	@param {Object} [spiderData] a JSON object containing the spider spec.
-  	@return {Promise} a promise that fulfills when the server responds.
+  	@param {Bool} [excludeTemplates] if true, don't save spider templates.
+  	@return {Promise} promise that fulfills when the server responds.
 	*/
-	saveSpider: function(spider) {
+	saveSpider: function(spider, excludeTemplates) {
 		var hash = {};
-		hash.type = 'POST';
+		hash.type = excludeTemplates ? 'PUT' : 'POST';
 		var spiderName = spider.get('name');
+		if (excludeTemplates) {
+			spider = Em.copy(spider);
+			delete spider['templates'];
+		}
 		hash.data = JSON.stringify(spider.serialize());
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
