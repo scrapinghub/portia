@@ -15,6 +15,9 @@ DATA_DIR = join(dirname(dirname(__file__)), 'data')
 SPEC_DATA_DIR = join(DATA_DIR, 'projects')
 GIT_SPEC_DATA_DIR = join(DATA_DIR, 'gitprojects')
 
+# use slyd.dummyauth.protectResource for no auth
+PORTIA_AUTH = 'slyd.dashauth.protectResource'
+
 # recommended for development - use scrapy to cache http responses
 # add them to local_settings.py
 # HTTPCACHE_ENABLED = True

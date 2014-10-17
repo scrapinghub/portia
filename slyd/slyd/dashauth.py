@@ -81,52 +81,26 @@ class ProtectedRealm(object):
         raise NotImplementedError()
 
 
-class ResourceShield(object):
-    """Protects resources by requiring appropriate apikey credentials."""
+class AuthResource(Resource):
+    """A simple wrapper that injects auth info to every passing request."""
 
-    def protectResource(self, resource):
-        """Protect the given resource by enforcing apikey based auth."""
-        p = portal.Portal(ProtectedRealm(resource),
-            [ApiKeyChecker()])
-        if hasattr(resource, 'name'):
-            name = resource.name
-        else:
-            name = ""
-        return HTTPAuthSessionWrapper(p, [BasicCredentialFactory(name)])
-
-
-class ServiceRoot(Resource):
-    """A simple resource that injects auth info to every passing request."""
-
-    def __init__(self, name):
+    def __init__(self, resource):
         Resource.__init__(self)
-        self.name = name
+        self.wrapped = resource
 
     def getChildWithDefault(self, path, request):
-        request.auth_info = self.auth_info
-        request.user = request.auth_info['username']
-        request.authorized_projects = request.auth_info['projects']
-        request.apikey = request.auth_info['apikey']
-        return Resource.getChildWithDefault(self, path, request)
+        request.auth_info = {
+            'username': self.auth_info['username'],
+            'authorized_projects': map(str, self.auth_info['projects']),
+            'service_token': self.auth_info['apikey'],
+        }
+        # Don't consume any segments.
+        request.postpath.insert(0, request.prepath.pop())
+        return self.wrapped
 
 
-class MyResource(Resource):
-
-    def __init__(self):
-        Resource.__init__(self)
-
-    def getChild(self, path, request):
-        text = "AUTHORIZED. This is your auth info: %s" % json.dumps(
-            request.auth_info, indent=4)
-        return static.Data(text, "text/plain")
-
-
-if __name__ == "__main__":
-    # Usage example.
-    shield = ResourceShield()
-    root = ServiceRoot("Test service")
-    root.putChild("example", MyResource())
-    site = server.Site(shield.protectResource(root))
-    site.protocol = HTTPChannel
-    reactor.listenTCP(8801, site)
-    reactor.run()
+def protectResource(resource, name=''):
+    """Protect the given resource by enforcing apikey based auth."""
+    wrapped = AuthResource(resource)
+    p = portal.Portal(ProtectedRealm(wrapped), [ApiKeyChecker()])
+    return HTTPAuthSessionWrapper(p, [BasicCredentialFactory(name)])

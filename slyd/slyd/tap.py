@@ -10,7 +10,7 @@ from twisted.application.internet import TCPServer
 from twisted.web.server import Site
 from twisted.web.static import File
 from .resource import SlydJsonObjectResource
-from .dashauth import ResourceShield, ServiceRoot
+from .dashauth import protectResource
 
 DEFAULT_PORT = 9001
 DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
@@ -38,7 +38,7 @@ class Capabilities(SlydJsonObjectResource):
 
 def create_root(config):
     from scrapy import log
-    from scrapy.settings import Settings
+    from scrapy.settings import Settings 
     from .configmanager import ConfigManager
     from .crawlerspec import create_project_resource
     from slyd.bot import create_bot_resource
@@ -46,8 +46,7 @@ def create_root(config):
 
     import slyd.settings
 
-    shield = ResourceShield()
-    root = ServiceRoot('portia')
+    root = Resource()
     root.putChild("static", File(config['docroot']))
 
     use_git = config['use_git']
@@ -73,8 +72,7 @@ def create_root(config):
     # add project spec at /projects/PROJECT_ID/spec
     spec = create_project_resource(config_manager)
     projects.putChild("spec", spec)
-    #return root
-    return shield.protectResource(root)
+    return config_manager.resource_protector(root, 'portia')
 
 
 def makeService(config):

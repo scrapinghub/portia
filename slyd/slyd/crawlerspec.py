@@ -47,12 +47,19 @@ class ProjectSpec(object):
 
     resources = ('project', 'items', 'extractors')
 
-    def __init__(self, projectdir):
-        self.projectdir = projectdir
+    def __init__(self, project_name, project_dir, auth_info):
+        self.project_name = project_name
+        self.project_dir = project_dir
+        self.auth_info = auth_info
+        self.user = auth_info['username']
+        self.spider_commands = {
+            'mv': self.rename_spider,
+            'rm': self.remove_spider
+        }
 
     def list_spiders(self):
         try:
-            for fname in os.listdir(join(self.projectdir, "spiders")):
+            for fname in os.listdir(join(self.project_dir, "spiders")):
                 if fname.endswith(".json"):
                     yield splitext(fname)[0]
         except OSError as ex:
@@ -82,7 +89,7 @@ class ProjectSpec(object):
         os.remove(self._rfilename('spiders', name))
 
     def _rfilename(self, *resources):
-        return join(self.projectdir, *resources) + '.json'
+        return join(self.project_dir, *resources) + '.json'
 
     def _rfile(self, resources, mode='rb'):
         return open(self._rfilename(*resources), mode)
@@ -133,10 +140,9 @@ class ProjectSpec(object):
 
 class GitProjectSpec(ProjectSpec):
 
-    def __init__(self, project_name):
-        self.projectdir = ''
-        self.project_name = project_name
-        self.user = None
+    def __init__(self, *args, **kwargs):
+        ProjectSpec.__init__(self, *args, **kwargs)
+        self.project_dir = ''
 
     def _open_repo(self):
         return Repoman.open_repo(self.project_name)
@@ -175,10 +181,6 @@ class ProjectResource(SlydJsonResource):
     def __init__(self, spec_manager):
         SlydJsonResource.__init__(self)
         self.spec_manager = spec_manager
-        self.spider_commands = {
-            'mv': spec_manager.project_spec_class().rename_spider,
-            'rm': spec_manager.project_spec_class().remove_spider
-        }
 
     def render(self, request):
         # make sure the path is safe
@@ -192,7 +194,7 @@ class ProjectResource(SlydJsonResource):
 
     def render_GET(self, request):
         project_spec = self.spec_manager.project_spec(
-            request.project, request.user)
+            request.project, request.auth_info)
         rpath = request.postpath
         if not rpath:
             project_spec.json(request)
@@ -210,7 +212,7 @@ class ProjectResource(SlydJsonResource):
     def render_POST(self, request, merge=False):
         obj = self.read_json(request)
         project_spec = self.spec_manager.project_spec(
-            request.project, request.user)
+            request.project, request.auth_info)
         try:
             # validate the request path and data
             resource = request.postpath[0]
@@ -237,12 +239,12 @@ class ProjectResource(SlydJsonResource):
 
     def handle_spider_command(self, project_spec, command_spec):
         command = command_spec.get('cmd')
-        dispatch_func = self.spider_commands.get(command)
+        dispatch_func = project_spec.spider_commands.get(command)
         if dispatch_func is None:
             self.bad_request(
                 "unrecognised cmd arg %s, available commands: %s" %
-                (command, ', '.join(self.spider_commands.keys())))
-        args = map(str, command_spec.get('args', []))
+                (command, ', '.join(projects_manager.project_commands.keys())))
+        args = command_spec.get('args', [])       
         for spider in args:
             if not allowed_spider_name(spider):
                 self.bad_request('invalid spider name %s' % spider)
