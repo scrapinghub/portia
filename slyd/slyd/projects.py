@@ -9,7 +9,7 @@ pages and project spec manipulation.
 import json, re, shutil, errno, os
 from os.path import join
 from functools import wraps
-from twisted.web.resource import NoResource
+from twisted.web.resource import NoResource, ErrorPage
 from twisted.internet.threads import deferToThread
 from twisted.web.server import NOT_DONE_YET
 from twisted.internet.defer import Deferred
@@ -88,15 +88,21 @@ class ProjectsManagerResource(SlydJsonResource):
         self.spec_manager = spec_manager
 
     def getChildWithDefault(self, project_path_element, request):
-        request.project = project_path_element
-        try:
-            next_path_element = request.postpath.pop(0)
-        except IndexError:
-            next_path_element = None
-        if next_path_element not in self.children:
-            raise NoResource("No such child resource.")
-        request.prepath.append(project_path_element)
-        return self.children[next_path_element]
+        auth_info = request.auth_info
+        if (not 'authorized_projects' in auth_info or
+            project_path_element in auth_info['authorized_projects']):
+            request.project = project_path_element
+            try:
+                next_path_element = request.postpath.pop(0)
+            except IndexError:
+                next_path_element = None
+            if next_path_element not in self.children:
+                raise NoResource("No such child resource.")
+            request.prepath.append(project_path_element)
+            return self.children[next_path_element]
+        else:
+            return ErrorPage(
+                403, "Forbidden", "You don't have access to this project.")
 
     def handle_project_command(self, projects_manager, command_spec):
         command = command_spec.get('cmd')
@@ -119,7 +125,7 @@ class ProjectsManagerResource(SlydJsonResource):
         return retval or ''
 
     def render_GET(self, request):
-        project_manager = self.spec_manager.project_manager(request)
+        project_manager = self.spec_manager.project_manager(request.auth_info)
         request.write(json.dumps(sorted(project_manager.list_projects())))
         return '\n'
 
@@ -129,7 +135,7 @@ class ProjectsManagerResource(SlydJsonResource):
             val and request.write(val)
             request.finish()
         
-        project_manager = self.spec_manager.project_manager(request)
+        project_manager = self.spec_manager.project_manager(request.auth_info)
         obj = self.read_json(request)
         retval = self.handle_project_command(project_manager, obj)
         if isinstance(retval, Deferred):    
@@ -145,10 +151,9 @@ def allowed_project_name(name):
 
 class ProjectsManager(object):
 
-    def __init__(self, projectsdir, user, auth_projects, apikey):
-        self.user = user
-        self.auth_projects = auth_projects
-        self.apikey = apikey
+    def __init__(self, projectsdir, auth_info):
+        self.auth_info = auth_info
+        self.user = auth_info['username']
         self.projectsdir = projectsdir
         self.project_commands = {
             'create': self.create_project,
@@ -156,7 +161,7 @@ class ProjectsManager(object):
             'rm': self.remove_project
         }
 
-    def list_projects(self):
+    def all_projects(self):
         try:
             for fname in os.listdir(self.projectsdir):
                 if os.path.isdir(os.path.join(self.projectsdir, fname)):
@@ -164,6 +169,12 @@ class ProjectsManager(object):
         except OSError as ex:
             if ex.errno != errno.ENOENT:
                 raise
+
+    def list_projects(self):
+        if 'authorized_projects' in self.auth_info:
+            return self.auth_info['authorized_projects']
+        else:
+            return self.all_projects()
 
     def create_project(self, name):
         self.validate_project_name(name)
@@ -206,8 +217,8 @@ class ProjectsManager(object):
 
 class GitProjectsManager(ProjectsManager):
 
-    def __init__(self, projectsdir, user, auth_projects, apikey):
-        ProjectsManager.__init__(self, projectsdir, user, auth_projects, apikey)
+    def __init__(self, projectsdir, auth_info):
+        ProjectsManager.__init__(self, projectsdir, auth_info)
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,
@@ -225,11 +236,8 @@ class GitProjectsManager(ProjectsManager):
     def _open_repo(self, name):
         return Repoman.open_repo(name)
 
-    def list_projects(self):
-        #portia_projects = Repoman.list_repos()
-        #dash_projects = map(str, dashclient.list_projects())
-        #return sorted(set(portia_projects + dash_projects))
-        return self.auth_projects
+    def all_projects(self):
+        return Repoman.list_repos()
 
     def create_project(self, name):
         self.validate_project_name(name)
@@ -243,7 +251,8 @@ class GitProjectsManager(ProjectsManager):
         if Repoman.repo_exists(name):
             repoman = self._open_repo(name)
         else:
-            repoman = dashclient.import_project(name, self.apikey)
+            repoman = dashclient.import_project(name,
+                self.auth_info['service_token'])
         revision = repoman.get_branch(revision)
         if not repoman.has_branch(self.user):
             repoman.create_branch(self.user, revision)
@@ -259,7 +268,7 @@ class GitProjectsManager(ProjectsManager):
 
     @run_in_thread
     def export_project(self, name):
-        dashclient.export_project(name, self.apikey)
+        dashclient.export_project(name, self.auth_info['service_token'])
         return 'OK'
 
     def discard_changes(self, name):

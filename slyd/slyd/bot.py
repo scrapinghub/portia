@@ -118,7 +118,8 @@ class Fetch(BotResource):
                 headers=response.headers.to_string())
             result = dict(page=cleaned_html, original=original_html, fp=fingerprint,
                 response=result_response)
-            spider = self.create_spider(request.project, params)
+            spider = self.create_spider(
+                request.project, request.auth_info, params)
             if spider is not None:
                 items = []
                 links = []
@@ -138,11 +139,11 @@ class Fetch(BotResource):
             finish_request(request, response=result_response,
                 error="unexpected internal error: %s" % ex)
 
-    def create_spider(self, project, params, **kwargs):
+    def create_spider(self, project, auth_info, params, **kwargs):
         spider = params.get('spider')
         if spider is None:
             return
-        pspec = self.bot.spec_manager.project_spec(project, self.user)
+        pspec = self.bot.spec_manager.project_spec(project, auth_info)
         try:
             spider_spec = pspec.resource('spiders', spider)
             items_spec = pspec.resource('items')
