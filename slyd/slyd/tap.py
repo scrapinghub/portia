@@ -10,7 +10,6 @@ from twisted.application.internet import TCPServer
 from twisted.web.server import Site
 from twisted.web.static import File
 from .resource import SlydJsonObjectResource
-from .dashauth import protectResource
 
 DEFAULT_PORT = 9001
 DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
@@ -21,18 +20,18 @@ class Options(usage.Options):
         ['port', 'p', DEFAULT_PORT, 'Port number to listen on.', int],
         ['docroot', 'd', DEFAULT_DOCROOT, 'Default doc root for static media.'],
     ]
-    optFlags = [
-        ['use_git', 'g', 'Use git storage instead of plain json files.'],
-    ]
 
 
 class Capabilities(SlydJsonObjectResource):
+    
     isLeaf = True
-    version_control = False
+
+    def __init__(self, config_manager):
+        self.config_manager = config_manager
 
     def render_GET(self, request):
         return {
-            'version_control': self.version_control,
+            'version_control': self.config_manager.supports_version_control,
         }
 
 
@@ -40,7 +39,7 @@ def create_root(config):
     from scrapy import log
     from scrapy.settings import Settings 
     from .configmanager import ConfigManager
-    from .crawlerspec import create_project_resource
+    from .projectspec import create_project_resource
     from slyd.bot import create_bot_resource
     from slyd.projects import create_projects_manager_resource
 
@@ -49,24 +48,19 @@ def create_root(config):
     root = Resource()
     root.putChild("static", File(config['docroot']))
 
-    use_git = config['use_git']
-
-    # add server capabilities at /server_capabilities
-    capabilities = Capabilities()
-    capabilities.version_control = bool(use_git)
-    root.putChild('server_capabilities', capabilities)
-
     settings = Settings()
     settings.setmodule(slyd.settings)
-    config_manager = ConfigManager(settings, use_git)
+    config_manager = ConfigManager(settings)
+
+    # add server capabilities at /server_capabilities
+    capabilities = Capabilities(config_manager)
+    root.putChild('server_capabilities', capabilities)
 
     # add projects manager at /projects
     projects = create_projects_manager_resource(config_manager)
     root.putChild('projects', projects)
 
     # add crawler at /projects/PROJECT_ID/bot
-    log.msg("Slybot specs loading from %s/[PROJECT]" % config_manager.basedir,
-        level=log.DEBUG)
     projects.putChild("bot", create_bot_resource(config_manager))
 
     # add project spec at /projects/PROJECT_ID/spec

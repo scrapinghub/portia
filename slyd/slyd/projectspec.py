@@ -1,20 +1,11 @@
-"""
-Crawler Spec
-
-Manages definitions of the crawler specifications
-
-This will save, validate, potentially cache, etc. Right now it just
-loads data from the filesystem.
-"""
 import json, re, shutil, errno, os
-from os.path import join, splitext, split
+from os.path import join, splitext
 from twisted.web.resource import NoResource, ForbiddenResource
 from jsonschema.exceptions import ValidationError
 from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 from .annotations import apply_annotations
 from .html import html4annotation
-from .repoman import Repoman
 
 
 def create_project_resource(spec_manager):
@@ -138,43 +129,6 @@ class ProjectSpec(object):
         out.write(json_template[last:])
 
 
-class GitProjectSpec(ProjectSpec):
-
-    def __init__(self, *args, **kwargs):
-        ProjectSpec.__init__(self, *args, **kwargs)
-        self.project_dir = ''
-
-    def _open_repo(self):
-        return Repoman.open_repo(self.project_name)
-
-    def list_spiders(self):
-        files = self._open_repo().list_files_for_branch(self.user)
-        return [splitext(split(f)[1])[0] for f in files
-            if f.startswith("spiders/") and f.endswith(".json")]
-            
-    def rename_spider(self, from_name, to_name):
-        self._open_repo().rename_file(self._rfilename('spiders', from_name),
-            self._rfilename('spiders', to_name), self.user)
-
-    def remove_spider(self, name):
-        self._open_repo().delete_file(
-            self._rfilename('spiders', name), self.user)
-
-    def _rfile_contents(self, resources):
-        return self._open_repo().file_contents_for_branch(
-            self._rfilename(*resources), self.user)
-
-    def resource(self, *resources):
-        return json.loads(self._rfile_contents(resources))
-
-    def writejson(self, outf, *resources):
-        outf.write(self._rfile_contents(resources))
-
-    def savejson(self, obj, resources):
-        self._open_repo().save_file(self._rfilename(*resources),
-            json.dumps(obj, sort_keys=True, indent=4), self.user)
-
-
 class ProjectResource(SlydJsonResource):
     isLeaf = True
 
@@ -222,8 +176,7 @@ class ProjectResource(SlydJsonResource):
                 annotate_templates(obj)
                 resource = 'spider'
             if merge:
-                current = json.loads(
-                    project_spec._rfile_contents(request.postpath))
+                current = project_spec.resource(*request.postpath)
                 current.update(obj)
                 obj = current
             get_schema_validator(resource).validate(obj)
