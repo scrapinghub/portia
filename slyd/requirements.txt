@@ -1,5 +1,6 @@
 twisted
 scrapy>=0.24
+service_identity
 loginform
 lxml
 jsonschema
