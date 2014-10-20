@@ -1,84 +1,18 @@
-"""
-Projects Resource
-
-Manages listing/creation/deletion/renaming of slybot projects on
-the local filesystem. Routes to the appropriate resource for fetching
-pages and project spec manipulation.
-"""
-
 import json, re, shutil, errno, os
 from os.path import join
-from functools import wraps
 from twisted.web.resource import NoResource, ErrorPage
-from twisted.internet.threads import deferToThread
-from twisted.web.server import NOT_DONE_YET
 from twisted.internet.defer import Deferred
+from twisted.web.server import NOT_DONE_YET
 from .resource import SlydJsonResource
-from .repoman import Repoman
-import dashclient
+from .projecttemplates import templates
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
 _INVALID_PROJECT_RE = re.compile('[^A-Za-z0-9._]|^\.*$')
 
 
-_SETTINGS_TEMPLATE = \
-"""# Automatically created by: slyd
-import os
-
-SPIDER_MANAGER_CLASS = 'slybot.spidermanager.ZipfileSlybotSpiderManager'
-EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
-ITEM_PIPELINES = ['slybot.dupefilter.DupeFilterPipeline']
-SPIDER_MIDDLEWARES = {'slybot.spiderlets.SpiderletsMiddleware': 999} # as close as possible to spider output
-SLYDUPEFILTER_ENABLED = True
-
-PROJECT_ZIPFILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-
-try:
-    from local_slybot_settings import *
-except ImportError:
-    pass
-
-"""
-
-_SETUP_PY_TEMPLATE = \
-"""# Automatically created by: slyd
-
-from setuptools import setup, find_packages
-
-setup(
-    name         = '%s',
-    version      = '1.0',
-    packages     = find_packages(),
-    package_data = {
-        'spiders': ['*.json']
-    },
-    data_files = [('', ['project.json', 'items.json', 'extractors.json'])],
-    entry_points = {'scrapy': ['settings = spiders.settings']},
-    zip_safe = True
-)
-"""
-
-_SCRAPY_TEMPLATE = \
-"""# Automatically created by: slyd
-
-[settings]
-default = slybot.settings
-"""
-
-
 def create_projects_manager_resource(spec_manager):
     return ProjectsManagerResource(spec_manager)
-
-
-def run_in_thread(func):
-    '''A decorator to defer execution to a thread'''
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return deferToThread(func, *args, **kwargs)
-
-    return wrapper
 
 
 class ProjectsManagerResource(SlydJsonResource):
@@ -181,13 +115,13 @@ class ProjectsManager(object):
         project_filename = self.project_filename(name)
         os.makedirs(project_filename)
         with open(join(project_filename, 'project.json'), 'wb') as outf:
-            outf.write('{}')
+            outf.write(templates['PROJECT'])
 
         with open(join(project_filename, 'scrapy.cfg'), 'w') as outf:
-            outf.write(_SCRAPY_TEMPLATE)
+            outf.write(templates['SCRAPY'])
 
         with open(join(project_filename, 'setup.py'), 'w') as outf:
-            outf.write(_SETUP_PY_TEMPLATE % project_name)
+            outf.write(templates['SETUP'] % name)
 
         os.makedirs(join(project_filename, 'spiders'))
 
@@ -195,7 +129,7 @@ class ProjectsManager(object):
             outf.write('')
 
         with open(join(project_filename, 'spiders', 'settings.py'), 'w') as outf:
-            outf.write(_SETTINGS_TEMPLATE)
+            outf.write(templates['SETTINGS'])
 
 
     def rename_project(self, from_name, to_name):
@@ -213,81 +147,3 @@ class ProjectsManager(object):
     def validate_project_name(self, name):
         if not allowed_project_name(name):
             self.bad_request('invalid project name %s' % project)
-
-
-class GitProjectsManager(ProjectsManager):
-
-    def __init__(self, projectsdir, auth_info):
-        ProjectsManager.__init__(self, projectsdir, auth_info)
-        self.project_commands = {
-            'create': self.create_project,
-            'mv': self.rename_project,
-            'rm': self.remove_project,
-            'edit': self.edit_project,
-            'publish': self.publish_project,
-            'export': self.export_project,
-            'discard': self.discard_changes,
-            'revisions': self.project_revisions,
-            'conflicts': self.conflicted_files,
-            'changes': self.changed_files,
-            'save': self.save_file,
-    }
-
-    def _open_repo(self, name):
-        return Repoman.open_repo(name)
-
-    def all_projects(self):
-        return Repoman.list_repos()
-
-    def create_project(self, name):
-        self.validate_project_name(name)
-        Repoman.create_repo(name).save_file('project.json', '{}', 'master')
-
-    def remove_project(self, name):
-        Repoman.delete_repo(name)
-
-    @run_in_thread
-    def edit_project(self, name, revision):
-        if Repoman.repo_exists(name):
-            repoman = self._open_repo(name)
-        else:
-            repoman = dashclient.import_project(name,
-                self.auth_info['service_token'])
-        revision = repoman.get_branch(revision)
-        if not repoman.has_branch(self.user):
-            repoman.create_branch(self.user, revision)
-
-    @run_in_thread
-    def publish_project(self, name, force):
-        repoman = self._open_repo(name)
-        if repoman.publish_branch(self.user, force):
-            repoman.delete_branch(self.user)
-            return 'OK'
-        else:
-            return 'CONFLICT'
-
-    @run_in_thread
-    def export_project(self, name):
-        dashclient.export_project(name, self.auth_info['service_token'])
-        return 'OK'
-
-    def discard_changes(self, name):
-        self._open_repo(name).delete_branch(self.user)
-
-    def project_revisions(self, name):
-        repoman = self._open_repo(name)
-        return json.dumps({ 'revisions': repoman.get_published_revisions() })
-
-    @run_in_thread
-    def conflicted_files(self, name):        
-        repoman = self._open_repo(name)
-        return json.dumps(repoman.get_branch_conflicted_files(self.user))
-
-    @run_in_thread
-    def changed_files(self, name):
-        repoman = self._open_repo(name)
-        return json.dumps(repoman.get_branch_changed_files(self.user))
-
-    def save_file(self, name, file_path, file_contents):
-        self._open_repo(name).save_file(file_path,
-            json.dumps(file_contents, sort_keys=True, indent=4), self.user)

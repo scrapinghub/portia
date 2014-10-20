@@ -9,7 +9,7 @@ from dulwich.objects import Blob, Tree, Commit, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
 from dulwich.errors import NotGitRepository
 
-from slyd.jsondiff import merge_jsons
+from .jsondiff import merge_jsons
 
 
 CHANGE_ADD = 'add'
