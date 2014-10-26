@@ -2,6 +2,8 @@ portia
 ======
 Visual scraping for Scrapy.
 
+Click image to see the video:
+
 [![Portia Usage](https://raw.githubusercontent.com/labsynapse/portia/master/slyd/media/preview.png)](https://www.youtube.com/watch?v=g7FaK7gdK_I)
 
 Overview
