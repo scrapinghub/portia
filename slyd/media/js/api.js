@@ -180,11 +180,11 @@ ASTool.SlydApi = Em.Object.extend({
 		var hash = {};
 		hash.type = excludeTemplates ? 'PUT' : 'POST';
 		var spiderName = spider.get('name');
+		serialized = spider.serialize();
 		if (excludeTemplates) {
-			spider = Em.copy(spider);
-			delete spider['templates'];
+			delete serialized['templates'];
 		}
-		hash.data = JSON.stringify(spider.serialize());
+		hash.data = JSON.stringify(serialized);
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
 		return ic.ajax(hash);
