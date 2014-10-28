@@ -32,7 +32,7 @@ ASTool.SlydApi = Em.Object.extend({
 		var hash = {};
 		hash.type = 'GET';
 		hash.url = ASTool.SlydApi.getApiUrl();
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -53,7 +53,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify({ cmd: 'create', args: [projectName] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -72,7 +72,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify({ cmd: 'rm', args: [projectName] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -94,7 +94,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify({ cmd: 'mv', args: [oldProjectName, newProjectName] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -110,7 +110,7 @@ ASTool.SlydApi = Em.Object.extend({
 		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'spiders';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -128,7 +128,7 @@ ASTool.SlydApi = Em.Object.extend({
 		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
-		return ic.ajax(hash).then(function(spiderData) {
+		return this.makeAjaxCall(hash).then(function(spiderData) {
 			spiderData['name'] = spiderName;		
 			spiderData['templates'] = spiderData['templates'].map(function(template) {
 				// Assign a name to templates. This is needed as Autoscraping templates
@@ -161,7 +161,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = this.get('projectSpecUrl') + 'spiders';
 		hash.data = JSON.stringify({ cmd: 'mv', args: [oldSpiderName, newSpiderName] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -187,7 +187,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(serialized);
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -206,7 +206,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders';
 		hash.data = JSON.stringify({ cmd: 'rm', args: [spiderName] });
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -224,7 +224,7 @@ ASTool.SlydApi = Em.Object.extend({
 		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'items';
-		return ic.ajax(hash).then(function(items) {
+		return this.makeAjaxCall(hash).then(function(items) {
 			items = this.dictToList(items, ASTool.Item);
 			items.forEach(function(item) {
 				if (item.fields) {
@@ -260,7 +260,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(items);
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'items';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -277,7 +277,7 @@ ASTool.SlydApi = Em.Object.extend({
 		var hash = {};
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'extractors';
-		return ic.ajax(hash).then(function(extractors) {
+		return this.makeAjaxCall(hash).then(function(extractors) {
 				return this.dictToList(extractors, ASTool.Extractor);
 			}.bind(this)
 		);	
@@ -304,7 +304,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(extractors);
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'extractors';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	editProject: function(project_name, revision) {
@@ -322,7 +322,7 @@ ASTool.SlydApi = Em.Object.extend({
 			hash.data = JSON.stringify(
 				{ cmd: 'edit', args: [project_name, revision] });
 			hash.dataType = 'text';
-			return ic.ajax(hash);
+			return this.makeAjaxCall(hash);
 		}
 	},
 
@@ -332,7 +332,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
 			{ cmd: 'revisions', args: [projectName] });
-		return ic.ajax(hash);	
+		return this.makeAjaxCall(hash);	
 	},
 
 	conflictedFiles: function(projectName) {
@@ -341,7 +341,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
 			{ cmd: 'conflicts', args: [projectName] });
-		return ic.ajax(hash);	
+		return this.makeAjaxCall(hash);	
 	},
 
 	changedFiles: function(projectName) {
@@ -350,7 +350,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
 			{ cmd: 'changes', args: [projectName] });
-		return ic.ajax(hash);	
+		return this.makeAjaxCall(hash);	
 	},
 
 	publishProject: function(projectName, force) {
@@ -360,7 +360,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(
 			{ cmd: 'publish', args: [projectName, !!force] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	exportProject: function(projectName) {
@@ -370,7 +370,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(
 			{ cmd: 'export', args: [projectName] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	discardChanges: function(projectName) {
@@ -380,7 +380,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(
 			{ cmd: 'discard', args: [projectName] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	saveFile: function(projectName, fileName, contents) {
@@ -390,7 +390,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.data = JSON.stringify(
 			{ cmd: 'save', args: [projectName, fileName, contents] });
 		hash.dataType = 'text';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -417,7 +417,7 @@ ASTool.SlydApi = Em.Object.extend({
 			hash.data['parent_fp'] = parentFp;
 		}
 		hash.url = this.get('botUrl') + 'fetch';
-		return ic.ajax(hash);
+		return this.makeAjaxCall(hash);
 	},
 
 	/**
@@ -482,6 +482,19 @@ ASTool.SlydApi = Em.Object.extend({
 			entries.pushObject(entry);
 		});
 		return entries;
+	},
+
+	makeAjaxCall: function(hash) {
+		return ic.ajax(hash).catch(function(reason) {
+			method = hash.type;
+			msg = 'Error processing ' + method + ' to ' + hash['url'];
+			if (hash.data) {
+				msg += '\nwith data ' + hash.data;
+			}
+			msg += '\n The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')';
+			alert(msg);
+			throw new Error(reason);
+		});
 	},
 });
 
