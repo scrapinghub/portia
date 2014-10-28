@@ -1,11 +1,17 @@
+from slyd.gitstorage import Repoman
 from slyd.gitstorage.projects import GitProjectsManager, run_in_thread, Repoman
-from .dashclient import import_project, export_project
+from .dashclient import import_project, export_project, set_dash_url
 
 
 class ProjectsManager(GitProjectsManager):
 
-    def __init__(self, projectsdir, auth_info):
-        GitProjectsManager.__init__(self, projectsdir, auth_info)
+    @classmethod
+    def setup(cls, storage_backend, location, dash_url):
+        GitProjectsManager.setup(storage_backend, location)
+        set_dash_url(dash_url)
+
+    def __init__(self, *args, **kwargs):
+        GitProjectsManager.__init__(self, *args, **kwargs)
         self.project_commands['export'] = self.export_project
 
     @run_in_thread

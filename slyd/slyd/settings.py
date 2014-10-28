@@ -12,23 +12,79 @@ LOG_LEVEL = 'DEBUG'
 
 # location of slybot projects - assumes a subdir per project
 DATA_DIR = join(dirname(dirname(__file__)), 'data')
-SPEC_DATA_DIR = join(DATA_DIR, 'projects')
+SPEC_DATA_DIR = join(DATA_DIR, 'gitprojects')
+MYSQL_DB = 'mysql://portia:portia@frankie:3306/portia'
+#DASH_API_URL = 'http://marcos-portia-integration.demo.scrapinghub.com/api/'
+DASH_API_URL = 'http://33.33.33.10:8000/api/'
 
 #################### FILESYSTEM ################################
-PROJECT_SPEC = 'slyd.projectspec.ProjectSpec'
-PROJECT_MANAGER = 'slyd.projects.ProjectsManager'
-VERSION_CONTROL = False
+'''
+SPEC_FACTORY = {
+	'PROJECT_SPEC': 'slyd.projectspec.GitProjectSpec',
+	'PROJECT_MANAGER': 'slyd.projectspec.GitProjectsManager',
+	'PARAMS': {
+		'location': SPEC_DATA_DIR,
+	},
+	'CAPABILITIES': {
+		'version_control': False,
+		'create_projects': True,
+	}
+}
+'''
 
-#################### GIT #######################################
-#PROJECT_SPEC = 'slyd.gitstorage.projectspec.GitProjectSpec'
-#PROJECT_MANAGER = 'slyd.gitstorage.projects.GitProjectsManager'
-#VERSION_CONTROL = True
+#################### GIT MYSQL ################################
+'''
+SPEC_FACTORY = {
+	'PROJECT_SPEC': 'slyd.gitstorage.projectspec.GitProjectSpec',
+	'PROJECT_MANAGER': 'slyd.gitstorage.projects.GitProjectsManager',
+	'PARAMS': {
+		'storage_backend': 'dulwich.mysqlrepo.MysqlRepo',
+		'location': MYSQL_DB,
+	},
+	'CAPABILITIES': {
+		'version_control': True,
+		'create_projects': True,
+	}
+}
+'''
 
-#################### DASH ######################################
-#PROJECT_SPEC = 'slyd.gitstorage.projectspec.GitProjectSpec'
-#PROJECT_MANAGER = 'slyd.dash.projects.ProjectsManager'
-#VERSION_CONTROL = True
-#PORTIA_AUTH = 'slyd.dash.dashauth.protectResource'
+#################### GIT FS ###################################
+SPEC_FACTORY = {
+	'PROJECT_SPEC': 'slyd.gitstorage.projectspec.GitProjectSpec',
+	'PROJECT_MANAGER': 'slyd.gitstorage.projects.GitProjectsManager',
+	'PARAMS': {
+		'storage_backend': 'dulwich.fsrepo.FsRepo',
+		'location': SPEC_DATA_DIR,
+	},
+	'CAPABILITIES': {
+		'version_control': True,
+		'create_projects': True,
+	}
+}
+
+#################### DASH #####################################
+'''
+AUTH_CONFIG = {
+	'CALLABLE': 'slyd.dash.dashauth.protectResource',
+	'CONFIG': {
+		'dash_url': DASH_API_URL,
+	}
+}
+
+SPEC_FACTORY = {
+	'PROJECT_SPEC': 'slyd.dash.projectspec.ProjectSpec',
+	'PROJECT_MANAGER': 'slyd.dash.projects.ProjectsManager',
+	'PARAMS': {
+		'storage_backend': 'dulwich.mysqlrepo.MysqlRepo',
+		'location': MYSQL_DB,
+		'dash_url': DASH_API_URL,
+	},
+	'CAPABILITIES': {
+		'version_control': True,
+		'create_projects': True,
+	}
+}
+'''
 
 # recommended for development - use scrapy to cache http responses
 # add them to local_settings.py

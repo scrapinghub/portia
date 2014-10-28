@@ -15,9 +15,6 @@ from twisted.web.guard import HTTPAuthSessionWrapper
 from twisted.web.guard import BasicCredentialFactory
 
 
-DASH_API_URL = os.environ.get('DASH_API_URL', 'http://33.33.33.51:8000/api/')
-
-
 auth_cache = {}
 
 
@@ -34,11 +31,15 @@ class ApiKeyChecker(object):
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (credentials.IUsernamePassword,)
 
+    def __init__(self, dash_api_url):
+        self.dash_api_url = dash_api_url
+
     def _validate_apikey(self, apikey):
         payload = {'apikey': apikey}
-        r = requests.get(DASH_API_URL + 'users/get.json',
+        r = requests.get(self.dash_api_url + 'users/get.json',
             params=payload)
         auth_info = r.json()
+        print auth_info
         if auth_info['status'] != 'ok':
             raise InvalidApiKey('Invalid apikey')
         auth_info['apikey'] = apikey
@@ -99,8 +100,9 @@ class AuthResource(Resource):
         return self.wrapped
 
 
-def protectResource(resource, name=''):
+def protectResource(resource, config):
     """Protect the given resource by enforcing apikey based auth."""
     wrapped = AuthResource(resource)
-    p = portal.Portal(ProtectedRealm(wrapped), [ApiKeyChecker()])
-    return HTTPAuthSessionWrapper(p, [BasicCredentialFactory(name)])
+    p = portal.Portal(ProtectedRealm(wrapped), [ApiKeyChecker(
+        config['dash_url'])])
+    return HTTPAuthSessionWrapper(p, [BasicCredentialFactory('Portia')])

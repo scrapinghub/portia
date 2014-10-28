@@ -1,10 +1,11 @@
 from time import time
 from collections import defaultdict
 from json import dumps, loads
-from shutil import rmtree
 from itertools import chain
 
-from dulwich.mysqlrepo import MysqlRepo
+from scrapy.utils.misc import load_object
+
+
 from dulwich.objects import Blob, Tree, Commit, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
 from dulwich.errors import NotGitRepository
@@ -47,14 +48,19 @@ class Repoman(object):
     '''
 
     @classmethod
+    def setup(cls, storage_backend, location):
+        cls.storage = load_object(storage_backend)
+        cls.storage.setup(location)
+
+    @classmethod
     def init_backend(cls):
-        MysqlRepo._init_db()
+        cls.repoclass._init_db()
 
     @classmethod
     def create_repo(cls, repo_name, author=None):
         '''Creates a new repository named repo_name.'''
-        repoman = Repoman(author)
-        repoman._repo = MysqlRepo.init_bare(repo_name)
+        repoman = cls(author)
+        repoman._repo = cls.storage.init_bare(repo_name)
         tree = Tree()
         commit = repoman._create_commit()
         commit.tree = tree.id
@@ -66,24 +72,24 @@ class Repoman(object):
     @classmethod
     def open_repo(cls, repo_name, author=None):
         '''Opens an existing repository.'''
-        repoman = Repoman(author)
-        repoman._repo = MysqlRepo.open(repo_name)
+        repoman = cls(author)
+        repoman._repo = cls.storage.open(repo_name)
         return repoman
 
     @classmethod
     def repo_exists(cls, repo_name):
         '''Returns true iff a repository named repo_name can be opened.'''
-        return MysqlRepo.repo_exists(repo_name)
+        return cls.storage.repo_exists(repo_name)
 
     @classmethod
     def list_repos(cls):
         '''Returns true iff a repository named repo_name can be opened.'''
-        return MysqlRepo.list_repos()
+        return cls.storage.list_repos()
 
     @classmethod
     def delete_repo(cls, repo_name):
         '''Deletes an existing repo.'''
-        MysqlRepo.delete_repo(repo_name)
+        cls.storage.delete_repo(repo_name)
 
     def __init__(self, author):
         '''Do not instantiate directly, use create_repo or open_repo.'''
@@ -393,7 +399,8 @@ class Repoman(object):
         return commit
             
     def _update_store(self, *args):
-        self._repo.object_store.add_objects(args)
+        objects = [(obj, None) for obj in args]
+        self._repo.object_store.add_objects(objects)
 
     def _advance_branch(self, branch_name, commit):
         self._repo.refs['refs/heads/%s' % branch_name] = commit.id

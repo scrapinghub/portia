@@ -20,8 +20,12 @@ def run_in_thread(func):
 
 class GitProjectsManager(ProjectsManager):
 
-    def __init__(self, projectsdir, auth_info):
-        ProjectsManager.__init__(self, projectsdir, auth_info)
+    @classmethod
+    def setup(cls, storage_backend, location):
+        Repoman.setup(storage_backend, location)
+
+    def __init__(self, *args, **kwargs):
+        ProjectsManager.__init__(self, *args, **kwargs)
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,

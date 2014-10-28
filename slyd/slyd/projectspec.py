@@ -37,10 +37,15 @@ def annotate_templates(spider):
 class ProjectSpec(object):
 
     resources = ('project', 'items', 'extractors')
+    base_dir = '.'
 
-    def __init__(self, project_name, project_dir, auth_info):
+    @classmethod
+    def setup(cls, location):
+        cls.base_dir = location
+
+    def __init__(self, project_name, auth_info):
+        self.project_dir = join(ProjectSpec.base_dir, project_name)
         self.project_name = project_name
-        self.project_dir = project_dir
         self.auth_info = auth_info
         self.user = auth_info['username']
         self.spider_commands = {
@@ -197,12 +202,12 @@ class ProjectResource(SlydJsonResource):
             self.bad_request(
                 "unrecognised cmd arg %s, available commands: %s" %
                 (command, ', '.join(projects_manager.project_commands.keys())))
-        args = command_spec.get('args', [])       
+        args = map(str, command_spec.get('args', []))
         for spider in args:
             if not allowed_spider_name(spider):
                 self.bad_request('invalid spider name %s' % spider)
         try:
-            retval = dispatch_func(project_spec, *args)
+            retval = dispatch_func(*args)
         except TypeError:
             self.bad_request("incorrect args for %s" % command)
         except OSError as ex:
