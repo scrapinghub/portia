@@ -1,3 +1,6 @@
+queuelib
+pyOpenSSL
+cssselect
 twisted
 scrapy>=0.24
 loginform
