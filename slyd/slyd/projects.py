@@ -45,7 +45,7 @@ class ProjectsManagerResource(SlydJsonResource):
             self.bad_request(
                 "unrecognised cmd arg %s, available commands: %s" %
                 (command, ', '.join(projects_manager.project_commands.keys())))
-        args = command_spec.get('args', [])        
+        args = map(str, command_spec.get('args', []))
         try:
             retval = dispatch_func(*args)
         except TypeError:
@@ -85,10 +85,16 @@ def allowed_project_name(name):
 
 class ProjectsManager(object):
 
-    def __init__(self, projectsdir, auth_info):
+    base_dir = '.'
+
+    @classmethod
+    def setup(cls, location):
+        cls.base_dir = location
+
+    def __init__(self, auth_info):
         self.auth_info = auth_info
         self.user = auth_info['username']
-        self.projectsdir = projectsdir
+        self.projectsdir = ProjectsManager.base_dir
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,
@@ -98,7 +104,7 @@ class ProjectsManager(object):
     def all_projects(self):
         try:
             for fname in os.listdir(self.projectsdir):
-                if os.path.isdir(os.path.join(self.projectsdir, fname)):
+                if os.path.isdir(join(self.projectsdir, fname)):
                     yield fname
         except OSError as ex:
             if ex.errno != errno.ENOENT:
@@ -130,7 +136,6 @@ class ProjectsManager(object):
 
         with open(join(project_filename, 'spiders', 'settings.py'), 'w') as outf:
             outf.write(templates['SETTINGS'])
-
 
     def rename_project(self, from_name, to_name):
         self.validate_project_name(from_name)

@@ -26,19 +26,20 @@ class Capabilities(SlydJsonObjectResource):
     
     isLeaf = True
 
-    def __init__(self, config_manager):
-        self.config_manager = config_manager
+    def __init__(self, spec_manager):
+        self.spec_manager = spec_manager
 
     def render_GET(self, request):
         return {
-            'version_control': self.config_manager.supports_version_control,
+            'version_control': self.spec_manager.supports_version_control,
         }
 
 
 def create_root(config):
     from scrapy import log
     from scrapy.settings import Settings 
-    from .configmanager import ConfigManager
+    from .specmanager import SpecManager
+    from .authmanager import AuthManager
     from .projectspec import create_project_resource
     from slyd.bot import create_bot_resource
     from slyd.projects import create_projects_manager_resource
@@ -50,23 +51,25 @@ def create_root(config):
 
     settings = Settings()
     settings.setmodule(slyd.settings)
-    config_manager = ConfigManager(settings)
+    spec_manager = SpecManager(settings)
 
     # add server capabilities at /server_capabilities
-    capabilities = Capabilities(config_manager)
+    capabilities = Capabilities(spec_manager)
     root.putChild('server_capabilities', capabilities)
 
     # add projects manager at /projects
-    projects = create_projects_manager_resource(config_manager)
+    projects = create_projects_manager_resource(spec_manager)
     root.putChild('projects', projects)
 
     # add crawler at /projects/PROJECT_ID/bot
-    projects.putChild("bot", create_bot_resource(config_manager))
+    projects.putChild("bot", create_bot_resource(spec_manager))
 
     # add project spec at /projects/PROJECT_ID/spec
-    spec = create_project_resource(config_manager)
+    spec = create_project_resource(spec_manager)
     projects.putChild("spec", spec)
-    return config_manager.resource_protector(root, 'portia')
+
+    auth_manager = AuthManager(settings)
+    return auth_manager.protectResource(root)
 
 
 def makeService(config):

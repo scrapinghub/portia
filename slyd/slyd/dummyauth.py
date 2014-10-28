@@ -1,7 +1,7 @@
 from twisted.web.resource import Resource
 
 
-def protectResource(resource, name=''):
+def protectResource(resource, config):
     '''Dummy resource protector.'''
     return DummyAuthResource(resource)
 

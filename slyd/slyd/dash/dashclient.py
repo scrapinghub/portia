@@ -5,10 +5,15 @@ import json
 
 from cStringIO import StringIO
 from datetime import datetime
-from slyd.gitstorage import Repoman
+from slyd.gitstorage.repoman import Repoman
 
 
-DASH_API_URL = os.environ.get('DASH_API_URL', 'http://33.33.33.51:8000/api/')
+DASH_API_URL = None
+
+
+def set_dash_url(dash_url):
+    global DASH_API_URL
+    DASH_API_URL = dash_url
 
 
 def import_project(name, apikey):
