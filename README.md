@@ -18,7 +18,7 @@ A spider is a crawler for a particular website. The configuration of a spider is
 
 The **Initialization** section is used to set up the spider when it's first launched. Here you can define the start URLs and login credentials.
 
-The **Crawling** section is used to configure how the spider will behave when it encounters URLs. You can choose how links are followed and whether to respect `nofollow <http://en.wikipedia.org/wiki/nofollow>`_. You can visualise the effects of the crawling rules using the **Overlay blocked links** option; this will highlight links that will be followed in green, and links that won't be followed in red.
+The **Crawling** section is used to configure how the spider will behave when it encounters URLs. You can choose how links are followed and whether to respect [nofollow](http://en.wikipedia.org/wiki/nofollow). You can visualise the effects of the crawling rules using the **Overlay blocked links** option; this will highlight links that will be followed in green, and links that won't be followed in red.
 
 The **Extraction** section lists the templates for this spider.
 
@@ -125,8 +125,6 @@ If you had annotated ``Aprilis`` in the template, nothing would have matched bec
 
 The word ``Januarii`` would have been extracted, because its surrounding text matches the text surrounding the text that was annotated in the template.
 
-.. _multiple-templates:
-
 Tips for Working with Multiple Templates
 ----------------------------------------
 
@@ -175,8 +173,6 @@ As you can see, the problem lies with the fact that in layout B the description 
 
 Instead we need to modify layout A's template, and mark the ``description`` annotation as **Required**. With this added constraint, items displayed with layout B will not be matched against with layout A's template due to the missing ``description`` field, so the spider will proceed onto layout B's template which will extract the data successfully.
 
-.. _running:
-
 Running Portia
 --------------
 
@@ -207,7 +203,7 @@ Portia will now be running on port 9001 and you can access it at: ``http://local
 
 ### Running Portia with Vagrant
 
-You will need both `Vagrant <http://www.vagrantup.com/downloads.html>`_ and `VirtualBox <https://www.virtualbox.org/wiki/Downloads>`_ installed.
+You will need both [Vagrant](http://www.vagrantup.com/downloads.html) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) installed.
 
 Run the following in Portia's directory:
 
@@ -225,14 +221,12 @@ where ``PROJECT_PATH`` is the path of the project and ``SPIDER_NAME`` is a spide
 
     portiacrawl PROJECT_PATH
 
-Portia spiders are ultimately `Scrapy <http://scrapy.org/>`_ spiders. You can pass Scrapy arguments when running with ``portiacrawl`` using the ``-a`` option. You can also specify a custom settings module using the ``--settings`` option. The `Scrapy documentation <http://doc.scrapy.org/en/latest>`_ contains full details on available options and settings.
-
-.. _deploy:
+Portia spiders are ultimately [Scrapy](http://scrapy.org/) spiders. You can pass Scrapy arguments when running with ``portiacrawl`` using the ``-a`` option. You can also specify a custom settings module using the ``--settings`` option. The [Scrapy documentation](http://doc.scrapy.org/en/latest) contains full details on available options and settings.
 
 Deploying a Project
 -------------------
 
-Portia projects can be deployed using `Scrapyd <http://scrapyd.readthedocs.org/en/latest>`_. You can deploy a Portia project by going into ``slyd/data/projects/PROJECT_NAME`` and adding your target to ``scrapy.cfg``. You can then run ``scrapy-deploy`` to deploy your project using the default deploy target, or specify a target and project using the following:  
+Portia projects can be deployed using [Scrapyd](http://scrapyd.readthedocs.org/en/latest). You can deploy a Portia project by going into ``slyd/data/projects/PROJECT_NAME`` and adding your target to ``scrapy.cfg``. You can then run ``scrapy-deploy`` to deploy your project using the default deploy target, or specify a target and project using the following:  
 
     scrapy-deploy SCRAPY_TARGET -p PROJECT_NAME
 
