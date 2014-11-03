@@ -49,6 +49,7 @@ SPEC_FACTORY = {
 '''
 
 #################### GIT FS ###################################
+'''
 SPEC_FACTORY = {
 	'PROJECT_SPEC': 'slyd.gitstorage.projectspec.GitProjectSpec',
 	'PROJECT_MANAGER': 'slyd.gitstorage.projects.GitProjectsManager',
@@ -61,9 +62,8 @@ SPEC_FACTORY = {
 		'create_projects': True,
 	}
 }
-
-#################### DASH #####################################
 '''
+#################### DASH #####################################
 AUTH_CONFIG = {
 	'CALLABLE': 'slyd.dash.dashauth.protectResource',
 	'CONFIG': {
@@ -81,10 +81,12 @@ SPEC_FACTORY = {
 	},
 	'CAPABILITIES': {
 		'version_control': True,
-		'create_projects': True,
+		'create_projects': False,
+		'rename_projects': False,
+		'deploy_projects': True,
 	}
 }
-'''
+
 
 # recommended for development - use scrapy to cache http responses
 # add them to local_settings.py

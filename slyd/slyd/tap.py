@@ -30,9 +30,7 @@ class Capabilities(SlydJsonObjectResource):
         self.spec_manager = spec_manager
 
     def render_GET(self, request):
-        return {
-            'version_control': self.spec_manager.supports_version_control,
-        }
+        return self.spec_manager.capabilities
 
 
 def create_root(config):

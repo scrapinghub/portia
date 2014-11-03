@@ -968,6 +968,14 @@ Ember.Handlebars.registerHelper('message', function(messageName) {
 	return ASTool.Messages.get('messageName');
 });
 
+Ember.Handlebars.registerHelper('ifHasCapability', function(capabilityName, options) {
+	if (ASTool.get('serverCapabilities.' + capabilityName)) {
+    	return options.fn(this);
+  	} else {
+  		return options.inverse(this);
+  	}
+});
+
 
 /**************************** JQueri UI initialization *************/
 $(function() {

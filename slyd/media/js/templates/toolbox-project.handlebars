@@ -1,8 +1,12 @@
 <div style="margin:10px 0px 0px 10px">
 	<div style="text-align:center;font-size:1.1em;margin-bottom:5px">
-		{{#view ASTool.RenameTextField value=name}}
-			<span class="editable-name">Project {{name}}</span>
-		{{/view}}
+		{{#ifHasCapability 'rename_projects'}}
+			{{#view ASTool.RenameTextField value=name}}
+				<span class="editable-name">Project {{name}}</span>
+			{{/view}}
+		{{else}}
+			<h4>Project {{name}}</h4>
+		{{/ifHasCapability}}
 	</div>
 
 	<h4>Spiders</h4>
@@ -18,13 +22,13 @@
 			{{/each}}
 		</div>
 	</div>
-	{{#if controller.versionControl}}
+	{{#ifHasCapability 'version_control'}}
 		{{#if controller.hasChanges}}
 			<div style="text-align:center;font-size:1.1em;margin-top:10px">
 				{{view ASTool.ButtonView action="publishProject" icon="ui-icon-circle-arrow-n" label="Publish changes" class="blue-button"}}
 				{{view ASTool.ButtonView action="discardChanges" icon="ui-icon-trash" label="Discard changes" class="red-button"}}
 			</div>
 		{{/if}}
-	{{/if}}
+	{{/ifHasCapability}}
 </div>
 
