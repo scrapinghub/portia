@@ -144,6 +144,9 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 			if (performLogin) {
 				this.get('init_requests').setObjects([{ type: 'login' }]);
 			} else {
+				this.set('loginUrl', '');
+				this.set('loginUser', '');
+				this.set('loginPassword', '');
 				this.get('init_requests').setObjects([]);
 			}
 		}
