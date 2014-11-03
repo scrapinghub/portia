@@ -70,7 +70,7 @@ function guid() {
 
 
 function shortGuid() {
-	return s4() + '.' + s4() + '.' + s4();
+	return s4() + '-' + s4() + '-' + s4();
 }
 
 function toType(obj) {
