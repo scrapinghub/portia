@@ -8,7 +8,7 @@ publish:
     registry_login_url: $$LOGIN_URL
     username: $$LOGIN_USER
     password: $$LOGIN_PASS
-    email: $$EMAIL
+    email: $$LOGIN_EMAIL
     image_name: i.scrapinghub.com/apps/portia
     keep_build: true
     tag: $CI_BRANCH-$(git rev-parse --short HEAD)
