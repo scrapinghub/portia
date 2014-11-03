@@ -363,13 +363,12 @@ ASTool.SlydApi = Em.Object.extend({
 		return this.makeAjaxCall(hash);
 	},
 
-	exportProject: function(projectName) {
+	deployProject: function(projectName) {
 		var hash = {};
 		hash.type = 'POST';
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
-			{ cmd: 'export', args: [projectName] });
-		hash.dataType = 'text';
+			{ cmd: 'deploy', args: [projectName] });
 		return this.makeAjaxCall(hash);
 	},
 

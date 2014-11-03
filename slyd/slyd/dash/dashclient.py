@@ -30,7 +30,7 @@ def import_project(name, apikey):
     return repo
 
 
-def export_project(name, apikey):
+def deploy_project(name, apikey):
     """Archive a GIT project and upload it to Dash."""
     zbuff = StringIO()
     _archive_project(name, zbuff)
@@ -39,7 +39,11 @@ def export_project(name, apikey):
     req = requests.post(DASH_API_URL + 'as/import.json',
         files=[('archive', ('archive', zbuff, 'application/zip'))],
         params=payload)
-    return req.text
+    project_url = DASH_API_URL.rsplit('/', 2)[0] + '/p/' + name
+    return {
+        'status': 'ok',
+        'schedule_url': project_url,
+    }
 
 
 def _fix_items(raw_items):
