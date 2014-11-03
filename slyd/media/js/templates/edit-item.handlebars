@@ -13,6 +13,13 @@
 		{{#if view.item.fields}}
 			<table style="margin:0 auto;">
 				<tr class="small-label"> <td>Field</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
+				<tr style="color: #CCC;">
+					<td>url</td>
+					<td>url</td>
+					<td><input type="checkbox" checked=true disabled=true></td>
+					<td><input type="checkbox" checked=true disabled=true></td>
+					<td>{{view ASTool.ButtonView icon="ui-icon-trash" class="red-button" disabled=true}}</td>
+				</tr>
 				{{#each view.item.fields}}
 					<tr>
 						<td>
