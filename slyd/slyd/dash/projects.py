@@ -1,6 +1,8 @@
+import json
+
 from slyd.gitstorage import Repoman
 from slyd.gitstorage.projects import GitProjectsManager, run_in_thread, Repoman
-from .dashclient import import_project, export_project, set_dash_url
+from .dashclient import import_project, deploy_project, set_dash_url
 
 
 class ProjectsManager(GitProjectsManager):
@@ -12,7 +14,7 @@ class ProjectsManager(GitProjectsManager):
 
     def __init__(self, *args, **kwargs):
         GitProjectsManager.__init__(self, *args, **kwargs)
-        self.project_commands['export'] = self.export_project
+        self.project_commands['deploy'] = self.deploy_project
 
     @run_in_thread
     def edit_project(self, name, revision):
@@ -21,6 +23,5 @@ class ProjectsManager(GitProjectsManager):
         GitProjectsManager.edit_project(self, name, revision)
 
     @run_in_thread
-    def export_project(self, name):
-        export_project(name, self.auth_info['service_token'])
-        return 'OK'
+    def deploy_project(self, name):
+        return json.dumps(deploy_project(name, self.auth_info['service_token']))
