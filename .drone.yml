@@ -1,1 +1,14 @@
 image: python2.7
+
+publish:
+  docker:
+    docker_host: tcp://5.9.96.8:2375
+    docker_version: 1.3.0
+    registry_login: true
+    registry_login_url: $$LOGIN_URL
+    username: $$LOGIN_USER
+    password: $$LOGIN_PASS
+    email: $$EMAIL
+    image_name: i.scrapinghub.com/apps/portia
+    keep_build: true
+    tag: $CI_BRANCH-$(git rev-parse --short HEAD)
