@@ -13,10 +13,11 @@ except ImportError:
         sys.stderr.write("Error: Can't find the project package 'slyd'.\n")
         sys.exit(1)
 
-from slyd.repoman import Repoman
+from slyd.gitstorage.repoman import Repoman
 
 
 def main():
+	Repoman.setup(storage_backend='dulwich.mysqlrepo.MysqlRepo', location=os.environ.get('DB_URL'))
 	Repoman.init_backend()
 
 

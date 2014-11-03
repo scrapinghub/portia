@@ -54,7 +54,7 @@ class Repoman(object):
 
     @classmethod
     def init_backend(cls):
-        cls.repoclass._init_db()
+        cls.storage._init_db()
 
     @classmethod
     def create_repo(cls, repo_name, author=None):
