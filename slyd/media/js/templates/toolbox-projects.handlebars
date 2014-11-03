@@ -4,8 +4,12 @@
 	<div class="scrolling-container" style="max-height:600px">
 		{{#each}}
 			<div style="margin:4px 0px 4px 0px">
-				{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='78%' class="light-button"}}
-				{{view ASTool.ButtonView action="exportProject" argument=this icon="ui-icon-circle-arrow-n" class="blue-button"}}
+				{{#ifHasCapability 'deploy_projects'}}
+					{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='65%' class="light-button"}}
+					{{view ASTool.ButtonView action="deployProject" argument=this label="Deploy" icon="ui-icon-circle-arrow-n" class="blue-button"}}
+				{{else}}
+					{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='82%' class="light-button"}}
+				{{/ifHasCapability}}
 				{{view ASTool.ButtonView action="deleteProject" argument=this icon="ui-icon-trash" class="red-button"}}
 			</div>
 		{{else}}
