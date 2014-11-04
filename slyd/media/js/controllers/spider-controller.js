@@ -257,6 +257,11 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			  original_body: page.original,
 			  page_id: page.fp,
 			  url: page.url });
+		itemDefs = this.get('itemDefinitions')
+		if (!itemDefs.findBy('name', 'default') && !Em.isEmpty(itemDefs)) {
+			// The deault item doesn't exist but we have at least one item def.
+			template.set('scrapes', itemDefs[0].get('name'));
+		}
 		this.get('content.templates').pushObject(template);
 		this.saveSpider().then(
 			function() {
