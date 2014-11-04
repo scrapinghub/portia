@@ -1,6 +1,6 @@
 import json
 
-from slyd.gitstorage import Repoman
+from slyd.gitstorage.repoman import Repoman
 from slyd.gitstorage.projects import GitProjectsManager, run_in_thread, Repoman
 from .dashclient import import_project, deploy_project, set_dash_url
 

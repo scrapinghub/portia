@@ -1,4 +1,4 @@
-from slyd.gitstorage import Repoman
+from slyd.gitstorage.repoman import Repoman
 from slyd.gitstorage.projectspec import GitProjectSpec
 
 
