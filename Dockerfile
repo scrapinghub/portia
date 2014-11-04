@@ -4,8 +4,8 @@ RUN apt-get install -y --force-yes python-dev libxml2-dev libxslt1-dev libffi-de
 RUN apt-get install -y python-pip
 RUN apt-get install -y git
 RUN pip install --upgrade pip
-ADD . /
-WORKDIR /slyd
+ADD slybot /slybot
+ADD slyd/requirements.txt /requirements.txt
 RUN pip install -r requirements.txt
 ADD . /app
 WORKDIR /app/slyd
