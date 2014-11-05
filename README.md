@@ -128,7 +128,7 @@ The word ``Januarii`` would have been extracted, because its surrounding text ma
 Tips for Working with Multiple Templates
 ----------------------------------------
 
-It's often necessary to use multiple templates within one spider, even if you're only extracting one item type. Some pages containing the same item type may have a different layout or fields missing, and you will need to accomodate those pages by creating a template for each layout variation.
+It's often necessary to use multiple templates within one spider, even if you're only extracting one item type. Some pages containing the same item type may have a different layout or fields missing, and you will need to accommodate those pages by creating a template for each layout variation.
 
 The more annotations a template has, the more specific the data being extracted and therefore less chance of a false positive. For this reason, templates with more annotations take precedence over those with less annotations. If a subset of templates contains equal number of annotations per template, then within that subset templates will be tried in the order they were created from first to last. In other words, templates are tried sequentially in order of number of annotations first, and age second.
 
@@ -209,13 +209,13 @@ Run the following in Portia's directory:
 
     vagrant up
 
-This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:9001/static/main.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
+This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000/static/main.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 ### Running a Portia Spider
 
 Projects you have created in Portia will reside in ``slyd/data/projects``. You can use ``portiacrawl`` to run a spider from one of your projects:
 
-    portiacrawl PROEJCT_PATH SPIDER_NAME
+    portiacrawl PROJECT_PATH SPIDER_NAME
 
 where ``PROJECT_PATH`` is the path of the project and ``SPIDER_NAME`` is a spider that exists within that project. You can list the spiders for a project with the following:
 
