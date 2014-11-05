@@ -6,7 +6,7 @@ Portia is a tool that allows you to visually scrape websites without any program
 Anatomy of a Portia Project
 ---------------------------
 
-A project in Portia generally consisits of one or more spiders.
+A project in Portia generally consists of one or more spiders.
 
 ### Spider
 
@@ -215,7 +215,7 @@ This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` s
 
 Projects you have created in Portia will reside in ``slyd/data/projects``. You can use ``portiacrawl`` to run a spider from one of your projects:
 
-    portiacrawl PROEJCT_PATH SPIDER_NAME
+    portiacrawl PROJECT_PATH SPIDER_NAME
 
 where ``PROJECT_PATH`` is the path of the project and ``SPIDER_NAME`` is a spider that exists within that project. You can list the spiders for a project with the following:
 
@@ -226,7 +226,10 @@ Portia spiders are ultimately [Scrapy](http://scrapy.org/) spiders. You can pass
 Deploying a Project
 -------------------
 
-Portia projects can be deployed using [Scrapyd](http://scrapyd.readthedocs.org/en/latest). You can deploy a Portia project by going into ``slyd/data/projects/PROJECT_NAME`` and adding your target to ``scrapy.cfg``. You can then run ``scrapy-deploy`` to deploy your project using the default deploy target, or specify a target and project using the following:  
+Portia projects can be deployed using [Scrapyd](http://scrapyd.readthedocs.org/en/latest). You can deploy a Portia project by going into ``slyd/data/projects/PROJECT_NAME`` and adding your target to ``scrapy.cfg``. You can then run ``scrapyd-deploy`` to deploy your project using the default deploy target, or specify a target and project using the following:  
 
-    scrapy-deploy SCRAPY_TARGET -p PROJECT_NAME
+    scrapyd-deploy your_scrapyd_target -p project_name
 
+and then schedule your spider with:
+
+    curl http://your_scrapyd_host:6800/schedule.json -d project=your_project_name -d spider=your_spider_name
