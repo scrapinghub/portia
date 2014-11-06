@@ -11,7 +11,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	},
 	
 	addField: function(owner, name, type) {
-		var newField = ASTool.ItemField.create({ name: name || 'new field',
+		var newField = ASTool.ItemField.create({ name: name || 'new_field',
 										         type: type || 'text',
 										         required: false,
 										         vary: false });

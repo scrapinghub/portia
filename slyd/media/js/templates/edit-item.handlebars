@@ -1,7 +1,7 @@
 <div class="editable-item-container">
 	<div>
 		<span style="margin:2px 0px 0px 10px">
-			{{#view ASTool.InlineTextField value=name}}
+			{{#view ASTool.InlineTextField value=name validate=true}}
 				<span class="editable-name">Item {{name}}</span>
 			{{/view}}
 		</span>
@@ -23,7 +23,7 @@
 				{{#each view.item.fields}}
 					<tr>
 						<td>
-							{{#view ASTool.InlineTextField value=name}}
+							{{#view ASTool.InlineTextField value=name validate=true}}
 								<span class="editable-name">{{name}}</span>
 							{{/view}}
 						</td>
