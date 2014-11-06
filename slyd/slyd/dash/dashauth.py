@@ -94,6 +94,7 @@ class AuthResource(Resource):
             'username': self.auth_info['username'],
             'authorized_projects': map(str, self.auth_info['projects']),
             'service_token': self.auth_info['apikey'],
+            'staff': self.auth_info['staff'],
         }
         # Don't consume any segments.
         request.postpath.insert(0, request.prepath.pop())
