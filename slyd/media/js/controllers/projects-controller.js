@@ -24,28 +24,10 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		}.bind(this));
 	},
 
-	deployProject: function(projectName) {
-		return this.get('slyd').deployProject(projectName);
-	},
-
 	actions: {
 		
 		openProject: function(projectName) {
 			this.openProject(projectName, 'master');
-		},
-
-		deployProject: function(projectName) {
-			this.deployProject(projectName).then(function(result) {
-				if (result['status'] == 'ok') {
-					if (!Em.isEmpty(result['schedule_url'])) {
-						if (confirm(ASTool.Messages.get('deploy_ok_schedule'))) {
-							window.location = result['schedule_url'];
-						}
-					} else {
-						alert(ASTool.Messages.get('deploy_ok'));
-					}
-				}
-			}.bind(this));
 		},
 
 		openProjectRevision: function(projectName, revision) {

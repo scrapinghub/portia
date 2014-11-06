@@ -12,6 +12,8 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 
 	navigationLabelBinding: 'slyd.project',
 
+	isDeploying: false,
+
 	createSpiderDisabled: function() {
 		return Em.isEmpty(this.get('spiderPage'));
 	}.property('spiderPage'),
@@ -58,6 +60,10 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		return this.get('slyd').discardChanges(this.get('name'));
 	},
 
+	deployProject: function() {
+		return this.get('slyd').deployProject(this.get('name'));
+	},
+
 	actions: {
 
 		editSpider: function(spiderName) {
@@ -92,10 +98,26 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 			this.publishProject().then(function(result){
 				if (result == 'OK') {
 					alert(ASTool.Messages.get('publish_ok'));
-					this.transitionToRoute('projects');
+					this.set('changedFiles', []);
 				} else if (result == 'CONFLICT') {
 					alert(ASTool.Messages.get('publish_conflict'));
 					this.transitionToRoute('conflicts');
+				}
+			}.bind(this));
+		},
+
+		deployProject: function() {
+			this.set('isDeploying', true);
+			this.deployProject().then(function(result) {
+				this.set('isDeploying', false);
+				if (result['status'] == 'ok') {
+					if (!Em.isEmpty(result['schedule_url'])) {
+						if (confirm(ASTool.Messages.get('deploy_ok_schedule'))) {
+							window.location = result['schedule_url'];
+						}
+					} else {
+						alert(ASTool.Messages.get('deploy_ok'));
+					}
 				}
 			}.bind(this));
 		},
