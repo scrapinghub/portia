@@ -13,25 +13,36 @@ class GitProjectSpec(ProjectSpec):
     def _open_repo(self):
         return Repoman.open_repo(self.project_name)
 
+    def _get_branch(self, read_only=False):
+        repo = self._open_repo()
+        if repo.has_branch(self.user):
+            return self.user
+        elif not read_only:
+            repo.create_branch(self.user, repo.get_branch('master'))
+            return self.user
+        else:
+            return 'master'
+
     def _rfile_contents(self, resources):
         return self._open_repo().file_contents_for_branch(
-            self._rfile_name(*resources), self.user)
+            self._rfile_name(*resources), self._get_branch(read_only=True))
 
     def _rfile_name(self, *resources):
         return join(*resources) + '.json'
 
     def list_spiders(self):
-        files = self._open_repo().list_files_for_branch(self.user)
+        files = self._open_repo().list_files_for_branch(
+            self._get_branch(read_only=True))
         return [splitext(split(f)[1])[0] for f in files
             if f.startswith("spiders") and f.endswith(".json")]
             
     def rename_spider(self, from_name, to_name):
         self._open_repo().rename_file(self._rfile_name('spiders', from_name),
-            self._rfile_name('spiders', to_name), self.user)
+            self._rfile_name('spiders', to_name), self._get_branch())
 
     def remove_spider(self, name):
         self._open_repo().delete_file(
-            self._rfile_name('spiders', name), self.user)
+            self._rfile_name('spiders', name), self._get_branch())
 
     def resource(self, *resources):
         return json.loads(self._rfile_contents(resources))
@@ -41,4 +52,4 @@ class GitProjectSpec(ProjectSpec):
 
     def savejson(self, obj, resources):
         self._open_repo().save_file(self._rfile_name(*resources),
-            json.dumps(obj, sort_keys=True, indent=4), self.user)
+            json.dumps(obj, sort_keys=True, indent=4), self._get_branch())
