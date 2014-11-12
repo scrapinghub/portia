@@ -7,6 +7,8 @@ from cStringIO import StringIO
 from datetime import datetime
 from slyd.gitstorage.repoman import Repoman
 
+from slybot.validation.schema import get_schema_validator
+
 
 DASH_API_URL = None
 
@@ -24,7 +26,17 @@ def import_project(name, apikey):
     for filename in archive.namelist():
         contents = archive.read(filename)
         if filename == 'items.json':
+            resource = 'items'
             contents = _fix_items(contents)
+        elif filename == 'extractors.json':
+            resource = 'extractors'
+        elif filename.startswith('spiders'):
+            resource = 'spider'
+        else:
+            resource = None
+        if resource in ['items', 'spider', 'extractors']:
+            # Validate against slybot schemas.
+            get_schema_validator(resource).validate(json.loads(contents))
         files[filename] = contents
     repo.save_files(files, 'master', 'Initial import.')
     return repo
