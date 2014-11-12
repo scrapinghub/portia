@@ -46,7 +46,7 @@ class ProjectsManagerResource(SlydJsonResource):
             self.bad_request(
                 "unrecognised cmd arg %s, available commands: %s" %
                 (command, ', '.join(projects_manager.project_commands.keys())))
-        args = map(str, command_spec.get('args', []))
+        args = command_spec.get('args', [])
         try:
             retval = dispatch_func(*args)
         except TypeError:
@@ -69,12 +69,18 @@ class ProjectsManagerResource(SlydJsonResource):
         def finish_request(val):
             val and request.write(val)
             request.finish()
+
+        def request_failed(failure):
+            request.setResponseCode(500)
+            request.write(failure.getErrorMessage())
+            request.finish()
+            return failure
         
         project_manager = self.spec_manager.project_manager(request.auth_info)
         obj = self.read_json(request)
         retval = self.handle_project_command(project_manager, obj)
         if isinstance(retval, Deferred):    
-            retval.addCallbacks(finish_request, None)
+            retval.addCallbacks(finish_request, request_failed)
             return NOT_DONE_YET
         else:
             return retval
