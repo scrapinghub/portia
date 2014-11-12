@@ -42,6 +42,15 @@ class GitProjectsManager(ProjectsManager):
     def _open_repo(self, name):
         return Repoman.open_repo(name)
 
+    def _get_branch(self, repo, read_only=False):
+        if repo.has_branch(self.user):
+            return self.user
+        elif not read_only:
+            repo.create_branch(self.user, repo.get_branch('master'))
+            return self.user
+        else:
+            return 'master'
+
     def all_projects(self):
         return Repoman.list_repos()
 
@@ -60,22 +69,22 @@ class GitProjectsManager(ProjectsManager):
         Repoman.delete_repo(name)
 
     def edit_project(self, name, revision):
-        repoman = self._open_repo(name)
-        if not repoman.has_branch(self.user):
-            revision = repoman.get_branch(revision)
-            repoman.create_branch(self.user, revision)
+        # Do nothing here, but subclasses can use this method as a hook
+        # e.g. to import projects from another source.
+        return
 
     @run_in_thread
     def publish_project(self, name, force):
         repoman = self._open_repo(name)
-        if repoman.publish_branch(self.user, force):
-            repoman.delete_branch(self.user)
+        if repoman.publish_branch(self._get_branch(repoman), force):
+            repoman.delete_branch(self._get_branch(repoman))
             return 'OK'
         else:
             return 'CONFLICT'
 
     def discard_changes(self, name):
-        self._open_repo(name).delete_branch(self.user)
+        repo = self._open_repo(name)
+        repo.delete_branch(self._get_branch(repo))
 
     def project_revisions(self, name):
         repoman = self._open_repo(name)
@@ -84,13 +93,17 @@ class GitProjectsManager(ProjectsManager):
     @run_in_thread
     def conflicted_files(self, name):        
         repoman = self._open_repo(name)
-        return json.dumps(repoman.get_branch_conflicted_files(self.user))
+        return json.dumps(
+            repoman.get_branch_conflicted_files(
+                self._get_branch(repoman, read_only=True)))
 
     @run_in_thread
     def changed_files(self, name):
         repoman = self._open_repo(name)
-        return json.dumps(repoman.get_branch_changed_files(self.user))
+        return json.dumps(repoman.get_branch_changed_files(
+            self._get_branch(repoman, read_only=True)))
 
     def save_file(self, name, file_path, file_contents):
-        self._open_repo(name).save_file(file_path,
-            json.dumps(file_contents, sort_keys=True, indent=4), self.user)
+        repoman = self._open_repo(name)
+        repoman.save_file(file_path, json.dumps(file_contents,
+            sort_keys=True, indent=4), self._get_branch(repoman))
