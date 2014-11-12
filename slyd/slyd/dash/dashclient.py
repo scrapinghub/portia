@@ -18,6 +18,10 @@ def set_dash_url(dash_url):
     DASH_API_URL = dash_url
 
 
+class DeployError(Exception):
+    pass
+
+
 def import_project(name, apikey):
     """Download a project from Dash and create a GIT repo for it."""
     archive = zipfile.ZipFile(StringIO(_download_project(name, apikey)))
@@ -51,11 +55,14 @@ def deploy_project(name, apikey):
     req = requests.post(DASH_API_URL + 'as/import.json',
         files=[('archive', ('archive', zbuff, 'application/zip'))],
         params=payload)
-    project_url = DASH_API_URL.rsplit('/', 2)[0] + '/p/' + name
-    return {
-        'status': 'ok',
-        'schedule_url': project_url,
-    }
+    if req.status_code == 200:
+        project_url = DASH_API_URL.rsplit('/', 2)[0] + '/p/' + name
+        return {
+            'status': 'ok',
+            'schedule_url': project_url,
+        }
+    else:
+        raise DeployError('Deploy to Dash failed: %s' % req.text)
 
 
 def _fix_items(raw_items):

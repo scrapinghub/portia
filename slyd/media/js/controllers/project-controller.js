@@ -119,6 +119,8 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 						alert(ASTool.Messages.get('deploy_ok'));
 					}
 				}
+			}.bind(this), function() {
+				this.set('isDeploying', false);
 			}.bind(this));
 		},
 
