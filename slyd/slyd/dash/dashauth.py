@@ -39,7 +39,6 @@ class ApiKeyChecker(object):
         r = requests.get(self.dash_api_url + 'users/get.json',
             params=payload)
         auth_info = r.json()
-        print auth_info
         if auth_info['status'] != 'ok':
             raise InvalidApiKey('Invalid apikey')
         auth_info['apikey'] = apikey
