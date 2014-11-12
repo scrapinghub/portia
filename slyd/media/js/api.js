@@ -490,7 +490,8 @@ ASTool.SlydApi = Em.Object.extend({
 			if (hash.data) {
 				msg += '\nwith data ' + hash.data;
 			}
-			msg += '\n The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')';
+			msg += '\n The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')' +
+				 '\n' + reason['jqXHR'].responseText;
 			alert(msg);
 			throw new Error(reason);
 		});
