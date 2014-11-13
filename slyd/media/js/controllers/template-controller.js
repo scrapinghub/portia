@@ -226,7 +226,8 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	emptyAnnotations: function() {
 		return this.get('annotations').filter(function(annotation) {
-			return !annotation.get('mappedAttributes').length;
+			return Em.isEmpty(annotation.get('mappedAttributes')) &&
+				Em.isEmpty(annotation.get('stickyAttributes'))
 		});
 	}.observes('annotations.@each.mappedAttributes'),
 
