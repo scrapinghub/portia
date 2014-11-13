@@ -15,6 +15,7 @@ RUN pip install -r requirements.txt
 
 ADD . /app
 WORKDIR /app/slyd
+RUN npm install
 RUN grunt optimize
 CMD twistd --pidfile=/tmp/twistd.pid -n slyd
 EXPOSE 9001
