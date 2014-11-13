@@ -3,7 +3,7 @@
 	"url" : "http://github.com/scrapinghub/portia",
 
 	"dependencies": {
-	    "bower": "*",
+	    "bower": "*"
   	},
   
   	"devDependencies": {
