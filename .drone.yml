@@ -1,4 +1,6 @@
 image: python2.7
+script:
+  - docker/restore-mtime.sh
 
 publish:
   docker:
