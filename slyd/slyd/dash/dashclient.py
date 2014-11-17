@@ -31,7 +31,6 @@ def import_project(name, apikey):
         contents = archive.read(filename)
         if filename == 'items.json':
             resource = 'items'
-            contents = _fix_items(contents)
         elif filename == 'extractors.json':
             resource = 'extractors'
         elif filename.startswith('spiders'):
@@ -39,8 +38,14 @@ def import_project(name, apikey):
         else:
             resource = None
         if resource in ['items', 'spider', 'extractors']:
+            as_json = json.loads(contents)
+            if resource == 'items':
+                as_json = _fix_items(as_json)
+            elif resource == 'spider':
+                as_json = _fix_spider(as_json)
             # Validate against slybot schemas.
-            get_schema_validator(resource).validate(json.loads(contents))
+            get_schema_validator(resource).validate(as_json)
+            contents = json.dumps(as_json)
         files[filename] = contents
     repo.save_files(files, 'master', 'Initial import.')
     return repo
@@ -65,13 +70,18 @@ def deploy_project(name, apikey):
         raise DeployError('Deploy to Dash failed: %s' % req.text)
 
 
-def _fix_items(raw_items):
+def _fix_items(items):
     """Fixes issues with the imported items."""
-    items = json.loads(raw_items)
     for _, item in items.iteritems():
         if 'url' in item['fields']:
             del item['fields']['url']
-    return json.dumps(items) 
+    return items
+
+
+def _fix_spider(spider):
+    for template in spider['templates']:
+        template['name'] = template['page_id']
+    return spider
 
 
 def _download_project(name, apikey):
