@@ -77,14 +77,14 @@ class GitProjectsManager(ProjectsManager):
     def publish_project(self, name, force):
         repoman = self._open_repo(name)
         if repoman.publish_branch(self._get_branch(repoman), force):
-            repoman.delete_branch(self._get_branch(repoman))
+            repoman.kill_branch(self._get_branch(repoman))
             return 'OK'
         else:
             return 'CONFLICT'
 
     def discard_changes(self, name):
-        repo = self._open_repo(name)
-        repo.delete_branch(self._get_branch(repo))
+        repoman = self._open_repo(name)
+        repoman.kill_branch(self._get_branch(repoman))
 
     def project_revisions(self, name):
         repoman = self._open_repo(name)

@@ -47,7 +47,7 @@ def import_project(name, apikey):
             get_schema_validator(resource).validate(as_json)
             contents = json.dumps(as_json)
         files[filename] = contents
-    repo.save_files(files, 'master', 'Initial import.')
+    repo.save_files(files, 'master', 'Publishing initial import.')
     return repo
 
 
