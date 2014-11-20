@@ -22,10 +22,9 @@ class DeployError(Exception):
     pass
 
 
-def import_project(name, apikey):
+def import_project(name, apikey, repo):
     """Download a project from Dash and create a GIT repo for it."""
     archive = zipfile.ZipFile(StringIO(_download_project(name, apikey)))
-    repo = Repoman.create_repo(name)
     files = {}
     for filename in archive.namelist():
         contents = archive.read(filename)
@@ -48,7 +47,6 @@ def import_project(name, apikey):
             contents = json.dumps(as_json)
         files[filename] = contents
     repo.save_files(files, 'master', 'Publishing initial import.')
-    return repo
 
 
 def deploy_project(name, apikey):
