@@ -19,7 +19,8 @@ class ProjectsManager(GitProjectsManager):
     @run_in_thread
     def edit_project(self, name, revision):
         if not Repoman.repo_exists(name):
-            import_project(name, self.auth_info['service_token'])
+            repo = Repoman.create_repo(name, author=self.user)
+            import_project(name, self.auth_info['service_token'], repo)
         GitProjectsManager.edit_project(self, name, revision)
 
     @run_in_thread
