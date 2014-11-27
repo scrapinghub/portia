@@ -178,12 +178,6 @@ ASTool.InlineTextField = Ember.View.extend({
     	keyPress: function(e) {
         	if (e.keyCode == $.ui.keyCode['ENTER']) {
         		this.done();
-        	} else if (this.get('parentView.validate')) {
-        		character = String.fromCharCode(e.which);
-        		if (!/[A-Za-z0-9_]/g.test(character)) {
-        			alert('Only A-Z a-z 0-9 _ allowed');
-        			return false;
-        		}
         	}
     	},
 

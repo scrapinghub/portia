@@ -20,9 +20,19 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	},
 
 	saveChanges: function() {
-		this.get('slyd').saveItems(this.toArray()).then(function() {
+		valid = true;
+		this.get('content').forEach(function(item) {
+			if (!item.isValid()) {
+				alert('The item ' + item.get('name') + 
+					' or one of its fields has an invalid name. Only A-Z, a-z, 0-9, - and _ are allowed characters.');
+				valid = false;
+			}
+		}.bind(this));
+		if (valid) {
+			this.get('slyd').saveItems(this.toArray()).then(function() {
 				this.transitionToRoute('template');
-			}.bind(this));
+			}.bind(this));	
+		}
 	},
 
 	actions: {
