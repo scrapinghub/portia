@@ -51,7 +51,7 @@ jQuery.fn.getAttributeList = function() {
 jQuery.fn.getAttributeList.ignoredAttributes = ['id', 'class',
 	'width', 'style', 'height', 'cellpadding',
 	'cellspacing', 'border', 'bgcolor', 'color', 'colspan',
-	'data-scrapy-annotate'];
+	'data-scrapy-annotate', 'data-tagid'];
 
 jQuery.fn.boundingBox = function() {
 	var rect = {};
