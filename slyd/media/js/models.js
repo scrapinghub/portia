@@ -117,7 +117,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 	serializedProperties: ['start_urls',
 		'start_urls', 'links_to_follow', 'follow_patterns',
 		'exclude_patterns', 'respect_nofollow',
-		'init_requests'],
+		'init_requests', 'template_names'],
 	serializedRelations: ['templates'],
 	start_urls: null,
 	links_to_follow: 'patterns',
@@ -125,6 +125,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 	exclude_patterns: null,
 	respect_nofollow: true,
 	templates: null,
+	template_names: null,
 	init_requests: null,
 
 	init: function() {
