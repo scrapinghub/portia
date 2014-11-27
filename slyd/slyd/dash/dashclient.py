@@ -42,6 +42,11 @@ def import_project(name, apikey, repo):
                 as_json = _fix_items(as_json)
             elif resource == 'spider':
                 as_json = _fix_spider(as_json)
+                templates = as_json['templates']
+                for template in templates:
+                    template['name'] = template['page_id']
+                    template_fname = os.path.join(filename, template['name'])
+                    files[template_fname] = json.dumps(template)
             # Validate against slybot schemas.
             get_schema_validator(resource).validate(as_json)
             contents = json.dumps(as_json)
