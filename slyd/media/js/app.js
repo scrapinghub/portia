@@ -69,8 +69,9 @@ function guid() {
 }
 
 
-function shortGuid() {
-	return s4() + '-' + s4() + '-' + s4();
+function shortGuid(separator) {
+  separator = typeof separator !== 'undefined' ? separator : '-';
+	return s4() + separator + s4() + separator + s4();
 }
 
 function toType(obj) {
