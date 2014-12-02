@@ -5,7 +5,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	documentView: null,
 
 	addItem: function() {
-		var newItem = ASTool.Item.create({ name: ASTool.shortGuid() });
+		var newItem = ASTool.Item.create({ name: ASTool.shortGuid('_') });
 		this.addField(newItem);
 		this.pushObject(newItem);
 	},
