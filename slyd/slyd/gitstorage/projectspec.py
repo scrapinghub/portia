@@ -1,4 +1,5 @@
 import json
+import os
 from os.path import splitext, split, join
 from .repoman import Repoman
 from slyd.projectspec import ProjectSpec
@@ -34,7 +35,8 @@ class GitProjectSpec(ProjectSpec):
         files = self._open_repo().list_files_for_branch(
             self._get_branch(read_only=True))
         return [splitext(split(f)[1])[0] for f in files
-            if f.startswith("spiders") and f.endswith(".json")]
+            if f.startswith("spiders") and f.count(os.sep) == 1
+                and f.endswith(".json")]
             
     def rename_spider(self, from_name, to_name):
         self._open_repo().rename_file(self._rfile_name('spiders', from_name),
@@ -43,6 +45,13 @@ class GitProjectSpec(ProjectSpec):
     def remove_spider(self, name):
         self._open_repo().delete_file(
             self._rfile_name('spiders', name), self._get_branch())
+
+    def remove_template(self, spider_name, name):
+        self._open_repo().delete_file(
+            self._rfile_name('spiders', spider_name, name), self._get_branch())
+        spider = self.spider_json(spider_name)
+        spider['template_names'].remove(name)
+        self.savejson(spider, ['spiders', spider_name])
 
     def resource(self, *resources):
         return json.loads(self._rfile_contents(resources))

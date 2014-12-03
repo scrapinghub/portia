@@ -120,7 +120,7 @@ ASTool.SlydApi = Em.Object.extend({
 
   	@method loadSpider
   	@for ASTool.SlydApi
-  	@param {String} [oldProjectName] The name of the spider.
+  	@param {String} [spiderName] The name of the spider.
   	@return {Promise} a promise that fulfills with a JSON {Object}
   		containing the spider spec.
 	*/
@@ -139,6 +139,27 @@ ASTool.SlydApi = Em.Object.extend({
 				return ASTool.Template.create(template);
 			});
 			return ASTool.Spider.create(spiderData);
+		});
+	},
+
+	/**
+  	@public
+
+  	Fetches a template.
+
+  	@method loadTemplate
+  	@for ASTool.SlydApi
+  	@param {String} [spiderName] The name of the spider.
+  	@param {String} [templateName] The name of the template.
+  	@return {Promise} a promise that fulfills with a JSON {Object}
+  		containing the template spec.
+	*/
+	loadTemplate: function(spiderName, templateName) {
+		var hash = {};
+		hash.type = 'GET';
+		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName + '/' + templateName;
+		return this.makeAjaxCall(hash).then(function(templateData) {
+			return ASTool.Template.create(templateData);
 		});
 	},
 
@@ -167,7 +188,30 @@ ASTool.SlydApi = Em.Object.extend({
 	/**
   	@public
 
-  	Saves the a spider for the current project.
+  	Renames an existing template. This operation will overwrite
+  	existing templates.
+  	Template names must only contain alphanum, '.'s and '_'s.
+
+  	@method renameTemplate
+  	@for ASTool.SlydApi
+  	@param {String} [spiderName] The name of the spider owning the template.
+  	@param {String} [oldTemplateName] The name of the template to rename.
+  	@param {String} [newTemplateName] The new name for the template.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
+	renameTemplate: function(spiderName, oldTemplateName, newTemplateName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.url = this.get('projectSpecUrl') + 'spiders';
+		hash.data = JSON.stringify({ cmd: 'mvt', args: [spiderName, oldTemplateName, newTemplateName] });
+		hash.dataType = 'text';
+		return this.makeAjaxCall(hash);
+	},
+
+	/**
+  	@public
+
+  	Saves a spider for the current project.
 
   	@method saveSpider
   	@for ASTool.SlydApi
@@ -178,7 +222,7 @@ ASTool.SlydApi = Em.Object.extend({
 	*/
 	saveSpider: function(spider, excludeTemplates) {
 		var hash = {};
-		hash.type = excludeTemplates ? 'PUT' : 'POST';
+		hash.type = 'POST';
 		var spiderName = spider.get('name');
 		serialized = spider.serialize();
 		if (excludeTemplates) {
@@ -193,11 +237,34 @@ ASTool.SlydApi = Em.Object.extend({
 	/**
   	@public
 
-  	Deletes an existing project.
+  	Saves a spider template for the current project.
 
-  	@method deleteProject
+  	@method saveTemplate
   	@for ASTool.SlydApi
-  	@param {String} [projectName] The name of the project to delete.
+  	@param {String} [spiderName] the name of the spider.
+  	@param {String} [templateName] the name of the template.
+  	@param {Object} [templateData] a JSON object containing the template spec.
+  	@return {Promise} promise that fulfills when the server responds.
+	*/
+	saveTemplate: function(spiderName, template) {
+		var hash = {};
+		hash.type = 'POST';
+		var templateName = template.get('name');
+		serialized = template.serialize();
+		hash.data = JSON.stringify(serialized);
+		hash.dataType = 'text';
+		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName + '/' + templateName;
+		return this.makeAjaxCall(hash);
+	},
+
+	/**
+  	@public
+
+  	Deletes an existing spider.
+
+  	@method deleteSpider
+  	@for ASTool.SlydApi
+  	@param {String} [spiderName] The name of the spider to delete.
   	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	deleteSpider: function(spiderName) {
@@ -206,6 +273,26 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders';
 		hash.data = JSON.stringify({ cmd: 'rm', args: [spiderName] });
+		return this.makeAjaxCall(hash);
+	},
+
+	/**
+  	@public
+
+  	Deletes an existing template.
+
+  	@method deleteTemplate
+  	@for ASTool.SlydApi
+  	@param {String} [spiderName] The name of the spider that owns the template.
+  	@param {String} [spiderName] The name of the template to delete.
+  	@return {Promise} a promise that fulfills when the server responds.
+	*/
+	deleteTemplate: function(spiderName, templateName) {
+		var hash = {};
+		hash.type = 'POST';
+		hash.dataType = 'text';
+		hash.url = this.get('projectSpecUrl') + 'spiders';
+		hash.data = JSON.stringify({ cmd: 'rmt', args: [spiderName, templateName] });
 		return this.makeAjaxCall(hash);
 	},
 

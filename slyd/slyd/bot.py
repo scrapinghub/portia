@@ -77,10 +77,6 @@ class Fetch(BotResource):
 
     def render_POST(self, request):
         #TODO: validate input data, handle errors, etc.
-        if hasattr(request, 'keystone_token_info'):
-            self.user = request.keystone_token_info['token']['user']['name']
-        elif hasattr(request, 'auth_info'):
-            self.user = request.auth_info['username']
         params = self.read_json(request)
         scrapy_request_kwargs = params['request']
         scrapy_request_kwargs.update(
@@ -96,6 +92,11 @@ class Fetch(BotResource):
         request = Request(**scrapy_request_kwargs)
         self.bot.crawler.engine.schedule(request, self.bot.spider)
         return NOT_DONE_YET
+
+    def _get_template_name(self, template_id, templates):
+        for template in templates:
+            if template['page_id'] == template_id:
+                return template['name']
 
     def fetch_callback(self, response):
         request = response.meta['twisted_request']
@@ -116,9 +117,11 @@ class Fetch(BotResource):
             fingerprint = request_fingerprint(response.request)
             result_response = dict(status=response.status,
                 headers=response.headers.to_string())
-            result = dict(page=cleaned_html, original=original_html, fp=fingerprint,
-                response=result_response)
-            spider = self.create_spider(
+            result = dict(page=cleaned_html, original=original_html,
+                 fp=fingerprint, response=result_response)
+            # HACKY: return the spider but also return the template specs.
+            # We need them to map the template_id to the template name.
+            spider, templates = self.create_spider(
                 request.project, request.auth_info, params)
             if spider is not None:
                 items = []
@@ -127,6 +130,8 @@ class Fetch(BotResource):
                     if isinstance(value, Request):
                         links.append(value.url)
                     elif isinstance(value, DictItem):
+                        value['_template_name'] = self._get_template_name(
+                            value['_template'], templates)
                         items.append(value._values)
                     else:
                         raise ValueError("Unexpected type %s from spider"
@@ -146,10 +151,13 @@ class Fetch(BotResource):
         pspec = self.bot.spec_manager.project_spec(project, auth_info)
         try:
             spider_spec = pspec.resource('spiders', spider)
+            spider_spec['templates'] = [
+                pspec.resource('spiders', spider, template) for
+                template in spider_spec['template_names']]
             items_spec = pspec.resource('items')
             extractors = pspec.resource('extractors')
             return IblSpider(spider, spider_spec, items_spec, extractors,
-                **kwargs)
+                **kwargs), spider_spec['templates']
         except IOError as ex:
             if ex.errno == errno.ENOENT:
                 log.msg("skipping extraction, no spec: %s" % ex.filename)

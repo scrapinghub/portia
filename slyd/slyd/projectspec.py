@@ -12,26 +12,23 @@ def create_project_resource(spec_manager):
     return ProjectResource(spec_manager)
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
-_INVALID_SPIDER_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
+_INVALID_FILE_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
 
 
-def allowed_spider_name(name):
-    return not _INVALID_SPIDER_RE.search(name)
+def allowed_file_name(name):
+    return not _INVALID_FILE_RE.search(name)
 
 
-def convert_spider_templates(spider):
-    """Converts the spider templates annotated body for being used in the UI"""
-    for template in spider['templates']:
-            template['annotated_body'] = html4annotation(
-                template['annotated_body'], template['url'])
+def convert_template(template):
+    """Converts the template annotated body for being used in the UI."""
+    template['annotated_body'] = html4annotation(
+        template['annotated_body'], template['url'])
 
 
-def annotate_templates(spider):
-    "Applies the annotations into the templates original body"
-    if spider.get('templates', None):
-        for template in spider['templates']:
-            template['annotated_body'] = apply_annotations(
-                template['annotated_body'], template['original_body'])
+def annotate_template(template):
+    "Applies the annotations into the template original body."
+    template['annotated_body'] = apply_annotations(
+        template['annotated_body'], template['original_body'])
 
 
 class ProjectSpec(object):
@@ -50,7 +47,9 @@ class ProjectSpec(object):
         self.user = auth_info['username']
         self.spider_commands = {
             'mv': self.rename_spider,
-            'rm': self.remove_spider
+            'rm': self.remove_spider,
+            'mvt': self.rename_template,
+            'rmt': self.remove_template,
         }
 
     def list_spiders(self):
@@ -63,14 +62,24 @@ class ProjectSpec(object):
                 raise
 
     def spider_json(self, name):
-        """Loads the spider spec for the give spider name
-
-        Also converts the annotated body of the templates to be used by
-        the annotation UI"""
+        """Loads the spider spec for the given spider name."""
         try:
-            spider = self.resource('spiders', name)
-            convert_spider_templates(spider)
-            return spider
+            return self.resource('spiders', name)
+        except IOError as ex:
+            if ex.errno == errno.ENOENT:
+                return({})
+            else:
+                raise
+
+    def template_json(self, spider_name, template_name):
+        """Loads the given template.
+
+        Also converts the annotated body of the template to be used by
+        the annotation UI."""
+        try:
+            template = self.resource('spiders', spider_name, template_name)
+            convert_template(template)
+            return template
         except IOError as ex:
             if ex.errno == errno.ENOENT:
                 return({})
@@ -84,8 +93,26 @@ class ProjectSpec(object):
     def remove_spider(self, name):
         os.remove(self._rfilename('spiders', name))
 
+    def rename_template(self, spider_name, from_name, to_name):
+        template = self.resource('spiders', spider_name, from_name)
+        template['name'] = to_name
+        self.savejson(template, ['spiders', spider_name, to_name])
+        self.remove_template(spider_name, from_name)
+        spider = self.spider_json(spider_name)
+        spider['template_names'].append(to_name)
+        self.savejson(spider, ['spiders', spider_name])
+
+    def remove_template(self, spider_name, name):
+        os.remove(self._rfilename('spiders', spider_name, name))
+        spider = self.spider_json(spider_name)
+        spider['template_names'].remove(name)
+        self.savejson(spider, ['spiders', spider_name])
+
     def _rfilename(self, *resources):
         return join(self.project_dir, *resources) + '.json'
+
+    def _rdirname(self, *resources):
+        return join(self.project_dir, *resources[0][:-1])
 
     def _rfile(self, resources, mode='rb'):
         return open(self._rfilename(*resources), mode)
@@ -110,6 +137,10 @@ class ProjectSpec(object):
 
     def savejson(self, obj, *resources):
         # convert to json in a way that will make sense in diffs
+        try:
+            os.makedirs(self._rdirname(*resources))
+        except OSError:
+            pass
         ouf = self._rfile(*resources, mode='wb')
         json.dump(obj, ouf, sort_keys=True, indent=4)
 
@@ -144,7 +175,7 @@ class ProjectResource(SlydJsonResource):
     def render(self, request):
         # make sure the path is safe
         for pathelement in request.postpath:
-            if pathelement and not allowed_spider_name(pathelement):
+            if pathelement and not allowed_file_name(pathelement):
                 resource_class = NoResource if request.method == 'GET' \
                     else ForbiddenResource
                 resource = resource_class("Bad path element %r" % pathelement)
@@ -164,6 +195,9 @@ class ProjectResource(SlydJsonResource):
             if rpath[0] == 'spiders' and len(rpath) == 2:
                 spider = project_spec.spider_json(rpath[1])
                 request.write(json.dumps(spider))
+            elif rpath[0] == 'spiders' and len(rpath) == 3:
+                template = project_spec.template_json(rpath[1], rpath[2])
+                request.write(json.dumps(template))
             else:
                 project_spec.writejson(request, *rpath)
         return '\n'
@@ -176,14 +210,12 @@ class ProjectResource(SlydJsonResource):
             # validate the request path and data
             resource = request.postpath[0]
             if resource == 'spiders':
+                resource = 'spider'
                 if len(request.postpath) == 1 or not request.postpath[1]:
                     return self.handle_spider_command(project_spec, obj)
-                annotate_templates(obj)
-                resource = 'spider'
-            if merge:
-                current = project_spec.resource(*request.postpath)
-                current.update(obj)
-                obj = current
+                elif len(request.postpath) == 3:
+                    resource = 'template'
+                    annotate_template(obj)
             get_schema_validator(resource).validate(obj)
         except (KeyError, IndexError) as _ex:
             self.error(404, "Not Found", "No such resource")
@@ -192,20 +224,17 @@ class ProjectResource(SlydJsonResource):
         project_spec.savejson(obj, request.postpath)
         return ''
 
-    def render_PUT(self, request):
-        return self.render_POST(request, merge=True)
-
     def handle_spider_command(self, project_spec, command_spec):
         command = command_spec.get('cmd')
         dispatch_func = project_spec.spider_commands.get(command)
         if dispatch_func is None:
             self.bad_request(
                 "unrecognised cmd arg %s, available commands: %s" %
-                (command, ', '.join(projects_manager.project_commands.keys())))
+                (command, ', '.join(project_spec.spider_commands.keys())))
         args = map(str, command_spec.get('args', []))
-        for spider in args:
-            if not allowed_spider_name(spider):
-                self.bad_request('invalid spider name %s' % spider)
+        for name in args:
+            if not allowed_file_name(name):
+                self.bad_request('invalid name %s' % name)
         try:
             retval = dispatch_func(*args)
         except TypeError:

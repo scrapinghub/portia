@@ -8,7 +8,7 @@ ASTool.MappedFieldData = Em.Object.extend({
 ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 	
-	needs: ['application', 'items', 'spider_index'],
+	needs: ['application', 'items', 'spider_index', 'spider'],
 
 	navigationLabelBinding: 'content.name',
 
@@ -108,6 +108,12 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		if (this.get('content')) {
 			this.set('content.annotated_body', this.get('documentView').getAnnotatedDocument());
 		}
+	},
+
+	saveTemplate: function() {
+		this.saveAnnotations();
+		return this.get('slyd').saveTemplate(
+			this.get('controllers.spider.name'), this.get('content'));
 	},
 
 	saveExtractors: function() {
@@ -271,8 +277,22 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		},
 
 		rename: function(oldName, newName) {
-			this.saveAnnotations();
-			this.replaceRoute('template', newName);
+			this.set('name', oldName);
+			this.saveTemplate().then(function() {
+				var templateNames = this.get('controllers.spider.content.template_names');
+				newName = this.getUnusedName(newName, templateNames);
+				var spiderName = this.get('controllers.spider.name');
+				this.get('slyd').renameTemplate(spiderName, oldName, newName).then(
+					function() {
+						templateNames.removeObject(oldName);
+						templateNames.addObject(newName);
+						this.replaceRoute('template', newName);	
+					}.bind(this),
+					function(reason) {
+						alert('The name ' + newName + ' is not a valid template name.');
+					}.bind(this)
+				);
+			}.bind(this));
 		},
 
 		createExtractor: function() {
@@ -334,9 +354,10 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			this.emptyAnnotations().forEach(function(annotation) {
 				this.deleteAnnotation(annotation);
 			}.bind(this));
-			this.saveAnnotations();
-			this.set('controllers.spider_index.autoloadTemplate', this.get('content'));
-			this.transitionToRoute('spider');
+			this.saveTemplate().then(function() {
+				this.set('controllers.spider_index.autoloadTemplate', this.get('url'));
+				this.transitionToRoute('spider');
+			}.bind(this));
 		},
 
 		hideFloatingAnnotationWidget: function() {
