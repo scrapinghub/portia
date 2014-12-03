@@ -170,25 +170,25 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		}
 	}.property('loadedPageFp', 'pendingFetches.@each'),
 
-	editTemplate: function(template) {
-		this.transitionToRoute('template', template);
+	editTemplate: function(templateName) {
+		this.transitionToRoute('template', templateName);
 	},
 	
-	viewTemplate: function(template) {
-		var newWindow = window.open('about:blank',
-			'_blank',
-			'resizable=yes, scrollbars=yes');
-		newWindow.document.write(template.get('annotated_body'));
-		newWindow.document.title = ('Template ' + template.get('name'));
+	viewTemplate: function(templateName) {
+		this.get('slyd').loadTemplate(this.get('name'), templateName).then(function(template) {
+			var newWindow = window.open('about:blank',
+				'_blank',
+				'resizable=yes, scrollbars=yes');
+			newWindow.document.write(template.get('annotated_body'));
+			newWindow.document.title = ('Template ' + template.get('name'));
+		});
 	},
 	
 	wrapItem: function(item) {
-		var templatePageId = item['_template'];
-		var template = this.get('templates').findBy('page_id', templatePageId);
-		var itemDefinition = this.get('itemDefinitions').findBy('name', template.get('scrapes'));
+		var itemDefinition = this.get('itemDefinitions').findBy('name', item['_type']);
 		return ASTool.ExtractedItem.create({ extracted: item,
 											 definition: itemDefinition,
-											 matchedTemplate: template });
+											 matchedTemplate: item['_template_name'] });
 	},
 
 	updateExtractedItems: function(items) {
@@ -250,8 +250,9 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	addTemplate: function() {
 		var page = this.get('pageMap')[this.get('loadedPageFp')];
+		var template_name = ASTool.shortGuid();
 		var template = ASTool.Template.create( 
-			{ name: ASTool.shortGuid(),
+			{ name: template_name,
 			  extractors: {},
 			  annotated_body: page.page,
 			  original_body: page.original,
@@ -262,10 +263,12 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			// The deault item doesn't exist but we have at least one item def.
 			template.set('scrapes', itemDefs[0].get('name'));
 		}
-		this.get('content.templates').pushObject(template);
-		this.saveSpider().then(
-			function() {
-				this.editTemplate(template);
+		this.get('content.template_names').pushObject(template_name);
+		this.get('slyd').saveTemplate(this.get('name'), template).then(function() {
+			this.saveSpider().then(
+				function() {
+					this.editTemplate(template_name);
+				}.bind(this));
 			}.bind(this)
 		);
 	},
@@ -309,13 +312,13 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	attachAutoSave: function() {
 		this.get('model').addObserver('dirty', function() {
-			Ember.run.once(this, 'saveSpider', [true]);	
+			Ember.run.once(this, 'saveSpider');	
 		}.bind(this));
 	}.observes('model'),
 
-	saveSpider: function(exclude_templates) {
+	saveSpider: function() {
 		this.set('saving', true);
-		return this.get('slyd').saveSpider(this.get('content'), exclude_templates).then(function() {
+		return this.get('slyd').saveSpider(this.get('content')).then(function() {
 			this.set('saving', false);
 		}.bind(this));
 	},
@@ -355,17 +358,21 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	
 	actions: {
 
-		editTemplate: function(template) {
-			this.editTemplate(template);
+		editTemplate: function(templateName) {
+			this.editTemplate(templateName);
 		},
 
 		addTemplate: function() {
 			this.addTemplate();
 		},
 
-		deleteTemplate: function(template) {
-			this.get('templates').removeObject(template);
-			Ember.run.once(this, 'saveSpider');
+		deleteTemplate: function(templateName) {
+			this.get('content.template_names').removeObject(templateName);
+			this.get('slyd').deleteTemplate(this.get('name'), templateName);
+		},
+
+		viewTemplate: function(templateName) {
+			this.viewTemplate(templateName);
 		},
 
 		fetchPage: function(url) {
@@ -455,7 +462,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		},
 
 		updateLoginInfo: function() {
-			Ember.run.once(this, 'saveSpider', [true]);
+			Ember.run.once(this, 'saveSpider');
 		},
 	},
 
@@ -486,7 +493,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		if (this.get('autoloadTemplate')) {
 			Ember.run.next(this, function() {
 				this.saveSpider().then(function() {
-					this.fetchPage(this.get('autoloadTemplate.url'), null, true);	
+					this.fetchPage(this.get('autoloadTemplate'), null, true);	
 					this.set('autoloadTemplate', null);
 				}.bind(this));
 			});	

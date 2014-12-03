@@ -140,7 +140,7 @@ ASTool.SpiderIndexRoute = Ember.Route.extend({
 ASTool.TemplateRoute = Ember.Route.extend({
 	model: function(params) {
 		var spider = this.modelFor('spider');
-		return spider.get('templates').findBy('id', params.template_id);
+		return this.get('slyd').loadTemplate(spider.get('name'), params.template_id);
 	},
 });
 
@@ -224,7 +224,7 @@ ASTool.AnnotationRoute = Ember.Route.extend({
     	this.render('topbar-extraction', {
     		into: 'application',
       		outlet: 'topbar',
-      		controller: 'annotation',
+      		controller: controller,
     	});
 	},
 });
@@ -236,16 +236,17 @@ ASTool.ItemsRoute = Ember.Route.extend({
 	},
 
 	renderTemplate: function() {
+		var controller = this.controllerFor('items');
 		this.render('toolbox-items', {
 			into: 'application',
       		outlet: 'main',
-      		controller: 'items',
+      		controller: controller,
     	});
 
     	this.render('topbar-extraction', {
     		into: 'application',
       		outlet: 'topbar',
-      		controller: 'items',
+      		controller: controller,
     	});
 	},
 });
@@ -256,22 +257,23 @@ ASTool.ConflictsRoute = Ember.Route.extend({
 	},
 
 	renderTemplate: function() {
+		var controller = this.controllerFor('conflicts');
 		this.render('toolbox-conflicts', {
 			into: 'application',
       		outlet: 'main',
-      		controller: 'conflicts',
+      		controller: controller,
     	});
 
     	this.render('topbar-conflicts', {
     		into: 'application',
       		outlet: 'topbar',
-      		controller: 'conflicts',
+      		controller: controller,
     	});
 
     	this.render('conflict-resolver', {
     		into: 'application',
       		outlet: 'conflictResolver',
-      		controller: 'conflicts',
+      		controller: controller,
     	});
 	},
 });
@@ -280,23 +282,23 @@ ASTool.ConflictsRoute = Ember.Route.extend({
 ASTool.LoadingRoute = ASTool.ProjectLoadingRoute = ASTool.SpiderLoadingRoute = Ember.Route.extend({
 
 	renderTemplate: function() {
-
+		var controller = this.controllerFor('loading');
 		this.render('toolbox-empty', {
 			into: 'application',
       		outlet: 'main',
-      		controller: 'loading',
+      		controller: controller,
     	});
 
 		this.render('loading', {
 			into: 'application',
       		outlet: 'conflictResolver',
-      		controller: 'loading',
+      		controller: controller,
     	});
 
     	this.render('topbar-empty', {
     		into: 'application',
       		outlet: 'topbar',
-      		controller: 'loading',
+      		controller: controller,
     	});
 	},
 });

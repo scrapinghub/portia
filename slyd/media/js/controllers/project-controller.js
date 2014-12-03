@@ -35,7 +35,8 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 			  'follow_patterns': [],
 			  'exclude_patterns': [],
 			  'init_requests': [],
-			  'templates': [] });
+			  'templates': [],
+			  'template_names': [] });
 		this.pushObject(newSpiderName);
 		this.set('spiderPage', null);
 		return this.get('slyd').saveSpider(spider).then(function() {

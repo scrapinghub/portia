@@ -113,9 +113,9 @@
 	<div class="section">
 		<h4>Templates</h4>
 		<div class="scrolling-container" style="max-height:350px;">
-			{{#each templates}}
+			{{#each template_names}}
 				<div style="margin:4px 0px 4px 0px">
-					{{view ASTool.ButtonView action="editTemplate" argument=this label=name minWidth='76%' title=url class="light-button"}}
+					{{view ASTool.ButtonView action="editTemplate" argument=this label=this minWidth='76%' title=url class="light-button"}}
 					{{view ASTool.ButtonView action="viewTemplate" argument=this icon=" ui-icon-newwin" class="blue-button"}}
 					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button"}}
 				</div>

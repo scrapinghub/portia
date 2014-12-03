@@ -3,6 +3,7 @@ import requests
 import zipfile
 import json
 
+from collections import defaultdict
 from cStringIO import StringIO
 from datetime import datetime
 from slyd.gitstorage.repoman import Repoman
@@ -24,6 +25,23 @@ class DeployError(Exception):
 
 def import_project(name, apikey, repo):
     """Download a project from Dash and create a GIT repo for it."""
+
+    def validump_resource(jsonres, restype):
+        get_schema_validator(restype).validate(jsonres)
+        return json.dumps(jsonres)
+
+    def split_templates(spider, spider_filename, files):
+        templates = spider['templates']
+        spider['templates'] = []
+        spider['template_names'] = []
+        for template in templates:
+            template['name'] = template['page_id']
+            spider['template_names'].append(template['name'])
+            template_fname = os.path.join(
+                spider_filename.rpartition('.')[0],
+                str(template['name']) + '.json')
+            files[template_fname] = validump_resource(template, 'template')
+
     archive = zipfile.ZipFile(StringIO(_download_project(name, apikey)))
     files = {}
     for filename in archive.namelist():
@@ -41,15 +59,8 @@ def import_project(name, apikey, repo):
             if resource == 'items':
                 as_json = _fix_items(as_json)
             elif resource == 'spider':
-                as_json = _fix_spider(as_json)
-                templates = as_json['templates']
-                for template in templates:
-                    template['name'] = template['page_id']
-                    template_fname = os.path.join(filename, template['name'])
-                    files[template_fname] = json.dumps(template)
-            # Validate against slybot schemas.
-            get_schema_validator(resource).validate(as_json)
-            contents = json.dumps(as_json)
+                split_templates(as_json, filename, files)
+            contents = validump_resource(as_json, resource)
         files[filename] = contents
     repo.save_files(files, 'master', 'Publishing initial import.')
 
@@ -81,12 +92,6 @@ def _fix_items(items):
     return items
 
 
-def _fix_spider(spider):
-    for template in spider['templates']:
-        template['name'] = template['page_id']
-    return spider
-
-
 def _download_project(name, apikey):
     """Download a zipped project from Dash."""
     payload = {'apikey': apikey, 'project': name, 'version': 'slybot'}
@@ -106,7 +111,28 @@ def _archive_project(name, buff):
     repo = Repoman.open_repo(name)
     now = datetime.now().timetuple()[:6]
     archive = zipfile.ZipFile(buff, "w", zipfile.ZIP_DEFLATED)
+    spiders = {}
+    templates = defaultdict(list)
     for file_path in repo.list_files_for_branch('master'):
         file_contents = repo.file_contents_for_branch(file_path, 'master')
-        _add_to_archive(archive, file_path, file_contents, now)
+        if file_path.startswith('spiders'):
+            as_json = json.loads(file_contents)
+            try:
+                parts = file_path.split("/")
+                if len(parts) == 2:
+                    # spider json
+                    spider_name = parts[1].rsplit(".", 1)[0]
+                    spiders[spider_name] = file_path, as_json
+                elif len(parts) == 3:
+                    # template json
+                    spider_name = parts[1]
+                    templates[spider_name].append(as_json)
+            except ValueError:
+                continue
+        else:
+            _add_to_archive(archive, file_path, file_contents, now)
+    for name, (path, json_spec) in spiders.iteritems():
+        json_spec.pop('template_names')
+        json_spec['templates'] = templates[name]
+        _add_to_archive(archive, path, json.dumps(json_spec), now)
     archive.close()
