@@ -52,7 +52,8 @@
             "exclude_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "respect_nofollow": {"type": "boolean", "required": true},
             "allowed_domains": {"type": "array", "items": {"type": "string"}},
-            "templates": {"type": "array", "items": {"$ref": "template"}, "required": true},
+            "templates": {"type": "array", "items": {"$ref": "template"}},
+            "template_names": {"type": "array", "items": {"type": "string"}},
             "init_requests": {"type": "array", "items": {"$ref": "request"}}
         }
     },
