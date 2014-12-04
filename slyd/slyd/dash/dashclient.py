@@ -111,28 +111,25 @@ def _archive_project(name, buff):
     repo = Repoman.open_repo(name)
     now = datetime.now().timetuple()[:6]
     archive = zipfile.ZipFile(buff, "w", zipfile.ZIP_DEFLATED)
-    spiders = {}
-    templates = defaultdict(list)
-    for file_path in repo.list_files_for_branch('master'):
+    files_list = repo.list_files_for_branch('master')
+    extractors = {}
+    for file_path in files_list:
+        if file_path.endswith('extractors.json'):
+            extractors = json.loads(repo.file_contents_for_branch(file_path,
+                                                                  'master'))
+
+    for file_path in files_list:
         file_contents = repo.file_contents_for_branch(file_path, 'master')
         if file_path.startswith('spiders'):
             as_json = json.loads(file_contents)
-            try:
-                parts = file_path.split("/")
-                if len(parts) == 2:
-                    # spider json
-                    spider_name = parts[1].rsplit(".", 1)[0]
-                    spiders[spider_name] = file_path, as_json
-                elif len(parts) == 3:
-                    # template json
-                    spider_name = parts[1]
-                    templates[spider_name].append(as_json)
-            except ValueError:
-                continue
+            templates = as_json.get('templates', [])
+            for template in templates:
+                existing = {}
+                for field, eid in template.get('extractors', {}).iteritems():
+                    if eid in extractors:
+                        existing[field] = eid
+                template['extractors'] = extractors
+            _add_to_archive(archive, file_path, json.dumps(as_json), now)
         else:
             _add_to_archive(archive, file_path, file_contents, now)
-    for name, (path, json_spec) in spiders.iteritems():
-        json_spec.pop('template_names')
-        json_spec['templates'] = templates[name]
-        _add_to_archive(archive, path, json.dumps(json_spec), now)
     archive.close()
