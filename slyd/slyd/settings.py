@@ -15,17 +15,17 @@ DATA_DIR = join(dirname(dirname(__file__)), 'data')
 SPEC_DATA_DIR = join(DATA_DIR, 'projects')
 
 SPEC_FACTORY = {
-	'PROJECT_SPEC': 'slyd.projectspec.ProjectSpec',
-	'PROJECT_MANAGER': 'slyd.projectspec.ProjectsManager',
-	'PARAMS': {
-		'location': SPEC_DATA_DIR,
-	},
-	'CAPABILITIES': {
-		'version_control': False,
-		'create_projects': True,
-		'rename_projects': True,
-		'deploy_projects': False,
-	}
+    'PROJECT_SPEC': 'slyd.projectspec.ProjectSpec',
+    'PROJECT_MANAGER': 'slyd.projects.ProjectsManager',
+    'PARAMS': {
+        'location': SPEC_DATA_DIR,
+    },
+    'CAPABILITIES': {
+        'version_control': False,
+        'create_projects': True,
+        'rename_projects': True,
+        'deploy_projects': False,
+    }
 }
 
 
