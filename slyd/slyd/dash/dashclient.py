@@ -111,9 +111,16 @@ def _archive_project(name, buff):
     repo = Repoman.open_repo(name)
     now = datetime.now().timetuple()[:6]
     archive = zipfile.ZipFile(buff, "w", zipfile.ZIP_DEFLATED)
+    files_list = repo.list_files_for_branch('master')
+    extractors = {}
+    for file_path in files_list:
+        if file_path == 'extractors.json':
+            extractors = json.loads(repo.file_contents_for_branch(file_path,
+                                                                  'master'))
+
     spiders = {}
     templates = defaultdict(list)
-    for file_path in repo.list_files_for_branch('master'):
+    for file_path in files_list:
         file_contents = repo.file_contents_for_branch(file_path, 'master')
         if file_path.startswith('spiders'):
             as_json = json.loads(file_contents)
@@ -125,6 +132,11 @@ def _archive_project(name, buff):
                     spiders[spider_name] = file_path, as_json
                 elif len(parts) == 3:
                     # template json
+                    existing = {}
+                    for field, eids in as_json.get('extractors', {}).items():
+                        existing[field] = [eid for eid in eids
+                                           if eid in extractors]
+                    as_json['extractors'] = existing
                     spider_name = parts[1]
                     templates[spider_name].append(as_json)
             except ValueError:
