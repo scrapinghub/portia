@@ -5,6 +5,7 @@ from scrapely.extractors import htmlregion
 from slybot.fieldtypes import FieldTypeManager
 from slybot.item import SlybotFieldDescriptor
 
+
 def create_regex_extractor(pattern):
     """Create extractor from a regular expression.
     Only groups from match are extracted and concatenated, so it
@@ -14,18 +15,20 @@ def create_regex_extractor(pattern):
     u'45.50'
     """
     ereg = re.compile(pattern, re.S)
+
     def _extractor(txt):
         m = ereg.search(txt)
         if m:
             return htmlregion(u"".join(filter(None, m.groups() or m.group())))
-    
+
     _extractor.__name__ = "Regex: %s" % pattern.encode("utf-8")
     return _extractor
+
 
 class PipelineExtractor:
     def __init__(self, *extractors):
         self.extractors = extractors
-    
+
     def __call__(self, value):
         for extractor in self.extractors:
             value = extractor(value) if value else value
@@ -33,8 +36,8 @@ class PipelineExtractor:
 
     @property
     def __name__(self):
-        return repr(self.extractors) 
-    
+        return repr(self.extractors)
+
 
 def apply_extractors(descriptor, template_extractors, extractors):
     field_type_manager = FieldTypeManager()
@@ -42,18 +45,17 @@ def apply_extractors(descriptor, template_extractors, extractors):
     for field_name, field_extractors in template_extractors.items():
         equeue = []
         for eid in field_extractors:
-            extractor_doc = extractors[eid]
+            extractor_doc = extractors.get(eid, {})
             if "regular_expression" in extractor_doc:
                 equeue.append(create_regex_extractor(extractor_doc["regular_expression"]))
-            elif "type_extractor" in extractor_doc: # overrides default one
-                descriptor.attribute_map[field_name] = SlybotFieldDescriptor(field_name, 
+            elif "type_extractor" in extractor_doc:  # overrides default one
+                descriptor.attribute_map[field_name] = SlybotFieldDescriptor(field_name,
                     field_name, field_type_manager.type_processor_class(extractor_doc["type_extractor"])())
         if not field_name in descriptor.attribute_map:
             # if not defined type extractor, use text type by default, as it is by far the most commonly used
-            descriptor.attribute_map[field_name] = SlybotFieldDescriptor(field_name, 
+            descriptor.attribute_map[field_name] = SlybotFieldDescriptor(field_name,
                     field_name, field_type_manager.type_processor_class("text")())
-            
+
         if equeue:
             equeue.insert(0, descriptor.attribute_map[field_name].extractor)
             descriptor.attribute_map[field_name].extractor = PipelineExtractor(*equeue)
-

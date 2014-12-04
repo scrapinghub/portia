@@ -106,7 +106,25 @@ def _archive_project(name, buff):
     repo = Repoman.open_repo(name)
     now = datetime.now().timetuple()[:6]
     archive = zipfile.ZipFile(buff, "w", zipfile.ZIP_DEFLATED)
-    for file_path in repo.list_files_for_branch('master'):
+    files_list = repo.list_files_for_branch('master')
+    extractors = {}
+    for file_path in files_list:
+        if file_path.endswith('extractors.json'):
+            extractors = json.loads(repo.file_contents_for_branch(file_path,
+                                                                  'master'))
+
+    for file_path in files_list:
         file_contents = repo.file_contents_for_branch(file_path, 'master')
-        _add_to_archive(archive, file_path, file_contents, now)
+        if file_path.startswith('spiders'):
+            as_json = json.loads(file_contents)
+            templates = as_json.get('templates', [])
+            for template in templates:
+                existing = {}
+                for field, eid in template.get('extractors', {}).iteritems():
+                    if eid in extractors:
+                        existing[field] = eid
+                template['extractors'] = extractors
+            _add_to_archive(archive, file_path, json.dumps(as_json), now)
+        else:
+            _add_to_archive(archive, file_path, file_contents, now)
     archive.close()
