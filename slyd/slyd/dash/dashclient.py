@@ -128,7 +128,7 @@ def _archive_project(name, buff):
                 for field, eid in template.get('extractors', {}).iteritems():
                     if eid in extractors:
                         existing[field] = eid
-                template['extractors'] = extractors
+                template['extractors'] = existing
             _add_to_archive(archive, file_path, json.dumps(as_json), now)
         else:
             _add_to_archive(archive, file_path, file_contents, now)
