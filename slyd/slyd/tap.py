@@ -18,12 +18,12 @@ DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
 class Options(usage.Options):
     optParameters = [
         ['port', 'p', DEFAULT_PORT, 'Port number to listen on.', int],
-        ['docroot', 'd', DEFAULT_DOCROOT, 'Default doc root for static media.'],
+        ['docroot', 'd', DEFAULT_DOCROOT, 'Default doc root for static media.']
     ]
 
 
 class Capabilities(SlydJsonObjectResource):
-    
+
     isLeaf = True
 
     def __init__(self, spec_manager):
@@ -35,7 +35,7 @@ class Capabilities(SlydJsonObjectResource):
 
 def create_root(config):
     from scrapy import log
-    from scrapy.settings import Settings 
+    from scrapy.settings import Settings
     from .specmanager import SpecManager
     from .authmanager import AuthManager
     from .projectspec import create_project_resource

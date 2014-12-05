@@ -4,6 +4,7 @@ from lxml import html
 
 from scrapy.http.request.form import _get_inputs
 
+
 class GenericForm:
 
     def __init__(self, **kwargs):

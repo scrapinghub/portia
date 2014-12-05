@@ -22,7 +22,6 @@ class BotTest(unittest.TestCase):
         factory = Site(File(docroot))
         self.listen_port = reactor.listenTCP(8997, factory)
 
-
     def _fetch(self, url, **params):
         req = dict(params)
         req.setdefault('request', {})['url'] = url

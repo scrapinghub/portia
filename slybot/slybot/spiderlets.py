@@ -9,24 +9,30 @@ from scrapy import signals
 from scrapy.exceptions import NotConfigured
 from scrapy.http import Request
 
+
 class DefaultSpiderlet(object):
     name = None
+
     def __init__(self, spider):
         self.spider = spider
+
     def process_request(self, request, response):
         return request
+
     def process_item(self, item, response):
         return item
+
     def process_start_request(self, request):
         return request
 
     def parse_login_page(self, response):
         return self.spider.parse_login_page(response)
 
+
 def list_spiderlets(spiderlets_module_path):
     spiderlets_module = __import__(spiderlets_module_path, {}, {}, [''])
     seen_classes = set()
-    for _, mname, _  in pkgutil.iter_modules(spiderlets_module.__path__):
+    for _, mname, _ in pkgutil.iter_modules(spiderlets_module.__path__):
         module = __import__(".".join([spiderlets_module_path, mname]), {}, {}, [''])
         for cls in [c for c in vars(module).itervalues() if inspect.isclass(c)]:
             if cls in seen_classes:
@@ -36,6 +42,7 @@ def list_spiderlets(spiderlets_module_path):
             if name:
                 yield cls
 
+
 def _load_spiderlet(spiderlets_module_path, spider):
     for cls in list_spiderlets(spiderlets_module_path):
         if cls.name == spider.name:
@@ -44,6 +51,7 @@ def _load_spiderlet(spiderlets_module_path, spider):
             spider.log("SpiderletMiddleware: loaded %s" % _spiderlet_cls.name)
             return _spiderlet_cls(spider)
     return DefaultSpiderlet(spider)
+
 
 class SpiderletsMiddleware(object):
     @classmethod
@@ -59,7 +67,7 @@ class SpiderletsMiddleware(object):
 
     def spider_opened(self, spider):
         self.spiderlet = _load_spiderlet(self.spiderlets_module_path, spider)
-        
+
     def process_spider_output(self, response, result, spider):
         for item_or_request in result:
             if isinstance(item_or_request, Request):
@@ -72,4 +80,3 @@ class SpiderletsMiddleware(object):
             if request.callback == spider.parse_login_page:
                 request.callback = self.spiderlet.parse_login_page
             yield self.spiderlet.process_start_request(request)
-    

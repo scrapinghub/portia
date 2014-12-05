@@ -17,14 +17,18 @@ def _quotify(mystr):
     quote = '"'
     l = len(mystr)
     for i in range(l):
-        if mystr[i] == "\\" and i + 1 < l and mystr[i+1] == "'":
-            quote = "'"; break
-        elif mystr[i] == "\\" and i + 1 < l and mystr[i+1] == '"':
-            quote = '"'; break
+        if mystr[i] == "\\" and i + 1 < l and mystr[i + 1] == "'":
+            quote = "'"
+            break
+        elif mystr[i] == "\\" and i + 1 < l and mystr[i + 1] == '"':
+            quote = '"'
+            break
         elif mystr[i] == "'":
-            quote = '"'; break
+            quote = '"'
+            break
         elif mystr[i] == '"':
-            quote = "'"; break
+            quote = "'"
+            break
     return quote + mystr + quote
 
 

@@ -7,8 +7,10 @@ from scrapely.htmlpage import parse_html, HtmlTagType
 ABSURLRE = re.compile("^https?\:\/\/")
 DOCTYPERE = re.compile("<!DOCTYPE.*?>", re.S | re.I)
 
+
 def _is_abs_url(url):
     return bool(ABSURLRE.match(url))
+
 
 def insert_base_url(html, base):
     """
@@ -53,8 +55,9 @@ def insert_base_url(html, base):
 
     return html
 
+
 def get_base_url(htmlpage):
-    """Return the base url of the given HtmlPage""" 
+    """Return the base url of the given HtmlPage"""
     for element in htmlpage.parsed_body:
         if getattr(element, "tag", None) == "base":
             return element.attributes.get("href") or htmlpage.url

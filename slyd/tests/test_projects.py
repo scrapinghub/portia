@@ -14,7 +14,7 @@ class ProjectsTest(unittest.TestCase):
 
     def setUp(self):
         self.temp_projects_dir = mkdtemp(dir=DATA_DIR,
-            prefix='test-run-')
+                                         prefix='test-run-')
         root = Resource()
         projects = test_projects_resource(self.temp_projects_dir)
         root.putChild('projects', projects)

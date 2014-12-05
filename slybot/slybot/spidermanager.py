@@ -8,6 +8,7 @@ from scrapy.utils.misc import load_object
 from slybot.spider import IblSpider
 from slybot.utils import open_project_from_dir
 
+
 class SlybotSpiderManager(object):
 
     implements(ISpiderManager)
@@ -30,6 +31,7 @@ class SlybotSpiderManager(object):
 
     def list(self):
         return self._specs["spiders"].keys()
+
 
 class ZipfileSlybotSpiderManager(SlybotSpiderManager):
 

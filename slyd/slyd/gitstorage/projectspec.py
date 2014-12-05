@@ -35,12 +35,13 @@ class GitProjectSpec(ProjectSpec):
         files = self._open_repo().list_files_for_branch(
             self._get_branch(read_only=True))
         return [splitext(split(f)[1])[0] for f in files
-            if f.startswith("spiders") and f.count(os.sep) == 1
+                if f.startswith("spiders") and f.count(os.sep) == 1
                 and f.endswith(".json")]
-            
+
     def rename_spider(self, from_name, to_name):
         self._open_repo().rename_file(self._rfile_name('spiders', from_name),
-            self._rfile_name('spiders', to_name), self._get_branch())
+                                      self._rfile_name('spiders', to_name),
+                                      self._get_branch())
 
     def remove_spider(self, name):
         self._open_repo().delete_file(
@@ -61,4 +62,5 @@ class GitProjectSpec(ProjectSpec):
 
     def savejson(self, obj, resources):
         self._open_repo().save_file(self._rfile_name(*resources),
-            json.dumps(obj, sort_keys=True, indent=4), self._get_branch())
+                                    json.dumps(obj, sort_keys=True, indent=4),
+                                    self._get_branch())

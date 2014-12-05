@@ -16,14 +16,14 @@ from .utils import serialize_tag
 #     Doesn't deal with meta redirect javascript URIs
 
 INTRINSIC_EVENT_ATTRIBUTES = ("onload", "onunload", "onclick", "ondblclick",
-                            "onmousedown", "onmouseup", "onmouseover",
-                            "onmousemove", "onmouseout", "onfocus",
-                            "onblur", "onkeypress", "onkeydown",
-                            "onkeyup", "onsubmit", "onreset", "onselect",
-                            "onchange", "onerror", "onbeforeunload")
+                              "onmousedown", "onmouseup", "onmouseover",
+                              "onmousemove", "onmouseout", "onfocus",
+                              "onblur", "onkeypress", "onkeydown",
+                              "onkeyup", "onsubmit", "onreset", "onselect",
+                              "onchange", "onerror", "onbeforeunload")
 
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
-                "data", "href", "longdesc", "profile", "src", "usemap")
+                  "data", "href", "longdesc", "profile", "src", "usemap")
 
 AS_SCRIPT_REGION_BEGIN = "<!-- begin region added by slyd-->"
 AS_SCRIPT_REGION_END = "<!-- end region added by slyd-->"

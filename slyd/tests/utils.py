@@ -13,6 +13,7 @@ def test_spec_manager():
     crawler_settings = CrawlerSettings(settings_module=test_settings)
     return CrawlerSpecManager(crawler_settings)
 
+
 def test_projects_resource(temp_projects_dir):
     """Create a ProjectsResource configured to use test settings"""
     crawler_settings = CrawlerSettings(settings_module=test_settings)
@@ -22,7 +23,8 @@ def test_projects_resource(temp_projects_dir):
 
 
 class _SlydDummyRequest(DummyRequest):
-    def __init__(self, method, url, project='test', data=None, args=None, headers=None):
+    def __init__(self, method, url, project='test', data=None, args=None,
+                 headers=None):
         DummyRequest.__init__(self, url.split('/'))
         if data is not None:
             self.content = StringIO(data)
@@ -58,7 +60,7 @@ class TestSite(server.Site):
 
     def _request(self, method, url, args, headers, data):
         request = _SlydDummyRequest(method, url, self.project,
-            data, args, headers)
+                                    data, args, headers)
         resource = self.getResourceFor(request)
         result = resource.render(request)
         return self._resolveResult(request, result)
