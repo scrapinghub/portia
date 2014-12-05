@@ -6,6 +6,7 @@ from scrapy.exceptions import DropItem
 
 from slybot.item import create_item_version
 
+
 class DupeFilterPipeline(object):
     def __init__(self, settings):
         if not settings.getbool('SLYDUPEFILTER_ENABLED'):
@@ -27,4 +28,3 @@ class DupeFilterPipeline(object):
             raise DropItem("Duplicate product scraped at <%s>, first one was scraped at <%s>" % (item["url"], old_url))
         self._itemversion_cache[version] = item["url"]
         return item
-

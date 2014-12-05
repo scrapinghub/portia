@@ -1,15 +1,16 @@
-_PROJECT_TEMPLATE = \
-"""{}"""
+_PROJECT_TEMPLATE = """\
+{}\
+"""
 
 
-_SETTINGS_TEMPLATE = \
-"""# Automatically created by: slyd
+_SETTINGS_TEMPLATE = """\
+# Automatically created by: slyd
 import os
 
 SPIDER_MANAGER_CLASS = 'slybot.spidermanager.ZipfileSlybotSpiderManager'
 EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
 ITEM_PIPELINES = ['slybot.dupefilter.DupeFilterPipeline']
-SPIDER_MIDDLEWARES = {'slybot.spiderlets.SpiderletsMiddleware': 999} # as close as possible to spider output
+SPIDER_MIDDLEWARES = {'slybot.spiderlets.SpiderletsMiddleware': 999}  # as close as possible to spider output
 SLYDUPEFILTER_ENABLED = True
 
 PROJECT_ZIPFILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -22,8 +23,8 @@ except ImportError:
 """
 
 
-_SETUP_PY_TEMPLATE = \
-"""# Automatically created by: slyd
+_SETUP_PY_TEMPLATE = """\
+# Automatically created by: slyd
 
 from setuptools import setup, find_packages
 
@@ -38,11 +39,12 @@ setup(
     entry_points = {'scrapy': ['settings = spiders.settings']},
     zip_safe = True
 )
+
 """
 
 
-_SCRAPY_TEMPLATE = \
-"""# Automatically created by: slyd
+_SCRAPY_TEMPLATE = """\
+# Automatically created by: slyd
 
 [settings]
 default = slybot.settings

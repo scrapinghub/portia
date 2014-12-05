@@ -1,6 +1,7 @@
 from twisted.web.server import Site
 from twisted.web.resource import Resource
 
+
 class Root(Resource):
 
     def __init__(self):

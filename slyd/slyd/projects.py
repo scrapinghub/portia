@@ -24,8 +24,8 @@ class ProjectsManagerResource(SlydJsonResource):
     def getChildWithDefault(self, project_path_element, request):
         auth_info = request.auth_info
         if (not 'authorized_projects' in auth_info or
-            auth_info.get('staff', False) or
-            project_path_element in auth_info['authorized_projects']):
+                auth_info.get('staff', False) or
+                project_path_element in auth_info['authorized_projects']):
             request.project = project_path_element
             try:
                 next_path_element = request.postpath.pop(0)
@@ -75,11 +75,11 @@ class ProjectsManagerResource(SlydJsonResource):
             request.write(failure.getErrorMessage())
             request.finish()
             return failure
-        
+
         project_manager = self.spec_manager.project_manager(request.auth_info)
         obj = self.read_json(request)
         retval = self.handle_project_command(project_manager, obj)
-        if isinstance(retval, Deferred):    
+        if isinstance(retval, Deferred):
             retval.addCallbacks(finish_request, request_failed)
             return NOT_DONE_YET
         else:
@@ -138,17 +138,19 @@ class ProjectsManager(object):
 
         os.makedirs(join(project_filename, 'spiders'))
 
-        with open(join(project_filename, 'spiders', '__init__.py'), 'w') as outf:
+        init_py = join(project_filename, 'spiders', '__init__.py')
+        with open(init_py, 'w') as outf:
             outf.write('')
 
-        with open(join(project_filename, 'spiders', 'settings.py'), 'w') as outf:
+        settings_py = join(project_filename, 'spiders', 'settings.py')
+        with open(settings_py, 'w') as outf:
             outf.write(templates['SETTINGS'])
 
     def rename_project(self, from_name, to_name):
         self.validate_project_name(from_name)
         self.validate_project_name(to_name)
         os.rename(self.project_filename(from_name),
-            self.project_filename(to_name))
+                  self.project_filename(to_name))
 
     def remove_project(self, name):
         shutil.rmtree(self.project_filename(name))
@@ -158,4 +160,4 @@ class ProjectsManager(object):
 
     def validate_project_name(self, name):
         if not allowed_project_name(name):
-            self.bad_request('invalid project name %s' % project)
+            self.bad_request('invalid project name %s' % name)

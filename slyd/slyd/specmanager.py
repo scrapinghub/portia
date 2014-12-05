@@ -18,5 +18,3 @@ class SpecManager(object):
 
     def project_manager(self, auth_info):
         return self.manager_class(auth_info)
-
-

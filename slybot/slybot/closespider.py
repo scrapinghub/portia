@@ -14,8 +14,9 @@ from scrapy.exceptions import NotConfigured
 DEFAULT_CHECK_PERIOD = 3600
 DEFAULT_PERIOD_MIN_ITEMS = 200
 
+
 class SlybotCloseSpider(object):
-    
+
     def __init__(self, crawler):
         if not crawler.settings.getbool("SLYCLOSE_SPIDER_ENABLED"):
             raise NotConfigured
@@ -40,7 +41,7 @@ class SlybotCloseSpider(object):
 
     def item_scraped(self, item, spider):
         self.items_in_period += 1
-            
+
     def _check_crawled_items(self, spider):
         if self.items_in_period >= self.period_items:
             self.items_in_period = 0

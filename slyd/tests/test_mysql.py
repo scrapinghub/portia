@@ -11,8 +11,10 @@ from slyd.repoman import Repoman
 
 import mysql.connector
 
+
 def j(json):
     return dumps(json, sort_keys=True, indent=4)
+
 
 class RepomanTest(unittest.TestCase):
 
@@ -30,5 +32,3 @@ class RepomanTest(unittest.TestCase):
         repoman = Repoman.open_repo('new_project_5', self._connection)
         print repoman.list_files_for_branch('marcos')
         print repoman.get_branch_changed_files('marcos')
-        
-   

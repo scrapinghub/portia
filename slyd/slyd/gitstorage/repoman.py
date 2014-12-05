@@ -147,13 +147,14 @@ class Repoman(object):
             branch_name, self._delete_file, file_path, commit_message)
 
     def rename_file(self, old_file_path, new_file_path, branch_name,
-        commit_message=None):
+                    commit_message=None):
         '''Renames a file in the repo and advances the specified branch head.
 
         If the branch does not exist yet, it will be created.
         '''
         self._perform_file_operation(branch_name, self._rename_file,
-            old_file_path, new_file_path, commit_message)
+                                     old_file_path, new_file_path,
+                                     commit_message)
 
     def blob_for_branch(self, file_path, branch_name):
         '''Returns the blob with the contents of file_path.
@@ -240,7 +241,7 @@ class Repoman(object):
         # TODO: find a better way of marking publish commits...
         # maybe use tags?
         return [entry.commit.id for entry in walker
-            if entry.commit.message.startswith('Publishing')]
+                if entry.commit.message.startswith('Publishing')]
 
     def get_branch_checkpoints(self, branch_name):
         '''Returns all commit ids for changes made within the branch.'''
@@ -269,15 +270,18 @@ class Repoman(object):
         def has_conflict(json):
             for key in json.keys():
                 if (key == '__CONFLICT' or
-                    isinstance(json[key], dict) and has_conflict(json[key])):
+                        isinstance(json[key], dict) and
+                        has_conflict(json[key])):
                     return True
             return False
 
-        files_content = ((file_path, loads(self.file_contents_for_branch(
-            file_path, branch_name) or '{}')) for
-                file_path in self.get_branch_changed_files(branch_name))
-        return { file_path: content for file_path, content in files_content if
-            has_conflict(content) }
+        conflicts = {}
+        for file_path in self.get_branch_changed_files(branch_name):
+            content_str = self.file_contents_for_branch(file_path, branch_name)
+            content = loads(content_str or '{}')
+            if has_conflict(content):
+                conflicts[file_path] = content
+        return conflicts
 
     def kill_branch(self, branch_name):
         '''Kills a branch and the objects that are only accessible from it.
@@ -318,14 +322,14 @@ class Repoman(object):
         def load_json(path, branch):
             try:
                 blob = self.blob(path, branch)
-            except KeyError as ex:
+            except KeyError:
                 return {}
             else:
                 return loads(blob.as_raw_string())
 
         merge_tree = Tree()
         base_tree, my_tree, other_tree = (self._get_tree(x)
-            for x in (base, mine, other))
+                                          for x in (base, mine, other))
         ren_detector = RenameDetector(self._repo.object_store)
 
         my_changes, other_changes = (
@@ -352,13 +356,13 @@ class Repoman(object):
                 if my_changes.type == CHANGE_DELETE:
                     if other_changes.type in (CHANGE_RENAME, CHANGE_MODIFY):
                         merge_tree.add(other_changes.new.path,
-                            FILE_MODE, other_changes.new.sha)
+                                       FILE_MODE, other_changes.new.sha)
                     else:
                         continue
                 elif other_changes.type == CHANGE_DELETE:
                     if my_changes.type in (CHANGE_RENAME, CHANGE_MODIFY):
                         merge_tree.add(my_changes.new.path,
-                            FILE_MODE, my_changes.new.sha)
+                                       FILE_MODE, my_changes.new.sha)
                     else:
                         continue
                 else:
@@ -390,7 +394,7 @@ class Repoman(object):
         commit = operation(parent_commit, *args)
         self._advance_branch(branch_name, commit)
 
-    def _save_file(self,  parent_commit, file_path, contents, commit_message):
+    def _save_file(self, parent_commit, file_path, contents, commit_message):
         commit_message = commit_message or 'Saving %s' % file_path
         return self._save_files(
             parent_commit, {file_path: contents}, commit_message)
@@ -409,7 +413,7 @@ class Repoman(object):
         self._update_store(commit, tree, *blobs)
         return commit
 
-    def _delete_file(self,  parent_commit, file_path, commit_message):
+    def _delete_file(self, parent_commit, file_path, commit_message):
         tree = self._get_tree(parent_commit)
         del tree[file_path]
         commit = self._create_commit()
@@ -420,7 +424,7 @@ class Repoman(object):
         return commit
 
     def _rename_file(self, parent_commit, old_file_path, new_file_path,
-        commit_message):
+                     commit_message):
         tree = self._get_tree(parent_commit)
         tree[new_file_path] = tree[old_file_path]
         del tree[old_file_path]
@@ -428,10 +432,10 @@ class Repoman(object):
         commit.parents = [parent_commit]
         commit.tree = tree.id
         commit.message = (commit_message or
-            'Renaming %s to %s' % (old_file_path, new_file_path))
+                          'Renaming %s to %s' % (old_file_path, new_file_path))
         self._update_store(commit, tree)
         return commit
-            
+
     def _update_store(self, *args):
         objects = [(obj, None) for obj in args]
         self._repo.object_store.add_objects(objects)
@@ -457,7 +461,7 @@ class Repoman(object):
     def _get_head(self):
         try:
             return self._repo.head()
-        except KeyError as ex:
+        except KeyError:
             return None
 
     def _is_ancestor_commit(self, descendant, ancestor):

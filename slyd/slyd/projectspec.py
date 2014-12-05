@@ -88,7 +88,7 @@ class ProjectSpec(object):
 
     def rename_spider(self, from_name, to_name):
         os.rename(self._rfilename('spiders', from_name),
-            self._rfilename('spiders', to_name))
+                  self._rfilename('spiders', to_name))
 
     def remove_spider(self, name):
         os.remove(self._rfilename('spiders', name))
@@ -217,7 +217,7 @@ class ProjectResource(SlydJsonResource):
                     resource = 'template'
                     annotate_template(obj)
             get_schema_validator(resource).validate(obj)
-        except (KeyError, IndexError) as _ex:
+        except (KeyError, IndexError):
             self.error(404, "Not Found", "No such resource")
         except ValidationError as ex:
             self.bad_request("Json failed validation: %s" % ex.message)

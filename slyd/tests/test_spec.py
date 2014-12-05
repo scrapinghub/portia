@@ -31,7 +31,7 @@ class CrawlerSpecTest(unittest.TestCase):
         sm = test_spec_manager()
         spec_resource = create_crawler_spec_resource(sm)
         self.temp_project_dir = mkdtemp(dir=SPEC_DATA_DIR,
-            prefix='test-run-')
+                                        prefix='test-run-')
         self.project = basename(self.temp_project_dir)
         self.specsite = TestSite(spec_resource, project=self.project)
         test_project_dir = join(SPEC_DATA_DIR, 'test')
@@ -50,7 +50,7 @@ class CrawlerSpecTest(unittest.TestCase):
     def test_get_resource(self):
         self._get_check_resource("project")
         self._get_check_resource("spiders/pinterest.com",
-            convert_spider_templates)
+                                 convert_spider_templates)
 
     @inlineCallbacks
     def post_command(self, spider, cmd, *args, **kwargs):
@@ -73,8 +73,10 @@ class CrawlerSpecTest(unittest.TestCase):
     def test_commands(self):
         self.post_command('spiders', 'unknown', expect=400)
         self.post_command('spiders', 'mv', expect=400)
-        self.post_command('spiders', 'mv', '../notallowed', 'whatever', expect=400)
-        self.post_command('spiders', 'mv', 'notallowedexists', 'whatever', expect=404)
+        self.post_command('spiders', 'mv', '../notallowed', 'whatever',
+                          expect=400)
+        self.post_command('spiders', 'mv', 'notallowedexists', 'whatever',
+                          expect=404)
         self.post_command('spiders', 'rm', 'notexists', expect=404)
         # TODO: mv to existing spider - 400
         yield self.specsite.post('spiders/c', data=self.spider)

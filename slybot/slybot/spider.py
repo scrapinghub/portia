@@ -22,6 +22,7 @@ from slybot.utils import iter_unique_scheme_hostname, htmlpage_from_response
 from slybot.linkextractor import HtmlLinkExtractor, RssLinkExtractor, create_linkextractor_from_specs
 from slybot.generic_form import GenericForm
 
+
 def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
     processed_data = []
     for exdict in extracted_data or ():
@@ -37,6 +38,7 @@ def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
         processed_data.append(processed_attributes)
     return [dict(p) for p in processed_data]
 
+
 class IblSpider(Spider):
 
     def __init__(self, name, spec, item_schemas, all_extractors, **kw):
@@ -49,16 +51,18 @@ class IblSpider(Spider):
 
         self._item_template_pages = sorted((
             [t['scrapes'], dict_to_page(t, 'annotated_body'),
-            t.get('extractors', [])] \
+             t.get('extractors', [])]
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
         ), key=lambda pair: pair[0])
 
         # generate ibl extractor for links pages
         _links_pages = [dict_to_page(t, 'annotated_body')
-                for t in spec['templates'] if t.get('page_type') == 'links']
+                        for t in spec['templates']
+                        if t.get('page_type') == 'links']
         _links_item_descriptor = create_slybot_item_descriptor({'fields': {}})
-        self._links_ibl_extractor = InstanceBasedLearningExtractor([(t, _links_item_descriptor) for t in _links_pages]) \
-                if _links_pages else None
+        self._links_ibl_extractor = InstanceBasedLearningExtractor(
+            [(t, _links_item_descriptor) for t in _links_pages]) \
+            if _links_pages else None
 
         self._ipages = [page for _, page, _ in self._item_template_pages]
 
@@ -131,10 +135,10 @@ class IblSpider(Spider):
             (field_index, field_descriptor) = file_fields.pop(0)
             form_descriptor['field_index'] = field_index
             return FormRequest(self.generic_form.get_value(field_descriptor), meta=form_descriptor,
-                              callback=self.parse_field_url_page, dont_filter=True)
+                               callback=self.parse_field_url_page, dont_filter=True)
         else:
             return Request(url=form_descriptor.pop("form_url"), meta=form_descriptor,
-                                  callback=self.parse_form_page, dont_filter=True)
+                           callback=self.parse_form_page, dont_filter=True)
 
     def parse_field_url_page(self, response):
         form_descriptor = response.request.meta
@@ -215,6 +219,7 @@ class IblSpider(Spider):
         lspecs = info.get("link_extractor")
         if lspecs:
             linkextractor = create_linkextractor_from_specs(lspecs)
+
             def _callback(spider, response):
                 for link in linkextractor.links_to_follow(response):
                     yield Request(url=link.url, callback=spider.parse)
@@ -229,16 +234,16 @@ class IblSpider(Spider):
         elif "application/rss+xml" in content_type:
             return self.handle_rss(response)
         else:
-            self.log("Ignoring page with content-type=%r: %s" % (content_type, \
-                response.url), level=log.DEBUG)
+            self.log("Ignoring page with content-type=%r: %s" % (content_type,
+                     response.url), level=log.DEBUG)
             return []
 
     def _process_link_regions(self, htmlpage, link_regions):
         """Process link regions if any, and generate requests"""
         if link_regions:
             for link_region in link_regions:
-                htmlregion = HtmlPage(htmlpage.url, htmlpage.headers, \
-                        link_region, encoding=htmlpage.encoding)
+                htmlregion = HtmlPage(htmlpage.url, htmlpage.headers,
+                                      link_region, encoding=htmlpage.encoding)
                 for request in self._requests_to_follow(htmlregion):
                     yield request
         else:
@@ -268,10 +273,10 @@ class IblSpider(Spider):
             item_descriptor = info['descriptor']
             extractor = info['extractor']
             extracted, _link_regions = self._do_extract_items_from(
-                    htmlpage,
-                    item_descriptor,
-                    extractor,
-                    item_cls_name,
+                htmlpage,
+                item_descriptor,
+                extractor,
+                item_cls_name,
             )
             items.extend(extracted)
             link_regions.extend(_link_regions)
@@ -319,4 +324,3 @@ class IblSpider(Spider):
             self.url_filterf = lambda x: not exclude_pattern.search(x.url) and url_filterf(x)
         else:
             self.url_filterf = url_filterf
-
