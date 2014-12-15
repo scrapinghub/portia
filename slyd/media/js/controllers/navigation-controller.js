@@ -25,7 +25,7 @@ ASTool.NavigationController = Em.Controller.extend({
 
 	labelForRoute: function(route) {
 		var controllerName = this.get('needs').find(function(name) {
-			return name.indexOf(route) == 0;
+			return name.indexOf(route) === 0;
 		});
 		if (controllerName) {
 			var controller = this.get('controllers.' + controllerName);

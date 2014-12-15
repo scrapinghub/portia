@@ -38,7 +38,7 @@ ASTool.AnnotationsStore = Em.Object.extend({
 				ignore = {};
 				$(ignoredElement).parents().each(function(index, parent) {
 					if ($(parent).attr('data-scrapy-annotate')) {
-						ignore['id'] = $.parseJSON($(parent).attr('data-scrapy-annotate'))['id']
+						ignore['id'] = $.parseJSON($(parent).attr('data-scrapy-annotate'))['id'];
 						$(ignoredElement).attr(attributeName, JSON.stringify(ignore));
 						return false;
 					}
@@ -129,7 +129,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 	init_requests: null,
 
 	init: function() {
-		if (this.get('init_requests') == null) {
+		if (this.get('init_requests') === null) {
 			this.set('init_requests', []);
 		}
 
@@ -138,7 +138,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 				this.notifyPropertyChange('dirty');
 			}.bind(this));
 		}.bind(this));
-  	},
+	},
 
 	performLogin: function(key, performLogin) {
 		if (arguments.length > 1) {
@@ -192,10 +192,10 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 										 ignoreBeneath: attributeName == 'data-scrapy-ignore-beneath'});
 		});
 		this.set('ignores', ignores);
-		if (this.get('required') == null) {
+		if (this.get('required') === null) {
 			this.set('required', []);
 		}
-		if (this.get('annotations') == null) {
+		if (this.get('annotations') === null) {
 			this.set('annotations', {});
 		}
 	},
@@ -371,13 +371,13 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 
 	mappedAttributes: function() {
 		return this._mappedAttributes(function(fieldName) {
-			return fieldName && fieldName.indexOf('_sticky') != 0;
+			return fieldName && fieldName.indexOf('_sticky') !== 0;
 		});
 	}.property('attributes.@each', 'annotations'),
 
 	stickyAttributes: function() {
 		return this._mappedAttributes(function(fieldName) {
-			return fieldName && fieldName.indexOf('_sticky') == 0;
+			return fieldName && fieldName.indexOf('_sticky') === 0;
 		});
 	}.property('attributes.@each', 'annotations'),
 });
@@ -472,10 +472,10 @@ ASTool.ExtractedItem = Em.Object.extend({
 				Object.keys(variant).forEach(function(key) {
 					fields.pushObject(ASTool.ExtractedField.create(
 						{ name: key, type: 'variant', value: variant[key] }));
-				}.bind(this))
+				}.bind(this));
 				variants.pushObject(ASTool.ExtractedVariant.create({ fields: fields }));
-			}.bind(this))
-		};
+			}.bind(this));
+		}
 		return variants;
 	}.property('extracted', 'definition'),
 });

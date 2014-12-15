@@ -4,9 +4,9 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	needs: ['application', 'template_index'],
 
 	navigationLabelBinding: 'content.name',
-	
+
 	mappingAttribute: null,
-	
+
 	documentView: null,
 
 	currentlySelectedElement: null,
@@ -20,7 +20,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	urlBinding: 'controllers.template_index.url',
 
 	maxVariantBinding: 'controllers.template_index.maxVariant',
-	
+
 	selectingIgnore: function(key, selectingIgnore) {
 		if (arguments.length > 1) {
 			this.set('_selectingIgnore', selectingIgnore);
@@ -65,11 +65,11 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 			   'content.ignores.@each.highlighted',
 			   'content.ignores.@each.ignoreBeneath',
 			   'highlightedElement'),
-	
+
 	clearGeneratedIns: function(insElement) {
 		$(insElement).removePartialAnnotation();
 	},
-	
+
 	cancelEdit: function() {
 		this.set('content.selectedElement', null);
 		if (this.get('content.generated') &&
@@ -83,17 +83,17 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		this.get('controllers.template_index').saveAnnotations();
 		this.transitionToRoute('template');
 	},
-	
+
 	actions: {
-		
+
 		doneEditing: function(annotation) {
 			this.saveEdit(annotation);
 		},
-		
+
 		cancelEdit: function(annotation) {
 			this.cancelEdit(annotation);
 		},
-		
+
 		mapAttribute: function(attribute) {
 			this.set('mappingAttribute', attribute);
 		},
@@ -119,7 +119,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 		highlightElement: function(element) {
 			this.set('highlightedElement', element);
 			if (element) {
-				this.documentView.scrollToElement(element);	
+				this.documentView.scrollToElement(element);
 			}
 		},
 
@@ -131,13 +131,13 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 	confirmChangeSelection: function() {
 		return confirm(ASTool.Messages.get('confirm_change_selection'));
 	},
-	
+
 	documentActions: {
-		
+
 		elementSelected: function(element, mouseX, mouseY, partialSelection) {
 			if (this.get('selectingIgnore')) {
 				if (element) {
-					this.get('content').addIgnore(element);	
+					this.get('content').addIgnore(element);
 				}
 				this.set('selectingIgnore', false);
 			} else {
@@ -145,7 +145,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 					this.get('content.mappedAttributes').length;
 				if (!needsConfirmation || this.confirmChangeSelection()) {
 					if (this.get('content.generated')) {
-						this.clearGeneratedIns(this.get('content.element'));	
+						this.clearGeneratedIns(this.get('content.element'));
 					}
 					this.set('highlightedElement', null);
 					this.set('content.selectedElement', element);
@@ -156,7 +156,7 @@ ASTool.AnnotationController = Em.ObjectController.extend(ASTool.BaseControllerMi
 				}
 			}
 		},
-		
+
 		partialSelection: function(selection, mouseX, mouseY) {
 			var element = $('<ins/>').get(0);
 			selection.getRangeAt(0).surroundContents(element);

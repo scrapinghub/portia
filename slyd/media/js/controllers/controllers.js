@@ -8,7 +8,7 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 		var i = 1;
 		var newName = baseName;
 		while(usedNames.any(function(usedName) {
-			return usedName == newName
+			return usedName == newName;
 		})) {
 			newName = baseName + '_' + i++;
 		}

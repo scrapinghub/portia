@@ -25,7 +25,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 	},
 
 	actions: {
-		
+
 		openProject: function(projectName) {
 			this.openProject(projectName, 'master');
 		},
@@ -38,7 +38,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 			if (confirm('Are you sure you want to delete this project? This operation cannot be undone.')) {
 				this.get('slyd').deleteProject(projectName);
 				this.removeObject(projectName);
-			} 
+			}
 		},
 
 		createProject: function() {
@@ -57,8 +57,8 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 					this.set('controllers.application.siteWizard', this.get('projectSite'));
 					this.set('projectSite', null);
 					Em.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
-  			  			this.transitionToRoute('project', { id: newProjectName });
-					}.bind(this)) 
+						this.transitionToRoute('project', { id: newProjectName });
+					}.bind(this));
 				}.bind(this));
 			}.bind(this));
 		},
@@ -80,7 +80,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		var animateBorderColor = function () {
 			$('#projectSiteTextField')
 				.animate({ 'border-color': 'rgba(88,150,220,0.4)', 'background-color': 'rgba(130,210,230,0.1)' }, 1000)
-				.animate({ 'border-color': '#BBBBB', 'background-color': '#FFFFFF' }, 1000, animateBorderColor)
+				.animate({ 'border-color': '#BBBBB', 'background-color': '#FFFFFF' }, 1000, animateBorderColor);
 		};
 		Em.run.schedule('afterRender', this, function() {
 			$('#projectSiteTextField')
@@ -96,7 +96,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 	willEnter: function() {
 		this.get('documentView').showSpider();
 		if (Em.isEmpty(this.get('content'))) {
-			this.animateProjectSiteInput();	
+			this.animateProjectSiteInput();
 		}
 	}
 });

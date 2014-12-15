@@ -44,7 +44,7 @@ jQuery.fn.getAttributeList = function() {
 				name: this.nodeName,
 				value: this.nodeValue}));
 		}
-	})
+	});
 	return attributeList;
 };
 
@@ -98,7 +98,7 @@ jQuery.expr[':'].hasAttrWithPrefix = jQuery.expr.createPseudo(function(prefix) {
 	return function(obj) {
 		for (var i = 0; i < obj.attributes.length; i++) {
 			if (obj.attributes[i].nodeName.indexOf(prefix) === 0) return true;
-		};
+		}
 		return false;
 	};
 });

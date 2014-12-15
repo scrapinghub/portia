@@ -20,13 +20,13 @@ ASTool.SlydApi = Em.Object.extend({
 
 
 	/**
-  	@public
+	@public
 
-  	Fetches project names.
+	Fetches project names.
 
-  	@method getProjectNames
-  	@for ASTool.SlydApi
-  	@return {Promise} a promise that fulfills with an {Array} of project names.
+	@method getProjectNames
+	@for ASTool.SlydApi
+	@return {Promise} a promise that fulfills with an {Array} of project names.
 	*/
 	getProjectNames: function() {
 		var hash = {};
@@ -36,16 +36,16 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Creates a new project. A project with the same name must not exist or
-  	this operation will fail.
-  	Project names must only contain alphanum, '.'s and '_'s.
+	Creates a new project. A project with the same name must not exist or
+	this operation will fail.
+	Project names must only contain alphanum, '.'s and '_'s.
 
-  	@method createProject
-  	@for ASTool.SlydApi
-  	@param {String} [projectName] The name of the new project.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method createProject
+	@for ASTool.SlydApi
+	@param {String} [projectName] The name of the new project.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	createProject: function(projectName) {
 		var hash = {};
@@ -57,14 +57,14 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Deletes an existing project.
+	Deletes an existing project.
 
-  	@method deleteProject
-  	@for ASTool.SlydApi
-  	@param {String} [projectName] The name of the project to delete.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method deleteProject
+	@for ASTool.SlydApi
+	@param {String} [projectName] The name of the project to delete.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	deleteProject: function(projectName) {
 		var hash = {};
@@ -76,17 +76,17 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Renames an existing project. This operation will not overwrite
-  	existing projects.
-  	Project names must only contain alphanum, '.'s and '_'s.
+	Renames an existing project. This operation will not overwrite
+	existing projects.
+	Project names must only contain alphanum, '.'s and '_'s.
 
-  	@method renameProject
-  	@for ASTool.SlydApi
-  	@param {String} [oldProjectName] The name of the project to rename.
-  	@param {String} [newProjectName] The new name for the project.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method renameProject
+	@for ASTool.SlydApi
+	@param {String} [oldProjectName] The name of the project to rename.
+	@param {String} [newProjectName] The new name for the project.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	renameProject: function(oldProjectName, newProjectName) {
 		var hash = {};
@@ -98,13 +98,13 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Returns a list with the spider names for the current project.
+	Returns a list with the spider names for the current project.
 
-  	@method getSpiderNames
-  	@for ASTool.SlydApi
-  	@return {Promise} a promise that fulfills with an {Array} of spider names.
+	@method getSpiderNames
+	@for ASTool.SlydApi
+	@return {Promise} a promise that fulfills with an {Array} of spider names.
 	*/
 	getSpiderNames: function() {
 		var hash = {};
@@ -114,15 +114,15 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Fetches a spider.
+	Fetches a spider.
 
-  	@method loadSpider
-  	@for ASTool.SlydApi
-  	@param {String} [spiderName] The name of the spider.
-  	@return {Promise} a promise that fulfills with a JSON {Object}
-  		containing the spider spec.
+	@method loadSpider
+	@for ASTool.SlydApi
+	@param {String} [spiderName] The name of the spider.
+	@return {Promise} a promise that fulfills with a JSON {Object}
+		containing the spider spec.
 	*/
 	loadSpider: function(spiderName) {
 		var hash = {};
@@ -143,16 +143,16 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Fetches a template.
+	Fetches a template.
 
-  	@method loadTemplate
-  	@for ASTool.SlydApi
-  	@param {String} [spiderName] The name of the spider.
-  	@param {String} [templateName] The name of the template.
-  	@return {Promise} a promise that fulfills with a JSON {Object}
-  		containing the template spec.
+	@method loadTemplate
+	@for ASTool.SlydApi
+	@param {String} [spiderName] The name of the spider.
+	@param {String} [templateName] The name of the template.
+	@return {Promise} a promise that fulfills with a JSON {Object}
+		containing the template spec.
 	*/
 	loadTemplate: function(spiderName, templateName) {
 		var hash = {};
@@ -164,17 +164,17 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Renames an existing spider. This operation will overwrite
-  	existing spiders.
-  	Spider names must only contain alphanum, '.'s and '_'s.
+	Renames an existing spider. This operation will overwrite
+	existing spiders.
+	Spider names must only contain alphanum, '.'s and '_'s.
 
-  	@method renameSpider
-  	@for ASTool.SlydApi
-  	@param {String} [oldSpiderName] The name of the spider to rename.
-  	@param {String} [newSpiderName] The new name for the spider.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method renameSpider
+	@for ASTool.SlydApi
+	@param {String} [oldSpiderName] The name of the spider to rename.
+	@param {String} [newSpiderName] The new name for the spider.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	renameSpider: function(oldSpiderName, newSpiderName) {
 		var hash = {};
@@ -186,18 +186,18 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Renames an existing template. This operation will overwrite
-  	existing templates.
-  	Template names must only contain alphanum, '.'s and '_'s.
+	Renames an existing template. This operation will overwrite
+	existing templates.
+	Template names must only contain alphanum, '.'s and '_'s.
 
-  	@method renameTemplate
-  	@for ASTool.SlydApi
-  	@param {String} [spiderName] The name of the spider owning the template.
-  	@param {String} [oldTemplateName] The name of the template to rename.
-  	@param {String} [newTemplateName] The new name for the template.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method renameTemplate
+	@for ASTool.SlydApi
+	@param {String} [spiderName] The name of the spider owning the template.
+	@param {String} [oldTemplateName] The name of the template to rename.
+	@param {String} [newTemplateName] The new name for the template.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	renameTemplate: function(spiderName, oldTemplateName, newTemplateName) {
 		var hash = {};
@@ -209,16 +209,16 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Saves a spider for the current project.
+	Saves a spider for the current project.
 
-  	@method saveSpider
-  	@for ASTool.SlydApi
-  	@param {String} [spiderName] the name of the spider.
-  	@param {Object} [spiderData] a JSON object containing the spider spec.
-  	@param {Bool} [excludeTemplates] if true, don't save spider templates.
-  	@return {Promise} promise that fulfills when the server responds.
+	@method saveSpider
+	@for ASTool.SlydApi
+	@param {String} [spiderName] the name of the spider.
+	@param {Object} [spiderData] a JSON object containing the spider spec.
+	@param {Bool} [excludeTemplates] if true, don't save spider templates.
+	@return {Promise} promise that fulfills when the server responds.
 	*/
 	saveSpider: function(spider, excludeTemplates) {
 		var hash = {};
@@ -235,16 +235,16 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Saves a spider template for the current project.
+	Saves a spider template for the current project.
 
-  	@method saveTemplate
-  	@for ASTool.SlydApi
-  	@param {String} [spiderName] the name of the spider.
-  	@param {String} [templateName] the name of the template.
-  	@param {Object} [templateData] a JSON object containing the template spec.
-  	@return {Promise} promise that fulfills when the server responds.
+	@method saveTemplate
+	@for ASTool.SlydApi
+	@param {String} [spiderName] the name of the spider.
+	@param {String} [templateName] the name of the template.
+	@param {Object} [templateData] a JSON object containing the template spec.
+	@return {Promise} promise that fulfills when the server responds.
 	*/
 	saveTemplate: function(spiderName, template) {
 		var hash = {};
@@ -253,7 +253,7 @@ ASTool.SlydApi = Em.Object.extend({
 		serialized = template.serialize();
 		if (template.get('_new')) {
 			serialized['original_body'] = template.get('original_body');
-			template.set('_new', false)
+			template.set('_new', false);
 		}
 		hash.data = JSON.stringify(serialized);
 		hash.dataType = 'text';
@@ -262,14 +262,14 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Deletes an existing spider.
+	Deletes an existing spider.
 
-  	@method deleteSpider
-  	@for ASTool.SlydApi
-  	@param {String} [spiderName] The name of the spider to delete.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method deleteSpider
+	@for ASTool.SlydApi
+	@param {String} [spiderName] The name of the spider to delete.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	deleteSpider: function(spiderName) {
 		var hash = {};
@@ -281,15 +281,15 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Deletes an existing template.
+	Deletes an existing template.
 
-  	@method deleteTemplate
-  	@for ASTool.SlydApi
-  	@param {String} [spiderName] The name of the spider that owns the template.
-  	@param {String} [spiderName] The name of the template to delete.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method deleteTemplate
+	@for ASTool.SlydApi
+	@param {String} [spiderName] The name of the spider that owns the template.
+	@param {String} [spiderName] The name of the template to delete.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	deleteTemplate: function(spiderName, templateName) {
 		var hash = {};
@@ -301,15 +301,15 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Fetches the current project items.
+	Fetches the current project items.
 
-  	@method loadItems
-  	@for ASTool.SlydApi
-  	@return {Promise} a promise that fulfills with an {Array} of JSON {Object}
-  		containing the items spec.
-  	}
+	@method loadItems
+	@for ASTool.SlydApi
+	@return {Promise} a promise that fulfills with an {Array} of JSON {Object}
+		containing the items spec.
+	}
 	*/
 	loadItems: function() {
 		var hash = {};
@@ -327,15 +327,15 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Saves the current project items.
+	Saves the current project items.
 
-  	@method saveItems
-  	@for ASTool.SlydApi
-  	@param {Array} [items] an array of JSON {Object} containing the items
-  		spec.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method saveItems
+	@for ASTool.SlydApi
+	@param {Array} [items] an array of JSON {Object} containing the items
+		spec.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	saveItems: function(items) {
 		items = items.map(function(item) {
@@ -355,14 +355,14 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Fetches the current project extractors.
+	Fetches the current project extractors.
 
-  	@method loadExtractors
-  	@for ASTool.SlydApi
-  	@return {Promise} a promise that fulfills with an {Array} of JSON {Object}
-  		containing the extractors spec.
+	@method loadExtractors
+	@for ASTool.SlydApi
+	@return {Promise} a promise that fulfills with an {Array} of JSON {Object}
+		containing the extractors spec.
 	*/
 	loadExtractors: function() {
 		var hash = {};
@@ -375,15 +375,15 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Saves the current project extractors.
+	Saves the current project extractors.
 
-  	@method saveExtractors
-  	@for ASTool.SlydApi
-  	@param {Array} [extractors] an array of JSON {Object} containing the
-  		extractors spec.
-  	@return {Promise} a promise that fulfills when the server responds.
+	@method saveExtractors
+	@for ASTool.SlydApi
+	@param {Array} [extractors] an array of JSON {Object} containing the
+		extractors spec.
+	@return {Promise} a promise that fulfills when the server responds.
 	*/
 	saveExtractors: function(extractors) {
 		extractors = extractors.map(function(extractor) {
@@ -403,7 +403,7 @@ ASTool.SlydApi = Em.Object.extend({
 			// if the server does not support version control, do
 			// nothing.
 			return new Em.RSVP.Promise(function(resolve, reject) {
-  				resolve();
+				resolve();
 			});
 		} else {
 			revision = revision ? revision : 'master';
@@ -484,19 +484,19 @@ ASTool.SlydApi = Em.Object.extend({
 	},
 
 	/**
-  	@public
+	@public
 
-  	Fetches a page using the given spider.
+	Fetches a page using the given spider.
 
-  	@method fetchDocument
-  	@for ASTool.SlydApi
-  	@param {String} [pageUrl] the URL of the page to fetch.
-  	@param {String} [spiderName] the name of the spider to use.
-  	@param {String} [parentFp] the fingerprint of the parent page.
-  	@return {Promise} a promise that fulfills with an {Object} containing
-  		the document contents (page), the response data (response), the
-  		extracted items (items), the request fingerprint (fp), an error
-  		message (error) and the links that will be followed (links).
+	@method fetchDocument
+	@for ASTool.SlydApi
+	@param {String} [pageUrl] the URL of the page to fetch.
+	@param {String} [spiderName] the name of the spider to use.
+	@param {String} [parentFp] the fingerprint of the parent page.
+	@return {Promise} a promise that fulfills with an {Object} containing
+		the document contents (page), the response data (response), the
+		extracted items (items), the request fingerprint (fp), an error
+		message (error) and the links that will be followed (links).
 	*/
 	fetchDocument: function(pageUrl, spiderName, parentFp) {
 		var hash = {};

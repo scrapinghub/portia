@@ -293,12 +293,12 @@ ASTool.DocumentView = Em.Object.extend({
 			loader.setSpeed(1.0);
 			loader.setFPS(60);
 			var loaderObj = document.getElementById("canvasLoader");
-		  	loaderObj.style.position = "absolute";
-		  	loaderObj.style["margin-left"] = -loader.getDiameter() / 2 + "px";
-		  	loaderObj.style["margin-top"] = '180px';
-		  	loaderObj.style["width"] = loader.getDiameter() + "px";
-		  	loaderObj.style["left"] = '50%';
-		  	this.set('loader', loader);
+			loaderObj.style.position = "absolute";
+			loaderObj.style["margin-left"] = -loader.getDiameter() / 2 + "px";
+			loaderObj.style["margin-top"] = '180px';
+			loaderObj.style["width"] = loader.getDiameter() + "px";
+			loaderObj.style["left"] = '50%';
+			this.set('loader', loader);
 		}
 		loader.show();
 	},
