@@ -1,426 +1,280 @@
-"""
-code for transposition of annotations from the annotated source generated
-in the browser to the final template.
-"""
-import json
-from scrapely.htmlpage import parse_html, HtmlPage, HtmlTag, HtmlTagType
+from scrapely.htmlpage import (parse_html, HtmlPage, HtmlTag, HtmlTagType,
+                               HtmlDataFragment)
+
+from collections import defaultdict
+from itertools import tee
+
 from .utils import serialize_tag
 
+
 TAGID = u"data-tagid"
-
-
-def _is_generated(htmltag):
-    template_attr = htmltag.attributes.get("data-scrapy-annotate")
-    if template_attr is None:
-        return False
-    unescaped = template_attr.replace('&quot;', '"')
-    annotation = json.loads(unescaped)
-    return annotation.get("generated", False)
+OPEN_TAG = HtmlTagType.OPEN_TAG
+CLOSE_TAG = HtmlTagType.CLOSE_TAG
+UNPAIRED_TAG = HtmlTagType.UNPAIRED_TAG
 
 
 def _must_add_tagid(element):
+    return (isinstance(element, HtmlTag) and
+            element.tag_type != CLOSE_TAG and
+            element.tag != 'ins')
 
-    return isinstance(element, HtmlTag) and \
-        element.tag_type != HtmlTagType.CLOSE_TAG and \
-        not _is_generated(element)
 
-
-def add_tagids(source):
-    """
-    Applies a unique attribute code number for each tag element in order to be
-    identified later in the process of apply annotation"""
+def _modify_tagids(source, add=True):
+    """Add or remove tags ids to/from HTML document"""
     output = []
     tagcount = 0
     if not isinstance(source, HtmlPage):
         source = HtmlPage(body=source)
     for element in source.parsed_body:
         if _must_add_tagid(element):
-            element.attributes[TAGID] = str(tagcount)
-            tagcount += 1
+            if add:
+                element.attributes[TAGID] = str(tagcount)
+                tagcount += 1
+            else:  # Remove previously added tagid
+                element.attributes.pop(TAGID, None)
             output.append(serialize_tag(element))
         else:
             output.append(source.body[element.start:element.end])
 
     return ''.join(output)
+
+
+def add_tagids(source):
+    """
+    Applies a unique attribute code number for each tag element in order to be
+    identified later in the process of apply annotation"""
+    return _modify_tagids(source)
 
 
 def remove_tagids(source):
     """remove from the given page, all tagids previously added by add_tagids()
     """
-    output = []
-    if not isinstance(source, HtmlPage):
-        source = HtmlPage(body=source)
-    for element in source.parsed_body:
-        if _must_add_tagid(element):
-            element.attributes.pop(TAGID, None)
-            output.append(serialize_tag(element))
-        else:
-            output.append(source.body[element.start:element.end])
-    return ''.join(output)
+    return _modify_tagids(source, False)
 
 
 def _get_data_id(annotation):
     """gets id (a str) of an annotation"""
-
     if isinstance(annotation, HtmlTag):
         return annotation.attributes[TAGID]
-    else:  # partial annotation
-        for p in annotation:
-            if (isinstance(p, HtmlTag) and "insert-after" in p.attributes):
-                return p.attributes["insert-after"]
 
 
-def _get_closing_tags(annotation):
-    """get closing tabs of an extracted partial annotation"""
-    if isinstance(annotation, list):
-        for p in annotation:
-            if (isinstance(p, HtmlTag) and "closing-tags" in p.attributes):
-                return p.attributes["closing-tags"]
-
-
-def _extract_annotations(source):
-    """
-    Extracts the raw annotations in a way they can be applied
-    unambigously to the target non annotated source
-    """
-    if not isinstance(source, HtmlPage):
-        source = HtmlPage(body=source)
-
-    annotations = []
-    otherdata = []
-    last_id = -1
-    last_annotation_id = -1
-    cache = []
-    inside_insert = False
-    insert_end = False
-    closing_tags = 0
-    for element in source.parsed_body:
-        if isinstance(element, HtmlTag):
-
-            if inside_insert:
-                if element.tag == "ins":  # closing ins
-                    annotations[-1].append(element)
-                    insert_end = True
-                    continue
-                elif insert_end:
-                    inside_insert = False  # end of insert group
-                else:
-                    annotations[-1].append(element)
-
-            else:
-                if TAGID in element.attributes:
-                    last_id = element.attributes[TAGID]
-                    cache = []
-                for key in element.attributes:
-                    if key == "data-scrapy-annotate":
-                        # inserted tag (partial annotation)
-                        if not TAGID in element.attributes:
-
-                            if last_id == last_annotation_id and \
-                                    isinstance(annotations[-1], list):
-                                insertion = annotations[-1]
-                                insertion.extend(cache)
-                                cache = []
-                            else:
-                                insertion = []
-                                annotations.append(insertion)
-                                element.attributes["closing-tags"] = \
-                                    closing_tags
-                            element.attributes["insert-after"] = last_id
-                            if cache and not isinstance(cache[-1], HtmlTag):
-                                insertion.append(cache[-1])
-                                cache = []
-                            insertion.append(element)
-                            inside_insert = True
-                            insert_end = False
-                        else:  # normal annotation
-                            annotations.append(element)
-                        last_annotation_id = last_id
-                        break
-                else:
-                    for key in element.attributes:
-                        if key.startswith("data-scrapy-"):
-                            otherdata.append(element)
-
-            # count number of close tags after a numerated one
-            if element.tag_type == HtmlTagType.CLOSE_TAG and not inside_insert:
-                closing_tags += 1
-                cache.append(element)
-            else:
-                cache = []
-                closing_tags = 0
-
-        else:  # an HtmlDataFragment
-            if inside_insert:
-                annotations[-1].append(element)
-                if insert_end:
-                    inside_insert = False
-            else:
-                cache.append(element)
-
-    return sorted(otherdata + annotations, key=lambda x: int(_get_data_id(x)))
-
-
-def _get_cleansing(target_html, annotations):
-    """
-    Gets relevant pieces of text affected by browser cleansing.
-    """
-
-    numbered_html = add_tagids(target_html)
-    target = HtmlPage(body=numbered_html)
-    element = target.parsed_body[0]
-
-    all_cleansing = {}
+def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
+    eid = insert_after_tag = _get_data_id(element)
+    text_strings = _get_text_nodes(nodes, html_body)
+    text_content = ''.join((s.lstrip() for s in text_strings))
+    pre_selected = []
     for annotation in annotations:
-        if isinstance(annotation, list):  # partial annotation
-
-            # search insert point we are interested on
-            target_it = iter(target.parsed_body)
-            for p in annotation:
-                if isinstance(p, HtmlTag) and "insert-after" in p.attributes:
-                    insert_after = p.attributes["insert-after"]
-                    break
-            while not (isinstance(element, HtmlTag) and
-                       element.attributes.get(TAGID) == insert_after):
-                element = target_it.next()
-
-            # 1. browser removes tags inside <option>...</option>
-            # 2. browser adds </option> if it is not present
-            if element.tag == "option" and \
-                    element.tag_type == HtmlTagType.OPEN_TAG:
-                cached = []
-                add_cached = False
-                closed_option = False
-                element = target_it.next()
-                while not (isinstance(element, HtmlTag) and
-                           element.tag in ["option", "select"]):
-                    cached.append(element)
-                    if hasattr(element, 'tag'):
-                        add_cached = True
-                    element = target_it.next()
-
-                if (element.tag == "option" and
-                    element.tag_type == HtmlTagType.OPEN_TAG) or \
-                        (element.tag == "select" and
-                         element.tag_type == HtmlTagType.CLOSE_TAG):
-                    closed_option = True
-
-                if add_cached or closed_option:
-                    out = "".join([numbered_html[e.start:e.end]
-                                  for e in cached])
-                    all_cleansing[insert_after] = out
-
-    return all_cleansing
-
-
-def _order_is_valid(parsed):
-    """Checks if tag ordering is valid, so to help merge_code
-    to select correct alternative among the generated ones
-    """
-    tag_stack = []
-    for e in parsed:
-        if isinstance(e, HtmlTag):
-            if e.tag_type == HtmlTagType.OPEN_TAG:
-                tag_stack.append(e.tag)
-            elif e.tag_type == HtmlTagType.CLOSE_TAG:
-                if tag_stack and tag_stack[-1] == e.tag:
-                    tag_stack.pop()
-                else:
-                    return False
-    return True
+        start, end = _get_generated_slice(annotation)
+        pre_selected.append((text_content[0:start], text_content[start:end],
+                             annotation))
+    tag_stack = [insert_after_tag]
+    next_text_node = ''
+    for i, node in enumerate(nodes):
+        if isinstance(node, HtmlTag):
+            if node.tag_type == OPEN_TAG:
+                tagid = node.attributes.get(TAGID, '').strip()
+                if tagid:
+                    tag_stack.append(tagid)
+            elif node.tag_type == CLOSE_TAG:
+                insert_after_tag = tag_stack.pop()
+        elif (isinstance(node, HtmlDataFragment) and len(tag_stack) == 1):
+            text = html_body[node.start:node.end]
+            # This allows for a clean way to insert fragments up until the
+            # next tag in apply_annotations if we have already inserted a new
+            # generated tag
+            if not node.is_text_content and inserts.get(insert_after_tag):
+                inserts[insert_after_tag].append(text)
+                continue
+            removed = 0
+            inserted = False
+            for j, (pre, selected, annotation) in enumerate(pre_selected[:]):
+                if selected in text:
+                    previous, post = text.split(selected, 1)
+                    if previous.strip() in pre:
+                        pre_selected.pop(j - removed)
+                        removed += 1
+                        generated = _generate_elem(annotation, selected)
+                        # Next immediate text node will be returned and added
+                        # to the new document. Other text nodes within this
+                        # node will be added after other child nodes have been
+                        # closed.
+                        if (insert_after_tag == eid and
+                                not annotation.get('insert_after')):
+                            next_text_node += previous + generated
+                            inserted = True
+                        else:
+                            inserts[insert_after_tag].extend([previous,
+                                                              generated])
+                        text = post
+            if inserted:
+                next_text_node += text
+            else:
+                inserts[insert_after_tag].append(text)
+    return next_text_node
 
 
-def _merge_code(code1, code2):
-    """merges two pieces of html code by text content alignment."""
-    parsed1 = list(parse_html(code1))
-    parsed2 = list(parse_html(code2))
-
-    insert_points1 = []
-    tags1 = []
-    p = 0
-    text1 = ""
-    for e in parsed1:
-        if isinstance(e, HtmlTag):
-            insert_points1.append(p)
-            tags1.append(e)
-        else:
-            p += e.end - e.start
-            text1 += code1[e.start:e.end]
-
-    insert_points2 = []
-    tags2 = []
-    p = 0
-    text2 = ""
-    for e in parsed2:
-        if isinstance(e, HtmlTag):
-            insert_points2.append(p)
-            tags2.append(e)
-        else:
-            p += e.end - e.start
-            text2 += code2[e.start:e.end]
-
-    assert(text1.startswith(text2) or text2.startswith(text1))
-
-    # unique sorted list of insert points
-    _insert_points = sorted(insert_points1 + insert_points2)
-    insert_points = []
-    for i in _insert_points:
-        if not i in insert_points:
-            insert_points.append(i)
-
-    possible_outs = [""]
-    start = 0
-    # insert tags in correct order, calculate all alternatives when
-    # when order is ambiguous
-    for end in insert_points:
-        possible_outs = [out + text1[start:end] for out in possible_outs]
-        dup_possible_outs = [out for out in possible_outs]
-        if end in insert_points1:
-            tag1 = tags1.pop(0)
-            possible_outs = [out + code1[tag1.start:tag1.end]
-                             for out in possible_outs]
-        if end in insert_points2:
-            tag2 = tags2.pop(0)
-            possible_outs = [out + code2[tag2.start:tag2.end]
-                             for out in possible_outs]
-            if end in insert_points1:
-                dup_possible_outs = [out + code2[tag2.start:tag2.end]
-                                     for out in dup_possible_outs]
-                dup_possible_outs = [out + code1[tag1.start:tag1.end]
-                                     for out in dup_possible_outs]
-                possible_outs += dup_possible_outs
-        start = end
-
-    # choose the first valid
-    for out in possible_outs:
-        parsed_out = list(parse_html(out))
-        if _order_is_valid(parsed_out):
-            break
-
-    if text1.startswith(text2):
-        out += text1[len(text2):]
-    else:
-        out += text2[len(text1):]
-
-    tag_count1 = sum(1 for i in parsed1 if isinstance(i, HtmlTag))
-    tag_count_final = sum(1 for i in parsed_out if isinstance(i, HtmlTag))
-
-    return out, tag_count_final - tag_count1
+def _get_text_nodes(nodes, html_body):
+    text = []
+    open_tags = 0
+    for node in nodes:
+        if isinstance(node, HtmlTag):
+            if node.tag_type == OPEN_TAG:
+                open_tags += 1
+            elif node.tag_type == CLOSE_TAG:
+                open_tags -= 1
+        elif (isinstance(node, HtmlDataFragment) and
+              node.is_text_content and open_tags == 0):
+            text.append(html_body[node.start:node.end])
+    return text
 
 
-def apply_annotations(source_html, target_html):
-    """
-    Applies annotations present in source_html, into
-    raw target_html. source_html must be taggered source,
-    target_html is the original raw (no tags, no annotations)
-    source.
-    """
-    annotations = _extract_annotations(source_html)
-    target_page = HtmlPage(body=target_html)
-    cleansing = _get_cleansing(target_page, annotations)
+def _get_generated_slice(annotation):
+    annotation_slice = annotation.get('slice', [0])[:2]
+    if not annotation_slice:
+        annotation_slice = [0, 0]
+    elif len(annotation_slice) < 2:
+        annotation_slice.append(annotation_slice[0])
+    return annotation_slice
 
+
+def _generate_elem(annotation, text):
+    sections = ['<ins']
+    for key, value in annotation.items():
+        if key.startswith('data-scrapy-'):
+            sections.append('='.join((key, value)))
+    if len(sections) > 1:
+        sections[0] += ' '
+    sections.extend(['>', text, '</ins>'])
+    return ''.join(sections)
+
+
+def _get_inner_nodes(target, open_tags=1, insert_after=False,
+                     stop_on_next=False):
+    nodes = []
+    while open_tags > -0:
+        elem = target.next()
+        if isinstance(elem, HtmlTag):
+            if elem.tag_type == OPEN_TAG:
+                open_tags += 1
+                if stop_on_next and elem.attributes.get(TAGID) is not None:
+                    return nodes
+            elif (stop_on_next and
+                  elem.tag_type == UNPAIRED_TAG and
+                  elem.attributes.get(TAGID) is not None):
+                return nodes
+            elif elem.tag_type == CLOSE_TAG:
+                open_tags -= 1
+        nodes.append(elem)
+    if insert_after:
+        return _get_inner_nodes(target, stop_on_next=True)
+    return nodes
+
+
+def _add_element(element, output, html):
+    if '__added' not in element.attributes:
+        output.append(html[element.start:element.end])
+        element.attributes['__added'] = True
+    return element
+
+
+def _annotation_key(a):
+    return a.get('generated', False) + sum(a.get('slice', []))
+
+
+def apply_annotations(annotations, target_page):
+    inserts = defaultdict(list)
     numbered_html = add_tagids(target_page)
     target = parse_html(numbered_html)
-    output = []
+    output, tag_stack = [], []
 
     element = target.next()
-    eof = False
-    while not (isinstance(element, HtmlTag) and TAGID in element.attributes):
-        output.append(numbered_html[element.start:element.end])
-        element = target.next()
-    last_id = element.attributes[TAGID]
-    for i in range(len(annotations)):
+    last_id = 0
+    # XXX: A dummy element is added to the end so if the last annotation is
+    #      generated it will be added to the output
+    sorted_annotations = sorted(annotations.items()) + [(1e9, [{}])]
+    try:
+        for aid, annotation_data in sorted_annotations:
+            # Move target until replacement/insertion point
+            while True:
+                while not isinstance(element, HtmlTag):
+                    output.append(numbered_html[element.start:element.end])
+                    element = target.next()
+                if element.tag_type in {OPEN_TAG, UNPAIRED_TAG}:
+                    last_id = element.attributes.get(TAGID)
+                    tag_stack.append(last_id)
+                if element.tag_type in {CLOSE_TAG, UNPAIRED_TAG} and tag_stack:
+                    if ('__added' not in element.attributes and
+                            int(last_id) < int(aid)):
+                        output.append(numbered_html[element.start:element.end])
+                        element.attributes['__added'] = True
+                    last_inserted = tag_stack.pop()
+                    to_insert = inserts.pop(last_inserted, None)
+                    if to_insert:
+                        output.extend(to_insert)
+                        # Skip all nodes up to the next HtmlTag as these
+                        # have already been added
+                        while True:
+                            element = target.next()
+                            try:
+                                last_id = element.attributes.get(TAGID,
+                                                                 last_id)
+                            except AttributeError:
+                                pass
+                            if isinstance(element, HtmlTag):
+                                break
+                        continue
+                if int(last_id) < int(aid):
+                    if '__added' not in element.attributes:
+                        output.append(numbered_html[element.start:element.end])
+                        element.attributes['__added'] = True
+                    element = target.next()
+                else:
+                    break
 
-        annotation = annotations[i]
-        # look up replacement/insertion point
-        aid = _get_data_id(annotation)
-        # move target until replacement/insertion point
-        while int(last_id) < int(aid):
+            generated = []
+            next_generated = []
+            # Place generated annotations at the end and sort by slice
+            for annotation in sorted(annotation_data, key=_annotation_key):
+                if annotation.get('generated'):
+                    if annotation.get('insert_after'):
+                        next_generated.append(annotation)
+                    else:
+                        generated.append(annotation)
+                else:
+                    # Add annotations data as required
+                    for key, val in annotation.items():
+                        if key.startswith("data-scrapy-"):
+                            element.attributes[key] = val
+            next_text_section = ''
+            if generated:
+                inner_data, target = tee(target)
+                nodes = _get_inner_nodes(inner_data)
+                next_text_section = _get_generated_annotation(
+                    element, generated, nodes, numbered_html, inserts)
+            if next_generated:
+                inner_data, target = tee(target)
+                open_tags = 0 if element.tag_type == UNPAIRED_TAG else 1
+                nodes = _get_inner_nodes(inner_data, open_tags=open_tags,
+                                         insert_after=True)
+                next_text_section = _get_generated_annotation(
+                    element, next_generated, nodes, numbered_html, inserts)
+
+            if '__added' not in element.attributes:
+                output.append(serialize_tag(element))
+                element.attributes['__added'] = True
+            # If an <ins> tag has been inserted we need to move forward
+            if next_text_section:
+                while True:
+                    elem = target.next()
+                    if (isinstance(elem, HtmlDataFragment) and
+                            elem.is_text_content):
+                        break
+                    output.append(numbered_html[elem.start:elem.end])
+                output.append(next_text_section)
+    # Reached the end of the document
+    except StopIteration:
+        output.append(numbered_html[element.start:element.end])
+    else:
+        for element in target:
             output.append(numbered_html[element.start:element.end])
-            element = target.next()
-            while not (isinstance(element, HtmlTag) and
-                       TAGID in element.attributes):
-                output.append(numbered_html[element.start:element.end])
-                element = target.next()
-            last_id = element.attributes[TAGID]
-
-        # replace/insert in target
-        if isinstance(annotation, HtmlTag):
-            for key, val in annotation.attributes.items():
-                if key.startswith("data-scrapy-"):
-                    element.attributes[key] = val
-            output.append(serialize_tag(element))
-            if not (i + 1 < len(annotations) and
-                    _get_data_id(annotations[i + 1]) == aid):
-                element = target.next()
-
-        else:  # partial annotation
-            closing_tags = _get_closing_tags(annotation)
-            if not (i > 0 and _get_data_id(annotations[i - 1]) == aid):
-                output.append(numbered_html[element.start:element.end])
-                while closing_tags > 0:
-                    element = target.next()
-                    output.append(numbered_html[element.start:element.end])
-                    if isinstance(element, HtmlTag) and \
-                            element.tag_type == HtmlTagType.CLOSE_TAG:
-                        closing_tags -= 1
-
-            elif (i > 0 and isinstance(annotations[i - 1], HtmlTag) and
-                    annotation[0].start > annotations[i - 1].end):
-                element = target.next()
-                while closing_tags > 0:
-                    output.append(numbered_html[element.start:element.end])
-                    element = target.next()
-                    if isinstance(element, HtmlTag) and \
-                            element.tag_type == HtmlTagType.CLOSE_TAG:
-                        closing_tags -= 1
-
-                output.append(numbered_html[element.start:element.end])
-
-            num_tags_inside = 0
-            partial_output = ""
-
-            # computes number of tags inside a partial annotation
-            for p in annotation:
-                partial_output += source_html[p.start:p.end]
-                if isinstance(p, HtmlTag):
-                    num_tags_inside += 1
-                    if "insert-after" in p.attributes:
-                        num_tags_inside -= 2
-
-            if aid in cleansing:
-                partial_output, fix_tag_count = _merge_code(
-                    partial_output, cleansing[aid])
-                num_tags_inside += fix_tag_count
-
-            output.append(partial_output)
-
-            element = target.next()  # consume reference tag
-
-            # consume the tags inside partial annotation
-            while num_tags_inside > 0:
-                if isinstance(element, HtmlTag):
-                    num_tags_inside -= 1
-                element = target.next()
-
-            if not isinstance(element, HtmlTag):
-                element = target.next()
-
-        if not (i + 1 < len(annotations) and
-                _get_data_id(annotations[i + 1]) == aid):
-            try:
-                while not (isinstance(element, HtmlTag) and
-                           TAGID in element.attributes):
-                    output.append(numbered_html[element.start:element.end])
-                    element = target.next()
-            except StopIteration:
-                eof = True
-            else:
-                last_id = element.attributes[TAGID]
-
-    if not eof:
-        output.append(numbered_html[element.start:element.end])
-    for element in target:
-        output.append(numbered_html[element.start:element.end])
-
     return remove_tagids(''.join(output))

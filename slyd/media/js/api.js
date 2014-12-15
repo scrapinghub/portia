@@ -18,7 +18,7 @@ ASTool.SlydApi = Em.Object.extend({
 		return ASTool.SlydApi.getApiUrl() + '/' + this.project + '/bot/';
 	}.property('project'),
 
-	
+
 	/**
   	@public
 
@@ -129,7 +129,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.type = 'GET';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
 		return this.makeAjaxCall(hash).then(function(spiderData) {
-			spiderData['name'] = spiderName;		
+			spiderData['name'] = spiderName;
 			spiderData['templates'] = spiderData['templates'].map(function(template) {
 				// Assign a name to templates. This is needed as Autoscraping templates
 				// are not named.
@@ -251,6 +251,10 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.type = 'POST';
 		var templateName = template.get('name');
 		serialized = template.serialize();
+		if (template.get('_new')) {
+			serialized['original_body'] = template.get('original_body');
+			template.set('_new', false)
+		}
 		hash.data = JSON.stringify(serialized);
 		hash.dataType = 'text';
 		hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName + '/' + templateName;
@@ -315,7 +319,7 @@ ASTool.SlydApi = Em.Object.extend({
 			items = this.dictToList(items, ASTool.Item);
 			items.forEach(function(item) {
 				if (item.fields) {
-					item.fields = this.dictToList(item.fields, ASTool.ItemField);	
+					item.fields = this.dictToList(item.fields, ASTool.ItemField);
 				}
 			}.bind(this));
 			return items;
@@ -337,7 +341,7 @@ ASTool.SlydApi = Em.Object.extend({
 		items = items.map(function(item) {
 			item = item.serialize();
 			if (item.fields) {
-				item.fields = this.listToDict(item.fields);	
+				item.fields = this.listToDict(item.fields);
 			}
 			return item;
 		}.bind(this));
@@ -367,7 +371,7 @@ ASTool.SlydApi = Em.Object.extend({
 		return this.makeAjaxCall(hash).then(function(extractors) {
 				return this.dictToList(extractors, ASTool.Extractor);
 			}.bind(this)
-		);	
+		);
 	},
 
 	/**
@@ -396,7 +400,7 @@ ASTool.SlydApi = Em.Object.extend({
 
 	editProject: function(project_name, revision) {
 		if (!ASTool.get('serverCapabilities.version_control')) {
-			// if the server does not support version control, do 
+			// if the server does not support version control, do
 			// nothing.
 			return new Em.RSVP.Promise(function(resolve, reject) {
   				resolve();
@@ -419,7 +423,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
 			{ cmd: 'revisions', args: [projectName] });
-		return this.makeAjaxCall(hash);	
+		return this.makeAjaxCall(hash);
 	},
 
 	conflictedFiles: function(projectName) {
@@ -428,7 +432,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
 			{ cmd: 'conflicts', args: [projectName] });
-		return this.makeAjaxCall(hash);	
+		return this.makeAjaxCall(hash);
 	},
 
 	changedFiles: function(projectName) {
@@ -437,7 +441,7 @@ ASTool.SlydApi = Em.Object.extend({
 		hash.url = ASTool.SlydApi.getApiUrl();
 		hash.data = JSON.stringify(
 			{ cmd: 'changes', args: [projectName] });
-		return this.makeAjaxCall(hash);	
+		return this.makeAjaxCall(hash);
 	},
 
 	publishProject: function(projectName, force) {
@@ -513,7 +517,7 @@ ASTool.SlydApi = Em.Object.extend({
 		[ { name: 'obj1', x: 'a' }, { name: 'obj2', x: 'b' }]
 
 	into an object of the form:
-		{ 
+		{
 			obj1:
 				{ x: 'a' },
 			obj2:
@@ -541,7 +545,7 @@ ASTool.SlydApi = Em.Object.extend({
 	@private
 
 	Transforms an object of the form:
-		{ 
+		{
 			obj1:
 				{ x: 'a' },
 			obj2:

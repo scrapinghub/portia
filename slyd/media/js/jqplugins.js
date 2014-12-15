@@ -1,17 +1,17 @@
 jQuery.fn.getUniquePath = function () {
 	if (this.length != 1) {
-		throw 'Requires one element.';	
+		throw 'Requires one element.';
 	}
 	var path, node = this;
 	while (node.length) {
 		var realNode = node[0], name = realNode.localName;
 		if (!name) {
 			break;
-		} 
+		}
 		name = name.toLowerCase();
 		var parent = node.parent();
 		var siblings = parent.children(name);
-		if (siblings.length > 1) { 
+		if (siblings.length > 1) {
 			name += ':eq(' + siblings.index(realNode) + ')';
 		}
 		path = name + (path ? '>' + path : '');
@@ -39,7 +39,7 @@ jQuery.fn.getAttributeList = function() {
 	var element = this.get(0);
 	$(element.attributes).each(function() {
 		if ($.inArray(this.nodeName, jQuery.fn.getAttributeList.ignoredAttributes) == -1 &&
-		    this.nodeValue) {
+			this.nodeValue) {
 			attributeList.push(ASTool.Attribute.create({
 				name: this.nodeName,
 				value: this.nodeValue}));
@@ -67,7 +67,7 @@ jQuery.fn.isDescendant = function(parent) {
 };
 
 jQuery.fn.findAnnotatedElements = function() {
-	return this.find('[data-scrapy-annotate]');	
+	return this.find('[data-scrapy-annotate]');
 };
 
 jQuery.fn.findAnnotatedElement = function(annotationId) {
@@ -92,4 +92,17 @@ jQuery.fn.removePartialAnnotation = function() {
 	var parentNode = element.parentNode;
 	$(textNode).unwrap();
 	parentNode.normalize();
-}
+};
+
+jQuery.expr[':'].hasAttrWithPrefix = jQuery.expr.createPseudo(function(prefix) {
+	return function(obj) {
+		for (var i = 0; i < obj.attributes.length; i++) {
+			if (obj.attributes[i].nodeName.indexOf(prefix) === 0) return true;
+		};
+		return false;
+	};
+});
+
+String.prototype.lstrip = function() {
+	return this.replace(/^[\s\r\n]*/g, "");
+};

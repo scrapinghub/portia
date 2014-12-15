@@ -1,6 +1,6 @@
 ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
-	
+
 	needs: ['application', 'project_index'],
 
 	navigationLabelBinding: 'content.name',
@@ -31,7 +31,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	startUrlCount: function() {
 		if (!Em.isEmpty(this.get('start_urls'))) {
-			return '[' + this.get('start_urls').length + ']';	
+			return '[' + this.get('start_urls').length + ']';
 		} else {
 			return '';
 		}
@@ -87,7 +87,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	showItemsDisabled: function() {
 		var loadedPageFp = this.get('loadedPageFp');
 		if (this.pageMap[loadedPageFp]) {
-			return !loadedPageFp ? true : !this.pageMap[loadedPageFp].items.length;	
+			return !loadedPageFp ? true : !this.pageMap[loadedPageFp].items.length;
 		}
 		return true;
 	}.property('loadedPageFp'),
@@ -173,7 +173,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	editTemplate: function(templateName) {
 		this.transitionToRoute('template', templateName);
 	},
-	
+
 	viewTemplate: function(templateName) {
 		this.get('slyd').loadTemplate(this.get('name'), templateName).then(function(template) {
 			var newWindow = window.open('about:blank',
@@ -183,7 +183,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			newWindow.document.title = ('Template ' + template.get('name'));
 		});
 	},
-	
+
 	wrapItem: function(item) {
 		var itemDefinition = this.get('itemDefinitions').findBy('name', item['_type']);
 		return ASTool.ExtractedItem.create({ extracted: item,
@@ -240,7 +240,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		var documentView = this.get('documentView');
 		documentView.displayDocument(this.get('pageMap')[fp].page,
 			function(){
-				this.get('documentView').reset();		
+				this.get('documentView').reset();
 				this.get('documentView').config({ mode: 'browse',
 					listener: this,
 					dataSource: this });
@@ -251,12 +251,14 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	addTemplate: function() {
 		var page = this.get('pageMap')[this.get('loadedPageFp')];
 		var template_name = ASTool.shortGuid();
-		var template = ASTool.Template.create( 
+		var template = ASTool.Template.create(
 			{ name: template_name,
 			  extractors: {},
+			  annotations: {},
 			  annotated_body: page.page,
 			  original_body: page.original,
 			  page_id: page.fp,
+			  _new: true,
 			  url: page.url });
 		itemDefs = this.get('itemDefinitions')
 		if (!itemDefs.findBy('name', 'default') && !Em.isEmpty(itemDefs)) {
@@ -303,7 +305,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	autoFetch: function() {
 		if (this.get('loadedPageFp') && this.get('showLinks')) {
 			this.saveSpider().then(function() {
-				this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);	
+				this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
 			}.bind(this));
 		}
 	}.observes('follow_patterns.@each',
@@ -312,7 +314,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	attachAutoSave: function() {
 		this.get('model').addObserver('dirty', function() {
-			Ember.run.once(this, 'saveSpider');	
+			Ember.run.once(this, 'saveSpider');
 		}.bind(this));
 	}.observes('model'),
 
@@ -339,7 +341,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 						if (!Em.isEmpty(data.items)) {
 							data.items.forEach(function(item) {
 								this.get('extractedItems').pushObject(this.wrapItem(item));
-							}, this);	
+							}, this);
 						}
 						this.testSpider(urls.splice(1));
 					} else {
@@ -355,7 +357,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.set('testing', false);
 		}
 	},
-	
+
 	actions: {
 
 		editTemplate: function(templateName) {
@@ -470,7 +472,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 		linkClicked: function(url) {
 			this.get('documentView').showLoading();
-			this.fetchPage(url, this.get('loadedPageFp'));	
+			this.fetchPage(url, this.get('loadedPageFp'));
 		}
 	},
 
@@ -493,10 +495,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		if (this.get('autoloadTemplate')) {
 			Ember.run.next(this, function() {
 				this.saveSpider().then(function() {
-					this.fetchPage(this.get('autoloadTemplate'), null, true);	
+					this.fetchPage(this.get('autoloadTemplate'), null, true);
 					this.set('autoloadTemplate', null);
 				}.bind(this));
-			});	
+			});
 		}
 	},
 
