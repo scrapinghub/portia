@@ -48,10 +48,17 @@ class GitProjectSpec(ProjectSpec):
             self._rfile_name('spiders', name), self._get_branch())
 
     def remove_template(self, spider_name, name):
-        self._open_repo().delete_file(
-            self._rfile_name('spiders', spider_name, name), self._get_branch())
+        try:
+            self._open_repo().delete_file(
+                self._rfile_name('spiders', spider_name, name),
+                self._get_branch())
+        except KeyError:
+            pass
         spider = self.spider_json(spider_name)
-        spider['template_names'].remove(name)
+        try:
+            spider['template_names'].remove(name)
+        except ValueError:
+            pass
         self.savejson(spider, ['spiders', spider_name])
 
     def resource(self, *resources):

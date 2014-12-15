@@ -140,7 +140,7 @@ class Fetch(BotResource):
                 result['links'] = links
             finish_request(request, **result)
         except Exception as ex:
-            log.err()
+            log.err(ex)
             finish_request(request, response=result_response,
                            error="unexpected internal error: %s" % ex)
 
@@ -151,9 +151,14 @@ class Fetch(BotResource):
         pspec = self.bot.spec_manager.project_spec(project, auth_info)
         try:
             spider_spec = pspec.resource('spiders', spider)
-            spider_spec['templates'] = [
-                pspec.resource('spiders', spider, template) for
-                template in spider_spec['template_names']]
+            spider_spec['templates'] = []
+            for template in spider_spec['template_names']:
+                try:
+                    spider_spec['templates'].append(
+                        pspec.resource('spiders', spider, template))
+                except TypeError:
+                    # Template names not consistent with templates
+                    pspec.remove_template(spider, template)
             items_spec = pspec.resource('items')
             extractors = pspec.resource('extractors')
             return IblSpider(spider, spider_spec, items_spec, extractors,
