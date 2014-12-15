@@ -27,8 +27,8 @@ def convert_template(template):
 
 def annotate_template(template):
     "Applies the annotations into the template original body."
-    template['annotated_body'] = apply_annotations(
-        template['annotated_body'], template['original_body'])
+    template['annotated_body'] = apply_annotations(template['annotations'],
+                                                   template['original_body'])
 
 
 class ProjectSpec(object):
@@ -103,9 +103,15 @@ class ProjectSpec(object):
         self.savejson(spider, ['spiders', spider_name])
 
     def remove_template(self, spider_name, name):
-        os.remove(self._rfilename('spiders', spider_name, name))
+        try:
+            os.remove(self._rfilename('spiders', spider_name, name))
+        except OSError:
+            pass
         spider = self.spider_json(spider_name)
-        spider['template_names'].remove(name)
+        try:
+            spider['template_names'].remove(name)
+        except ValueError:
+            pass
         self.savejson(spider, ['spiders', spider_name])
 
     def _rfilename(self, *resources):
@@ -151,7 +157,8 @@ class ProjectSpec(object):
         """
         # assumes " is not allowed in spider names
         template_dict = {r: 'SPEC:%s' % r for r in self.resources}
-        template_dict['spiders'] = {s: 'SPIDER:%s' % s for s in self.list_spiders()}
+        template_dict['spiders'] = {s: 'SPIDER:%s' % s
+                                    for s in self.list_spiders()}
         json_template = json.dumps(template_dict)
         last = 0
         for match in re.finditer('"(SPEC|SPIDER):([^"]+)"', json_template):
@@ -192,14 +199,18 @@ class ProjectResource(SlydJsonResource):
             spiders = project_spec.list_spiders()
             request.write(json.dumps(list(spiders)))
         else:
-            if rpath[0] == 'spiders' and len(rpath) == 2:
-                spider = project_spec.spider_json(rpath[1])
-                request.write(json.dumps(spider))
-            elif rpath[0] == 'spiders' and len(rpath) == 3:
-                template = project_spec.template_json(rpath[1], rpath[2])
-                request.write(json.dumps(template))
-            else:
-                project_spec.writejson(request, *rpath)
+            try:
+                if rpath[0] == 'spiders' and len(rpath) == 2:
+                    spider = project_spec.spider_json(rpath[1])
+                    request.write(json.dumps(spider))
+                elif rpath[0] == 'spiders' and len(rpath) == 3:
+                    template = project_spec.template_json(rpath[1], rpath[2])
+                    request.write(json.dumps(template))
+                else:
+                    project_spec.writejson(request, *rpath)
+            # Trying to access non existent path
+            except (KeyError, IndexError, TypeError):
+                self.error(404, "Not Found", "No such resource")
         return '\n'
 
     def render_POST(self, request, merge=False):
@@ -208,21 +219,31 @@ class ProjectResource(SlydJsonResource):
             request.project, request.auth_info)
         try:
             # validate the request path and data
-            resource = request.postpath[0]
+            rpath = request.postpath
+            resource = rpath[0]
             if resource == 'spiders':
                 resource = 'spider'
-                if len(request.postpath) == 1 or not request.postpath[1]:
+                if len(rpath) == 1 or not rpath[1]:
                     return self.handle_spider_command(project_spec, obj)
-                elif len(request.postpath) == 3:
+                elif len(rpath) == 3:
                     resource = 'template'
+                    template = obj
+                    if obj.get('original_body') is None:
+                        template = project_spec.template_json(rpath[1],
+                                                              rpath[2])
+                    original_body = template.get('original_body', '')
+                    obj['original_body'] = original_body
                     annotate_template(obj)
+                    # Remove annotations field which is not used by slybot
+                    obj.pop('annotations', None)
             get_schema_validator(resource).validate(obj)
         except (KeyError, IndexError):
             self.error(404, "Not Found", "No such resource")
         except ValidationError as ex:
             self.bad_request("Json failed validation: %s" % ex.message)
-        project_spec.savejson(obj, request.postpath)
-        return ''
+        else:
+            project_spec.savejson(obj, request.postpath)
+            return ''
 
     def handle_spider_command(self, project_spec, command_spec):
         command = command_spec.get('cmd')

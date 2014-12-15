@@ -89,11 +89,11 @@ ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
 				if (!Em.isEmpty(this.get(relation))) {
 					serialized[relation] = this.get(relation).map(function(relatedObject) {
 						return relatedObject.serialize();
-					});	
+					});
 				} else {
 					serialized[relation] = [];
 				}
-			}.bind(this));	
+			}.bind(this));
 		}
 		return serialized;
 	},
@@ -101,15 +101,15 @@ ASTool.SimpleModel = Em.Object.extend(Em.Copyable, {
 
 
 ASTool.Template = ASTool.SimpleModel.extend({
-	serializedProperties: ['page_id', 'default', 'scrapes',
-		'page_type', 'url', 'annotated_body', 'original_body',
-		'extractors', 'name'],
+	serializedProperties: ['page_id', 'default', 'scrapes', 'page_type', 'url',
+		'annotations', 'extractors', 'name'],
 	page_id: '',
 	scrapes: 'default',
 	page_type: 'item',
 	url: '',
 	annotated_body: '',
 	original_body: '',
+	_new: false,
 	extractors: null,
 }),
 
@@ -132,12 +132,12 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 		if (this.get('init_requests') == null) {
 			this.set('init_requests', []);
 		}
-    	
-    	this.get('serializedProperties').forEach(function(prop) {
-    		this.addObserver(prop + '.[]', function() {
-    			this.notifyPropertyChange('dirty');
-    		}.bind(this));	
-    	}.bind(this));
+
+		this.get('serializedProperties').forEach(function(prop) {
+			this.addObserver(prop + '.[]', function() {
+				this.notifyPropertyChange('dirty');
+			}.bind(this));
+		}.bind(this));
   	},
 
 	performLogin: function(key, performLogin) {
@@ -165,7 +165,7 @@ ASTool.Spider = ASTool.SimpleModel.extend({
 	loginUser: function(key, loginUser) {
 		var reqs = this.get('init_requests');
 		if (arguments.length > 1) {
-			reqs[0]['username'] = loginUser;	
+			reqs[0]['username'] = loginUser;
 		}
 		return reqs.length ? reqs[0]['username'] : null;
 	}.property('init_requests'),
@@ -193,7 +193,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 		});
 		this.set('ignores', ignores);
 		if (this.get('required') == null) {
-			this.set('required', []);	
+			this.set('required', []);
 		}
 		if (this.get('annotations') == null) {
 			this.set('annotations', {});
@@ -219,7 +219,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 	}.property('annotations'),
 
 	variant: 0,
-	
+
 	annotations: null,
 
 	required: null,
@@ -229,12 +229,12 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 	ignores: null,
 
 	iframeBinding: 'ASTool.iframe',
-	
+
 	addMapping: function(attribute, itemField) {
 		this.get('annotations')[attribute] = itemField;
 		this.notifyPropertyChange('annotations');
 	},
-	
+
 	removeMapping: function(attribute) {
 		this.removeRequired(this.get('annotations')[attribute]);
 		delete this.get('annotations')[attribute];
@@ -275,9 +275,9 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 			return '';
 		}
 	}.property('element'),
-		
+
 	selectedElement: null,
-	
+
 	element: function() {
 		if (this.get('selectedElement')) {
 			return this.get('selectedElement');
@@ -338,7 +338,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 		}
 		return result;
 	}.property('path'),
-	
+
 	attributes: function() {
 		if (this.get('element')) {
 			return $(this.get('element')).getAttributeList();
@@ -346,7 +346,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 			return [];
 		}
 	}.property('element'),
-	
+
 	unmappedAttributes: function() {
 		unmapped = this.get('attributes').filter(
 			function(attribute, index, self) {
@@ -354,7 +354,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 			}.bind(this));
 		return unmapped;
 	}.property('attributes.@each', 'annotations'),
-	
+
 	_mappedAttributes: function(filter) {
 		mapped = [];
 		if (this.get('annotations')) {
@@ -364,7 +364,7 @@ ASTool.Annotation = ASTool.SimpleModel.extend({
 					attribute.set('mappedField', mappedTo);
 					mapped.addObject(attribute);
 				}
-			}.bind(this));	
+			}.bind(this));
 		}
 		return mapped;
 	},
@@ -425,7 +425,7 @@ ASTool.Ignore = ASTool.SimpleModel.extend({
 
 
 ASTool.Extractor = ASTool.SimpleModel.extend({
-	
+
 	serializedProperties: function() {
 		var serializedProperties = ['name'];
 		if (this.get('regular_expression')) {
@@ -445,11 +445,11 @@ ASTool.ExtractedItem = Em.Object.extend({
 	definition: null,
 	extracted: null,
 	matchedTemplate: null,
-	
+
 	url: function() {
 		return this.get('extracted.url');
 	}.property('extracted'),
-	
+
 	fields: function() {
 		var fields = [];
 		var item = this.get('extracted');
@@ -457,7 +457,7 @@ ASTool.ExtractedItem = Em.Object.extend({
 			var fieldDefinition = this.get('definition.fields').findBy('name', key);
 			if (fieldDefinition) {
 				fields.pushObject(ASTool.ExtractedField.create(
-					{ name: key, type: fieldDefinition.get('type'), value: item[key] }));	
+					{ name: key, type: fieldDefinition.get('type'), value: item[key] }));
 			}
 		}.bind(this));
 		return fields;

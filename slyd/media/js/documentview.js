@@ -87,7 +87,7 @@ ASTool.DocumentView = Em.Object.extend({
 		this.set('elementSelectionEnabled', false);
 		this.set('partialSelectionEnabled', false);
 		this.set('dataSource', null);
-		this.set('listener', null);	
+		this.set('listener', null);
 	},
 
 	/**
@@ -115,9 +115,9 @@ ASTool.DocumentView = Em.Object.extend({
 	redrawNow: function() {
 		var canvas = this.get('canvas');
 		if (!canvas || this.loadingDoc) {
-			return
+			return;
 		}
-		var canvas = this.get('canvas');
+		canvas = this.get('canvas');
 		if (this.get('dataSource')) {
 			var sprites = this.get('dataSource.sprites') || [];
 			if (this.get('hoveredSprite')) {
@@ -125,7 +125,7 @@ ASTool.DocumentView = Em.Object.extend({
 			}
 			canvas.draw(sprites,
 						this.getIframe().scrollLeft(),
-						this.getIframe().scrollTop());	
+						this.getIframe().scrollTop());
 		} else {
 			canvas.clear();
 		}
@@ -149,13 +149,13 @@ ASTool.DocumentView = Em.Object.extend({
 			// We need to disable all interactions with the document we are loading
 			// until we trigger the callback.
 			this.setInteractionsBlocked(true);
-			Em.run.later(this, function() {	
+			Em.run.later(this, function() {
 				var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
 				doc.onscroll = this.redrawNow.bind(this);
 				this.setInteractionsBlocked(false);
 				if (readyCallback) {
 					readyCallback(this.getIframe());
-				};
+				}
 				this.set('loadingDoc', false);
 			}, 1000);
 		});
@@ -169,6 +169,113 @@ ASTool.DocumentView = Em.Object.extend({
 		return this.getIframe().find('html').get(0).outerHTML;
 	},
 
+
+	getAnnotations: function() {
+		var iframe = this.getIframe();
+		var annotations = {};
+		// Find all annotated elements
+		var inline = iframe.find(':hasAttrWithPrefix("data-scrapy-")');
+		for (i=0; i < inline.length; i++) {
+			elem = inline[i];
+			annotation = [];
+			tagid = 0;
+			that = $(elem);
+			// Handle extra processing for generated tags
+			if (elem.tagName == 'INS') {
+				var previous_tag = that.prev();
+				var nodes;
+				insert_after = true;
+				// Next nearest tag is the parent of this element
+				if (previous_tag.length === 0) {
+					previous_tag = that.parent();
+					nodes = previous_tag[0].childNodes;
+					insert_after = false;
+				} else {
+					// Find the next nearest non generated tag
+					while (previous_tag.prop('tagName') === 'INS') {
+						previous_tag = previous_tag.prev();
+					}
+					// Loop over all text nodes and generated tags until the
+					// next tag is found
+					nodes = [];
+					node = previous_tag[0].nextSibling;
+					while (node) {
+						nodes.push(node);
+						node = node.nextSibling;
+						if (node === null ||
+								(node.nodeType === node.ELEMENT_NODE &&
+								 node.tagName !== 'INS')) {
+							break;
+						}
+					}
+				}
+				if (!!previous_tag.data('tagid')) {
+					tagid = '' + previous_tag.data('tagid');
+					a = {};
+					for (idx=0; idx < elem.attributes.length; idx++) {
+						attr = elem.attributes[idx];
+						if (attr.name.indexOf('data-scrapy-') === 0) {
+							a[attr.name] = attr.value;
+						}
+					}
+					a['generated'] = true;
+					a['insert_after'] = insert_after;
+					ins_json = elem.attributes['data-scrapy-annotate'].value;
+					last_node_ins = false;
+					start = 0;
+					// Calculate the length and start position of the slice
+					// ignoring the ins tag and with leading whitespace removed
+					for (idx=0; idx < nodes.length; idx++) {
+						node = nodes[idx];
+						if (node.nodeType === node.ELEMENT_NODE &&
+							node.tagName === 'INS') {
+							last_node_ins = true;
+							if (node.attributes['data-scrapy-annotate'].value === ins_json) {
+								a['slice'] = [start, start + node.innerHTML.length];
+								annotation.push(a);
+								break;
+							} else {
+								// No need to strip ins elements
+								start += node.innerHTML.length;
+							}
+						} else {
+							// Need to remove external whitespace so that there
+							// is no ambiguity in the start position of the
+							// slice
+							if (last_node_ins) {
+								start += node.textContent.length;
+							} else {
+								start += node.textContent.lstrip().length;
+							}
+							last_node_ins = false;
+						}
+					}
+				}
+			} else {
+				tagid = '' + that.data('tagid');
+				for (idx=0; idx < elem.attributes.length; idx++) {
+					attr = elem.attributes[idx];
+					if (attr.name.indexOf('data-scrapy-') === 0) {
+						a = {};
+						if (attr.name === 'data-scrapy-ignore')
+							a[attr.name] = "true";
+						else
+							a[attr.name] = attr.value;
+						annotation.push(a);
+					}
+				}
+			}
+			// Add annotation(s) for final output
+			if (Array.isArray(annotations[tagid])) {
+				for (j=0; j < annotation.length; j++) {
+					annotations[tagid].push(annotation[j]);
+				}
+			} else {
+				annotations[tagid] = annotation;
+			}
+		}
+		return annotations;
+	},
 
 	/**
 		Displays a loading widget on top of the iframe. It should be removed
@@ -200,7 +307,7 @@ ASTool.DocumentView = Em.Object.extend({
 		Hides the loading widget displayed by a previous call to showLoading.
 	*/
 	hideLoading: function() {
-		if (this.get('loader')) { 
+		if (this.get('loader')) {
 			this.get('loader').hide();
 		}
 		this.setInteractionsBlocked(false);
@@ -239,21 +346,21 @@ ASTool.DocumentView = Em.Object.extend({
 		if (Em.browser.isMozilla) {
 			// Just scroll in FF as I couldn't make the animation work.
 			this.getIframe().scrollTop(rect.top - 100);
-			this.getIframe().scrollLeft(rect.left - 100);	
+			this.getIframe().scrollLeft(rect.left - 100);
 		} else {
 			this.getIframe().contents().children().animate(
 				{ 'scrollTop': (rect.top - 100) + 'px', 'scrollLeft': (rect.left - 100) + 'px'},
-				150);	
+				150);
 		}
 		this.updateHoveredInfo(element);
 	},
 
 	_elementSelectionEnabled: null,
-	
+
 	elementSelectionEnabled: function(key, selectionEnabled) {
 		if (arguments.length > 1) {
 			if (selectionEnabled) {
-			    if (!this.get('_elementSelectionEnabled')) {
+				if (!this.get('_elementSelectionEnabled')) {
 					this.set('_elementSelectionEnabled', true);
 					this.showHoveredInfo();
 					this.installEventHandlersForSelecting();
@@ -282,7 +389,7 @@ ASTool.DocumentView = Em.Object.extend({
 		this.getIframe().bind('mouseout', this.mouseOutHandler.bind(this));
 		this.getIframe().bind('mousedown', this.mouseDownHandler.bind(this));
 		this.getIframe().bind('mouseup', this.mouseUpHandler.bind(this));
-		this.getIframe().bind('hover', function(event) {event.preventDefault()});
+		this.getIframe().bind('hover', function(event) {event.preventDefault();});
 		this.redrawNow();
 	},
 
@@ -331,7 +438,7 @@ ASTool.DocumentView = Em.Object.extend({
 					icon = 'ui-icon-arrowthickstop-1-e';
 				}
 				$("#hovered-element-info").css('float', floatPos);
-				$('#hovered-element-info button').button({ icons: { primary: icon } })
+				$('#hovered-element-info button').button({ icons: { primary: icon } });
 			});
 	},
 
@@ -359,7 +466,7 @@ ASTool.DocumentView = Em.Object.extend({
 		if (delay) {
 			handle = Em.run.later(this, function() {
 				this.sendDocumentEvent('elementHovered', element, mouseX, mouseY);
-			}, delay);	
+			}, delay);
 			this.set('elementHoveredHandle', handle);
 		} else {
 			this.sendDocumentEvent('elementHovered', element, mouseX, mouseY);
@@ -384,7 +491,7 @@ ASTool.DocumentView = Em.Object.extend({
 			}
 		}
 	},
-	
+
 	mouseOutHandler: function(event) {
 		this.set('hoveredSprite', null);
 		if (!Em.browser.isMozilla) {
@@ -392,7 +499,7 @@ ASTool.DocumentView = Em.Object.extend({
 			// pops up, causing for the widget to disappear. Supressing
 			// the call to sendElementHoveredEvent deals with the issue
 			// but may prevent the widget from hiding appropriately.
-			this.sendElementHoveredEvent(null, 0);	
+			this.sendElementHoveredEvent(null, 0);
 		}
 		this.redrawNow();
 	},
@@ -406,7 +513,7 @@ ASTool.DocumentView = Em.Object.extend({
 		var linkingElement = $(event.target).closest('[href]');
 		if (linkingElement.length) {
 			var href = $(linkingElement).get(0).href;
-        	this.sendDocumentEvent('linkClicked', href);	
+			this.sendDocumentEvent('linkClicked', href);
 		}
 	},
 

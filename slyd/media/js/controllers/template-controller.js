@@ -107,6 +107,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		this.get('annotationsStore').saveAll(this.get('annotations'));
 		if (this.get('content')) {
 			this.set('content.annotated_body', this.get('documentView').getAnnotatedDocument());
+			this.set('content.annotations', this.get('documentView').getAnnotations());
 		}
 	},
 
