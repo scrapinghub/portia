@@ -24,12 +24,12 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 
 	addSpider: function() {
 		var siteUrl = this.get('spiderPage') || this.get('controllers.application.siteWizard');
-		if (siteUrl.indexOf('http') != 0) {
+		if (siteUrl.indexOf('http') !== 0) {
 			siteUrl = 'http://' + siteUrl;
 		}
 		var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, this.get('content'));
 		this.set('controllers.application.siteWizard', siteUrl);
-		var spider = ASTool.Spider.create( 
+		var spider = ASTool.Spider.create(
 			{ 'name': newSpiderName,
 			  'start_urls': [],
 			  'follow_patterns': [],

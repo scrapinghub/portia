@@ -36,14 +36,14 @@ ASTool.ProjectsIndexRoute = Ember.Route.extend({
 	renderTemplate: function() {
 		var controller = this.controllerFor('projects.index');
 		this.render('toolbox-projects', {
-      		controller: controller,
-    	});
+			controller: controller,
+		});
 
-    	this.render('topbar-projects', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+		this.render('topbar-projects', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 	},
 });
 
@@ -68,10 +68,10 @@ ASTool.ProjectIndexRoute = Ember.Route.extend({
 			var controller = this.controllerFor('project.index');
 			return this.get('slyd').conflictedFiles(this.get('slyd.project')).then(
 				function(conflictedFiles) {
-					if (Object.keys(conflictedFiles).length != 0) {
+					if (Object.keys(conflictedFiles).length !== 0) {
 						// If there are conflicted files, redirect the user to
 						// automated concept resolution.
-						this.transitionTo('conflicts');	
+						this.transitionTo('conflicts');
 					}
 				}.bind(this)
 			).then(function() {
@@ -85,14 +85,14 @@ ASTool.ProjectIndexRoute = Ember.Route.extend({
 	renderTemplate: function() {
 		var controller = this.controllerFor('project.index');
 		this.render('toolbox-project', {
-      		controller: controller,
-    	});
+			controller: controller,
+		});
 
-    	this.render('topbar-project', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+		this.render('topbar-project', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 	},
 
 	serialize: function(model, params) {
@@ -125,14 +125,14 @@ ASTool.SpiderIndexRoute = Ember.Route.extend({
 	renderTemplate: function() {
 		var controller = this.controllerFor('spider.index');
 		this.render('toolbox-spider', {
-      		controller: controller,
-    	});
+			controller: controller,
+		});
 
-    	this.render('topbar-browse', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+		this.render('topbar-browse', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 	},
 });
 
@@ -146,18 +146,19 @@ ASTool.TemplateRoute = Ember.Route.extend({
 
 
 ASTool.TemplateIndexRoute = Ember.Route.extend({
-	
+
 	model: function(params) {
 		return this.modelFor('template');
 	},
 
 	afterModel: function(model) {
+		var annotationsPromise;
 		var controller = this.controllerFor('template.index');
 		controller.set('annotationsLoaded', false);
 		var slyd = this.get('slyd');
 		// Load the annotations if we can.
 		if (controller.get('documentView').getIframe().length) {
-			var annotationsPromise = new Ember.RSVP.Promise(function(resolve) {
+			annotationsPromise = new Ember.RSVP.Promise(function(resolve) {
 				controller.get('documentView').displayDocument(
 					model.get('annotated_body'),
 					function(docIframe){
@@ -177,7 +178,7 @@ ASTool.TemplateIndexRoute = Ember.Route.extend({
 			// route in a while.
 			Em.run.later(this, this.refresh, 500);
 		}
-		
+
 		// Load the items.
 		var itemsPromise = slyd.loadItems().then(function(items) {
 			controller.set('items', items);
@@ -186,46 +187,46 @@ ASTool.TemplateIndexRoute = Ember.Route.extend({
 		var extractorsPromise = slyd.loadExtractors().then(function(extractors) {
 			controller.set('extractors', extractors);
 		});
-		return Em.RSVP.all([annotationsPromise, itemsPromise, extractorsPromise])
+		return Em.RSVP.all([annotationsPromise, itemsPromise, extractorsPromise]);
 	},
 
 	renderTemplate: function() {
 		var controller = this.controllerFor('template.index');
 		this.render('toolbox-template', {
-      		controller: controller,
-    	});
-    	this.render('topbar-extraction', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+			controller: controller,
+		});
+		this.render('topbar-extraction', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 	},
 });
 
 
 ASTool.AnnotationRoute = Ember.Route.extend({
-	
+
 	model: function() {
 		return null;
 	},
 
 	afterModel: function(model) {
 		if (Em.isEmpty(model)) {
-			this.transitionTo('template');	
+			this.transitionTo('template');
 		}
 	},
 
 	renderTemplate: function() {
 		var controller = this.controllerFor('annotation');
 		this.render('toolbox-annotation', {
-      		controller: controller,
-    	});
+			controller: controller,
+		});
 
-    	this.render('topbar-extraction', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+		this.render('topbar-extraction', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 	},
 });
 
@@ -239,15 +240,15 @@ ASTool.ItemsRoute = Ember.Route.extend({
 		var controller = this.controllerFor('items');
 		this.render('toolbox-items', {
 			into: 'application',
-      		outlet: 'main',
-      		controller: controller,
-    	});
+			outlet: 'main',
+			controller: controller,
+		});
 
-    	this.render('topbar-extraction', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+		this.render('topbar-extraction', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 	},
 });
 
@@ -260,21 +261,21 @@ ASTool.ConflictsRoute = Ember.Route.extend({
 		var controller = this.controllerFor('conflicts');
 		this.render('toolbox-conflicts', {
 			into: 'application',
-      		outlet: 'main',
-      		controller: controller,
-    	});
+			outlet: 'main',
+			controller: controller,
+		});
 
-    	this.render('topbar-conflicts', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+		this.render('topbar-conflicts', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 
-    	this.render('conflict-resolver', {
-    		into: 'application',
-      		outlet: 'conflictResolver',
-      		controller: controller,
-    	});
+		this.render('conflict-resolver', {
+			into: 'application',
+			outlet: 'conflictResolver',
+			controller: controller,
+		});
 	},
 });
 
@@ -285,20 +286,20 @@ ASTool.LoadingRoute = ASTool.ProjectLoadingRoute = ASTool.SpiderLoadingRoute = E
 		var controller = this.controllerFor('loading');
 		this.render('toolbox-empty', {
 			into: 'application',
-      		outlet: 'main',
-      		controller: controller,
-    	});
+			outlet: 'main',
+			controller: controller,
+		});
 
 		this.render('loading', {
 			into: 'application',
-      		outlet: 'conflictResolver',
-      		controller: controller,
-    	});
+			outlet: 'conflictResolver',
+			controller: controller,
+		});
 
-    	this.render('topbar-empty', {
-    		into: 'application',
-      		outlet: 'topbar',
-      		controller: controller,
-    	});
+		this.render('topbar-empty', {
+			into: 'application',
+			outlet: 'topbar',
+			controller: controller,
+		});
 	},
 });

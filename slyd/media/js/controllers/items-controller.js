@@ -1,5 +1,5 @@
 ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
-	
+
 	needs: ['application', 'annotation'],
 
 	documentView: null,
@@ -9,7 +9,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 		this.addField(newItem);
 		this.pushObject(newItem);
 	},
-	
+
 	addField: function(owner, name, type) {
 		var newField = ASTool.ItemField.create({ name: name || 'new_field',
 										         type: type || 'text',
@@ -23,7 +23,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 		valid = true;
 		this.get('content').forEach(function(item) {
 			if (!item.isValid()) {
-				alert('The item ' + item.get('name') + 
+				alert('The item ' + item.get('name') +
 					' or one of its fields has an invalid name. Only A-Z, a-z, 0-9, - and _ are allowed characters.');
 				valid = false;
 			}
@@ -31,20 +31,20 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 		if (valid) {
 			this.get('slyd').saveItems(this.toArray()).then(function() {
 				this.transitionToRoute('template');
-			}.bind(this));	
+			}.bind(this));
 		}
 	},
 
 	actions: {
-		
+
 		addItem: function() {
 			this.addItem();
 		},
-		
+
 		addField: function(item) {
 			this.addField(item);
 		},
-		
+
 		deleteItem: function(item) {
 			this.removeObject(item);
 		},
@@ -67,13 +67,13 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 
 	willEnter: function() {
 		if (this.get('documentView.canvas')) {
-			this.set('documentView.canvas.interactionsBlocked', true);	
-		}	
+			this.set('documentView.canvas.interactionsBlocked', true);
+		}
 	},
 
 	willLeave: function() {
 		if (this.get('documentView.canvas')) {
-			this.set('documentView.canvas.interactionsBlocked', false);	
-		}	
+			this.set('documentView.canvas.interactionsBlocked', false);
+		}
 	},
 });

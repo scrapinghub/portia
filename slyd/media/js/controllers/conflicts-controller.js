@@ -49,7 +49,7 @@ ASTool.ConflictsController = Em.ObjectController.extend(ASTool.BaseControllerMix
 			if ('__CONFLICT' in content) {
 				if (parentPath in this.get('conflictedKeyPaths')) {
 					var option = this.get('conflictedKeyPaths')[parentPath];
-					content = content['__CONFLICT'][option];	
+					content = content['__CONFLICT'][option];
 				}
 			} else {
 				Object.keys(content).forEach(function(key) {
@@ -99,7 +99,7 @@ ASTool.ConflictsController = Em.ObjectController.extend(ASTool.BaseControllerMix
 							this.displayConflictedFile(this.get('conflictedFileNames')[0]);
 						}
 					}.bind(this)
-				)
+				);
 		},
 
 		publish: function() {

@@ -1,6 +1,6 @@
 /**
- 	Draws ASTool.Sprite instances on a canvas specified by the
- 	canvasId property. 
+	Draws ASTool.Sprite instances on a canvas specified by the
+	canvasId property.
 */
 ASTool.Canvas = Em.Object.extend({
 
@@ -40,9 +40,9 @@ ASTool.Canvas = Em.Object.extend({
 		context.translate(-xOffset, -yOffset);
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		var sortedSprites = sprites.sort(function(a, b) {
-	    	return a.get('zPosition') - b.get('zPosition');
+			return a.get('zPosition') - b.get('zPosition');
 		});
-		sortedSprites.forEach(function(sprite) { 
+		sortedSprites.forEach(function(sprite) {
 			sprite.draw(context);
 		});
 	},
@@ -53,7 +53,7 @@ ASTool.Canvas = Em.Object.extend({
 		By default the canvas is configured to let all events pass through.
 		Set this attribute to true to block interactions with the underlaying
 		layers.
-	*/	
+	*/
 	interactionsBlocked: function(key, interactionsBlocked) {
 		if (arguments.length > 1) {
 			this.set('_interactionsBlocked', interactionsBlocked);
@@ -76,8 +76,8 @@ ASTool.Canvas = Em.Object.extend({
 
 
 /**
-	Base class for all the sprites rendered by ASTool.Canvas. 
-	Subclasses must implement the draw method. 
+	Base class for all the sprites rendered by ASTool.Canvas.
+	Subclasses must implement the draw method.
 */
 ASTool.Sprite = Em.Object.extend({
 
@@ -88,7 +88,7 @@ ASTool.Sprite = Em.Object.extend({
 	zPosition: 0,
 
 	draw: function() {
-		throw('You must implement this method.')
+		throw('You must implement this method.');
 	},
 });
 
@@ -126,33 +126,33 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 			context.globalCompositeOperation = this.get('blend');
 		}
 		if (this.get('hasShadow')) {
-		    context.shadowColor   = this.get('shadowColor');
-		    context.shadowOffsetX = this.get('shadowOffsetX');
-		    context.shadowOffsetY = this.get('shadowOffsetY');
-		    context.shadowBlur    = this.get('shadowBlur');
+			context.shadowColor   = this.get('shadowColor');
+			context.shadowOffsetX = this.get('shadowOffsetX');
+			context.shadowOffsetY = this.get('shadowOffsetY');
+			context.shadowBlur    = this.get('shadowBlur');
 		}
 
 		context.fillStyle = this.get('fillColor');
 		context.fillRect(rect.left,
-			         	 rect.top,
-					 	 rect.width,
+						 rect.top,
+						 rect.width,
 						 rect.height);
-		context.restore();			 
+		context.restore();
 
-	    context.lineWidth = this.get('boderWidth');
+		context.lineWidth = this.get('boderWidth');
 		context.strokeStyle = this.get('strokeColor');
 		if (this.get('highlighted')) {
 			context.shadowColor = 'orange';
-		    context.shadowOffsetX = 0;
-		    context.shadowOffsetY = 0;
-		    context.shadowBlur = 5;
-		    context.lineWidth = 2;
-		    context.strokeStyle = 'orange';
+			context.shadowOffsetX = 0;
+			context.shadowOffsetY = 0;
+			context.shadowBlur = 5;
+			context.lineWidth = 2;
+			context.strokeStyle = 'orange';
 		}
 		context.strokeRect(rect.left,
-			           	   rect.top,
-					       rect.width,
-					       rect.height);
+						   rect.top,
+						   rect.width,
+						   rect.height);
 		context.shadowColor = 'transparent';
 
 		if (this.get('text')) {
@@ -167,8 +167,8 @@ ASTool.RectSprite = ASTool.Sprite.extend({
 			context.fillStyle = this.get('textColor');
 			context.globalAlpha = 1.0;
 			context.fillText(this.get('text'),
-					 	 	 rect.left + 6,
-				 		 	 rect.top - 4);
+							 rect.left + 6,
+							 rect.top - 4);
 
 		}
 		context.restore();
@@ -194,7 +194,7 @@ ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 
 	getBoundingBox: function() {
 		if (this.get('annotation.element')) {
-			return $(this.get('annotation.element')).boundingBox();	
+			return $(this.get('annotation.element')).boundingBox();
 		} else {
 			return RECT_ZERO;
 		}
@@ -202,7 +202,7 @@ ASTool.AnnotationSprite = ASTool.RectSprite.extend({
 
 	zPosition: function(key, zPos) {
 		if (arguments.length > 1) {
-			this.set('_zPosition', zPos)
+			this.set('_zPosition', zPos);
 		}
 		if (this.get('annotation.highlighted')) {
 			return 1000;
@@ -254,6 +254,6 @@ ASTool.ElementSprite = ASTool.RectSprite.extend({
 	zPosition: 10,
 
 	getBoundingBox: function() {
-		return $(this.get('element')).boundingBox();	
+		return $(this.get('element')).boundingBox();
 	},
 });

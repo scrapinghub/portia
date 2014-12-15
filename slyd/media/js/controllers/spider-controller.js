@@ -61,13 +61,13 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	showLinks: function(key, show) {
 		if (arguments.length > 1) {
-            if (show) {
-                this.set('_showLinks', true);
-            } else {
-                this.set('_showLinks', false);
-            }
-        }
-        return  this.get('_showLinks');
+			if (show) {
+				this.set('_showLinks', true);
+			} else {
+				this.set('_showLinks', false);
+			}
+		}
+		return this.get('_showLinks');
 	}.property('_showLinks'),
 
 	showItems: true,
@@ -118,19 +118,19 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				model.get('exclude_patterns').setObjects([]);
 				model.get('follow_patterns').setObjects([]);
 			}
-            model.set('links_to_follow', follow == 'none' ? 'none' : 'patterns');
-        } else {
-        	retVal = model.get('links_to_follow');
-	        if (retVal == 'patterns' &&
-	        	Em.isEmpty(model.get('follow_patterns')) &&
+			model.set('links_to_follow', follow == 'none' ? 'none' : 'patterns');
+		} else {
+			retVal = model.get('links_to_follow');
+			if (retVal == 'patterns' &&
+				Em.isEmpty(model.get('follow_patterns')) &&
 				Em.isEmpty(model.get('exclude_patterns'))) {
-	        	retVal = 'all';
-	        }
-    	}
-    	return retVal;
+				retVal = 'all';
+			}
+		}
+		return retVal;
 	}.property('model.links_to_follow',
-	 		   'model.follow_patterns',
-	 		   'model.exclude_patterns'),
+			   'model.follow_patterns',
+			   'model.exclude_patterns'),
 
 	spiderDomains: function() {
 		var spiderDomains = new Em.Set();
@@ -164,7 +164,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		if (!Em.isEmpty(this.get('pendingFetches'))) {
 			return 'Fetching page...';
 		} else if (this.get('loadedPageFp')) {
-			return this.get('pageMap')[this.get('loadedPageFp')].url;;
+			return this.get('pageMap')[this.get('loadedPageFp')].url;
 		} else {
 			return 'No page loaded';
 		}
@@ -260,7 +260,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			  page_id: page.fp,
 			  _new: true,
 			  url: page.url });
-		itemDefs = this.get('itemDefinitions')
+		itemDefs = this.get('itemDefinitions');
 		if (!itemDefs.findBy('name', 'default') && !Em.isEmpty(itemDefs)) {
 			// The deault item doesn't exist but we have at least one item def.
 			template.set('scrapes', itemDefs[0].get('name'));
@@ -454,7 +454,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			if (this.get('testing')) {
 				this.set('testing', false);
 			} else {
-				this.set('testing', true)
+				this.set('testing', true);
 				this.get('documentView').showLoading();
 				this.get('pendingFetches').setObjects([]);
 				this.get('extractedItems').setObjects([]);
@@ -483,7 +483,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 										  listener: this,
 										  dataSource: this });
 		this.get('documentView').showSpider();
-		var newSpiderSite = this.get('controllers.application.siteWizard')
+		var newSpiderSite = this.get('controllers.application.siteWizard');
 		if (newSpiderSite) {
 			Ember.run.next(this, function() {
 				this.addStartUrls(newSpiderSite);

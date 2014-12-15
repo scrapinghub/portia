@@ -3,22 +3,22 @@
 DragNDrop = Ember.Namespace.create();
 
 DragNDrop.cancel = function(event) {
-    event.preventDefault();
+	event.preventDefault();
 };
 
 DragNDrop.Draggable = Ember.Mixin.create({
-    attributeBindings: 'draggable',
-    draggable: 'true',
+	attributeBindings: 'draggable',
+	draggable: 'true',
 });
 
 DragNDrop.Droppable = Ember.Mixin.create({
-    dragEnter: DragNDrop.cancel,
-    dragOver: DragNDrop.cancel,
+	dragEnter: DragNDrop.cancel,
+	dragOver: DragNDrop.cancel,
 
-    drop: function(event) {
-        event.preventDefault();
-        return false;
-    }
+	drop: function(event) {
+		event.preventDefault();
+		return false;
+	}
 });
 
 
@@ -48,16 +48,16 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 	name: function() {
 		return this.get('action') + '_' + this.get('label');
 	}.property('action', 'label'),
-  
+
 	icons: function() {
 		return this.get('icon') ? {primary: this.get('icon')} : {};
 	}.property('icon'),
-  
+
 	click: function() {
 		if (this.get('action')) {
 			this.get('controller').send(this.get('action'),
 										this.get('argument'),
-										this.get('argument2'));	
+										this.get('argument2'));
 		}
 	},
 
@@ -66,18 +66,19 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 			label = trim(label, 38);
 			this.set('_label', label);
 			this.set('text', true);
-		} 
+		}
 		return this.get('_label');
 	}.property('_label'),
 
 	didInsertElement: function() {
+		var ui;
 		this._super();
 		if (this.minWidth) {
-			var ui = $(this.get('element'));
+			ui = $(this.get('element'));
 			ui.css('min-width', this.minWidth);
 		}
 		if (this.maxWidth) {
-			var ui = $(this.get('element'));
+			ui = $(this.get('element'));
 			ui.css('max-width', this.maxWidth);
 		}
 	},
@@ -89,7 +90,7 @@ ASTool.TextField = Em.TextField.extend({
 	placeholder: null,
 	attributeBindings: ['placeholder', 'width'],
 	classNames: ['textfield'],
-	
+
 	didInsertElement: function() {
 		this._super();
 		if (this.width) {
@@ -115,7 +116,7 @@ ASTool.TextArea = Em.TextArea.extend({
 	resize: false,
 	attributeBindings: ['placeholder', 'width', 'resize'],
 	classNames: ['textarea'],
-	
+
 	didInsertElement: function() {
 		this._super();
 		var ui = $(this.get('element'));
@@ -145,50 +146,50 @@ ASTool.ToggleButton = Ember.Checkbox.extend(JQ.Widget, {
 
 ASTool.InlineTextField = Ember.View.extend({
 	tagName: 'span',
-  	layoutName: 'inline-textfield',
-  	validate: false,
+	layoutName: 'inline-textfield',
+	validate: false,
 
- 	click: function() {
-    	if (!this.get('isEditing'))  {
-      		this.set('isEditing', true);
-      		Ember.run.scheduleOnce('afterRender', this, this.focusTextField);
-    	}
-  	},
+	click: function() {
+		if (!this.get('isEditing')) {
+			this.set('isEditing', true);
+			Ember.run.scheduleOnce('afterRender', this, this.focusTextField);
+		}
+	},
 
-  	focusTextField: function() {
-    	var val = this.$('input').val();
-    	this.$('input').focus();
+	focusTextField: function() {
+		var val = this.$('input').val();
+		this.$('input').focus();
 
-    	this.$('input').val('');
-    	this.$('input').val(val);
-  	},
+		this.$('input').val('');
+		this.$('input').val(val);
+	},
 
-  	save: function() {
-  	},
+	save: function() {
+	},
 
-  	textField: Ember.TextField.extend({
-  		classNames: ['inline-textfield'],
-  		attributeBindings: ['name'],
-  		name: 'inline_textfield',
+	textField: Ember.TextField.extend({
+		classNames: ['inline-textfield'],
+		attributeBindings: ['name'],
+		name: 'inline_textfield',
 
-    	focusOut: function() {
-    		this.done();
-    	},
+		focusOut: function() {
+			this.done();
+		},
 
-    	keyPress: function(e) {
-        	if (e.keyCode == $.ui.keyCode['ENTER']) {
-        		this.done();
-        	}
-    	},
+		keyPress: function(e) {
+			if (e.keyCode == $.ui.keyCode['ENTER']) {
+				this.done();
+			}
+		},
 
-    	done: function() {
+		done: function() {
 			var parentView = this.get('parentView');
 			if (parentView.get('isEditing')) {
-				parentView.save();	
+				parentView.save();
 				parentView.set('isEditing', false);
 			}
-    	},
-  	}),
+		},
+	}),
 });
 
 /************************* Application views ****************************/
@@ -196,21 +197,21 @@ ASTool.InlineTextField = Ember.View.extend({
 ASTool.FollowSelect = ASTool.Select.extend({
 	name: 'followSelect',
 	content: [{ option: 'all', label: 'Follow all in-domain links' },
-			  { option: 'none', label: "Don't follow links" },
-			  { option: 'patterns', label: 'Configure follow and exclude patterns' }],
+			{ option: 'none', label: "Don't follow links" },
+			{ option: 'patterns', label: 'Configure follow and exclude patterns' }],
 });
 
 
 ASTool.TypeSelect = ASTool.Select.extend({
 
 	content: [{ option: 'text', label: 'text' },
-			  { option: 'number', label: 'number' },
-			  { option: 'image', label: 'image' },
-			  { option: 'price', label: 'price' },
-			  { option: 'raw html', label: 'raw html' },
-			  { option: 'safe html', label: 'safe html' },
-			  { option: 'geopoint', label: 'geopoint' },
-			  { option: 'url', label: 'url' }],
+			{ option: 'number', label: 'number' },
+			{ option: 'image', label: 'image' },
+			{ option: 'price', label: 'price' },
+			{ option: 'raw html', label: 'raw html' },
+			{ option: 'safe html', label: 'safe html' },
+			{ option: 'geopoint', label: 'geopoint' },
+			{ option: 'url', label: 'url' }],
 });
 
 
@@ -234,7 +235,7 @@ ASTool.VariantSelect = ASTool.Select.extend({
 	}.property('controller.maxVariant'),
 
 	change: function() {
-		this.set('annotation.variant', parseInt(this.get('value')))
+		this.set('annotation.variant', parseInt(this.get('value')));
 	},
 
 	fixSelection: function() {
@@ -242,7 +243,7 @@ ASTool.VariantSelect = ASTool.Select.extend({
 		// This hack resets the selection to its correct value.
 		var tempValue = this.get('annotation.variant');
 		this.set('value', null);
-		Ember.run.scheduleOnce('afterRender', this, function() {		
+		Ember.run.scheduleOnce('afterRender', this, function() {
 			this.set('value', tempValue);
 		});
 	}.observes('controller.maxVariant'),
@@ -280,24 +281,24 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 	attributeValue: function() {
 		if (this.get('attributeName') && !Em.isEmpty(this.get('annotation.attributes'))) {
 			return this.get('annotation.attributes').findBy(
-				'name', this.get('attributeName')).get('value');	
+				'name', this.get('attributeName')).get('value');
 		} else {
 			return '< Empty attribute >';
 		}
 	}.property('attributeName', 'fieldName', 'trimTo'),
 
-	change: function() {	
+	change: function() {
 		if (this.get('fieldName') == 'create_field') {
 			this.triggerAction({ action: 'showCreateFieldWidget', target: this });
 		} else if (this.get('fieldName') == 'sticky') {
 			this.get('controller').send('makeSticky',
-							   		this.get('annotation'),
-							   		this.get('attributeName'));
+									this.get('annotation'),
+									this.get('attributeName'));
 		} else if (this.get('fieldName')) {
 			this.get('controller').send('mapAttribute',
-							   		this.get('annotation'),
-							   		this.get('attributeName'),
-							   		this.get('fieldName'));	
+									this.get('annotation'),
+									this.get('attributeName'),
+									this.get('fieldName'));
 		}
 	},
 
@@ -312,12 +313,12 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 			if (this.get('fieldName') && this.get('fieldType')) {
 				this.set('creatingField', false);
 				this.get('controller').send('createField',
-									   		this.get('fieldName'),
-									   		this.get('fieldType'));
+											this.get('fieldName'),
+											this.get('fieldType'));
 				this.get('controller').send('mapAttribute',
-									   		this.get('annotation'),
-									   		this.get('attributeName'),
-									   		this.get('fieldName'));
+											this.get('annotation'),
+											this.get('attributeName'),
+											this.get('fieldName'));
 			}
 		},
 
@@ -415,18 +416,19 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 	},
 
 	keyDown: function(e) {
-    	if (this.get('fieldName') && e.keyCode == 13) {
-    		this.triggerAction({ action: 'createField', target: this });
-    	}
-  	},
+		if (this.get('fieldName') && e.keyCode == 13) {
+			this.triggerAction({ action: 'createField', target: this });
+		}
+	},
 
 	initValues: function() {
+		var mapping;
 		if (!Em.isEmpty(this.get('annotation.mappedAttributes'))) {
-			var mapping = this.get('annotation.mappedAttributes.firstObject');
+			mapping = this.get('annotation.mappedAttributes.firstObject');
 			this.set('attributeName', mapping.get('name'));
-			this.set('fieldName', mapping.get('mappedField'));	
+			this.set('fieldName', mapping.get('mappedField'));
 		} else if (!Em.isEmpty(this.get('annotation.stickyAttributes'))) {
-			var mapping = this.get('annotation.stickyAttributes.firstObject');
+			mapping = this.get('annotation.stickyAttributes.firstObject');
 			this.set('attributeName', mapping.get('name'));
 			this.set('fieldName', 'sticky');
 		}
@@ -434,10 +436,10 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 
 	didInsertElement: function() {
 		if (this.get('inDoc')) {
- 			$(this.get('element')).css({ 'top': this.get('pos.y'),
- 								 		 'left': this.get('pos.x') - 100});
- 			this.get('controller.documentView').setInteractionsBlocked(true);
- 		}
+			$(this.get('element')).css({ 'top': this.get('pos.y'),
+										 'left': this.get('pos.x') - 100});
+			this.get('controller.documentView').setInteractionsBlocked(true);
+		}
 		this._super();
 		this.initValues();
 	},
@@ -462,7 +464,7 @@ ASTool.CSSPathWidget = ASTool.ButtonView.extend({
 
 ASTool.IgnoreWidget = Em.View.extend({
 	ignore: null,
-	
+
 	mouseEnter: function() {
 		this.set('ignore.highlighted', true);
 	},
@@ -501,16 +503,16 @@ ASTool.EditItemView = Ember.View.extend({
 ASTool.RenameTextField = ASTool.InlineTextField.extend({
 	oldValue: null,
 	attributeBindings: ['name'],
-  	name: 'rename',
-  	action: 'rename',
+	name: 'rename',
+	action: 'rename',
 
 	save: function() {
 		if (this.get('oldValue') != this.get('value')) {
 			this.get('controller').send(this.get('action'),
 				this.get('oldValue'),
-				this.get('value'));	
+				this.get('value'));
 		}
-		this.set('oldValue',  this.get('value'));
+		this.set('oldValue',this.get('value'));
 	},
 
 	focusIn: function() {
@@ -521,24 +523,24 @@ ASTool.RenameTextField = ASTool.InlineTextField.extend({
 
 ASTool.PatternTextField = ASTool.InlineTextField.extend({
 	attributeBindings: ['name'],
-  	name: 'pattern',
-  	pattern: null,
-  	newPattern: null,
+	name: 'pattern',
+	pattern: null,
+	newPattern: null,
 
-  	save: function() {
-  		if (!Em.isEmpty(this.get('newPattern')) && this.get('pattern') != this.get('newPattern')) {
-  			Ember.run.scheduleOnce('afterRender', this, function() {
+	save: function() {
+		if (!Em.isEmpty(this.get('newPattern')) && this.get('pattern') != this.get('newPattern')) {
+			Ember.run.scheduleOnce('afterRender', this, function() {
 				this.get('controller').send(this.get('action'),
 					this.get('pattern'),
 					this.get('newPattern'));
-  			});
+			});
 		}
-  	},
+	},
 
-  	value: function(key, val) {
+	value: function(key, val) {
 		if (arguments.length > 1) {
 			this.set('newPattern', val);
-		} 
+		}
 		return this.get('pattern');
 	}.property('pattern'),
 });
@@ -588,19 +590,19 @@ ASTool.ExtractorView = Em.View.extend(DragNDrop.Draggable, {
 	classNameBindings: ['extractorType'],
 
 	dragStart: function(event) {
-        this._super(event);
-        this.set('extractor.dragging', true);
-        var dataTransfer = event.originalEvent.dataTransfer;
-        dataTransfer.setDragImage(this.get('element'),
-        	$(this.get('element')).width() / 2 , $(this.get('element')).height());
-        dataTransfer.setData('Text', this.get('extractor.name'));
-    },
+		this._super(event);
+		this.set('extractor.dragging', true);
+		var dataTransfer = event.originalEvent.dataTransfer;
+		dataTransfer.setDragImage(this.get('element'),
+			$(this.get('element')).width() / 2 , $(this.get('element')).height());
+		dataTransfer.setData('Text', this.get('extractor.name'));
+	},
 
-    dragEnd: function(event) {
-        this.set('extractor.dragging', false);
-    },
+	dragEnd: function(event) {
+		this.set('extractor.dragging', false);
+	},
 
-    extractorType: function() {
+	extractorType: function() {
 		if (this.get('extractor.regular_expression')) {
 			return 'regular_expression';
 		} else {
@@ -623,25 +625,25 @@ ASTool.ExtractorView = Em.View.extend(DragNDrop.Draggable, {
 
 
 ASTool.ExtractorDropTarget = Ember.View.extend(DragNDrop.Droppable, {
-    tagName: 'span',
-    classNames: ['drop-target'],
-    classNameBindings: ['dragAction'],
-    instructions: null,
-    fieldName: null,
+	tagName: 'span',
+	classNames: ['drop-target'],
+	classNameBindings: ['dragAction'],
+	instructions: null,
+	fieldName: null,
 
-    dragAction: function() {
-        if(this.get('dragging')) {
-            return 'drop-target-dragging';
-        } else {
-        	return null;
-        }
-    }.property('dragging'),
+	dragAction: function() {
+		if(this.get('dragging')) {
+			return 'drop-target-dragging';
+		} else {
+			return null;
+		}
+	}.property('dragging'),
 
-    drop: function(event) {
-    	var extractorId = event.originalEvent.dataTransfer.getData('Text');
-		this.get('controller').send('applyExtractor', this.get('fieldName'), extractorId);	
-        return this._super(event);
-    }
+	drop: function(event) {
+		var extractorId = event.originalEvent.dataTransfer.getData('Text');
+		this.get('controller').send('applyExtractor', this.get('fieldName'), extractorId);
+		return this._super(event);
+	}
 });
 
 
@@ -657,7 +659,7 @@ ASTool.RequiredFieldCheckbox = ASTool.CheckBox.extend({
 
 ASTool.AnnotatedDocumentView = Ember.View.extend({
 	templateName: 'annotated-document-view',
-	
+
 	didInsertElement: function() {
 		this._super();
 		this.get('controller.documentView').initCanvas();
@@ -681,14 +683,14 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 
 	willInsertElement: function() {
 		if (this.get('controller.willEnter')) {
-			this.controller.willEnter();	
-		};
+			this.controller.willEnter();
+		}
 	},
 
 	willDestroyElement: function() {
 		if (this.get('controller.willLeave')) {
 			this.controller.willLeave();
-		};
+		}
 	},
 
 	showToolbox: function() {
@@ -697,8 +699,8 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 			this.set('timeoutHandle', null);
 		}
 		var timeoutHandle = setTimeout(function() {
-			$('#toolbox').animate({ 'margin-right': 0 }, 300);	
-			$('#scraped-doc').animate({ 'margin-right': 400 }, 300);		
+			$('#toolbox').animate({ 'margin-right': 0 }, 300);
+			$('#scraped-doc').animate({ 'margin-right': 400 }, 300);
 		}, 300);
 		this.set('timeoutHandle', timeoutHandle);
 	},
@@ -710,7 +712,7 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 		}
 		var timeoutHandle = setTimeout(function() {
 			if (!this.get('fixedToolbox')) {
-				$('#toolbox').animate({ 'margin-right': -365 }, 300);	
+				$('#toolbox').animate({ 'margin-right': -365 }, 300);
 				$('#scraped-doc').animate({ 'margin-right': 35 }, 300);
 			}
 		}.bind(this), 800);
@@ -725,7 +727,7 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 		if (!this.get('fixedToolbox') &&
 			!ASTool.ToolboxViewMixin.pinned) {
 			if (e.target.tagName.toLowerCase() != 'select') {
-				this.hideToolbox();	
+				this.hideToolbox();
 			}
 		}
 	},
@@ -815,9 +817,9 @@ ASTool.CopyClipboard = Em.View.extend({
 	tagName: 'embed',
 	text: '',
 	src: 'clippy.swf',
-	width:"14", 
+	width:"14",
 	height: "14",
-	scale: "noscale",	
+	scale: "noscale",
 	name: "clippy",
 	quality: "high",
 	allowScriptAccess: "always",
@@ -847,22 +849,22 @@ ASTool.ProjectListView = Em.View.extend({
 ASTool.ConflictResolverView = Em.View.extend({
 	templateName: 'conflict-resolver',
 	classNameBindings: ['bgColor'],
-  	
-  	bgColor: function() {
-  		var controller = this.get('controller');
-  		if (controller.get('currentFileName')) {
-  			if (controller.get('hasUnresolvedConflict')) {
-  				return 'conflict-resolver-red';
-  			} else {
-  				return 'conflict-resolver-green';
-  			}
-  		} else {
-  			return 'conflict-resolver-white';
-  		}
-  	}.property('controller.currentFileName', 'controller.hasUnresolvedConflict'),
+
+	bgColor: function() {
+		var controller = this.get('controller');
+		if (controller.get('currentFileName')) {
+			if (controller.get('hasUnresolvedConflict')) {
+				return 'conflict-resolver-red';
+			} else {
+				return 'conflict-resolver-green';
+			}
+		} else {
+			return 'conflict-resolver-white';
+		}
+	}.property('controller.currentFileName', 'controller.hasUnresolvedConflict'),
 
 	didInsertElement: function() {
-		$('.adjust-height').height(window.innerHeight - 30);	
+		$('.adjust-height').height(window.innerHeight - 30);
 	}
 });
 
@@ -893,7 +895,7 @@ ASTool.JSONView = Em.View.extend({
 			{ key: 'base_val', value: this.v(this.get('json.__CONFLICT.base_val')), label: 'Original' },
 			{ key: 'my_val', value: this.v(this.get('json.__CONFLICT.my_val')), label: 'Your change' },
 			{ key: 'other_val', value: this.v(this.get('json.__CONFLICT.other_val')), label: 'Other change' }
-		]
+		];
 	}.property('json'),
 
 	resolved: function() {
@@ -915,7 +917,7 @@ ASTool.JSONView = Em.View.extend({
 					path: this.get('path') ? this.get('path') + '.' + key : key,
 					key: key,
 					json: this.get('json')[key]
-				}
+				};
 			}.bind(this));
 		} else {
 			return null;
@@ -971,22 +973,22 @@ Ember.Handlebars.registerHelper('message', function(messageName) {
 
 Ember.Handlebars.registerHelper('ifHasCapability', function(capabilityName, options) {
 	if (ASTool.get('serverCapabilities.' + capabilityName)) {
-    	return options.fn(this);
-  	} else {
-  		return options.inverse(this);
-  	}
+		return options.fn(this);
+	} else {
+		return options.inverse(this);
+	}
 });
 
 
 /**************************** JQueri UI initialization *************/
 $(function() {
-    $( document ).tooltip({ track: true });
+	$( document ).tooltip({ track: true });
  });
 
 $(function () {
 	$(document).tooltip({
-    	content: function () {
-        	return $(this).prop('title');
-      	}
-  	});
+		content: function () {
+			return $(this).prop('title');
+		}
+	});
 });
