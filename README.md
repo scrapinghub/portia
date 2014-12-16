@@ -233,3 +233,6 @@ Portia projects can be deployed using [Scrapyd](http://scrapyd.readthedocs.org/e
 and then schedule your spider with:
 
     curl http://your_scrapyd_host:6800/schedule.json -d project=your_project_name -d spider=your_spider_name
+
+:warning: `Running scrapyd from your project directory will cause deployment to fail`
+
