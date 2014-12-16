@@ -257,7 +257,7 @@ ASTool.DocumentView = Em.Object.extend({
 					attr = elem.attributes[idx];
 					if (attr.name.indexOf('data-scrapy-') === 0) {
 						a = {};
-						if (attr.name === 'data-scrapy-ignore')
+						if (attr.indexOf('data-scrapy-ignore') === 0)
 							a[attr.name] = "true";
 						else
 							a[attr.name] = attr.value;
