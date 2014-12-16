@@ -21,7 +21,7 @@ jQuery.fn.getUniquePath = function () {
 };
 
 jQuery.fn.getPath = function() {
-	var path = [this.prop('tagName')];
+	var path = [this.prop('tagName').toLowerCase()];
 	this.parents().not('html').each(function() {
 		var entry = this.tagName.toLowerCase();
 		path.push(entry);
