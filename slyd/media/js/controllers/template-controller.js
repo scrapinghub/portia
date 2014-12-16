@@ -204,6 +204,16 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		var extractor = ASTool.Extractor.create({
 			name: ASTool.shortGuid(),
 		});
+		if (extractorType === 'regular_expression') {
+			try {
+				new RegExp(extractorDefinition);
+			} catch (e) {
+				if (e instanceof SyntaxError) {
+					alert('The text, "' + extractorDefinition + '", you provided is not a valid regex.');
+				}
+				return;
+			}
+		}
 		extractor.set(extractorType, extractorDefinition);
 		this.get('extractors').pushObject(extractor);
 	},
