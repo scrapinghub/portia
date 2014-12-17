@@ -7,7 +7,7 @@ ASTool.MappedFieldData = Em.Object.extend({
 
 ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
-	
+
 	needs: ['application', 'items', 'spider_index'],
 
 	navigationLabelBinding: 'content.name',
@@ -28,12 +28,12 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	scrapedItem: function() {
 		if (!Em.isEmpty(this.get('items'))) {
-			return this.get('items').findBy('name', this.get('content.scrapes'));	
+			return this.get('items').findBy('name', this.get('content.scrapes'));
 		} else {
 			return null;
 		}
 	}.property('content.scrapes', 'items.@each'),
-	
+
 	documentView: null,
 
 	currentlySelectedElement: null,
@@ -65,7 +65,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			}
 		}).filter(function(sprite) { return !!sprite; });
 	}.property('annotations.@each.element', 'annotations.@each.highlighted'),
-		
+
 	addAnnotation: function(element, generated) {
 		var annotation = ASTool.Annotation.create({
 			id: ASTool.shortGuid(),
@@ -87,7 +87,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		annotation.addMapping(attributeName, stickyName);
 		annotation.addRequired(stickyName);
 	},
-	
+
 	editAnnotation: function(annotation) {
 		annotation.set('highlighted', false);
 		this.saveAnnotations();
@@ -151,7 +151,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 					extractor['fieldName'] = fieldName;
 					return extractor;
 				} else {
-					return null;	
+					return null;
 				}
 			}.bind(this)
 		).filter(function(extractor){ return !!extractor });
@@ -231,7 +231,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 	}.observes('annotations.@each.mappedAttributes'),
 
 	actions: {
-		
+
 		editAnnotation: function(annotation) {
 			this.editAnnotation(annotation);
 		},
@@ -243,7 +243,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		makeSticky: function(annotation, attribute) {
 			this.makeSticky(annotation, attribute);
 		},
-		
+
 		deleteAnnotation: function(annotation) {
 			this.deleteAnnotation(annotation);
 		},
@@ -255,7 +255,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		annotationHighlighted: function(annotation) {
 			if (annotation.get('element')) {
-				this.get('documentView').scrollToElement(annotation.get('element'));	
+				this.get('documentView').scrollToElement(annotation.get('element'));
 			}
 		},
 
@@ -268,7 +268,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 				this.createExtractor('regular_expression', this.get('newReExtractor'));
 				this.set('newReExtractor', null);
 			} else if (this.get('newTypeExtractor')) {
-				this.createExtractor('type_extractor', this.get('newTypeExtractor'));	
+				this.createExtractor('type_extractor', this.get('newTypeExtractor'));
 			}
 			this.saveExtractors();
 		},
@@ -330,21 +330,21 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		hideFloatingAnnotationWidget: function() {
 			this.hideFloatingAnnotationWidget();
-		}
+		},
 	},
 
 	documentActions: {
-		
+
 		elementSelected: function(element, mouseX, mouseY) {
 			if (element) {
 				var annotation = this.get('annotations').findBy('element', element);
 				if (!annotation) {
-					var annotation = this.addAnnotation(element);	
+					var annotation = this.addAnnotation(element);
 				}
 				this.showFloatingAnnotationWidget(annotation, mouseX, mouseY);
 			}
 		},
-		
+
 		partialSelection: function(selection, mouseX, mouseY) {
 			var element = $('<ins/>').get(0);
 			selection.getRangeAt(0).surroundContents(element);
@@ -379,17 +379,27 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 							  listener: this,
 							  dataSource: this,
 							  partialSelects: true });
-				}, 100);	
-			}, 500);	
+				}, 100);
+			}, 500);
 		} else {
 			this.get('documentView').config({ mode: 'select',
 							  listener: this,
 							  dataSource: this,
-							  partialSelects: true });	
+							  partialSelects: true });
 		}
 	},
 
 	willLeave: function() {
 		this.hideFloatingAnnotationWidget();
+	},
+
+	listingData: function(key, set) {
+		if (arguments.length > 1) {
+	        if (set) {
+	        	this.floatingAnnotation.listingData = true;
+	        } else {
+	        	this.floatingAnnotation.listingData = false;
+	        }
 	}
-}); 
+	}.property('_listingData'),
+});
