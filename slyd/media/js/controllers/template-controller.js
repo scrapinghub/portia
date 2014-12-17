@@ -101,6 +101,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		this.set('floatingAnnotation', null);
 		this.set('showFloatingAnnotationWidgetAt', null);
 		this.get('annotations').removeObject(annotation);
+		this.set('content.extractors', this.validateExtractors());
 	},
 
 	saveAnnotations: function() {
@@ -108,6 +109,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		if (this.get('content')) {
 			this.set('content.annotated_body', this.get('documentView').getAnnotatedDocument());
 			this.set('content.annotations', this.get('documentView').getAnnotations());
+			this.set('content.extractors', this.validateExtractors())
 		}
 	},
 
@@ -123,6 +125,33 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			delete extractor['dragging'];
 		});
 		this.get('slyd').saveExtractors(this.get('extractors'));
+	},
+
+	validateExtractors: function() {
+		var annotations = this.get('annotations'),
+			extractors = this.get('extractors'),
+			template_ext = this.get('content.extractors'),
+			new_extractors = {};
+		extractor_ids = {};
+		for (var i=0; i < extractors.length; i++)
+			extractor_ids[extractors[i].id] = true;
+		for (i=0; i < annotations.length; i++) {
+			fields = annotations[i].annotations;
+			for (var key in fields) {
+				field = fields[key];
+				item_extractors = template_ext[field];
+				if (item_extractors instanceof Array) {
+					for (var j=0; j < item_extractors.length; j++) {
+						extractor_id = item_extractors[j];
+						if (extractor_ids[extractor_id]) {
+							new_extractors[field] = new_extractors[field] || [];
+							new_extractors[field].push(extractor_id);
+						}
+					}
+				}
+			}
+		}
+		return new_extractors;
 	},
 
 	maxVariant: function() {
