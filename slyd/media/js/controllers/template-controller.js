@@ -131,26 +131,25 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		var annotations = this.get('annotations'),
 			extractors = this.get('extractors'),
 			template_ext = this.get('content.extractors'),
-			new_extractors = {};
-		extractor_ids = {};
-		for (var i=0; i < extractors.length; i++)
-			extractor_ids[extractors[i].id] = true;
-		for (i=0; i < annotations.length; i++) {
-			fields = annotations[i].annotations;
-			for (var key in fields) {
-				field = fields[key];
-				item_extractors = template_ext[field];
+			new_extractors = {},
+			extractor_ids = {};
+		extractors.forEach(function(extractor) {
+			extractor_ids[extractor.id] = true;
+		});
+		annotations.forEach(function(annotation) {
+			annotation.get('mappedAttributes').forEach(function(mapping) {
+				var field = mapping.mappedField,
+					item_extractors = template_ext[field];
 				if (item_extractors instanceof Array) {
-					for (var j=0; j < item_extractors.length; j++) {
-						extractor_id = item_extractors[j];
+					item_extractors.forEach(function(extractor_id) {
 						if (extractor_ids[extractor_id]) {
 							new_extractors[field] = new_extractors[field] || [];
 							new_extractors[field].push(extractor_id);
 						}
-					}
+					});
 				}
-			}
-		}
+			});
+		});
 		return new_extractors;
 	},
 
