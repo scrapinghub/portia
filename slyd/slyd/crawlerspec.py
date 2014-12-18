@@ -60,7 +60,7 @@ class ProjectSpec(object):
     def __init__(self, projectdir):
         self.projectdir = projectdir
 
-    def load_slybot_spec(self, project):
+    def load_slybot_spec(self):
         """load the spec for a given project"""
         return open_project_from_dir(self.projectdir)
 

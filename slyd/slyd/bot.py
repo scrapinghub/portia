@@ -21,7 +21,7 @@ from scrapy.http import Request
 from scrapy.item import DictItem
 from scrapy import signals, log
 from scrapy.crawler import Crawler
-from scrapy.http import HtmlResponse
+from scrapy.http import HtmlResponse, FormRequest
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
 try:
@@ -30,6 +30,9 @@ except ImportError:
     # BaseSpider class was deprecated in Scrapy 0.21
     from scrapy.spider import BaseSpider as Spider
 from slybot.spider import IblSpider
+
+from loginform import fill_login_form
+
 from .html import html4annotation, extract_html
 from .resource import SlydJsonResource
 
@@ -78,6 +81,19 @@ class Fetch(BotResource):
     def render_POST(self, request):
         #TODO: validate input data, handle errors, etc.
         params = self.read_json(request)
+        spider = params.get('spider')
+        pspec = self.bot.spec_manager.project_spec(request.project)
+        login_request = None
+        if spider and pspec:
+            try:
+                spec = pspec.load_slybot_spec()
+                for rdata in spec.get('spiders', {}).get(spider, {}).get("init_requests", []):
+                    if rdata["type"] == "login":
+                        meta = dict(rdata, spider=spider)
+                        login_request = Request(url=rdata.pop("loginurl"), meta=meta,
+                                          callback=self.parse_login_page, dont_filter=True)
+            except IOError:
+                pass
         scrapy_request_kwargs = params['request']
         scrapy_request_kwargs.update(
             callback=self.fetch_callback,
@@ -90,8 +106,24 @@ class Fetch(BotResource):
             )
         )
         request = Request(**scrapy_request_kwargs)
-        self.bot.crawler.engine.schedule(request, self.bot.spider)
+        if login_request:
+            login_request.meta['fetch_request'] = request
+            self.bot.crawler.engine.schedule(login_request, self.bot.spider)
+        else:
+            self.bot.crawler.engine.schedule(request, self.bot.spider)
         return NOT_DONE_YET
+
+    def parse_login_page(self, response):
+        username = response.meta["username"]
+        password = response.meta["password"]
+        args, url, method = fill_login_form(response.url, response.body, username, password)
+        request = FormRequest(url, method=method, formdata=args, callback=self.after_login,
+            dont_filter=True,
+            meta={'fetch_request': response.meta['fetch_request'], 'spider': response.meta['spider']})
+        self.bot.crawler.engine.schedule(request, self.bot.spider)
+
+    def after_login(self, response):
+        self.bot.crawler.engine.schedule(response.meta['fetch_request'], self.bot.spider)
 
     def fetch_callback(self, response):
         request = response.meta['twisted_request']
@@ -155,7 +187,6 @@ class Fetch(BotResource):
         msg = "unexpected error response: %s" % failure
         log.msg(msg, level=log.ERROR)
         finish_request(twisted_request, error=msg)
-
 
 def finish_request(trequest, **resp_obj):
     jdata = json.dumps(resp_obj)
