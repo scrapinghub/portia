@@ -2,6 +2,8 @@ ASTool.MappedFieldData = Em.Object.extend({
 	fieldName: null,
 	extractors: [],
 	required: false,
+	extracted: false,
+	disabled: true,
 }),
 
 
@@ -109,12 +111,18 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 		if (this.get('content')) {
 			this.set('content.annotated_body', this.get('documentView').getAnnotatedDocument());
 			this.set('content.annotations', this.get('documentView').getAnnotations());
-			this.set('content.extractors', this.validateExtractors())
+			this.set('content.extractors', this.validateExtractors());
 		}
 	},
 
 	saveTemplate: function() {
 		this.saveAnnotations();
+		missing_fields = this.missingRequiredAnnotations();
+		console.log(missing_fields);
+		if (missing_fields.length > 0) {
+			alert('Can\'t save template as the following required fields are missing: "' + missing_fields.join('", "') + '".');
+			return;
+		}
 		return this.get('slyd').saveTemplate(
 			this.get('controllers.spider.name'), this.get('content'));
 	},
@@ -195,6 +203,10 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 	mappedFieldsData: function() {
 		var mappedFieldsData = [];
 		var seenFields = new Em.Set();
+		var item_required_fields = new Em.Set();
+		this.get('scrapedItem').fields.forEach(function(field) {
+			if (field.required) item_required_fields.add(field.name);
+		});
 		this.get('annotations').forEach(function(annotation) {
 			var mappedAttributes = annotation.get('mappedAttributes');
 			mappedAttributes.forEach(function(attribute) {
@@ -206,14 +218,34 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 					mappedFieldData.set('fieldName', fieldName);
 					mappedFieldData.set('required', annotation.get('required').indexOf(fieldName) > -1);
 					mappedFieldData.set('extractors', this.getAppliedExtractors(fieldName));
+					mappedFieldData.set('extracted', true);
+					mappedFieldData.set('disabled', item_required_fields.contains(fieldName));
 					mappedFieldsData.pushObject(mappedFieldData);
 				}
 			}.bind(this));
 		}.bind(this));
+		this.get('scrapedItem').fields.forEach(function(field) {
+			fieldName = field.name;
+			if (!seenFields.contains(fieldName)) {
+				var mappedFieldData = ASTool.MappedFieldData.create();
+				mappedFieldData.set('fieldName', fieldName);
+				mappedFieldData.set('required', field.required);
+				mappedFieldsData.pushObject(mappedFieldData);
+			}
+		});
 		return mappedFieldsData;
 	}.property('annotations.@each.mappedAttributes',
 			   'content.extractors',
 			   'extractors.@each'),
+
+	missingRequiredAnnotations: function() {
+		var required = [];
+		this.get('mappedFieldsData').forEach(function(field) {
+			if (field.required && !field.extracted)
+				required.push(field.fieldName);
+		});
+		return required;
+	},
 
 	annotationsMappingField: function(fieldName) {
 		var annotations = new Em.Set();
