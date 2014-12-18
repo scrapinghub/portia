@@ -22,7 +22,7 @@
 				<h5>No annotations have been created yet.</h5>
 		{{/if}}
 	</div>
-	
+
 	<h3>Extracted item</h3>
 	<div class="section" style="text-align:center;">
 		<label class="small-label">Extracted item type:</label> {{view ASTool.ItemSelect value=scrapes}}
@@ -84,21 +84,25 @@
 				{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled class="blue-button"}}
 			</div>
 		</div>
-		
+
 	</div>
-	<h3>Required fields</h3>
+	<h3>Extracted fields</h3>
 	<div class="section">
 		<span style="float:right">{{view ASTool.InlineHelp message="template_required"}}</span>
 		<h4 style="width:92%">Check the fields you want to make required for this template:</h4>
 		<div class="scrolling-container">
-			{{#each mappedFieldsData}}
-				<div style="margin:4px 0px 4px 10px;">
-					{{view ASTool.RequiredFieldCheckbox checked=this.required fieldName=this.fieldName}}
-					<span class="important-label">{{this.fieldName}}</span>
-				</div>
-			{{else}}
-				<h5 style="text-align:center">No field mappings have been defined yet.</h5>
-			{{/each}}
+			<table style="margin:15px auto;width: 100%;">
+				<tr class="small-label">
+					<td>Name</td><td>Required</td><td>Extracted</td>
+				</tr>
+				{{#each mappedFieldsData}}
+					<tr>
+						<td><span class="important-label">{{this.fieldName}}</span></td>
+						<td>{{view ASTool.RequiredFieldCheckbox checked=this.required fieldName=this.fieldName disabled=this.disabled}}</td>
+						<td>{{view ASTool.RequiredFieldCheckbox checked=this.extracted fieldName="extracted" disabled=true}}</td>
+					</tr>
+				{{/each}}
+			</table>
 		</div>
 	</div>
 </div>
