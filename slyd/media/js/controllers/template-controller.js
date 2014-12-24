@@ -27,15 +27,15 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 	showToggleCSS: true,
 	toggleCSS: function() {
 		//FIXME: Set state correctly
-		button = $('.togglecss')
+		button = $('.togglecss');
 		if (button.hasClass('btn-default')) {
-			button.addClass('btn-danger')
-			button.removeClass('btn-default')
+			button.addClass('btn-danger');
+			button.removeClass('btn-default');
 		} else {
-			button.removeClass('btn-danger')
-			button.addClass('btn-default')
+			button.removeClass('btn-danger');
+			button.addClass('btn-default');
 		}
-		this.documentView.toggleCSS()
+		this.documentView.toggleCSS();
 	},
 
 	showFloatingAnnotationWidgetAt: null,

@@ -583,10 +583,10 @@ ASTool.SlydApi = Em.Object.extend({
 			}
 			msg = '\n The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')' +
 				 '\n' + reason['jqXHR'].responseText;
-			err = new Error(msg)
-			err.title = title
-			err.name = 'HTTPError'
-			err.reason = reason
+			err = new Error(msg);
+			err.title = title;
+			err.name = 'HTTPError';
+			err.reason = reason;
 			throw err;
 		});
 	},
