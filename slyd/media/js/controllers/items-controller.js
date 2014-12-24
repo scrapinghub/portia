@@ -33,7 +33,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 				this.transitionToRoute('template');
 			}.bind(this), function(err) {
 				this.showHTTPAlert('Save Error', err);
-			});
+			}.bind(this));
 		}
 	},
 
@@ -65,7 +65,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 				this.transitionToRoute('template');
 			}.bind(this), function(err) {
 				this.showHTTPAlert('Discard Error', err);
-			});
+			}.bind(this));
 		},
 	},
 

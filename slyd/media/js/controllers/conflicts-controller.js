@@ -101,17 +101,17 @@ ASTool.ConflictsController = Em.ObjectController.extend(ASTool.BaseControllerMix
 					}.bind(this),
 					function(err) {
 						this.showHTTPAlert('Conflict Resolution Error', err);
-					}
+					}.bind(this)
 				).then(function() { }, function(err) {
 					this.showHTTPAlert('Save Error', err);
-				});
+				}.bind(this));
 		},
 
 		publish: function() {
 			this.get('slyd').publishProject(this.get('slyd.project'), true).then(
 				function() { }, function(err) {
 					this.showHTTPAlert('Publish Error', err);
-				}
+				}.bind(this)
 			);
 		},
 	},
