@@ -16,7 +16,14 @@ module.exports = function(grunt) {
                     'media/js/vendor/loading.js',
                     'media/js/vendor/ic-ajax.js',
                     'media/js/vendor/uri.js',
-                    'media/js/vendor/jBreadCrumb.1.1.js',
+
+                    // Bootstrap integration
+                    'media/js/vendor/bs-for-ember/bs-core.max.js',
+                    'media/js/vendor/bs-for-ember/bs-badge.max.js',
+                    'media/js/vendor/bs-for-ember/bs-breadcrumbs.max.js',
+                    'media/js/vendor/bs-for-ember/bs-button.max.js',
+                    'media/js/vendor/bs-for-ember/bs-label.max.js',
+                    'media/js/vendor/bs-for-ember/bs-modal.max.js',
 
                     // Portia specific.
                     'media/js/jqplugins.js',
@@ -57,10 +64,10 @@ module.exports = function(grunt) {
                     templateBasePath: 'media/js/templates'
                 },
                 files: {
-                    "media/js/templates.js": "media/js/templates/*.handlebars",
+                    'media/js/templates.js": "media/js/templates/*.handlebars'
                 }
             }
-        }              
+        }
     });
 
     grunt.loadNpmTasks('grunt-contrib-uglify');

@@ -28,7 +28,13 @@ ASTool.IndexRoute = Ember.Route.extend({
 }),
 
 
+ASTool.ProjectsRoute = Ember.Route.extend({
+	breadcrumbs: {name: ' '},
+}),
+
+
 ASTool.ProjectsIndexRoute = Ember.Route.extend({
+
 	model: function() {
 		return this.get('slyd').getProjectNames();
 	},
@@ -49,8 +55,11 @@ ASTool.ProjectsIndexRoute = Ember.Route.extend({
 
 
 ASTool.ProjectRoute = Ember.Route.extend({
+	breadcrumbs: {name: 'Project'},
+
 	model: function(params) {
 		this.set('slyd.project', params.project_id);
+		this.set('breadcrumbs.name', params.project_id);
 		return this.get('slyd').editProject(params.project_id, 'master').then(function() {
 			return { id: params.project_id };
 		});
@@ -103,7 +112,10 @@ ASTool.ProjectIndexRoute = Ember.Route.extend({
 
 
 ASTool.SpiderRoute = Ember.Route.extend({
+	breadcrumbs: {name: 'Spider'},
+
 	model: function(params) {
+		this.set('breadcrumbs.name', params.spider_id);
 		return this.get('slyd').loadSpider(params.spider_id);
 	},
 }),
@@ -138,8 +150,11 @@ ASTool.SpiderIndexRoute = Ember.Route.extend({
 
 
 ASTool.TemplateRoute = Ember.Route.extend({
+	breadcrumbs: {name: 'Template'},
+
 	model: function(params) {
 		var spider = this.modelFor('spider');
+		this.set('breadcrumbs.name', params.template_id);
 		return this.get('slyd').loadTemplate(spider.get('name'), params.template_id);
 	},
 });

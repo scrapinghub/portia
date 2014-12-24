@@ -93,17 +93,26 @@ ASTool.ConflictsController = Em.ObjectController.extend(ASTool.BaseControllerMix
 						this.set('currentFileName', null);
 						if (Em.isEmpty(this.get('conflictedFileNames'))) {
 							this.get('slyd').publishProject(this.get('slyd.project'), true);
-							alert(ASTool.Messages.get('conflicts_solved'));
+							this.showAlert('Save Error', ASTool.Messages.get('conflicts_solved'));
 							this.transitionToRoute('projects');
 						} else {
 							this.displayConflictedFile(this.get('conflictedFileNames')[0]);
 						}
-					}.bind(this)
-				);
+					}.bind(this),
+					function(err) {
+						this.showHTTPAlert('Conflict Resolution Error', err)
+					}
+				).then(function() { }, function(err) {
+					this.showHTTPAlert('Save Error', err)
+				});
 		},
 
 		publish: function() {
-			this.get('slyd').publishProject(this.get('slyd.project'), true);
+			this.get('slyd').publishProject(this.get('slyd.project'), true).then(
+				function() { }, function(err) {
+					this.showHTTPAlert('Publish Error', err)
+				}
+			);
 		},
 	},
 

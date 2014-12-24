@@ -23,7 +23,7 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 		valid = true;
 		this.get('content').forEach(function(item) {
 			if (!item.isValid()) {
-				alert('The item ' + item.get('name') +
+				this.showAlert('Save Error','The item ' + item.get('name') +
 					' or one of its fields has an invalid name. Only A-Z, a-z, 0-9, - and _ are allowed characters.');
 				valid = false;
 			}
@@ -31,7 +31,9 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 		if (valid) {
 			this.get('slyd').saveItems(this.toArray()).then(function() {
 				this.transitionToRoute('template');
-			}.bind(this));
+			}.bind(this), function(err) {
+				this.showHTTPAlert('Save Error', err);
+			});
 		}
 	},
 
@@ -61,7 +63,9 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 			this.get('slyd').loadItems().then(function(items) {
 				this.set('content', items);
 				this.transitionToRoute('template');
-			}.bind(this));
+			}.bind(this), function(err) {
+				this.showHTTPAlert('Discard Error', err);
+			});
 		},
 	},
 

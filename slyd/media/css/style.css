@@ -8,7 +8,7 @@ body{
 }
 
 #scraped-doc {
-	top: 30px;
+	top: 38px;
 	position:relative;
 	margin-right: 30px;
 }
@@ -33,7 +33,7 @@ body{
 }
 
 #toolbox .bar {
-	margin:-10px 0px 0px 2px;
+	margin:-38px 0px 0px 2px;
 	width:36px;
 	height:100%;
 	float:left;
@@ -43,13 +43,15 @@ body{
 
 #topbar {
 	width: 100%;
-	height: 30px;
+	min-height: 32px;
+	max-height: 38px;
 	z-index: 200;
 	position: fixed;
 	top: 0px;
 	left: 0px;
+	background-color: #F5F5F5;
+	background-image: linear-gradient(to bottom, #F5F5F5 0px, #F8F8F8 100%);
 	box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);
-	background-color: white;
 }
 
 #topbar .url {
@@ -144,6 +146,7 @@ body{
 
 .scrolling-container {
 	overflow: auto;
+	overflow-x: hidden;
 	max-height: 300px;
 	margin-top: 10px;
 }
@@ -281,7 +284,7 @@ body{
 .annotation-widget .attribute {
 	width: 115px;
 	margin: 2px 5px 0px 5px;
-	
+
 }
 
 .annotation-widget .field {
@@ -427,13 +430,47 @@ body{
 	background:#AEA;
 }
 
+.white-text {
+	color: #fff;
+}
+
+.clickable-url > button {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	width: 110%;
+}
+
+.pattern {
+	width: 90%;
+}
+
+.btn.btn-light {
+	background: rgba(0,0,0,0);
+	border-color: rgba(0,0,0,0.2);
+	border-style: solid;
+	color: #6F92BF;
+}
+
+.btn-black {
+	color: #fff;
+	background-color: #222;
+	border-color: #9A9A9A;
+}
+
+.btn-black:hover{
+	color: #fff;
+	background-color: #444;
+	border-color: #9A9A9A;
+}
+
 hr {
 	background-color: #BBB;
 	height: 1px;
 	margin: 10px 0px 30px 0px;
-	
+
 	border-style: none;
-	
+
 	width:100%;
 }
 
@@ -478,7 +515,6 @@ a:hover {
 }
 
 select {
-	color: #333;
 	height: 24px;
 }
 

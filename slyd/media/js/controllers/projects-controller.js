@@ -1,6 +1,6 @@
 ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	needs: ['application'],
-
+	documentView: null,
 	projectSite: null,
 
 	createProjectDisabled: function() {
@@ -19,8 +19,11 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 
 	openProject: function(projectName, revision) {
 		this.get('slyd').editProject(projectName, revision).then(function() {
-			this.set('slyd.project', projectName);
-			this.transitionToRoute('project', { id: projectName });
+			this.set('slyd.project', projectName).then(function(){
+				this.transitionToRoute('project', { id: projectName });
+			},function(err) {
+				this.showHTTPAlert('Error Opening project "' + projectName + '"', err)
+			});
 		}.bind(this));
 	},
 
@@ -35,10 +38,19 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 		},
 
 		deleteProject: function(projectName) {
-			if (confirm('Are you sure you want to delete this project? This operation cannot be undone.')) {
-				this.get('slyd').deleteProject(projectName);
-				this.removeObject(projectName);
-			}
+			this.showConfirm('Delete ' + projectName,
+				'Are you sure you want to delete this project? This operation cannot be undone.',
+				function() {
+					this.get('slyd').deleteProject(projectName).then(
+						function() {
+							this.removeObject(projectName);
+						}.bind(this),
+						function(err) {
+							this.showHTTPAlert('Delete Error', err)
+						}.bind(this)
+					);
+				}.bind(this)
+			);
 		},
 
 		createProject: function() {
@@ -58,16 +70,18 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 					this.set('projectSite', null);
 					Em.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
 						this.transitionToRoute('project', { id: newProjectName });
-					}.bind(this));
-				}.bind(this));
-			}.bind(this));
+					}.bind(this), function(err) {this.showHTTPAlert('Save Error', err)});
+				}.bind(this), function(err) {this.showHTTPAlert('Save Error', err)});
+			}.bind(this), function(err) {this.showHTTPAlert('Save Error', err)});
 		},
 
 		showProjectRevisions: function(projectName) {
 			this.get('slyd').projectRevisions(projectName).then(function(revisions) {
 				this.get('projectRevisions')[projectName] = revisions['revisions'];
 				this.notifyPropertyChange('projectRevisions');
-			}.bind(this));
+			}.bind(this), function(err) {
+				this.showHTTPAlert('Error Getting Projects', err);
+			});
 		},
 
 		hideProjectRevisions: function(projectName) {
@@ -95,8 +109,17 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 
 	willEnter: function() {
 		this.get('documentView').showSpider();
+		if (this.get('documentView.canvas')) {
+			this.set('documentView.canvas.interactionsBlocked', true);
+		}
 		if (Em.isEmpty(this.get('content'))) {
 			this.animateProjectSiteInput();
+		}
+	},
+
+	willLeave: function() {
+		if (this.get('documentView.canvas')) {
+			this.set('documentView.canvas.interactionsBlocked', false);
 		}
 	}
 });

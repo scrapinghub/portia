@@ -31,9 +31,9 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	startUrlCount: function() {
 		if (!Em.isEmpty(this.get('start_urls'))) {
-			return '[' + this.get('start_urls').length + ']';
+			return this.get('start_urls').length;
 		} else {
-			return '';
+			return 0;
 		}
 	}.property('start_urls.[]'),
 
@@ -181,7 +181,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				'resizable=yes, scrollbars=yes');
 			newWindow.document.write(template.get('annotated_body'));
 			newWindow.document.title = ('Template ' + template.get('name'));
-		});
+		}, function(err) {this.showHTTPAlert('Error Getting Template', err);});
 	},
 
 	wrapItem: function(item) {
@@ -231,7 +231,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 					this.get('pendingFetches').removeObject(fetchId);
 					documentView.showError(data.error || data.response.status);
 				}
-			}.bind(this)
+			}.bind(this), function(err) {this.showHTTPAlert('Fetch Error', err);}
 		);
 	},
 
@@ -270,8 +270,12 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.saveSpider().then(
 				function() {
 					this.editTemplate(template_name);
-				}.bind(this));
-			}.bind(this)
+				}.bind(this), function(err)
+					this.showHTTPAlert('Save Error', err);
+				});
+			}.bind(this), function(err) {
+				this.showHTTPAlert('Save Error', err);
+			}
 		);
 	},
 
@@ -322,7 +326,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		this.set('saving', true);
 		return this.get('slyd').saveSpider(this.get('content')).then(function() {
 			this.set('saving', false);
-		}.bind(this));
+		}.bind(this),
+			function(err) {
+				this.showHTTPAlert('Save Error', err);
+			});
 	},
 
 	reset: function() {
@@ -347,12 +354,15 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 					} else {
 						this.set('testing', false);
 					}
-				}.bind(this)
+				}.bind(this),
+				function(err) {
+					this.showHTTPAlert('Fetch Error', err);
+				}
 			);
 		} else {
 			this.get('documentView').hideLoading();
 			if (Em.isEmpty(this.get('extractedItems'))) {
-				alert(ASTool.Messages.get('no_items_extracted'));
+				this.showAlert('Save Error',ASTool.Messages.get('no_items_extracted'));
 			}
 			this.set('testing', false);
 		}
@@ -370,7 +380,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 		deleteTemplate: function(templateName) {
 			this.get('content.template_names').removeObject(templateName);
-			this.get('slyd').deleteTemplate(this.get('name'), templateName);
+			this.get('slyd').deleteTemplate(this.get('name'), templateName).then(
+				function() { }, function(err) {
+					this.showHTTPAlert('Delete Error', err)
+				});
 		},
 
 		viewTemplate: function(templateName) {
@@ -445,7 +458,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				}.bind(this),
 				function(reason) {
 					this.set('name', oldName);
-					alert('The name ' + newName + ' is not a valid spider name.');
+					this.showAlert('Save Error','The name ' + newName + ' is not a valid spider name.');
 				}.bind(this)
 			);
 		},

@@ -41,8 +41,8 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		this.set('spiderPage', null);
 		return this.get('slyd').saveSpider(spider).then(function() {
 				this.editSpider(newSpiderName);
-			}.bind(this), function(error) {
-				console.log(error);
+			}.bind(this), function(err) {
+				this.showHTTPAlert('Error Adding Spider', err)
 			}
 		);
 	},
@@ -68,7 +68,10 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 	actions: {
 
 		editSpider: function(spiderName) {
-			this.editSpider(spiderName);
+			this.editSpider(spiderName).then(function() { },
+				function() {
+					this.showHTTPAlert('Error Editing Spider', err)
+				});
 		},
 
 		addSpider: function() {
@@ -76,11 +79,20 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		},
 
 		deleteSpider: function(spiderName) {
-			if (confirm('Are you sure you want to delete spider ' + spiderName + '?')) {
-				this.get('slyd').deleteSpider(spiderName);
-				this.removeObject(spiderName);
-				this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
-			}
+			this.showConfirm('Delete ' + spiderName,
+				'Are you sure you want to delete spider ' + spiderName + '?',
+				function() {
+					this.get('slyd').deleteSpider(spiderName).then(
+						function() {
+							this.removeObject(spiderName);
+							this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
+						}.bind(this),
+						function(err) {
+							this.showHTTPAlert('Delete Error', err);
+						}.bind(this)
+					)
+				}.bind(this)
+			).bind(this);
 		},
 
 		rename: function(oldName, newName) {
@@ -90,7 +102,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 				}.bind(this),
 				function(reason) {
 					this.set('name', oldName);
-					alert('The name ' + newName + ' is not a valid project name.');
+					this.showAlert('Save Error','The name ' + newName + ' is not a valid project name.');
 				}.bind(this)
 			);
 		},
@@ -98,10 +110,10 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		publishProject: function() {
 			this.publishProject().then(function(result){
 				if (result == 'OK') {
-					alert(ASTool.Messages.get('publish_ok'));
+					this.showAlert('Save Successful', ASTool.Messages.get('publish_ok'));
 					this.set('changedFiles', []);
 				} else if (result == 'CONFLICT') {
-					alert(ASTool.Messages.get('publish_conflict'));
+					this.showAlert('Save Error', ASTool.Messages.get('publish_conflict'));
 					this.transitionToRoute('conflicts');
 				}
 			}.bind(this));
@@ -113,22 +125,27 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 				this.set('isDeploying', false);
 				if (result['status'] == 'ok') {
 					if (!Em.isEmpty(result['schedule_url'])) {
-						if (confirm(ASTool.Messages.get('deploy_ok_schedule'))) {
-							window.location = result['schedule_url'];
-						}
+						this.showConfirm('Schedule Project',
+							ASTool.Messages.get('deploy_ok_schedule'),
+							function() {
+								window.location = result['schedule_url'];
+							});
 					} else {
-						alert(ASTool.Messages.get('deploy_ok'));
+						this.showAlert('Save Successful', ASTool.Messages.get('deploy_ok'));
 					}
 				}
-			}.bind(this), function() {
+			}.bind(this), function(err) {
 				this.set('isDeploying', false);
+				this.showHTTPAlert('Deploy Error', err);
 			}.bind(this));
 		},
 
 		discardChanges: function() {
 			this.discardChanges().then(function(success){
 				this.transitionToRoute('projects');
-			}.bind(this));
+			}.bind(this), function(err) {
+				this.showHTTPAlert('Revert Error', err);
+			});
 		},
 
 		conflictedFiles: function() {
@@ -138,8 +155,17 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 
 	willEnter: function() {
 		this.get('documentView').showSpider();
+		if (this.get('documentView.canvas')) {
+			this.set('documentView.canvas.interactionsBlocked', true);
+		}
 		if (this.get('controllers.application.siteWizard')) {
 			Em.run.next(this, this.addSpider);
 		}
 	},
+
+	willLeave: function() {
+		if (this.get('documentView.canvas')) {
+			this.set('documentView.canvas.interactionsBlocked', false);
+		}
+	}
 });

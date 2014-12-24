@@ -1,41 +1,56 @@
 
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
 	{{#view ASTool.RenameTextField value=name}}
-  		<span class="editable-name">Spider {{name}}</span>
+		<span class="editable-name">Spider {{name}}</span>
 	{{/view}}
 </div>
 
-<div class="accordion">	
+<div class="accordion">
 	<h3>Initialization</h3>
 	<div class="section">
-		<h4>Start Pages {{startUrlCount}}</h4>
-		<div class="scrolling-container" style="max-height:150px;">
+		<div class="row">
+			<div class="col-md-10">
+				<h4>Start Pages</h4>
+			</div>
+			<div class="col-md-2 start-url-badge">
+				{{bs-badge class="pull-right btn-primary" content=startUrlCount}}
+			</div>
+		</div>
+		<div style="max-height:150px;">
 			{{#each start_urls}}
-				<div style="margin:4px 0px 4px 0px">
-					<span style="margin-right:0px">{{view ASTool.ButtonView action="fetchPage" argument=this label=this minWidth='79%' title=this class="light-button"}}</span>
-					{{view ASTool.CopyClipboard text=this}}
-					<span style="margin-left:6px">{{view ASTool.ButtonView action="deleteStartUrl" argument=this icon="ui-icon-trash" class="red-button"}}</span>
+				<div class="row">
+					<div class="col-md-9 clickable-url">
+						{{#bs-button clicked="fetchPage" clickedParam=this type="light" title=this}}
+							{{this}}
+						{{/bs-button}}
+					</div>
+					<div class="col-md-3 button-align">
+						{{view ASTool.CopyClipboard text=this}}
+						{{bs-button clicked="deleteStartUrl" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+					</div>
 				</div>
 			{{else}}
 				<h5>No start pages for this spider.</h5>
 			{{/each}}
 		</div>
-	
+
 		<div style="margin-top:10px">
 			<div>
-				{{view ASTool.TextArea value=newStartUrl width='93%' name='startUrlTextField' placeholder='Enter one or multiple start page urls here' action="addStartUrls"}}
+				{{view ASTool.TextArea value=newStartUrl width='93%' name='startUrlTextField' placeholder='Enter one or multiple start page urls here' action="addStartUrls" resize="vertical" max_height="300px"}}
 			</div>
 			<div style="margin-top:5px;text-align:center">
-				{{view ASTool.ButtonView action="addStartUrls" icon="ui-icon-circle-plus" disabled=hasStartUrl	class="blue-button" label="Add urls"}}
+				{{#bs-button clicked="addStartUrls" icon="fa fa-icon fa-plus" disabled=hasStartUrl type="primary"}}
+					Add urls
+				{{/bs-button}}
 			</div>
 		</div>
-		
-		<div style="margin-top:20px">
+
+		<div style="margin-top:20px" class="scrolling-container">
 			<label class="important-label">Perform login</label>
 			{{view ASTool.CheckBox checked=performLogin name="performLoginCheck"}}
 			{{view ASTool.InlineHelp message="perform_login"}}
 		</div>
-		
+
 		{{#if performLogin}}
 			<div class="scrolling-container">
 				<div style="margin-top:10px"></div>
@@ -47,57 +62,75 @@
 			</div>
 		{{/if}}
 	</div>
-	
+
 	<h3>Crawling</h3>
 	<div class="section">
 		{{view ASTool.FollowSelect value=controller.links_to_follow}}
-		
+
 		{{#if displayNofollow}}
 			<div style="margin-top:10px; margin-bottom: 10px">
 				{{view ASTool.CheckBox checked=respect_nofollow name="respectNoFollow"}}
 				<span class="important-label">Respect nofollow</span>
 			</div>
 		{{/if}}
-		
+
 		{{#if displayEditPatterns}}
 			<h4>Follow links that match this patterns</h4>
 			{{view ASTool.InlineHelp message="follow_links"}}
 			<div class="scrolling-container" style="max-height:150px">
 				{{#each pattern in follow_patterns}}
-					<div style="margin:4px 0px 4px 0px">
+					<div class="col-md-12">
 						{{#view ASTool.PatternTextField pattern=pattern action="editFollowPattern"}}
-  							{{view ASTool.ButtonView label=pattern minWidth='86%' title=pattern class="light-button"}}
+							{{#bs-button class="pattern" title=pattern type="light"}}
+								{{pattern}}
+							{{/bs-button}}
 						{{/view}}
-						{{view ASTool.ButtonView action="deleteFollowPattern" argument=pattern icon="ui-icon-trash" class="red-button"}}
+						{{bs-button clicked="deleteFollowPattern" clickedParam=pattern icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					</div>
 				{{else}}
-					<h5>No follow patterns defined yet.</h5>
+					<div class="col-md-12">
+						<h5>No follow patterns defined yet.</h5>
+					</div>
 				{{/each}}
 			</div>
-			<div style="margin-top:5px">
-				{{view ASTool.TextField value=newFollowPattern width='83%' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
-				{{view ASTool.ButtonView action="addFollowPattern" icon="ui-icon-circle-plus" disabled=hasFollowPattern class="blue-button fix_plus_icon"}}
-			</div>
-		
 			<div style="margin-top:10px"></div>
-			
+			<div class="row">
+				<div class="col-md-10">
+					{{view ASTool.TextField value=newFollowPattern width='110%' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
+				</div>
+				<div class="col-md-2 button-align-sm">
+					{{bs-button clicked="addFollowPattern" icon="fa fa-icon fa-plus" disabled=hasFollowPattern type="primary" size="xs"}}
+				</div>
+			</div>
+
+			<div style="margin-top:10px"></div>
+
 			<h4>Exclude links that match this patterns</h4>
 			{{view ASTool.InlineHelp message="exclude_links"}}
 			<div class="scrolling-container" style="max-height:150px">
 				{{#each pattern in exclude_patterns}}
-					<div style="margin:4px 0px 4px 0px">
+					<div class="col-md-12">
 						{{#view ASTool.PatternTextField pattern=pattern action="editExcludePattern"}}
-  							{{view ASTool.ButtonView label=pattern minWidth='86%' title=pattern class="light-button"}}
+							{{#bs-button class="pattern" title=pattern type="light"}}
+								{{pattern}}
+							{{/bs-button}}
 						{{/view}}
-						{{view ASTool.ButtonView action="deleteExcludePattern" argument=pattern icon="ui-icon-trash" class="red-button"}}
+						{{bs-button clicked="deleteExcludePattern" clickedParam=pattern icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					</div>
 				{{else}}
-					<h5>No exclude patterns defined yet.</h5>
+					<div class="col-md-12">
+						<h5>No exclude patterns defined yet.</h5>
+					</div>
 				{{/each}}
 			</div>
-			<div style="margin-top:5px">
-				{{view ASTool.TextField value=newExcludePattern width='83%' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
-				{{view ASTool.ButtonView action="addExcludePattern" icon="ui-icon-circle-plus" disabled=hasExcludePattern class="blue-button fix_plus_icon"}}
+			<div style="margin-top:10px"></div>
+			<div class="row">
+				<div class="col-md-10">
+					{{view ASTool.TextField value=newExcludePattern width='110%' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
+				</div>
+				<div class="col-md-2 button-align-sm">
+					{{bs-button clicked="addExcludePattern" icon="fa fa-icon fa-plus" disabled=hasExcludePattern type="primary" size="xs"}}
+				</div>
 			</div>
 		{{/if}}
 
@@ -107,17 +140,23 @@
 			{{view ASTool.InlineHelp message="overlay_blocked_links"}}
 		</div>
 	</div>
-	
+
 	<h3>Extraction</h3>
-	
+
 	<div class="section">
 		<h4>Templates</h4>
 		<div class="scrolling-container" style="max-height:350px;">
 			{{#each template_names}}
-				<div style="margin:4px 0px 4px 0px">
-					{{view ASTool.ButtonView action="editTemplate" argument=this label=this minWidth='76%' title=url class="light-button"}}
-					{{view ASTool.ButtonView action="viewTemplate" argument=this icon=" ui-icon-newwin" class="blue-button"}}
-					{{view ASTool.ButtonView action="deleteTemplate" argument=this icon="ui-icon-trash" class="red-button"}}
+				<div class="row">
+					<div class="col-md-9 clickable-url">
+						{{#bs-button clicked="editTemplate" clickedParam=this title=url type="light"}}
+							{{this}}
+						{{/bs-button}}
+					</div>
+					<div class="col-md-3 button-align">
+						{{bs-button clicked="viewTemplate" clickedParam=this icon=" fa fa-icon fa-external-link" type="primary" size="xs"}}
+						{{bs-button clicked="deleteTemplate" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+					</div>
 				</div>
 			{{else}}
 				<h5>No templates exist for this spider yet.</h5>
@@ -127,5 +166,8 @@
 </div>
 
 <div style="margin-top:10px;text-align:center">
-	{{view ASTool.ButtonView action="testSpider" argument=this icon="ui-icon-check" label=controller.testButtonLabel class="blue-button" title="Tests the spider on every start URL"}}
+		{{#bs-button clicked="testSpider" clickedParam=this icon="fa fa-icon fa-check" type="primary" title="Tests the spider on every start URL."}}
+			{{controller.testButtonLabel}}
+		{{/bs-button}}
+	</a>
 </div>

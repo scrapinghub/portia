@@ -1,6 +1,6 @@
 module.exports = function(karma) {
     karma.set({
-        basePath: 'media',
+        basePath: "media"
 
         files: [
           "js/vendor/jquery-1.9.1.js",
@@ -11,8 +11,14 @@ module.exports = function(karma) {
           "js/vendor/loading.js",
           "js/vendor/ic-ajax.js",
           "js/vendor/uri.js",
-          "js/vendor/jBreadCrumb.1.1.js",
-          
+
+          "js/vendor/bs-for-ember/bs-core.max.js",
+          "js/vendor/bs-for-ember/bs-badge.max.js",
+          "js/vendor/bs-for-ember/bs-breadcrumbs.max.js",
+          "js/vendor/bs-for-ember/bs-button.max.js",
+          "js/vendor/bs-for-ember/bs-label.max.js",
+          "js/vendor/bs-for-ember/bs-modal.max.js",
+
           "js/jqplugins.js",
           "js/app.js",
           "js/api.js",
@@ -32,7 +38,7 @@ module.exports = function(karma) {
           "js/controllers/project-controller.js",
           "js/controllers/projects-controller.js",
           "js/controllers/spider-controller.js",
-          
+
           "js/templates/*.handlebars",
 
           "tests/fixtures.js",
@@ -46,17 +52,17 @@ module.exports = function(karma) {
 
         logLevel: karma.LOG_WARN,
 
-        browsers: ['Chrome', 'PhantomJS', 'Firefox'],
+        browsers: ["Chrome", "PhantomJS", "Firefox"],
 
         // Disable security to avoid XSS errors.
         customLaunchers: {
             Chrome_without_security: {
-              base: 'Chrome',
-              flags: ['--disable-web-security']
+              base: "Chrome"
+              flags: ["--disable-web-security"]
             },
             PhantomJS_without_security: {
-              base: 'PhantomJS',
-              flags: ['--web-security=no']
+              base: "PhantomJS"
+              flags: ["--web-security=no"]
             }
         },
         singleRun: true,
@@ -65,11 +71,11 @@ module.exports = function(karma) {
         frameworks: ["qunit"],
 
         plugins: [
-            'karma-qunit',
-            'karma-chrome-launcher',
-            'karma-firefox-launcher',
-            'karma-ember-preprocessor',
-            'karma-phantomjs-launcher'
+            "karma-qunit",
+            "karma-chrome-launcher",
+            "karma-firefox-launcher",
+            "karma-ember-preprocessor",
+            "karma-phantomjs-launcher"
         ],
 
         preprocessors: {

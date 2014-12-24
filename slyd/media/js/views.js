@@ -89,7 +89,7 @@ ASTool.TextField = Em.TextField.extend({
 	width:null,
 	placeholder: null,
 	attributeBindings: ['placeholder', 'width'],
-	classNames: ['textfield'],
+	classNames: ['form-control input-sm'],
 
 	didInsertElement: function() {
 		this._super();
@@ -111,21 +111,25 @@ ASTool.LoginField = ASTool.TextField.extend({
 
 
 ASTool.TextArea = Em.TextArea.extend({
-	width:null,
+	width: null,
 	placeholder: null,
 	resize: false,
-	attributeBindings: ['placeholder', 'width', 'resize'],
+	max_height: null,
+	attributeBindings: ['placeholder', 'width', 'resize', 'max_height'],
 	classNames: ['textarea'],
 
 	didInsertElement: function() {
 		this._super();
 		var ui = $(this.get('element'));
-		if (this.width) {
+		if (this.width)
 			ui.css('width', this.width);
-		}
-		if (!this.resize) {
+		if (this.resize) {
+			ui.css('resize', this.resize)
+		} else {
 			ui.css('resize', 'none');
 		}
+		if (this.max_height)
+			ui.css('max-height', this.max_height);
 	},
 });
 
@@ -148,6 +152,7 @@ ASTool.InlineTextField = Ember.View.extend({
 	tagName: 'span',
 	layoutName: 'inline-textfield',
 	validate: false,
+	regex: '^[a-zA-Z0-9_-]+$',
 
 	click: function() {
 		if (!this.get('isEditing')) {
@@ -185,10 +190,29 @@ ASTool.InlineTextField = Ember.View.extend({
 		done: function() {
 			var parentView = this.get('parentView');
 			if (parentView.get('isEditing')) {
+				this.value = this.value.trim();
+				if (parentView.validate && parentView.regex &&
+					!this.check_value()) {
+					return;
+				}
 				parentView.save();
 				parentView.set('isEditing', false);
 			}
 		},
+
+		check_value: function() {
+			var parentView = this.get('parentView');
+			re = new RegExp(parentView.regex, 'g');
+			if (!re.test(this.value)) {
+				parentView.set('isEditing', false);
+				parentView.get('controller').send('showAlert', 'Validation Error',
+					'"' + this.value + '" is not a valid name. Only A-Z, a-z, 0-9, - and _ are allowed characters.',
+					function() {
+						this.set('isEditing', true);}.bind(this));
+				return false;
+			}
+			return true;
+		}
 	}),
 });
 
@@ -524,12 +548,14 @@ ASTool.RenameTextField = ASTool.InlineTextField.extend({
 ASTool.PatternTextField = ASTool.InlineTextField.extend({
 	attributeBindings: ['name'],
 	name: 'pattern',
+	regex: false,
 	pattern: null,
 	newPattern: null,
 
 	save: function() {
 		if (!Em.isEmpty(this.get('newPattern')) && this.get('pattern') != this.get('newPattern')) {
 			Ember.run.scheduleOnce('afterRender', this, function() {
+				console.log(this.get('action'))
 				this.get('controller').send(this.get('action'),
 					this.get('pattern'),
 					this.get('newPattern'));
@@ -544,7 +570,6 @@ ASTool.PatternTextField = ASTool.InlineTextField.extend({
 		return this.get('pattern');
 	}.property('pattern'),
 });
-
 
 ASTool.ExtractedItemView = Ember.View.extend({
 	extractedItem: null,
@@ -672,7 +697,6 @@ ASTool.NavigationView = Ember.View.extend({
 
 	didInsertElement: function() {
 		this._super();
-		$("#breadcrumb").jBreadCrumb();
 	},
 });
 
@@ -801,10 +825,11 @@ ASTool.CollapsibleText = Em.View.extend({
 	}.property('fullText', 'trimTo'),
 
 	displayedText: function() {
+		text = this.get('fullText') || '';
 		if (!this.get('collapsed')) {
-			return this.get('fullText');
+			return text;
 		} else {
-			return trim(this.get('fullText').trim(), this.get('trimTo'));
+			return trim(text.trim(), this.get('trimTo'));
 		}
 	}.property('collapsed', 'fullText', 'trimTo'),
 
@@ -928,9 +953,13 @@ ASTool.JSONView = Em.View.extend({
 
 var ToolboxViewMixin = ASTool.ToolboxViewMixin;
 
-ASTool.ToolboxProjectsView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ToolboxProjectsView = Ember.View.extend(ToolboxViewMixin, {
+	fixedToolbox: true,
+});
 
-ASTool.ToolboxProjectView = Ember.View.extend(ToolboxViewMixin);
+ASTool.ToolboxProjectView = Ember.View.extend(ToolboxViewMixin, {
+	fixedToolbox: true,
+});
 
 ASTool.ToolboxSpiderView = Ember.View.extend(ToolboxViewMixin);
 

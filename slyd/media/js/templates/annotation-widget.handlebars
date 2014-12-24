@@ -1,5 +1,5 @@
 {{#unless view.creatingField}}
-	
+
 	{{#unless view.hasMultipleMappings}}
 		{{view view.attributeSelect}}
 		{{view view.fieldSelect}}
@@ -12,8 +12,8 @@
 				</span>
 			</div>
 			<div style="text-align:right;display:inline-block;width:24%">
-				{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="blue-button"}}
-				{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="red-button"}}
+				{{bs-button type="primary" clicked="editAnnotation" clickedParam=this icon="fa fa-icon fa-gear" size="xs"}}
+				{{bs-button type="danger" clicked="deleteAnnotation" clickedParam=this icon="fa fa-icon fa-trash" size="xs"}}
 			</div>
 		</div>
 
@@ -27,18 +27,28 @@
 			</div>
 			<div style="text-align:right;display:inline-block;width:21%;">
 				<div style="text-align:center;display:inline-block;width:60px;margin:4px">{{view.annotation.variant}}</div>
-				{{view ASTool.ButtonView action="editAnnotation" argument=this icon="ui-icon-gear" class="blue-button"}}
-				{{view ASTool.ButtonView action="deleteAnnotation" argument=this icon="ui-icon-trash" class="red-button"}}
+				{{bs-button type="primary" clicked="editAnnotation" clickedParam=this icon="fa fa-icon fa-gear" size="xs"}}
+				{{bs-button type="danger" clicked="deleteAnnotation" clickedParam=this icon="fa fa-icon fa-trash" size="xs"}}
 			</div>
 		</div>
 	{{/unless}}
 {{else}}
-	<div style="float:right;margin-right:4px"{{action createField target="view"}}>{{view ASTool.ButtonView icon="ui-icon-circle-plus" class="blue-button fix_plus_icon" disabled=view.createFieldDisabled}}</div>
-	
-	<label class="small-label" style="margin-left:40px">Field name</label>
-	<label class="small-label" style="margin-left:64px">Field type</label>
-	<div style="margin-top:5px">
-		{{view view.fieldTextField}}
-		<span style="margin-left:15px">{{view view.typeSelect}}</span>
+	<div style="float:right;margin-right:4px"{{action createField target="view"}}>
+	{{bs-button type="primary" icon="fa fa-icon fa-icon-plus" disabled=view.createFieldDisabled}}
+	</div>
+
+	<div class="row">
+		<div class="col-md-6">
+			<label class="small-label">Field name</label>
+		</div>
+		<div class="col-md-6">
+			<label class="small-label">Field type</label>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			{{view view.fieldTextField}}
+		</div>
+		<div class="col-md-6">{{view view.typeSelect}}</div>
 	</div>
 {{/unless}}

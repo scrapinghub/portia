@@ -13,9 +13,15 @@
 	<div>
 		<div class="scrolling-container" style="max-height:600px">
 			{{#each}}
-				<div style="margin:4px 0px 4px 0px">
-					{{view ASTool.ButtonView action="editSpider" argument=this label=this minWidth="82%" class="light-button"}}
-					{{view ASTool.ButtonView action="deleteSpider" argument=this icon="ui-icon-trash" class="red-button"}}
+				<div class="row">
+					<div class="col-md-9 clickable-url">
+						{{#bs-button clicked="editSpider" clickedParam=this type="light"}}
+							{{this}}
+						{{/bs-button}}
+					</div>
+					<div class="col-md-3">
+						{{bs-button clicked="deleteSpider" clickedParam=this icon="fa fa-icon fa-trash" type="danger"}}
+					</div>
 				</div>
 			{{else}}
 				<h3>No spiders for this project.</h3>
@@ -25,13 +31,19 @@
 	{{#ifHasCapability 'version_control'}}
 		{{#if controller.hasChanges}}
 			<div style="text-align:center;font-size:1.1em;margin-top:10px">
-				{{view ASTool.ButtonView action="publishProject" icon="ui-icon-circle-arrow-n" label="Publish changes" class="blue-button"}}
-				{{view ASTool.ButtonView action="discardChanges" icon="ui-icon-trash" label="Discard changes" class="red-button"}}
+				{{#bs-button clicked="publishProject" icon="fa fa-icon fa-upload" type="primary"}}
+					Publish changes
+				{{/bs-button}}
+				{{#bs-button clicked="discardChanges" icon="fa fa-icon fa-trash" type="danger"}}
+					Discard Changes
+				{{/bs-button}}
 			</div>
 		{{else}}
 			{{#ifHasCapability 'deploy_projects'}}
 				<div style="text-align:center;font-size:1.1em;margin-top:10px">
-					{{view ASTool.ButtonView action="deployProject" icon="ui-icon-circle-arrow-n" label="Deploy" class="blue-button" disabled=controller.isDeploying}}
+					{{#bs-button clicked="deployProject" icon="fa fa-icon fa-upload" type="primary" disabled=controller.isDeploying}}
+						Deploy
+					{{/bs-button}}
 				</div>
 			{{/ifHasCapability}}
 		{{/if}}

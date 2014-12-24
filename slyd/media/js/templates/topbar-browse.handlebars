@@ -1,32 +1,34 @@
-<div id="topbar">
+<div id="topbar" class="navbar navbar-default">
 	<div class="nav-container">
 		{{render "navigation"}}
 	</div>
 
-	<div style="float:left;margin-top:2px">
+	<div class="nav-container button-align">
 		<span style="float:left">
-			{{view ASTool.ButtonView action="browseBack" icon="ui-icon-arrowthick-1-w" disabled=browseBackDisabled}}
+			{{bs-button clicked="browseBack" icon="fa fa-icon fa-arrow-left" small=true disabled=browseBackDisabled}}
 		</span>
 		<span style="float:left">
-			{{view ASTool.ButtonView action="reload" icon="ui-icon-arrowrefresh-1-e" disabled=reloadDisabled}}
+			{{bs-button clicked="reload" icon="fa fa-icon fa-refresh" small=true disabled=reloadDisabled}}
 		</span>
-		
+
 		<span class="url">
 			{{#view ASTool.LabelWithTooltip title=controller.currentUrl}}
 				{{controller.currentUrl}}
 			{{/view}}
 		</span>
+	</div>
 
+	<div class="nav-container button-align white-text">
 		{{#unless addTemplateDisabled}}
-			<span style="float:left">
-				{{view ASTool.ButtonView action="addTemplate" label="Annotate this page" class="red-button"}}
-			</span>
+			{{#bs-button type="danger" clicked="addTemplate" small=true}}
+				Annotate this page
+			{{/bs-button}}
 		{{/unless}}
 
 		{{#unless showItemsDisabled}}
-			<span style="float:left;margin-left:2px">
-				{{view ASTool.ButtonView action="toggleShowItems" label=itemsButtonLabel class="black-button"}}
-			</span>
+			{{#bs-button clicked="toggleShowItems" type="black" small=true}}
+				{{itemsButtonLabel}}
+			{{/bs-button}}
 		{{/unless}}
 
 		{{#if showNoItemsExtracted}}
@@ -40,21 +42,24 @@
 				Saving spider...
 			</span>
 		{{/if}}
-
+	</div>
+	<span class="pull-right" style="margin-top: 6px;">
+		 {{bs-label content="Beta" type="danger"}}
+	</span>
 
 		{{#if showItems}}
 			{{#if controller.extractedItems.length}}
 				<div class="extracted-items-container">
 					<span style="float:right">
-						{{view ASTool.ButtonView action="toggleShowItems" class="clear-button" icon="ui-icon-closethick"}}
+						{{bs-button clicked="toggleShowItems" type="default" icon="fa fa-icon fa-close"}}
 					</span>
 					<h3 style="text-align:center" class="important-label">Displaying {{controller.extractedItems.length}} extracted items</h3>
 					<div style="max-height:500px; padding:8px;" class="scrolling-container">
 						{{#each item in controller.extractedItems}}
 							<hr style="margin:0px;background-color:rgba(70,70,70,1)"/>
-							<div style="padding:10px 0px 10px 0px;">
+							<div style="padding:10px 0px 10px 0px; border-bottom: 1px groove rgba(255,255,255,0.2);">
 								{{#view ASTool.ExtractedItemView extractedItem=item}}
-									<div style="text-align:left;margin-bottom:5px">
+									<div style="text-align:left;margin-bottom:5px;">
 										<div style="margin-bottom:2px">
 											<span class="small-label yellow-label">URL:</span>
 											<span class="link" {{action fetchPage view.url}}>
@@ -84,7 +89,7 @@
 											{{#each value in imageField.value}}
 												<span style="color:white;word-wrap:break-word;">{{value}}</span>
 												<div style="margin:10px;text-align:center">{{view ASTool.ImageView src=value width="200px"}}</div>
-											{{/each}}	
+											{{/each}}
 										</div>
 									{{/each}}
 									{{#if view.variants}}
@@ -110,6 +115,6 @@
 					</div>
 				</div>
 			{{/if}}
-		{{/if}}	
+		{{/if}}
 	</div>
 </div>
