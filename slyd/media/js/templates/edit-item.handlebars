@@ -9,32 +9,43 @@
 			{{bs-button clicked="deleteItem" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 		</span>
 	</div>
-	<div style="text-align:center;margin-top:20px">
+	<div style="margin-top:20px">
 		{{#if view.item.fields}}
-			<table style="margin:0 auto;">
-				<tr class="small-label"> <td>Field</td> <td>Type</td> <td>Required</td> <td>Vary</td> </tr>
-				<tr style="color: #CCC;">
-					<td>url</td>
-					<td>url</td>
-					<td><input type="checkbox" checked=true disabled=true></td>
-					<td><input type="checkbox" checked=true disabled=true></td>
-					<td>{{bs-button icon="fa fa-icon fa-trash" type="danger" disabled=true size="xs"}}</td>
-				</tr>
+				<div class="row small-label">
+					<div class="col-md-4">Field</div>
+					<div class="col-md-2">Type</div>
+					<div class="col-md-3">Required Vary</div>
+				</div>
+				<div class="row" style="color: #CCC;margin:0">
+					<div class="col-md-4">url</div>
+					<div class="col-md-4">url</div>
+					<div class="col-md-1"><input type="checkbox" checked=true disabled=true></div>
+					<div class="col-md-1"><input type="checkbox" checked=true disabled=true></div>
+					<div class="col-md-1">{{bs-button icon="fa fa-icon fa-trash" type="danger" disabled=true size="xs"}}</div>
+				</div>
 				{{#each view.item.fields}}
-					<tr>
-						<td>
-							{{#view ASTool.InlineTextField value=name validate=true}}
-								<span class="editable-name">{{name}}</span>
-							{{/view}}
-						</td>
-						<td>{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
-						<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
-						<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
-						<td>{{bs-button size="xs" icon="fa fa-icon fa-trash" type="danger" clicked="deleteField" clickedParam=view.item clickedParam2=this}}
-						</td>
-					</tr>
+					<div class="row" style="margin:0">
+						<div class="col-md-4 top-div">
+							<div class="field-name">
+								{{#view ASTool.InlineTextField value=name validate=true}}
+									<span class="editable-name">{{name}}</span>
+								{{/view}}
+							</div>
+						</div>
+						<div class="col-md-4">
+							{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}
+						</div>
+						<div class="col-md-1" style="text-align:center;">
+							{{view ASTool.CheckBox checked=required name="fieldRequired"}}
+						</div>
+						<div class="col-md-1" style="text-align:center;">
+							{{view ASTool.CheckBox checked=vary name="fieldVary"}}
+						</div>
+						<div class="col-md-1">
+							{{bs-button size="xs" icon="fa fa-icon fa-trash" type="danger" clicked="deleteField" clickedParam=view.item clickedParam2=this}}
+						</div>
+					</div>
 				{{/each}}
-			</table>
 		{{else}}
 			<h5>No fields defined yet.</h5>
 		{{/if}}
