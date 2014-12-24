@@ -49,10 +49,10 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 	},
 
 	showHTTPAlert: function(title, err, okCallback) {
-		reason = err.reason
+		reason = err.reason;
 		content = 'The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')' +
 				 '<br/>' + reason['jqXHR'].responseText;
-		return this.showAlert(title, content, okCallback)
+		return this.showAlert(title, content, okCallback);
 	},
 
 	showConfirm: function(title, content, okCallback, cancelCallback) {

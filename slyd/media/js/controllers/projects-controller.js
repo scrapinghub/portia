@@ -22,7 +22,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 			this.set('slyd.project', projectName).then(function(){
 				this.transitionToRoute('project', { id: projectName });
 			},function(err) {
-				this.showHTTPAlert('Error Opening project "' + projectName + '"', err)
+				this.showHTTPAlert('Error Opening project "' + projectName + '"', err);
 			});
 		}.bind(this));
 	},
@@ -46,7 +46,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 							this.removeObject(projectName);
 						}.bind(this),
 						function(err) {
-							this.showHTTPAlert('Delete Error', err)
+							this.showHTTPAlert('Delete Error', err);
 						}.bind(this)
 					);
 				}.bind(this)
@@ -70,9 +70,9 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 					this.set('projectSite', null);
 					Em.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
 						this.transitionToRoute('project', { id: newProjectName });
-					}.bind(this), function(err) {this.showHTTPAlert('Save Error', err)});
-				}.bind(this), function(err) {this.showHTTPAlert('Save Error', err)});
-			}.bind(this), function(err) {this.showHTTPAlert('Save Error', err)});
+					}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);});
+				}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);});
+			}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);});
 		},
 
 		showProjectRevisions: function(projectName) {

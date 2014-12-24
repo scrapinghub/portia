@@ -270,7 +270,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.saveSpider().then(
 				function() {
 					this.editTemplate(template_name);
-				}.bind(this), function(err)
+				}.bind(this), function(err) {
 					this.showHTTPAlert('Save Error', err);
 				});
 			}.bind(this), function(err) {
@@ -382,7 +382,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.get('content.template_names').removeObject(templateName);
 			this.get('slyd').deleteTemplate(this.get('name'), templateName).then(
 				function() { }, function(err) {
-					this.showHTTPAlert('Delete Error', err)
+					this.showHTTPAlert('Delete Error', err);
 				});
 		},
 

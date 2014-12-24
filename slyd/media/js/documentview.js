@@ -344,15 +344,15 @@ ASTool.DocumentView = Em.Object.extend({
 		if (this.cssEnabled) {
 			iframe.find('link[rel="stylesheet"]').each(function() {
 				that = $(this);
-				that.attr({_href: that.attr('href')}).removeAttr('href')
+				that.attr({_href: that.attr('href')}).removeAttr('href');
 			});
 		} else {
 			iframe.find('link[rel="stylesheet"]').each(function() {
 				that = $(this);
-				that.attr({href: that.attr('_href')}).removeAttr('_href')
+				that.attr({href: that.attr('_href')}).removeAttr('_href');
 			});
 		}
-		this.cssEnabled = !this.cssEnabled
+		this.cssEnabled = !this.cssEnabled;
 	},
 
 	/**

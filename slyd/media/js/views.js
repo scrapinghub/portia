@@ -124,7 +124,7 @@ ASTool.TextArea = Em.TextArea.extend({
 		if (this.width)
 			ui.css('width', this.width);
 		if (this.resize) {
-			ui.css('resize', this.resize)
+			ui.css('resize', this.resize);
 		} else {
 			ui.css('resize', 'none');
 		}
@@ -555,7 +555,6 @@ ASTool.PatternTextField = ASTool.InlineTextField.extend({
 	save: function() {
 		if (!Em.isEmpty(this.get('newPattern')) && this.get('pattern') != this.get('newPattern')) {
 			Ember.run.scheduleOnce('afterRender', this, function() {
-				console.log(this.get('action'))
 				this.get('controller').send(this.get('action'),
 					this.get('pattern'),
 					this.get('newPattern'));

@@ -42,7 +42,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		return this.get('slyd').saveSpider(spider).then(function() {
 				this.editSpider(newSpiderName);
 			}.bind(this), function(err) {
-				this.showHTTPAlert('Error Adding Spider', err)
+				this.showHTTPAlert('Error Adding Spider', err);
 			}
 		);
 	},
@@ -70,7 +70,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		editSpider: function(spiderName) {
 			this.editSpider(spiderName).then(function() { },
 				function() {
-					this.showHTTPAlert('Error Editing Spider', err)
+					this.showHTTPAlert('Error Editing Spider', err);
 				});
 		},
 
@@ -90,7 +90,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 						function(err) {
 							this.showHTTPAlert('Delete Error', err);
 						}.bind(this)
-					)
+					);
 				}.bind(this)
 			).bind(this);
 		},
