@@ -64,7 +64,7 @@ module.exports = function(grunt) {
                     templateBasePath: 'media/js/templates'
                 },
                 files: {
-                    'media/js/templates.js": "media/js/templates/*.handlebars'
+                    'media/js/templates.js': 'media/js/templates/*.handlebars',
                 }
             }
         }
