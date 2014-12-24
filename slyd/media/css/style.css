@@ -434,6 +434,22 @@ body{
 	color: #fff;
 }
 
+.top-div {
+	z-index: 9999;
+}
+
+.field-name {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.field-name:hover {
+	overflow: visible;
+	background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,1));
+	width: 300px;
+}
+
 .clickable-url > button {
 	overflow: hidden;
 	white-space: nowrap;
