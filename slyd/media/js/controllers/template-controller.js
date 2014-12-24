@@ -24,6 +24,20 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	showContinueBrowsing: true,
 
+	showToggleCSS: true,
+	toggleCSS: function() {
+		//FIXME: Set state correctly
+		button = $('.togglecss')
+		if (button.hasClass('btn-default')) {
+			button.addClass('btn-danger')
+			button.removeClass('btn-default')
+		} else {
+			button.removeClass('btn-danger')
+			button.addClass('btn-default')
+		}
+		this.documentView.toggleCSS()
+	},
+
 	showFloatingAnnotationWidgetAt: null,
 
 	floatingAnnotation: null,
@@ -118,13 +132,16 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 	saveTemplate: function() {
 		this.saveAnnotations();
 		missing_fields = this.missingRequiredAnnotations();
-		console.log(missing_fields);
 		if (missing_fields.length > 0) {
-			alert('Can\'t save template as the following required fields are missing: "' + missing_fields.join('", "') + '".');
+			this.showAlert('Save Error',
+				'Can\'t save template as the following required fields are missing: "' + missing_fields.join('", "') + '".');
 			return;
 		}
 		return this.get('slyd').saveTemplate(
-			this.get('controllers.spider.name'), this.get('content'));
+			this.get('controllers.spider.name'), this.get('content')).then(
+			function() { }, function(err) {
+				this.showHTTPAlert('Save Error', err);
+			});
 	},
 
 	saveExtractors: function() {
@@ -269,7 +286,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 				new RegExp(extractorDefinition);
 			} catch (e) {
 				if (e instanceof SyntaxError) {
-					alert('The text, "' + extractorDefinition + '", you provided is not a valid regex.');
+					this.showAlert('Save Error','The text, "' + extractorDefinition + '", you provided is not a valid regex.');
 				}
 				return;
 			}
@@ -338,7 +355,11 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		createField: function(fieldName, fieldType) {
 			this.get('controllers.items').addField(this.get('scrapedItem'), fieldName, fieldType);
-			this.get('slyd').saveItems(this.get('items').toArray());
+			this.get('slyd').saveItems(this.get('items').toArray()).then(function() {},
+				function(reason) {
+					this.showHTTPAlert('Save Error', reason);
+				}.bind(this)
+			);
 		},
 
 		annotationHighlighted: function(annotation) {
@@ -360,7 +381,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 						this.replaceRoute('template', newName);
 					}.bind(this),
 					function(reason) {
-						alert('The name ' + newName + ' is not a valid template name.');
+						this.showHTTPAlert('Save Error', 'The name ' + newName + ' is not a valid template name.');
 					}.bind(this)
 				);
 			}.bind(this));
@@ -426,14 +447,22 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 				this.deleteAnnotation(annotation);
 			}.bind(this));
 			this.saveTemplate().then(function() {
-				this.set('controllers.spider_index.autoloadTemplate', this.get('url'));
-				this.transitionToRoute('spider');
-			}.bind(this));
+					this.set('controllers.spider_index.autoloadTemplate', this.get('url'));
+					this.transitionToRoute('spider');
+				}.bind(this),
+				function(reason) {
+					this.showHTTPAlert('Save Error', reason);
+				}.bind(this)
+			);
 		},
 
 		hideFloatingAnnotationWidget: function() {
 			this.hideFloatingAnnotationWidget();
-		}
+		},
+
+		selected: function() {
+			console.log('Selected!');
+		},
 	},
 
 	documentActions: {

@@ -28,7 +28,9 @@
 		<label class="small-label">Extracted item type:</label> {{view ASTool.ItemSelect value=scrapes}}
 		{{view ASTool.InlineHelp message="select_item"}}
 		<div style="margin-top:10px">
-			{{view ASTool.ButtonView action="editItems" argument=this label="Edit items" name="editItems" class="blue-button"}}
+			{{#bs-button clicked="editItems" type="primary"}}
+				Edit Items
+			{{/bs-button}}
 		</div>
 	</div>
 
@@ -68,7 +70,7 @@
 							{{view.extractorTypeLabel}} {{view.extractorDefinition}}
 						</span>
 					{{/view}}
-					{{view ASTool.ButtonView action="deleteExtractor" argument=this icon="ui-icon-trash" class="red-button"}}
+					{{bs-button clicked="deleteExtractor" type="danger" size="xs" clickedParam=this icon="fa fa-icon fa-trash"}}
 				</div>
 			{{else}}
 				<h5>No extractors have been created yet.</h5>
@@ -81,7 +83,9 @@
 				<div class="typeBox">{{view ASTool.TypeSelect value=newTypeExtractor name='typeExtractorCombo' width='140px'}}</div>
 			</div>
 			<div style="float:left;width:47%;margin-top: 23px">
-				{{view ASTool.ButtonView action="createExtractor" icon="ui-icon-circle-plus" label="New extractor" disabled=createExtractorDisabled class="blue-button"}}
+				{{#bs-button clicked="createExtractor" icon="fa fa-icon fa-plus" disabled=createExtractorDisabled type="primary"}}
+					New extractor
+				{{/bs-button}}
 			</div>
 		</div>
 

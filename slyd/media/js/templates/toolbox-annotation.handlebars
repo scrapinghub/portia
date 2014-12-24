@@ -32,18 +32,18 @@
 	<div>
 		{{#unless mappingAttribute}}
 			<h4>Not mapped</h4>
-			<div class="scrolling-container" style="max-height:180px;">	
+			<div class="scrolling-container" style="max-height:180px;">
 				{{#each unmappedAttributes}}
 					<div class="attribute-field-mapping">
 						{{#view ASTool.ElemAttributeView attribute=this}}
 							<div>
 								<div class="attribute-name">{{view.name}}</div>
 								<span style="float:right">
-									{{view ASTool.ButtonView action="mapAttribute" argument=this icon="ui-icon-transferthick-e-w" class="blue-button"}}
-							    	{{view ASTool.ButtonView action="makeSticky" argument=this icon="ui-icon-pin-s" class="blue-button"}}
-						    	</span>
-						    </div>
-						    <div class="attribute-val">{{view.value}}</div>
+									{{bs-button clicked="mapAttribute" clickedParam=this icon="fa fa-icon fa-exchange" type="primary" size="xs"}}
+									{{bs-button clicked="makeSticky" clickedParam=this icon="fa fa-icon fa-thumb-tack" type="primary" title="Make this attribute sticky" size="xs"}}
+								</span>
+							</div>
+							<div class="attribute-val">{{view.value}}</div>
 						{{/view}}
 					</div>
 				{{else}}
@@ -60,7 +60,7 @@
 						{{#view ASTool.ElemAttributeView attribute=this}}
 							<div class="attribute-name">{{view.name}} -> {{view.field}}</div>
 							<span style="float:right">
-								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button"}}
+								{{bs-button clicked="unmapAttribute" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 							</span>
 						{{/view}}
 					</div>
@@ -72,13 +72,13 @@
 			<div style="margin-bottom:10px"></div>
 
 			<h4>Required attributes</h4>{{view ASTool.InlineHelp message="sticky_fields"}}
-			<div class="scrolling-container" style="max-height:180px;">	
+			<div class="scrolling-container" style="max-height:180px;">
 				{{#each stickyAttributes}}
 					<div class="attribute-field-mapping" style="padding-bottom:14px">
 						{{#view ASTool.ElemAttributeView attribute=this}}
 							<div class="attribute-name">{{view.name}}</div>
 							<span style="float:right">
-								{{view ASTool.ButtonView action="unmapAttribute" argument=this icon="ui-icon-trash" class="red-button"}}
+								{{bs-button clicked="unmapAttribute" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 							</span>
 						{{/view}}
 					</div>
@@ -90,7 +90,7 @@
 			{{render "item" controller.scrapedItem}}
 		{{/unless}}
 	</div>
-	
+
 	<h3>Ignored subregions</h3>
 	<div style="text-align:center">
 		<div class="scrolling-container">
@@ -101,9 +101,9 @@
 							<label class="small-label">Ignore elements beneath</label>
 							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
 						</div>
-						{{view ASTool.ButtonView action="deleteIgnore" argument=this icon="ui-icon-trash" class="red-button"}}
+						{{bs-button clicked="deleteIgnore" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					{{/view}}
-					
+
 				</div>
 				{{else}}
 					<h5>No ignored subregions defined.</h5>
@@ -126,6 +126,10 @@
 </div>
 <br/>
 <div style="text-align:center">
-{{view ASTool.ButtonView action="doneEditing" icon="ui-icon-circle-check" label="Save changes" class="blue-button"}}
-{{view ASTool.ButtonView action="cancelEdit" icon="ui-icon-circle-close" label="Discard changes" class="red-button"}}
+{{#bs-button clicked="doneEditing" icon="fa fa-icon fa-check-circle" type="primary"}}
+	Save changes
+{{/bs-button}}
+{{#bs-button clicked="cancelEdit" icon="fa fa-icon fa-times-circle" type="danger"}}
+	Discard changes
+{{/bs-button}}
 </div>

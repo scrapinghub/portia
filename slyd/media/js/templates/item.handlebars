@@ -12,7 +12,9 @@
 						<td><h5>{{type}}</h5></td>
 						<td><h5>{{#if required}}yes{{else}}no{{/if}}</h5></td>
 						<td><h5>{{#if vary}}yes{{else}}no{{/if}}</h5></td>
-						<td style="padding-bottom:4px;">{{view ASTool.ButtonView icon="ui-icon-circle-check"  action="fieldSelected" argument=name class="blue-button"}}</td>
+						<td style="padding-bottom:4px;">
+							{{bs-button icon="fa fa-icon fa-check-circle" clicked="fieldSelected" clickedParam=name type="primary" size="xs"}}
+						</td>
 					</tr>
 				{{/each}}
 			</table>

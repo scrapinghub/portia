@@ -577,14 +577,17 @@ ASTool.SlydApi = Em.Object.extend({
 	makeAjaxCall: function(hash) {
 		return ic.ajax(hash).catch(function(reason) {
 			method = hash.type;
-			msg = 'Error processing ' + method + ' to ' + hash['url'];
+			title = 'Error processing ' + method + ' to ' + hash['url'];
 			if (hash.data) {
-				msg += '\nwith data ' + hash.data;
+				title += '\nwith data ' + hash.data;
 			}
-			msg += '\n The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')' +
+			msg = '\n The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')' +
 				 '\n' + reason['jqXHR'].responseText;
-			alert(msg);
-			throw new Error(reason);
+			err = new Error(msg)
+			err.title = title
+			err.name = 'HTTPError'
+			err.reason = reason
+			throw err;
 		});
 	},
 });

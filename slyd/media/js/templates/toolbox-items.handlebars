@@ -9,9 +9,15 @@
 		 	{{/each}}
 		</div>
 		<div style="text-align:center;margin-top:10px">
-			{{view ASTool.ButtonView action="addItem" icon="ui-icon-circle-plus" label="Item" class="blue-button"}}
-			{{view ASTool.ButtonView action="saveChanges" icon="ui-icon-circle-triangle-w" label="Save changes" class="blue-button"}}
-			{{view ASTool.ButtonView action="undoChanges" icon="ui-icon-arrowreturnthick-1-w" label="Discard changes" class="red-button"}}
+			{{#bs-button clicked="addItem" icon="fa fa-icon fa-plus" type="primary" small=true}}
+				Item
+			{{/bs-button}}
+			{{#bs-button clicked="saveChanges" icon="fa fa-icon fa-save" type="primary" small=true}}
+				Save changes
+			{{/bs-button}}
+			{{#bs-button clicked="undoChanges" icon="fa fa-icon fa-reply" type="danger" small=true}}
+				Discard Changes
+			{{/bs-button}}
 		</div>
 	</div>
 </div>

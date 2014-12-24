@@ -1,9 +1,14 @@
-<div id="topbar">
-	<div  class="nav-container">
+<div id="topbar" class="navbar navbar-default">
+	<div class="nav-container">
 		{{render "navigation"}}
 	</div>
-	<div style="float:left;margin-top:2px">
+	<div style="float:left;margin-top:2px" class="nav-container">
 		<span style="margin-right:10px">Resolving <b>{{controller.currentFileName}}</b></span>
-		{{view ASTool.ButtonView action="saveFile" argument=controller.currentFileName icon="ui-icon-circle-arrow-n" label="Save file" class="blue-button" disabled=controller.saveDisabled}}
+		{{#bs-button clicked="saveFile" clickedParam=controller.currentFileName icon="fa fa-icon fa-upload" type="primary" disabled=controller.saveDisabled}}
+			Save File
+		{{/bs-button}}
 	</div>
+	<span class="pull-right" style="margin-top: 6px;">
+		{{bs-label content="Beta" type="danger"}}
+	</span>
 </div>

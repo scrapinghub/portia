@@ -56,6 +56,8 @@ ASTool.DocumentView = Em.Object.extend({
 
 	loadingDoc: false,
 
+	cssEnabled: true,
+
 	/**
 		Attaches this documentview to a datasource and event listener
 		configuring it according to the options dictionary.
@@ -337,6 +339,22 @@ ASTool.DocumentView = Em.Object.extend({
 		});
 	},
 
+	toggleCSS: function() {
+		iframe = this.getIframe();
+		if (this.cssEnabled) {
+			iframe.find('link[rel="stylesheet"]').each(function() {
+				that = $(this);
+				that.attr({_href: that.attr('href')}).removeAttr('href')
+			});
+		} else {
+			iframe.find('link[rel="stylesheet"]').each(function() {
+				that = $(this);
+				that.attr({href: that.attr('_href')}).removeAttr('_href')
+			});
+		}
+		this.cssEnabled = !this.cssEnabled
+	},
+
 	/**
 		Scrolls the iframe so the given element appears in the current
 		viewport.
@@ -422,23 +440,26 @@ ASTool.DocumentView = Em.Object.extend({
 	initHoveredInfo: function() {
 		var contents = '<div>' +
 			'<span class="path"/>' +
-			'<button class="clear-button textless-button"/>' +
+			'<button class="btn btn-light fa fa-icon fa-arrow-right"/>' +
 			'</div>' +
 			'<div class="attributes"/>';
 		$('#hovered-element-info').html(contents);
-		$('#hovered-element-info button').button({ icons: { primary: 'ui-icon-arrowthickstop-1-e' } })
+		$('#hovered-element-info button').button()
 			.click(function() {
-				var floatPos = $('#hovered-element-info').css('float');
+				element = $('#hovered-element-info');
+				button = element.find('button');
+				button.removeClass('fa-arrow-right');
+				button.removeClass('fa-arrow-left');
+				var floatPos = element.css('float');
 				var icon;
 				if (floatPos == 'left') {
 					floatPos = 'right';
-					icon = 'ui-icon-arrowthickstop-1-w';
+					button.addClass('fa-arrow-left');
 				} else {
 					floatPos = 'left';
-					icon = 'ui-icon-arrowthickstop-1-e';
+					button.addClass('fa-arrow-right');
 				}
-				$("#hovered-element-info").css('float', floatPos);
-				$('#hovered-element-info button').button({ icons: { primary: icon } });
+				element.css('float', floatPos);
 			});
 	},
 
@@ -578,7 +599,7 @@ ASTool.DocumentView = Em.Object.extend({
 	},
 
 	adjustSizes: function() {
-		$('.adjust-height').height(window.innerHeight - 30);
+		$('.adjust-height').height(window.innerHeight - 38);
 	},
 
 	initCanvas: function() {

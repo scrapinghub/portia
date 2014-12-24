@@ -3,9 +3,15 @@
 	<h4>Open project</h4>
 	<div class="scrolling-container" style="max-height:600px">
 		{{#each}}
-			<div style="margin:4px 0px 4px 0px">
-				{{view ASTool.ButtonView action="openProject" argument=this label=this minWidth='82%' class="light-button"}}
-				{{view ASTool.ButtonView action="deleteProject" argument=this icon="ui-icon-trash" class="red-button"}}
+			<div class="row">
+				<div class="col-md-9 clickable-url">
+					{{#bs-button clicked="openProject" clickedParam=this type="light"}}
+						{{this}}
+					{{/bs-button}}
+				</div>
+				<div class="col-md-3">
+					{{bs-button clicked="deleteProject" clickedParam=this icon="fa fa-icon fa-trash" type="danger"}}
+				</div>
 			</div>
 		{{else}}
 			<h5>No projects have been created yet.</h5>

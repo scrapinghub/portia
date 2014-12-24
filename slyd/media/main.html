@@ -6,8 +6,10 @@
 	<link href="css/normalize.css" rel="stylesheet">
 	<link href="css/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 	<link href="css/style.css" rel="stylesheet">
-	<link href="css/breadcrumb.css" rel="stylesheet">
-	
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/bootstrap-theme.min.css" rel="stylesheet">
+	<link href="css/font-awesome.css" rel="stylesheet">
+
 	<script src="js/vendor/jquery-1.11-prod.js"></script>
 	<script src="js/vendor/jquery-ui-1.11.1-prod.js"></script>
 	<script src="js/vendor/handlebars-1.0.0.js"></script>
@@ -16,7 +18,12 @@
 	<script src="js/vendor/loading.js"></script>
 	<script src="js/vendor/ic-ajax.js"></script>
 	<script src="js/vendor/uri.js"></script>
-	<script src="js/vendor/jBreadCrumb.1.1.js"></script>
+	<script src="js/vendor/bs-for-ember/bs-core.max.js"></script>
+	<script src="js/vendor/bs-for-ember/bs-badge.max.js"></script>
+	<script src="js/vendor/bs-for-ember/bs-breadcrumbs.max.js"></script>
+	<script src="js/vendor/bs-for-ember/bs-button.max.js"></script>
+	<script src="js/vendor/bs-for-ember/bs-label.max.js"></script>
+	<script src="js/vendor/bs-for-ember/bs-modal.max.js"></script>
 	<script src="js/jqplugins.js"></script>
 	<script src="js/app.js"></script>
 	<script src="js/api.js"></script>
@@ -37,7 +44,7 @@
 	<script src="js/controllers/projects-controller.js"></script>
 	<script src="js/controllers/spider-controller.js"></script>
 	<script src="js/controllers/conflicts-controller.js"></script>
-	
+
 	<script>
 		function compile(template) {
 		  var templateName = template.split('/templates/').reverse()[0].replace('.handlebars', '');
@@ -61,6 +68,7 @@
 		compile('js/templates/conflict-resolver.handlebars');
 		compile('js/templates/json-view.handlebars');
 		compile('js/templates/item.handlebars');
+		compile('js/templates/modal.handlebars');
 		compile('js/templates/navigation.handlebars');
 		compile('js/templates/toolbox.handlebars');
 		compile('js/templates/toolbox-projects.handlebars');

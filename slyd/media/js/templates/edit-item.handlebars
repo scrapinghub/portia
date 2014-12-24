@@ -6,7 +6,7 @@
 			{{/view}}
 		</span>
 		<span style="float:right">
-			{{view ASTool.ButtonView action="deleteItem" argument=this icon="ui-icon-trash" class="red-button"}}
+			{{bs-button clicked="deleteItem" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 		</span>
 	</div>
 	<div style="text-align:center;margin-top:20px">
@@ -18,7 +18,7 @@
 					<td>url</td>
 					<td><input type="checkbox" checked=true disabled=true></td>
 					<td><input type="checkbox" checked=true disabled=true></td>
-					<td>{{view ASTool.ButtonView icon="ui-icon-trash" class="red-button" disabled=true}}</td>
+					<td>{{bs-button icon="fa fa-icon fa-trash" type="danger" disabled=true size="xs"}}</td>
 				</tr>
 				{{#each view.item.fields}}
 					<tr>
@@ -30,7 +30,8 @@
 						<td>{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}</td>
 						<td>{{view ASTool.CheckBox checked=required name="fieldRequired"}}</td>
 						<td>{{view ASTool.CheckBox checked=vary name="fieldVary"}}</td>
-						<td>{{view ASTool.ButtonView icon="ui-icon-trash" class="red-button" action="deleteField" argument=view.item argument2=this}}</td>
+						<td>{{bs-button size="xs" icon="fa fa-icon fa-trash" type="danger" clicked="deleteField" clickedParam=view.item clickedParam2=this}}
+						</td>
 					</tr>
 				{{/each}}
 			</table>
@@ -38,7 +39,9 @@
 			<h5>No fields defined yet.</h5>
 		{{/if}}
 		<div style="text-align:center;margin-top:10px">
-			{{view ASTool.ButtonView action="addField" argument=this icon="ui-icon-circle-plus" label="Field" class="blue-button"}}
+			{{#bs-button clicked="addField" clickedParam=this icon="fa fa-icon fa-plus" type="primary" small=true}}
+				Field
+			{{/bs-button}}
 		</div>
 	</div>
 </div>
