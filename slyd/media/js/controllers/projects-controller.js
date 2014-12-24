@@ -23,7 +23,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 			this.transitionToRoute('project', { id: projectName });
 		}.bind(this), function(err) {
 			this.showHTTPAlert('Error Opening project "' + projectName + '"', err);
-		});
+		}.bind(this));
 	},
 
 	actions: {
@@ -69,9 +69,9 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 					this.set('projectSite', null);
 					Em.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
 						this.transitionToRoute('project', { id: newProjectName });
-					}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);});
-				}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);});
-			}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);});
+					}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
+				}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
+			}.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
 		},
 
 		showProjectRevisions: function(projectName) {
@@ -80,7 +80,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 				this.notifyPropertyChange('projectRevisions');
 			}.bind(this), function(err) {
 				this.showHTTPAlert('Error Getting Projects', err);
-			});
+			}.bind(this));
 		},
 
 		hideProjectRevisions: function(projectName) {

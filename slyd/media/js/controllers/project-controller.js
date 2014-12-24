@@ -43,13 +43,15 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 				this.editSpider(newSpiderName);
 			}.bind(this), function(err) {
 				this.showHTTPAlert('Error Adding Spider', err);
-			}
+			}.bind(this)
 		);
 	},
 
 	editSpider: function(spiderName) {
 		this.get('slyd').loadSpider(spiderName).then(function(spider) {
 			this.transitionToRoute('spider', spider);
+		}.bind(this), function() {
+			this.showHTTPAlert('Error Editing Spider', err);
 		}.bind(this));
 	},
 
@@ -68,10 +70,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 	actions: {
 
 		editSpider: function(spiderName) {
-			this.editSpider(spiderName).then(function() { },
-				function() {
-					this.showHTTPAlert('Error Editing Spider', err);
-				});
+			this.editSpider(spiderName);
 		},
 
 		addSpider: function() {
@@ -145,7 +144,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 				this.transitionToRoute('projects');
 			}.bind(this), function(err) {
 				this.showHTTPAlert('Revert Error', err);
-			});
+			}.bind(this));
 		},
 
 		conflictedFiles: function() {

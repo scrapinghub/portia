@@ -181,7 +181,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				'resizable=yes, scrollbars=yes');
 			newWindow.document.write(template.get('annotated_body'));
 			newWindow.document.title = ('Template ' + template.get('name'));
-		}, function(err) {this.showHTTPAlert('Error Getting Template', err);});
+		}, function(err) {this.showHTTPAlert('Error Getting Template', err);}.bind(this));
 	},
 
 	wrapItem: function(item) {
@@ -231,7 +231,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 					this.get('pendingFetches').removeObject(fetchId);
 					documentView.showError(data.error || data.response.status);
 				}
-			}.bind(this), function(err) {this.showHTTPAlert('Fetch Error', err);}
+			}.bind(this), function(err) {this.showHTTPAlert('Fetch Error', err);}.bind(this)
 		);
 	},
 
@@ -272,10 +272,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 					this.editTemplate(template_name);
 				}.bind(this), function(err) {
 					this.showHTTPAlert('Save Error', err);
-				});
+				}.bind(this));
 			}.bind(this), function(err) {
 				this.showHTTPAlert('Save Error', err);
-			}
+			}.bind(this)
 		);
 	},
 
@@ -326,10 +326,10 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		this.set('saving', true);
 		return this.get('slyd').saveSpider(this.get('content')).then(function() {
 			this.set('saving', false);
-		}.bind(this),
-			function(err) {
-				this.showHTTPAlert('Save Error', err);
-			});
+		}.bind(this),function(err) {
+			this.set('saving', false);
+			this.showHTTPAlert('Save Error', err);
+		}.bind(this));
 	},
 
 	reset: function() {
@@ -357,7 +357,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				}.bind(this),
 				function(err) {
 					this.showHTTPAlert('Fetch Error', err);
-				}
+				}.bind(this)
 			);
 		} else {
 			this.get('documentView').hideLoading();
@@ -383,7 +383,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			this.get('slyd').deleteTemplate(this.get('name'), templateName).then(
 				function() { }, function(err) {
 					this.showHTTPAlert('Delete Error', err);
-				});
+				}.bind(this));
 		},
 
 		viewTemplate: function(templateName) {

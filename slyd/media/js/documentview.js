@@ -615,8 +615,8 @@ ASTool.DocumentView = Em.Object.extend({
 					Ember.run(function(){
 						self.redrawNow();
 					});
-				}, 10000));
-				window.onresize = function() {
+				}, 5000));
+				window.resize = function() {
 					this.adjustSizes();
 					this.redrawNow();
 				}.bind(this);

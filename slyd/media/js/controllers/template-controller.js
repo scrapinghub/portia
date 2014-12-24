@@ -138,10 +138,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			return;
 		}
 		return this.get('slyd').saveTemplate(
-			this.get('controllers.spider.name'), this.get('content')).then(
-			function() { }, function(err) {
-				this.showHTTPAlert('Save Error', err);
-			});
+			this.get('controllers.spider.name'), this.get('content'))
 	},
 
 	saveExtractors: function() {
@@ -355,7 +352,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		createField: function(fieldName, fieldType) {
 			this.get('controllers.items').addField(this.get('scrapedItem'), fieldName, fieldType);
-			this.get('slyd').saveItems(this.get('items').toArray()).then(function() {},
+			this.get('slyd').saveItems(this.get('items').toArray()).then(function() { },
 				function(reason) {
 					this.showHTTPAlert('Save Error', reason);
 				}.bind(this)
