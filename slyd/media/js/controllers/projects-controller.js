@@ -19,12 +19,11 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 
 	openProject: function(projectName, revision) {
 		this.get('slyd').editProject(projectName, revision).then(function() {
-			this.set('slyd.project', projectName).then(function(){
-				this.transitionToRoute('project', { id: projectName });
-			},function(err) {
-				this.showHTTPAlert('Error Opening project "' + projectName + '"', err);
-			});
-		}.bind(this));
+			this.set('slyd.project', projectName);
+			this.transitionToRoute('project', { id: projectName });
+		}.bind(this), function(err) {
+			this.showHTTPAlert('Error Opening project "' + projectName + '"', err);
+		});
 	},
 
 	actions: {

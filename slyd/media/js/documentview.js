@@ -110,7 +110,7 @@ ASTool.DocumentView = Em.Object.extend({
 		mode). This method can be called manually but it gets called
 		automatically:
 
-			- Once every second.
+			- Once 10 seconds.
 			- After a window resize or iframe scroll.
 			- The sprites exposed by the datasource change.
 	*/
@@ -352,6 +352,7 @@ ASTool.DocumentView = Em.Object.extend({
 				that.attr({href: that.attr('_href')}).removeAttr('_href');
 			});
 		}
+		this.redrawNow();
 		this.cssEnabled = !this.cssEnabled;
 	},
 
@@ -614,7 +615,7 @@ ASTool.DocumentView = Em.Object.extend({
 					Ember.run(function(){
 						self.redrawNow();
 					});
-				}, 1000));
+				}, 10000));
 				window.onresize = function() {
 					this.adjustSizes();
 					this.redrawNow();
