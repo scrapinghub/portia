@@ -442,11 +442,12 @@ body{
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+	width:100px;
+	background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,1));
+	transition: width 0.4s ease-in-out;
 }
 
 .field-name:hover {
-	overflow: visible;
-	background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,1));
 	width: 300px;
 }
 
@@ -478,6 +479,11 @@ body{
 	color: #fff;
 	background-color: #444;
 	border-color: #9A9A9A;
+}
+
+.alert {
+	padding: 2px;
+	margin: 1px 0;
 }
 
 hr {
