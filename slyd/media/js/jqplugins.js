@@ -94,6 +94,14 @@ jQuery.fn.removePartialAnnotation = function() {
 	parentNode.normalize();
 };
 
+jQuery.fn.renameAttr = function(from, to) {
+	return this.each(function() {
+		var $this = jQuery(this);
+			$this.attr(to, $this.attr(from));
+			$this.removeAttr(from);
+	});
+}
+
 jQuery.expr[':'].hasAttrWithPrefix = jQuery.expr.createPseudo(function(prefix) {
 	return function(obj) {
 		for (var i = 0; i < obj.attributes.length; i++) {
