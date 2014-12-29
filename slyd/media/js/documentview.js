@@ -343,13 +343,25 @@ ASTool.DocumentView = Em.Object.extend({
 		iframe = this.getIframe();
 		if (this.cssEnabled) {
 			iframe.find('link[rel="stylesheet"]').each(function() {
+				$(this).renameAttr('href', '_href');
+			});
+			iframe.find('style').each(function() {
 				that = $(this);
-				that.attr({_href: that.attr('href')}).removeAttr('href');
+				that.renameAttr('type', '_type');
+				that.attr('type', 'text/disabled');
+			});
+			iframe.find('[style]').each(function() {
+				$(this).renameAttr('style', '_style');
 			});
 		} else {
 			iframe.find('link[rel="stylesheet"]').each(function() {
-				that = $(this);
-				that.attr({href: that.attr('_href')}).removeAttr('_href');
+				$(this).renameAttr('_href', 'href');
+			});
+			iframe.find('style').each(function() {
+				$(this).renameAttr('_type', 'type');
+			});
+			iframe.find('*[_style]').each(function() {
+				$(this).renameAttr('_style', 'style');
 			});
 		}
 		this.redrawNow();
