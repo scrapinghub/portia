@@ -762,7 +762,8 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 			this.showToolbox();
 			ASTool.ToolboxViewMixin.expandToolbox = false;
 		}
-		$('.accordion').accordion({ heightStyle: "content" });
+		$('.accordion').accordion({ heightStyle: "content",
+			collapsible: true });
 		this._super();
 	},
 });
