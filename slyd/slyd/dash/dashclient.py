@@ -6,7 +6,7 @@ import json
 from collections import defaultdict
 from cStringIO import StringIO
 from datetime import datetime
-from slyd.gitstorage.repoman import Repoman
+from slyd.gitstorage.repoman import Repoman, retry_operation
 
 from slybot.validation.schema import get_schema_validator
 
@@ -65,6 +65,7 @@ def import_project(name, apikey, repo):
     repo.save_files(files, 'master', 'Publishing initial import.')
 
 
+@retry_operation(retries=3, catches=(DeployError,))
 def deploy_project(name, apikey):
     """Archive a GIT project and upload it to Dash."""
     zbuff = StringIO()
