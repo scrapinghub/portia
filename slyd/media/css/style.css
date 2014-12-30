@@ -126,7 +126,7 @@ body{
 
 .editable-name {
 	font: bold 1.0em Helvetica,Arial,sans-serif;
-    cursor: pointer;
+    cursor: text;
     color: #6F92BF;
 }
 
