@@ -88,7 +88,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			selectedElement: element,
 			generated: !!generated,
 		});
-		this.get('annotations').pushObject(annotation);
+		this.get('annotations').unshiftObject(annotation);
 		return annotation;
 	},
 
