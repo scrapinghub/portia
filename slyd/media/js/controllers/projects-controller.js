@@ -108,6 +108,7 @@ ASTool.ProjectsIndexController = Em.ArrayController.extend(ASTool.BaseController
 
 	willEnter: function() {
 		this.get('documentView').showSpider();
+		this.set('slyd.project', null)
 		if (this.get('documentView.canvas')) {
 			this.set('documentView.canvas.interactionsBlocked', true);
 		}
