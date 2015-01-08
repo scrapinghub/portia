@@ -72,9 +72,11 @@ def deploy_project(name, apikey):
     _archive_project(name, zbuff)
     zbuff.reset()
     payload = {'apikey': apikey, 'project': name}
-    req = requests.post(DASH_API_URL + 'as/import.json',
+    req = requests.post(
+        DASH_API_URL + 'as/import.json',
         files=[('archive', ('archive', zbuff, 'application/zip'))],
-        params=payload)
+        params=payload
+    )
     if req.status_code == 200:
         project_url = DASH_API_URL.rsplit('/', 2)[0] + '/p/' + name
         return {
@@ -119,6 +121,7 @@ def _archive_project(name, buff):
             extractors = json.loads(repo.file_contents_for_branch(file_path,
                                                                   'master'))
 
+    seen_files = set()
     spiders = {}
     templates = defaultdict(list)
     for file_path in files_list:
@@ -144,6 +147,12 @@ def _archive_project(name, buff):
                 continue
         else:
             _add_to_archive(archive, file_path, file_contents, now)
+        seen_files.add(file_path)
+
+    # Add empty placeholders for missing files required by dash
+    for file_path in {'extractors.json', 'items.json'} - seen_files:
+        _add_to_archive(archive, file_path, '{}', now)
+
     for name, (path, json_spec) in spiders.iteritems():
         json_spec.pop('template_names')
         json_spec['templates'] = templates[name]
