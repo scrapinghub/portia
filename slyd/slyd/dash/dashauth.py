@@ -1,16 +1,10 @@
 import requests
-import os
-import json
 
 from datetime import datetime, timedelta
-from requests import exceptions as request_exceptions
 from zope.interface import implements
 from twisted.cred import portal, checkers, credentials, error as credError
-from twisted.internet import defer, reactor
-from twisted.web import static, resource
+from twisted.internet import defer
 from twisted.web.resource import Resource, IResource
-from twisted.web.http import HTTPChannel
-from twisted.web import server
 from twisted.web.guard import HTTPAuthSessionWrapper
 from twisted.web.guard import BasicCredentialFactory
 
@@ -36,8 +30,7 @@ class ApiKeyChecker(object):
 
     def _validate_apikey(self, apikey):
         payload = {'apikey': apikey}
-        r = requests.get(self.dash_api_url + 'users/get.json',
-            params=payload)
+        r = requests.get(self.dash_api_url + 'users/get.json', params=payload)
         auth_info = r.json()
         if auth_info['status'] != 'ok':
             raise InvalidApiKey('Invalid apikey')
@@ -48,7 +41,7 @@ class ApiKeyChecker(object):
 
     def _expired(self, auth_info):
         return datetime.now() > auth_info['expires_at']
-      
+
     def requestAvatarId(self, credentials):
         auth_info = None
         try:
