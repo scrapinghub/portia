@@ -1,10 +1,12 @@
 import json
 from os.path import join
 from functools import wraps
-from twisted.internet.defer import Deferred
+
 from twisted.internet.threads import deferToThread
+
 from slyd.projects import ProjectsManager
 from slyd.projecttemplates import templates
+from slyd.errors import BadRequest
 from .repoman import Repoman
 
 
@@ -63,7 +65,11 @@ class GitProjectsManager(ProjectsManager):
             join('spiders', '__init__.py'): '',
             join('spiders', 'settings.py'): templates['SETTINGS'],
         }
-        Repoman.create_repo(name).save_files(project_files, 'master')
+        try:
+            Repoman.create_repo(name).save_files(project_files, 'master')
+        except NameError:
+            raise BadRequest("Bad Request",
+                             "Project already exists with that name")
 
     def remove_project(self, name):
         Repoman.delete_repo(name)
@@ -88,10 +94,10 @@ class GitProjectsManager(ProjectsManager):
 
     def project_revisions(self, name):
         repoman = self._open_repo(name)
-        return json.dumps({ 'revisions': repoman.get_published_revisions() })
+        return json.dumps({'revisions': repoman.get_published_revisions()})
 
     @run_in_thread
-    def conflicted_files(self, name):        
+    def conflicted_files(self, name):
         repoman = self._open_repo(name)
         return json.dumps(
             repoman.get_branch_conflicted_files(
@@ -105,5 +111,6 @@ class GitProjectsManager(ProjectsManager):
 
     def save_file(self, name, file_path, file_contents):
         repoman = self._open_repo(name)
-        repoman.save_file(file_path, json.dumps(file_contents,
+        repoman.save_file(file_path, json.dumps(
+            file_contents,
             sort_keys=True, indent=4), self._get_branch(repoman))

@@ -6,7 +6,6 @@ from functools import wraps
 
 from scrapy.utils.misc import load_object
 
-
 from dulwich.objects import Blob, Tree, Commit, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
 from dulwich.errors import NotGitRepository
@@ -29,7 +28,6 @@ FILE_MODE = 0100644
 def retry_operation(retries=3, catches=(Exception,)):
     '''
     :param retries: Number of times to attempt the operation
-    :param defer: Number of miliseconds to wait between operations
     :param catches: Which exceptions to catch and trigger a retry
     '''
     def wrapper(func):
@@ -82,6 +80,8 @@ class Repoman(object):
     @classmethod
     def create_repo(cls, repo_name, author=None):
         '''Creates a new repository named repo_name.'''
+        if cls.storage.repo_exists(repo_name):
+            raise NameError()
         repoman = cls(author)
         repoman._repo = cls.storage.init_bare(repo_name)
         tree = Tree()
