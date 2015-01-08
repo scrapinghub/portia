@@ -3,6 +3,7 @@ from os.path import join
 from twisted.web.resource import NoResource, ErrorPage
 from twisted.internet.defer import Deferred
 from twisted.web.server import NOT_DONE_YET
+from .errors import BaseError
 from .resource import SlydJsonResource
 from .projecttemplates import templates
 
@@ -55,7 +56,11 @@ class ProjectsManagerResource(SlydJsonResource):
             if ex.errno == errno.ENOENT:
                 self.error(404, "Not Found", "No such resource")
             elif ex.errno == errno.EEXIST or ex.errno == errno.ENOTEMPTY:
-                self.bad_request("A project with that name already exists")
+                self.error(400, "Bad Request",
+                           "A project with that name already exists")
+            raise
+        except BaseError as ex:
+            self.error(ex.status, ex.title, ex.body)
             raise
         return retval or ''
 
@@ -160,4 +165,4 @@ class ProjectsManager(object):
 
     def validate_project_name(self, name):
         if not allowed_project_name(name):
-            self.bad_request('invalid project name %s' % name)
+            self.error(400, 'Bad Request', 'invalid project name %s' % name)
