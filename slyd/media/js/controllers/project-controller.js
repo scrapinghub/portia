@@ -14,6 +14,14 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 
 	isDeploying: false,
 
+	filteredSpiders: function() {
+		var filterText = this.filterSpider || '';
+		var re = new RegExp(filterText.replace(/[^A-Z0-9_-]*/gi, ''), 'i');
+		return this.filter(function(spiderName) {
+			if (re.test(spiderName)) return true;
+		});
+	}.property('filterSpider'),
+
 	createSpiderDisabled: function() {
 		return Em.isEmpty(this.get('spiderPage'));
 	}.property('spiderPage'),
