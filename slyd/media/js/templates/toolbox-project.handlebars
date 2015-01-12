@@ -11,8 +11,12 @@
 
 	<h4>Spiders</h4>
 	<div>
+		<div class="input-group col-md-11">
+			{{input value=filterSpider class="form-control" placeholder="Filter Spiders"}}
+			<div class="input-group-addon"><span class="fa fa-search"></span></div>
+		</div>
 		<div class="scrolling-container" style="max-height:600px">
-			{{#each}}
+			{{#each controller.filteredSpiders}}
 				<div class="row">
 					<div class="col-md-9 clickable-url">
 						{{#bs-button clicked="editSpider" clickedParam=this type="light"}}
@@ -24,7 +28,11 @@
 					</div>
 				</div>
 			{{else}}
-				<h3>No spiders for this project.</h3>
+				{{#if controller.filterSpider}}
+					<h4>No Spiders matching "{{controller.filterSpider}}" found in this project.</h4>
+				{{else}}
+					<h4>No spiders for this project.</h4>
+				{{/if}}
 			{{/each}}
 		</div>
 	</div>
