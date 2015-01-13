@@ -3,6 +3,7 @@ import os
 from os.path import splitext, split, join
 from .repoman import Repoman
 from slyd.projectspec import ProjectSpec
+from slyd.errors import BadRequest
 
 
 class GitProjectSpec(ProjectSpec):
@@ -39,6 +40,11 @@ class GitProjectSpec(ProjectSpec):
                 and f.endswith(".json")]
 
     def rename_spider(self, from_name, to_name):
+        if to_name == from_name:
+            return
+        if to_name in self.list_spiders():
+            raise BadRequest('Bad Request', 'Spider already exists with the '
+                             'name, "%s"' % to_name)
         self._open_repo().rename_file(self._rfile_name('spiders', from_name),
                                       self._rfile_name('spiders', to_name),
                                       self._get_branch())

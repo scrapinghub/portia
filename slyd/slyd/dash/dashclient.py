@@ -87,6 +87,16 @@ def deploy_project(name, apikey):
         raise DeployError('Deploy to Dash failed: %s' % req.text)
 
 
+def search_spider_names(project, apikey, name=''):
+    """Search existing spider names in a project"""
+    payload = {'project': project, 'apikey': apikey, 'spider': name}
+    req = requests.get(DASH_API_URL + 'spiders/list.json',
+                       params=payload)
+    if req.status_code == 200:
+        return [s.get('id') for s in req.json().get('spiders', [])]
+    return []
+
+
 def _fix_items(items):
     """Fixes issues with the imported items."""
     for _, item in items.iteritems():
