@@ -20,7 +20,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		return this.filter(function(spiderName) {
 			if (re.test(spiderName)) return true;
 		});
-	}.property('filterSpider'),
+	}.property('filterSpider', 'model'),
 
 	createSpiderDisabled: function() {
 		return Em.isEmpty(this.get('spiderPage'));
