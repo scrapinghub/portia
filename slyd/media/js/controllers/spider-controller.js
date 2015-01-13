@@ -458,7 +458,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 				}.bind(this),
 				function(reason) {
 					this.set('name', oldName);
-					this.showAlert('Save Error','The name ' + newName + ' is not a valid spider name.');
+					this.showHTTPAlert('Save Error', reason);
 				}.bind(this)
 			);
 		},

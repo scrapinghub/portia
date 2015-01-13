@@ -50,8 +50,7 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 
 	showHTTPAlert: function(title, err, okCallback) {
 		reason = err.reason;
-		content = 'The server returned ' + reason['textStatus'] + '(' + reason['errorThrown'] + ')' +
-				 '<br/>' + reason['jqXHR'].responseText;
+		content = reason['jqXHR'].responseText;
 		return this.showAlert(title, content, okCallback);
 	},
 
@@ -67,14 +66,8 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 	},
 
 	showModal: function(title, content, buttons, okCallback, cancelCallback) {
-		if (okCallback === null)
-			this._modalOKCallback = null;
-		else
-			this._modalOKCallback = okCallback;
-		if (cancelCallback === null)
-			this._modalCancelCallback = null;
-		else
-			this._modalCancelCallback = cancelCallback;
+		this._modalOKCallback = okCallback;
+		this._modalCancelCallback = cancelCallback;
 		this._modalContent = content;
 		return Bootstrap.ModalManager.open(this._modalName, title, 'modal', buttons, this);
 	},
