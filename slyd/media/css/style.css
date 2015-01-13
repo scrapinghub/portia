@@ -469,6 +469,11 @@ body{
 	color: #6F92BF;
 }
 
+.modal-body h1 {
+	font-size: 16px;
+	margin-top: 0px;
+}
+
 .btn-black {
 	color: #fff;
 	background-color: #222;
