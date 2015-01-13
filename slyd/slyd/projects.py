@@ -6,6 +6,7 @@ from twisted.web.server import NOT_DONE_YET
 from .errors import BaseError
 from .resource import SlydJsonResource
 from .projecttemplates import templates
+from .errors import BaseHTTPError
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -83,12 +84,15 @@ class ProjectsManagerResource(SlydJsonResource):
 
         project_manager = self.spec_manager.project_manager(request.auth_info)
         obj = self.read_json(request)
-        retval = self.handle_project_command(project_manager, obj)
-        if isinstance(retval, Deferred):
-            retval.addCallbacks(finish_request, request_failed)
-            return NOT_DONE_YET
-        else:
-            return retval
+        try:
+            retval = self.handle_project_command(project_manager, obj)
+            if isinstance(retval, Deferred):
+                retval.addCallbacks(finish_request, request_failed)
+                return NOT_DONE_YET
+            else:
+                return retval
+        except BaseHTTPError as ex:
+            self.error(ex.status, ex.title, ex.body)
 
 
 def allowed_project_name(name):

@@ -6,6 +6,7 @@ from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 from .annotations import apply_annotations
 from .html import html4annotation
+from .errors import BaseHTTPError
 
 
 def create_project_resource(spec_manager):
@@ -87,6 +88,11 @@ class ProjectSpec(object):
                 raise
 
     def rename_spider(self, from_name, to_name):
+        if to_name == from_name:
+            return
+        if to_name in self.list_spiders():
+            raise IOError('Can\'t rename spider as a spider with the name, '
+                          '"%s", already exists for this project.' % to_name)
         os.rename(self._rfilename('spiders', from_name),
                   self._rfilename('spiders', to_name))
 
@@ -241,6 +247,8 @@ class ProjectResource(SlydJsonResource):
             self.error(404, "Not Found", "No such resource")
         except ValidationError as ex:
             self.bad_request("Json failed validation: %s" % ex.message)
+        except BaseHTTPError as ex:
+            self.error(ex.status, ex.title, ex.body)
         else:
             project_spec.savejson(obj, request.postpath)
             return ''
