@@ -52,6 +52,7 @@ body{
 	background-color: #F5F5F5;
 	background-image: linear-gradient(to bottom, #F5F5F5 0px, #F8F8F8 100%);
 	box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);
+	padding: 3px;
 }
 
 #topbar .url {
@@ -63,12 +64,18 @@ body{
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	padding: 7px;
 }
 
 #topbar .nav-container {
 	float:left;
 	text-align:left;
 	width:30%
+}
+
+#topbar .small-label {
+	padding: 7px 5px 0 0;
+	float: left;
 }
 
 #title {
@@ -169,7 +176,7 @@ body{
 .create-extractor-container {
 	margin:10px 0px 0px 0px;
 	border:solid 1px #DDD;
-	height:68px;
+	height:100px;
 	padding:8px;
 	border-radius:5px;
 }
@@ -460,6 +467,14 @@ body{
 
 .pattern {
 	width: 90%;
+}
+
+.button-align {
+	padding-rop: 2px;
+}
+
+.button-align-sm {
+	padding-top: 4px;
 }
 
 .btn.btn-light {

@@ -43,7 +43,7 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 			return;
 		this._modalName = 'AlertModal';
 		buttons =  [
-			Ember.Object.create({dismiss: 'modal', type: "primary", label: "OK", clicked: 'modalConfirmed'})
+			Ember.Object.create({dismiss: 'modal', type: "primary", label: "OK", clicked: 'modalConfirmed', size: 'sm'})
 		];
 		return this.showModal(title, content, buttons, okCallback);
 	},
@@ -54,13 +54,15 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 		return this.showAlert(title, content, okCallback);
 	},
 
-	showConfirm: function(title, content, okCallback, cancelCallback) {
-		if (this._modalName)
+	showConfirm: function(title, content, okCallback, cancelCallback, button_class, button_text) {
+		if (this._modalName) // There is already a modal visible
 			return;
+		if (button_class === undefined) button_class = 'primary';
+		if (button_text === undefined) button_text = 'OK';
 		this._modalName = 'ConfirmModal';
 		buttons =  [
-			Ember.Object.create({dismiss: 'modal', type: "primary", label: "OK", clicked: 'modalConfirmed'}),
-			Ember.Object.create({dismiss: 'modal', type: "default", label: "Cancel", clicked: 'modalCancelled'})
+			Ember.Object.create({dismiss: 'modal', type: "default", label: "Cancel", clicked: 'modalCancelled', size: 'sm'}),
+			Ember.Object.create({dismiss: 'modal', type: button_class, label: button_text, clicked: 'modalConfirmed', size: 'sm'})
 		];
 		return this.showModal(title, content, buttons, okCallback, cancelCallback);
 	},

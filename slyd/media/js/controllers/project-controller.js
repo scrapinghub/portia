@@ -99,7 +99,10 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 							this.showHTTPAlert('Delete Error', err);
 						}.bind(this)
 					);
-				}.bind(this)
+				}.bind(this),
+				function() {},
+				'danger',
+				'Yes, Delete'
 			).bind(this);
 		},
 
