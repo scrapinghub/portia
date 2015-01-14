@@ -77,12 +77,12 @@
 			{{/each}}
 		</div>
 		<div class="create-extractor-container">
-			<div style="float:left;width:53%;text-align:right">
+			<div style="float:left;width:53%;">
 				{{view ASTool.TextField value=newReExtractor width='160px' name='reExtractorField' placeholder='Enter a RegEx' action="createExtractor"}}
 				<div class="small-label" style="margin:5px 0px 5px 0px">- or choose a type -</div>
 				<div class="typeBox">{{view ASTool.TypeSelect value=newTypeExtractor name='typeExtractorCombo' width='140px'}}</div>
 			</div>
-			<div style="float:left;width:47%;margin-top: 23px">
+			<div style="float:left;width:40%;margin-top: 23px">
 				{{#bs-button clicked="createExtractor" icon="fa fa-icon fa-plus" disabled=createExtractorDisabled type="primary"}}
 					New extractor
 				{{/bs-button}}
