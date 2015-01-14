@@ -3,6 +3,7 @@ import os
 from os.path import splitext, split, join
 from .repoman import Repoman
 from slyd.projectspec import ProjectSpec
+from slyd.gitstorage.projects import retry_operation
 from slyd.errors import BadRequest
 
 
@@ -73,6 +74,7 @@ class GitProjectSpec(ProjectSpec):
     def writejson(self, outf, *resources):
         outf.write(self._rfile_contents(resources))
 
+    @retry_operation(catches=(KeyError,), seconds=0.5)
     def savejson(self, obj, resources):
         self._open_repo().save_file(self._rfile_name(*resources),
                                     json.dumps(obj, sort_keys=True, indent=4),

@@ -3,6 +3,9 @@ from os.path import join
 from functools import wraps
 
 from twisted.internet.threads import deferToThread
+from twisted.internet.task import deferLater
+from twisted.internet.defer import inlineCallbacks
+from twisted.internet import reactor
 
 from slyd.projects import ProjectsManager
 from slyd.projecttemplates import templates
@@ -17,6 +20,32 @@ def run_in_thread(func):
     def wrapper(*args, **kwargs):
         return deferToThread(func, *args, **kwargs)
 
+    return wrapper
+
+
+def retry_operation(retries=3, catches=(Exception,), seconds=0):
+    '''
+    :param retries: Number of times to attempt the operation
+    :param catches: Which exceptions to catch and trigger a retry
+    :param seconds: How long to wait between retries
+    '''
+    def wrapper(func):
+        def sleep(sec):
+            return deferLater(reactor, sec, lambda: None)
+
+        @wraps(func)
+        @inlineCallbacks
+        def wrapped(*args, **kwargs):
+            err = None
+            for _ in range(retries):
+                try:
+                    yield func(*args, **kwargs)
+                except catches as e:
+                    err = e
+                    yield sleep(seconds)
+            if err is not None:
+                raise err
+        return wrapped
     return wrapper
 
 
