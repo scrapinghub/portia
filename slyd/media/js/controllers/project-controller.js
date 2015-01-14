@@ -20,7 +20,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 		return this.filter(function(spiderName) {
 			if (re.test(spiderName)) return true;
 		});
-	}.property('filterSpider', 'model'),
+	}.property('filterSpider', 'model', 'refreshSpiders'),
 
 	createSpiderDisabled: function() {
 		return Em.isEmpty(this.get('spiderPage'));
@@ -92,6 +92,7 @@ ASTool.ProjectIndexController = Em.ArrayController.extend(ASTool.BaseControllerM
 					this.get('slyd').deleteSpider(spiderName).then(
 						function() {
 							this.removeObject(spiderName);
+							this.set('refreshSpiders', !this.get('refreshSpiders'));
 							this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
 						}.bind(this),
 						function(err) {
