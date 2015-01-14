@@ -23,6 +23,7 @@ SPEC_FACTORY = {
     'CAPABILITIES': {
         'version_control': False,
         'create_projects': True,
+        'delete_projects': True,
         'rename_projects': True,
         'deploy_projects': False,
     }
