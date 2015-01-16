@@ -78,6 +78,11 @@ body{
 	float: left;
 }
 
+#topbar .extracted-items-container .small-label {
+	padding: 0 5px 0 0;
+	float: none;
+}
+
 #title {
 	margin: 10px 0px 10px 0px;
 	padding: 2px;
