@@ -43,7 +43,9 @@ Breadcrumbs compponent.
             return;
           }
           routeName = route.handler.routeName;
-          if ((_ref1 = route.handler.breadcrumbs) != null ? _ref1.name : void 0) {
+          if (route.context != undefined && route.context.id) {
+            displayName = route.context.id;
+          } else if ((_ref1 = route.handler.breadcrumbs) != null ? _ref1.name : void 0) {
             displayName = route.handler.breadcrumbs.name;
           } else if ((_ref2 = _this.get('nameDictionary')) != null ? _ref2["" + _this.dictionaryNamePrefix + "." + routeName] : void 0) {
             displayName = _this.get('nameDictionary')["" + _this.dictionaryNamePrefix + "." + routeName];
@@ -65,7 +67,7 @@ Breadcrumbs compponent.
           if (route.isDynamic) {
             crumb.setProperties({
               model: route.handler.context,
-              name: route.handler.context.get('name')
+              name: route.handler.context.get('name') || name
             });
           }
           return _this.get('content').pushObject(crumb);
