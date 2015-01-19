@@ -5,23 +5,23 @@
 <div class="accordion">
 	<h3>Selected region</h3>
 	<div>
-		<h4>Ancestors</h4>{{view ASTool.InlineHelp message="selected_region_ancestors"}}
+		<h4>Ancestors</h4>{{view 'inline-help' message="selected_region_ancestors"}}
 		<div class="scrolling-container" style="max-height:180px;">
 			<ul style="list-style-type:none;padding:0px;margin:0px">
-				{{#each ancestorPaths}}
+				{{#each path in ancestorPaths}}
 					<li style="float:left; padding:3px 2px 3px 2px;">
-						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label minWidth="73px" class="light-button"}}
+						{{view 'css-path-widget' action="selectElement" argument=path.element label=path.label minWidth="73px" class="light-button"}}
 					</li>
 				{{/each}}
 			</ul>
 		</div>
 		<br/>
-		<h4>Children</h4>{{view ASTool.InlineHelp message="selected_region_children"}}
+		<h4>Children</h4>{{view 'inline-help' message="selected_region_children"}}
 		<div class="scrolling-container" style="max-height:180px;">
 			<ul style="list-style-type:none;padding:0px;margin:0px">
-				{{#each childPaths}}
+				{{#each path in childPaths}}
 					<li style="float:left;padding:3px 2px 3px 2px;">
-						{{view ASTool.CSSPathWidget action="selectElement" argument=this.element label=this.label  minWidth="73px" class="light-button"}}
+						{{view 'css-path-widget' action="selectElement" argument=path.element label=path.label  minWidth="73px" class="light-button"}}
 					</li>
 				{{/each}}
 			</ul>
@@ -33,14 +33,14 @@
 		{{#unless mappingAttribute}}
 			<h4>Not mapped</h4>
 			<div class="scrolling-container" style="max-height:180px;">
-				{{#each unmappedAttributes}}
+				{{#each attr in unmappedAttributes}}
 					<div class="attribute-field-mapping">
-						{{#view ASTool.ElemAttributeView attribute=this}}
+						{{#view 'elem-attribute' attribute=attr}}
 							<div>
 								<div class="attribute-name">{{view.name}}</div>
 								<span style="float:right">
-									{{bs-button clicked="mapAttribute" clickedParam=this icon="fa fa-icon fa-exchange" type="primary" size="xs"}}
-									{{bs-button clicked="makeSticky" clickedParam=this icon="fa fa-icon fa-thumb-tack" type="primary" title="Make this attribute sticky" size="xs"}}
+									{{bs-button clicked="mapAttribute" clickedParam=attr icon="fa fa-icon fa-exchange" type="primary" size="xs"}}
+									{{bs-button clicked="makeSticky" clickedParam=attr icon="fa fa-icon fa-thumb-tack" type="primary" title="Make this attribute sticky" size="xs"}}
 								</span>
 							</div>
 							<div class="attribute-val">{{view.value}}</div>
@@ -55,12 +55,12 @@
 
 			<h4>Mapped</h4>
 			<div class="scrolling-container" style="max-height:180px;">
-				{{#each mappedAttributes}}
+				{{#each attr in mappedAttributes}}
 					<div class="attribute-field-mapping" style="padding-bottom:14px">
-						{{#view ASTool.ElemAttributeView attribute=this}}
+						{{#view 'elem-attribute' attribute=attr}}
 							<div class="attribute-name">{{view.name}} -> {{view.field}}</div>
 							<span style="float:right">
-								{{bs-button clicked="unmapAttribute" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+								{{bs-button clicked="unmapAttribute" clickedParam=attr icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 							</span>
 						{{/view}}
 					</div>
@@ -71,14 +71,14 @@
 
 			<div style="margin-bottom:10px"></div>
 
-			<h4>Required attributes</h4>{{view ASTool.InlineHelp message="sticky_fields"}}
+			<h4>Required attributes</h4>{{view 'inline-help' message="sticky_fields"}}
 			<div class="scrolling-container" style="max-height:180px;">
-				{{#each stickyAttributes}}
+				{{#each attr in stickyAttributes}}
 					<div class="attribute-field-mapping" style="padding-bottom:14px">
-						{{#view ASTool.ElemAttributeView attribute=this}}
+						{{#view 'elem-attribute' attribute=attr}}
 							<div class="attribute-name">{{view.name}}</div>
 							<span style="float:right">
-								{{bs-button clicked="unmapAttribute" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+								{{bs-button clicked="unmapAttribute" clickedParam=attr icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 							</span>
 						{{/view}}
 					</div>
@@ -94,14 +94,14 @@
 	<h3>Ignored subregions</h3>
 	<div style="text-align:center">
 		<div class="scrolling-container">
-			{{#each model.ignores}}
+			{{#each ignore in model.ignores}}
 				<div>
-					{{#view ASTool.IgnoreWidget ignore=this}}
+					{{#view 'ignore-widget' ignore=ignore}}
 						<div class="ignore-widget">
 							<label class="small-label">Ignore elements beneath</label>
-							{{view ASTool.CheckBox checked=this.ignoreBeneath name="ignoreBeneath"}}
+							{{view 'check-box' checked=ignore.ignoreBeneath name="ignoreBeneath"}}
 						</div>
-						{{bs-button clicked="deleteIgnore" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+						{{bs-button clicked="deleteIgnore" clickedParam=ignore icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					{{/view}}
 
 				</div>
@@ -110,8 +110,8 @@
 			{{/each}}
 		</div>
 		<div style="margin-top:10px;">
-			{{view ASTool.ToggleButton checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
-			<label for="addIgnore">Ignore region</label>{{view ASTool.InlineHelp message="ignored_subregions"}}
+			{{view 'toggle-button' checked=selectingIgnore icon="ui-icon-cancel" id="addIgnore" name="addIgnore"}}
+			<label for="addIgnore">Ignore region</label>{{view 'inline-help' message="ignored_subregions"}}
 		</div>
 	</div>
 
@@ -119,8 +119,8 @@
 	<div>
 		<div class="variantBox" style="margin-right:20px">
 			<label class="important-label">Choose a variant:</label>
-			{{view ASTool.VariantSelect annotation=model}}
-			{{view ASTool.InlineHelp message="variant"}}
+			{{view 'variant-select' annotation=model}}
+			{{view 'inline-help' message="variant"}}
 		</div>
 	</div>
 </div>

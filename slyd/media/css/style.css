@@ -59,8 +59,8 @@ body{
 	color:#444;
 	float:left;
 	padding:4px;
-	margin:1px 30px 0px 6px;
-	width: 300px;
+	margin:1px 20px 0px 6px;
+	width: 480px;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -474,8 +474,18 @@ body{
 	width: 90%;
 }
 
+.button-spacer {
+	text-align: center;
+	font-size:1.1em;
+	margin-top:10px
+}
+
+.button-spacer > button {
+	margin-right: 4px;
+}
+
 .button-align {
-	padding-rop: 2px;
+	padding-top: 2px;
 }
 
 .button-align-sm {

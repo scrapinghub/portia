@@ -20,17 +20,15 @@ ASTool.BaseControllerMixin = Ember.Mixin.create({
 		modalConfirmed: function() {
 			name = this._modalName;
 			this._modalName = null;
-			if (typeof(this._modalOKCallback) === 'function')
-				this._modalOKCallback();
-			return Bootstrap.ModalManager.close(name);
+			if (typeof(this._modalOKCallback) === 'function') this._modalOKCallback();
+			if (name) return Bootstrap.ModalManager.get(name).destroy();
 		},
 
 		modalCancelled: function() {
 			name = this._modalName;
 			this._modalName = null;
-			if (typeof(this._modalCancelCallback) === 'function')
-				this._modalCancelCallback();
-			return Bootstrap.ModalManager.close(name);
+			if (typeof(this._modalCancelCallback) === 'function') this._modalCancelCallback();
+			if (name) return Bootstrap.ModalManager.get(name).destroy();
 		},
 	},
 

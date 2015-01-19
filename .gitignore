@@ -4,4 +4,8 @@
 
 # npm files
 node_modules/*
+slyd/dist/*
 npm-debug.log
+
+# Local Settings
+slyd/slyd/local_settings.py

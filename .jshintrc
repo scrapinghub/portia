@@ -1,0 +1,7 @@
+{
+    "indent": 1,
+    "trailing": true,
+    "onevar": false,
+    "jquery": true,
+    "sub": true 
+}

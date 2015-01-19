@@ -85,11 +85,11 @@ ASTool.ButtonView = Em.View.extend(JQ.Widget, {
 });
 
 
-ASTool.TextField = Em.TextField.extend({
+ASTool.TextFieldView = Em.TextField.extend({
 	width:null,
 	placeholder: null,
 	attributeBindings: ['placeholder', 'width'],
-	classNames: ['form-control input-sm'],
+	classNames: ['form-control', 'input-sm'],
 
 	didInsertElement: function() {
 		this._super();
@@ -101,7 +101,7 @@ ASTool.TextField = Em.TextField.extend({
 });
 
 
-ASTool.LoginField = ASTool.TextField.extend({
+ASTool.LoginFieldView = ASTool.TextFieldView.extend({
 	change: function() {
 		if (this.get('action')) {
 			this.triggerAction(this.get('action'));
@@ -110,7 +110,7 @@ ASTool.LoginField = ASTool.TextField.extend({
 });
 
 
-ASTool.TextArea = Em.TextArea.extend({
+ASTool.TextAreaView = Em.TextArea.extend({
 	width: null,
 	placeholder: null,
 	resize: false,
@@ -133,10 +133,10 @@ ASTool.TextArea = Em.TextArea.extend({
 	},
 });
 
-ASTool.CheckBox = Ember.Checkbox.extend();
+ASTool.CheckBoxView = Ember.Checkbox.extend();
 
 
-ASTool.ToggleButton = Ember.Checkbox.extend(JQ.Widget, {
+ASTool.ToggleButtonView = Ember.Checkbox.extend(JQ.Widget, {
 	uiType: 'button',
 	uiOptions: ['label', 'disabled', 'selected', 'checked'],
 
@@ -148,7 +148,7 @@ ASTool.ToggleButton = Ember.Checkbox.extend(JQ.Widget, {
 });
 
 
-ASTool.InlineTextField = Ember.View.extend({
+ASTool.InlineTextFieldView = Ember.View.extend({
 	tagName: 'span',
 	layoutName: 'inline-textfield',
 	validate: false,
@@ -190,7 +190,7 @@ ASTool.InlineTextField = Ember.View.extend({
 		done: function() {
 			var parentView = this.get('parentView');
 			if (parentView.get('isEditing')) {
-				this.value = this.value.trim();
+				this.set('value', this.value.trim());
 				if (parentView.validate && parentView.regex &&
 					!this.check_value()) {
 					return;
@@ -218,7 +218,7 @@ ASTool.InlineTextField = Ember.View.extend({
 
 /************************* Application views ****************************/
 
-ASTool.FollowSelect = ASTool.Select.extend({
+ASTool.FollowSelectView = ASTool.Select.extend({
 	name: 'followSelect',
 	content: [{ option: 'all', label: 'Follow all in-domain links' },
 			{ option: 'none', label: "Don't follow links" },
@@ -226,7 +226,7 @@ ASTool.FollowSelect = ASTool.Select.extend({
 });
 
 
-ASTool.TypeSelect = ASTool.Select.extend({
+ASTool.TypeSelectView = ASTool.Select.extend({
 
 	content: [{ option: 'text', label: 'text' },
 			{ option: 'number', label: 'number' },
@@ -239,7 +239,7 @@ ASTool.TypeSelect = ASTool.Select.extend({
 });
 
 
-ASTool.VariantSelect = ASTool.Select.extend({
+ASTool.VariantSelectView = ASTool.Select.extend({
 
 	annotation: null,
 
@@ -274,7 +274,7 @@ ASTool.VariantSelect = ASTool.Select.extend({
 });
 
 
-ASTool.ItemSelect = ASTool.Select.extend({
+ASTool.ItemSelectView = ASTool.Select.extend({
 
 	content: function() {
 		var options = this.get('controller.items').map(function(item) {
@@ -286,10 +286,10 @@ ASTool.ItemSelect = ASTool.Select.extend({
 });
 
 
-ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
+ASTool.AnnotationWidgetView = Em.View.extend(Ember.TargetActionSupport, {
 	tagName: 'div',
-	classNames: 'annotation-widget',
-	classNameBindings: 'inDoc: in-doc',
+	classNames: ['annotation-widget'],
+	classNameBindings: ['inDoc:in-doc'],
 	annotation: null,
 	attributeName: null,
 	fieldName: null,
@@ -357,7 +357,7 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 
 	attributeSelect: ASTool.Select.extend({
 		valueBinding: 'parentView.attributeName',
-		classNames: 'attribute',
+		classNames: ['attribute'],
 		attributeBindings: ['name'],
 		name: 'attributeSelect',
 
@@ -372,7 +372,7 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 
 	fieldSelect: ASTool.Select.extend({
 		valueBinding: 'parentView.fieldName',
-		classNames: 'field',
+		classNames: ['field'],
 		attributeBindings: ['name'],
 		name: 'fieldSelect',
 		prompt: '-select field-',
@@ -407,11 +407,11 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 		}.observes('controller.scrapedItem.fields.@each'),
 	}),
 
-	typeSelect: ASTool.TypeSelect.extend({
+	typeSelect: ASTool.TypeSelectView.extend({
 		valueBinding: 'parentView.fieldType',
 	}),
 
-	fieldTextField: ASTool.TextField.extend({
+	fieldTextField: ASTool.TextFieldView.extend({
 		valueBinding: 'parentView.fieldName',
 		placeholder: 'enter name',
 	}),
@@ -421,7 +421,11 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 	}.property('annotation.mappedAttributes'),
 
 	hasMultipleMappings: function() {
-		return this.get('annotation.mappedAttributes').length > 1;
+		try {
+			return this.get('annotation.mappedAttributes').length > 1;
+		} catch (e) {
+			return false
+		}
 	}.property('annotation.mappedAttributes'),
 
 	mouseEnter: function(event) {
@@ -474,7 +478,7 @@ ASTool.AnnotationWidget = Em.View.extend(Ember.TargetActionSupport, {
 });
 
 
-ASTool.CSSPathWidget = ASTool.ButtonView.extend({
+ASTool.CssPathWidgetView = ASTool.ButtonView.extend({
 
 	mouseEnter: function() {
 		this.get('controller').send('highlightElement', this.get('argument'));
@@ -486,7 +490,7 @@ ASTool.CSSPathWidget = ASTool.ButtonView.extend({
 });
 
 
-ASTool.IgnoreWidget = Em.View.extend({
+ASTool.IgnoreWidgetView = Em.View.extend({
 	ignore: null,
 
 	mouseEnter: function() {
@@ -524,7 +528,7 @@ ASTool.EditItemView = Ember.View.extend({
 });
 
 
-ASTool.RenameTextField = ASTool.InlineTextField.extend({
+ASTool.RenameTextFieldView = ASTool.InlineTextFieldView.extend({
 	oldValue: null,
 	attributeBindings: ['name'],
 	name: 'rename',
@@ -545,7 +549,7 @@ ASTool.RenameTextField = ASTool.InlineTextField.extend({
 });
 
 
-ASTool.PatternTextField = ASTool.InlineTextField.extend({
+ASTool.PatternTextFieldView = ASTool.InlineTextFieldView.extend({
 	attributeBindings: ['name'],
 	name: 'pattern',
 	regex: false,
@@ -648,7 +652,7 @@ ASTool.ExtractorView = Em.View.extend(DragNDrop.Draggable, {
 });
 
 
-ASTool.ExtractorDropTarget = Ember.View.extend(DragNDrop.Droppable, {
+ASTool.ExtractorDropTargetView = Ember.View.extend(DragNDrop.Droppable, {
 	tagName: 'span',
 	classNames: ['drop-target'],
 	classNameBindings: ['dragAction'],
@@ -671,7 +675,7 @@ ASTool.ExtractorDropTarget = Ember.View.extend(DragNDrop.Droppable, {
 });
 
 
-ASTool.RequiredFieldCheckbox = ASTool.CheckBox.extend({
+ASTool.RequiredFieldCheckboxView = ASTool.CheckBoxView.extend({
 	fieldName: null,
 
 	change: function() {
@@ -769,7 +773,7 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 });
 
 
-ASTool.PinToolBoxButton = ASTool.ButtonView.extend({
+ASTool.PinToolBoxButtonView = ASTool.ButtonView.extend({
 	icon: function() {
 		return ASTool.ToolboxViewMixin.pinned ? 'ui-icon-pin-s' : 'ui-icon-pin-w';
 	}.property('pinned'),
@@ -785,7 +789,7 @@ ASTool.PinToolBoxButton = ASTool.ButtonView.extend({
 });
 
 
-ASTool.InlineHelp = Em.View.extend({
+ASTool.InlineHelpView = Em.View.extend({
 	tagName: 'img',
 	src: 'images/info.png',
 	message: null,
@@ -798,7 +802,7 @@ ASTool.InlineHelp = Em.View.extend({
 });
 
 
-ASTool.LabelWithTooltip = Em.View.extend ({
+ASTool.LabelWithTooltipView = Em.View.extend ({
 	attributeBindings: ['title'],
 
 	updateTooltip: function() {
@@ -813,7 +817,7 @@ ASTool.ImageView = Em.View.extend({
 	attributeBindings: ['src', 'width'],
 });
 
-ASTool.CollapsibleText = Em.View.extend({
+ASTool.CollapsibleTextView = Em.View.extend({
 	fullText: null,
 	tagName: 'span',
 	collapsed: true,
@@ -838,7 +842,7 @@ ASTool.CollapsibleText = Em.View.extend({
 	},
 });
 
-ASTool.CopyClipboard = Em.View.extend({
+ASTool.CopyClipboardView = Em.View.extend({
 	tagName: 'embed',
 	text: '',
 	src: 'clippy.swf',
@@ -893,7 +897,7 @@ ASTool.ConflictResolverView = Em.View.extend({
 	}
 });
 
-ASTool.JSONView = Em.View.extend({
+ASTool.JsonView = Em.View.extend({
 	templateName: 'json-view',
 	tagName: 'span',
 	json: null,

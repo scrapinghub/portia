@@ -1,5 +1,5 @@
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
-	{{#view ASTool.RenameTextField value=name}}
+	{{#view 'rename-text-field' value=name}}
 		<div class="editable-name">Template {{name}}</div>
 	{{/view}}
 </div>
@@ -14,19 +14,19 @@
 				<span class="small-label" style="float:left;text-align:center;margin-left:10px">Variant</span>
 			</div>
 			<div class="scrolling-container">
-				{{#each annotations}}
-					{{view ASTool.AnnotationWidget annotation=this templateName="annotation-widget"}}
+				{{#each anno in annotations}}
+					{{view 'annotation-widget' annotation=anno templateName="annotation-widget"}}
 				{{/each}}
 			</div>
-			{{else}}
-				<h5>No annotations have been created yet.</h5>
+		{{else}}
+			<h5>No annotations have been created yet.</h5>
 		{{/if}}
 	</div>
 
 	<h3>Extracted item</h3>
 	<div class="section" style="text-align:center;">
-		<label class="small-label">Extracted item type:</label> {{view ASTool.ItemSelect value=scrapes}}
-		{{view ASTool.InlineHelp message="select_item"}}
+		<label class="small-label">Extracted item type:</label> {{view 'item-select' value=scrapes}}
+		{{view 'inline-help' message="select_item"}}
 		<div style="margin-top:10px">
 			{{#bs-button clicked="editItems" type="primary"}}
 				Edit Items
@@ -37,16 +37,16 @@
 	<h3>Extractors</h3>
 	<div class="section" style="text-align:center;">
 		<div class="scrolling-container" style="max-height:250px;margin-top:0px">
-			{{#each mappedFieldsData}}
-				{{#view ASTool.ExtractorDropTarget fieldName=fieldName dragging=controller.draggingExtractor}}
+			{{#each field in mappedFieldsData}}
+				{{#view 'extractor-drop-target' fieldName=field.fieldName dragging=controller.draggingExtractor}}
 					<div class="target-container">
-						 <span class="target"><b style="margin-right:10px">{{fieldName}}</b>[+Drop here]</span>
-						 {{#if extractors}}
+						 <span class="target"><b style="margin-right:10px">{{field.fieldName}}</b>[+Drop here]</span>
+						 {{#if field.extractors}}
 							<div style="margin-top:10px"></div>
 						{{/if}}
-						{{#each extractors}}
+						{{#each ext in field.extractors}}
 							<div style="margin:4px 0px 4px 0px">
-								{{#view ASTool.ExtractorView extractor=this}}
+								{{#view 'extractor' extractor=ext}}
 									<span>
 										{{view.extractorTypeLabel}} {{view.extractorDefinition}}
 									</span>
@@ -61,16 +61,16 @@
 		</div>
 		<div style="margin-top:10px"></div>
 		<h4>Drag extractors to the fields above</h4>
-		{{view ASTool.InlineHelp message="extractors"}}
+		{{view 'inline-help' message="extractors"}}
 		<div class="scrolling-container ui-corner-all" style="max-height:100px;">
-			{{#each extractors}}
+			{{#each ext in extractors}}
 				<div style="margin:4px 0px 4px 0px">
-					{{#view ASTool.ExtractorView extractor=this}}
+					{{#view 'extractor' extractor=ext}}
 						<span>
 							{{view.extractorTypeLabel}} {{view.extractorDefinition}}
 						</span>
 					{{/view}}
-					{{bs-button clicked="deleteExtractor" type="danger" size="xs" clickedParam=this icon="fa fa-icon fa-trash"}}
+					{{bs-button clicked="deleteExtractor" type="danger" size="xs" clickedParam=ext icon="fa fa-icon fa-trash"}}
 				</div>
 			{{else}}
 				<h5>No extractors have been created yet.</h5>
@@ -78,9 +78,9 @@
 		</div>
 		<div class="create-extractor-container">
 			<div style="float:left;width:53%;">
-				{{view ASTool.TextField value=newReExtractor width='160px' name='reExtractorField' placeholder='Enter a RegEx' action="createExtractor"}}
+				{{view 'text-field' value=newReExtractor width='160px' name='reExtractorField' placeholder='Enter a RegEx' action="createExtractor"}}
 				<div class="small-label" style="margin:5px 0px 5px 0px">- or choose a type -</div>
-				<div class="typeBox">{{view ASTool.TypeSelect value=newTypeExtractor name='typeExtractorCombo' width='140px'}}</div>
+				<div class="typeBox">{{view 'type-select' value=newTypeExtractor name='typeExtractorCombo' width='140px'}}</div>
 			</div>
 			<div style="float:left;width:40%;margin-top: 23px">
 				{{#bs-button clicked="createExtractor" icon="fa fa-icon fa-plus" disabled=createExtractorDisabled type="primary"}}
@@ -92,22 +92,22 @@
 	</div>
 	<h3>Extracted fields</h3>
 	<div class="section">
-		<span style="float:right">{{view ASTool.InlineHelp message="template_required"}}</span>
+		<span style="float:right">{{view 'inline-help' message="template_required"}}</span>
 		<h4 style="width:92%">Check the fields you want to make required for this template:</h4>
 		<div class="scrolling-container">
 			<div style="margin:15px auto;width: 100%;">
 				<div class="row important-label">
 					<div class="col-md-5">Name</div><div class="col-md-3">Required</div><div class="col-md-3">Extracted</div>
 				</div>
-				{{#each mappedFieldsData}}
+				{{#each field in mappedFieldsData}}
 					<div class="row">
 						<div class="col-md-5 top-div">
 							<div class="field-name">
-								<span class="important-label">{{this.fieldName}}</span>
+								<span class="important-label">{{field.fieldName}}</span>
 							</div>
 						</div>
-						<div class="col-md-3">{{view ASTool.RequiredFieldCheckbox checked=this.required fieldName=this.fieldName disabled=this.disabled}}</div>
-						<div class="col-md-3">{{view ASTool.RequiredFieldCheckbox checked=this.extracted fieldName="extracted" disabled=true}}</div>
+						<div class="col-md-3">{{view 'required-field-checkbox' checked=field.required fieldName=field.fieldName disabled=field.disabled}}</div>
+						<div class="col-md-3">{{view 'required-field-checkbox' checked=field.extracted fieldName="extracted" disabled=true}}</div>
 					</div>
 				{{/each}}
 			</div>
@@ -116,5 +116,5 @@
 </div>
 
 {{#if controller.showFloatingAnnotationWidgetAt}}
-	{{view ASTool.AnnotationWidget annotation=controller.floatingAnnotation inDoc=true pos=controller.showFloatingAnnotationWidgetAt templateName="floating-annotation-widget" id="annotationWidget"}}
+	{{view 'annotation-widget' annotation=controller.floatingAnnotation inDoc=true pos=controller.showFloatingAnnotationWidgetAt templateName="floating-annotation-widget" id="annotationWidget"}}
 {{/if}}

@@ -1,10 +1,10 @@
 <div style="margin:10px 0px 0px 10px">
 	<h4>Conflicted files</h4>
 	<div>
-		{{#each controller.conflictedFileNames}}
+		{{#each name in controller.conflictedFileNames}}
 			<div style="margin:4px 0px 4px 0px" class="pattern">
-				{{#bs-button clicked="displayConflictedFile" clickedParam=this type="light"}}
-					{{this}}
+				{{#bs-button clicked="displayConflictedFile" clickedParam=name type="light"}}
+					{{name}}
 				{{/bs-button}}
 			</div>
 		{{/each}}

@@ -3,37 +3,37 @@
 	{{#unless view.hasMultipleMappings}}
 		{{view view.attributeSelect}}
 		{{view view.fieldSelect}}
-		{{view ASTool.VariantSelect annotation=view.annotation}}
+		{{view 'variant-select' annotation=view.annotation}}
 		<div style="margin-top:5px;padding:5px">
 			<div style="display:inline-block;width:72%">
 				<h5>Attribute value:</h5>
 				<span style="color:black;word-wrap:break-word;">
-					{{view ASTool.CollapsibleText fullText=view.attributeValue trimTo=40}}
+					{{view 'collapsible-text' fullText=view.attributeValue trimTo=40}}
 				</span>
 			</div>
 			<div style="text-align:right;display:inline-block;width:24%">
-				{{bs-button type="primary" clicked="editAnnotation" clickedParam=this icon="fa fa-icon fa-gear" size="xs"}}
-				{{bs-button type="danger" clicked="deleteAnnotation" clickedParam=this icon="fa fa-icon fa-trash" size="xs"}}
+				{{bs-button type="primary" clicked="editAnnotation" clickedParam=view.annotation icon="fa fa-icon fa-gear" size="xs"}}
+				{{bs-button type="danger" clicked="deleteAnnotation" clickedParam=view.annotation icon="fa fa-icon fa-trash" size="xs"}}
 			</div>
 		</div>
 
 	{{else}}
 		<div>
 			<div style="display:inline-block;width:75%">
-				{{#each view.mappings}}
-					<div class="attribute multimap">{{this.name}}</div>
-					<div class="field multimap" >{{this.mappedField}}</div>
+				{{#each ann in view.mappings}}
+					<div class="attribute multimap">{{ann.name}}</div>
+					<div class="field multimap" >{{ann.mappedField}}</div>
 				{{/each}}
 			</div>
 			<div style="text-align:right;display:inline-block;width:21%;">
 				<div style="text-align:center;display:inline-block;width:60px;margin:4px">{{view.annotation.variant}}</div>
-				{{bs-button type="primary" clicked="editAnnotation" clickedParam=this icon="fa fa-icon fa-gear" size="xs"}}
-				{{bs-button type="danger" clicked="deleteAnnotation" clickedParam=this icon="fa fa-icon fa-trash" size="xs"}}
+				{{bs-button type="primary" clicked="editAnnotation" clickedParam=view.annotation icon="fa fa-icon fa-gear" size="xs"}}
+				{{bs-button type="danger" clicked="deleteAnnotation" clickedParam=view.annotation icon="fa fa-icon fa-trash" size="xs"}}
 			</div>
 		</div>
 	{{/unless}}
 {{else}}
-	<div style="float:right;margin-right:4px"{{action createField target="view"}}>
+	<div style="float:right;margin-right:4px"{{action 'createField' target="view"}}>
 	{{bs-button type="primary" icon="fa fa-icon fa-icon-plus" disabled=view.createFieldDisabled}}
 	</div>
 

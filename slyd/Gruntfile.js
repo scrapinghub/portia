@@ -8,10 +8,10 @@ module.exports = function(grunt) {
             dist: {
                 src: [
                     // Vendor stuff.
-                    'media/js/vendor/jquery-1.11-prod.js',
+                    'media/js/vendor/jquery-2.1.3.min.js',
                     'media/js/vendor/jquery-ui-1.11.1-prod.js',
-                    'media/js/vendor/handlebars-1.0.0.js',
-                    'media/js/vendor/ember-1.7-prod.js',
+                    'media/js/vendor/handlebars-v2.0.0.js',
+                    'media/js/vendor/ember-1.9.1.min.js',
                     'media/js/vendor/ember-browser-detect.js',
                     'media/js/vendor/loading.js',
                     'media/js/vendor/ic-ajax.js',

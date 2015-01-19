@@ -1,5 +1,5 @@
 /*
-Breadcrumbs compponent.
+Breadcrumbs component.
 */
 
 
@@ -67,7 +67,7 @@ Breadcrumbs compponent.
           if (route.isDynamic) {
             crumb.setProperties({
               model: route.handler.context,
-              name: route.handler.context.get('name') || name
+              name: route.handler.context.get('name')
             });
           }
           return _this.get('content').pushObject(crumb);

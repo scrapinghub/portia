@@ -25,18 +25,6 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 	showContinueBrowsing: true,
 
 	showToggleCSS: true,
-	toggleCSS: function() {
-		//FIXME: Set state correctly
-		button = $('.togglecss');
-		if (button.hasClass('btn-default')) {
-			button.addClass('btn-danger');
-			button.removeClass('btn-default');
-		} else {
-			button.removeClass('btn-danger');
-			button.addClass('btn-default');
-		}
-		this.documentView.toggleCSS();
-	},
 
 	showFloatingAnnotationWidgetAt: null,
 
@@ -216,8 +204,8 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 	mappedFieldsData: function() {
 		var mappedFieldsData = [];
-		var seenFields = new Em.Set();
-		var item_required_fields = new Em.Set();
+		var seenFields = new Set();
+		var item_required_fields = new Set();
 		this.get('scrapedItem').fields.forEach(function(field) {
 			if (field.required) item_required_fields.add(field.name);
 		});
@@ -226,21 +214,21 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			mappedAttributes.forEach(function(attribute) {
 				var fieldName = attribute.get('mappedField');
 				// Avoid duplicates.
-				if (!seenFields.contains(fieldName)) {
+				if (!seenFields.has(fieldName)) {
 					seenFields.add(fieldName);
 					var mappedFieldData = ASTool.MappedFieldData.create();
 					mappedFieldData.set('fieldName', fieldName);
 					mappedFieldData.set('required', annotation.get('required').indexOf(fieldName) > -1);
 					mappedFieldData.set('extractors', this.getAppliedExtractors(fieldName));
 					mappedFieldData.set('extracted', true);
-					mappedFieldData.set('disabled', item_required_fields.contains(fieldName));
+					mappedFieldData.set('disabled', item_required_fields.has(fieldName));
 					mappedFieldsData.pushObject(mappedFieldData);
 				}
 			}.bind(this));
 		}.bind(this));
 		this.get('scrapedItem').fields.forEach(function(field) {
 			fieldName = field.name;
-			if (!seenFields.contains(fieldName)) {
+			if (!seenFields.has(fieldName)) {
 				var mappedFieldData = ASTool.MappedFieldData.create();
 				mappedFieldData.set('fieldName', fieldName);
 				mappedFieldData.set('required', field.required);
@@ -459,6 +447,19 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		selected: function() {
 			console.log('Selected!');
+		},
+
+		toggleCSS: function() {
+			//FIXME: Set state correctly
+			button = $('.togglecss');
+			if (button.hasClass('btn-default')) {
+				button.addClass('btn-danger');
+				button.removeClass('btn-default');
+			} else {
+				button.removeClass('btn-danger');
+				button.addClass('btn-default');
+			}
+			this.documentView.toggleCSS();
 		},
 	},
 

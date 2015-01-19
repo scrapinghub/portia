@@ -1,7 +1,7 @@
 <div style="margin:10px 0px 0px 10px">
 	<div style="text-align:center;font-size:1.1em;margin-bottom:5px">
 		{{#ifHasCapability 'rename_projects'}}
-			{{#view ASTool.RenameTextField value=name}}
+			{{#view 'rename-text-field' value=name}}
 				<span class="editable-name">Project {{name}}</span>
 			{{/view}}
 		{{else}}
@@ -16,15 +16,15 @@
 			<div class="input-group-addon"><span class="fa fa-search"></span></div>
 		</div>
 		<div class="scrolling-container" style="max-height:600px">
-			{{#each controller.filteredSpiders}}
+			{{#each spider in controller.filteredSpiders}}
 				<div class="row">
 					<div class="col-md-9 clickable-url">
-						{{#bs-button clicked="editSpider" clickedParam=this type="light"}}
-							{{this}}
+						{{#bs-button clicked="editSpider" clickedParam=spider type="light"}}
+							{{spider}}
 						{{/bs-button}}
 					</div>
-					<div class="col-md-3">
-						{{bs-button clicked="deleteSpider" clickedParam=this icon="fa fa-icon fa-trash" type="danger"}}
+					<div class="col-md-3 button-align">
+						{{bs-button clicked="deleteSpider" size="sm" clickedParam=spider icon="fa fa-icon fa-trash" type="danger"}}
 					</div>
 				</div>
 			{{else}}
@@ -38,18 +38,18 @@
 	</div>
 	{{#ifHasCapability 'version_control'}}
 		{{#if controller.hasChanges}}
-			<div style="text-align:center;font-size:1.1em;margin-top:10px">
-				{{#bs-button clicked="publishProject" icon="fa fa-icon fa-upload" type="primary"}}
+			<div class="button-spacer">
+				{{#bs-button clicked="publishProject" size="sm" icon="fa fa-icon fa-upload" type="primary"}}
 					Publish changes
 				{{/bs-button}}
-				{{#bs-button clicked="discardChanges" icon="fa fa-icon fa-trash" type="danger"}}
+				{{#bs-button clicked="discardChanges" size="sm" icon="fa fa-icon fa-trash" type="danger"}}
 					Discard Changes
 				{{/bs-button}}
 			</div>
 		{{else}}
 			{{#ifHasCapability 'deploy_projects'}}
 				<div style="text-align:center;font-size:1.1em;margin-top:10px">
-					{{#bs-button clicked="deployProject" icon="fa fa-icon fa-upload" type="primary" disabled=controller.isDeploying}}
+					{{#bs-button clicked="deployProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.isDeploying}}
 						Deploy
 					{{/bs-button}}
 				</div>

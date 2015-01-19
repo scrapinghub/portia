@@ -3,10 +3,10 @@ module.exports = function(karma) {
         basePath: "media"
 
         files: [
-          "js/vendor/jquery-1.9.1.js",
+          "js/vendor/jquery-2.1.3.js",
           "js/vendor/jquery-ui-1.10.3.js",
-          "js/vendor/handlebars-1.0.0.js",
-          "js/vendor/ember-debug.js",
+          "js/vendor/handlebars-v2.0.0.js",
+          "js/vendor/ember-1.9.1.js",
           "js/vendor/ember-browser-detect.js",
           "js/vendor/loading.js",
           "js/vendor/ic-ajax.js",

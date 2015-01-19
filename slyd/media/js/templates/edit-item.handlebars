@@ -1,7 +1,7 @@
 <div class="editable-item-container">
 	<div>
 		<span style="margin:2px 0px 0px 10px">
-			{{#view ASTool.InlineTextField value=name validate=true}}
+			{{#view 'inline-text-field' value=name validate=true}}
 				<span class="editable-name">Item {{name}}</span>
 			{{/view}}
 		</span>
@@ -13,8 +13,8 @@
 		{{#if view.item.fields}}
 				<div class="row small-label">
 					<div class="col-md-4">Field</div>
-					<div class="col-md-2">Type</div>
-					<div class="col-md-3">Required Vary</div>
+					<div class="col-md-3">Type</div>
+					<div class="col-md-5">Required Vary</div>
 				</div>
 				<div class="row" style="color: #CCC;margin:0">
 					<div class="col-md-4">url</div>
@@ -23,26 +23,26 @@
 					<div class="col-md-1"><input type="checkbox" checked=true disabled=true></div>
 					<div class="col-md-1">{{bs-button icon="fa fa-icon fa-trash" type="danger" disabled=true size="xs"}}</div>
 				</div>
-				{{#each view.item.fields}}
+				{{#each field in view.item.fields}}
 					<div class="row" style="margin:0">
 						<div class="col-md-4 top-div">
 							<div class="field-name">
-								{{#view ASTool.InlineTextField value=name validate=true}}
-									<span class="editable-name">{{name}}</span>
+								{{#view 'inline-text-field' value=name validate=true}}
+									<span class="editable-name">{{field.name}}</span>
 								{{/view}}
 							</div>
 						</div>
 						<div class="col-md-4">
-							{{view ASTool.TypeSelect name="fieldType" value=type itemField=this}}
+							{{view 'type-select' name="fieldType" value=field.type itemField=field}}
 						</div>
 						<div class="col-md-1" style="text-align:center;">
-							{{view ASTool.CheckBox checked=required name="fieldRequired"}}
+							{{view 'check-box' checked=field.required name="fieldRequired"}}
 						</div>
 						<div class="col-md-1" style="text-align:center;">
-							{{view ASTool.CheckBox checked=vary name="fieldVary"}}
+							{{view 'check-box' checked=field.vary name="fieldVary"}}
 						</div>
 						<div class="col-md-1">
-							{{bs-button size="xs" icon="fa fa-icon fa-trash" type="danger" clicked="deleteField" clickedParam=view.item clickedParam2=this}}
+							{{bs-button size="xs" icon="fa fa-icon fa-trash" type="danger" clicked="deleteField" clickedParam=view.item clickedParam2=field}}
 						</div>
 					</div>
 				{{/each}}
