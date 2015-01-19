@@ -3,7 +3,7 @@
 		<span class="attribute">Map attribute</span>
 		<span style="margin-left:44px" class="field">To field</span>
 		<div style="display:inline-block;margin-top:2px;margin-left:50px">
-			{{view ASTool.InlineHelp message="annotation_widget"}}
+			{{view 'inline-help' message="annotation_widget"}}
 		</div>
 		{{bs-button clicked="editAnnotation" clickedParam=controller.floatingAnnotation icon="fa fa-icon fa-gear" type="default" size="xs"}}
 		{{bs-button clicked="deleteAnnotation" clickedParam=controller.floatingAnnotation icon="fa fa-icon fa-trash" type="default" size="xs"}}
@@ -14,7 +14,7 @@
 				{{view view.attributeSelect}}
 				{{view view.fieldSelect}}
 				<div style="display:inline-block;margin-top:1px">
-					<span {{action showCreateFieldWidget target="view"}}>
+					<span {{action 'showCreateFieldWidget' target="view"}}>
 						{{#bs-button icon="fa fa-icon fa-plus" type="default" size="xs"}}
 							field
 						{{/bs-button}}
@@ -24,27 +24,25 @@
 			<div style="width:320px;margin:5px;overflow-y:auto;max-height:50px;padding-right:4px">
 				<span style="color:#777">Attribute value:</span>
 				<span style="color:color:#BBB;word-wrap:break-word;">
-					{{view ASTool.CollapsibleText fullText=view.attributeValue trimTo=30}}
+					{{view 'collapsible-text' fullText=view.attributeValue trimTo=30}}
 				</span>
 			</div>
 		</div>
 	{{else}}
 		<div>
-			{{#each view.mappings}}
-				<div class="multimapf">
-					<div style="display:inline-block;width:120px">{{this.name}}</div>
-					<div style="display:inline-block;">{{this.mappedField}}</div>
+			{{#each mapping in view.mappings}}
+				<div class="multimap">
+					<div style="display:inline-block;width:120px">{{mapping.name}}</div>
+					<div style="display:inline-block;">{{mapping.mappedField}}</div>
 				</div>
 			{{/each}}
 		</div>
 	{{/unless}}
 	<div style="text-align:center">
-	<span {{action dismiss target="view"}}>
-		{{#bs-button icon="fa fa-icon fa-check-circle" type="default" size="xs"}}
+		{{#bs-button icon="fa fa-icon fa-check-circle" clicked="hideFloatingAnnotationWidget" type="default" size="xs"}}
 			Done
 		{{/bs-button}}
-	</span>
-</div>
+	</div>
 {{else}}
 	<div class="row">
 		<div class="col-md-6">
@@ -62,7 +60,7 @@
 			<span>
 				{{view view.typeSelect}}
 			</span>
-			<span {{action createField target="view"}}>
+			<span {{action 'createField' target="view"}}>
 				{{bs-button icon="fa fa-icon fa-check-circle" type="default" disabled=view.createFieldDisabled size="xs"}}
 			</span>
 		</div>

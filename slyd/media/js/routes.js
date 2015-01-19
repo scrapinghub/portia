@@ -1,7 +1,6 @@
 /* Router config */
 ASTool.Router.reopen({
 	// TODO: use 'hash' here.
-	location: 'hash',
 });
 
 

@@ -12,7 +12,7 @@
 		</span>
 
 		<span class="url">
-			{{#view ASTool.LabelWithTooltip title=controller.currentUrl}}
+			{{#view 'label-with-tooltip' title=controller.currentUrl}}
 				{{controller.currentUrl}}
 			{{/view}}
 		</span>
@@ -58,17 +58,17 @@
 						{{#each item in controller.extractedItems}}
 							<hr style="margin:0px;background-color:rgba(70,70,70,1)"/>
 							<div style="padding:10px 0px 10px 0px; border-bottom: 1px groove rgba(255,255,255,0.2);">
-								{{#view ASTool.ExtractedItemView extractedItem=item}}
+								{{#view 'extracted-item' extractedItem=item}}
 									<div style="text-align:left;margin-bottom:5px;">
 										<div style="margin-bottom:2px">
 											<span class="small-label yellow-label">URL:</span>
-											<span class="link" {{action fetchPage view.url}}>
+											<span class="link" {{action 'fetchPage' view.url}}>
 												{{trim view.url 45}}
 											</span>
 										</div>
 										<div>
 											<span class="small-label yellow-label">Matched template:</span>
-											<span class="link" {{action editTemplate view.matchedTemplate}}>
+											<span class="link" {{action 'editTemplate' view.matchedTemplate}}>
 												{{view.matchedTemplate}}
 											</span>
 										</div>
@@ -78,7 +78,7 @@
 											<span class="small-label blue-label">{{textField.name}}:</span>
 											{{#each value in textField.value}}
 												<span style="color:white;word-wrap:break-word;">
-													{{view ASTool.CollapsibleText fullText=value}}
+													{{view 'collapsible-text' fullText=value}}
 												</span>
 											{{/each}}
 										</div>
@@ -88,7 +88,7 @@
 											<span class="small-label blue-label">{{imageField.name}}:</span>
 											{{#each value in imageField.value}}
 												<span style="color:white;word-wrap:break-word;">{{value}}</span>
-												<div style="margin:10px;text-align:center">{{view ASTool.ImageView src=value width="200px"}}</div>
+												<div style="margin:10px;text-align:center">{{view 'image' src=value width="200px"}}</div>
 											{{/each}}
 										</div>
 									{{/each}}
@@ -101,7 +101,7 @@
 														<span class="small-label green-label">{{field.name}}:</span>
 														{{#each value in field.value}}
 															<span style="color:white;word-wrap:break-word;">
-																{{view ASTool.CollapsibleText fullText=value}}
+																{{view 'collapsible-text' fullText=value}}
 															</span>
 														{{/each}}
 													</div>

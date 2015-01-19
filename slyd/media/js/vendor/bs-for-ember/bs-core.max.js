@@ -417,7 +417,7 @@ Views that inherits from this view can be enhanced with:
 
 (function() {
   Bootstrap.ItemPaneView = Ember.View.extend({
-    template: Ember.Handlebars.compile(['{{#if view.content.template}}', '{{bsItemPanePartial view.content.template}}', '{{/if}}'].join("\n")),
+    templateName: 'views/item-pane',
     corrItem: (function() {
       var view, _i, _len, _ref;
       if (this.get('parentView').get('corrItemsView') != null) {
@@ -474,3 +474,16 @@ Views that inherits from this view can be enhanced with:
   });
 
 }).call(this);
+
+Ember.TEMPLATES["app/templates/views/item-pane"] = Ember.Handlebars.template({"1":function(depth0,helpers,partials,data) {
+  var helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
+  data.buffer.push("  ");
+  data.buffer.push(escapeExpression(((helpers.bsItemPanePartial || (depth0 && depth0.bsItemPanePartial) || helperMissing).call(depth0, "view.content.template", {"name":"bsItemPanePartial","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data}))));
+  data.buffer.push("\n");
+  return buffer;
+},"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+  var stack1;
+  stack1 = helpers['if'].call(depth0, "view.content.template", {"name":"if","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(1, data),"inverse":this.noop,"types":["ID"],"contexts":[depth0],"data":data});
+  if (stack1 != null) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  },"useData":true});

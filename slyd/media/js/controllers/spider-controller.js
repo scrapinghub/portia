@@ -1,6 +1,9 @@
 ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerMixin,
 	ASTool.DocumentViewDataSource, ASTool.DocumentViewListener, {
 
+	queryParams: 'url',
+	url: null,
+
 	needs: ['application', 'project_index'],
 
 	navigationLabelBinding: 'content.name',
@@ -93,8 +96,8 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 	}.property('loadedPageFp'),
 
 	showNoItemsExtracted: function() {
-		return this.get('loadedPageFp') && Em.isEmpty(this.get('extractedItems'));
-	}.property('loadedPageFp'),
+		return this.get('loadedPageFp') && Em.isEmpty(this.get('extractedItems')) && this.showItemsDisabled;
+	}.property('loadedPageFp', 'showItemsDisabled'),
 
 	itemsButtonLabel: function() {
 		return this.get('showItems') ? "Hide Items " : "Show Items";
@@ -133,7 +136,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 			   'model.exclude_patterns'),
 
 	spiderDomains: function() {
-		var spiderDomains = new Em.Set();
+		var spiderDomains = new Set();
 		this.get('content.start_urls').forEach(function(startUrl) {
 			spiderDomains.add(URI.parse(startUrl)['hostname']);
 		});
@@ -150,7 +153,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		var sprites = [];
 		allLinks.each(function(i, link) {
 			var followed = followedLinks.indexOf(link.href) >= 0 &&
-				this.get('spiderDomains').contains(URI.parse(link.href)['hostname']);
+				this.get('spiderDomains').has(URI.parse(link.href)['hostname']);
 			sprites.pushObject(ASTool.ElementSprite.create({
 				element: link,
 				hasShadow: false,
@@ -511,6 +514,14 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 					this.fetchPage(this.get('autoloadTemplate'), null, true);
 					this.set('autoloadTemplate', null);
 				}.bind(this));
+			});
+		}
+
+		if (this.url) {
+			url = this.url;
+			this.set('url', null);
+			Ember.run.next(this, function() {
+				this.fetchPage(url, null, true);
 			});
 		}
 	},

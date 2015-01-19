@@ -2,20 +2,20 @@
 	<h4>Items</h4>
 	<div>
 		<div class="scrolling-container" style="max-height:500px">
-			{{#each model}}
-				{{view ASTool.EditItemView item=this}}
+			{{#each item in model}}
+				{{view 'edit-item' item=item}}
 		 	{{else}}
 		 		<h4>No items have been defined yet.</h4>
 		 	{{/each}}
 		</div>
-		<div style="text-align:center;margin-top:10px">
+		<div class="button-spacer">
 			{{#bs-button clicked="addItem" icon="fa fa-icon fa-plus" type="primary" small=true}}
 				Item
 			{{/bs-button}}
-			{{#bs-button clicked="saveChanges" icon="fa fa-icon fa-save" type="primary" small=true}}
+			{{#bs-button clicked="saveChanges" size="sm" icon="fa fa-icon fa-save" type="primary" small=true}}
 				Save changes
 			{{/bs-button}}
-			{{#bs-button clicked="undoChanges" icon="fa fa-icon fa-reply" type="danger" small=true}}
+			{{#bs-button clicked="undoChanges" size="sm" icon="fa fa-icon fa-reply" type="danger" small=true}}
 				Discard Changes
 			{{/bs-button}}
 		</div>

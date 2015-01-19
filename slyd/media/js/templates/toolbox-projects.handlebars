@@ -2,16 +2,16 @@
 	<div style="margin-top:10px"></div>
 	<h4>Open project</h4>
 	<div class="scrolling-container" style="max-height:600px">
-		{{#each}}
+		{{#each project in model}}
 			<div class="row">
 				<div class="col-md-9 clickable-url">
-					{{#bs-button clicked="openProject" clickedParam=this type="light"}}
-						{{this}}
+					{{#bs-button clicked="openProject" clickedParam=project type="light"}}
+						{{project}}
 					{{/bs-button}}
 				</div>
 				<div class="col-md-3">
 					{{#ifHasCapability 'delete_projects'}}
-						{{bs-button clicked="deleteProject" clickedParam=this icon="fa fa-icon fa-trash" type="danger"}}
+						{{bs-button clicked="deleteProject" clickedParam=project icon="fa fa-icon fa-trash" type="danger"}}
 					{{/ifHasCapability }}
 				</div>
 			</div>
