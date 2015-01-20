@@ -147,7 +147,7 @@ class Fetch(BotResource):
     def create_spider(self, project, auth_info, params, **kwargs):
         spider = params.get('spider')
         if spider is None:
-            return
+            return None, None
         pspec = self.bot.spec_manager.project_spec(project, auth_info)
         try:
             spider_spec = pspec.resource('spiders', spider)

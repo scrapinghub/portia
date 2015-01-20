@@ -60,7 +60,7 @@ body{
 	float:left;
 	padding:4px;
 	margin:1px 20px 0px 6px;
-	width: 480px;
+	width: 80%;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -510,7 +510,7 @@ body{
 	border-color: #9A9A9A;
 }
 
-.btn-black:hover{
+.btn-black:focus, .btn-black:hover {
 	color: #fff;
 	background-color: #444;
 	border-color: #9A9A9A;
