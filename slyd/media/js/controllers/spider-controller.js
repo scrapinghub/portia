@@ -32,6 +32,19 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	testing: false,
 
+	queryUrl: function() {
+		if (!this.url) return;
+		this.fetchQueryUrl();
+	}.observes('url'),
+
+	fetchQueryUrl: function() {
+		url = this.url;
+		this.set('url', null);
+		Ember.run.next(this, function() {
+			this.fetchPage(url, null, true);
+		});
+	},
+
 	startUrlCount: function() {
 		if (!Em.isEmpty(this.get('start_urls'))) {
 			return this.get('start_urls').length;
@@ -89,11 +102,12 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 
 	showItemsDisabled: function() {
 		var loadedPageFp = this.get('loadedPageFp');
-		if (this.pageMap[loadedPageFp]) {
+		if (this.extractedItems.length > 0) return false;
+		if (this.pageMap[loadedPageFp] && this.pageMap[loadedPageFp].items) {
 			return !loadedPageFp ? true : !this.pageMap[loadedPageFp].items.length;
 		}
 		return true;
-	}.property('loadedPageFp'),
+	}.property('loadedPageFp', 'extractedItems'),
 
 	showNoItemsExtracted: function() {
 		return this.get('loadedPageFp') && Em.isEmpty(this.get('extractedItems')) && this.showItemsDisabled;
@@ -518,11 +532,7 @@ ASTool.SpiderIndexController = Em.ObjectController.extend(ASTool.BaseControllerM
 		}
 
 		if (this.url) {
-			url = this.url;
-			this.set('url', null);
-			Ember.run.next(this, function() {
-				this.fetchPage(url, null, true);
-			});
+			this.fetchQueryUrl();
 		}
 	},
 
