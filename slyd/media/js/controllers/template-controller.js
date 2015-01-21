@@ -126,7 +126,7 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			return;
 		}
 		return this.get('slyd').saveTemplate(
-			this.get('controllers.spider.name'), this.get('content'))
+			this.get('controllers.spider.name'), this.get('content'));
 	},
 
 	saveExtractors: function() {

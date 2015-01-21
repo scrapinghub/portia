@@ -89,9 +89,9 @@ Ember.TEMPLATES["annotation-widget"] = Ember.Handlebars.template({"1":function(d
     'icon': ("fa fa-icon fa-icon-plus"),
     'type': ("primary")
   },"hashTypes":{'disabled': "ID",'icon': "STRING",'type': "STRING"},"hashContexts":{'disabled': depth0,'icon': depth0,'type': depth0},"types":[],"contexts":[],"data":data}))));
-  data.buffer.push("\n	</div>\n\n	<div class=\"row\">\n		<div class=\"col-md-6\">\n			<label class=\"small-label\">Field name</label>\n		</div>\n		<div class=\"col-md-6\">\n			<label class=\"small-label\">Field type</label>\n		</div>\n	</div>\n	<div class=\"row\">\n		<div class=\"col-md-6\">\n			");
+  data.buffer.push("\n	</div>\n\n	<div class=\"row\">\n		<div class=\"col-xs-6\">\n			<label class=\"small-label\">Field name</label>\n		</div>\n		<div class=\"col-xs-6\">\n			<label class=\"small-label\">Field type</label>\n		</div>\n	</div>\n	<div class=\"row\">\n		<div class=\"col-xs-6\">\n			");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "view.fieldTextField", {"name":"view","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n		</div>\n		<div class=\"col-md-6\">");
+  data.buffer.push("\n		</div>\n		<div class=\"col-xs-6\">");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "view.typeSelect", {"name":"view","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data})));
   data.buffer.push("</div>\n	</div>\n");
   return buffer;
@@ -147,13 +147,13 @@ Ember.TEMPLATES["conflict-resolver"] = Ember.Handlebars.template({"compiler":[6,
 Ember.TEMPLATES["edit-item"] = Ember.Handlebars.template({"1":function(depth0,helpers,partials,data) {
   var stack1, buffer = '';
   data.buffer.push("				<span class=\"editable-name\">Item ");
-  stack1 = helpers._triageMustache.call(depth0, "name", {"name":"_triageMustache","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data});
+  stack1 = helpers._triageMustache.call(depth0, "item.name", {"name":"_triageMustache","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("</span>\n");
   return buffer;
 },"3":function(depth0,helpers,partials,data) {
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("				<div class=\"row small-label\">\n					<div class=\"col-md-4\">Field</div>\n					<div class=\"col-md-3\">Type</div>\n					<div class=\"col-md-5\">Required Vary</div>\n				</div>\n				<div class=\"row\" style=\"color: #CCC;margin:0\">\n					<div class=\"col-md-4\">url</div>\n					<div class=\"col-md-4\">url</div>\n					<div class=\"col-md-1\"><input type=\"checkbox\" checked=true disabled=true></div>\n					<div class=\"col-md-1\"><input type=\"checkbox\" checked=true disabled=true></div>\n					<div class=\"col-md-1\">");
+  data.buffer.push("				<div class=\"row small-label\">\n					<div class=\"col-xs-4\">Field</div>\n					<div class=\"col-xs-3\">Type</div>\n					<div class=\"col-xs-5\">Required Vary</div>\n				</div>\n				<div class=\"row\" style=\"color: #CCC;margin:0\">\n					<div class=\"col-xs-4\">url</div>\n					<div class=\"col-xs-4\">url</div>\n					<div class=\"col-xs-1\"><input type=\"checkbox\" checked=true disabled=true></div>\n					<div class=\"col-xs-1\"><input type=\"checkbox\" checked=true disabled=true></div>\n					<div class=\"col-xs-1\">");
   data.buffer.push(escapeExpression(((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'size': ("xs"),
     'disabled': (true),
@@ -161,34 +161,34 @@ Ember.TEMPLATES["edit-item"] = Ember.Handlebars.template({"1":function(depth0,he
     'icon': ("fa fa-icon fa-trash")
   },"hashTypes":{'size': "STRING",'disabled': "BOOLEAN",'type': "STRING",'icon': "STRING"},"hashContexts":{'size': depth0,'disabled': depth0,'type': depth0,'icon': depth0},"types":[],"contexts":[],"data":data}))));
   data.buffer.push("</div>\n				</div>\n");
-  stack1 = helpers.each.call(depth0, "field", "in", "view.item.fields", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(4, data),"inverse":this.noop,"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
+  stack1 = helpers.each.call(depth0, "field", "in", "item.fields", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(4, data),"inverse":this.noop,"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   return buffer;
 },"4":function(depth0,helpers,partials,data) {
   var stack1, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, buffer = '';
-  data.buffer.push("					<div class=\"row\" style=\"margin:0\">\n						<div class=\"col-md-4 top-div\">\n							<div class=\"field-name\">\n");
+  data.buffer.push("					<div class=\"row\" style=\"margin:0\">\n						<div class=\"col-xs-4 top-div\">\n							<div class=\"field-name\">\n");
   stack1 = helpers.view.call(depth0, "inline-text-field", {"name":"view","hash":{
     'validate': (true),
-    'value': ("name")
+    'value': ("field.name")
   },"hashTypes":{'validate': "BOOLEAN",'value': "ID"},"hashContexts":{'validate': depth0,'value': depth0},"fn":this.program(5, data),"inverse":this.noop,"types":["STRING"],"contexts":[depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("							</div>\n						</div>\n						<div class=\"col-md-4\">\n							");
+  data.buffer.push("							</div>\n						</div>\n						<div class=\"col-xs-4\">\n							");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "type-select", {"name":"view","hash":{
     'itemField': ("field"),
     'value': ("field.type"),
     'name': ("fieldType")
   },"hashTypes":{'itemField': "ID",'value': "ID",'name': "STRING"},"hashContexts":{'itemField': depth0,'value': depth0,'name': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n						</div>\n						<div class=\"col-md-1\" style=\"text-align:center;\">\n							");
+  data.buffer.push("\n						</div>\n						<div class=\"col-xs-1\" style=\"text-align:center;\">\n							");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "check-box", {"name":"view","hash":{
     'name': ("fieldRequired"),
     'checked': ("field.required")
   },"hashTypes":{'name': "STRING",'checked': "ID"},"hashContexts":{'name': depth0,'checked': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n						</div>\n						<div class=\"col-md-1\" style=\"text-align:center;\">\n							");
+  data.buffer.push("\n						</div>\n						<div class=\"col-xs-1\" style=\"text-align:center;\">\n							");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "check-box", {"name":"view","hash":{
     'name': ("fieldVary"),
     'checked': ("field.vary")
   },"hashTypes":{'name': "STRING",'checked': "ID"},"hashContexts":{'name': depth0,'checked': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n						</div>\n						<div class=\"col-md-1\">\n							");
+  data.buffer.push("\n						</div>\n						<div class=\"col-xs-1\">\n							");
   data.buffer.push(escapeExpression(((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'clickedParam2': ("field"),
     'clickedParam': ("view.item"),
@@ -215,7 +215,7 @@ Ember.TEMPLATES["edit-item"] = Ember.Handlebars.template({"1":function(depth0,he
   data.buffer.push("<div class=\"editable-item-container\">\n	<div>\n		<span style=\"margin:2px 0px 0px 10px\">\n");
   stack1 = helpers.view.call(depth0, "inline-text-field", {"name":"view","hash":{
     'validate': (true),
-    'value': ("name")
+    'value': ("item.name")
   },"hashTypes":{'validate': "BOOLEAN",'value': "ID"},"hashContexts":{'validate': depth0,'value': depth0},"fn":this.program(1, data),"inverse":this.noop,"types":["STRING"],"contexts":[depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("		</span>\n		<span style=\"float:right\">\n			");
@@ -223,18 +223,18 @@ Ember.TEMPLATES["edit-item"] = Ember.Handlebars.template({"1":function(depth0,he
     'size': ("xs"),
     'type': ("danger"),
     'icon': ("fa fa-icon fa-trash"),
-    'clickedParam': (""),
+    'clickedParam': ("item"),
     'clicked': ("deleteItem")
   },"hashTypes":{'size': "STRING",'type': "STRING",'icon': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'size': depth0,'type': depth0,'icon': depth0,'clickedParam': depth0,'clicked': depth0},"types":[],"contexts":[],"data":data}))));
   data.buffer.push("\n		</span>\n	</div>\n	<div style=\"margin-top:20px\">\n");
-  stack1 = helpers['if'].call(depth0, "view.item.fields", {"name":"if","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(3, data),"inverse":this.program(7, data),"types":["ID"],"contexts":[depth0],"data":data});
+  stack1 = helpers['if'].call(depth0, "item.fields", {"name":"if","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(3, data),"inverse":this.program(7, data),"types":["ID"],"contexts":[depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("		<div style=\"text-align:center;margin-top:10px\">\n");
   stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'small': (true),
     'type': ("primary"),
     'icon': ("fa fa-icon fa-plus"),
-    'clickedParam': (""),
+    'clickedParam': ("item"),
     'clicked': ("addField")
   },"hashTypes":{'small': "BOOLEAN",'type': "STRING",'icon': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'small': depth0,'type': depth0,'icon': depth0,'clickedParam': depth0,'clicked': depth0},"fn":this.program(9, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
   if (stack1 != null) { data.buffer.push(stack1); }
@@ -324,11 +324,11 @@ Ember.TEMPLATES["floating-annotation-widget"] = Ember.Handlebars.template({"1":f
   data.buffer.push("			Done\n");
   },"10":function(depth0,helpers,partials,data) {
   var escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, buffer = '';
-  data.buffer.push("	<div class=\"row\">\n		<div class=\"col-md-6\">\n			<label class=\"small-label\" style=\"margin-left:40px\">Field name</label>\n		</div>\n		<div class=\"col-md-6\">\n			<label class=\"small-label\">Field type</label>\n		</div>\n	</div>\n	<div class=\"row\">\n		<div class=\"col-md-6\">\n			");
+  data.buffer.push("	<div class=\"row\">\n		<div class=\"col-xs-6\">\n			<label class=\"small-label\" style=\"margin-left:40px\">Field name</label>\n		</div>\n		<div class=\"col-xs-6\">\n			<label class=\"small-label\">Field type</label>\n		</div>\n	</div>\n	<div class=\"row\">\n		<div class=\"col-xs-6\">\n			");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "view.fieldTextField", {"name":"view","hash":{
     'width': ("110%")
   },"hashTypes":{'width': "STRING"},"hashContexts":{'width': depth0},"types":["ID"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n		</div>\n		<div class=\"col-md-6 button-align-sm\" style=\"color:#333;\">\n			<span>\n				");
+  data.buffer.push("\n		</div>\n		<div class=\"col-xs-6 button-align-sm\" style=\"color:#333;\">\n			<span>\n				");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "view.typeSelect", {"name":"view","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data})));
   data.buffer.push("\n			</span>\n			<span ");
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "createField", {"name":"action","hash":{
@@ -796,8 +796,12 @@ Ember.TEMPLATES["toolbox-items"] = Ember.Handlebars.template({"1":function(depth
   },"9":function(depth0,helpers,partials,data) {
   data.buffer.push("				Discard Changes\n");
   },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-  var stack1, helperMissing=helpers.helperMissing, buffer = '';
-  data.buffer.push("<div style=\"margin:10px 0px 0px 10px\">\n	<h4>Items</h4>\n	<div>\n		<div class=\"scrolling-container\" style=\"max-height:500px\">\n");
+  var stack1, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, buffer = '';
+  data.buffer.push("<div style=\"margin:10px 0px 0px 10px\">\n	<h4>Items</h4>\n	<div>\n		<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("full_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
   stack1 = helpers.each.call(depth0, "item", "in", "model", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(1, data),"inverse":this.program(3, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("		</div>\n		<div class=\"button-spacer\">\n");
@@ -851,14 +855,14 @@ Ember.TEMPLATES["toolbox-project"] = Ember.Handlebars.template({"1":function(dep
   return buffer;
 },"6":function(depth0,helpers,partials,data) {
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("				<div class=\"row\">\n					<div class=\"col-md-9 clickable-url\">\n");
+  data.buffer.push("				<div class=\"row\">\n					<div class=\"col-xs-9 clickable-url\">\n");
   stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'type': ("light"),
     'clickedParam': ("spider"),
     'clicked': ("editSpider")
   },"hashTypes":{'type': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'type': depth0,'clickedParam': depth0,'clicked': depth0},"fn":this.program(7, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("					</div>\n					<div class=\"col-md-3 button-align\">\n						");
+  data.buffer.push("					</div>\n					<div class=\"col-xs-3 button-align\">\n						");
   data.buffer.push(escapeExpression(((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'type': ("danger"),
     'icon': ("fa fa-icon fa-trash"),
@@ -942,13 +946,17 @@ Ember.TEMPLATES["toolbox-project"] = Ember.Handlebars.template({"1":function(dep
   data.buffer.push("<div style=\"margin:10px 0px 0px 10px\">\n	<div style=\"text-align:center;font-size:1.1em;margin-bottom:5px\">\n");
   stack1 = ((helpers.ifHasCapability || (depth0 && depth0.ifHasCapability) || helperMissing).call(depth0, "rename_projects", {"name":"ifHasCapability","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(1, data),"inverse":this.program(4, data),"types":["STRING"],"contexts":[depth0],"data":data}));
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("	</div>\n\n	<h4>Spiders</h4>\n	<div>\n		<div class=\"input-group col-md-11\">\n			");
+  data.buffer.push("	</div>\n\n	<h4>Spiders</h4>\n	<div>\n		<div class=\"input-group col-xs-11\">\n			");
   data.buffer.push(escapeExpression(((helpers.input || (depth0 && depth0.input) || helperMissing).call(depth0, {"name":"input","hash":{
     'placeholder': ("Filter Spiders"),
     'class': ("form-control"),
     'value': ("filterSpider")
   },"hashTypes":{'placeholder': "STRING",'class': "STRING",'value': "ID"},"hashContexts":{'placeholder': depth0,'class': depth0,'value': depth0},"types":[],"contexts":[],"data":data}))));
-  data.buffer.push("\n			<div class=\"input-group-addon\"><span class=\"fa fa-search\"></span></div>\n		</div>\n		<div class=\"scrolling-container\" style=\"max-height:600px\">\n");
+  data.buffer.push("\n			<div class=\"input-group-addon\"><span class=\"fa fa-search\"></span></div>\n		</div>\n		<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("full_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
   stack1 = helpers.each.call(depth0, "spider", "in", "controller.filteredSpiders", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(6, data),"inverse":this.program(9, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("		</div>\n	</div>\n");
@@ -960,42 +968,57 @@ Ember.TEMPLATES["toolbox-project"] = Ember.Handlebars.template({"1":function(dep
 
 Ember.TEMPLATES["toolbox-projects"] = Ember.Handlebars.template({"1":function(depth0,helpers,partials,data) {
   var stack1, helperMissing=helpers.helperMissing, buffer = '';
-  data.buffer.push("			<div class=\"row\">\n				<div class=\"col-md-9 clickable-url\">\n");
+  data.buffer.push("			<div class=\"row\">\n");
+  stack1 = ((helpers.ifHasCapability || (depth0 && depth0.ifHasCapability) || helperMissing).call(depth0, "delete_projects", {"name":"ifHasCapability","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(2, data),"inverse":this.program(5, data),"types":["STRING"],"contexts":[depth0],"data":data}));
+  if (stack1 != null) { data.buffer.push(stack1); }
+  data.buffer.push("			</div>\n");
+  return buffer;
+},"2":function(depth0,helpers,partials,data) {
+  var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
+  data.buffer.push("					<div class=\"col-xs-9 clickable-url\">\n");
   stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'type': ("light"),
     'clickedParam': ("project"),
     'clicked': ("openProject")
-  },"hashTypes":{'type': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'type': depth0,'clickedParam': depth0,'clicked': depth0},"fn":this.program(2, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
+  },"hashTypes":{'type': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'type': depth0,'clickedParam': depth0,'clicked': depth0},"fn":this.program(3, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("				</div>\n				<div class=\"col-md-3\">\n");
-  stack1 = ((helpers.ifHasCapability || (depth0 && depth0.ifHasCapability) || helperMissing).call(depth0, "delete_projects", {"name":"ifHasCapability","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(4, data),"inverse":this.noop,"types":["STRING"],"contexts":[depth0],"data":data}));
-  if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("				</div>\n			</div>\n");
-  return buffer;
-},"2":function(depth0,helpers,partials,data) {
-  var stack1, buffer = '';
-  data.buffer.push("						");
-  stack1 = helpers._triageMustache.call(depth0, "project", {"name":"_triageMustache","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data});
-  if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("\n");
-  return buffer;
-},"4":function(depth0,helpers,partials,data) {
-  var helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("						");
+  data.buffer.push("					</div>\n					<div class=\"col-xs-3\">\n						");
   data.buffer.push(escapeExpression(((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'type': ("danger"),
     'icon': ("fa fa-icon fa-trash"),
     'clickedParam': ("project"),
     'clicked': ("deleteProject")
   },"hashTypes":{'type': "STRING",'icon': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'type': depth0,'icon': depth0,'clickedParam': depth0,'clicked': depth0},"types":[],"contexts":[],"data":data}))));
+  data.buffer.push("\n					</div>\n");
+  return buffer;
+},"3":function(depth0,helpers,partials,data) {
+  var stack1, buffer = '';
+  data.buffer.push("							");
+  stack1 = helpers._triageMustache.call(depth0, "project", {"name":"_triageMustache","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data});
+  if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("\n");
   return buffer;
-},"6":function(depth0,helpers,partials,data) {
+},"5":function(depth0,helpers,partials,data) {
+  var stack1, helperMissing=helpers.helperMissing, buffer = '';
+  data.buffer.push("					<div class=\"col-xs-11 clickable-url full-size\">\n");
+  stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
+    'type': ("light"),
+    'clickedParam': ("project"),
+    'clicked': ("openProject")
+  },"hashTypes":{'type': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'type': depth0,'clickedParam': depth0,'clicked': depth0},"fn":this.program(3, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
+  if (stack1 != null) { data.buffer.push(stack1); }
+  data.buffer.push("					</div>\n");
+  return buffer;
+},"7":function(depth0,helpers,partials,data) {
   data.buffer.push("			<h5>No projects have been created yet.</h5>\n");
   },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-  var stack1, buffer = '';
-  data.buffer.push("<div style=\"margin:10px 0px 0px 10px\">\n	<div style=\"margin-top:10px\"></div>\n	<h4>Open project</h4>\n	<div class=\"scrolling-container\" style=\"max-height:600px\">\n");
-  stack1 = helpers.each.call(depth0, "project", "in", "model", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(1, data),"inverse":this.program(6, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
+  var stack1, escapeExpression=this.escapeExpression, buffer = '';
+  data.buffer.push("<div style=\"margin:10px 0px 0px 10px\">\n	<div style=\"margin-top:10px\"></div>\n	<h4>Open project</h4>\n	<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("full_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
+  stack1 = helpers.each.call(depth0, "project", "in", "model", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(1, data),"inverse":this.program(7, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("	</div>\n</div>");
   return buffer;
@@ -1010,7 +1033,7 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   return buffer;
 },"3":function(depth0,helpers,partials,data) {
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("				<div class=\"row\">\n					<div class=\"col-md-9 clickable-url\">\n");
+  data.buffer.push("				<div class=\"row\">\n					<div class=\"col-xs-9 clickable-url\">\n");
   stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'title': ("url"),
     'type': ("light"),
@@ -1018,7 +1041,7 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
     'clicked': ("fetchPage")
   },"hashTypes":{'title': "ID",'type': "STRING",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'title': depth0,'type': depth0,'clickedParam': depth0,'clicked': depth0},"fn":this.program(4, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("					</div>\n					<div class=\"col-md-3 button-align\">\n						");
+  data.buffer.push("					</div>\n					<div class=\"col-xs-3 button-align\">\n						");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "copy-clipboard", {"name":"view","hash":{
     'text': ("url")
   },"hashTypes":{'text': "ID"},"hashContexts":{'text': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
@@ -1045,7 +1068,11 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   data.buffer.push("					Add urls\n");
   },"10":function(depth0,helpers,partials,data) {
   var escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("			<div class=\"scrolling-container\">\n				<div style=\"margin-top:10px\"></div>\n				");
+  data.buffer.push("			<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("ex_tiny_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n				<div style=\"margin-top:10px\"></div>\n				");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "login-field", {"name":"view","hash":{
     'action': ("updateLoginInfo"),
     'placeholder': ("Login URL"),
@@ -1086,10 +1113,14 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "inline-help", {"name":"view","hash":{
     'message': ("follow_links")
   },"hashTypes":{'message': "STRING"},"hashContexts":{'message': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n			<div class=\"scrolling-container\" style=\"max-height:100px\">\n");
+  data.buffer.push("\n			<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("tiny_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
   stack1 = helpers.each.call(depth0, "pattern", "in", "follow_patterns", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(15, data),"inverse":this.program(19, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("			</div>\n			<div style=\"margin-top:10px\"></div>\n			<div class=\"row\">\n				<div class=\"col-md-10\">\n					");
+  data.buffer.push("			</div>\n			<div style=\"margin-top:10px\"></div>\n			<div class=\"row\">\n				<div class=\"col-xs-10\">\n					");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "text-field", {"name":"view","hash":{
     'action': ("addFollowPattern"),
     'placeholder': ("New follow pattern"),
@@ -1097,7 +1128,7 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
     'width': ("110%"),
     'value': ("newFollowPattern")
   },"hashTypes":{'action': "STRING",'placeholder': "STRING",'name': "STRING",'width': "STRING",'value': "ID"},"hashContexts":{'action': depth0,'placeholder': depth0,'name': depth0,'width': depth0,'value': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n				</div>\n				<div class=\"col-md-2 button-align-sm\">\n					");
+  data.buffer.push("\n				</div>\n				<div class=\"col-xs-2 button-align-sm\">\n					");
   data.buffer.push(escapeExpression(((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'size': ("xs"),
     'type': ("primary"),
@@ -1112,7 +1143,7 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   data.buffer.push("\n			<div class=\"scrolling-container\" style=\"max-height:100px\">\n");
   stack1 = helpers.each.call(depth0, "pattern", "in", "exclude_patterns", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(21, data),"inverse":this.program(23, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("			</div>\n			<div style=\"margin-top:10px\"></div>\n			<div class=\"row\">\n				<div class=\"col-md-10\">\n					");
+  data.buffer.push("			</div>\n			<div style=\"margin-top:10px\"></div>\n			<div class=\"row\">\n				<div class=\"col-xs-10\">\n					");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "text-field", {"name":"view","hash":{
     'action': ("addExcludePattern"),
     'placeholder': ("New exclude pattern"),
@@ -1120,7 +1151,7 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
     'width': ("110%"),
     'value': ("newExcludePattern")
   },"hashTypes":{'action': "STRING",'placeholder': "STRING",'name': "STRING",'width': "STRING",'value': "ID"},"hashContexts":{'action': depth0,'placeholder': depth0,'name': depth0,'width': depth0,'value': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n				</div>\n				<div class=\"col-md-2 button-align-sm\">\n					");
+  data.buffer.push("\n				</div>\n				<div class=\"col-xs-2 button-align-sm\">\n					");
   data.buffer.push(escapeExpression(((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'size': ("xs"),
     'type': ("primary"),
@@ -1132,7 +1163,7 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   return buffer;
 },"15":function(depth0,helpers,partials,data) {
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("					<div class=\"col-md-12\">\n");
+  data.buffer.push("					<div class=\"col-xs-12\">\n");
   stack1 = helpers.view.call(depth0, "pattern-text-field", {"name":"view","hash":{
     'action': ("editFollowPattern"),
     'pattern': ("pattern")
@@ -1165,10 +1196,10 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   data.buffer.push("\n");
   return buffer;
 },"19":function(depth0,helpers,partials,data) {
-  data.buffer.push("					<div class=\"col-md-12\">\n						<h5>No follow patterns defined yet.</h5>\n					</div>\n");
+  data.buffer.push("					<div class=\"col-xs-12\">\n						<h5>No follow patterns defined yet.</h5>\n					</div>\n");
   },"21":function(depth0,helpers,partials,data) {
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("					<div class=\"col-md-12\">\n");
+  data.buffer.push("					<div class=\"col-xs-12\">\n");
   stack1 = helpers.view.call(depth0, "pattern-text-field", {"name":"view","hash":{
     'action': ("editExcludePattern"),
     'pattern': ("pattern")
@@ -1185,10 +1216,10 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   data.buffer.push("\n					</div>\n");
   return buffer;
 },"23":function(depth0,helpers,partials,data) {
-  data.buffer.push("					<div class=\"col-md-12\">\n						<h5>No exclude patterns defined yet.</h5>\n					</div>\n");
+  data.buffer.push("					<div class=\"col-xs-12\">\n						<h5>No exclude patterns defined yet.</h5>\n					</div>\n");
   },"25":function(depth0,helpers,partials,data) {
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("				<div class=\"row\">\n					<div class=\"col-md-9 clickable-url\">\n");
+  data.buffer.push("				<div class=\"row\">\n					<div class=\"col-xs-9 clickable-url\">\n");
   stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'type': ("light"),
     'title': ("url"),
@@ -1196,7 +1227,7 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
     'clicked': ("editTemplate")
   },"hashTypes":{'type': "STRING",'title': "ID",'clickedParam': "ID",'clicked': "STRING"},"hashContexts":{'type': depth0,'title': depth0,'clickedParam': depth0,'clicked': depth0},"fn":this.program(26, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("					</div>\n					<div class=\"col-md-3 button-align-sm\">\n						");
+  data.buffer.push("					</div>\n					<div class=\"col-xs-3 button-align-sm\">\n						");
   data.buffer.push(escapeExpression(((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'size': ("xs"),
     'type': ("primary"),
@@ -1237,12 +1268,16 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
     'value': ("name")
   },"hashTypes":{'value': "ID"},"hashContexts":{'value': depth0},"fn":this.program(1, data),"inverse":this.noop,"types":["STRING"],"contexts":[depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("</div>\n\n<div class=\"accordion\">\n	<h3>Initialize</h3>\n	<div class=\"section\">\n		<div class=\"row\">\n			<div class=\"col-md-10\">\n				<h4>Start Pages</h4>\n			</div>\n			<div class=\"col-md-2 start-url-badge\">\n				");
+  data.buffer.push("</div>\n\n<div class=\"accordion\">\n	<h3>Initialize</h3>\n	<div class=\"section\">\n		<div class=\"row\">\n			<div class=\"col-xs-10\">\n				<h4>Start Pages</h4>\n			</div>\n			<div class=\"col-xs-2 start-url-badge\">\n				");
   data.buffer.push(escapeExpression(((helpers['bs-badge'] || (depth0 && depth0['bs-badge']) || helperMissing).call(depth0, {"name":"bs-badge","hash":{
     'content': ("startUrlCount"),
     'class': ("pull-right btn-primary")
   },"hashTypes":{'content': "ID",'class': "STRING"},"hashContexts":{'content': depth0,'class': depth0},"types":[],"contexts":[],"data":data}))));
-  data.buffer.push("\n			</div>\n		</div>\n		<div class=\"scrolling-container\" style=\"max-height:150px;\">\n");
+  data.buffer.push("\n			</div>\n		</div>\n		<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("ex_tiny_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
   stack1 = helpers.each.call(depth0, "url", "in", "start_urls", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(3, data),"inverse":this.program(6, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("		</div>\n\n		<div style=\"margin-top:10px\">\n			<div>\n				");
@@ -1294,7 +1329,11 @@ Ember.TEMPLATES["toolbox-spider"] = Ember.Handlebars.template({"1":function(dept
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "inline-help", {"name":"view","hash":{
     'message': ("overlay_blocked_links")
   },"hashTypes":{'message': "STRING"},"hashContexts":{'message': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n		</div>\n	</div>\n\n	<h3>Extraction</h3>\n\n	<div class=\"section\">\n		<h4>Templates</h4>\n		<div class=\"scrolling-container\" style=\"max-height:350px;\">\n");
+  data.buffer.push("\n		</div>\n	</div>\n\n	<h3>Extraction</h3>\n\n	<div class=\"section\">\n		<h4>Templates</h4>\n		<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("mid_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
   stack1 = helpers.each.call(depth0, "templ", "in", "template_names", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(25, data),"inverse":this.program(28, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("		</div>\n	</div>\n</div>\n\n<div style=\"margin-top:10px;text-align:center\">\n");
@@ -1318,8 +1357,12 @@ Ember.TEMPLATES["toolbox-template"] = Ember.Handlebars.template({"1":function(de
   data.buffer.push("</div>\n");
   return buffer;
 },"3":function(depth0,helpers,partials,data) {
-  var stack1, buffer = '';
-  data.buffer.push("			<div style=\"height:10px\">\n				<span class=\"small-label\" style=\"float:left;margin-left:5px;margin-right:5px;width:120px;text-align:center\">Map attribute</span>\n				<span class=\"small-label\" style=\"float:left;width:120px;text-align:center\">To field</span>\n				<span class=\"small-label\" style=\"float:left;text-align:center;margin-left:10px\">Variant</span>\n			</div>\n			<div class=\"scrolling-container\">\n");
+  var stack1, escapeExpression=this.escapeExpression, buffer = '';
+  data.buffer.push("			<div style=\"height:10px\">\n				<span class=\"small-label\" style=\"float:left;margin-left:5px;margin-right:5px;width:120px;text-align:center\">Map attribute</span>\n				<span class=\"small-label\" style=\"float:left;width:120px;text-align:center\">To field</span>\n				<span class=\"small-label\" style=\"float:left;text-align:center;margin-left:10px\">Variant</span>\n			</div>\n			<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("mid_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
   stack1 = helpers.each.call(depth0, "anno", "in", "annotations", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(4, data),"inverse":this.noop,"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("			</div>\n");
@@ -1413,16 +1456,16 @@ Ember.TEMPLATES["toolbox-template"] = Ember.Handlebars.template({"1":function(de
   data.buffer.push("					New extractor\n");
   },"26":function(depth0,helpers,partials,data) {
   var stack1, escapeExpression=this.escapeExpression, buffer = '';
-  data.buffer.push("					<div class=\"row\">\n						<div class=\"col-md-5 top-div\">\n							<div class=\"field-name\">\n								<span class=\"important-label\">");
+  data.buffer.push("					<div class=\"row\">\n						<div class=\"col-xs-5 top-div\">\n							<div class=\"field-name\">\n								<span class=\"important-label\">");
   stack1 = helpers._triageMustache.call(depth0, "field.fieldName", {"name":"_triageMustache","hash":{},"hashTypes":{},"hashContexts":{},"types":["ID"],"contexts":[depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("</span>\n							</div>\n						</div>\n						<div class=\"col-md-3\">");
+  data.buffer.push("</span>\n							</div>\n						</div>\n						<div class=\"col-xs-3\">");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "required-field-checkbox", {"name":"view","hash":{
     'disabled': ("field.disabled"),
     'fieldName': ("field.fieldName"),
     'checked': ("field.required")
   },"hashTypes":{'disabled': "ID",'fieldName': "ID",'checked': "ID"},"hashContexts":{'disabled': depth0,'fieldName': depth0,'checked': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("</div>\n						<div class=\"col-md-3\">");
+  data.buffer.push("</div>\n						<div class=\"col-xs-3\">");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "required-field-checkbox", {"name":"view","hash":{
     'disabled': (true),
     'fieldName': ("extracted"),
@@ -1466,7 +1509,11 @@ Ember.TEMPLATES["toolbox-template"] = Ember.Handlebars.template({"1":function(de
     'clicked': ("editItems")
   },"hashTypes":{'type': "STRING",'clicked': "STRING"},"hashContexts":{'type': depth0,'clicked': depth0},"fn":this.program(8, data),"inverse":this.noop,"types":[],"contexts":[],"data":data}));
   if (stack1 != null) { data.buffer.push(stack1); }
-  data.buffer.push("		</div>\n	</div>\n\n	<h3>Extractors</h3>\n	<div class=\"section\" style=\"text-align:center;\">\n		<div class=\"scrolling-container\" style=\"max-height:250px;margin-top:0px\">\n");
+  data.buffer.push("		</div>\n	</div>\n\n	<h3>Extractors</h3>\n	<div class=\"section\" style=\"text-align:center;\">\n		<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("tiny_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n");
   stack1 = helpers.each.call(depth0, "field", "in", "mappedFieldsData", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(10, data),"inverse":this.program(17, data),"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("		</div>\n		<div style=\"margin-top:10px\"></div>\n		<h4>Drag extractors to the fields above</h4>\n		");
@@ -1502,7 +1549,11 @@ Ember.TEMPLATES["toolbox-template"] = Ember.Handlebars.template({"1":function(de
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "inline-help", {"name":"view","hash":{
     'message': ("template_required")
   },"hashTypes":{'message': "STRING"},"hashContexts":{'message': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("</span>\n		<h4 style=\"width:92%\">Check the fields you want to make required for this template:</h4>\n		<div class=\"scrolling-container\">\n			<div style=\"margin:15px auto;width: 100%;\">\n				<div class=\"row important-label\">\n					<div class=\"col-md-5\">Name</div><div class=\"col-md-3\">Required</div><div class=\"col-md-3\">Extracted</div>\n				</div>\n");
+  data.buffer.push("</span>\n		<h4 style=\"width:92%\">Check the fields you want to make required for this template:</h4>\n		<div class=\"scrolling-container\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {"name":"bind-attr","hash":{
+    'style': ("mid_box_style")
+  },"hashTypes":{'style': "STRING"},"hashContexts":{'style': depth0},"types":[],"contexts":[],"data":data})));
+  data.buffer.push(">\n			<div style=\"margin:15px auto;width: 100%;\">\n				<div class=\"row important-label\">\n					<div class=\"col-xs-5\">Name</div><div class=\"col-xs-3\">Required</div><div class=\"col-xs-3\">Extracted</div>\n				</div>\n");
   stack1 = helpers.each.call(depth0, "field", "in", "mappedFieldsData", {"name":"each","hash":{},"hashTypes":{},"hashContexts":{},"fn":this.program(26, data),"inverse":this.noop,"types":["ID","ID","ID"],"contexts":[depth0,depth0,depth0],"data":data});
   if (stack1 != null) { data.buffer.push(stack1); }
   data.buffer.push("			</div>\n		</div>\n	</div>\n</div>\n\n");
@@ -1828,7 +1879,7 @@ Ember.TEMPLATES["topbar-project"] = Ember.Handlebars.template({"1":function(dept
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, buffer = '';
   data.buffer.push("<div id=\"topbar\" class=\"navbar navbar-default\">\n	<div class=\"nav-container\">\n		");
   data.buffer.push(escapeExpression(((helpers.render || (depth0 && depth0.render) || helperMissing).call(depth0, "navigation", {"name":"render","hash":{},"hashTypes":{},"hashContexts":{},"types":["STRING"],"contexts":[depth0],"data":data}))));
-  data.buffer.push("\n	</div>\n	<div  class=\"nav-container\">\n		<div class=\"row\">\n			<div class=\"col-md-8\">\n				");
+  data.buffer.push("\n	</div>\n	<div  class=\"nav-container\">\n		<div class=\"row\">\n			<div class=\"col-xs-8\">\n				");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "text-field", {"name":"view","hash":{
     'action': ("addSpider"),
     'placeholder': ("Enter page url"),
@@ -1836,7 +1887,7 @@ Ember.TEMPLATES["topbar-project"] = Ember.Handlebars.template({"1":function(dept
     'value': ("spiderPage"),
     'width': ("105%")
   },"hashTypes":{'action': "STRING",'placeholder': "STRING",'name': "STRING",'value': "ID",'width': "STRING"},"hashContexts":{'action': depth0,'placeholder': depth0,'name': depth0,'value': depth0,'width': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n			</div>\n			<div class=\"col-md-2\">\n");
+  data.buffer.push("\n			</div>\n			<div class=\"col-xs-2\">\n");
   stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'disabled': ("createSpiderDisabled"),
     'small': (true),
@@ -1857,7 +1908,7 @@ Ember.TEMPLATES["topbar-project"] = Ember.Handlebars.template({"1":function(dept
 
 Ember.TEMPLATES["topbar-projects"] = Ember.Handlebars.template({"1":function(depth0,helpers,partials,data) {
   var stack1, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, buffer = '';
-  data.buffer.push("				<div class=\"col-md-8\">\n					");
+  data.buffer.push("				<div class=\"col-xs-8\">\n					");
   data.buffer.push(escapeExpression(helpers.view.call(depth0, "text-field", {"name":"view","hash":{
     'id': ("projectSiteTextField"),
     'action': ("createProject"),
@@ -1866,7 +1917,7 @@ Ember.TEMPLATES["topbar-projects"] = Ember.Handlebars.template({"1":function(dep
     'width': ("105%"),
     'value': ("projectSite")
   },"hashTypes":{'id': "STRING",'action': "STRING",'placeholder': "STRING",'name': "STRING",'width': "STRING",'value': "ID"},"hashContexts":{'id': depth0,'action': depth0,'placeholder': depth0,'name': depth0,'width': depth0,'value': depth0},"types":["STRING"],"contexts":[depth0],"data":data})));
-  data.buffer.push("\n				</div>\n				<div class=\"col-md-2\">\n");
+  data.buffer.push("\n				</div>\n				<div class=\"col-xs-2\">\n");
   stack1 = ((helpers['bs-button'] || (depth0 && depth0['bs-button']) || helperMissing).call(depth0, {"name":"bs-button","hash":{
     'disabled': ("createProjectDisabled"),
     'small': (true),
