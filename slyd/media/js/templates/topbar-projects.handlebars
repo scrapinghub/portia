@@ -5,10 +5,10 @@
 	<div style="float:left;margin-top:2px" class="nav-container">
 		<div class="row">
 			{{#ifHasCapability 'create_projects'}}
-				<div class="col-md-8">
+				<div class="col-xs-8">
 					{{view 'text-field' value=projectSite width='105%' name='projectSiteTextField' placeholder='Enter site url' action="createProject" id="projectSiteTextField"}}
 				</div>
-				<div class="col-md-2">
+				<div class="col-xs-2">
 					{{#bs-button type="info" small=true clicked="createProject" icon="fa fa-icon fa-plus" small=true disabled=createProjectDisabled}}
 						Start
 					{{/bs-button}}

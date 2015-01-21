@@ -1,7 +1,7 @@
 
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
-	{{#view 'rename-text-field' value=name}}
-		<span class="editable-name">Spider {{name}}</span>
+	{{#view 'rename-text-field' value=this.name}}
+		<span class="editable-name">Spider {{this.name}}</span>
 	{{/view}}
 </div>
 
@@ -9,22 +9,22 @@
 	<h3>Initialization</h3>
 	<div class="section">
 		<div class="row">
-			<div class="col-md-10">
+			<div class="col-xs-10">
 				<h4>Start Pages</h4>
 			</div>
-			<div class="col-md-2 start-url-badge">
+			<div class="col-xs-2 start-url-badge">
 				{{bs-badge class="pull-right btn-primary" content=startUrlCount}}
 			</div>
 		</div>
-		<div class="scrolling-container" style="max-height:150px;">
+		<div class="scrolling-container" {{bind-attr style="ex_tiny_box_style"}}>
 			{{#each url in start_urls}}
 				<div class="row">
-					<div class="col-md-9 clickable-url">
+					<div class="col-xs-9 clickable-url">
 						{{#bs-button clicked="fetchPage" clickedParam=url type="light" title=url}}
 							{{url}}
 						{{/bs-button}}
 					</div>
-					<div class="col-md-3 button-align">
+					<div class="col-xs-3 button-align">
 						{{view 'copy-clipboard' text=url}}
 						{{bs-button clicked="deleteStartUrl" clickedParam=url icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					</div>
@@ -52,7 +52,7 @@
 		</div>
 
 		{{#if performLogin}}
-			<div class="scrolling-container">
+			<div class="scrolling-container" {{bind-attr style="ex_tiny_box_style"}}>
 				<div style="margin-top:10px"></div>
 				{{view 'login-field' value=loginUrl width='94%' name='loginUrlField' placeholder='Login URL' action='updateLoginInfo'}}
 				<div style="margin-top:5px"></div>
@@ -77,9 +77,9 @@
 		{{#if displayEditPatterns}}
 			<h4>Follow links that match this patterns</h4>
 			{{view 'inline-help' message="follow_links"}}
-			<div class="scrolling-container" style="max-height:100px">
+			<div class="scrolling-container" {{bind-attr style="tiny_box_style"}}>
 				{{#each pattern in follow_patterns}}
-					<div class="col-md-12">
+					<div class="col-xs-12">
 						{{#view 'pattern-text-field' pattern=pattern action="editFollowPattern"}}
 							{{#bs-button class="pattern" title=pattern type="light"}}
 								{{pattern}}
@@ -88,17 +88,17 @@
 						{{bs-button clicked="deleteFollowPattern" clickedParam=pattern icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					</div>
 				{{else}}
-					<div class="col-md-12">
+					<div class="col-xs-12">
 						<h5>No follow patterns defined yet.</h5>
 					</div>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px"></div>
 			<div class="row">
-				<div class="col-md-10">
+				<div class="col-xs-10">
 					{{view 'text-field' value=newFollowPattern width='110%' name='followPatternTextField' placeholder='New follow pattern' action="addFollowPattern"}}
 				</div>
-				<div class="col-md-2 button-align-sm">
+				<div class="col-xs-2 button-align-sm">
 					{{bs-button clicked="addFollowPattern" icon="fa fa-icon fa-plus" disabled=hasFollowPattern type="primary" size="xs"}}
 				</div>
 			</div>
@@ -109,7 +109,7 @@
 			{{view 'inline-help' message="exclude_links"}}
 			<div class="scrolling-container" style="max-height:100px">
 				{{#each pattern in exclude_patterns}}
-					<div class="col-md-12">
+					<div class="col-xs-12">
 						{{#view 'pattern-text-field' pattern=pattern action="editExcludePattern"}}
 							{{#bs-button class="pattern" title=pattern type="light"}}
 								{{pattern}}
@@ -118,17 +118,17 @@
 						{{bs-button clicked="deleteExcludePattern" clickedParam=pattern icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					</div>
 				{{else}}
-					<div class="col-md-12">
+					<div class="col-xs-12">
 						<h5>No exclude patterns defined yet.</h5>
 					</div>
 				{{/each}}
 			</div>
 			<div style="margin-top:10px"></div>
 			<div class="row">
-				<div class="col-md-10">
+				<div class="col-xs-10">
 					{{view 'text-field' value=newExcludePattern width='110%' name='excludePatternTextField' placeholder='New exclude pattern' action="addExcludePattern"}}
 				</div>
-				<div class="col-md-2 button-align-sm">
+				<div class="col-xs-2 button-align-sm">
 					{{bs-button clicked="addExcludePattern" icon="fa fa-icon fa-plus" disabled=hasExcludePattern type="primary" size="xs"}}
 				</div>
 			</div>
@@ -145,15 +145,15 @@
 
 	<div class="section">
 		<h4>Templates</h4>
-		<div class="scrolling-container" style="max-height:350px;">
+		<div class="scrolling-container" {{bind-attr style="mid_box_style"}}>
 			{{#each templ in template_names}}
 				<div class="row">
-					<div class="col-md-9 clickable-url">
+					<div class="col-xs-9 clickable-url">
 						{{#bs-button clicked="editTemplate" clickedParam=templ title=url type="light"}}
 							{{templ}}
 						{{/bs-button}}
 					</div>
-					<div class="col-md-3 button-align-sm">
+					<div class="col-xs-3 button-align-sm">
 						{{bs-button clicked="viewTemplate" clickedParam=templ icon=" fa fa-icon fa-external-link" type="primary" size="xs"}}
 						{{bs-button clicked="deleteTemplate" clickedParam=templ icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 					</div>

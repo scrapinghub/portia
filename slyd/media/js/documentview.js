@@ -611,10 +611,6 @@ ASTool.DocumentView = Em.Object.extend({
 		}
 	},
 
-	adjustSizes: function() {
-		$('.adjust-height').height(window.innerHeight - 38);
-	},
-
 	initCanvas: function() {
 		if (!this.get('canvas')) {
 			this.set('canvas', ASTool.Canvas.create({ canvasId: 'infocanvas' }));

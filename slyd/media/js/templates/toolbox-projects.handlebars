@@ -1,19 +1,25 @@
 <div style="margin:10px 0px 0px 10px">
 	<div style="margin-top:10px"></div>
 	<h4>Open project</h4>
-	<div class="scrolling-container" style="max-height:600px">
+	<div class="scrolling-container" {{bind-attr style="full_box_style"}}>
 		{{#each project in model}}
 			<div class="row">
-				<div class="col-md-9 clickable-url">
-					{{#bs-button clicked="openProject" clickedParam=project type="light"}}
-						{{project}}
-					{{/bs-button}}
-				</div>
-				<div class="col-md-3">
-					{{#ifHasCapability 'delete_projects'}}
+				{{#ifHasCapability 'delete_projects'}}
+					<div class="col-xs-9 clickable-url">
+						{{#bs-button clicked="openProject" clickedParam=project type="light"}}
+							{{project}}
+						{{/bs-button}}
+					</div>
+					<div class="col-xs-3">
 						{{bs-button clicked="deleteProject" clickedParam=project icon="fa fa-icon fa-trash" type="danger"}}
-					{{/ifHasCapability }}
-				</div>
+					</div>
+				{{else}}
+					<div class="col-xs-11 clickable-url full-size">
+						{{#bs-button clicked="openProject" clickedParam=project type="light"}}
+							{{project}}
+						{{/bs-button}}
+					</div>
+				{{/ifHasCapability }}
 			</div>
 		{{else}}
 			<h5>No projects have been created yet.</h5>

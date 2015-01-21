@@ -13,7 +13,7 @@
 				<span class="small-label" style="float:left;width:120px;text-align:center">To field</span>
 				<span class="small-label" style="float:left;text-align:center;margin-left:10px">Variant</span>
 			</div>
-			<div class="scrolling-container">
+			<div class="scrolling-container" {{bind-attr style="mid_box_style"}}>
 				{{#each anno in annotations}}
 					{{view 'annotation-widget' annotation=anno templateName="annotation-widget"}}
 				{{/each}}
@@ -36,7 +36,7 @@
 
 	<h3>Extractors</h3>
 	<div class="section" style="text-align:center;">
-		<div class="scrolling-container" style="max-height:250px;margin-top:0px">
+		<div class="scrolling-container" {{bind-attr style="tiny_box_style"}}>
 			{{#each field in mappedFieldsData}}
 				{{#view 'extractor-drop-target' fieldName=field.fieldName dragging=controller.draggingExtractor}}
 					<div class="target-container">
@@ -94,20 +94,20 @@
 	<div class="section">
 		<span style="float:right">{{view 'inline-help' message="template_required"}}</span>
 		<h4 style="width:92%">Check the fields you want to make required for this template:</h4>
-		<div class="scrolling-container">
+		<div class="scrolling-container" {{bind-attr style="mid_box_style"}}>
 			<div style="margin:15px auto;width: 100%;">
 				<div class="row important-label">
-					<div class="col-md-5">Name</div><div class="col-md-3">Required</div><div class="col-md-3">Extracted</div>
+					<div class="col-xs-5">Name</div><div class="col-xs-3">Required</div><div class="col-xs-3">Extracted</div>
 				</div>
 				{{#each field in mappedFieldsData}}
 					<div class="row">
-						<div class="col-md-5 top-div">
+						<div class="col-xs-5 top-div">
 							<div class="field-name">
 								<span class="important-label">{{field.fieldName}}</span>
 							</div>
 						</div>
-						<div class="col-md-3">{{view 'required-field-checkbox' checked=field.required fieldName=field.fieldName disabled=field.disabled}}</div>
-						<div class="col-md-3">{{view 'required-field-checkbox' checked=field.extracted fieldName="extracted" disabled=true}}</div>
+						<div class="col-xs-3">{{view 'required-field-checkbox' checked=field.required fieldName=field.fieldName disabled=field.disabled}}</div>
+						<div class="col-xs-3">{{view 'required-field-checkbox' checked=field.extracted fieldName="extracted" disabled=true}}</div>
 					</div>
 				{{/each}}
 			</div>
