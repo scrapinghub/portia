@@ -33,7 +33,7 @@ body{
 }
 
 #toolbox .bar {
-	margin:-38px 0px 0px 2px;
+	margin:-36px 0px 0px 2px;
 	width:36px;
 	height:100%;
 	float:left;
@@ -455,6 +455,7 @@ body{
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	width:100px;
+	height: 24px;
 	background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,1));
 	transition: width 0.4s ease-in-out;
 }
@@ -468,6 +469,10 @@ body{
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	width: 110%;
+}
+
+.clickable-url.full-size > button {
+	width: 105%;
 }
 
 .pattern {

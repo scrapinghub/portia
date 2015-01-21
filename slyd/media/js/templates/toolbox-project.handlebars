@@ -1,8 +1,8 @@
 <div style="margin:10px 0px 0px 10px">
 	<div style="text-align:center;font-size:1.1em;margin-bottom:5px">
 		{{#ifHasCapability 'rename_projects'}}
-			{{#view 'rename-text-field' value=name}}
-				<span class="editable-name">Project {{name}}</span>
+			{{#view 'rename-text-field' value=this.name}}
+				<span class="editable-name">Project {{this.name}}</span>
 			{{/view}}
 		{{else}}
 			<h4>Project {{name}}</h4>
@@ -11,19 +11,19 @@
 
 	<h4>Spiders</h4>
 	<div>
-		<div class="input-group col-md-11">
+		<div class="input-group col-xs-11">
 			{{input value=filterSpider class="form-control" placeholder="Filter Spiders"}}
 			<div class="input-group-addon"><span class="fa fa-search"></span></div>
 		</div>
-		<div class="scrolling-container" style="max-height:500px">
+		<div class="scrolling-container" {{bind-attr style="full_box_style"}}>
 			{{#each spider in controller.filteredSpiders}}
 				<div class="row">
-					<div class="col-md-9 clickable-url">
+					<div class="col-xs-9 clickable-url">
 						{{#bs-button clicked="editSpider" clickedParam=spider type="light"}}
 							{{spider}}
 						{{/bs-button}}
 					</div>
-					<div class="col-md-3 button-align">
+					<div class="col-xs-3 button-align">
 						{{bs-button clicked="deleteSpider" size="sm" clickedParam=spider icon="fa fa-icon fa-trash" type="danger"}}
 					</div>
 				</div>

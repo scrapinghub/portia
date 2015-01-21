@@ -1,7 +1,7 @@
 <div style="margin:10px 0px 0px 10px">
 	<h4>Items</h4>
 	<div>
-		<div class="scrolling-container" style="max-height:500px">
+		<div class="scrolling-container" {{bind-attr style="full_box_style"}}>
 			{{#each item in model}}
 				{{view 'edit-item' item=item}}
 		 	{{else}}
