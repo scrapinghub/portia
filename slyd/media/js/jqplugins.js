@@ -100,7 +100,7 @@ jQuery.fn.renameAttr = function(from, to) {
 			$this.attr(to, $this.attr(from));
 			$this.removeAttr(from);
 	});
-}
+};
 
 jQuery.expr[':'].hasAttrWithPrefix = jQuery.expr.createPseudo(function(prefix) {
 	return function(obj) {
