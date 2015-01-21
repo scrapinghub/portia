@@ -190,9 +190,9 @@ ASTool.InlineTextFieldView = Ember.View.extend({
 		done: function() {
 			var parentView = this.get('parentView');
 			if (parentView.get('isEditing')) {
-				this.set('value', this.value.trim());
+				value = this.value.trim();
 				if (parentView.validate && parentView.regex &&
-					!this.check_value()) {
+					!this.check_value(value)) {
 					return;
 				}
 				parentView.save();
@@ -200,13 +200,13 @@ ASTool.InlineTextFieldView = Ember.View.extend({
 			}
 		},
 
-		check_value: function() {
+		check_value: function(value) {
 			var parentView = this.get('parentView');
 			re = new RegExp(parentView.regex, 'g');
-			if (!re.test(this.value)) {
+			if (!re.test(value)) {
 				parentView.set('isEditing', false);
 				parentView.get('controller').send('showAlert', 'Validation Error',
-					'"' + this.value + '" is not a valid name. Only A-Z, a-z, 0-9, - and _ are allowed characters.',
+					'"' + value + '" is not a valid name. Only A-Z, a-z, 0-9, - and _ are allowed characters.',
 					function() {
 						this.set('isEditing', true);}.bind(this));
 				return false;

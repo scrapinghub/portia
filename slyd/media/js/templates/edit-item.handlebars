@@ -1,16 +1,16 @@
 <div class="editable-item-container">
 	<div>
 		<span style="margin:2px 0px 0px 10px">
-			{{#view 'inline-text-field' value=name validate=true}}
-				<span class="editable-name">Item {{name}}</span>
+			{{#view 'inline-text-field' value=item.name validate=true}}
+				<span class="editable-name">Item {{item.name}}</span>
 			{{/view}}
 		</span>
 		<span style="float:right">
-			{{bs-button clicked="deleteItem" clickedParam=this icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+			{{bs-button clicked="deleteItem" clickedParam=item icon="fa fa-icon fa-trash" type="danger" size="xs"}}
 		</span>
 	</div>
 	<div style="margin-top:20px">
-		{{#if view.item.fields}}
+		{{#if item.fields}}
 				<div class="row small-label">
 					<div class="col-md-4">Field</div>
 					<div class="col-md-3">Type</div>
@@ -23,11 +23,11 @@
 					<div class="col-md-1"><input type="checkbox" checked=true disabled=true></div>
 					<div class="col-md-1">{{bs-button icon="fa fa-icon fa-trash" type="danger" disabled=true size="xs"}}</div>
 				</div>
-				{{#each field in view.item.fields}}
+				{{#each field in item.fields}}
 					<div class="row" style="margin:0">
 						<div class="col-md-4 top-div">
 							<div class="field-name">
-								{{#view 'inline-text-field' value=name validate=true}}
+								{{#view 'inline-text-field' value=field.name validate=true}}
 									<span class="editable-name">{{field.name}}</span>
 								{{/view}}
 							</div>
@@ -50,7 +50,7 @@
 			<h5>No fields defined yet.</h5>
 		{{/if}}
 		<div style="text-align:center;margin-top:10px">
-			{{#bs-button clicked="addField" clickedParam=this icon="fa fa-icon fa-plus" type="primary" small=true}}
+			{{#bs-button clicked="addField" clickedParam=item icon="fa fa-icon fa-plus" type="primary" small=true}}
 				Field
 			{{/bs-button}}
 		</div>
