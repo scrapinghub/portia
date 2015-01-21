@@ -11,6 +11,10 @@ ASTool.ItemsController = Em.ArrayController.extend(ASTool.BaseControllerMixin, {
 	},
 
 	addField: function(owner, name, type) {
+		if (!owner) {
+			this.showAlert('Annotation Error', 'No Item selected for extraction')
+			return
+		}
 		var newField = ASTool.ItemField.create({ name: name || 'new_field',
 										         type: type || 'text',
 										         required: false,
