@@ -32,6 +32,14 @@ def annotate_template(template):
                                                    template['original_body'])
 
 
+def clean_spider(obj):
+    """Removes incomplete data from the spider"""
+    if 'init_requests' in obj:
+        required_fields = ('type', 'login_url', 'login_user', 'login_password')
+        obj['init_requests'] = [req for req in obj['init_requests']
+                                if all(f in req for f in required_fields)]
+
+
 class ProjectSpec(object):
 
     resources = ('project', 'items', 'extractors')
@@ -231,6 +239,8 @@ class ProjectResource(SlydJsonResource):
                 resource = 'spider'
                 if len(rpath) == 1 or not rpath[1]:
                     return self.handle_spider_command(project_spec, obj)
+                elif len(rpath) == 2:
+                    clean_spider(obj)
                 elif len(rpath) == 3:
                     resource = 'template'
                     template = obj
