@@ -1,8 +1,13 @@
 """Simple validation of specifications passed to slybot"""
 from os.path import dirname, join
 import json
+import rfc3987
+
+from urlparse import urlparse, parse_qsl
+from urllib import urlencode
 
 from jsonschema import Draft3Validator, RefResolver, FormatChecker
+
 
 _PATH = dirname(__file__)
 
@@ -23,6 +28,19 @@ class SlybotJsonSchemaValidator(Draft3Validator):
 
 def get_schema_validator(schema):
     resolver = RefResolver("", schema, _SCHEMAS)
+
+    @FormatChecker.cls_checks('url', (ValueError,))
+    def is_valid_uri(instance):
+        if not isinstance(instance, basestring):
+            return True
+        print('\n\n\nHello. I\'m Being Used!!!\n\n')
+        uri = urlparse(instance)
+        query = urlencode(parse_qsl(uri.query))
+        return rfc3987.parse(uri._replace(query=query).geturl(),
+                             rule='URI')
+
+    print(FormatChecker.checkers)
+
     return SlybotJsonSchemaValidator(_SCHEMAS[schema], resolver=resolver,
                                      format_checker=FormatChecker())
 
