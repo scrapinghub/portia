@@ -64,7 +64,7 @@
             "page_id": {"type": "string", "required": true},
             "page_type": {"type": "string", "enum": ["links", "item"], "required": true},
             "scrapes": {"type": "string", "required": true},
-            "url": {"type": "string", "format": "uri", "required": true},
+            "url": {"type": "string", "format": "url", "required": true},
             "extractors": {"additionalProperties": {"type": "array", "items": {"type": "string"}}, "required": true},
             "annotated_body": {"type": "string", "required": true},
             "original_body": {"type": "string", "required": true}
