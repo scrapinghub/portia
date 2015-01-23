@@ -12,6 +12,16 @@ from slybot.validation.schema import get_schema_validator
 
 
 DASH_API_URL = None
+DEFAULT_DASH_ITEM = '''{
+  "default": {
+    "fields": {
+      "images": {"type": "image", "required": true, "vary": false},
+      "price": {"type": "price", "required": true, "vary": false},
+      "name": {"type": "text", "required": true, "vary": false},
+      "description": {"type": "safe html", "required": false, "vary": false}
+    }
+  }
+}'''
 
 
 def set_dash_url(dash_url):
@@ -62,6 +72,10 @@ def import_project(name, apikey, repo):
                 split_templates(as_json, filename, files)
             contents = validump_resource(as_json, resource)
         files[filename] = contents
+    if 'extractors.json' not in files:
+        files['extractors.json'] = '{}'
+    if 'items.json' not in files:
+        files['items.json'] = DEFAULT_DASH_ITEM
     repo.save_files(files, 'master', 'Publishing initial import.')
 
 
