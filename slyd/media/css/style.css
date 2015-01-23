@@ -154,6 +154,7 @@ body{
 
 #toolbox .section {
 	margin:10px 0px 10px 5px;
+	overflow-x: hidden;
 }
 
 .scrolling-container {

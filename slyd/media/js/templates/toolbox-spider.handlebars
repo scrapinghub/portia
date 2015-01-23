@@ -64,7 +64,7 @@
 	</div>
 
 	<h3>Crawling</h3>
-	<div class="section">
+	<div class="section scrolling-container" {{bind-attr style="small_box_style"}}>
 		{{view 'follow-select' value=controller.links_to_follow}}
 
 		{{#if displayNofollow}}
