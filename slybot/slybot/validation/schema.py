@@ -33,13 +33,10 @@ def get_schema_validator(schema):
     def is_valid_uri(instance):
         if not isinstance(instance, basestring):
             return True
-        print('\n\n\nHello. I\'m Being Used!!!\n\n')
         uri = urlparse(instance)
         query = urlencode(parse_qsl(uri.query))
         return rfc3987.parse(uri._replace(query=query).geturl(),
                              rule='URI')
-
-    print(FormatChecker.checkers)
 
     return SlybotJsonSchemaValidator(_SCHEMAS[schema], resolver=resolver,
                                      format_checker=FormatChecker())
