@@ -191,7 +191,9 @@ def apply_annotations(annotations, target_page):
     last_id = 0
     # XXX: A dummy element is added to the end so if the last annotation is
     #      generated it will be added to the output
-    sorted_annotations = sorted(annotations.items()) + [(1e9, [{}])]
+    filtered = filter(lambda x: x[0] is not None, annotations.items())
+    dummy = [(1e9, [{}])]
+    sorted_annotations = sorted([(int(k), v) for k, v in filtered] + dummy)
     try:
         for aid, annotation_data in sorted_annotations:
             # Move target until replacement/insertion point

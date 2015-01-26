@@ -61,7 +61,12 @@ ASTool.ProjectRoute = Ember.Route.extend({
 		this.set('breadcrumbs.name', params.project_id);
 		return this.get('slyd').editProject(params.project_id, 'master').then(function() {
 			return { id: params.project_id };
-		});
+		}, function(err) {
+			// Handle issue where branch needed to be created
+			this.get('slyd').editProject(params.project_id, 'master').then(function() {
+				return { id: params.project_id };
+			});
+		}).bind(this);
 	},
 });
 
