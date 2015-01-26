@@ -11,7 +11,8 @@ RUN python /get-pip.py && pip install -U wheel
 # building lxml needs python-dev, libxml2-dev and libxslt1-dev
 # building MySQL requires libmysqlclient-dev
 # building pyOpenSSL requires libffi-dev libssl-dev
-RUN apt-get install -qy \
+RUN apt-get update -qq &&\
+    apt-get install -qy \
         build-essential python-dev libxml2-dev libssl-dev \
         libxslt1-dev libmysqlclient-dev libffi-dev \
         python-software-properties nginx
