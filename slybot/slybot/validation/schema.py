@@ -5,6 +5,7 @@ import rfc3987
 
 from urlparse import urlparse, parse_qsl
 from urllib import urlencode
+from urllib2 import unquote
 
 from jsonschema import Draft3Validator, RefResolver, FormatChecker
 
@@ -34,7 +35,7 @@ def get_schema_validator(schema):
         if not isinstance(instance, basestring):
             return True
         uri = urlparse(instance)
-        query = urlencode(parse_qsl(uri.query))
+        query = urlencode(parse_qsl(unquote(uri.query.encode('utf-8'))))
         return rfc3987.parse(uri._replace(query=query).geturl(),
                              rule='URI')
 
