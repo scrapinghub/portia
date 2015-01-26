@@ -12,3 +12,7 @@ publish:
     password: $$LOGIN_PASS
     email: $$LOGIN_EMAIL
     image_name: i.scrapinghub.com/portia/$CI_BRANCH
+
+cache:
+  - /home/ubuntu/.npm
+  - /home/ubuntu/.cache
