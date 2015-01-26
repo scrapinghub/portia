@@ -1,0 +1,15 @@
+# slybot reqs
+scrapy==0.24.4
+scrapely==0.12.0
+loginform==1.0
+lxml==3.4.1
+
+# slyd
+twisted==14.0.2
+jsonschema==2.4.0
+rfc3987==1.3.4
+requests==2.5.1
+
+# Dulwich's MySQL backend
+--allow-external=mysql-connector-python
+https://github.com/scrapinghub/dulwich/tarball/c22fe18#egg=dulwich
