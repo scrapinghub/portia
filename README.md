@@ -36,10 +36,7 @@ The recommended way to install dependencies is to use __virtualenv__:
 and then do:
 
     source YOUR_ENV_NAME/bin/activate
-    cd slyd
-    pip install -r requirements.txt
-
-As `slybot` is a `slyd` dependency, it will also get installed.
+    pip install -r requirements.txt -e slybot
 
 **Note:** you may need to use `sudo` or `pip --user` if you get permissions problems while installing.
 
