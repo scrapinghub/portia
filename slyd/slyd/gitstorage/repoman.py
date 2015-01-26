@@ -2,15 +2,13 @@ from time import time
 from collections import defaultdict
 from json import dumps, loads
 from itertools import chain
-from functools import wraps
 
 from scrapy.utils.misc import load_object
 
 from dulwich.objects import Blob, Tree, Commit, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
 from dulwich.errors import NotGitRepository
-
-from mysql.connector.errors import DatabaseError
+from dulwich.mysqlconnection import retry_operation
 
 from .jsondiff import merge_jsons
 
@@ -23,25 +21,6 @@ CHANGE_COPY = 'copy'
 CHANGE_UNCHANGED = 'unchanged'
 
 FILE_MODE = 0100644
-
-
-def retry_operation(retries=3, catches=(Exception,)):
-    '''
-    :param retries: Number of times to attempt the operation
-    :param catches: Which exceptions to catch and trigger a retry
-    '''
-    def wrapper(func):
-        @wraps(func)
-        def wrapped(*args, **kwargs):
-            err = None
-            for _ in range(retries):
-                try:
-                    return func(*args, **kwargs)
-                except catches as e:
-                    err = e
-            raise err
-        return wrapped
-    return wrapper
 
 
 class Repoman(object):
@@ -410,7 +389,7 @@ class Repoman(object):
         self._update_store(merge_tree)
         return merge_tree, had_conflict
 
-    @retry_operation(retries=3, catches=(DatabaseError,))
+    @retry_operation(retries=3)
     def _perform_file_operation(self, branch_name, operation, *args):
         if not self.has_branch(branch_name):
             self.create_branch(branch_name)
