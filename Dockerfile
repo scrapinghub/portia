@@ -24,7 +24,7 @@ RUN apt-add-repository ppa:chris-lea/node.js &&\
 RUN npm install grunt-cli -g
 
 # Install python stuff.
-ADD docker/requirements.txt /requirements.txt
+ADD requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 ADD . /app
 RUN ln -sf /app/nginx/nginx.conf /etc/nginx/nginx.conf 

@@ -1,7 +1,7 @@
 Portia
 ======
 
-Portia is a tool that allows you to visually scrape websites without any programming knowledge required. With Portia you can annotate a web page to identify the data you wish to extract, and Portia will understand based on these annotations how to scrape data from similar pages. 
+Portia is a tool that allows you to visually scrape websites without any programming knowledge required. With Portia you can annotate a web page to identify the data you wish to extract, and Portia will understand based on these annotations how to scrape data from similar pages.
 
 Anatomy of a Portia Project
 ---------------------------
@@ -10,8 +10,8 @@ A project in Portia generally consists of one or more spiders.
 
 ### Spider
 
-A spider is a crawler for a particular website. The configuration of a spider is split into three sections: 
-   
+A spider is a crawler for a particular website. The configuration of a spider is split into three sections:
+
 * **Initialization**
 * **Crawling**
 * **Extraction**
@@ -24,11 +24,11 @@ The **Extraction** section lists the templates for this spider.
 
 ### Templates
 
-When the crawler visits a page, the page is matched against each template and templates with more annotations take precedence over those with less. If the page matches a template, data will be extracted using the template's annotations to yield an item (assuming all required fields are filled). Templates exist within the context of a spider and are made up of annotations which define the elements you wish to extract from a page. Within the template you define the item you want to extract as well as mark any fields that are required for that item. 
+When the crawler visits a page, the page is matched against each template and templates with more annotations take precedence over those with less. If the page matches a template, data will be extracted using the template's annotations to yield an item (assuming all required fields are filled). Templates exist within the context of a spider and are made up of annotations which define the elements you wish to extract from a page. Within the template you define the item you want to extract as well as mark any fields that are required for that item.
 
 ![Field extractors](docs/_static/portia-extractors.png)
 
-You can also add extractors to item fields. Extractors allow you to further refine information extracted from a page using either regexes or a predefined type. For example, let's say there's an element on the page that contains a phone number, but it also contains some other text that you don't need. You could use a regular expression that matches phone numbers and add it as an extractor to the relevant field; upon extracting that field only the phone number would be stored. 
+You can also add extractors to item fields. Extractors allow you to further refine information extracted from a page using either regexes or a predefined type. For example, let's say there's an element on the page that contains a phone number, but it also contains some other text that you don't need. You could use a regular expression that matches phone numbers and add it as an extractor to the relevant field; upon extracting that field only the phone number would be stored.
 
 You may need to use more than one template even if you're only extracting a single item type. For example, an e-commerce site may have a different layout for books than it does for audio CDs, so you would need to create a template for each layout. See [Tips for Working with Multiple Templates](#tips-for-working-with-multiple-templates) for more info.
 
@@ -63,11 +63,11 @@ Once you are finished annotating, you can then mark any fields that are required
 
 ![Extracted items will be shown on the page](docs/_static/portia-extracted-items.png)
 
-You can now confirm that your template works by clicking ``Continue browsing``. The page should reload and a pop-up should appear showing you the items extracted from the page. When visiting a page in Portia, the whole extraction process is performed with the spider with the set of currently defined templates. This allows you to check that data will be extracted from the page before running the spider against the whole website. 
+You can now confirm that your template works by clicking ``Continue browsing``. The page should reload and a pop-up should appear showing you the items extracted from the page. When visiting a page in Portia, the whole extraction process is performed with the spider with the set of currently defined templates. This allows you to check that data will be extracted from the page before running the spider against the whole website.
 
 If you have created a template around one page where the data extracts successfully, but you visit a similar page and no item is extracted, then it's likely that particular page has a different layout or some fields missing. In this case you would simply click ``Annotate this page`` again to create a new template for the page, and then annotate it the same way you had done with the other page. See [Tips for Working with Multiple Templates](#tips-for-working-with-multiple-templates) for more details on how multiple templates are used within a single spider.
 
-Once you've confirmed that your spider works and extracts data properly, your project is now ready to [run](#running-portia) or [deploy](#deploying-a-project). 
+Once you've confirmed that your spider works and extracts data properly, your project is now ready to [run](#running-portia) or [deploy](#deploying-a-project).
 
 Advanced Use of Annotations
 ---------------------------
@@ -169,7 +169,7 @@ Layout B:
     </tbody>
 </table>
 
-As you can see, the problem lies with the fact that in layout B the description is where manufacturer would be, and with ``description`` not being a required field it means that the template created for layout A will match layout B. Creating a new template for layout B won't be enough to fix the problem, as layout A's template would contain more annotation and be matched against first. 
+As you can see, the problem lies with the fact that in layout B the description is where manufacturer would be, and with ``description`` not being a required field it means that the template created for layout A will match layout B. Creating a new template for layout B won't be enough to fix the problem, as layout A's template would contain more annotation and be matched against first.
 
 Instead we need to modify layout A's template, and mark the ``description`` annotation as **Required**. With this added constraint, items displayed with layout B will not be matched against with layout A's template due to the missing ``description`` field, so the spider will proceed onto layout B's template which will extract the data successfully.
 
@@ -226,7 +226,7 @@ Portia spiders are ultimately [Scrapy](http://scrapy.org/) spiders. You can pass
 Deploying a Project
 -------------------
 
-Portia projects can be deployed using [Scrapyd](http://scrapyd.readthedocs.org/en/latest). You can deploy a Portia project by going into ``slyd/data/projects/PROJECT_NAME`` and adding your target to ``scrapy.cfg``. You can then run ``scrapyd-deploy`` to deploy your project using the default deploy target, or specify a target and project using the following:  
+Portia projects can be deployed using [Scrapyd](http://scrapyd.readthedocs.org/en/latest). You can deploy a Portia project by going into ``slyd/data/projects/PROJECT_NAME`` and adding your target to ``scrapy.cfg``. You can then run ``scrapyd-deploy`` to deploy your project using the default deploy target, or specify a target and project using the following:
 
     scrapyd-deploy your_scrapyd_target -p project_name
 
