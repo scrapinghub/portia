@@ -95,4 +95,4 @@ gulp.task('watch', function () {
 
 
 gulp.task('optimize', ['minify_js', 'minify_css']);
-gulp.task('default', ['minify_js', 'minify_css', 'watch'])
+gulp.task('default', ['minify_js', 'minify_css', 'watch']);

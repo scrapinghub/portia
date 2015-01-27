@@ -522,9 +522,30 @@ body{
 	border-color: #9A9A9A;
 }
 
+.btn-clear {
+	color: #fff;
+	background-color:rgba(0,0,0,0);
+	border: 0;
+}
+
+.btn-clear:focus, .btn-clear:hover, .btn-clear:active {
+	color: #fff;
+	background-color:rgba(0,0,0,0);
+	border: 0;
+	outline: none;
+}
+
 .alert {
 	padding: 2px;
 	margin: 1px 0;
+}
+
+.arrow-left {
+	width: 0;
+	height: 0;
+	border-top: 30px solid transparent;
+	border-bottom: 30px solid transparent;
+	border-right:20px solid #a2a2a2;
 }
 
 hr {
@@ -673,13 +694,22 @@ select {
 }
 
 .ui-tooltip {
-    padding: 10px 20px;
-    color: #333;
-    border-radius: 4px;
-    border-color: #BBB;
-    border-width: #1px;
-    font: normal 12px Helvetica,Arial,sans-serif;
-    box-shadow: 0 0 7px black;
-    z-index: 500;
-    word-wrap:break-word;
+	padding: 10px 20px;
+	color: #333;
+	border-radius: 4px;
+	border-color: #BBB;
+	border-width: #1px;
+	font: normal 12px Helvetica,Arial,sans-serif;
+	box-shadow: 0 0 7px black;
+	z-index: 500;
+	word-wrap:break-word;
 }
+
+.pinned {
+	transform: rotate(-90deg);
+}
+
+.unpinned {
+	transform: rotate(90deg);
+}
+

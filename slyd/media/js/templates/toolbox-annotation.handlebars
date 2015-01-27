@@ -10,7 +10,7 @@
 			<ul style="list-style-type:none;padding:0px;margin:0px">
 				{{#each path in ancestorPaths}}
 					<li style="float:left; padding:3px 2px 3px 2px;">
-						{{view 'css-path-widget' action="selectElement" argument=path.element label=path.label minWidth="73px" class="light-button"}}
+						{{view 'css-path-widget' action="selectElement" argument=path.element label=path.label minWidth="73px" class="btn btn-light"}}
 					</li>
 				{{/each}}
 			</ul>
@@ -21,7 +21,7 @@
 			<ul style="list-style-type:none;padding:0px;margin:0px">
 				{{#each path in childPaths}}
 					<li style="float:left;padding:3px 2px 3px 2px;">
-						{{view 'css-path-widget' action="selectElement" argument=path.element label=path.label  minWidth="73px" class="light-button"}}
+						{{view 'css-path-widget' action="selectElement" argument=path.element label=path.label  minWidth="73px" class="btn btn-light"}}
 					</li>
 				{{/each}}
 			</ul>
