@@ -614,7 +614,7 @@ ASTool.ExtractorView = Em.View.extend(DragNDrop.Draggable, {
 		'regular_expression': '<RegEx>',
 		'type_extractor': '<type>',
 	},
-	classNames: ['extractor-view', 'ui-button', 'light-button'],
+	classNames: ['extractor-view', 'btn', 'btn-light'],
 	classNameBindings: ['extractorType'],
 
 	dragStart: function(event) {

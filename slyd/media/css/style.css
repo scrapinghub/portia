@@ -402,6 +402,10 @@ body{
 	color:#F8D900;
 }
 
+.label-align > span {
+	margin-top: 7px;
+}
+
 .very-small-label {
 	font-size: 0.7em;
 	color: #AAA;
@@ -409,6 +413,8 @@ body{
 
 .inline-help {
 	margin: 0px 4px 0px 4px;
+	color: #2E83FF;
+	cursor: default;
 }
 
 .collapse-button {
@@ -602,71 +608,6 @@ select {
 	height: 24px;
 }
 
-.ui-button {
-	background: #999;
-	border-color: #FFF;
-	border-radius: 5px;
-}
-
-.ui-button:hover {
-	background: #AAA;
-}
-
-.ui-button.black-button {
-	background: #222;
-	border-color: #222;
-}
-
-.ui-button.black-button:hover {
-	background: #333;
-	border-color: #333;
-}
-
-.ui-button.red-button {
-	background: #9C5454;
-	border-color: #9C5454;
-}
-
-.ui-button.red-button:hover {
-	background: #FF0000;
-	border-color: #FF0000;
-}
-
-.ui-button.blue-button {
-	background: #0D6B9C;
-	border-color: #0D6B9C;
-}
-
-.ui-button.blue-button:hover {
-	background: #2295CE;
-	border-color: #2295CE;
-}
-
-.ui-button.light-button {
-	background: rgba(0,0,0,0);
-	border-color: rgba(0,0,0,0.2);
-	border-style: dotted;
-	color: #6F92BF;
-}
-
-.ui-button.light-button:hover {
-	color: orange;
-}
-
-.ui-button.clear-button {
-	background: rgba(0,0,0,0);
-	border-style: none;
-}
-
-.ui-button.pin-button {
-	background: #888;
-	border-color: #888;
-}
-
-.ui-button.big {
-	font-size:1.2em;
-}
-
 .ui-state-focus { outline: none; }
 
 .ui-accordion .ui-accordion-content {
@@ -682,15 +623,6 @@ select {
 
 .textless-button .ui-button-text {
 	padding: 14px 22px 8px 4px !important;
-}
-
-.fix_plus_icon .ui-icon {
-	margin-left: -7px !important;
-	margin-top: -7.5px !important;
-}
-
-.ui-button-icon-only {
-	padding: 7px !important;
 }
 
 .ui-tooltip {
@@ -712,4 +644,3 @@ select {
 .unpinned {
 	transform: rotate(90deg);
 }
-

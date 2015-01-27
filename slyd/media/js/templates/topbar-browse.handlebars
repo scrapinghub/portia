@@ -32,19 +32,15 @@
 		{{/unless}}
 
 		{{#if showNoItemsExtracted}}
-			<span class="small-label">
-				No items extracted
-			</span>
+			{{bs-label content="No items extracted" type="info"}}
 		{{/if}}
 
 		{{#if saving}}
-			<span class="small-label red-label">
-				Saving spider...
-			</span>
+			{{bs-label content="Saving Spider" type="warning"}}
 		{{/if}}
 	</div>
-	<span class="pull-right" style="margin-top: 6px;">
-		 {{bs-label content="Beta" type="danger"}}
+	<span class="pull-right label-align">
+		{{bs-label content="Beta" type="danger"}}
 	</span>
 
 		{{#if showItems}}
