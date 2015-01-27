@@ -17,8 +17,11 @@ from slyd.gitstorage.repoman import Repoman
 
 
 def main():
-	Repoman.setup(storage_backend='dulwich.mysqlrepo.MysqlRepo', location=os.environ.get('DB_URL'))
-	Repoman.init_backend()
+    Repoman.setup(
+        storage_backend='dulwich.mysqlrepo.MysqlRepo',
+        location=os.environ.get('DB_URL'),
+    )
+    Repoman.init_backend()
 
 
 if __name__ == '__main__':
