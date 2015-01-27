@@ -1,9 +1,6 @@
 {
   "name": "portia",
   "url": "http://github.com/scrapinghub/portia",
-  "dependencies": {
-    "bower": "*"
-  },
   "devDependencies": {
     "ember-template-compiler": "^1.9.0-alpha",
     "gulp": "^3.8.10",

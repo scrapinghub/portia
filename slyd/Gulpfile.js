@@ -55,10 +55,13 @@ var src = {
       './media/css/style.css',
     ],
   },
+  templates: [
+    './media/js/templates/*.handlebars',
+  ]
 }
 
 var template_stream = function() {
-  return gulp.src('./media/js/templates/*.handlebars')
+  return gulp.src(src.templates)
     .pipe(ember_templates())
     .pipe(concat('templates.js'));
 };
@@ -84,5 +87,12 @@ gulp.task('minify_css', function() {
     .pipe(gulp.dest('./media/css'))
 })
 
-gulp.task('optimize', ['minify_js', 'minify_css']);
+gulp.task('watch', function () {
+  gulp.watch(src.css.app, ['minify_css']);
+  var js = src.js.app.concat(src.js.controllers).concat(src.templates);
+  gulp.watch(js, ['minify_js']);
+});
 
+
+gulp.task('optimize', ['minify_js', 'minify_css']);
+gulp.task('default', ['minify_js', 'minify_css', 'watch'])

@@ -2,11 +2,12 @@
 	<div class="container" style="height:100%;width:400px;">
 		<div class="bar">
 			<div style="position:absolute;left:8px;top:45%">
-				<img src="images/toolbox_show.png">
+				<div class="arrow-left">
+				</div>
 			</div>
 		</div>
 		<span style="float:left;margin:0px 5px 0px -35px">
-			{{view 'pin-tool-box-button' action="editAnnotation" class="textless-button pin-button"}}
+			{{view 'pin-tool-box-button' type="clear" icon="fa fa-icon fa-thumb-tack unpinned"}}
 		</span>
 		<div style="padding-top:10px;margin-left:40px;padding-right:2px">
 			{{yield}}

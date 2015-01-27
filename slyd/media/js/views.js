@@ -773,28 +773,30 @@ ASTool.ToolboxViewMixin = Ember.Mixin.create({
 });
 
 
-ASTool.PinToolBoxButtonView = ASTool.ButtonView.extend({
-	icon: function() {
-		return ASTool.ToolboxViewMixin.pinned ? 'ui-icon-pin-s' : 'ui-icon-pin-w';
-	}.property('pinned'),
+ASTool.PinToolBoxButtonView = Bootstrap.BsButtonComponent.extend({
+	classNameBindings: ['pinned'],
 
 	disabled: function() {
 		return this.get('parentView.fixedToolbox');
 	}.property('parentView.fixedToolbox'),
 
+	pinned: function() {
+		return this.disabled || this.get('parentView.pinned')
+	}.property('parentView.fixedToolbox', 'parentView.pinned'),
+
 	click: function() {
 		ASTool.ToolboxViewMixin.pinned = !ASTool.ToolboxViewMixin.pinned;
+		this.set('pinned', ASTool.ToolboxViewMixin.pinned);
 		this.notifyPropertyChange('pinned');
 	},
 });
 
 
 ASTool.InlineHelpView = Em.View.extend({
-	tagName: 'img',
-	src: 'images/info.png',
+	tagName: 'span',
 	message: null,
-	attributeBindings: ['name', 'title', 'src'],
-	classNames: ['inline-help'],
+	attributeBindings: ['name', 'title'],
+	classNames: ['fa fa-icon fa-icon fa-info-circle inline-help'],
 
 	title: function() {
 		return ASTool.Messages.get(this.get('message'));
