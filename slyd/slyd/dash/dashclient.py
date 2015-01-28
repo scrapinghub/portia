@@ -141,7 +141,7 @@ def _archive_project(name, buff):
     files_list = repo.list_files_for_branch('master')
     extractors = {}
     for file_path in files_list:
-        if file_path.endswith('extractors.json'):
+        if file_path == 'extractors.json':
             extractors = json.loads(repo.file_contents_for_branch(file_path,
                                                                   'master'))
 
@@ -152,14 +152,23 @@ def _archive_project(name, buff):
         file_contents = repo.file_contents_for_branch(file_path, 'master')
         if file_path.startswith('spiders'):
             as_json = json.loads(file_contents)
-            templates = as_json.get('templates', [])
-            for template in templates:
-                existing = {}
-                for field, eid in template.get('extractors', {}).iteritems():
-                    if eid in extractors:
-                        existing[field] = eid
-                template['extractors'] = existing
-            _add_to_archive(archive, file_path, json.dumps(as_json), now)
+            try:
+                parts = file_path.split("/")
+                if len(parts) == 2:
+                    # spider json
+                    spider_name = parts[1].rsplit(".", 1)[0]
+                    spiders[spider_name] = file_path, as_json
+                elif len(parts) == 3:
+                    # template json
+                    existing = {}
+                    for field, eids in as_json.get('extractors', {}).items():
+                        existing[field] = [eid for eid in eids
+                                           if eid in extractors]
+                    as_json['extractors'] = existing
+                    spider_name = parts[1]
+                    templates[spider_name].append(as_json)
+            except ValueError:
+                continue
         else:
             _add_to_archive(archive, file_path, file_contents, now)
         seen_files.add(file_path)

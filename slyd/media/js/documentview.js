@@ -615,7 +615,6 @@ ASTool.DocumentView = Em.Object.extend({
 		if (!this.get('canvas')) {
 			this.set('canvas', ASTool.Canvas.create({ canvasId: 'infocanvas' }));
 			this.initHoveredInfo();
-			this.adjustSizes();
 			if (!Ember.testing){
 				// Disable automatic redrawing during tests.
 				var self = this;
@@ -625,7 +624,6 @@ ASTool.DocumentView = Em.Object.extend({
 					});
 				}, 5000));
 				window.resize = function() {
-					this.adjustSizes();
 					this.redrawNow();
 				}.bind(this);
 			}
