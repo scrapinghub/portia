@@ -363,7 +363,9 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 
 		rename: function(oldName, newName) {
 			this.set('name', oldName);
-			this.saveTemplate().then(function() {
+			saveFuture = this.saveTemplate()
+			if (!saveFuture) return;
+			saveFuture.then(function() {
 				var templateNames = this.get('controllers.spider.content.template_names');
 				newName = this.getUnusedName(newName, templateNames);
 				var spiderName = this.get('controllers.spider.name');
@@ -439,14 +441,15 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			this.emptyAnnotations().forEach(function(annotation) {
 				this.deleteAnnotation(annotation);
 			}.bind(this));
-			this.saveTemplate().then(function() {
-					this.set('controllers.spider_index.autoloadTemplate', this.get('url'));
-					this.transitionToRoute('spider');
-				}.bind(this),
-				function(reason) {
-					this.showHTTPAlert('Save Error', reason);
-				}.bind(this)
-			);
+			saveFuture = this.saveTemplate()
+			if (!saveFuture) return;
+			saveFuture.then(function() {
+				this.set('controllers.spider_index.autoloadTemplate', this.get('url'));
+				this.transitionToRoute('spider');
+			}.bind(this),
+			function(reason) {
+				this.showHTTPAlert('Save Error', reason);
+			}.bind(this));
 		},
 
 		hideFloatingAnnotationWidget: function() {
