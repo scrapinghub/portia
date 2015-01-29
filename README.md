@@ -176,32 +176,11 @@ Instead we need to modify layout A's template, and mark the ``description`` anno
 Running Portia
 --------------
 
-### Installation
-
 Checkout the repository:
 
     git clone https://github.com/scrapinghub/portia
 
-Ideally, you should create an environment with virtualenv:
-
-    virtualenv YOUR_ENV_NAME --no-site-packages
-    source YOUR_ENV_NAME/bin/activate
-
-Install the required packages:
-
-    cd slyd
-    pip install -r requirements.txt
-
-### Running Portia
-
-Start slyd:
-
-    cd slyd
-    twistd -n slyd
-
-Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
-
-### Running Portia with Vagrant
+### Running Portia with Vagrant (Recommended)
 
 You will need both [Vagrant](http://www.vagrantup.com/downloads.html) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) installed.
 
@@ -210,6 +189,48 @@ Run the following in Portia's directory:
     vagrant up
 
 This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000/static/main.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
+
+### Running Portia Locally
+
+If you are would like to run Portia locally you should create an environment with virtualenv:
+
+    virtualenv YOUR_ENV_NAME --no-site-packages
+    source YOUR_ENV_NAME/bin/activate
+
+and inside this env install the required packages:
+
+    pip install -r requirements.txt
+    pip install -e slybot
+
+To run Portia start slyd:
+
+    cd slyd
+    twistd -n slyd
+
+Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+
+### Running Portia with Docker
+
+If you are on a Linux machine you will need [Docker](https://docs.docker.com/installation/) installed or if you are using a [Windows](https://docs.docker.com/installation/windows/) or [Mac OS X](https://docs.docker.com/installation/mac/) machine you will need [boot2docker](http://boot2docker.io/).
+
+After following the appropriate instructions above the Portia image can be built using the command below:
+
+    docker build -t potia .
+
+Portia can be run using the command below:
+
+    docker run -i -t --rm
+    -v <PROJECT_FOLDER>/data:/app/slyd/data:rw \
+    -p 9001:9001 \
+    --name portia \
+    portia
+
+Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+Projects will be stored in the project folder that you mount to docker.
+
+To run `portiacrawl` add `/app/slybot/bin/portiacrawl <PROJECT_PATH> [SPIDER] [OPTIONS]` to the command above.
+
+:warning: `For Windows the <PROJECT_FOLDER> path must be of the form /<DRIVE_LETTER/<PATH>`
 
 ### Running a Portia Spider
 
@@ -236,3 +257,51 @@ and then schedule your spider with:
 
 :warning: `Running scrapyd from your project directory will cause deployment to fail`
 
+Additional Features
+-------------------
+
+### Git backend for projects
+
+Versioning for projects can be enabled by creating a `local_settings.py` file in `slyd/slyd` with the contents below:
+
+    import os
+    SPEC_FACTORY = {
+        'PROJECT_SPEC': 'slyd.gitstorage.projectspec.ProjectSpec',
+        'PROJECT_MANAGER': 'slyd.gitstorage.projects.ProjectsManager',
+        'PARAMS': {
+            'storage_backend': 'dulwich.fsrepo.FsRepo',
+            'location': os.environ.get('PORTIA_DATA_DIR', SPEC_DATA_DIR)
+        },
+        'CAPABILITIES': {
+            'version_control': True,
+            'create_projects': True,
+            'delete_projects': True,
+            'rename_projects': True
+        }
+    }
+
+### MySQL backend for projects
+
+A MySQL backend can  be used by adding a `local_settings.py` file in `slyd/slyd` with the contents below:
+
+    import os
+    SPEC_FACTORY = {
+        'PROJECT_SPEC': 'slyd.gitstorage.projectspec.ProjectSpec',
+        'PROJECT_MANAGER': 'slyd.gitstorage.projects.ProjectsManager',
+        'PARAMS': {
+            'storage_backend': 'dulwich.mysqlrepo.MysqlRepo',
+            'location': os.environ.get('DB_URL'),
+        },
+        'CAPABILITIES': {
+            'version_control': True,
+            'create_projects': True,
+            'delete_projects': True,
+            'rename_projects': True
+        }
+    }
+
+This will store versioned projects as blobs within the MySQL database that you specify by setting the environment variable below:
+
+    DB_URL = mysql://<USERNAME>:<PASSWORD>@<HOST>:<PORT>/<DB>
+
+When this env variable is set the database can be initialized by running the `bin/init_mysqldb` script.
