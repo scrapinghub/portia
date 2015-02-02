@@ -196,11 +196,17 @@ If you are would like to run Portia locally you should create an environment wit
 
     virtualenv YOUR_ENV_NAME --no-site-packages
     source YOUR_ENV_NAME/bin/activate
+    cd ENV_NAME
+
+Now clone this repository into that env:
+
+    git clone https://github.com/scrapinghub/portia.git
 
 and inside this env install the required packages:
 
+    cd portia
     pip install -r requirements.txt
-    pip install -e slybot
+    pip install -e ./slybot
 
 To run Portia start slyd:
 
