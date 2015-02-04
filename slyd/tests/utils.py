@@ -3,21 +3,20 @@ from twisted.internet.defer import succeed
 from twisted.web import server
 from twisted.web.test.test_web import DummyRequest
 from scrapy.settings import CrawlerSettings
-from slyd.crawlerspec import CrawlerSpecManager
-from slyd.projects import ProjectsResource
+from slyd.specmanager import SpecManager
+from slyd.projects import ProjectsManagerResource
 import tests.settings as test_settings
 
 
 def test_spec_manager():
     """Create a CrawlerSpecManager configured to use test settings"""
     crawler_settings = CrawlerSettings(settings_module=test_settings)
-    return CrawlerSpecManager(crawler_settings)
+    return SpecManager(crawler_settings)
 
 
 def test_projects_resource(temp_projects_dir):
     """Create a ProjectsResource configured to use test settings"""
-    crawler_settings = CrawlerSettings(settings_module=test_settings)
-    projects = ProjectsResource(crawler_settings)
+    projects = ProjectsManagerResource(test_spec_manager())
     projects.projectsdir = temp_projects_dir
     return projects
 
@@ -63,9 +62,9 @@ class TestSite(server.Site):
                                     data, args, headers)
         resource = self.getResourceFor(request)
         result = resource.render(request)
-        return self._resolveResult(request, result)
+        return self._resolve_result(request, result)
 
-    def _resolveResult(self, request, result):
+    def _resolve_result(self, request, result):
         if isinstance(result, str):
             request.write(result)
             request.finish()
