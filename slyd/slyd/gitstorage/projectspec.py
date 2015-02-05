@@ -49,6 +49,9 @@ class GitProjectSpec(ProjectSpec):
         self._open_repo().rename_file(self._rfile_name('spiders', from_name),
                                       self._rfile_name('spiders', to_name),
                                       self._get_branch())
+        self._open_repo().rename_folder(join('spiders', from_name),
+                                        join('spiders', to_name),
+                                        self._get_branch())
 
     def remove_spider(self, name):
         self._open_repo().delete_file(
