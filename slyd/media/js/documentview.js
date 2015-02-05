@@ -197,10 +197,17 @@ ASTool.DocumentView = Em.Object.extend({
 					while (previous_tag.prop('tagName') === 'INS') {
 						previous_tag = previous_tag.prev();
 					}
+					// If there is only another ins tag before the parent
+					if (previous_tag.length == 0) {
+						previous_tag = that.parent();
+						insert_after = false;
+						node = previous_tag[0].childNodes[0];
+					} else {
+						node = previous_tag[0].nextSibling;
+					}
 					// Loop over all text nodes and generated tags until the
 					// next tag is found
 					nodes = [];
-					node = previous_tag[0].nextSibling;
 					while (node) {
 						nodes.push(node);
 						node = node.nextSibling;
