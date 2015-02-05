@@ -7,7 +7,7 @@ import copy
 
 from .settings import SPEC_DATA_DIR
 
-from slyd.repoman import Repoman
+from slyd.gitstorage.repoman import Repoman
 
 
 def j(json):
