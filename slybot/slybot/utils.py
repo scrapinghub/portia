@@ -24,15 +24,30 @@ def open_project_from_dir(project_dir):
         specs["items"] = json.load(f)
     with open(os.path.join(project_dir, "extractors.json")) as f:
         specs["extractors"] = json.load(f)
-    for fname in os.listdir(os.path.join(project_dir, "spiders")):
+
+    spec_base = os.path.join(project_dir, "spiders")
+    for fname in os.listdir(spec_base):
         if fname.endswith(".json"):
             spider_name = os.path.splitext(fname)[0]
-            with open(os.path.join(project_dir, "spiders", fname)) as f:
+            with open(os.path.join(spec_base, fname)) as f:
                 try:
-                    specs["spiders"][spider_name] = json.load(f)
+                    spec = json.load(f)
+                    template_names = spec.get("template_names")
+                    if template_names:
+                        templates = load_external_templates(spec_base, spider_name, template_names)
+                        spec.setdefault("templates", []).extend(templates)
+                    specs["spiders"][spider_name] = spec
                 except ValueError, e:
                     raise ValueError("Error parsing spider (invalid JSON): %s: %s" % (fname, e))
+
     return specs
+
+
+def load_external_templates(spec_base, spider_name, template_names):
+    """A generator yielding the content of all passed `template_names` for `spider_name`."""
+    for name in template_names:
+        with open(os.path.join(spec_base, spider_name, name + ".json")) as f:
+            yield json.load(f)
 
 
 def htmlpage_from_response(response):
