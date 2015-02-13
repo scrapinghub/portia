@@ -44,7 +44,7 @@ def open_project_from_dir(project_dir):
 
 
 def load_external_templates(spec_base, spider_name, template_names):
-    """A generator yielding the content of all passed `tempalte_names` for `spider_name`."""
+    """A generator yielding the content of all passed `template_names` for `spider_name`."""
     for name in template_names:
         with open(os.path.join(spec_base, spider_name, name + ".json")) as f:
             yield json.load(f)
