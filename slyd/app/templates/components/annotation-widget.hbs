@@ -1,0 +1,56 @@
+{{#unless creatingField}}
+
+    {{#unless hasMultipleMappings}}
+        {{item-select options=attributes value=attributeName changed="updateField" name="attribute"}}
+        {{item-select options=itemFields value=fieldName changed="updateField" name="field"}}
+        <div style="margin-top:5px;padding:5px">
+            <div style="display:inline-block;width:72%">
+                <h5>Attribute value:</h5>
+                <span style="word-wrap:break-word;">
+                    {{collapsible-text fullText=attributeValue trimTo=40}}
+                </span>
+            </div>
+            <div style="text-align:right;display:inline-block;width:24%">
+                {{bs-button type="primary" clicked="edit" icon="fa fa-icon fa-gear" size="xs"}}
+                {{bs-button type="danger" clicked="delete" icon="fa fa-icon fa-trash" size="xs"}}
+            </div>
+        </div>
+
+    {{else}}
+        <div>
+            <div style="display:inline-block;width:75%">
+                {{#each ann in mappings}}
+                    <div class="attribute multimap">{{ann.name}}</div>
+                    <div class="field multimap" >{{ann.mappedField}}</div>
+                {{/each}}
+            </div>
+            <div style="text-align:right;display:inline-block;width:21%;">
+                <div style="text-align:center;display:inline-block;width:60px;margin:4px">{{annotation.variant}}</div>
+                {{bs-button type="primary" clicked="edit" icon="fa fa-icon fa-gear" size="xs"}}
+                {{bs-button type="danger" clicked="delete" icon="fa fa-icon fa-trash" size="xs"}}
+            </div>
+        </div>
+    {{/unless}}
+{{else}}
+    {{bs-button type="primary" clicked="createField" icon="fa fa-icon fa-icon-plus" disabled=createFieldDisabled}}
+
+    <div class="row">
+        <div class="col-xs-6">
+            <label class="small-label">Field name</label>
+        </div>
+        <div class="col-xs-6">
+            <label class="small-label">Field type</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-6">
+            {{text-field placeholder="Enter Name"}}
+        </div>
+        <div class="col-xs-6">{{item-select options=typeOptions value=fieldType}}</div>
+    </div>
+{{/unless}}
+{{#if inDoc}}
+    {{#bs-button clicked="save" icon="fa fa-icon fa-check" size="xs"}}
+        Done
+    {{/bs-button}}
+{{/if}}

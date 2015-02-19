@@ -482,8 +482,8 @@ body{
 	width: 105%;
 }
 
-.pattern {
-	width: 90%;
+.pattern, .pattern:hover {
+	width: 110%;
 }
 
 .button-spacer {

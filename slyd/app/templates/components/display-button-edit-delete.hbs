@@ -1,0 +1,11 @@
+<div class="col-xs-10">
+    {{#inline-editable-text-field text=text update="saveText" hideIcon=true}}
+        {{#bs-button class="pattern" type="light" size="sm"}}
+            {{text}}
+             <i class="fa fa-icon"></i>
+        {{/bs-button}}
+    {{/inline-editable-text-field}}
+</div>
+<div class="col-xs-1 button-align-med">
+    {{bs-button clicked="deleteText" icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+</div>

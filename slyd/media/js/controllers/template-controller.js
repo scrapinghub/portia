@@ -456,10 +456,6 @@ ASTool.TemplateIndexController = Em.ObjectController.extend(ASTool.BaseControlle
 			this.hideFloatingAnnotationWidget();
 		},
 
-		selected: function() {
-			console.log('Selected!');
-		},
-
 		toggleCSS: function() {
 			//FIXME: Set state correctly
 			button = $('.togglecss');
