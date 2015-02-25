@@ -221,7 +221,7 @@ If you are on a Linux machine you will need [Docker](https://docs.docker.com/ins
 
 After following the appropriate instructions above the Portia image can be built using the command below:
 
-    docker build -t potia .
+    docker build -t portia .
 
 Portia can be run using the command below:
 
