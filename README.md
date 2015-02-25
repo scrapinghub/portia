@@ -180,6 +180,11 @@ Checkout the repository:
 
     git clone https://github.com/scrapinghub/portia
 
+### Dependencies ###
+You might need to install the following packages
+
+   sudo apt-get install python-dev libxml2-dev libxslt-dev
+
 ### Running Portia with Vagrant (Recommended)
 
 You will need both [Vagrant](http://www.vagrantup.com/downloads.html) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) installed.
