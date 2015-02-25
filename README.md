@@ -183,7 +183,7 @@ Checkout the repository:
 ### Dependencies ###
 You might need to install the following packages
 
-   sudo apt-get install python-dev libxml2-dev libxslt-dev
+   sudo apt-get install python-dev libxml2-dev libxslt-dev zlib1g-dev
 
 ### Running Portia with Vagrant (Recommended)
 
