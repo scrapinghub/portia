@@ -179,7 +179,7 @@ Running Portia
 ### Dependencies ###
 You might need to install the following packages
 
-    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev
+    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
 
 ### Running Portia with Vagrant (Recommended)
 
