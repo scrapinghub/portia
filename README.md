@@ -176,16 +176,16 @@ Instead we need to modify layout A's template, and mark the ``description`` anno
 Running Portia
 --------------
 
-Checkout the repository:
-
-    git clone https://github.com/scrapinghub/portia
-
 ### Dependencies ###
 You might need to install the following packages
 
-    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev
+    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev
 
 ### Running Portia with Vagrant (Recommended)
+
+Checkout the repository:
+
+    git clone https://github.com/scrapinghub/portia
 
 You will need both [Vagrant](http://www.vagrantup.com/downloads.html) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) installed.
 
@@ -221,6 +221,10 @@ To run Portia start slyd:
 Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
 
 ### Running Portia with Docker
+
+Checkout the repository:
+
+    git clone https://github.com/scrapinghub/portia
 
 If you are on a Linux machine you will need [Docker](https://docs.docker.com/installation/) installed or if you are using a [Windows](https://docs.docker.com/installation/windows/) or [Mac OS X](https://docs.docker.com/installation/mac/) machine you will need [boot2docker](http://boot2docker.io/).
 
