@@ -176,11 +176,6 @@ Instead we need to modify layout A's template, and mark the ``description`` anno
 Running Portia
 --------------
 
-### Dependencies ###
-You might need to install the following packages
-
-    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
-
 ### Running Portia with Vagrant (Recommended)
 
 Checkout the repository:
@@ -196,6 +191,10 @@ Run the following in Portia's directory:
 This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000/static/main.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 ### Running Portia Locally
+
+When running Portia on Ubuntu or Debian systems you may need to install the following dependencies:
+
+    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
 
 If you are would like to run Portia locally you should create an environment with virtualenv:
 
