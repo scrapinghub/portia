@@ -176,11 +176,11 @@ Instead we need to modify layout A's template, and mark the ``description`` anno
 Running Portia
 --------------
 
+### Running Portia with Vagrant (Recommended)
+
 Checkout the repository:
 
     git clone https://github.com/scrapinghub/portia
-
-### Running Portia with Vagrant (Recommended)
 
 You will need both [Vagrant](http://www.vagrantup.com/downloads.html) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) installed.
 
@@ -191,6 +191,10 @@ Run the following in Portia's directory:
 This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000/static/main.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 ### Running Portia Locally
+
+When running Portia on Ubuntu or Debian systems you may need to install the following dependencies:
+
+    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
 
 If you are would like to run Portia locally you should create an environment with virtualenv:
 
@@ -216,6 +220,10 @@ To run Portia start slyd:
 Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
 
 ### Running Portia with Docker
+
+Checkout the repository:
+
+    git clone https://github.com/scrapinghub/portia
 
 If you are on a Linux machine you will need [Docker](https://docs.docker.com/installation/) installed or if you are using a [Windows](https://docs.docker.com/installation/windows/) or [Mac OS X](https://docs.docker.com/installation/mac/) machine you will need [boot2docker](http://boot2docker.io/).
 
