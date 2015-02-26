@@ -192,11 +192,7 @@ This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` s
 
 ### Running Portia Locally
 
-When running Portia on Ubuntu or Debian systems you may need to install the following dependencies:
-
-    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
-
-If you are would like to run Portia locally you should create an environment with virtualenv:
+If you would like to run Portia locally you should create an environment with virtualenv:
 
     virtualenv YOUR_ENV_NAME --no-site-packages
     source YOUR_ENV_NAME/bin/activate
@@ -217,7 +213,13 @@ To run Portia start slyd:
     cd slyd
     twistd -n slyd
 
-Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+Portia should now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+
+###### Missing Dependencies on Linux
+
+When running Portia on Ubuntu or Debian systems you may need to install the following dependencies:
+
+    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
 
 ### Running Portia with Docker
 
