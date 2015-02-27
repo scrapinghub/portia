@@ -1,0 +1,5 @@
+{{#each option in optionsList}}
+    <option value="{{option.value}}" selected="{{if option.selected 'selected' ''}}">
+        {{option.label}}
+    </option>
+{{/each}}

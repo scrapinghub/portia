@@ -5,8 +5,8 @@ from shutil import rmtree
 from distutils.dir_util import copy_tree
 from twisted.trial import unittest
 from twisted.internet.defer import inlineCallbacks
-from slyd.crawlerspec import create_crawler_spec_resource
-from slyd.crawlerspec import convert_spider_templates
+from slyd.projectspec import create_project_resource
+from slyd.projectspec import convert_template
 from .utils import TestSite, test_spec_manager
 from .settings import SPEC_DATA_DIR
 
@@ -29,7 +29,7 @@ class CrawlerSpecTest(unittest.TestCase):
 
     def setUp(self):
         sm = test_spec_manager()
-        spec_resource = create_crawler_spec_resource(sm)
+        spec_resource = create_project_resource(sm)
         self.temp_project_dir = mkdtemp(dir=SPEC_DATA_DIR,
                                         prefix='test-run-')
         self.project = basename(self.temp_project_dir)
@@ -50,7 +50,7 @@ class CrawlerSpecTest(unittest.TestCase):
     def test_get_resource(self):
         self._get_check_resource("project")
         self._get_check_resource("spiders/pinterest.com",
-                                 convert_spider_templates)
+                                 convert_template)
 
     @inlineCallbacks
     def post_command(self, spider, cmd, *args, **kwargs):

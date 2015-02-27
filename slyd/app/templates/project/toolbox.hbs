@@ -1,0 +1,60 @@
+<div style="margin:10px 0px 0px 10px">
+	<div style="text-align:center;font-size:1.1em;margin-bottom:5px">
+		{{#if capabilities.rename_projects}}
+			{{#inline-editable-text-field text=slyd.project validation='^[a-zA-Z0-9_-]+$' name=slyd.project action='rename'}}
+				Project {{slyd.project}}
+			{{/inline-editable-text-field}}
+		{{else}}
+			<h4>Project {{slyd.project}}</h4>
+		{{/if}}
+	</div>
+
+	<h4>Spiders</h4>
+	<div>
+		<div class="input-group col-xs-11">
+			{{input value=filterSpider class="form-control" placeholder="Filter Spiders"}}
+			<div class="input-group-addon"><span class="fa fa-search"></span></div>
+		</div>
+		<div class="scrolling-container" {{bind-attr style="full_box_style"}}>
+			{{#each spider in filteredSpiders}}
+				<div class="row">
+					<div class="col-xs-9 clickable-url">
+						{{#bs-button clicked="editSpider" clickedParam=spider type="light"}}
+							{{spider}}
+						{{/bs-button}}
+					</div>
+					<div class="col-xs-3 button-align">
+						{{bs-button clicked="deleteSpider" size="sm" clickedParam=spider icon="fa fa-icon fa-trash" type="danger"}}
+					</div>
+				</div>
+			{{else}}
+				{{#if controller.filterSpider}}
+					<h4>No Spiders matching "{{controller.filterSpider}}" found in this project.</h4>
+				{{else}}
+					<h4>No spiders for this project.</h4>
+				{{/if}}
+			{{/each}}
+		</div>
+	</div>
+	{{#if capabilities.version_control}}
+		{{#if controller.hasChanges}}
+			<div class="button-spacer">
+				{{#bs-button clicked="publishProject" size="sm" icon="fa fa-icon fa-upload" type="primary"}}
+					Publish changes
+				{{/bs-button}}
+				{{#bs-button clicked="discardChanges" size="sm" icon="fa fa-icon fa-trash" type="danger"}}
+					Discard Changes
+				{{/bs-button}}
+			</div>
+		{{else}}
+			{{#if capabilities.deploy_projects}}
+				<div style="text-align:center;font-size:1.1em;margin-top:10px">
+					{{#bs-button clicked="deployProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.isDeploying}}
+						Deploy
+					{{/bs-button}}
+				</div>
+			{{/if}}
+		{{/if}}
+	{{/if}}
+</div>
+

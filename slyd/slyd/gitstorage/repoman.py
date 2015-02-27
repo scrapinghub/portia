@@ -158,6 +158,16 @@ class Repoman(object):
                                      old_file_path, new_file_path,
                                      commit_message)
 
+    def rename_folder(self, old_folder_path, new_folder_path, branch_name,
+                      commit_message=None):
+        '''Renames a file in the repo and advances the specified branch head.
+
+        If the branch does not exist yet, it will be created.
+        '''
+        self._perform_file_operation(branch_name, self._rename_folder,
+                                     old_folder_path, new_folder_path,
+                                     commit_message)
+
     def blob_for_branch(self, file_path, branch_name):
         '''Returns the blob with the contents of file_path.
 
@@ -211,7 +221,6 @@ class Repoman(object):
             # Squash all the branch commits and move the master head.
             tree = self._get_tree(branch)
             commit = self._create_commit()
-            #commit.parents = [head, branch]
             commit.parents = [head]
             commit.tree = tree.id
             commit.message = message or 'Publishing changes'
@@ -436,6 +445,27 @@ class Repoman(object):
         commit.tree = tree.id
         commit.message = (commit_message or
                           'Renaming %s to %s' % (old_file_path, new_file_path))
+        self._update_store(commit, tree)
+        return commit
+
+    def _rename_folder(self, parent_commit, old_folder_path, new_folder_path,
+                       commit_message=None):
+        if old_folder_path[-1] != '/':
+            old_folder_path += '/'
+        if new_folder_path[-1] != '/':
+            new_folder_path += '/'
+        tree = self._get_tree(parent_commit)
+        for path in tree:
+            if path.startswith(old_folder_path):
+                file_path = new_folder_path + path.split(old_folder_path, 1)[1]
+                tree[file_path] = tree[path]
+                del tree[path]
+        commit = self._create_commit()
+        commit.parents = [parent_commit]
+        commit.tree = tree.id
+        commit.message = (commit_message or
+                          'Renaming %s to %s' % (old_folder_path,
+                                                 new_folder_path))
         self._update_store(commit, tree)
         return commit
 

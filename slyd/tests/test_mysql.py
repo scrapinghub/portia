@@ -1,13 +1,7 @@
 import unittest
-from tempfile import mkdtemp
-from os.path import join
-from shutil import rmtree
-from json import dumps, loads
-import copy
+from json import dumps
 
-from .settings import SPEC_DATA_DIR
-
-from slyd.repoman import Repoman
+from slyd.gitstorage.repoman import Repoman
 
 import mysql.connector
 

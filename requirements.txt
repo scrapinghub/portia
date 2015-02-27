@@ -13,4 +13,4 @@ requests==2.5.1
 
 # Dulwich's MySQL backend
 --allow-external=mysql-connector-python
-https://github.com/scrapinghub/dulwich/tarball/c22fe18#egg=dulwich
+https://github.com/scrapinghub/dulwich/tarball/420a056#egg=dulwich

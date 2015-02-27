@@ -4,7 +4,7 @@ from twisted.web.resource import NoResource, ForbiddenResource
 from jsonschema.exceptions import ValidationError
 from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
-from .annotations import apply_annotations
+from .plugins.scrapely_annotations import Annotations
 from .html import html4annotation
 from .errors import BaseHTTPError
 
@@ -28,8 +28,6 @@ def convert_template(template):
 
 def annotate_template(template):
     "Applies the annotations into the template original body."
-    template['annotated_body'] = apply_annotations(template['annotations'],
-                                                   template['original_body'])
 
 
 def clean_spider(obj):
@@ -38,6 +36,8 @@ def clean_spider(obj):
         required_fields = ('type', 'login_url', 'login_user', 'login_password')
         obj['init_requests'] = [req for req in obj['init_requests']
                                 if all(f in req for f in required_fields)]
+    if 'start_urls' in obj:
+        obj['start_urls'] = list(set(obj['start_urls']))
 
 
 class ProjectSpec(object):
@@ -103,6 +103,8 @@ class ProjectSpec(object):
                           '"%s", already exists for this project.' % to_name)
         os.rename(self._rfilename('spiders', from_name),
                   self._rfilename('spiders', to_name))
+        os.rename(join('spiders', from_name),
+                  join('spiders', to_name))
 
     def remove_spider(self, name):
         os.remove(self._rfilename('spiders', name))
@@ -249,11 +251,11 @@ class ProjectResource(SlydJsonResource):
                                                               rpath[2])
                     original_body = template.get('original_body', '')
                     obj['original_body'] = original_body
-                    annotate_template(obj)
+                    Annotations().save_extraction_data(None, obj)
                     # Remove annotations field which is not used by slybot
                     obj.pop('annotations', None)
             get_schema_validator(resource).validate(obj)
-        except (KeyError, IndexError):
+        except NotImplementedError:  # (KeyError, IndexError):
             self.error(404, "Not Found", "No such resource")
         except ValidationError as ex:
             self.bad_request("Json failed validation: %s" % ex.message)

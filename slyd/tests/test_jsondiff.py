@@ -1,5 +1,5 @@
 import unittest
-from slyd.jsondiff import merge_jsons, FieldDiff
+from slyd.gitstorage.jsondiff import merge_jsons, FieldDiff
 
 
 class JSONDiffTest(unittest.TestCase):
