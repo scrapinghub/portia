@@ -1,0 +1,127 @@
+{{#if showAnnotation}}
+    <div class="row">
+        <div class="col-md-1">
+            {{bs-button clicked=topLeftAction icon=topLeftIcon size="xs"}}
+        </div>
+        <div class="col-md-8">
+        </div>
+        {{#if inDoc}}
+            <div class="col-md-3">
+                {{bs-button clicked="delete" icon="fa fa-icon fa-trash" title="Delete Annotation" type="danger" size="xs"}}
+                {{bs-button clicked="dismiss" icon="fa fa-icon fa-close" title="Finish Editing" size="xs"}}
+            </div>
+        {{else}}
+            <div class="col-md-1">
+            </div>
+            <div class="col-md-1">
+                {{bs-button clicked="delete" icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+            </div>
+        {{/if}}
+    </div>
+    {{#if creatingField}}
+        <div style="margin-top:10px"></div>
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-4 small-label">Field Name</div>
+            <div class="col-md-4 small-label">Field Type</div>
+            <div class="col-md-3 small-label"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-4">
+                {{text-field action="createField" update="updateNewFieldName" width="110px" placeholder="Enter name"}}
+            </div>
+            <div class="col-md-4">
+                {{item-select options=extractionFieldTypes changed="updateNewFieldType" width="100px"}}
+            </div>
+            <div class="col-md-3">
+                {{#bs-button clicked="createField" icon="fa fa-icon fa-plus" size="xs" type="primary" disabled=createFieldDisabled}}
+                    Add
+                {{/bs-button}}
+            </div>
+        </div>
+    {{else if showingAdvanced}}
+        {{#if parents}}
+            <div>
+                <span class="small-label">Parents:</span>
+                {{j-breadcrumbs breadcrumbs=parents clicked="elementClicked" elementHovered="elementHovered"}}
+            </div>
+        {{/if}}
+        {{#if children}}
+            <div>
+                <span class="small-label">Children:</span>
+                {{j-breadcrumbs breadcrumbs=children clicked="elementClicked" elementHovered="elementHovered"}}
+            </div>
+        {{/if}}
+        <div class="row">
+            <div class="col-md-2 small-label">Variant:</div>
+            <div class="col-md-10">
+                {{item-select options=variantList value=variantValue changed="updateVariant" width="82px"}}
+            </div>
+        </div>
+        <div class="scrolling-container" style="max-height:60px;">
+            {{#each ignores as |ignore index|}}
+                <div class="col-xs-10">
+                    <span class="btn btn-light btn-sm pattern">
+                        Ignore Elements Beneath
+                        {{check-box checked=ignore.ignoreBeneath action="ignoreBeneath" name=index}}
+                    </span>
+                </div>
+                <div class="col-xs-1 button-align-med">
+                    {{bs-button clicked="deleteIgnore" clickedParam=index icon="fa fa-icon fa-trash" type="danger" size="xs"}}
+                </div>
+            {{/each}}
+        </div>
+        <div style="margin-top:10px;margin-left:114px;">
+            {{#bs-button clicked="ignoreElement" size="xs" type="info" title="Select sub elements to ignore"}}
+                Select Ignores
+            {{/bs-button}}
+        </div>
+    {{else}}
+        <div style="margin-top:10px"></div>
+        <div class="row">
+            <div class="col-md-3 small-label">Attribute</div>
+            <div class="col-md-4 small-label">Value</div>
+            <div class="col-md-2 small-label">Field</div>
+            <div class="col-md-3 small-label">Required</div>
+        </div>
+        <div style="margin-top:10px"></div>
+        <div class="scrolling-container" style="max-height: 100px;">
+            {{#each mappings as |annotation index|}}
+                <div class="row">
+                    <div class="col-md-3">
+                        {{item-select options=attributes value=annotation.attribute changed="updateAttribute" width="82px" name=index addSelected=true}}
+                    </div>
+                    <div class="col-md-4" style="width:115px;max-height:80px;overflow:hidden;text-overflow:ellipsis;">
+                        {{collapsible-text fullText=annotation.content trimTo=100 title=annotation.content}}
+                    </div>
+                    <div class="col-md-3">
+                        {{item-select options=itemFields value=annotation.field changed="updateField" width="82px" name=index}}
+                    </div>
+                    <div class="col-md-1">
+                        {{check-box checked=annotation.required action="updateRequired" name=index value=annotation.required style="margin:3px;"}}
+                        {{bs-button clicked="removeMapping" clickedParam=index icon="fa fa-icon fa-times" size="xs" type="danger" title="Remove Mapping"}}
+                    </div>
+                </div>
+                <div style="margin:5px;border:1px dashed #ccc;"></div>
+            {{/each}}
+            {{#if attributes}}
+                <div style="margin-top:10px"></div>
+                <div class="row">
+                    <div class="col-md-4">
+                        {{#bs-button clicked="addNewMapping" icon="fa fa-icon fa-plus" title="Extract unmapped attributes" size="xs" type="primary"}}
+                            Field
+                        {{/bs-button}}
+                    </div>
+                </div>
+            {{/if}}
+        </div>
+        {{#if inDoc}}
+            <div style="margin-left:142px;">
+                {{#bs-button clicked="dismiss" icon="fa fa-icon fa-check" size="xs" type="success"}}
+                    Done
+                {{/bs-button}}
+            </div>
+        {{/if}}
+    {{/if}}
+{{/if}}

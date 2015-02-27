@@ -1,0 +1,6 @@
+<div style="float:left;margin-top:2px" class="nav-container">
+	<span style="margin-right:10px">Resolving <b>{{controller.currentFileName}}</b></span>
+	{{#bs-button clicked="saveFile" clickedParam=controller.currentFileName icon="fa fa-icon fa-upload" type="primary" disabled=controller.saveDisabled}}
+		Save File
+	{{/bs-button}}
+</div>
