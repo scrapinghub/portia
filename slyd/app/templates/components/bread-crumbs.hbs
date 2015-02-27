@@ -1,0 +1,21 @@
+<ul class="breadcrumb">
+  {{#each breadCrumbs as |crumb index|}}
+    <li {{bind-attr class="crumb.isCurrent:current:"}}>
+      {{#if crumb.linkable}}
+        {{#link-to crumb.path}}
+          {{#if index}}
+            {{crumb.name}}
+          {{else}}
+            <i class="fa fa-icon fa-home"></i>
+          {{/if}}
+        {{/link-to}}
+      {{else}}
+          {{#if index}}
+            {{crumb.name}}
+          {{else}}
+            <i class="fa fa-icon fa-home"></i>
+          {{/if}}
+      {{/if}}
+    </li>
+  {{/each}}
+</ul>

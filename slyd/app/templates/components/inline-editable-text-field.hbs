@@ -1,0 +1,10 @@
+{{#if editing}}
+    {{text-field value=text width='100%' saveOnExit=true action='update'}}
+{{else}}
+    <span class="editable-name">
+        {{yield}}
+        {{#unless hideIcon}}
+            <i class="fa fa-icon"></i>
+        {{/unless}}
+    </span>
+{{/if}}

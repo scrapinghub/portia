@@ -1,7 +1,13 @@
 """
 html page utils
 """
-from scrapely.htmlpage import HtmlTagType
+from scrapely.htmlpage import HtmlPage, HtmlTag, HtmlTagType
+
+TAGID = u"data-tagid"
+GENERATEDTAGID = u"data-genid"
+OPEN_TAG = HtmlTagType.OPEN_TAG
+CLOSE_TAG = HtmlTagType.CLOSE_TAG
+UNPAIRED_TAG = HtmlTagType.UNPAIRED_TAG
 
 
 def _quotify(mystr):
@@ -54,3 +60,42 @@ def serialize_tag(tag):
     if tag.tag_type == HtmlTagType.UNPAIRED_TAG:
         out += "/"
     return out + ">"
+
+
+def _must_add_tagid(element):
+    return (isinstance(element, HtmlTag) and
+            element.tag_type != CLOSE_TAG and
+            element.tag != 'ins')
+
+
+def _modify_tagids(source, add=True):
+    """Add or remove tags ids to/from HTML document"""
+    output = []
+    tagcount = 0
+    if not isinstance(source, HtmlPage):
+        source = HtmlPage(body=source)
+    for element in source.parsed_body:
+        if _must_add_tagid(element):
+            if add:
+                element.attributes[TAGID] = str(tagcount)
+                tagcount += 1
+            else:  # Remove previously added tagid
+                element.attributes.pop(TAGID, None)
+            output.append(serialize_tag(element))
+        else:
+            output.append(source.body[element.start:element.end])
+
+    return ''.join(output)
+
+
+def add_tagids(source):
+    """
+    Applies a unique attribute code number for each tag element in order to be
+    identified later in the process of apply annotation"""
+    return _modify_tagids(source)
+
+
+def remove_tagids(source):
+    """remove from the given page, all tagids previously added by add_tagids()
+    """
+    return _modify_tagids(source, False)
