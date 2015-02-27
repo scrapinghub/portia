@@ -17,8 +17,8 @@ export default Ember.Mixin.create({
         modalCancelled: function() {
             var name = this._modalName;
             this._modalName = null;
-            if (typeof(this._modalOKCallback) === 'function') {
-                this._modalOKCallback();
+            if (typeof(this._modalCancelCallback) === 'function') {
+                this._modalCancelCallback();
             }
             if (name) {
                 return this.ModalManager.get(name).destroy();

@@ -17,10 +17,6 @@ Router.map(function() {
           path: ":template_id"
         }, function() {
           this.resource("items");
-
-          this.resource("annotation", {
-            path: ":annotation_id"
-          });
         });
       });
 

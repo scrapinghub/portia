@@ -94,7 +94,7 @@ export var Sprite = Ember.Object.extend({
 });
 
 
-export const RECT_ZERO = { left: 0, top: 0, width: 0, height: 0};
+export var RECT_ZERO = { left: 0, top: 0, width: 0, height: 0};
 
 
 /**

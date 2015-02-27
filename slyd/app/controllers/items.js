@@ -38,6 +38,7 @@ export default BaseController.extend({
         }.bind(this));
         if (valid) {
             this.get('slyd').saveItems(this.model).then(function() {
+                this.set('project_models.items', this.model);
                 this.transitionToRoute('template');
             }.bind(this), function(err) {
                 this.showHTTPAlert('Save Error', err);
@@ -76,4 +77,6 @@ export default BaseController.extend({
             }.bind(this));
         },
     },
+
+    willEnter: function() {},
 });

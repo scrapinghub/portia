@@ -17,6 +17,8 @@ export default Ember.Component.extend({
 
     dataSource: null,
 
+    sprites: [],
+
     listener: null,
 
     canvas: null,
@@ -46,6 +48,10 @@ export default Ember.Component.extend({
 '<body></body>' +
 '</html>',
 
+    redrawSprites: function() {
+        this.redrawNow();
+    }.observes('sprites.sprites.@each', 'sprites'),
+
     /**
         Attaches this documentview to a datasource and event listener
         configuring it according to the options dictionary.
@@ -64,6 +70,7 @@ export default Ember.Component.extend({
             this.set('elementSelectionEnabled', true);
             this.set('partialSelectionEnabled', options.partialSelects);
         } else if (options.mode === 'browse') {
+            this.set('elementSelectionEnabled', false);
             this.hideHoveredInfo();
             this.installEventHandlersForBrowsing();
         }
@@ -109,8 +116,8 @@ export default Ember.Component.extend({
             return;
         }
         canvas = this.get('canvas');
-        if (this.get('dataSource')) {
-            var sprites = this.get('dataSource.sprites') || [];
+        if (this.get('sprites.sprites')) {
+            var sprites = this.get('sprites.sprites').copy();
             if (this.get('hoveredSprite')) {
                 sprites = sprites.concat([this.get('hoveredSprite')]);
             }
@@ -120,7 +127,11 @@ export default Ember.Component.extend({
         } else {
             canvas.clear();
         }
-    }.observes('dataSource', 'dataSource.sprites.@each'),
+    },
+
+    clearNow: function() {
+        this.get('canvas').clear();
+    },
 
     /**
         Blocks/unblocks interactions with the document.
@@ -160,124 +171,6 @@ export default Ember.Component.extend({
     */
     getAnnotatedDocument: function() {
         return this.getIframe().find('html').get(0).outerHTML;
-    },
-
-
-    getAnnotations: function() {
-        var iframe = this.getIframe(),
-            annotations = {},
-            a;
-        // Find all annotated elements
-        var inline = iframe.find(':hasAttrWithPrefix("data-scrapy-")');
-        for (var i=0; i < inline.length; i++) {
-            var elem = inline[i],
-                annotation = [],
-                tagid = 0,
-                that = Ember.$(elem);
-            // Handle extra processing for generated tags
-            if (elem.tagName === 'INS') {
-                var previous_tag = that.prev(),
-                    insert_after = true,
-                    nodes,
-                    node;
-                // Next nearest tag is the parent of this element
-                if (previous_tag.length === 0) {
-                    previous_tag = that.parent();
-                    nodes = previous_tag[0].childNodes;
-                    insert_after = false;
-                } else {
-                    // Find the next nearest non generated tag
-                    while (previous_tag.prop('tagName') === 'INS') {
-                        previous_tag = previous_tag.prev();
-                    }
-                    // If there is only another ins tag before the parent
-                    if (previous_tag.length === 0) {
-                        previous_tag = that.parent();
-                        insert_after = false;
-                        node = previous_tag[0].childNodes[0];
-                    } else {
-                        node = previous_tag[0].nextSibling;
-                    }
-                    // Loop over all text nodes and generated tags until the
-                    // next tag is found
-                    nodes = [];
-                    while (node) {
-                        nodes.push(node);
-                        node = node.nextSibling;
-                        if (node === null ||
-                                (node.nodeType === node.ELEMENT_NODE &&
-                                 node.tagName !== 'INS')) {
-                            break;
-                        }
-                    }
-                }
-                if (!!previous_tag.data('tagid')) {
-                    tagid = '' + previous_tag.data('tagid');
-                    a = {};
-                    for (idx=0; idx < elem.attributes.length; idx++) {
-                        attr = elem.attributes[idx];
-                        if (attr.name.indexOf('data-scrapy-') === 0) {
-                            a[attr.name] = attr.value;
-                        }
-                    }
-                    a['generated'] = true;
-                    a['insert_after'] = insert_after;
-                    var ins_json = elem.attributes['data-scrapy-annotate'].value,
-                        last_node_ins = false,
-                        start = 0;
-                    // Calculate the length and start position of the slice
-                    // ignoring the ins tag and with leading whitespace removed
-                    for (idx=0; idx < nodes.length; idx++) {
-                        node = nodes[idx];
-                        if (node.nodeType === node.ELEMENT_NODE &&
-                            node.tagName === 'INS') {
-                            last_node_ins = true;
-                            if (node.attributes['data-scrapy-annotate'].value === ins_json) {
-                                a['slice'] = [start, start + node.innerHTML.length];
-                                annotation.push(a);
-                                break;
-                            } else {
-                                // No need to strip ins elements
-                                start += node.innerHTML.length;
-                            }
-                        } else {
-                            // Need to remove external whitespace so that there
-                            // is no ambiguity in the start position of the
-                            // slice
-                            if (last_node_ins) {
-                                start += node.textContent.length;
-                            } else {
-                                start += node.textContent.lstrip().length;
-                            }
-                            last_node_ins = false;
-                        }
-                    }
-                }
-            } else {
-                tagid = '' + that.data('tagid');
-                for (var idx=0; idx < elem.attributes.length; idx++) {
-                    var attr = elem.attributes[idx];
-                    if (attr.name.indexOf('data-scrapy-') === 0) {
-                        a = {};
-                        if (attr.name.indexOf('data-scrapy-ignore') === 0) {
-                            a[attr.name] = "true";
-                        } else {
-                            a[attr.name] = attr.value;
-                        }
-                        annotation.push(a);
-                    }
-                }
-            }
-            // Add annotation(s) for final output
-            if (Array.isArray(annotations[tagid])) {
-                for (var j=0; j < annotation.length; j++) {
-                    annotations[tagid].push(annotation[j]);
-                }
-            } else {
-                annotations[tagid] = annotation;
-            }
-        }
-        return annotations;
     },
 
     /**
@@ -373,10 +266,11 @@ export default Ember.Component.extend({
     */
     scrollToElement: function(element) {
         var rect = Ember.$(element).boundingBox();
-        this.getIframe().contents().children().animate(
-                { 'scrollTop': (rect.top - 100) + 'px', 'scrollLeft': (rect.left - 100) + 'px'},
-                150);
         this.updateHoveredInfo(element);
+        Ember.$('#' + this.get('iframeId')).get(0).contentWindow.scrollTo(
+            Math.max(0, parseInt(rect.left - 100)),
+            Math.max(0, parseInt(rect.top - 100))
+        );
     },
 
     _elementSelectionEnabled: null,
@@ -466,13 +360,20 @@ export default Ember.Component.extend({
     },
 
     updateHoveredInfo: function(element) {
-        var path = Ember.$(element).getPath();
-        var attributes = Ember.$(element).getAttributeList();
+        var jqElem = Ember.$(element),
+            path = jqElem.getPath(),
+            attributes = jqElem.getAttributeList();
+        if (jqElem.prop('class')) {
+            attributes.unshift({name: 'class', value: jqElem.prop('class')});
+        }
+        if (jqElem.prop('id')) {
+            attributes.unshift({name: 'id', value: jqElem.prop('id')});
+        }
         var attributesHtml = '';
-        Ember.$(attributes).each(function(i, attribute) {
-            var value = Ember.$.trim(attribute.get('value')).substring(0, 50);
+        attributes.forEach(function(attribute) {
+            var value = attribute.value.trim().substring(0, 50);
             attributesHtml += '<div class="attribute" style="margin:2px 0px 2px 0px">' +
-                                '<span>' + attribute.get('name') + ": </span>" +
+                                '<span>' + attribute.name + ": </span>" +
                                 '<span style="color:#AAA">' + value + '</span>' +
                               '</div>';
         });
@@ -503,27 +404,15 @@ export default Ember.Component.extend({
         if (Ember.$.inArray(tagName, this.get('ignoredElementTags')) === -1 &&
             !this.mouseDown) {
             if (!this.get('restrictToDescendants') ||
-                Ember.$(target).isDescendant(this.get('restrictToDescendants'))) {
-                if (!this.get('hoveredSprite')) {
-                    this.updateHoveredInfo(target);
-                    this.set('hoveredSprite',
-                             ElementSprite.create({'element': target}));
-                    this.redrawNow();
-                    this.sendElementHoveredEvent(target, 0, event.clientX, event.clientY);
-                }
+                    Ember.$(target).isDescendant(this.get('restrictToDescendants'))) {
+                this.setElementHovered(target);
+                this.sendElementHoveredEvent(target, 0, event.clientX, event.clientY);
             }
         }
     },
 
     mouseOutHandler: function() {
         this.set('hoveredSprite', null);
-        // if (!Ember.browser.isMozilla) {
-        //     // Firefox fires this event when the annotation widget
-        //     // pops up, causing for the widget to disappear. Supressing
-        //     // the call to sendElementHoveredEvent deals with the issue
-        //     // but may prevent the widget from hiding appropriately.
-        //     this.sendElementHoveredEvent(null, 0);
-        // }
         this.redrawNow();
     },
 
@@ -562,12 +451,12 @@ export default Ember.Component.extend({
                         'partialSelection', selectedText, event.clientX, event.clientY);
                 } else {
                     alert('The selected text must belong to a single HTML element');
-                    selectedText.collapse();
+                    selectedText.collapse(Ember.$('html').get(0), 0);
                 }
             } else {
-                selectedText.collapse();
+                selectedText.collapse(Ember.$('html').get(0), 0);
             }
-        } else {
+        } else if (event && event.target){
             var target = event.target;
             var tagName = Ember.$(target).prop("tagName").toLowerCase();
             if (Ember.$.inArray(tagName, this.get('ignoredElementTags')) === -1) {
@@ -598,6 +487,13 @@ export default Ember.Component.extend({
         } else {
             return null;
         }
+    },
+
+    setElementHovered: function(element) {
+        this.updateHoveredInfo(element);
+        this.set('hoveredSprite',
+                 ElementSprite.create({'element': element}));
+        this.redrawNow();
     },
 
     initCanvas: function() {

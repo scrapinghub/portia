@@ -1,6 +1,7 @@
 import Ember from 'ember';
+import Popover from '../mixins/popover';
 
-export default Ember.Component.extend({
+export default Ember.Component.extend(Popover, {
     fullText: null,
     tagName: 'span',
     collapsed: true,

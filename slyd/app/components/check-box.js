@@ -1,7 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-    attributeBindings: ['type', 'value'],
+    attributeBindings: ['type', 'value', 'style'],
     tagName: 'input',
     type: 'checkbox',
     checked: false,
@@ -19,6 +19,6 @@ export default Ember.Component.extend({
 
     change: function(){
         this._updateElementValue();
-        this.sendAction('action', this.get('value'), this.get('checked'));
+        this.sendAction('action', this.get('value'), this.get('checked'), this.get('name'));
     }
 });

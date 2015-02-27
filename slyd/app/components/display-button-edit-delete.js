@@ -10,7 +10,6 @@ export default Ember.Component.extend({
             if (arguments.length > 0) {
                 this.set('text', text);
             }
-            console.log(text)
             this.sendAction('save', this.get('text'));
         },
 

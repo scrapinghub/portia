@@ -11,7 +11,7 @@ export default Ember.Component.extend({
     click: function() {
         if (!this.get('editing')) {
             this.set('editing', true);
-            setTimeout(function() {
+            Ember.run.later(function() {
                 var input = Ember.$(this.get('element')).find('input');
                 input.focus();
                 var value = input.val();

@@ -60,7 +60,7 @@ export default Ember.Component.extend(Ember.Evented, {
         var current;
         this.set('isVisible', true);
         current = this;
-        setTimeout((function() {
+        Ember.run.later((function() {
             current.set('isVis', true);
         }), 15);
     },

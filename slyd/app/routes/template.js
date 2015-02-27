@@ -18,17 +18,17 @@ export default BaseRoute.extend({
 
         // Load the items.
         var itemsPromise = slyd.loadItems().then(function(items) {
-            controller.set('items', items);
+            controller.set('project_models.items', items);
         });
         // Load the extractors.
         var extractorsPromise = slyd.loadExtractors().then(function(extractors) {
-            controller.set('extractors', extractors);
+            controller.set('project_models.extractors', extractors);
         });
         return Ember.RSVP.all([itemsPromise, extractorsPromise]);
     },
 
     renderTemplate: function() {
-        var controller = this.controllerFor('template');
+        var controller = this.controllerFor('template.index');
         this.render('template/toolbox', {
             into: 'application',
             outlet: 'main',

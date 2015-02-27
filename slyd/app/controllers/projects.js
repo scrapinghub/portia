@@ -93,6 +93,7 @@ export default BaseController.extend({
     },
 
     willEnter: function() {
+        this.get('documentView').reset();
         this.get('documentView').showSpider();
     },
 });

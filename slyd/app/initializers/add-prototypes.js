@@ -25,6 +25,9 @@ export function initialize() {
     };
 
     Ember.$.fn.getPath = function() {
+        if (!this.prop('tagName')) {
+            return;
+        }
         var path = [this.prop('tagName').toLowerCase()];
         this.parents().not('html').each(function() {
             var entry = this.tagName.toLowerCase();
@@ -41,6 +44,9 @@ export function initialize() {
                 value: this.text()}));
         }
         var element = this.get(0);
+        if (!element) {
+            return [];
+        }
         Ember.$(element.attributes).each(function() {
             if (Ember.$.inArray(this.nodeName, Ember.$.fn.getAttributeList.ignoredAttributes) === -1 &&
                 this.value) {
@@ -55,9 +61,12 @@ export function initialize() {
     Ember.$.fn.getAttributeList.ignoredAttributes = ['id', 'class',
         'width', 'style', 'height', 'cellpadding',
         'cellspacing', 'border', 'bgcolor', 'color', 'colspan',
-        'data-scrapy-annotate', 'data-tagid'];
+        'data-scrapy-annotate', 'data-tagid', 'data-genid'];
 
     Ember.$.fn.boundingBox = function() {
+        if (!this || !this.offset()) {
+            return {top: 0, left: 0, width: 0, height: 0};
+        }
         var rect = {};
         rect.left = this.offset().left;
         rect.top = this.offset().top;

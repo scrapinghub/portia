@@ -46,7 +46,7 @@
 				{{#each item in controller.extractedItems}}
 					<hr style="margin:0px;background-color:rgba(70,70,70,1)"/>
 					<div style="padding:10px 0px 10px 0px; border-bottom: 1px groove rgba(255,255,255,0.2);">
-						{{extracted-item extractedItem=item}}
+						{{extracted-item extractedItem=item fetchPage="fetchPage" editTemplate="editTemplate"}}
 					</div>
 				{{/each}}
 			</div>

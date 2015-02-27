@@ -8,8 +8,7 @@ import re
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response
 from slybot.baseurl import insert_base_url
-from .annotations import add_tagids
-from .utils import serialize_tag
+from .utils import serialize_tag, add_tagids
 
 ### Known weaknesses
 #     Doesn't deal with JS hidden in CSS

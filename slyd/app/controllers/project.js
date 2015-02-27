@@ -38,6 +38,10 @@ export default BaseController.extend({
     }.property('changedFiles.[]'),
 
     addSpider: function(siteUrl) {
+        if (this.get('addingNewSpider')) {
+            return;
+        }
+        this.set('addingNewSpider', true);
         if (siteUrl.indexOf('http') !== 0) {
             siteUrl = 'http://' + siteUrl;
         }
@@ -50,12 +54,16 @@ export default BaseController.extend({
               'exclude_patterns': [],
               'init_requests': [],
               'templates': [],
-              'template_names': [] });
-        this.pushObject(newSpiderName);
+              'template_names': [],
+              'plugins': {}
+            });
+        this.model.pushObject(newSpiderName);
         this.set('spiderPage', null);
         return this.get('slyd').saveSpider(spider).then(function() {
+                this.set('addingNewSpider', false);
                 this.editSpider(newSpiderName);
             }.bind(this), function(err) {
+                this.set('addingNewSpider', false);
                 this.showHTTPAlert('Error Adding Spider', err);
             }.bind(this)
         );
@@ -91,13 +99,14 @@ export default BaseController.extend({
             this.addSpider(siteUrl);
         },
 
-        deleteSpider: function(spiderName) {
+        deleteSpider: function(spider) {
+            var spiderName = spider;
             this.showConfirm('Delete ' + spiderName,
                 'Are you sure you want to delete spider ' + spiderName + '?',
                 function() {
                     this.get('slyd').deleteSpider(spiderName).then(
                         function() {
-                            this.removeObject(spiderName);
+                            this.get('model').removeObject(spiderName);
                             this.set('refreshSpiders', !this.get('refreshSpiders'));
                             this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
                         }.bind(this),
@@ -172,6 +181,7 @@ export default BaseController.extend({
 
     willEnter: function() {
         this.get('documentView').reset();
+        this.get('documentView').showSpider();
         if (this.get('controllers.application.siteWizard')) {
             Ember.run.next(this, this.addSpider);
         }

@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import BaseController from './base-controller';
-import ElementSprite from '../utils/canvas';
+import { ElementSprite } from '../utils/canvas';
+import SpriteStore from '../utils/sprite-store';
 import ExtractedItem from '../models/extracted-item';
 import Template from '../models/template';
 
@@ -12,8 +13,6 @@ export default BaseController.extend({
     needs: ['application', 'projects', 'project'],
 
     saving: false,
-
-    newStartUrl: '',
 
     browseHistory: [],
 
@@ -31,11 +30,23 @@ export default BaseController.extend({
 
     testing: false,
 
+    spriteStore: new SpriteStore(),
+
+    startUrls: null,
+    startUrlsAction: 'addStartUrls',
+    editAllStartUrlsType: 'primary',
+    editAllStartUrlsAction: 'editAllStartUrls',
+    editAllStartUrlsText: 'Edit All',
+
     followPatternOptions: [
         { value: 'all', label: 'Follow all in-domain links' },
         { value: 'none', label: "Don't follow links" },
         { value: 'patterns', label: 'Configure follow and exclude patterns' }
     ],
+
+    hasStartUrls: function() {
+        return this.get('model.start_urls').length < 1 && this.get('editAllStartUrlsAction') === 'editAllStartUrls';
+    }.property('model.start_urls.@each'),
 
     breadCrumb: function() {
         this.set('slyd.spider', this.get('content.name'));
@@ -49,10 +60,6 @@ export default BaseController.extend({
             return 0;
         }
     }.property('content.start_urls.[]'),
-
-    hasStartUrl: function() {
-        return !this.get('newStartUrl');
-    }.property('newStartUrl'),
 
     displayEditPatterns: function() {
         return this.get('links_to_follow') === 'patterns';
@@ -68,8 +75,10 @@ export default BaseController.extend({
         if (arguments.length > 1) {
             if (show) {
                 this.set('_showLinks', true);
+                this.set('documentView.sprites', this.get('spriteStore'));
             } else {
                 this.set('_showLinks', false);
+                this.set('documentView.sprites', new SpriteStore());
             }
         }
         return this.get('_showLinks');
@@ -170,10 +179,9 @@ export default BaseController.extend({
         if (!this.get('loadedPageFp') || !this.get('showLinks')) {
             return [];
         }
-        var currentPageData = this.get('pageMap')[this.get('loadedPageFp')];
-        var allLinks = Ember.$(Ember.$('#scraped-doc-iframe').contents().get(0).links);
-        var followedLinks = currentPageData.links;
-        var sprites = [];
+        var followedLinks = this.get('followedLinks'),
+            allLinks = Ember.$(Ember.$('#scraped-doc-iframe').contents().get(0).links),
+            sprites = [];
         allLinks.each(function(i, link) {
             var followed = followedLinks.indexOf(link.href) >= 0 &&
                 this.get('spiderDomains').has(URI.parse(link.href)['hostname']);
@@ -183,8 +191,8 @@ export default BaseController.extend({
                 fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
                 strokeColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)' }));
         }.bind(this));
-        return sprites;
-    }.property('loadedPageFp', 'showLinks', 'spiderDomains'),
+        this.set('spriteStore.sprites', sprites);
+    }.observes('followedLinks', 'showLinks', 'spiderDomains'),
 
     currentUrl: function() {
         if (!Ember.isEmpty(this.get('pendingFetches'))) {
@@ -247,7 +255,9 @@ export default BaseController.extend({
                             this.get('documentView').config({ mode: 'browse',
                                               listener: this,
                                               dataSource: this });
+                            this.set('documentView.sprites', this.get('spriteStore'));
                             this.set('loadedPageFp', data.fp);
+                            this.set('followedLinks', data.links);
                             this.get('pageMap')[data.fp] = data;
                             this.updateExtractedItems(data.items || []);
                         }.bind(this)
@@ -309,13 +319,17 @@ export default BaseController.extend({
         if (typeof(urls) === 'string') {
             urls = urls.match(/[^\s,]+/g);
         }
+        var modelUrls = this.get('content.start_urls');
         urls.forEach(function(url) {
             var parsed = URI.parse(url);
+            if (Ember.$.inArray(url, modelUrls) > 0) {
+                return;
+            }
             if (!parsed.protocol) {
                 parsed.protocol = 'http';
                 url = URI.build(parsed);
             }
-            this.get('content.start_urls').pushObject(url);
+            modelUrls.pushObject(url);
         }.bind(this));
     },
 
@@ -398,6 +412,32 @@ export default BaseController.extend({
     },
 
     actions: {
+
+        editAllStartUrls: function() {
+            this.set('startUrlsAction', 'updateAllStartUrls');
+            this.set('startUrls', this.get('model.start_urls').join('\n'));
+            this.set('model.start_urls', []);
+            this.set('editAllStartUrlsType', 'danger');
+            this.set('editAllStartUrlsAction', 'cancelEditAllSpiders');
+            this.set('editAllStartUrlsText', 'cancel')
+        },
+
+        updateAllStartUrls: function(urls) {
+            this.set('editAllStartUrlsType', 'primary');
+            this.set('editAllStartUrlsAction', 'editAllStartUrls');
+            this.set('editAllStartUrlsText', 'Edit All')
+            this.set('startUrlsAction', 'addStartUrls');
+            this.set('startUrls', null);
+            this.addStartUrls(urls);
+        },
+
+        cancelEditAllSpiders: function() {
+            this.set('editAllStartUrlsType', 'primary');
+            this.set('editAllStartUrlsAction', 'editAllStartUrls');
+            this.set('editAllStartUrlsText', 'Edit All')
+            this.addStartUrls(this.get('startUrls'));
+            this.set('startUrls', null);
+        },
 
         editTemplate: function(templateName) {
             this.editTemplate(templateName);
@@ -544,7 +584,7 @@ export default BaseController.extend({
         if (newSpiderSite) {
             Ember.run.next(this, function() {
                 this.addStartUrls(newSpiderSite);
-                this.fetchPage(this.get('start_urls')[0]);
+                this.fetchPage(this.get('model.start_urls')[0]);
                 this.set('controllers.application.siteWizard', null);
                 Ember.run.once(this, 'saveSpider');
             });

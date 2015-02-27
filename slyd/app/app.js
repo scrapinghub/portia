@@ -7,10 +7,12 @@ import config from './config/environment';
 Ember.MODEL_FACTORY_INJECTIONS = true;
 
 var App = Ember.Application.extend(ApplicationUtils, {
-  LOG_TRANSITIONS: true,
   modulePrefix: config.modulePrefix,
   podModulePrefix: config.podModulePrefix,
-  Resolver: Resolver
+  Resolver: Resolver,
+  customEvents: {
+    paste: 'paste'
+  }
 });
 
 loadInitializers(App, config.modulePrefix);

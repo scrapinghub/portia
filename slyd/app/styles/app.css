@@ -303,15 +303,7 @@ ul.breadcrumbs {
     border: dotted 1px #CCC;
     border-radius: 5px;
     min-height: 24px;
-}
-
-.annotation-widget .multimap {
-    display:inline-block;
-    text-align:center;
-    font-size:1.1em;
-    border:dotted 1px #AAA;
-    background-color:white;
-    width: 106px !important;
+    width: 349;
 }
 
 .annotation-widget .attribute {
@@ -357,9 +349,10 @@ ul.breadcrumbs {
     box-shadow: 0px 0px 9px 1px rgba(0,0,0,0.8);
     border-radius: 3px;
     border: none;
+    width: 350px;
 }
 
-.in-doc .multimapf {
+.in-doc .multimap {
     display: block;
     border:solid 1px rgba(255,255,255,0.3);
     background-color:rgba(200,200,200,0.3);
@@ -367,6 +360,10 @@ ul.breadcrumbs {
     padding:3px;
     color:white;
     text-align:left;
+}
+
+.in-doc select {
+    color: #444;
 }
 
 .attribute-value {
@@ -680,4 +677,30 @@ select {
 
 .unpinned {
     transform: rotate(90deg);
+}
+
+ul.breadcrumbs {
+    margin: 0px;
+    display: inline-block;
+    list-style-type: none;
+}
+
+.breadcrumbs li {
+    display: inline;
+}
+
+.in-doc .breadcrumbs a {
+    color: #fff;
+    cursor: pointer;
+}
+
+.in-doc .breadcrumbs a:hover {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.text-ellipsis {
+    overflow:hidden;
+    text-overflow:ellipsis;
 }

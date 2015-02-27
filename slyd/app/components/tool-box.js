@@ -30,11 +30,11 @@ export default Ember.Component.extend({
             clearTimeout(this.get('timeoutHandle'));
             this.set('timeoutHandle', null);
         }
-        var timeoutHandle = setTimeout(function() {
+        var timeoutHandle = Ember.run.later(function() {
             var self = this;
             Ember.$('#toolbox').css('margin-right', 0);
             Ember.$('#scraped-doc').css('margin-right', 400);
-            setTimeout(function() {
+            Ember.run.later(function() {
                 if (self.get && self.get('documentView') &&
                       self.get('documentView').redrawNow) {
                     self.get('documentView').redrawNow();

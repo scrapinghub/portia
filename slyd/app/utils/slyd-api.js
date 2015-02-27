@@ -520,11 +520,12 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
     fetchDocument: function(pageUrl, spiderName, parentFp) {
         var hash = {};
         hash.type = 'POST';
-        hash.data = JSON.stringify({ spider: spiderName || this.get('spider'),
-                                     request: { url: pageUrl } });
+        var data = { spider: spiderName || this.get('spider'),
+                 request: { url: pageUrl } };
         if (parentFp) {
-            hash.data['parent_fp'] = parentFp;
+            data['parent_fp'] = parentFp;
         }
+        hash.data = JSON.stringify(data);
         hash.url = this.get('botUrl') + 'fetch';
         return this.makeAjaxCall(hash);
     },
@@ -594,7 +595,6 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
     },
 
     makeAjaxCall: function(hash) {
-        console.log(hash);
         return ajax(hash).catch(function(reason) {
             var method = hash.type,
                 title = 'Error processing ' + method + ' to ' + hash['url'];

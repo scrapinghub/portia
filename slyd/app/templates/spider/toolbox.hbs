@@ -8,11 +8,14 @@
 {{#closable-accordion configName='bs' selected-idx=0}}
 	{{#accordion-item title="Initialization"}}
 		<div class="row">
-			<div class="col-xs-10">
+			<div class="col-xs-8">
 				<h4>Start Pages</h4>
 			</div>
-			<div class="col-xs-2 start-url-badge">
+			<div class="col-xs-4 start-url-badge">
 				{{bs-badge class="pull-right btn-primary" content=startUrlCount}}
+				{{#bs-button type=editAllStartUrlsType clicked=editAllStartUrlsAction size="xs" disabled=hasStartUrls class="pull-right"}}
+					{{editAllStartUrlsText}}
+				{{/bs-button}}
 			</div>
 		</div>
 		<div class="scrolling-container" {{bind-attr style="tiny_box_style"}}>
@@ -33,7 +36,7 @@
 			{{/each}}
 		</div>
 
-		{{text-area-with-button placeholder='Enter one or multiple start page urls here' action='addStartUrls' reset=true}}
+		{{text-area-with-button placeholder='Enter one or multiple start page urls here' action=startUrlsAction reset=true value=startUrls}}
 
 		<div style="margin-top:20px" class="scrolling-container">
 			<label class="important-label">Perform login</label>

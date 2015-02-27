@@ -1,11 +1,12 @@
 import Ember from 'ember';
 import BaseController from './base-controller';
-import Annotation from '../models/annotation';
 import Extractor from '../models/extractor';
 import MappedFieldData from '../models/mapped-field-data';
-import { AnnotationSprite } from '../utils/canvas';
+import SpriteStore from '../utils/sprite-store';
 
 export default BaseController.extend({
+
+    model: null,
 
     needs: ['application', 'projects', 'project', 'spider', 'spider/index'],
 
@@ -15,11 +16,7 @@ export default BaseController.extend({
 
     annotations: [],
 
-    items: [],
-
-    extractors: [],
-
-    annotationsLoaded: false,
+    plugins: {},
 
     showContinueBrowsing: true,
 
@@ -28,6 +25,17 @@ export default BaseController.extend({
     showFloatingAnnotationWidgetAt: null,
 
     floatingAnnotation: null,
+
+    extractionTools: {},
+
+    activeExtractionTool: {
+        data: {extracts: []},
+        pluginState: {},
+        sprites: new SpriteStore()
+    },
+
+    items: Ember.computed.alias('project_models.items'),
+    extractors: Ember.computed.alias('project_models.extractors'),
 
     scrapedItem: function() {
         if (!Ember.isEmpty(this.get('items'))) {
@@ -50,70 +58,15 @@ export default BaseController.extend({
     currentlySelectedElement: null,
 
     sprites: function() {
-        return this.get('annotations').map(function(annotation) {
-            if (annotation.get('element')) {
-                return AnnotationSprite.create({'annotation': annotation});
-            } else {
-                return null;
-            }
-        }).filter(function(sprite) { return !!sprite; });
-    }.property('annotations.@each.element', 'annotations.@each.highlighted'),
-
-    addAnnotation: function(element, generated) {
-        var annotation = Annotation.create({
-            id: this.shortGuid(),
-            selectedElement: element,
-            generated: !!generated,
-        }, this.get('document.iframe'));
-        this.get('annotations').unshiftObject(annotation);
-        return annotation;
-    },
-
-    mapAttribute: function(annotation, attribute, field) {
-        annotation.removeMappings();
-        annotation.addMapping(attribute, field);
-    },
-
-    makeSticky: function(annotation, attributeName) {
-        var maxSticky = this.get('maxSticky');
-        var stickyName = '_sticky' + (maxSticky + 1);
-        annotation.addMapping(attributeName, stickyName);
-        annotation.addRequired(stickyName);
-    },
-
-    editAnnotation: function(annotation) {
-        annotation.set('highlighted', false);
-        this.saveAnnotations();
-        this.transitionToRoute('annotation', annotation);
-    },
-
-    deleteAnnotation: function(annotation) {
-        if (annotation.get('generated')) {
-            Ember.$(annotation.get('element')).removePartialAnnotation();
-        }
-        this.set('floatingAnnotation', null);
-        this.set('showFloatingAnnotationWidgetAt', null);
-        this.get('annotations').removeObject(annotation);
-        this.set('content.extractors', this.validateExtractors());
-    },
-
-    saveAnnotations: function() {
-        this.get('annotationsStore').saveAll(this.get('annotations'));
-        if (this.get('content')) {
-            this.set('content.annotated_body', this.get('documentView').getAnnotatedDocument());
-            this.set('content.annotations', this.get('documentView').getAnnotations());
-            this.set('content.extractors', this.validateExtractors());
-        }
-    },
+        this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
+        return this.get('activeExtractionTool.sprites');
+    }.property('activeExtractionTool', 'activeExtractionTool.sprites'),
 
     saveTemplate: function() {
-        this.saveAnnotations();
-        var missing_fields = this.missingRequiredAnnotations();
-        if (missing_fields.length > 0) {
-            this.showAlert('Save Error',
-                'Can\'t save template as the following required fields are missing: "' + missing_fields.join('", "') + '".');
-            return;
+        if (this.get('content')) {
+            this.set('content.extractors', this.validateExtractors());
         }
+        // TODO: Re-add support for warning about missing required fields
         return this.get('slyd').saveTemplate(
             this.get('controllers.spider.name'), this.get('content'));
     },
@@ -152,30 +105,6 @@ export default BaseController.extend({
         return new_extractors;
     },
 
-    maxVariant: function() {
-        var maxVariant = 0;
-        this.get('annotations').forEach(function(annotation) {
-            var stringVariant = annotation.get('variant');
-            var variant = stringVariant ? parseInt(stringVariant) : 0;
-            maxVariant = variant > maxVariant ? variant : maxVariant;
-        });
-        return maxVariant;
-    }.property('annotations.@each.variant'),
-
-    maxSticky: function() {
-        var maxSticky = 0;
-        this.get('annotations').forEach(function(annotation) {
-            annotation.get('stickyAttributes').forEach(function(stickyAttribute) {
-                var sticky = parseInt(
-                    stickyAttribute.get('mappedField').substring('_sticky'.length));
-                if (sticky > maxSticky) {
-                    maxSticky = sticky;
-                }
-            });
-        });
-        return maxSticky;
-    }.property('annotations.@each.stickyAttributes.@each'),
-
     getAppliedExtractors: function(fieldName) {
         var extractorIds = this.get('content.extractors.' + fieldName) || [];
         return extractorIds.map(function(extractorId) {
@@ -197,32 +126,13 @@ export default BaseController.extend({
         var mappedFieldsData = [],
             seenFields = new Set(),
             item_required_fields = new Set(),
-            scraped_item = this.get('scrapedItem'),
-            annotations = this.get('annotations');
+            scraped_item = this.get('scrapedItem');
         if (scraped_item) {
             scraped_item.fields.forEach(function(field) {
                 if (field.required) {
                     item_required_fields.add(field.name);
                 }
             });
-        }
-        if (annotations) {
-            this.get('annotations').forEach(function(annotation) {
-                var mappedAttributes = annotation.get('mappedAttributes');
-                mappedAttributes.forEach(function(attribute) {
-                    var fieldName = attribute.get('mappedField');
-                    // Avoid duplicates.
-                    if (!seenFields.has(fieldName)) {
-                        seenFields.add(fieldName);
-                        var mappedFieldData = MappedFieldData.create();
-                        mappedFieldData.set('fieldName', fieldName);
-                        mappedFieldData.set('required', annotation.get('required').indexOf(fieldName) > -1);
-                        mappedFieldData.set('extractors', this.getAppliedExtractors(fieldName));
-                        mappedFieldData.set('disabled', item_required_fields.has(fieldName));
-                        mappedFieldsData.pushObject(mappedFieldData);
-                    }
-                }.bind(this));
-            }.bind(this));
         }
         if (scraped_item) {
             this.get('scrapedItem').fields.forEach(function(field) {
@@ -231,38 +141,16 @@ export default BaseController.extend({
                     var mappedFieldData = MappedFieldData.create();
                     mappedFieldData.set('fieldName', fieldName);
                     mappedFieldData.set('required', field.required);
-                    mappedFieldData.set('disabled', item_required_fields.has(fieldName));
+                    mappedFieldData.set('disabled', true);
+                    mappedFieldData.set('extractors', this.getAppliedExtractors(fieldName));
                     mappedFieldsData.pushObject(mappedFieldData);
                 }
-            });
+            }.bind(this));
         }
         return mappedFieldsData;
     }.property('annotations.@each.mappedAttributes',
                'content.extractors.@each',
                'extractors.@each'),
-
-    missingRequiredAnnotations: function() {
-        var required = [];
-        this.get('mappedFieldsData').forEach(function(field) {
-            if (field.required && !field.extracted) {
-                required.push(field.fieldName);
-            }
-        });
-        return required;
-    },
-
-    annotationsMappingField: function(fieldName) {
-        var annotations = new Set();
-        this.get('annotations').forEach(function(annotation) {
-            var mappedAttributes = annotation.get('mappedAttributes');
-            mappedAttributes.forEach(function(attribute) {
-                if (attribute.get('mappedField') === fieldName) {
-                    annotations.add(annotation);
-                }
-            }.bind(this));
-        }.bind(this));
-        return annotations;
-    },
 
     createExtractor: function(extractorType, extractorDefinition) {
         var extractor = Extractor.create({
@@ -282,63 +170,16 @@ export default BaseController.extend({
         this.get('extractors').pushObject(extractor);
     },
 
-    draggingExtractor: function() {
-        return this.get('extractors').anyBy('dragging');
-    }.property('extractors.@each.dragging'),
-
-    showFloatingAnnotationWidget: function(annotation, x, y) {
-        this.set('floatingAnnotation', annotation);
-        if (x < 200) {
-            x = 100;
-        }
-        if (x > window.innerWidth - 250) {
-            x = window.innerWidth - 250;
-        }
-        if (y > window.innerHeight - 160) {
-            y = window.innerHeight - 160;
-        }
+    showFloatingAnnotationWidget: function(_, element, x, y) {
         this.set('showFloatingAnnotationWidgetAt', { x: x, y: y });
+        this.set('floatingElement', Ember.$(element));
     },
 
     hideFloatingAnnotationWidget: function() {
-        this.set('floatingAnnotation', null);
         this.set('showFloatingAnnotationWidgetAt', null);
     },
 
-    emptyAnnotations: function() {
-        return this.get('annotations').filter(function(annotation) {
-            return Ember.isEmpty(annotation.get('mappedAttributes')) &&
-                Ember.isEmpty(annotation.get('stickyAttributes'));
-        });
-    }.observes('annotations.@each.mappedAttributes'),
-
-    checkAnnotations: function() {
-        if (this.get('annotationsLoaded')) {
-            this.get('documentView').config(
-                { mode: 'select',
-                  listener: this,
-                  dataSource: this,
-                  partialSelects: true });
-        }
-    }.observes('annotationsLoaded'),
-
     actions: {
-
-        editAnnotation: function(annotation) {
-            this.editAnnotation(annotation);
-        },
-
-        mapAttribute: function(annotation, attribute, field) {
-            this.mapAttribute(annotation, attribute, field);
-        },
-
-        makeSticky: function(annotation, attribute) {
-            this.makeSticky(annotation, attribute);
-        },
-
-        deleteAnnotation: function(annotation) {
-            this.deleteAnnotation(annotation);
-        },
 
         createField: function(fieldName, fieldType) {
             this.get('controllers.items').addField(this.get('scrapedItem'), fieldName, fieldType);
@@ -347,12 +188,6 @@ export default BaseController.extend({
                     this.showHTTPAlert('Save Error', reason);
                 }.bind(this)
             );
-        },
-
-        annotationHighlighted: function(annotation) {
-            if (annotation.get('element')) {
-                this.get('documentView').scrollToElement(annotation.get('element'));
-            }
         },
 
         rename: function(oldName, newName) {
@@ -390,10 +225,11 @@ export default BaseController.extend({
 
         deleteExtractor: function(extractor) {
             // Remove all references to this extractor.
-            Object.keys(this.get('content.extractors')).forEach(function(fieldName) {
-                this.get('content.extractors')[fieldName].removeObject(extractor['name']);
+            var extractors = this.get('content.extractors');
+            Object.keys(extractors).forEach(function(fieldName) {
+                extractors[fieldName].removeObject(extractor.extractor.id);
             }.bind(this));
-            this.get('extractors').removeObject(extractor);
+            this.get('extractors').removeObject(extractor.extractor);
             this.saveExtractors();
         },
 
@@ -419,30 +255,17 @@ export default BaseController.extend({
             this.notifyPropertyChange('mappedFieldsData');
         },
 
-        setRequired: function(fieldName, required) {
-            var annotations = this.annotationsMappingField(fieldName);
-            annotations.forEach(function(annotation) {
-                if (required) {
-                    annotation.addRequired(fieldName);
-                } else {
-                    annotation.removeRequired(fieldName);
-                }
-            });
-        },
-
         editItems: function() {
-            this.saveAnnotations();
             this.transitionToRoute('items');
         },
 
         continueBrowsing: function() {
-            this.emptyAnnotations().forEach(function(annotation) {
-                this.deleteAnnotation(annotation);
-            }.bind(this));
             var saveFuture = this.saveTemplate();
             if (!saveFuture) {
                 return;
             }
+            var sprites = this.get('documentView.sprites');
+            this.set('documentView.sprites', []);
             saveFuture.then(function() {
                 this.transitionToRoute('spider', {
                     queryParams: {
@@ -451,6 +274,7 @@ export default BaseController.extend({
                 });
             }.bind(this),
             function(reason) {
+                this.set('documentView.sprites', sprites);
                 this.showHTTPAlert('Save Error', reason);
             }.bind(this));
         },
@@ -459,58 +283,69 @@ export default BaseController.extend({
             this.hideFloatingAnnotationWidget();
         },
 
-        selected: function() {
-        },
-
         toggleCSS: function() {
             this.documentView.toggleCSS();
         },
+
+        setRequired: function() {
+
+        }
     },
 
     documentActions: {
 
         elementSelected: function(element, mouseX, mouseY) {
             if (element) {
-                var annotation = this.get('annotations').findBy('element', element);
-                if (!annotation) {
-                    annotation = this.addAnnotation(element);
-                }
-                this.showFloatingAnnotationWidget(annotation, mouseX, mouseY);
+                this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
             }
         },
 
         partialSelection: function(selection, mouseX, mouseY) {
             var element = Ember.$('<ins/>').get(0);
             selection.getRangeAt(0).surroundContents(element);
-            this.showFloatingAnnotationWidget(this.addAnnotation(element, true), mouseX, mouseY);
-            selection.collapse();
+            this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
         },
 
-        elementHovered: function(element) {
-            this.get('annotations').forEach(function(annotation){
-                annotation.set('highlighted', false);
-            });
-            var annotation = this.get('annotations').findBy('element', element);
-            if (annotation) {
-                annotation.set('highlighted', true);
-            } else {
-                this.hideFloatingAnnotationWidget();
-            }
+        elementHovered: function() {
             this.get('documentView').redrawNow();
         },
     },
 
-    willEnter: function() {
+    setDocument: function() {
+        if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
+            return;
+        }
         this.get('documentView').displayDocument(this.get('model.annotated_body'),
-            function() {
-                this.set('annotations', this.get('annotationsStore').findAll());
-                this.get('documentView').config({
-                    mode: 'select',
-                    listener: this,
-                    dataSource: this,
-                    partialSelects: true
+        function() {
+            // Convert old format annotations to new format
+            if (!this.get('model.plugins')) {
+                this.set('model.plugins', Ember.Object.create({
+                    annotations: null,
+                }));
+            }
+            if (!this.get('model.plugins.annotations')) {
+                this.set('model.plugins.annotations', {
+                    'extracts': this.get('annotationsStore').findAll()
                 });
-            }.bind(this));
+            }
+            this.set('extractionTools.annotations', {
+                data: this.get('model.plugins.annotations'),
+                pluginState: {},
+                sprites: new SpriteStore({})
+            });
+            this.set('activeExtractionTool', this.get('extractionTools.annotations'));
+            this.get('documentView').config({
+                mode: 'select',
+                listener: this,
+                dataSource: this,
+                partialSelects: true,
+            });
+            this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
+        }.bind(this));
+    }.observes('model', 'model.annotated_body'),
+
+    willEnter: function() {
+        this.setDocument();
     },
 
     willLeave: function() {

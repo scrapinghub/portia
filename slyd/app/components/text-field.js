@@ -45,4 +45,9 @@ export default Ember.Component.extend({
     change: function() {
         this.sendAction('update', this.get('element').value, this.get('name'));
     },
+
+    didInsertElement: function() {
+        this._super();
+        this.$().focus();
+    }
 });

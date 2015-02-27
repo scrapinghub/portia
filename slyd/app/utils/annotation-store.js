@@ -12,14 +12,15 @@ export default Ember.Object.extend(ApplicationUtils, {
         var annotatedElements = this.get('iframe').findAnnotatedElements();
         var annotationJSONs = [];
         annotatedElements.each(function(i, element) {
-            var annotationJSON = Ember.$.parseJSON(Ember.$(element).attr('data-scrapy-annotate'));
+            var jqElem = Ember.$(element),
+                annotationJSON = Ember.$.parseJSON(jqElem.attr('data-scrapy-annotate'));
             if (!annotationJSON['id']) {
                 // This looks like an old Austoscraping project annotation as it doesn't have
                 // an assigned id. Create one for it.
                 annotationJSON['id'] = this.shortGuid();
-                Ember.$(element).attr('data-scrapy-annotate', JSON.stringify(annotationJSON));
+                jqElem.attr('data-scrapy-annotate', JSON.stringify(annotationJSON));
             }
-            annotationJSON['element'] = element;
+            annotationJSON['tagid'] = jqElem.data('tagid');
             annotationJSONs.pushObject(annotationJSON);
         }.bind(this));
         this._findIgnoresParentAnnotation();

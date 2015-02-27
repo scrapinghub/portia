@@ -30,4 +30,14 @@ export default Ember.Component.extend({
     url: function() {
         return this.get('extractedItem.url');
     }.property('extractedItem'),
+
+    actions: {
+        fetchPage: function() {
+            this.sendAction('fetchPage', url);
+        },
+
+        editTemplate: function(templateName) {
+            this.sendAction('editTemplate', templateName);
+        }
+    },
 });

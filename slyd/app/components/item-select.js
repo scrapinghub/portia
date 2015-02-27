@@ -23,20 +23,32 @@ export default Ember.Component.extend({
         if (!selectedValue) {
             defaultValue = [''];
         } else {
-            this.sendAction('changed', selectedValue);
+            this.sendAction('changed', selectedValue, this.get('name'));
         }
-        return defaultValue.concat(this.get('options').map(function(opt) {
-            if (typeof(opt) === 'string') {
-                opt = {value: opt};
-            } else if (opt instanceof Ember.Object) {
-                opt = {value: opt.get('name')};
-            }
-            return {
-                value: opt.value,
-                label: opt.label || opt.value,
-                selected: opt.value === selectedValue
-            };
-        }));
+        var seenSelected = false,
+            arr = defaultValue.concat(this.get('options').map(function(opt) {
+                if (typeof(opt) === 'string') {
+                    opt = {value: opt};
+                } else if (opt instanceof Ember.Object) {
+                    opt = {value: opt.get('name')};
+                }
+                if (opt.value === selectedValue) {
+                    seenSelected = true;
+                }
+                return {
+                    value: opt.value,
+                    label: opt.label || opt.value,
+                    selected: opt.value === selectedValue
+                };
+            }));
+        if (!seenSelected && selectedValue && this.get('addSelected')) {
+            arr.push({
+                value: selectedValue,
+                label: selectedValue,
+                selected: true
+            });
+        }
+        return arr;
     },
 
     optionsList: function() {
@@ -47,7 +59,9 @@ export default Ember.Component.extend({
         if (e.type !== 'change') {
             return;
         }
-        var changedTo = e.originalEvent.explicitOriginalTarget.value;
+        var originalEvent = e.originalEvent,
+            target = originalEvent.explicitOriginalTarget || originalEvent.target,
+            changedTo = target.value;
         this.set('value', changedTo);
         this.sendAction('changed', changedTo, this.get('name'));
     },
