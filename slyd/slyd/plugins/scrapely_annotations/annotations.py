@@ -12,12 +12,23 @@ from slyd.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
 
 class Annotations(object):
 
+<<<<<<< HEAD
     def save_extraction_data(self, data, template, options={}):
         annotation_data = data.get('extracts', [])
         template['annotated_body'] = apply_annotations(
             annotation_data,
             template['original_body'])
         return data
+=======
+    def save_extraction_data(self, plugin_data, template):
+        annotations = template.get('plugins', {}).get('annotations', {})
+        data = annotations.get('extracts', [])
+        template['annotated_body'] = apply_annotations(
+            data,
+            template['original_body'])
+        if 'plugins' in template:
+            del template['plugins']
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
 
 
 def _get_data_id(annotation):

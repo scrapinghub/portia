@@ -9,7 +9,11 @@
 		{{#if activeExtractionTool.data.extracts}}
 			<div class="scrolling-container" {{bind-attr style="mid_box_style"}}>
 				{{#each anno in activeExtractionTool.data.extracts}}
+<<<<<<< HEAD
 					{{component activeExtractionTool.component data=anno alldata=activeExtractionTool.data.extracts item=scrapedItem close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes}}
+=======
+					{{annotations-plugin data=anno alldata=activeExtractionTool.data.extracts item=scrapedItem close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes}}
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
 				{{/each}}
 			</div>
 		{{else}}
@@ -93,5 +97,9 @@
 {{/closable-accordion}}
 
 {{#if showFloatingAnnotationWidgetAt}}
+<<<<<<< HEAD
 	{{component activeExtractionTool.component data=floatingAnnotation mappedElement=floatingElement alldata=activeExtractionTool.data.extracts item=scrapedItem close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes inDoc=true pos=showFloatingAnnotationWidgetAt}}
+=======
+	{{annotations-plugin data=floatingAnnotation mappedElement=floatingElement alldata=activeExtractionTool.data.extracts item=scrapedItem close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes inDoc=true pos=showFloatingAnnotationWidgetAt}}
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
 {{/if}}

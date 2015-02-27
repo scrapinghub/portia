@@ -287,7 +287,11 @@ export default Ember.Component.extend({
             if (field in idMap) {
                 field = idMap[field];
             }
+<<<<<<< HEAD
             annotations.set(attribute, field);
+=======
+            annotations[attribute] = field;
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
             if (annotation['required']) {
                 required.push(field);
             }
@@ -573,9 +577,13 @@ export default Ember.Component.extend({
             boundingBox = jqElem.boundingBox();
         this.get('sprites').removeSprite(this.get('mappedDOMElement'));
         this.get('sprites').removeIgnore(this.get('mappedDOMElement'));
+<<<<<<< HEAD
         if (this.get('mappedDOMElement').tagName === 'INS') {
             this.get('mappedElement').removePartialAnnotation();
         }
+=======
+        this.get('mappedElement').removePartialAnnotation();
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
         this.set('mappedElement', jqElem);
         var newData = this.createAnnotationData(),
             existingData = this.get('alldata').findBy('tagid', newData.tagid);

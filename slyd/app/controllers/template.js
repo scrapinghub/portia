@@ -34,6 +34,7 @@ export default BaseController.extend({
         sprites: new SpriteStore()
     },
 
+<<<<<<< HEAD
     enableExtractionTool: function(tool) {
         // Convert old format to new
         var tool_parts = tool.split('.'),
@@ -68,6 +69,8 @@ export default BaseController.extend({
         this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
     },
 
+=======
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
     items: Ember.computed.alias('project_models.items'),
     extractors: Ember.computed.alias('project_models.extractors'),
 
@@ -351,20 +354,50 @@ export default BaseController.extend({
         }
         this.get('documentView').displayDocument(this.get('model.annotated_body'),
         function() {
+<<<<<<< HEAD
             if (!this.get('model.plugins')) {
                 this.set('model.plugins', Ember.Object.create({
                 }));
             }
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
+=======
+            // Convert old format annotations to new format
+            if (!this.get('model.plugins')) {
+                this.set('model.plugins', Ember.Object.create({
+                    annotations: null,
+                }));
+            }
+            if (!this.get('model.plugins.annotations')) {
+                this.set('model.plugins.annotations', {
+                    'extracts': this.get('annotationsStore').findAll()
+                });
+            }
+            this.set('extractionTools.annotations', {
+                data: this.get('model.plugins.annotations'),
+                pluginState: {},
+                sprites: new SpriteStore({})
+            });
+            this.set('activeExtractionTool', this.get('extractionTools.annotations'));
+            this.get('documentView').config({
+                mode: 'select',
+                listener: this,
+                dataSource: this,
+                partialSelects: true,
+            });
+            this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
         }.bind(this));
     }.observes('model', 'model.annotated_body'),
 
     willEnter: function() {
+<<<<<<< HEAD
         var plugins = {};
         this.get('capabilities.plugins').forEach(function(plugin) {
             plugins[plugin['component'].replace(/\./g, '_')] = plugin['options'];
         });
         this.set('plugins', plugins);
+=======
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
         this.setDocument();
     },
 

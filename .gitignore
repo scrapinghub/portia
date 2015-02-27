@@ -6,6 +6,7 @@
 node_modules/*
 slyd/bower_components/*
 slyd/tmp/*
+slyd/dist/*
 npm-debug.log
 
 # Local Settings

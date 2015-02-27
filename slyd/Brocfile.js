@@ -34,14 +34,27 @@ app.import('app/styles/jquery-ui-1.10.3.custom.css');
 app.import('bower_components/fontawesome/css/font-awesome.min.css');
 
 var fontTree = pickFiles('bower_components/fontawesome/fonts', {
+<<<<<<< HEAD
     srcDir: '/',
     files: ['fontawesome-webfont.eot','fontawesome-webfont.ttf','fontawesome-webfont.svg','fontawesome-webfont.woff'],
     destDir: '/assets/fonts'
 });
 
 var publicFiles = pickFiles('public', {
+=======
+  srcDir: '/',
+  files: ['fontawesome-webfont.eot','fontawesome-webfont.ttf','fontawesome-webfont.svg','fontawesome-webfont.woff'],
+  destDir: '/assets/fonts'
+});
+
+var public_files = pickFiles('public', {
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
     srcDir: '/',
     destDir: '/',
 })
 
+<<<<<<< HEAD
 module.exports = mergeTrees([app.toTree(), fontTree, publicFiles], {overwrite: true});
+=======
+module.exports = mergeTrees([app.toTree(), fontTree, public_files], {overwrite: true});
+>>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
