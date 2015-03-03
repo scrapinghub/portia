@@ -34,6 +34,40 @@ export default BaseController.extend({
         sprites: new SpriteStore()
     },
 
+    enableExtractionTool: function(tool) {
+        // Convert old format to new
+        var tool_parts = tool.split('.'),
+            tool_name = tool_parts[tool_parts.length - 1];
+        if (tool_name === 'annotations-plugin' &&
+                !this.get('model.plugins.annotations-plugin')) {
+            this.set('model.plugins.annotations-plugin', {
+                'extracts': this.get('annotationsStore').findAll()
+            });
+        } else if (!this.get('model.plugins.' + tool_name)){
+            this.set('model.plugins.' + tool_name, {
+                'extracts': []
+            });
+        }
+        if (!this.get('extractionTools.' + tool_name)) {
+            this.set('extractionTools.' + tool_name, {
+                data: this.get('model.plugins.' + tool_name),
+                pluginState: {},
+                sprites: new SpriteStore({}),
+                component: tool_name,
+                options: this.getWithDefault('plugins.' + tool.replace(/\./g, '_'), {})
+            });
+        }
+
+        this.set('activeExtractionTool', this.get('extractionTools.' + tool_name));
+        this.get('documentView').config({
+            mode: 'select',
+            listener: this,
+            dataSource: this,
+            partialSelects: true,
+        });
+        this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
+    },
+
     items: Ember.computed.alias('project_models.items'),
     extractors: Ember.computed.alias('project_models.extractors'),
 
@@ -317,34 +351,20 @@ export default BaseController.extend({
         }
         this.get('documentView').displayDocument(this.get('model.annotated_body'),
         function() {
-            // Convert old format annotations to new format
             if (!this.get('model.plugins')) {
                 this.set('model.plugins', Ember.Object.create({
-                    annotations: null,
                 }));
             }
-            if (!this.get('model.plugins.annotations')) {
-                this.set('model.plugins.annotations', {
-                    'extracts': this.get('annotationsStore').findAll()
-                });
-            }
-            this.set('extractionTools.annotations', {
-                data: this.get('model.plugins.annotations'),
-                pluginState: {},
-                sprites: new SpriteStore({})
-            });
-            this.set('activeExtractionTool', this.get('extractionTools.annotations'));
-            this.get('documentView').config({
-                mode: 'select',
-                listener: this,
-                dataSource: this,
-                partialSelects: true,
-            });
-            this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
+            this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
         }.bind(this));
     }.observes('model', 'model.annotated_body'),
 
     willEnter: function() {
+        var plugins = {};
+        this.get('capabilities.plugins').forEach(function(plugin) {
+            plugins[plugin['component'].replace(/\./g, '_')] = plugin['options'];
+        });
+        this.set('plugins', plugins);
         this.setDocument();
     },
 
