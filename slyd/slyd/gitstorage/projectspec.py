@@ -10,7 +10,7 @@ from slyd.errors import BadRequest
 class GitProjectSpec(ProjectSpec):
 
     @classmethod
-    def setup(cls, storage_backend, location):
+    def setup(cls, storage_backend, location, **kwargs):
         Repoman.setup(storage_backend, location)
 
     def _open_repo(self):

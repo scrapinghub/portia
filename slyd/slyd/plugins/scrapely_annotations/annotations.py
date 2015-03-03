@@ -12,14 +12,12 @@ from slyd.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
 
 class Annotations(object):
 
-    def save_extraction_data(self, plugin_data, template):
-        annotations = template.get('plugins', {}).get('annotations', {})
-        data = annotations.get('extracts', [])
+    def save_extraction_data(self, data, template, options={}):
+        annotation_data = data.get('extracts', [])
         template['annotated_body'] = apply_annotations(
-            data,
+            annotation_data,
             template['original_body'])
-        if 'plugins' in template:
-            del template['plugins']
+        return data
 
 
 def _get_data_id(annotation):
