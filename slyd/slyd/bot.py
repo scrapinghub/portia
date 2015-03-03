@@ -13,7 +13,9 @@ error to display. Otherwise you will find the following fields:
     * page -- the retrieved page - will be annotated in future
 
 """
-import json, errno
+import json
+import errno
+
 from functools import partial
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
@@ -47,6 +49,7 @@ class Bot(Resource):
         # twisted base class is old-style so we cannot user super()
         Resource.__init__(self)
         self.spec_manager = spec_manager
+        settings.set('PLUGINS', [p['bot'] for p in settings.get('PLUGINS')])
         # initialize scrapy crawler
         crawler = Crawler(settings)
         crawler.configure()
@@ -76,7 +79,7 @@ class Fetch(BotResource):
     isLeaf = True
 
     def render_POST(self, request):
-        #TODO: validate input data, handle errors, etc.
+        # TODO: validate input data, handle errors, etc.
         params = self.read_json(request)
         scrapy_request_kwargs = params['request']
         scrapy_request_kwargs.update(
@@ -161,8 +164,9 @@ class Fetch(BotResource):
                     pspec.remove_template(spider, template)
             items_spec = pspec.resource('items')
             extractors = pspec.resource('extractors')
-            return IblSpider(spider, spider_spec, items_spec, extractors,
-                             **kwargs), spider_spec['templates']
+            return (IblSpider(spider, spider_spec, items_spec, extractors,
+                              self.bot.crawler.settings, **kwargs),
+                    spider_spec['templates'])
         except IOError as ex:
             if ex.errno == errno.ENOENT:
                 log.msg("skipping extraction, no spec: %s" % ex.filename)

@@ -12,7 +12,7 @@ from twisted.web.static import File
 from .resource import SlydJsonObjectResource
 
 DEFAULT_PORT = 9001
-DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'media')
+DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'dist')
 
 
 class Options(usage.Options):
@@ -46,6 +46,8 @@ def create_root(config):
 
     root = Resource()
     root.putChild("static", File(config['docroot']))
+    root.putChild("assets", File(join(config['docroot'], 'assets')))
+    root.putChild("fonts", File(join(config['docroot'], 'assets', 'fonts')))
 
     settings = Settings()
     settings.setmodule(slyd.settings)

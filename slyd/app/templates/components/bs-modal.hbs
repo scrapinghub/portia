@@ -1,0 +1,23 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" {{bind-attr class=":close allowClose::hide"}} data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">
+                {{#if titleIconClasses}}
+                    <i {{bind-attr class="titleIconClasses"}}></i>
+                {{/if}}
+                {{{title}}}
+            </h4>
+        </div>
+        <div class="modal-body">
+            {{{body}}}
+        </div>
+        <div {{bind-attr class=":modal-footer fullSizeButtons:modal-footer-full"}}>
+            {{#each btn in footerButtons}}
+                {{#bs-button clicked=btn.clicked type=btn.type size=btn.size targetObjectBinding="view.targetObject"}}
+                    {{btn.label}}
+                {{/bs-button}}
+            {{/each}}
+        </div>
+    </div>
+</div>

@@ -29,6 +29,19 @@ SPEC_FACTORY = {
     }
 }
 
+PLUGINS = [{
+    "ui": "portiaWeb.annotations-plugin",
+    "web": "slyd.plugins.scrapely_annotations.Annotations",
+    "bot": "slybot.plugins.scrapely_annotations.Annotations",
+    "type": "extraction",
+    "options": {
+        "fillColor": 'rgba(88,150,220,0.4)',
+        "strokeColor": 'rgba(88,150,220,0.4)',
+        "textColor": 'white',
+        "name": "annotations"
+    }
+}]
+
 
 # recommended for development - use scrapy to cache http responses
 # add them to local_settings.py

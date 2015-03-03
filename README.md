@@ -176,11 +176,11 @@ Instead we need to modify layout A's template, and mark the ``description`` anno
 Running Portia
 --------------
 
+### Running Portia with Vagrant (Recommended)
+
 Checkout the repository:
 
     git clone https://github.com/scrapinghub/portia
-
-### Running Portia with Vagrant (Recommended)
 
 You will need both [Vagrant](http://www.vagrantup.com/downloads.html) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) installed.
 
@@ -192,30 +192,46 @@ This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` s
 
 ### Running Portia Locally
 
-If you are would like to run Portia locally you should create an environment with virtualenv:
+If you would like to run Portia locally you should create an environment with virtualenv:
 
     virtualenv YOUR_ENV_NAME --no-site-packages
     source YOUR_ENV_NAME/bin/activate
+    cd ENV_NAME
+
+Now clone this repository into that env:
+
+    git clone https://github.com/scrapinghub/portia.git
 
 and inside this env install the required packages:
 
+    cd portia
     pip install -r requirements.txt
-    pip install -e slybot
+    pip install -e ./slybot
 
 To run Portia start slyd:
 
     cd slyd
     twistd -n slyd
 
-Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+Portia should now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+
+###### Missing Dependencies on Linux
+
+When running Portia on Ubuntu or Debian systems you may need to install the following dependencies:
+
+    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
 
 ### Running Portia with Docker
+
+Checkout the repository:
+
+    git clone https://github.com/scrapinghub/portia
 
 If you are on a Linux machine you will need [Docker](https://docs.docker.com/installation/) installed or if you are using a [Windows](https://docs.docker.com/installation/windows/) or [Mac OS X](https://docs.docker.com/installation/mac/) machine you will need [boot2docker](http://boot2docker.io/).
 
 After following the appropriate instructions above the Portia image can be built using the command below:
 
-    docker build -t potia .
+    docker build -t portia .
 
 Portia can be run using the command below:
 
