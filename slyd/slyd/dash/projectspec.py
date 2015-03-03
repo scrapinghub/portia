@@ -7,7 +7,7 @@ from slyd.errors import BadRequest
 class ProjectSpec(GitProjectSpec):
 
     @classmethod
-    def setup(cls, storage_backend, location, dash_url):
+    def setup(cls, storage_backend, location, dash_url, **kwargs):
         GitProjectSpec.setup(storage_backend, location)
 
     def __init__(self, *args, **kwargs):
