@@ -18,5 +18,8 @@
     "fontawesome": "~4.3.0",
     "normalize.css": "~3.0.2",
     "canvasloader": "~0.9.1"
+  },
+  "resolutions": {
+    "ember": "beta"
   }
 }
