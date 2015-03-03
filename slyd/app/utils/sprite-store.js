@@ -38,7 +38,7 @@ export default Ember.Object.extend({
         var notFound = true, updated = false;
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-                sprite.name = text;
+                sprite.set('name', text);
                 notFound = false;
                 updated = true;
             }
@@ -62,7 +62,7 @@ export default Ember.Object.extend({
         var notFound = true, updated = false;
         this.get('_ignores').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-                sprite.ignoreBeneath = ignoreBeneath;
+                sprite.set('ignoreBeneath', ignoreBeneath);
                 notFound = false;
                 updated = true;
             }
@@ -85,7 +85,7 @@ export default Ember.Object.extend({
     highlight: function(element) {
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-                sprite.highlighted = true;
+                sprite.set('highlighted', true);
             }
         });
         this.notifyPropertyChange('_sprites');
@@ -94,7 +94,7 @@ export default Ember.Object.extend({
     removeHighlight: function(element) {
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-                sprite.highlighted = false;
+                sprite.set('highlighted', false);
             }
         });
         this.notifyPropertyChange('_sprites');
