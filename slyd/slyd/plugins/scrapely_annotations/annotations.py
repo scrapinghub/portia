@@ -12,23 +12,26 @@ from slyd.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
 
 class Annotations(object):
 
-<<<<<<< HEAD
     def save_extraction_data(self, data, template, options={}):
-        annotation_data = data.get('extracts', [])
+        annotation_data = _clean_annotation_data(data.get('extracts', []))
+        data['extracts'] = annotation_data
         template['annotated_body'] = apply_annotations(
             annotation_data,
             template['original_body'])
         return data
-=======
-    def save_extraction_data(self, plugin_data, template):
-        annotations = template.get('plugins', {}).get('annotations', {})
-        data = annotations.get('extracts', [])
-        template['annotated_body'] = apply_annotations(
-            data,
-            template['original_body'])
-        if 'plugins' in template:
-            del template['plugins']
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
+
+
+def _clean_annotation_data(data):
+    result = []
+    for ann in data:
+        if 'annotations' in ann and ann['annotations']:
+            filtered_annotations = {k: v for k, v in ann['annotations'].items()
+                                    if v and v.strip()}
+            ann['annotations'] = filtered_annotations
+            ann['required'] = list(set(ann.get('required', [])) &
+                                   set(filtered_annotations.values()))
+            result.append(ann)
+    return result
 
 
 def _get_data_id(annotation):
@@ -44,7 +47,7 @@ def _gen_annotation_info(annotation):
             'id': annotation.get('id', _gen_id()),
             'annotations': annotation.get('annotations', {}),
             'required': annotation.get('required', []),
-            'variant': annotation.get('variant', 0),
+            'variant': int(annotation.get('variant', 0)),
             'generated': annotation.get('generated', False)
         }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
@@ -197,7 +200,7 @@ def apply_annotations(annotations, target_page):
     #      generated it will be added to the output
     filtered = defaultdict(list)
     for ann in annotations:
-        if ann and ann.get('tagid'):
+        if ann and ann.get('tagid') and ann.get('annotations'):
             filtered[ann['tagid']].append(ann)
     dummy = [(1e9, [{}])]
     sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +
