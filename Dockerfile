@@ -1,6 +1,6 @@
 FROM scrapinghub/base:12.04
 RUN apt-get update -qq &&\
-    apt-get install -qy python-software-properties nginx
+    apt-get install -qy python-software-properties nginx git
 
 # nodejs
 RUN apt-add-repository ppa:chris-lea/node.js &&\
