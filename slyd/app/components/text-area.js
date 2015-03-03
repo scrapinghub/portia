@@ -12,6 +12,7 @@ export default Ember.Component.extend({
     splitlines: false,
     clear: null,
     value: null,
+    submitOnEnter: true,
 
     style: function() {
         var attrs = [],
@@ -35,7 +36,7 @@ export default Ember.Component.extend({
     }.property('width', 'resize', 'max_height'),
 
     keyUp: function(e) {
-        if (e.which === 13) {
+        if (e.which === 13 && this.getWithDefault('submitOnEnter', true)) {
             var text = this.get('element').value,
                 split = [];
             if (this.get('splitlines')) {
