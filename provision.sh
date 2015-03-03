@@ -24,7 +24,3 @@ cp /vagrant/slyd.conf /etc/init
 echo "Starting slyd service"
 echo "====================="
 start slyd
-
-
-
-

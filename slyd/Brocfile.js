@@ -34,14 +34,14 @@ app.import('app/styles/jquery-ui-1.10.3.custom.css');
 app.import('bower_components/fontawesome/css/font-awesome.min.css');
 
 var fontTree = pickFiles('bower_components/fontawesome/fonts', {
-  srcDir: '/',
-  files: ['fontawesome-webfont.eot','fontawesome-webfont.ttf','fontawesome-webfont.svg','fontawesome-webfont.woff'],
-  destDir: '/assets/fonts'
+    srcDir: '/',
+    files: ['fontawesome-webfont.eot','fontawesome-webfont.ttf','fontawesome-webfont.svg','fontawesome-webfont.woff'],
+    destDir: '/assets/fonts'
 });
 
-var public_files = pickFiles('public', {
+var publicFiles = pickFiles('public', {
     srcDir: '/',
     destDir: '/',
 })
 
-module.exports = mergeTrees([app.toTree(), fontTree, public_files], {overwrite: true});
+module.exports = mergeTrees([app.toTree(), fontTree, publicFiles], {overwrite: true});
