@@ -2,6 +2,8 @@ from urlparse import urlparse
 import os
 import json
 
+from scrapy.utils.misc import load_object
+
 from scrapely.htmlpage import HtmlPage
 
 
@@ -37,14 +39,18 @@ def open_project_from_dir(project_dir):
                         templates = load_external_templates(spec_base, spider_name, template_names)
                         spec.setdefault("templates", []).extend(templates)
                     specs["spiders"][spider_name] = spec
-                except ValueError, e:
-                    raise ValueError("Error parsing spider (invalid JSON): %s: %s" % (fname, e))
-
+                except ValueError as e:
+                    raise ValueError(
+                        "Error parsing spider (invalid JSON): %s: %s" %
+                        (fname, e)
+                    )
     return specs
 
 
 def load_external_templates(spec_base, spider_name, template_names):
-    """A generator yielding the content of all passed `template_names` for `spider_name`."""
+    """A generator yielding the content of all passed `template_names` for
+    `spider_name`.
+    """
     for name in template_names:
         with open(os.path.join(spec_base, spider_name, name + ".json")) as f:
             yield json.load(f)
@@ -53,3 +59,12 @@ def load_external_templates(spec_base, spider_name, template_names):
 def htmlpage_from_response(response):
     return HtmlPage(response.url, response.headers,
                     response.body_as_unicode(), encoding=response.encoding)
+
+
+def load_plugins(settings):
+    if settings['PLUGINS']:
+        return [load_object(p) if isinstance(p, str) else p
+                for p in settings['PLUGINS']]
+    else:
+        from slybot.plugins.scrapely_annotations import Annotations
+        return [Annotations]
