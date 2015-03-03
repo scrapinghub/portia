@@ -3,7 +3,7 @@ import Ember from 'ember';
 export default Ember.Object.create({
     // Inline help messages.
     overlay_blocked_links: 'Enable this options to highlight links not followed at crawl time in red and followed links in green.',
-    follow_links: 'Links that match any of the regular expressions in this list will be followed (they should also be in the domain of one of the start pages).',
+    follow_links: 'Links that match any of the regular expressions in this list will be followed (they should also be in the same domain of one of the start pages).',
     exclude_links: 'Links that match any of the regular expressions in this list will be excluded.',
     perform_login: 'Select this option if the site you are crawling requires login credentials.',
     template_required: 'This setting is equivalent to marking the fields as required in the item definition, but limiting the scope to this template only. <div class="alert alert-info"><span class="fa fa-icon fa-info-circle"></span> Only extracted fields can be set as required.</div>',

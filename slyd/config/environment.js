@@ -5,15 +5,8 @@ module.exports = function(environment) {
     modulePrefix: 'portia-web',
     environment: environment,
     baseURL: '/',
-    SLYD_URL: 'http://33.33.33.51:9001',
     EmberENV: {
       FEATURES: {
-        'ember-htmlbars': true,
-        'ember-htmlbars-block-params': true,
-        'ember-htmlbars-component-generation': true,
-        'ember-htmlbars-inline-if-helper': true,
-        'ember-htmlbars-attribute-syntax': true,
-        'ember-htmlbars-each-with-index': true,
         // Here you can enable experimental features on an ember canary build
         // e.g. 'with-controller': true
       }

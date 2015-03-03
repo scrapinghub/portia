@@ -18,7 +18,8 @@ RUN pip install -e /app/slybot
 # Concatenate, optimize & obfuscate javascript.
 WORKDIR /app/slyd
 RUN npm install
-RUN gulp optimize
+RUN bower install
+RUN ember build -e production
 
 EXPOSE 9001
 # TODO(dangra): fix handling of nginx service, it won't be restarted in case if crashed.
