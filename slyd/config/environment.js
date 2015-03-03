@@ -5,20 +5,8 @@ module.exports = function(environment) {
     modulePrefix: 'portia-web',
     environment: environment,
     baseURL: '/',
-<<<<<<< HEAD
     EmberENV: {
       FEATURES: {
-=======
-    SLYD_URL: 'http://33.33.33.51:9001',
-    EmberENV: {
-      FEATURES: {
-        'ember-htmlbars': true,
-        'ember-htmlbars-block-params': true,
-        'ember-htmlbars-component-generation': true,
-        'ember-htmlbars-inline-if-helper': true,
-        'ember-htmlbars-attribute-syntax': true,
-        'ember-htmlbars-each-with-index': true,
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
         // Here you can enable experimental features on an ember canary build
         // e.g. 'with-controller': true
       }

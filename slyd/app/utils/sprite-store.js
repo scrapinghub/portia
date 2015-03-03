@@ -17,32 +17,41 @@ export default Ember.Object.extend({
     },
 
     sprites: function() {
-        return this.get('_sprites').map(function(s) {
-            return AnnotationSprite.create({
-                annotation: s,
-                fillColor: s.fillColor,
-                strokeColor: s.strokeColor,
-                textColor: s.textColor
-            });
+        var arr = this.get('_sprites').map(function(s) {
+            if (s.element) {
+                return AnnotationSprite.create({
+                    annotation: s,
+                    fillColor: s.fillColor,
+                    strokeColor: s.strokeColor,
+                    textColor: s.textColor
+                });
+            } else {
+                return null;
+            }
         }).concat(this.get('_ignores').map(function(s) {
-            return IgnoreSprite.create({
-                ignore: s,
-                fillColor: s.fillColor,
-                strokeColor: s.strokeColor,
-                textColor: s.textColor
-            });
+            if (s.element) {
+                return IgnoreSprite.create({
+                    ignore: s,
+                    fillColor: s.fillColor,
+                    strokeColor: s.strokeColor,
+                    textColor: s.textColor
+                });
+            } else {
+                return null;
+            }
         }));
+        return arr.filter(function(s) {
+            if (s) {
+                return true;
+            }
+        });
     }.property('_sprites.@each', '_ignores.@each'),
 
     addSprite: function(element, text) {
         var notFound = true, updated = false;
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-<<<<<<< HEAD
                 sprite.set('name', text);
-=======
-                sprite.name = text;
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
                 notFound = false;
                 updated = true;
             }
@@ -66,11 +75,7 @@ export default Ember.Object.extend({
         var notFound = true, updated = false;
         this.get('_ignores').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-<<<<<<< HEAD
                 sprite.set('ignoreBeneath', ignoreBeneath);
-=======
-                sprite.ignoreBeneath = ignoreBeneath;
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
                 notFound = false;
                 updated = true;
             }
@@ -93,11 +98,7 @@ export default Ember.Object.extend({
     highlight: function(element) {
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-<<<<<<< HEAD
                 sprite.set('highlighted', true);
-=======
-                sprite.highlighted = true;
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
             }
         });
         this.notifyPropertyChange('_sprites');
@@ -106,11 +107,7 @@ export default Ember.Object.extend({
     removeHighlight: function(element) {
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
-<<<<<<< HEAD
                 sprite.set('highlighted', false);
-=======
-                sprite.highlighted = false;
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
             }
         });
         this.notifyPropertyChange('_sprites');

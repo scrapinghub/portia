@@ -12,7 +12,6 @@ export default Ember.Component.extend({
     creatingField: false,
     inDoc: false,
     pos: null,
-    pluginState: null,
     variantValue: 0,
     ignoredAttributes: [],
 
@@ -40,21 +39,24 @@ export default Ember.Component.extend({
         delete: function() {
             this.get('alldata').removeObject(this.get('data'));
             this.get('sprites').removeSprite(this.get('mappedDOMElement'));
-            this.get('mappedElement').removePartialAnnotation();
+            if (this.get('mappedDOMElement').tagName === 'INS') {
+                this.get('mappedElement').removePartialAnnotation();
+            }
             this.closeWidget();
         },
 
         updateVariant: function(value) {
             if (value > this.getWithDefault('pluginState.maxVariant', 0)) {
                 this.set('pluginState.maxVariant', value);
+                this.updateData('pluginState');
             }
-            this.set('variantValue', parseInt(value));
-            this.set('data.variant', value);
+            this.set('data.variant', parseInt(value));
         },
 
         updateField: function(value, index) {
             if (value === '#create') {
                 value = null;
+                this.set('createNewIndex', index);
                 this.setState(true, false, false);
             } else if (value === '#sticky') {
                 this.setAttr(index, '#sticky', 'field', true);
@@ -85,7 +87,7 @@ export default Ember.Component.extend({
             if (!fieldName || fieldName.length < 1) {
                 return;
             }
-            if (fieldType) {
+            if (!fieldType || fieldType.length < 1) {
                 this.set('newFieldType', 'text');
             }
             this.createNewField();
@@ -99,7 +101,7 @@ export default Ember.Component.extend({
         },
 
         updateNewFieldName: function(value) {
-            if (value) {
+            if (typeof value === 'string') {
                 this.set('newFieldName', value);
             }
         },
@@ -241,14 +243,23 @@ export default Ember.Component.extend({
             var maxSticky = this.getWithDefault('pluginState.maxSticky', 0) + 1,
                 sticky = '_sticky' + maxSticky;
             this.set('pluginState.maxSticky', maxSticky);
+            this.updateData('pluginState');
             value = sticky;
         }
         if (field && annotation[field] !== value) {
-            annotation[field] = value;
+            try {
+                annotation.set(field, value);
+            } catch(e) {
+                annotation[field] = value;
+            }
             update = true;
         }
         if (required && !annotation['required']) {
-            annotation['required'] = true;
+            try {
+                annotation.set('required', true);
+            } catch(e) {
+                annotation['required'] = true;
+            }
             update = true;
         }
         if (annotation.field && annotation.field === '#create') {
@@ -287,20 +298,44 @@ export default Ember.Component.extend({
             if (field in idMap) {
                 field = idMap[field];
             }
-<<<<<<< HEAD
-            annotations.set(attribute, field);
-=======
-            annotations[attribute] = field;
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
+            try {
+                annotations[attribute] = field;
+            } catch (e) {
+                annotations.set(attribute, field);
+            }
             if (annotation['required']) {
                 required.push(field);
             }
         });
         this.set('data.annotations', annotations);
         this.set('data.required', required);
+        this.updateExtractedFields();
         this.notifyPropertyChange('sprite');
     },
 
+    updateExtractedFields: function() {
+        var id = this.get('data.id'),
+            annotations = this.get('data.annotations'),
+            required = this.get('data.required'),
+            extracted = this.getWithDefault('pluginState.extracted', [])
+                .filter(function(f) {
+                    if (f.id && f.id !== id) {
+                        return true;
+                    }
+                });
+        for (var key in annotations) {
+            var fieldName = annotations[key];
+            if (fieldName && fieldName[0] !== '#') {
+                extracted.push({
+                    id: id,
+                    name: fieldName,
+                    required: required.indexOf(annotations[key]) > 0
+                });
+            }
+        }
+        this.set('pluginState.extracted', extracted);
+        this.updateData('pluginState');
+    },
 
     //*******************************************************************\\
     //
@@ -482,11 +517,11 @@ export default Ember.Component.extend({
             nameMap = this.get('fieldIdNameMap');
         for (var key in annotations) {
             var value = annotations[key],
-                annotation = {
+                annotation = Ember.Object.create({
                     field: value,
                     attribute: key,
                     required: required.indexOf(value) >= 0
-                };
+                });
             if (value in nameMap) {
                 annotation.field = nameMap[value];
             }
@@ -520,30 +555,32 @@ export default Ember.Component.extend({
 
     setData: function() {
         var tagid, annotation, generatedData = {};
-        if (!this.get('data')) {
-            var element = this.get('mappedElement');
-            this.set('mappedDOMElement', element.get(0));
-            if (element.prop('tagName') === 'INS') {
-                generatedData = this.findGeneratedAnnotation();
-                tagid = generatedData.tagid;
-                annotation = this.get('alldata').findBy('tagid', tagid);
-            } else {
-                tagid = element.data('tagid');
-                annotation = this.get('alldata').findBy('tagid', tagid);
-            }
-            if (annotation) {
-                var annotations = annotation.annotations || {},
-                    required = annotation.required || [];
-                this.set('data', annotation);
-                this.set('data.annotations', annotations);
-                this.set('data.required', required);
-            } else {
-                this.set('data', this.createAnnotationData(generatedData));
-                this.get('alldata').unshiftObject(this.get('data'));
-            }
-            if (this.get('data.generates')) {
-                this.get('mappedElement').attr('data-genid', this.get('data').id);
-            }
+        if (this.get('data')) {
+            return;
+        }
+        var element = this.get('mappedElement');
+        this.set('mappedDOMElement', element.get(0));
+        if (element.prop('tagName') === 'INS') {
+            generatedData = this.findGeneratedAnnotation();
+            tagid = generatedData.tagid;
+            annotation = this.get('alldata').findBy('tagid', tagid);
+        } else {
+            tagid = element.data('tagid');
+            annotation = this.get('alldata').findBy('tagid', tagid);
+        }
+        if (annotation) {
+            var annotations = annotation.annotations || {},
+                required = annotation.required || [];
+            this.set('data', annotation);
+            this.set('data.annotations', annotations);
+            this.set('data.required', required);
+            this.set('data.variant', this.getWithDefault('data.variant', 0));
+        } else {
+            this.set('data', this.createAnnotationData(generatedData));
+            this.get('alldata').unshiftObject(this.get('data'));
+        }
+        if (this.get('data.generated')) {
+            this.get('mappedElement').attr('data-genid', this.get('data').id);
         }
     },
 
@@ -577,13 +614,9 @@ export default Ember.Component.extend({
             boundingBox = jqElem.boundingBox();
         this.get('sprites').removeSprite(this.get('mappedDOMElement'));
         this.get('sprites').removeIgnore(this.get('mappedDOMElement'));
-<<<<<<< HEAD
         if (this.get('mappedDOMElement').tagName === 'INS') {
             this.get('mappedElement').removePartialAnnotation();
         }
-=======
-        this.get('mappedElement').removePartialAnnotation();
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
         this.set('mappedElement', jqElem);
         var newData = this.createAnnotationData(),
             existingData = this.get('alldata').findBy('tagid', newData.tagid);
@@ -603,7 +636,9 @@ export default Ember.Component.extend({
         this.mapToElement();
         this.get('document.view').scrollToElement(elem);
         this.set('pos', {x: boundingBox.top, y: boundingBox.left});
+        this.updateExtractedFields();
         this.positionWidget();
+        this.setState(false, false, true);
     },
 
     //*******************************************************************\\
@@ -692,6 +727,10 @@ export default Ember.Component.extend({
                 elementsArr.unshift(elements.get(i));
             }
         }
+        var previousElem;
+        if (elements.length > 1) {
+            previousElem = elements[1];
+        }
         elementsArr.forEach(function(elem) {
             var jqElem = Ember.$(elem),
                 attributes = jqElem.getAttributeList();
@@ -701,10 +740,12 @@ export default Ember.Component.extend({
             resultArr.push({
                 label: jqElem.prop('tagName').toLowerCase(),
                 hovered: false,
+                separator: Ember.$.inArray(previousElem, jqElem.siblings()) !== -1 ? '' : 'chevron-right',
                 data: {
                     element: elem
                 }
             });
+            previousElem = elem;
         });
         return resultArr;
     },
@@ -720,7 +761,7 @@ export default Ember.Component.extend({
     }.property('showingBasic'),
 
     createFieldDisabled: function() {
-        return Ember.isEmpty(this.get('fieldName'));
+        return (this.get('newFieldName') + '').trim().length < 1;
     }.property('newFieldName'),
 
     setState: function(field, advanced, basic) {
@@ -731,17 +772,15 @@ export default Ember.Component.extend({
 
     createNewField: function() {
         var fieldName = this.get('newFieldName'),
-            fieldType = this.get('newFieldType');
+            fieldType = this.get('newFieldType'),
+            attrIndex = this.get('createNewIndex');
         if (fieldName && fieldName.length > 0 && fieldType) {
-            this.setState(false, false, true);
-            this.get('item').addField(this.get('scrapedItem'), fieldName, fieldType);
             this.set('newFieldType', null);
             this.set('newFieldName', null);
-            this.get('slyd').saveItems(this.get('items').toArray()).then(function() { },
-                function(reason) {
-                    this.showHTTPAlert('Save Error', reason);
-                }.bind(this)
-            );
+            this.set('createNewIndex', null);
+            this.sendAction('createField', this.get('item'), fieldName, fieldType);
+            this.setAttr(attrIndex, fieldName, 'field');
+            this.setState(false, false, true);
         }
     },
 
@@ -780,6 +819,14 @@ export default Ember.Component.extend({
             });
             this.set('pluginState.maxSticky', maxSticky);
         }
+        this.updateData('pluginState');
+    },
+
+    updateData: function(property) {
+        if (!this.get(property)) {
+            return;
+        }
+        this.sendAction('updatePluginData', property, this.get(property));
     },
 
     //*******************************************************************\\
@@ -791,9 +838,10 @@ export default Ember.Component.extend({
     setup: function() {
         this.setData();
         this.mapToElement();
+        this.updateExtractedFields();
         this.set('ignores', []);
         this.setPluginStateVariables();
-        if (this.get('inDoc') && Ember.$.isEmptyObject(this.get('data.attributes'))) {
+        if (this.get('inDoc') && Object.keys(this.get('data.annotations')).length < 1) {
             this.addNewMapping();
         }
     }.on('init'),
