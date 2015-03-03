@@ -12,10 +12,7 @@ export default Ember.Component.extend({
     splitlines: false,
     clear: null,
     value: null,
-<<<<<<< HEAD
     submitOnEnter: true,
-=======
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
 
     style: function() {
         var attrs = [],
@@ -39,11 +36,7 @@ export default Ember.Component.extend({
     }.property('width', 'resize', 'max_height'),
 
     keyUp: function(e) {
-<<<<<<< HEAD
         if (e.which === 13 && this.getWithDefault('submitOnEnter', true)) {
-=======
-        if (e.which === 13) {
->>>>>>> Port App to Ember-Cli. Start Plugin System. Adds #133 and #136
             var text = this.get('element').value,
                 split = [];
             if (this.get('splitlines')) {
