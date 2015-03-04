@@ -13,6 +13,7 @@ export default Ember.Component.extend({
 
     setValue: function() {
         this.$().find('textarea').val(this.get('data'));
+        this.set('text', this.get('data'));
     }.observes('data'),
 
     actions: {
