@@ -209,8 +209,8 @@ body{
     border-width: 1px;
     border-style: solid;
     border-color: #BBB;
-    text-align: center;
     color: #111;
+    font-family: "Courier New", Courier, monospace;
     background-color: #FFF;
     padding: 4px;
     outline: none;
