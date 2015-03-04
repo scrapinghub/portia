@@ -37,8 +37,7 @@ PLUGINS = [{
     "options": {
         "fillColor": 'rgba(88,150,220,0.4)',
         "strokeColor": 'rgba(88,150,220,0.4)',
-        "textColor": 'white',
-        "name": "annotations"
+        "textColor": 'white'
     }
 }]
 

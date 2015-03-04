@@ -244,11 +244,23 @@ export default Ember.Component.extend({
             value = sticky;
         }
         if (field && annotation[field] !== value) {
-            annotation[field] = value;
+            try {
+                annotation[field] = value;
+            } catch(e) {
+                if (annotation.set) {
+                    annotation.set(field, value);
+                }
+            }
             update = true;
         }
         if (required && !annotation['required']) {
-            annotation['required'] = true;
+            try {
+                annotation['required'] = true;
+            } catch(e) {
+                if (annotation.set) {
+                    annotation.set('required', true);
+                }
+            }
             update = true;
         }
         if (annotation.field && annotation.field === '#create') {
@@ -287,7 +299,11 @@ export default Ember.Component.extend({
             if (field in idMap) {
                 field = idMap[field];
             }
-            annotations.set(attribute, field);
+            try {
+                annotations[attribute] = field;
+            } catch (e) {
+                annotations.set(attribute, field);
+            }
             if (annotation['required']) {
                 required.push(field);
             }
@@ -596,6 +612,7 @@ export default Ember.Component.extend({
         this.get('document.view').scrollToElement(elem);
         this.set('pos', {x: boundingBox.top, y: boundingBox.left});
         this.positionWidget();
+        this.setState(false, false, true);
     },
 
     //*******************************************************************\\
