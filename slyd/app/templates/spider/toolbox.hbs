@@ -75,8 +75,8 @@
                 <h4>Follow links that match this patterns</h4>
                 {{inline-help message="follow_links"}}
                 <div class="scrolling-container" style="{{ex_tiny_box_style}}">
-                    {{#each pattern in model.follow_patterns}}
-                        {{display-button-edit-delete save='editFollowPattern' delete='deleteFollowPattern' text=pattern}}
+                    {{#each model.follow_patterns as |pattern index|}}
+                        {{display-button-edit-delete save='editFollowPattern' delete='deleteFollowPattern' text=pattern name=index}}
                     {{else}}
                         <div class="col-xs-12">
                             <h5>No follow patterns defined yet.</h5>
@@ -91,8 +91,8 @@
                 <h4>Exclude links that match this patterns</h4>
                 {{inline-help message="exclude_links"}}
                 <div class="scrolling-container" style="{{ex_tiny_box_style}}">
-                    {{#each pattern in model.exclude_patterns}}
-                        {{display-button-edit-delete save='editExcludePattern' delete='deleteExcludePattern' text=pattern}}
+                    {{#each model.exclude_patterns as |pattern index|}}
+                        {{display-button-edit-delete save='editExcludePattern' delete='deleteExcludePattern' text=pattern name=index}}
                     {{else}}
                         <div class="col-xs-12">
                             <h5>No exclude patterns defined yet.</h5>

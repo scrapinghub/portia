@@ -20,6 +20,8 @@ export default BaseController.extend({
 
     showContinueBrowsing: true,
 
+    showDiscardButton: true,
+
     showToggleCSS: true,
 
     showFloatingAnnotationWidgetAt: null,
@@ -65,6 +67,7 @@ export default BaseController.extend({
             dataSource: this,
             partialSelects: true,
         });
+        this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
     },
 
     items: Ember.computed.alias('project_models.items'),
@@ -91,7 +94,6 @@ export default BaseController.extend({
     currentlySelectedElement: null,
 
     sprites: function() {
-        this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
         return this.get('activeExtractionTool.sprites');
     }.property('activeExtractionTool', 'activeExtractionTool.sprites'),
 
@@ -183,7 +185,8 @@ export default BaseController.extend({
         return mappedFieldsData;
     }.property('annotations.@each.mappedAttributes',
                'content.extractors.@each',
-               'extractors.@each'),
+               'extractors.@each',
+               'scrapedItem.fields.@each'),
 
     createExtractor: function(extractorType, extractorDefinition) {
         var extractor = Extractor.create({
@@ -214,8 +217,8 @@ export default BaseController.extend({
 
     actions: {
 
-        createField: function(fieldName, fieldType) {
-            this.get('controllers.items').addField(this.get('scrapedItem'), fieldName, fieldType);
+        createField: function(item, fieldName, fieldType) {
+            item.addField(fieldName, fieldType);
             this.get('slyd').saveItems(this.get('items').toArray()).then(function() { },
                 function(reason) {
                     this.showHTTPAlert('Save Error', reason);
@@ -310,6 +313,15 @@ export default BaseController.extend({
                 this.set('documentView.sprites', sprites);
                 this.showHTTPAlert('Save Error', reason);
             }.bind(this));
+        },
+
+        discardChanges: function() {
+            this.set('documentView.sprites', []);
+            this.transitionToRoute('spider', {
+                queryParams: {
+                    url: this.get('model.url')
+                }
+            });
         },
 
         hideFloatingAnnotationWidget: function() {

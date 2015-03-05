@@ -48,13 +48,13 @@ export default Ember.Component.extend({
             if (value > this.getWithDefault('pluginState.maxVariant', 0)) {
                 this.set('pluginState.maxVariant', value);
             }
-            this.set('variantValue', parseInt(value));
-            this.set('data.variant', value);
+            this.set('data.variant', parseInt(value));
         },
 
         updateField: function(value, index) {
             if (value === '#create') {
                 value = null;
+                this.set('createNewIndex', index);
                 this.setState(true, false, false);
             } else if (value === '#sticky') {
                 this.setAttr(index, '#sticky', 'field', true);
@@ -85,7 +85,7 @@ export default Ember.Component.extend({
             if (!fieldName || fieldName.length < 1) {
                 return;
             }
-            if (fieldType) {
+            if (!fieldType || fieldType.length < 1) {
                 this.set('newFieldType', 'text');
             }
             this.createNewField();
@@ -549,6 +549,7 @@ export default Ember.Component.extend({
                 this.set('data', annotation);
                 this.set('data.annotations', annotations);
                 this.set('data.required', required);
+                this.set('data.variant', this.getWithDefault('data.variant', 0));
             } else {
                 this.set('data', this.createAnnotationData(generatedData));
                 this.get('alldata').unshiftObject(this.get('data'));
@@ -729,7 +730,7 @@ export default Ember.Component.extend({
     }.property('showingBasic'),
 
     createFieldDisabled: function() {
-        return Ember.isEmpty(this.get('fieldName'));
+        return Ember.isEmpty(this.get('newFieldName'));
     }.property('newFieldName'),
 
     setState: function(field, advanced, basic) {
@@ -740,17 +741,15 @@ export default Ember.Component.extend({
 
     createNewField: function() {
         var fieldName = this.get('newFieldName'),
-            fieldType = this.get('newFieldType');
+            fieldType = this.get('newFieldType'),
+            attrIndex = this.get('createNewIndex');
         if (fieldName && fieldName.length > 0 && fieldType) {
-            this.setState(false, false, true);
-            this.get('item').addField(this.get('scrapedItem'), fieldName, fieldType);
             this.set('newFieldType', null);
             this.set('newFieldName', null);
-            this.get('slyd').saveItems(this.get('items').toArray()).then(function() { },
-                function(reason) {
-                    this.showHTTPAlert('Save Error', reason);
-                }.bind(this)
-            );
+            this.set('createNewIndex', null);
+            this.sendAction('createField', this.get('item'), fieldName, fieldType);
+            this.setAttr(attrIndex, fieldName, 'field');
+            this.setState(false, false, true);
         }
     },
 

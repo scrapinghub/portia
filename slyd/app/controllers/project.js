@@ -45,11 +45,16 @@ export default BaseController.extend({
         if (siteUrl.indexOf('http') !== 0) {
             siteUrl = 'http://' + siteUrl;
         }
-        var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, this.get('content'));
-        this.set('controllers.application.siteWizard', siteUrl);
+        // XXX: Deal with incorrect model
+        var names = this.get('model');
+        if (names instanceof Object) {
+            names = [];
+        }
+        var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, names);
+        this.set('controllers.application.siteWizard', null);
         var spider = Spider.create(
             { 'name': newSpiderName,
-              'start_urls': [],
+              'start_urls': [siteUrl],
               'follow_patterns': [],
               'exclude_patterns': [],
               'init_requests': [],
@@ -57,7 +62,6 @@ export default BaseController.extend({
               'template_names': [],
               'plugins': {}
             });
-        this.get('model').pushObject(newSpiderName);
         this.set('spiderPage', null);
         return this.get('slyd').saveSpider(spider).then(function() {
                 this.set('addingNewSpider', false);
@@ -183,7 +187,8 @@ export default BaseController.extend({
         this.get('documentView').reset();
         this.get('documentView').showSpider();
         if (this.get('controllers.application.siteWizard')) {
-            Ember.run.next(this, this.addSpider);
+            Ember.run.next(this, this.addSpider,
+                           this.get('controllers.application.siteWizard'));
         }
     },
 });
