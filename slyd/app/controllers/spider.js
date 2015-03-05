@@ -415,7 +415,7 @@ export default BaseController.extend({
 
         editAllStartUrls: function() {
             this.set('startUrlsAction', 'updateAllStartUrls');
-            this.set('startUrls', this.get('model.start_urls').join('\n'));
+            this.set('startUrls', this.get('model.start_urls').join('\n\n'));
             this.set('model.start_urls', []);
             this.set('editAllStartUrlsType', 'danger');
             this.set('editAllStartUrlsAction', 'cancelEditAllSpiders');
@@ -597,6 +597,7 @@ export default BaseController.extend({
                 }.bind(this));
             });
         }
+        this.set('documentView.sprites', new SpriteStore());
     },
 
     willLeave: function() {

@@ -35,7 +35,7 @@ app.import('bower_components/fontawesome/css/font-awesome.min.css');
 
 var fontTree = pickFiles('bower_components/fontawesome/fonts', {
     srcDir: '/',
-    files: ['fontawesome-webfont.eot','fontawesome-webfont.ttf','fontawesome-webfont.svg','fontawesome-webfont.woff'],
+    files: ['fontawesome-webfont.eot','fontawesome-webfont.ttf','fontawesome-webfont.svg','fontawesome-webfont.woff', 'fontawesome-webfont.woff2'],
     destDir: '/assets/fonts'
 });
 

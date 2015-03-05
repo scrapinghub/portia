@@ -802,7 +802,7 @@ export default Ember.Component.extend({
         this.mapToElement();
         this.set('ignores', []);
         this.setPluginStateVariables();
-        if (this.get('inDoc') && Ember.$.isEmptyObject(this.get('data.attributes'))) {
+        if (this.get('inDoc') && Object.keys(this.get('data.annotations')).length < 1) {
             this.addNewMapping();
         }
     }.on('init'),

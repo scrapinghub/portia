@@ -21,7 +21,7 @@ export default Ember.Component.extend({
         var selectedValue = this.get('value'),
             defaultValue = [];
         if (!selectedValue) {
-            defaultValue = [''];
+            defaultValue = [{value:'', label: '', selected: true}];
         } else {
             this.sendAction('changed', selectedValue, this.get('name'));
         }
