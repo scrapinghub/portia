@@ -1,4 +1,5 @@
 import SimpleModel from './simple-model';
+import ItemField from './item-field';
 
 export default SimpleModel.extend({
     serializedRelations: ['fields'],
@@ -16,4 +17,12 @@ export default SimpleModel.extend({
             }.bind(this), true
         );
     },
+
+    addField: function(name, type) {
+        var newField = ItemField.create({ name: name || 'new_field',
+                                          type: type || 'text',
+                                          required: false,
+                                          vary: false });
+        this.get('fields').pushObject(newField);
+    }
 });

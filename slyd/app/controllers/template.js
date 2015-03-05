@@ -67,6 +67,7 @@ export default BaseController.extend({
             dataSource: this,
             partialSelects: true,
         });
+        this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
     },
 
     items: Ember.computed.alias('project_models.items'),

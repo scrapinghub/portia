@@ -10,3 +10,7 @@ npm-debug.log
 
 # Local Settings
 slyd/slyd/local_settings.py
+slybot/slybot/local_slybot_settings.py
+
+# Docs build directory
+docs/_build

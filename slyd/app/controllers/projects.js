@@ -57,7 +57,7 @@ export default BaseController.extend({
         },
 
         createProject: function(projectSite) {
-            var newProjectName = this.getUnusedName('new_project', this.get('content'));
+            var newProjectName = this.getUnusedName('new_project', this.get('model'));
             this.get('slyd').createProject(newProjectName).then(function() {
                 this.get('slyd').editProject(newProjectName).then(function() {
                     this.set('slyd.project', newProjectName);
@@ -69,8 +69,9 @@ export default BaseController.extend({
                     // Initialize extractors spec.
                     var extractorsPromise = this.get('slyd').saveExtractors([]);
                     // Setup automatic creation of an initial spider.
-                    this.set('controllers.project.siteWizard', projectSite);
+                    this.set('controllers.application.siteWizard', projectSite);
                     Ember.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
+                        this.get('model').pushObject(newProjectName);
                         this.transitionToRoute('project', { id: newProjectName });
                     }.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
                 }.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));

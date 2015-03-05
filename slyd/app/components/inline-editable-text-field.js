@@ -27,7 +27,7 @@ export default Ember.Component.extend({
                 return;
             }
             var re = new RegExp(this.get('regex'), 'g');
-            if (re.test(text)) {
+            if (text !== this.get('text') && re.test(text)) {
                 this.set('text', text);
                 this.sendAction('action', this.get('text'), this.get('name'));
             } else {
