@@ -49,17 +49,17 @@ export default BaseController.extend({
     }.property('model.start_urls.@each'),
 
     breadCrumb: function() {
-        this.set('slyd.spider', this.get('content.name'));
-        return this.get('content.name');
-    }.property('content.name'),
+        this.set('slyd.spider', this.get('model.name'));
+        return this.get('model.name');
+    }.property('model.name'),
 
     startUrlCount: function() {
-        if (!Ember.isEmpty(this.get('content.start_urls'))) {
-            return this.get('content.start_urls').length;
+        if (!Ember.isEmpty(this.get('model.start_urls'))) {
+            return this.get('model.start_urls').length;
         } else {
             return 0;
         }
-    }.property('content.start_urls.[]'),
+    }.property('model.start_urls.[]'),
 
     displayEditPatterns: function() {
         return this.get('links_to_follow') === 'patterns';
@@ -169,11 +169,11 @@ export default BaseController.extend({
 
     spiderDomains: function() {
         var spiderDomains = new Set();
-        this.get('content.start_urls').forEach(function(startUrl) {
+        this.get('model.start_urls').forEach(function(startUrl) {
             spiderDomains.add(URI.parse(startUrl)['hostname']);
         });
         return spiderDomains;
-    }.property('content.start_urls.@each'),
+    }.property('model.start_urls.@each'),
 
     sprites: function() {
         if (!this.get('loadedPageFp') || !this.get('showLinks')) {
@@ -209,7 +209,7 @@ export default BaseController.extend({
     },
 
     viewTemplate: function(templateName) {
-        this.get('slyd').loadTemplate(this.get('content.name'), templateName).then(function(template) {
+        this.get('slyd').loadTemplate(this.get('model.name'), templateName).then(function(template) {
             var newWindow = window.open('about:blank',
                 '_blank',
                 'resizable=yes, scrollbars=yes');
@@ -236,7 +236,7 @@ export default BaseController.extend({
         documentView.showLoading();
         var fetchId = this.guid();
         this.get('pendingFetches').pushObject(fetchId);
-        this.get('slyd').fetchDocument(url, this.get('content.name'), parentFp).
+        this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp).
             then(function(data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
@@ -301,7 +301,7 @@ export default BaseController.extend({
             // The deault item doesn't exist but we have at least one item def.
             template.set('scrapes', itemDefs[0].get('name'));
         }
-        this.get('content.template_names').pushObject(template_name);
+        this.get('model.template_names').pushObject(template_name);
         this.get('slyd').saveTemplate(this.get('name'), template).then(function() {
             this.saveSpider().then(
                 function() {
@@ -319,7 +319,7 @@ export default BaseController.extend({
         if (typeof(urls) === 'string') {
             urls = urls.match(/[^\s,]+/g);
         }
-        var modelUrls = this.get('content.start_urls');
+        var modelUrls = this.get('model.start_urls');
         urls.forEach(function(url) {
             var parsed = URI.parse(url);
             if (Ember.$.inArray(url, modelUrls) > 0) {
@@ -333,20 +333,30 @@ export default BaseController.extend({
         }.bind(this));
     },
 
-    addExcludePattern: function(pattern) {
-        this.get('content.exclude_patterns').pushObject(pattern);
+    addExcludePattern: function(pattern, index) {
+        if (index !== undefined) {
+            this.get('model.exclude_patterns').insertAt(index, pattern);
+            this.notifyPropertyChange('links_to_follow');
+        } else {
+            this.get('model.exclude_patterns').pushObject(pattern);
+        }
     },
 
     deleteExcludePattern: function(pattern) {
-        this.get('content.exclude_patterns').removeObject(pattern);
+        this.get('model.exclude_patterns').removeObject(pattern);
     },
 
-    addFollowPattern: function(pattern) {
-        this.get('content.follow_patterns').pushObject(pattern);
+    addFollowPattern: function(pattern, index) {
+        if (index !== undefined) {
+            this.get('model.follow_patterns').insertAt(index, pattern);
+            this.notifyPropertyChange('links_to_follow');
+        } else {
+            this.get('model.follow_patterns').pushObject(pattern);
+        }
     },
 
     deleteFollowPattern: function(pattern) {
-        this.get('content.follow_patterns').removeObject(pattern);
+        this.get('model.follow_patterns').removeObject(pattern);
     },
 
     autoFetch: function() {
@@ -355,8 +365,8 @@ export default BaseController.extend({
                 this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
             }.bind(this));
         }
-    }.observes('follow_patterns.@each',
-               'exclude_patterns.@each',
+    }.observes('model.follow_patterns.@each',
+               'model.exclude_patterns.@each',
                'links_to_follow'),
 
     attachAutoSave: function() {
@@ -384,7 +394,7 @@ export default BaseController.extend({
         if (this.get('testing') && urls.length) {
             var fetchId = this.guid();
             this.get('pendingFetches').pushObject(fetchId);
-            this.get('slyd').fetchDocument(urls[0], this.get('content.name')).then(
+            this.get('slyd').fetchDocument(urls[0], this.get('model.name')).then(
                 function(data) {
                     if (this.get('pendingFetches').indexOf(fetchId) !== -1) {
                         this.get('pendingFetches').removeObject(fetchId);
@@ -448,7 +458,7 @@ export default BaseController.extend({
         },
 
         deleteTemplate: function(templateName) {
-            this.get('content.template_names').removeObject(templateName);
+            this.get('model.template_names').removeObject(templateName);
             this.get('slyd').deleteTemplate(this.get('name'), templateName).then(
                 function() { }, function(err) {
                     this.showHTTPAlert('Delete Error', err);
@@ -481,7 +491,7 @@ export default BaseController.extend({
         },
 
         deleteStartUrl: function(url) {
-            this.get('content.start_urls').removeObject(url);
+            this.get('model.start_urls').removeObject(url);
         },
 
         addExcludePattern: function(text) {
@@ -494,9 +504,9 @@ export default BaseController.extend({
             this.deleteExcludePattern(pattern);
         },
 
-        editExcludePattern: function(oldVal, newVal) {
-            this.deleteExcludePattern(oldVal);
-            this.addExcludePattern(newVal);
+        editExcludePattern: function(newVal, index) {
+            this.deleteExcludePattern(this.get('model.exclude_patterns').objectAt(index));
+            this.addExcludePattern(newVal, index);
         },
 
         addFollowPattern: function(text) {
@@ -509,9 +519,14 @@ export default BaseController.extend({
             this.deleteFollowPattern(pattern);
         },
 
-        editFollowPattern: function(oldVal, newVal) {
-            this.deleteFollowPattern(oldVal);
-            this.addFollowPattern(newVal);
+        editFollowPattern: function(newVal, index) {
+            console.log(newVal)
+            console.log(this.get('model.follow_patterns').objectAt(index))
+            console.log(this.get('model.follow_patterns'))
+            this.deleteFollowPattern(this.get('model.follow_patterns').objectAt(index));
+            console.log(this.get('model.follow_patterns'))
+            this.addFollowPattern(newVal, index);
+            console.log(this.get('model.follow_patterns'))
         },
 
         toggleShowItems: function() {
@@ -521,7 +536,7 @@ export default BaseController.extend({
         rename: function(oldName, newName) {
             var spidersForProject = this.get('controllers.project_index.content');
             newName = this.getUnusedName(newName, spidersForProject);
-            this.set('content.name', newName);
+            this.set('model.name', newName);
             this.get('slyd').renameSpider(oldName, newName).then(
                 function() {
                     this.replaceRoute('spider', newName);
@@ -542,7 +557,7 @@ export default BaseController.extend({
                 this.get('pendingFetches').setObjects([]);
                 this.get('extractedItems').setObjects([]);
                 this.set('showItems', true);
-                this.testSpider(this.get('content.start_urls').copy());
+                this.testSpider(this.get('model.start_urls').copy());
             }
         },
 
@@ -554,7 +569,7 @@ export default BaseController.extend({
             if (field) {
                 this.set(field, value);
                 if (this.get('loginUrl') && this.get('loginUser') && this.get('loginPassword')) {
-                    this.set('content.init_requests', [{
+                    this.set('model.init_requests', [{
                         "type": "login",
                         "loginurl": this.get('loginUrl'),
                         "username": this.get('loginUser'),

@@ -37,14 +37,14 @@ export default Ember.Object.extend({
                     textColor: s.textColor
                 });
             } else {
-                return null
+                return null;
             }
         }));
         return arr.filter(function(s) {
             if (s) {
                 return true;
             }
-        })
+        });
     }.property('_sprites.@each', '_ignores.@each'),
 
     addSprite: function(element, text) {

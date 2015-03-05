@@ -9,11 +9,16 @@
 	<span>
 		{{#if showContinueBrowsing}}
 			{{#bs-button type="primary" size="sm" clicked="continueBrowsing"}}
-				Continue Browsing
+				Save Template
+			{{/bs-button}}
+		{{/if}}
+		{{#if showDiscardButton}}
+			{{#bs-button type="danger" size="sm" clicked="discardChanges"}}
+				Discard Changes
 			{{/bs-button}}
 		{{/if}}
 		{{#if showToggleCSS}}
-			{{#bs-button size="sm" clicked="toggleCSS" icon="fa fa-icon fa-file-code-o" activeType="danger"}}
+			{{#bs-button clicked="toggleCSS" icon="fa fa-icon fa-file-code-o" activeType="danger" size="sm" title="Toggle CSS"}}
 				CSS
 			{{/bs-button}}
 		{{/if}}

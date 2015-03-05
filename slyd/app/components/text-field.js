@@ -37,13 +37,15 @@ export default Ember.Component.extend({
     },
 
     focusOut: function() {
-        if (this.get('saveOnExit')) {
+        if (this.get('saveOnExit') && this.get('element')) {
             this.sendAction('action', this.get('element').value, this.get('name'));
         }
     },
 
     change: function() {
-        this.sendAction('update', this.get('element').value, this.get('name'));
+        if (this.get('element')) {
+            this.sendAction('update', this.get('element').value, this.get('name'));
+        }
     },
 
     didInsertElement: function() {

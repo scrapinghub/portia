@@ -37,6 +37,7 @@
     "ember-export-application-global": "^1.0.0",
     "ember-idx-accordion": "^0.1.0",
     "express": "^4.8.5",
-    "glob": "^4.0.5"
+    "glob": "^4.0.5",
+    "rimraf": "2.2.8"
   }
 }
