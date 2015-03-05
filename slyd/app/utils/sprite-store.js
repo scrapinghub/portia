@@ -17,21 +17,34 @@ export default Ember.Object.extend({
     },
 
     sprites: function() {
-        return this.get('_sprites').map(function(s) {
-            return AnnotationSprite.create({
-                annotation: s,
-                fillColor: s.fillColor,
-                strokeColor: s.strokeColor,
-                textColor: s.textColor
-            });
+        var arr = this.get('_sprites').map(function(s) {
+            if (s.element) {
+                return AnnotationSprite.create({
+                    annotation: s,
+                    fillColor: s.fillColor,
+                    strokeColor: s.strokeColor,
+                    textColor: s.textColor
+                });
+            } else {
+                return null;
+            }
         }).concat(this.get('_ignores').map(function(s) {
-            return IgnoreSprite.create({
-                ignore: s,
-                fillColor: s.fillColor,
-                strokeColor: s.strokeColor,
-                textColor: s.textColor
-            });
+            if (s.element) {
+                return IgnoreSprite.create({
+                    ignore: s,
+                    fillColor: s.fillColor,
+                    strokeColor: s.strokeColor,
+                    textColor: s.textColor
+                });
+            } else {
+                return null
+            }
         }));
+        return arr.filter(function(s) {
+            if (s) {
+                return true;
+            }
+        })
     }.property('_sprites.@each', '_ignores.@each'),
 
     addSprite: function(element, text) {
