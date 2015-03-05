@@ -65,7 +65,6 @@ export default BaseController.extend({
             dataSource: this,
             partialSelects: true,
         });
-        this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
     },
 
     items: Ember.computed.alias('project_models.items'),
@@ -355,6 +354,12 @@ export default BaseController.extend({
                 this.set('model.plugins', Ember.Object.create({
                 }));
             }
+            this.set('activeExtractionTool', {
+                data: {extracts: []},
+                pluginState: {},
+                sprites: new SpriteStore(),
+                component: 'dummy-component'
+            });
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
         }.bind(this));
     }.observes('model', 'model.annotated_body'),
