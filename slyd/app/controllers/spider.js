@@ -520,13 +520,8 @@ export default BaseController.extend({
         },
 
         editFollowPattern: function(newVal, index) {
-            console.log(newVal)
-            console.log(this.get('model.follow_patterns').objectAt(index))
-            console.log(this.get('model.follow_patterns'))
             this.deleteFollowPattern(this.get('model.follow_patterns').objectAt(index));
-            console.log(this.get('model.follow_patterns'))
             this.addFollowPattern(newVal, index);
-            console.log(this.get('model.follow_patterns'))
         },
 
         toggleShowItems: function() {
