@@ -57,7 +57,7 @@ export default BaseController.extend({
               'template_names': [],
               'plugins': {}
             });
-        this.model.pushObject(newSpiderName);
+        this.get('model').pushObject(newSpiderName);
         this.set('spiderPage', null);
         return this.get('slyd').saveSpider(spider).then(function() {
                 this.set('addingNewSpider', false);

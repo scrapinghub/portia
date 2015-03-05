@@ -43,7 +43,7 @@ export default BaseController.extend({
                 function() {
                     this.get('slyd').deleteProject(projectName).then(
                         function() {
-                            this.removeObject(projectName);
+                            this.get('model').removeObject(projectName);
                         }.bind(this),
                         function(err) {
                             this.showHTTPAlert('Delete Error', err);
