@@ -11,7 +11,7 @@
             <div class="col-xs-8">
                 <h4>Start Pages</h4>
             </div>
-            <div class="col-xs-4 start-url-badge">
+            <div class="col-xs-4 start-url-badge button-spacer">
                 {{bs-badge class="pull-right btn-primary" content=startUrlCount}}
                 {{#bs-button type=editAllStartUrlsType clicked=editAllStartUrlsAction size="xs" disabled=hasStartUrls class="pull-right"}}
                     {{editAllStartUrlsText}}
@@ -39,7 +39,7 @@
         {{text-area-with-button placeholder='Enter one or multiple start page urls here' action=startUrlsAction reset=true value=startUrls}}
 
         <div style="margin-top:20px" class="scrolling-container">
-            <label class="important-label">Perform login</label>
+            <span class="important-label">Perform login</span>
             {{check-box checked=performLogin name="performLoginCheck"}}
             {{inline-help message="perform_login"}}
         </div>
@@ -66,7 +66,7 @@
             </div>
             {{#if displayNofollow}}
                 <div style="margin-top:10px;margin-bottom:10px">
-                    {{check-box checked=respect_nofollow name="respectNoFollow"}}
+                    {{check-box checked=model.respect_nofollow name="respectNoFollow"}}
                     <span class="important-label">Respect nofollow</span>
                 </div>
             {{/if}}
