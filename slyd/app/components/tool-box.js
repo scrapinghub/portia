@@ -27,7 +27,7 @@ export default Ember.Component.extend({
 
     showToolbox: function() {
         if (this.get('timeoutHandle')) {
-            clearTimeout(this.get('timeoutHandle'));
+            Ember.run.cancel(this.get('timeoutHandle'));
             this.set('timeoutHandle', null);
         }
         var timeoutHandle = Ember.run.later(function() {
@@ -46,15 +46,15 @@ export default Ember.Component.extend({
 
     hideToolbox: function() {
         if (this.get('timeoutHandle')) {
-            clearTimeout(this.get('timeoutHandle'));
+            Ember.run.cancel(this.get('timeoutHandle'));
             this.set('timeoutHandle', null);
         }
-        var timeoutHandle = setTimeout(function() {
+        var timeoutHandle = Ember.run.later(function() {
             var self = this;
             if (!this.get('control.fixed')) {
                 Ember.$('#toolbox').css('margin-right', -365);
                 Ember.$('#scraped-doc').css('margin-right', 35);
-                setTimeout(function() {
+                Ember.run.later(function() {
                     if (self.get && self.get('documentView') &&
                           self.get('documentView').redrawNow) {
                         self.get('documentView').redrawNow();

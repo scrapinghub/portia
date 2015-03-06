@@ -13,7 +13,6 @@ export var Canvas = Ember.Object.extend({
     context: null,
 
     init: function() {
-        this._super();
         this.set('canvas', Ember.$('#' + this.get('canvasId')).get(0));
         this.set('context', this.get('canvas').getContext("2d"));
     },
@@ -73,7 +72,8 @@ export var Canvas = Ember.Object.extend({
         } else {
             return this.get('_interactionsBlocked');
         }
-    }.property(),
+    }.property('_interactionsBlocked'),
+
 });
 
 /**
