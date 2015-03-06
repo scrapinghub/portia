@@ -515,5 +515,7 @@ export default Ember.Component.extend({
         store.set('document', this.get('document'));
         this.set('document.store', store);
         this.set('document.iframe', iframe);
-    }
+    },
+
+    call: function() {}
 });
