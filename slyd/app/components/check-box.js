@@ -2,6 +2,7 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
     attributeBindings: ['type', 'value', 'style'],
+    classNames: ['offset-checkbox'],
     tagName: 'input',
     type: 'checkbox',
     checked: false,
