@@ -101,7 +101,7 @@ export default Ember.Component.extend({
         },
 
         updateNewFieldName: function(value) {
-            if (value) {
+            if (typeof value === 'string') {
                 this.set('newFieldName', value);
             }
         },
@@ -738,7 +738,7 @@ export default Ember.Component.extend({
     }.property('showingBasic'),
 
     createFieldDisabled: function() {
-        return Ember.isEmpty(this.get('newFieldName'));
+        return (this.get('newFieldName') + '').trim().length < 1;
     }.property('newFieldName'),
 
     setState: function(field, advanced, basic) {
