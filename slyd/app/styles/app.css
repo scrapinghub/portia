@@ -704,3 +704,7 @@ ul.breadcrumbs {
     overflow:hidden;
     text-overflow:ellipsis;
 }
+
+input[type="checkbox"].offset-checkbox {
+    margin-top: 1px;
+}

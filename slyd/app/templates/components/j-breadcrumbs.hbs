@@ -1,4 +1,4 @@
 {{#each breadcrumbs as |bc index|}}
     {{j-breadcrumb hovered="hovered" clicked="clicked" info=bc index=index}}
-    <span class="fa fa-icon fa-chevron-right"></span>
+    <span class="fa fa-icon fa-{{bc.separator}}"></span>
 {{/each}}

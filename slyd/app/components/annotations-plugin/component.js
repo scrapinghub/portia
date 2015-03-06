@@ -40,7 +40,9 @@ export default Ember.Component.extend({
         delete: function() {
             this.get('alldata').removeObject(this.get('data'));
             this.get('sprites').removeSprite(this.get('mappedDOMElement'));
-            this.get('mappedElement').removePartialAnnotation();
+            if (this.get('mappedDOMElement').tagName === 'INS') {
+                this.get('mappedElement').removePartialAnnotation();
+            }
             this.closeWidget();
         },
 
@@ -702,6 +704,10 @@ export default Ember.Component.extend({
                 elementsArr.unshift(elements.get(i));
             }
         }
+        var previousElem;
+        if (elements.length > 1) {
+            previousElem = elements[1];
+        }
         elementsArr.forEach(function(elem) {
             var jqElem = Ember.$(elem),
                 attributes = jqElem.getAttributeList();
@@ -711,10 +717,12 @@ export default Ember.Component.extend({
             resultArr.push({
                 label: jqElem.prop('tagName').toLowerCase(),
                 hovered: false,
+                separator: Ember.$.inArray(previousElem, jqElem.siblings()) !== -1 ? '' : 'chevron-right',
                 data: {
                     element: elem
                 }
             });
+            previousElem = elem;
         });
         return resultArr;
     },

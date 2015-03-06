@@ -236,6 +236,7 @@ export default BaseController.extend({
         documentView.showLoading();
         var fetchId = this.guid();
         this.get('pendingFetches').pushObject(fetchId);
+        this.set('documentView.sprites', new SpriteStore());
         this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp).
             then(function(data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
@@ -260,6 +261,9 @@ export default BaseController.extend({
                             this.set('followedLinks', data.links);
                             this.get('pageMap')[data.fp] = data;
                             this.updateExtractedItems(data.items || []);
+                            Ember.run.later(function() {
+                                this.get('documentView').redrawNow();
+                            }.bind(this), 100);
                         }.bind(this)
                     );
                 } else {
@@ -611,6 +615,8 @@ export default BaseController.extend({
     },
 
     willLeave: function() {
+        this.set('documentView.sprites', new SpriteStore());
+        this.get('documentView').redrawNow();
         this.get('pendingFetches').setObjects([]);
         this.get('documentView').hideLoading();
     },

@@ -31,10 +31,10 @@
             <div class="col-md-4">
                 {{text-field action="createField" update="updateNewFieldName" width="110px" placeholder="Enter name"}}
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4" style="margin-top:3px;">
                 {{item-select options=extractionFieldTypes changed="updateNewFieldType" width="100px"}}
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3" style="margin-top:4px;">
                 {{#bs-button clicked="createField" icon="fa fa-icon fa-plus" size="xs" type="primary" disabled=createFieldDisabled}}
                     Add
                 {{/bs-button}}
@@ -54,7 +54,7 @@
             </div>
         {{/if}}
         <div class="row">
-            <div class="col-md-2 small-label">Variant:</div>
+            <div class="col-md-2 small-label" style="margin-top:4px;">Variant:</div>
             <div class="col-md-10">
                 {{item-select options=variantList value=data.variant changed="updateVariant" width="82px"}}
             </div>
@@ -103,7 +103,7 @@
                         {{bs-button clicked="removeMapping" clickedParam=index icon="fa fa-icon fa-times" size="xs" type="danger" title="Remove Mapping"}}
                     </div>
                 </div>
-                <div style="margin:5px;border:1px dashed #ccc;"></div>
+                <div style="margin:5px;border:1px solid #ccc;"></div>
             {{/each}}
             {{#if attributes}}
                 <div style="margin-top:10px"></div>

@@ -451,10 +451,10 @@ export default Ember.Component.extend({
                         'partialSelection', selectedText, event.clientX, event.clientY);
                 } else {
                     alert('The selected text must belong to a single HTML element');
-                    selectedText.collapse(Ember.$('html').get(0), 0);
+                    selectedText.collapse(this.getIframe().find('html').get(0), 0);
                 }
             } else {
-                selectedText.collapse(Ember.$('html').get(0), 0);
+                selectedText.collapse(this.getIframe().find('html').get(0), 0);
             }
         } else if (event && event.target){
             var target = event.target;
