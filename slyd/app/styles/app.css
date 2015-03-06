@@ -344,7 +344,7 @@ ul.breadcrumbs {
     color :white;
     padding: 6px 4px 10px 8px;
     position: fixed;
-    z-index: 400;
+    z-index: 2000;
     background-color: rgba(0,0,0,0.8);
     box-shadow: 0px 0px 9px 1px rgba(0,0,0,0.8);
     border-radius: 3px;
@@ -475,7 +475,7 @@ ul.breadcrumbs {
 }
 
 .top-div {
-    z-index: 9999;
+    z-index: 1000;
 }
 
 .field-name {

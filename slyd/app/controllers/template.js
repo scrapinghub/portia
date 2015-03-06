@@ -11,8 +11,8 @@ export default BaseController.extend({
     needs: ['application', 'projects', 'project', 'spider', 'spider/index'],
 
     breadCrumb: function() {
-        return this.get('content.name');
-    }.property('content.name'),
+        return this.get('model.name');
+    }.property('model.name'),
 
     annotations: [],
 
@@ -32,7 +32,7 @@ export default BaseController.extend({
 
     activeExtractionTool: {
         data: {extracts: []},
-        pluginState: {},
+        pluginState: {extracted: []},
         sprites: new SpriteStore()
     },
 
@@ -53,7 +53,7 @@ export default BaseController.extend({
         if (!this.get('extractionTools.' + tool_name)) {
             this.set('extractionTools.' + tool_name, {
                 data: this.get('model.plugins.' + tool_name),
-                pluginState: {},
+                pluginState: {extracted: []},
                 sprites: new SpriteStore({}),
                 component: tool_name,
                 options: this.getWithDefault('plugins.' + tool.replace(/\./g, '_'), {})
@@ -75,11 +75,11 @@ export default BaseController.extend({
 
     scrapedItem: function() {
         if (!Ember.isEmpty(this.get('items'))) {
-            return this.get('items').findBy('name', this.get('content.scrapes'));
+            return this.get('items').findBy('name', this.get('model.scrapes'));
         } else {
             return null;
         }
-    }.property('content.scrapes', 'items.@each'),
+    }.property('model.scrapes', 'items.@each'),
 
     displayExtractors: function() {
         return this.get('extractors').map(function(ext) {
@@ -89,7 +89,7 @@ export default BaseController.extend({
                 extractor: ext
             };
         });
-    }.property('extractors.@each', 'content.extractors.@each'),
+    }.property('extractors.@each', 'model.extractors.@each'),
 
     currentlySelectedElement: null,
 
@@ -98,12 +98,47 @@ export default BaseController.extend({
     }.property('activeExtractionTool', 'activeExtractionTool.sprites'),
 
     saveTemplate: function() {
-        if (this.get('content')) {
-            this.set('content.extractors', this.validateExtractors());
+        if (this.get('model')) {
+            this.set('model.extractors', this.validateExtractors());
+            this.set('model.plugins', this.getWithDefault('model.plugins', {}));
+            for (var key in this.get('extractionTools')) {
+                this.set('model.plugins.' + key,
+                    this.getWithDefault('extractionTools.' + key + '.data', {extracts: []}));
+            }
         }
-        // TODO: Re-add support for warning about missing required fields
-        return this.get('slyd').saveTemplate(
-            this.get('controllers.spider.name'), this.get('content'));
+        var missingFields = this.getMissingFields();
+        if (missingFields.length > 0) {
+            return this.showAlert('Required Fields Missing',
+                'You are unable to save this template as the following required fields are missing: "' +
+                missingFields.join('", "') + '".');
+        } else {
+            return this.get('slyd').saveTemplate(
+                this.get('controllers.spider.name'), this.get('model'));
+        }
+    },
+
+    getMissingFields: function() {
+        var itemRequiredFields = [],
+            scrapedFields = new Set(),
+            scraped_item = this.get('scrapedItem');
+        if (scraped_item) {
+            scraped_item.fields.forEach(function(field) {
+                if (field.required) {
+                    itemRequiredFields.push(field.name);
+                }
+            });
+        }
+        for (var plugin in Object.keys(this.get('extractionTools'))) {
+            var extracted = this.getWithDefault('extractionTools.' + plugin + '.pluginState.extracted', [])
+            for (var i = 0; i < extracted.length; i++) {
+                scrapedFields.add(extracted[i][name]);
+            }
+        }
+        return itemRequiredFields.filter(function(field) {
+            if (!scrapedFields.has(field)) {
+                return true;
+            }
+        })
     },
 
     saveExtractors: function() {
@@ -117,7 +152,7 @@ export default BaseController.extend({
     validateExtractors: function() {
         var annotations = this.get('annotations'),
             extractors = this.get('extractors'),
-            template_ext = this.get('content.extractors'),
+            template_ext = this.get('model.extractors'),
             new_extractors = {},
             extractor_ids = {};
         extractors.forEach(function(extractor) {
@@ -141,7 +176,7 @@ export default BaseController.extend({
     },
 
     getAppliedExtractors: function(fieldName) {
-        var extractorIds = this.get('content.extractors.' + fieldName) || [];
+        var extractorIds = this.get('model.extractors.' + fieldName) || [];
         return extractorIds.map(function(extractorId) {
                 var extractor = this.get('extractors').filterBy('name', extractorId)[0];
                 if (extractor) {
@@ -160,32 +195,53 @@ export default BaseController.extend({
     mappedFieldsData: function() {
         var mappedFieldsData = [],
             seenFields = new Set(),
+            scrapedItemFields = new Set(),
             item_required_fields = new Set(),
+            extractedFields = this.get('activeExtractionTool.pluginState.extracted'),
             scraped_item = this.get('scrapedItem');
         if (scraped_item) {
             scraped_item.fields.forEach(function(field) {
                 if (field.required) {
                     item_required_fields.add(field.name);
                 }
+                scrapedItemFields.add(field.name);
             });
+        }
+        if (extractedFields) {
+            var mappedFields = {};
+            for (var i = 0; i < extractedFields.length; i++) {
+                var field = extractedFields[i];
+                if (scrapedItemFields.has(field.name)) {
+                    var mappedFieldData = mappedFields[field.name] || MappedFieldData.create();
+                    mappedFieldData.set('fieldName', field.name);
+                    mappedFieldData.set('required', mappedFieldData.required ? true : field.required);
+                    mappedFieldData.set('disabled', true);
+                    mappedFieldData.set('extracted', true);
+                    mappedFieldData.set('extractors', this.getAppliedExtractors(field.name));
+                    mappedFields[field.name] = mappedFieldData;
+                }
+            }
+            for (var key in mappedFields) {
+                mappedFieldsData.pushObject(mappedFields[key]);
+                seenFields.add(key);
+            }
         }
         if (scraped_item) {
             this.get('scrapedItem').fields.forEach(function(field) {
-                var fieldName = field.name;
-                if (!seenFields.has(fieldName)) {
+                if (!seenFields.has(field.name)) {
                     var mappedFieldData = MappedFieldData.create();
-                    mappedFieldData.set('fieldName', fieldName);
+                    mappedFieldData.set('fieldName', field.name);
                     mappedFieldData.set('required', field.required);
                     mappedFieldData.set('disabled', true);
-                    mappedFieldData.set('extractors', this.getAppliedExtractors(fieldName));
+                    mappedFieldData.set('extractors', this.getAppliedExtractors(field.name));
                     mappedFieldsData.pushObject(mappedFieldData);
                 }
             }.bind(this));
         }
         return mappedFieldsData;
-    }.property('annotations.@each.mappedAttributes',
-               'content.extractors.@each',
+    }.property('model.extractors.@each',
                'extractors.@each',
+               'activeExtractionTool.pluginsState.extracted',
                'scrapedItem.fields.@each'),
 
     createExtractor: function(extractorType, extractorDefinition) {
@@ -233,7 +289,7 @@ export default BaseController.extend({
                 return;
             }
             saveFuture.then(function() {
-                var templateNames = this.get('controllers.spider.content.template_names');
+                var templateNames = this.get('controllers.spider.model.template_names');
                 newName = this.getUnusedName(newName, templateNames);
                 var spiderName = this.get('controllers.spider.name');
                 this.get('slyd').renameTemplate(spiderName, oldName, newName).then(
@@ -261,7 +317,7 @@ export default BaseController.extend({
 
         deleteExtractor: function(extractor) {
             // Remove all references to this extractor.
-            var extractors = this.get('content.extractors');
+            var extractors = this.get('model.extractors');
             Object.keys(extractors).forEach(function(fieldName) {
                 extractors[fieldName].removeObject(extractor.extractor.id);
             }.bind(this));
@@ -270,14 +326,14 @@ export default BaseController.extend({
         },
 
         applyExtractor: function(fieldName, extractorId) {
-            var currentExtractors = this.get('content.extractors')[fieldName];
+            var currentExtractors = this.get('model.extractors')[fieldName];
             if (!currentExtractors) {
                 currentExtractors = [];
-                this.set('content.extractors.' + fieldName, currentExtractors);
+                this.set('model.extractors.' + fieldName, currentExtractors);
             }
             if (currentExtractors.indexOf(extractorId) === -1) {
                 currentExtractors.pushObject(extractorId);
-                this.notifyPropertyChange('content.extractors');
+                this.notifyPropertyChange('model.extractors');
             }
             this.notifyPropertyChange('mappedFieldsData');
         },
@@ -286,8 +342,8 @@ export default BaseController.extend({
             // TODO: we need to automatically remove extractors when the field they
             // extract is no longer mapped from any annotation.
             var fieldName = appliedExtractor['fieldName'];
-            this.get('content.extractors')[fieldName].removeObject(appliedExtractor['name']);
-            this.notifyPropertyChange('content.extractors');
+            this.get('model.extractors')[fieldName].removeObject(appliedExtractor['name']);
+            this.notifyPropertyChange('model.extractors');
             this.notifyPropertyChange('mappedFieldsData');
         },
 
@@ -381,6 +437,7 @@ export default BaseController.extend({
         this.get('capabilities.plugins').forEach(function(plugin) {
             plugins[plugin['component'].replace(/\./g, '_')] = plugin['options'];
         });
+        this.set('extractedFields', []);
         this.set('plugins', plugins);
         this.setDocument();
     },
@@ -388,5 +445,8 @@ export default BaseController.extend({
     willLeave: function() {
         this.hideFloatingAnnotationWidget();
         this.get('documentView').hideHoveredInfo();
+        this.set('activeExtractionTool', {extracts: [],
+                                          component: 'dummy-component',
+                                          pluginState: {}});
     }
 });

@@ -312,9 +312,32 @@ export default Ember.Component.extend({
         });
         this.set('data.annotations', annotations);
         this.set('data.required', required);
+        this.updateExtractedFields();
         this.notifyPropertyChange('sprite');
     },
 
+    updateExtractedFields: function() {
+        var id = this.get('data.id'),
+            annotations = this.get('data.annotations'),
+            required = this.get('data.required'),
+            extracted = this.get('pluginState.extracted')
+                .filter(function(f) {
+                    if (f.id && f.id !== id) {
+                        return true;
+                    }
+                });
+        for (var key in annotations) {
+            var fieldName = annotations[key];
+            if (fieldName && fieldName[0] !== '#') {
+                extracted.push({
+                    id: id,
+                    name: fieldName,
+                    required: required.indexOf(annotations[key]) > 0
+                });
+            }
+        }
+        this.set('pluginState.extracted', extracted);
+    },
 
     //*******************************************************************\\
     //
@@ -534,31 +557,32 @@ export default Ember.Component.extend({
 
     setData: function() {
         var tagid, annotation, generatedData = {};
-        if (!this.get('data')) {
-            var element = this.get('mappedElement');
-            this.set('mappedDOMElement', element.get(0));
-            if (element.prop('tagName') === 'INS') {
-                generatedData = this.findGeneratedAnnotation();
-                tagid = generatedData.tagid;
-                annotation = this.get('alldata').findBy('tagid', tagid);
-            } else {
-                tagid = element.data('tagid');
-                annotation = this.get('alldata').findBy('tagid', tagid);
-            }
-            if (annotation) {
-                var annotations = annotation.annotations || {},
-                    required = annotation.required || [];
-                this.set('data', annotation);
-                this.set('data.annotations', annotations);
-                this.set('data.required', required);
-                this.set('data.variant', this.getWithDefault('data.variant', 0));
-            } else {
-                this.set('data', this.createAnnotationData(generatedData));
-                this.get('alldata').unshiftObject(this.get('data'));
-            }
-            if (this.get('data.generates')) {
-                this.get('mappedElement').attr('data-genid', this.get('data').id);
-            }
+        if (this.get('data')) {
+            return;
+        }
+        var element = this.get('mappedElement');
+        this.set('mappedDOMElement', element.get(0));
+        if (element.prop('tagName') === 'INS') {
+            generatedData = this.findGeneratedAnnotation();
+            tagid = generatedData.tagid;
+            annotation = this.get('alldata').findBy('tagid', tagid);
+        } else {
+            tagid = element.data('tagid');
+            annotation = this.get('alldata').findBy('tagid', tagid);
+        }
+        if (annotation) {
+            var annotations = annotation.annotations || {},
+                required = annotation.required || [];
+            this.set('data', annotation);
+            this.set('data.annotations', annotations);
+            this.set('data.required', required);
+            this.set('data.variant', this.getWithDefault('data.variant', 0));
+        } else {
+            this.set('data', this.createAnnotationData(generatedData));
+            this.get('alldata').unshiftObject(this.get('data'));
+        }
+        if (this.get('data.generated')) {
+            this.get('mappedElement').attr('data-genid', this.get('data').id);
         }
     },
 
@@ -614,6 +638,7 @@ export default Ember.Component.extend({
         this.mapToElement();
         this.get('document.view').scrollToElement(elem);
         this.set('pos', {x: boundingBox.top, y: boundingBox.left});
+        this.updateExtractedFields();
         this.positionWidget();
         this.setState(false, false, true);
     },
@@ -807,6 +832,10 @@ export default Ember.Component.extend({
     setup: function() {
         this.setData();
         this.mapToElement();
+        if (!this.get('pluginState.extracted')) {
+            this.set('pluginState.extracted', []);
+        }
+        this.updateExtractedFields();
         this.set('ignores', []);
         this.setPluginStateVariables();
         if (this.get('inDoc') && Object.keys(this.get('data.annotations')).length < 1) {
