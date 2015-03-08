@@ -188,7 +188,7 @@ Run the following in Portia's directory:
 
     vagrant up
 
-This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000/static/main.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
+This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000/static/index.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 ### Running Portia Locally
 
@@ -213,7 +213,7 @@ To run Portia start slyd:
     cd slyd
     twistd -n slyd
 
-Portia should now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+Portia should now be running on port 9001 and you can access it at: ``http://localhost:9001/static/index.html``
 
 ###### Missing Dependencies on Linux
 
@@ -241,7 +241,7 @@ Portia can be run using the command below:
     --name portia \
     portia
 
-Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/main.html``
+Portia will now be running on port 9001 and you can access it at: ``http://localhost:9001/static/index.html``
 Projects will be stored in the project folder that you mount to docker.
 
 To run `portiacrawl` add `/app/slybot/bin/portiacrawl <PROJECT_PATH> [SPIDER] [OPTIONS]` to the command above.
