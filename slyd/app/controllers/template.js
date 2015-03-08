@@ -108,7 +108,7 @@ export default BaseController.extend({
         }
         var missingFields = this.getMissingFields();
         if (missingFields.length > 0) {
-            return this.showAlert('Required Fields Missing',
+            this.showAlert('Required Fields Missing',
                 'You are unable to save this template as the following required fields are missing: "' +
                 missingFields.join('", "') + '".');
         } else {
@@ -128,17 +128,17 @@ export default BaseController.extend({
                 }
             });
         }
-        for (var plugin in Object.keys(this.get('extractionTools'))) {
-            var extracted = this.getWithDefault('extractionTools.' + plugin + '.pluginState.extracted', [])
+        for (var plugin in this.get('extractionTools')) {
+            var extracted = this.getWithDefault('extractionTools.' + plugin + '.pluginState.extracted', []);
             for (var i = 0; i < extracted.length; i++) {
-                scrapedFields.add(extracted[i][name]);
+                scrapedFields.add(extracted[i].name);
             }
         }
         return itemRequiredFields.filter(function(field) {
             if (!scrapedFields.has(field)) {
                 return true;
             }
-        })
+        });
     },
 
     saveExtractors: function() {
@@ -150,29 +150,41 @@ export default BaseController.extend({
     },
 
     validateExtractors: function() {
-        var annotations = this.get('annotations'),
-            extractors = this.get('extractors'),
+        var extractors = this.get('extractors'),
             template_ext = this.get('model.extractors'),
             new_extractors = {},
-            extractor_ids = {};
+            validated_extractors = {},
+            extractor_ids = {},
+            arr = [],
+            addExtractorToSet = function(extractor_id) {
+                if (extractor_ids[extractor_id]) {
+                    new_extractors[field] = new_extractors[field] || new Set();
+                    new_extractors[field].add(extractor_id);
+                }
+            },
+            addExtractorToArray = function(extractor) {
+                arr.push(extractor);
+            };
         extractors.forEach(function(extractor) {
             extractor_ids[extractor.id] = true;
         });
-        annotations.forEach(function(annotation) {
-            annotation.get('mappedAttributes').forEach(function(mapping) {
-                var field = mapping.mappedField,
+
+        for (var plugin in this.get('extractionTools')) {
+            var extracted = this.getWithDefault('extractionTools.' + plugin + '.pluginState.extracted', []);
+            for (var i = 0; i < extracted.length; i++) {
+                var field = extracted[i].name,
                     item_extractors = template_ext[field];
                 if (item_extractors instanceof Array) {
-                    item_extractors.forEach(function(extractor_id) {
-                        if (extractor_ids[extractor_id]) {
-                            new_extractors[field] = new_extractors[field] || [];
-                            new_extractors[field].push(extractor_id);
-                        }
-                    });
+                    item_extractors.forEach(addExtractorToSet);
                 }
-            });
-        });
-        return new_extractors;
+            }
+        }
+
+        for (var key in new_extractors) {
+            new_extractors[key].forEach(addExtractorToArray);
+            validated_extractors[key] = arr;
+        }
+        return validated_extractors;
     },
 
     getAppliedExtractors: function(fieldName) {
