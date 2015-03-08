@@ -11,7 +11,7 @@ Run the server using:
 	twistd -n slyd
 
 and point your browser to:
-	http://localhost:9001/static/main.html
+	http://localhost:9001/static/index.html
 
 Chrome and Firefox are supported, but it works better with chrome.
 
@@ -20,7 +20,7 @@ Slyd API Notes
 
 This will be moved to separate docs - it's currently some notes for developers
 
-All resources are either under /static/ or /projects/.
+All resources are either under /dist/ or /projects/.
 
 
 project listing/creation/deletion/renaming
@@ -138,19 +138,6 @@ $ curl -d '{"request": {"url": "http://www.pinterest.com/pin/339740365610932893/
 
 Testing
 -------
-
-A Karma test eviroment is available. To run the ui tests:
-
-    npm install
-    export PATH="./node_modules/.bin:$PATH"
-    karma start
-
-You can download npm from https://npmjs.org
-
-Look at karma.conf.js to configure test options.
-
-The tests are located in:
-  media/tests
 
 slyd can be tested using twisted:
 
