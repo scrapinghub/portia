@@ -3,7 +3,8 @@ The module is used by the Twisted plugin system
 (twisted.plugins.slyd_plugin) to register twistd command to manage
 slyd server. The command can be used with 'twistd slyd'.
 """
-from os.path import join, dirname
+from os import listdir
+from os.path import join, dirname, isfile
 from twisted.python import usage
 from twisted.web.resource import Resource
 from twisted.application.internet import TCPServer
@@ -45,9 +46,16 @@ def create_root(config):
     import slyd.settings
 
     root = Resource()
-    root.putChild("static", File(config['docroot']))
-    root.putChild("assets", File(join(config['docroot'], 'assets')))
-    root.putChild("fonts", File(join(config['docroot'], 'assets', 'fonts')))
+    static = Resource()
+    for file_name in listdir(config['docroot']):
+        file_path = join(config['docroot'], file_name)
+        if isfile(file_path):
+            static.putChild(file_name, File(file_path))
+    static.putChild('main.html', File(join(config['docroot'], 'index.html')))
+
+    root.putChild('static', static)
+    root.putChild('assets', File(join(config['docroot'], 'assets')))
+    root.putChild('fonts', File(join(config['docroot'], 'assets', 'fonts')))
 
     settings = Settings()
     settings.setmodule(slyd.settings)
@@ -62,11 +70,11 @@ def create_root(config):
     root.putChild('projects', projects)
 
     # add crawler at /projects/PROJECT_ID/bot
-    projects.putChild("bot", create_bot_resource(spec_manager))
+    projects.putChild('bot', create_bot_resource(spec_manager))
 
     # add project spec at /projects/PROJECT_ID/spec
     spec = create_project_resource(spec_manager)
-    projects.putChild("spec", spec)
+    projects.putChild('spec', spec)
 
     auth_manager = AuthManager(settings)
     return auth_manager.protectResource(root)
