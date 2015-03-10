@@ -440,6 +440,7 @@ export default BaseController.extend({
                 sprites: new SpriteStore(),
                 component: 'dummy-component'
             });
+            this.set('extractionTools', {});
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
         }.bind(this));
     }.observes('model', 'model.annotated_body'),
