@@ -19,11 +19,9 @@ Router.map(function() {
           this.resource("items");
         });
       });
-
       this.resource("conflicts");
     });
   });
-
   this.route("base-route");
 });
 
