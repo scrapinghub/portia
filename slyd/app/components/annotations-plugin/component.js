@@ -12,7 +12,6 @@ export default Ember.Component.extend({
     creatingField: false,
     inDoc: false,
     pos: null,
-    pluginState: null,
     variantValue: 0,
     ignoredAttributes: [],
 
@@ -316,7 +315,7 @@ export default Ember.Component.extend({
         var id = this.get('data.id'),
             annotations = this.get('data.annotations'),
             required = this.get('data.required'),
-            extracted = this.get('pluginState.extracted')
+            extracted = this.getWithDefault('pluginState.extracted', [])
                 .filter(function(f) {
                     if (f.id && f.id !== id) {
                         return true;
@@ -828,9 +827,6 @@ export default Ember.Component.extend({
     setup: function() {
         this.setData();
         this.mapToElement();
-        if (!this.get('pluginState.extracted')) {
-            this.set('pluginState.extracted', []);
-        }
         this.updateExtractedFields();
         this.set('ignores', []);
         this.setPluginStateVariables();

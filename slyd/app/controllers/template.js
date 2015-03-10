@@ -51,13 +51,13 @@ export default BaseController.extend({
             });
         }
         if (!this.get('extractionTools.' + tool_name)) {
-            this.set('extractionTools.' + tool_name, {
+            this.set('extractionTools.' + tool_name, Ember.Object.create({
                 data: this.get('model.plugins.' + tool_name),
-                pluginState: {extracted: []},
+                pluginState: {},
                 sprites: new SpriteStore({}),
                 component: tool_name,
                 options: this.getWithDefault('plugins.' + tool.replace(/\./g, '_'), {})
-            });
+            }));
         }
 
         this.set('activeExtractionTool', this.get('extractionTools.' + tool_name));
