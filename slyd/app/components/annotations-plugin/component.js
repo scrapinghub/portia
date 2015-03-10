@@ -48,6 +48,7 @@ export default Ember.Component.extend({
         updateVariant: function(value) {
             if (value > this.getWithDefault('pluginState.maxVariant', 0)) {
                 this.set('pluginState.maxVariant', value);
+                this.updateData('pluginState');
             }
             this.set('data.variant', parseInt(value));
         },
@@ -242,6 +243,7 @@ export default Ember.Component.extend({
             var maxSticky = this.getWithDefault('pluginState.maxSticky', 0) + 1,
                 sticky = '_sticky' + maxSticky;
             this.set('pluginState.maxSticky', maxSticky);
+            this.updateData('pluginState');
             value = sticky;
         }
         if (field && annotation[field] !== value) {
@@ -332,6 +334,7 @@ export default Ember.Component.extend({
             }
         }
         this.set('pluginState.extracted', extracted);
+        this.updateData('pluginState');
     },
 
     //*******************************************************************\\
@@ -816,6 +819,14 @@ export default Ember.Component.extend({
             });
             this.set('pluginState.maxSticky', maxSticky);
         }
+        this.updateData('pluginState');
+    },
+
+    updateData: function(property) {
+        if (!this.get(property)) {
+            return;
+        }
+        this.sendAction('updatePluginData', property, this.get(property));
     },
 
     //*******************************************************************\\

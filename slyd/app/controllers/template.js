@@ -400,8 +400,9 @@ export default BaseController.extend({
             this.documentView.toggleCSS();
         },
 
-        setRequired: function() {
-
+        updatePluginField: function(field, value) {
+            this.set(['extractionTools', this.get('activeExtractionTool.component'), field].join('.'),
+                     value);
         }
     },
 
