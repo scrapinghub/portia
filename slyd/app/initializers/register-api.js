@@ -21,6 +21,7 @@ export function initialize(container, application) {
         application.inject('adapter', 'slyd', 'api:slyd');
         application.inject('controller', 'slyd', 'api:slyd');
         application.inject('controller', 'capabilities', 'api:capabilities');
+        application.inject('route', 'capabilities', 'api:capabilities');
         this.advanceReadiness();
     }.bind(application));
 }

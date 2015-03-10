@@ -8,8 +8,8 @@ export default BaseRoute.extend({
     },
 
     afterModel: function() {
-        if (this.get('serverCapabilities.version_control')) {
-            var controller = this.controllerFor('project');
+        if (this.get('capabilities.version_control')) {
+            var controller = this.controllerFor('project.index');
             return this.get('slyd').conflictedFiles(this.get('slyd.project')).then(
                 function(conflictedFiles) {
                     if (Object.keys(conflictedFiles).length !== 0) {

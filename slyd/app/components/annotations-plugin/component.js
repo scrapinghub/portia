@@ -247,21 +247,17 @@ export default Ember.Component.extend({
         }
         if (field && annotation[field] !== value) {
             try {
-                annotation[field] = value;
+                annotation.set(field, value);
             } catch(e) {
-                if (annotation.set) {
-                    annotation.set(field, value);
-                }
+                annotation[field] = value;
             }
             update = true;
         }
         if (required && !annotation['required']) {
             try {
-                annotation['required'] = true;
+                annotation.set('required', true);
             } catch(e) {
-                if (annotation.set) {
-                    annotation.set('required', true);
-                }
+                annotation['required'] = true;
             }
             update = true;
         }
@@ -519,11 +515,11 @@ export default Ember.Component.extend({
             nameMap = this.get('fieldIdNameMap');
         for (var key in annotations) {
             var value = annotations[key],
-                annotation = {
+                annotation = Ember.Object.create({
                     field: value,
                     attribute: key,
                     required: required.indexOf(value) >= 0
-                };
+                });
             if (value in nameMap) {
                 annotation.field = nameMap[value];
             }
