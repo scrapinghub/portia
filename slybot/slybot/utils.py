@@ -36,7 +36,9 @@ def open_project_from_dir(project_dir):
                     spec = json.load(f)
                     template_names = spec.get("template_names")
                     if template_names:
-                        templates = load_external_templates(spec_base, spider_name, template_names)
+                        templates = load_external_templates(spec_base,
+                                                            spider_name,
+                                                            template_names)
                         spec.setdefault("templates", []).extend(templates)
                     specs["spiders"][spider_name] = spec
                 except ValueError as e:
