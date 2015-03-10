@@ -10,7 +10,7 @@ import Template from '../models/template';
 export default BaseController.extend({
     fixedToolbox: false,
 
-    needs: ['application', 'projects', 'project'],
+    needs: ['application', 'projects', 'project', 'project/index'],
 
     saving: false,
 
@@ -532,16 +532,17 @@ export default BaseController.extend({
             this.set('showItems', !this.get('showItems'));
         },
 
-        rename: function(oldName, newName) {
-            var spidersForProject = this.get('controllers.project_index.content');
+        rename: function(newName, oldName) {
+            var spidersForProject = this.get('controllers.project.model') || [];
             newName = this.getUnusedName(newName, spidersForProject);
             this.set('model.name', newName);
             this.get('slyd').renameSpider(oldName, newName).then(
                 function() {
+                    this.set('spiderName', newName);
                     this.replaceRoute('spider', newName);
                 }.bind(this),
                 function(reason) {
-                    this.set('name', oldName);
+                    this.set('model.name', this.get('spiderName'));
                     this.showHTTPAlert('Save Error', reason);
                 }.bind(this)
             );
@@ -611,6 +612,7 @@ export default BaseController.extend({
                 }.bind(this));
             });
         }
+        this.set('spiderName', this.get('model.name'));
         this.set('documentView.sprites', new SpriteStore());
     },
 

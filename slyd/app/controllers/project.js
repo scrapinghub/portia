@@ -53,7 +53,8 @@ export default BaseController.extend({
         var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, names);
         this.set('controllers.application.siteWizard', null);
         var spider = Spider.create(
-            { 'name': newSpiderName,
+            { 'id': this.shortGuid(),
+              'name': newSpiderName,
               'start_urls': [siteUrl],
               'follow_patterns': [],
               'exclude_patterns': [],
