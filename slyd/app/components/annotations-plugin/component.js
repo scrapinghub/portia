@@ -844,6 +844,7 @@ export default Ember.Component.extend({
         if (this.get('inDoc') && Object.keys(this.get('data.annotations')).length < 1) {
             this.addNewMapping();
         }
+        this.notifyPropertyChange('sprite');
     }.on('init'),
 
     reset: function() {
