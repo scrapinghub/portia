@@ -22,6 +22,8 @@ CHANGE_UNCHANGED = 'unchanged'
 
 FILE_MODE = 0100644
 
+sentinel = object()
+
 
 class Repoman(object):
     '''An interface to interact with Git repositories.
@@ -67,8 +69,7 @@ class Repoman(object):
         commit = repoman._create_commit()
         commit.tree = tree.id
         commit.message = 'Initialization commit'
-        repoman._update_store(commit, tree)
-        repoman._advance_branch('master', commit)
+        repoman.advance_branch(commit, tree, 'master')
         return repoman
 
     @classmethod
@@ -98,6 +99,8 @@ class Repoman(object):
         self._author = author
         self._encoding = 'UTF-8'
         self._time_zone = parse_timezone('+0000')[0]
+        self.commit = sentinel
+        self.tree = sentinel
 
     def create_branch(self, branch_name, at_revision=None):
         '''Creates a new branch.
@@ -198,7 +201,8 @@ class Repoman(object):
         items = repo.get_object(repo.get_object(revision).tree).items()
         return [i.path for i in items]
 
-    def publish_branch(self, branch_name, force=False, message=None):
+    def publish_branch(self, branch_name, force=False, message=None,
+                       dry_run=False):
         '''Merges a branch into master.
 
         If master@head is an ancestor of the given branch (or force=True), all
@@ -215,6 +219,20 @@ class Repoman(object):
         Returns True if master@head was advanced and False if there are pending
         conflicts.
         '''
+        conflicts = self._publish_branch(branch_name, force, message)
+        if dry_run:
+            if conflicts:
+                return False
+            return True
+
+        if conflicts:
+            self.advance_branch(self.commit, branch=branch_name)
+            return False
+        else:
+            self.advance_branch(self.commit, self.tree)
+            return True
+
+    def _publish_branch(self, branch_name, force=False, message=None):
         branch = self.get_branch(branch_name)
         head = self._get_head()
         if self._is_ancestor_commit(branch, head) or force:
@@ -224,9 +242,8 @@ class Repoman(object):
             commit.parents = [head]
             commit.tree = tree.id
             commit.message = message or 'Publishing changes'
-            self._update_store(commit, tree)
-            self._advance_branch('master', commit)
-            return True
+            self.commit = commit
+            return False
         else:
             # We need to merge and maybe deal with conflicts.
             common_ancestor = self.get_branch_checkpoints(branch_name)[-1]
@@ -237,14 +254,22 @@ class Repoman(object):
             if had_conflict:
                 commit.parents = [branch]
                 commit.message = 'Resolve merge conflicts'
-                self._update_store(commit)
-                self._advance_branch(branch_name, commit)
             else:
                 commit.parents = [head]
                 commit.message = 'Publishing changes'
-                self._update_store(commit)
-                self._advance_branch('master', commit)
-            return not had_conflict
+            self.commit = commit
+            return had_conflict
+
+    def advance_branch(self, commit, tree=sentinel, branch='master'):
+        if commit is not sentinel:
+            self._update_store(commit, tree)
+            self._advance_branch(branch, commit)
+            if commit is self.commit:
+                self.commit = sentinel
+            if tree is self.tree:
+                self.tree = sentinel
+        else:
+            raise ValueError('Can\'t advance branch without commit')
 
     def get_published_revisions(self):
         '''Returns all commit ids that correspond to a successful publishes.'''
@@ -470,7 +495,7 @@ class Repoman(object):
         return commit
 
     def _update_store(self, *args):
-        objects = [(obj, None) for obj in args]
+        objects = [(obj, None) for obj in args if obj is not sentinel]
         self._repo.object_store.add_objects(objects)
 
     def _advance_branch(self, branch_name, commit):
