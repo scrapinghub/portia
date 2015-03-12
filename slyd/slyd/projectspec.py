@@ -6,6 +6,7 @@ from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 from .html import html4annotation
 from .errors import BaseHTTPError
+from .utils import short_guid
 
 
 def create_project_resource(spec_manager):
@@ -33,6 +34,27 @@ def clean_spider(obj):
                                 if all(f in req for f in required_fields)]
     if 'start_urls' in obj:
         obj['start_urls'] = list(set(obj['start_urls']))
+    # XXX: Need id to keep track of renames for deploy and export
+    if 'id' not in obj:
+        obj['id'] = short_guid()
+
+
+def add_plugin_data(obj, plugins):
+    try:
+        plugin_data = obj['plugins']
+    except KeyError:
+        plugin_data = {}
+        obj['plugins'] = plugin_data
+    for plugin, opts in plugins:
+        plugin_name = opts['name']
+        try:
+            data = plugin_data[plugin_name]
+        except KeyError:
+            data = {}
+            plugin_data[plugin_name] = {}
+        result = plugin().save_extraction_data(data, obj, opts)
+        obj['plugins'][plugin_name] = result
+    return obj
 
 
 class ProjectSpec(object):
@@ -241,26 +263,10 @@ class ProjectResource(SlydJsonResource):
                     clean_spider(obj)
                 elif len(rpath) == 3:
                     resource = 'template'
-                    template = obj
                     if obj.get('original_body') is None:
-                        template = project_spec.template_json(rpath[1],
-                                                              rpath[2])
-                    original_body = template.get('original_body', '')
-                    obj['original_body'] = original_body
-                    try:
-                        plugin_data = obj['plugins']
-                    except KeyError:
-                        plugin_data = {}
-                        obj['plugins'] = plugin_data
-                    for plugin, opts in project_spec.plugins:
-                        plugin_name = opts['name']
-                        try:
-                            data = plugin_data[plugin_name]
-                        except KeyError:
-                            data = {}
-                            plugin_data[plugin_name] = {}
-                        result = plugin().save_extraction_data(data, obj, opts)
-                        obj['plugins'][plugin_name] = result
+                        templ = project_spec.template_json(rpath[1], rpath[2])
+                        obj['original_body'] = templ.get('original_body', '')
+                    obj = add_plugin_data(obj, project_spec.plugins)
             get_schema_validator(resource).validate(obj)
         except (KeyError, IndexError):
             self.error(404, "Not Found", "No such resource")

@@ -36,18 +36,23 @@ def open_project_from_dir(project_dir):
                     spec = json.load(f)
                     template_names = spec.get("template_names")
                     if template_names:
-                        templates = load_external_templates(spec_base, spider_name, template_names)
+                        templates = load_external_templates(spec_base,
+                                                            spider_name,
+                                                            template_names)
                         spec.setdefault("templates", []).extend(templates)
                     specs["spiders"][spider_name] = spec
-                except ValueError, e:
+                except ValueError as e:
                     raise ValueError(
                         "Error parsing spider (invalid JSON): %s: %s" %
-                        (fname, e))
+                        (fname, e)
+                    )
     return specs
 
 
 def load_external_templates(spec_base, spider_name, template_names):
-    """A generator yielding the content of all passed `template_names` for `spider_name`."""
+    """A generator yielding the content of all passed `template_names` for
+    `spider_name`.
+    """
     for name in template_names:
         with open(os.path.join(spec_base, spider_name, name + ".json")) as f:
             yield json.load(f)

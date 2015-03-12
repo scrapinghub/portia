@@ -1,6 +1,8 @@
 """
 html page utils
 """
+from uuid import uuid4
+
 from scrapely.htmlpage import HtmlPage, HtmlTag, HtmlTagType
 
 TAGID = u"data-tagid"
@@ -99,3 +101,7 @@ def remove_tagids(source):
     """remove from the given page, all tagids previously added by add_tagids()
     """
     return _modify_tagids(source, False)
+
+
+def short_guid():
+    return '-'.join(str(uuid4()).split('-')[1:4])
