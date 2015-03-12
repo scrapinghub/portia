@@ -53,8 +53,6 @@ def add_plugin_data(obj, plugins):
             data = {}
             plugin_data[plugin_name] = {}
         result = plugin().save_extraction_data(data, obj, opts)
-        print("RESULT")
-        print(result)
         obj['plugins'][plugin_name] = result
     return obj
 

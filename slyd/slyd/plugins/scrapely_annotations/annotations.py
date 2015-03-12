@@ -22,6 +22,10 @@ class Annotations(object):
                     required: [],
                     tagid: 12,
                     variant: 0
+                    ignore: True,
+                    ignore_beneath: true,
+                    insert_after: true,
+                    slice: [2, 16]
                 }
             ]
         }
@@ -215,7 +219,8 @@ def apply_annotations(annotations, target_page):
     #      generated it will be added to the output
     filtered = defaultdict(list)
     for ann in annotations:
-        if ann and ann.get('tagid') and (ann.get('annotations') or ann.get("ignore") or ann.get("ignore_beneath")):
+        if ann and ann.get('tagid') and (ann.get('annotations') or
+                ann.get('ignore')):
             filtered[ann['tagid']].append(ann)
     dummy = [(1e9, [{}])]
     sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +

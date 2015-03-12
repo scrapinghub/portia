@@ -20,3 +20,6 @@ data/*
 # npm files
 node_modules/*
 npm-debug.log
+
+#ember build
+dist/*

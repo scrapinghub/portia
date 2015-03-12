@@ -134,8 +134,8 @@ export default Ember.Component.extend({
         ignoreBeneath: function(_, value, index) {
             var ignore = this.get('ignores').objectAt(index),
                 ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
-            Ember.set(ignore, 'ignoreBeneath', value);
-            Ember.set(ignoreData, 'ignore_beneath', value);
+            ignore.set('ignoreBeneath', value);
+            ignoreData['ignore_beneath'] = value;
         },
 
         elementHovered: function(data, _, hovered) {
@@ -192,7 +192,7 @@ export default Ember.Component.extend({
                     partialSelects: true
                 });
                 this.set('document.view.restrictToDescendants', null);
-                this.get('document.view').setInteractionsBlocked(false);
+                this.get('document.view').setInteractionsBlocked(this.get('inDoc'));
                 this.set('ignoring', false);
                 this.show();
             }
@@ -536,6 +536,15 @@ export default Ember.Component.extend({
         return mappings;
     }.property('data.annotations', 'data.required', 'mappedElement', 'refreshMapped'),
 
+    subElements: function() {
+        var mappedElement = this.get('mappedElement');
+        var ignores = this.get('ignores').filter(function(ignore) {
+            return mappedElement.find('[data-tagid=' +
+                ignore.tagid + ']').length;
+        });
+        return ignores;
+    }.property('mappedElement', 'ignores.@each'),
+
     fieldIdNameMap: function() {
         return this._makeFieldMap('id', 'name');
     }.property('item.fields.@each'),
@@ -595,13 +604,14 @@ export default Ember.Component.extend({
                 return item['ignore'] || item['ignore_beneath'];
             });
         ignoreData.forEach(function(data) {
-            elem = this.get('document.iframe').find('[data-tagid=' + data.tagid + ']');
-            this.get('ignores').addObject({
+            elem = this.get('document.iframe').find('[data-tagid=' + 
+                data.tagid + ']');
+            this.get('ignores').addObject(Ember.Object.create({
                 id: data.id,
                 tagid: data.tagid,
                 element: elem,
                 ignoreBeneath: data.ignore_beneath
-            });
+            }));
         }, this);
     },
 
@@ -887,6 +897,6 @@ export default Ember.Component.extend({
 
     willDestroyElement: function() {
         this.get('document.view').setInteractionsBlocked(false);
-    },
+    }
 
 });
