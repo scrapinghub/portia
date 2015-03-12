@@ -56,6 +56,7 @@ def create_root(config):
     root.putChild('static', static)
     root.putChild('assets', File(join(config['docroot'], 'assets')))
     root.putChild('fonts', File(join(config['docroot'], 'assets', 'fonts')))
+    root.putChild('', File(join(config['docroot'], 'index.html')))
 
     settings = Settings()
     settings.setmodule(slyd.settings)

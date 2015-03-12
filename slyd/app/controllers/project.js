@@ -135,7 +135,8 @@ export default BaseController.extend({
         rename: function(newName, oldName) {
             this.get('slyd').renameProject(oldName, newName).then(
                 function() {
-                    this.replaceRoute('project', { id: newName });
+                    this.set('slyd.project', newName);
+                    this.replaceRoute('project', newName);
                 }.bind(this),
                 function() {
                     this.set('name', oldName);
