@@ -20,6 +20,7 @@ export default Ember.Object.create({
     confirm_change_selection: 'If you select a different region you will lose all current attribute mappings and ignored subregions, proceed anyway?',
     no_items_extracted: 'No items were extracted',
     publish_ok: 'The project was successfully published.',
+    publish_ok_schedule: 'The project was successfully published. Do you want to be redirected to the schedule page?',
     deploy_ok: 'The project was successfully deployed.',
     deploy_ok_schedule: 'The project was successfully deployed. Do you want to be redirected to the schedule page?',
     publish_conflict: 'There was a conflict that could not be automatically resolved. You will have to resolve the conflict manually.',

@@ -469,7 +469,6 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         hash.url = this.getApiUrl();
         hash.data = JSON.stringify(
             { cmd: 'publish', args: [projectName, !!force] });
-        hash.dataType = 'text';
         return this.makeAjaxCall(hash);
     },
 

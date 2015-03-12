@@ -113,9 +113,9 @@ class GitProjectsManager(ProjectsManager):
         repoman = self._open_repo(name)
         if repoman.publish_branch(self._get_branch(repoman), force):
             repoman.kill_branch(self._get_branch(repoman))
-            return 'OK'
+            return {'status': 'ok'}
         else:
-            return 'CONFLICT'
+            return {'status': 'conflict'}
 
     def discard_changes(self, name):
         repoman = self._open_repo(name)
@@ -134,6 +134,9 @@ class GitProjectsManager(ProjectsManager):
 
     @run_in_thread
     def changed_files(self, name):
+        return self._changed_files(name)
+
+    def _changed_files(self, name):
         repoman = self._open_repo(name)
         return json.dumps(repoman.get_branch_changed_files(
             self._get_branch(repoman, read_only=True)))
