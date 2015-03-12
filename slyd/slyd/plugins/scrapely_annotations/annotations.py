@@ -13,6 +13,19 @@ from slyd.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
 class Annotations(object):
 
     def save_extraction_data(self, data, template, options={}):
+        """
+        data = {   
+            extracts: [
+                {
+                    annotatations: {"content": "Title"},
+                    id: "id-string",
+                    required: [],
+                    tagid: 12,
+                    variant: 0
+                }
+            ]
+        }
+        """
         annotation_data = _clean_annotation_data(data.get('extracts', []))
         data['extracts'] = annotation_data
         template['annotated_body'] = apply_annotations(
@@ -30,6 +43,8 @@ def _clean_annotation_data(data):
             ann['annotations'] = filtered_annotations
             ann['required'] = list(set(ann.get('required', [])) &
                                    set(filtered_annotations.values()))
+            result.append(ann)
+        elif "ignore" in ann or "ignore_beneath" in ann:
             result.append(ann)
     return result
 
@@ -200,7 +215,7 @@ def apply_annotations(annotations, target_page):
     #      generated it will be added to the output
     filtered = defaultdict(list)
     for ann in annotations:
-        if ann and ann.get('tagid') and ann.get('annotations'):
+        if ann and ann.get('tagid') and (ann.get('annotations') or ann.get("ignore") or ann.get("ignore_beneath")):
             filtered[ann['tagid']].append(ann)
     dummy = [(1e9, [{}])]
     sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +
