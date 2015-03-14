@@ -887,13 +887,11 @@ export default Ember.Component.extend({
         this.set('data', null);
         this.set('mappedElement', null);
         this.set('mappedDOMElement', null);
-        this.set('pluginState.ignores', []);
         this.set('fieldName', null);
         this.set('fieldType', null);
         this.set('showingBasic', true);
         this.set('showingAdvanced', false);
         this.set('creatingField', false);
-        this.updateData('pluginState');
     },
 
     didInsertElement: function() {
