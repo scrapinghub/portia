@@ -125,17 +125,19 @@ export default Ember.Component.extend({
         },
 
         deleteIgnore: function(index) {
-            var ignore = this.get('ignores').get(index),
+            var ignore = this.get('pluginState.ignores').get(index),
                 ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
             this.get('alldata').removeObject(ignoreData);
-            this.get('ignores').removeObject(ignore);
+            this.get('pluginState.ignores').removeObject(ignore);
+            this.updateData('pluginState');
         },
 
         ignoreBeneath: function(_, value, index) {
-            var ignore = this.get('ignores').objectAt(index),
+            var ignore = this.get('pluginState.ignores').objectAt(index),
                 ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
             ignore.set('ignoreBeneath', value);
             ignoreData['ignore_beneath'] = value;
+            this.updateData('pluginState');
         },
 
         elementHovered: function(data, _, hovered) {
@@ -181,12 +183,14 @@ export default Ember.Component.extend({
                     };
                     this.get('alldata').pushObject(ignored);
                 }
-                this.get('ignores').pushObject({
+                this.get('pluginState.ignores').pushObject({
                     id: ignored.id,
                     tagid: tagid,
                     element: jqElem,
                     ignoreBeneath: ignored.ignore_beneath
                 });
+                this.updateData('pluginState');
+
                 this.get('document.view').config({
                     listener: this.get('previousListener'),
                     partialSelects: true
@@ -536,14 +540,14 @@ export default Ember.Component.extend({
         return mappings;
     }.property('data.annotations', 'data.required', 'mappedElement', 'refreshMapped'),
 
-    subElements: function() {
+    subElementIgnores: function() {
         var mappedElement = this.get('mappedElement');
-        var ignores = this.get('ignores').filter(function(ignore) {
+        var ignores = this.get('pluginState.ignores').filter(function(ignore) {
             return mappedElement.find('[data-tagid=' +
                 ignore.tagid + ']').length;
         });
         return ignores;
-    }.property('mappedElement', 'ignores.@each'),
+    }.property('mappedElement', 'pluginState.ignores.@each'),
 
     fieldIdNameMap: function() {
         return this._makeFieldMap('id', 'name');
@@ -594,25 +598,26 @@ export default Ember.Component.extend({
     },
 
     setIgnores: function() {
-        var ignoreData, elem;
-        if (this.get('ignores')) {
-            return;
+        var ignoreData, elem, ignores;
+        if (!this.get('pluginState').ignores) {
+            ignores = [];
+            ignoreData = this.get('alldata')
+                .filter(function(item) {
+                    return item['ignore'];
+                });
+            ignoreData.forEach(function(data) {
+                elem = this.get('document.iframe').find('[data-tagid=' + 
+                    data.tagid + ']');
+                ignores.addObject(Ember.Object.create({
+                    id: data.id,
+                    tagid: data.tagid,
+                    element: elem,
+                    ignoreBeneath: data.ignore_beneath
+                }));
+            }, this);
+            this.set("pluginState.ignores", ignores);
+            this.updateData('pluginState');
         }
-        this.set("ignores", []);
-        ignoreData = this.get('alldata')
-            .filter(function(item) {
-                return item['ignore'] || item['ignore_beneath'];
-            });
-        ignoreData.forEach(function(data) {
-            elem = this.get('document.iframe').find('[data-tagid=' + 
-                data.tagid + ']');
-            this.get('ignores').addObject(Ember.Object.create({
-                id: data.id,
-                tagid: data.tagid,
-                element: elem,
-                ignoreBeneath: data.ignore_beneath
-            }));
-        }, this);
     },
 
     mapToElement: function() {
@@ -882,12 +887,13 @@ export default Ember.Component.extend({
         this.set('data', null);
         this.set('mappedElement', null);
         this.set('mappedDOMElement', null);
-        this.set('ignores', []);
+        this.set('pluginState.ignores', []);
         this.set('fieldName', null);
         this.set('fieldType', null);
         this.set('showingBasic', true);
         this.set('showingAdvanced', false);
         this.set('creatingField', false);
+        this.updateData('pluginState');
     },
 
     didInsertElement: function() {

@@ -23,8 +23,8 @@ class Annotations(object):
                     tagid: 12,
                     variant: 0
                     ignore: True,
-                    ignore_beneath: true,
-                    insert_after: true,
+                    ignore_beneath: True,
+                    insert_after: True,
                     slice: [2, 16]
                 }
             ]
