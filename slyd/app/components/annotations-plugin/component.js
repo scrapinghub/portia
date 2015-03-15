@@ -125,17 +125,19 @@ export default Ember.Component.extend({
         },
 
         deleteIgnore: function(index) {
-            var ignore = this.get('ignores').get(index),
+            var ignore = this.get('pluginState.ignores').get(index),
                 ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
             this.get('alldata').removeObject(ignoreData);
-            this.get('ignores').removeObject(ignore);
+            this.get('pluginState.ignores').removeObject(ignore);
+            this.updateData('pluginState');
         },
 
         ignoreBeneath: function(_, value, index) {
-            var ignore = this.get('ignores').get(index),
+            var ignore = this.get('pluginState.ignores').objectAt(index),
                 ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
-            ignore.ignoreBeneath = value;
-            ignoreData.ignoreBeneath = value;
+            ignore.set('ignoreBeneath', value);
+            ignoreData['ignore_beneath'] = value;
+            this.updateData('pluginState');
         },
 
         elementHovered: function(data, _, hovered) {
@@ -175,24 +177,26 @@ export default Ember.Component.extend({
                 } else {
                     ignored = {
                         id: this.s4() + '-' + this.s4() + '-' + this.s4(),
-                        tagid,
+                        tagid: tagid,
                         ignore: true,
                         ignore_beneath: false
                     };
                     this.get('alldata').pushObject(ignored);
                 }
-                this.get('ignores').pushObject({
+                this.get('pluginState.ignores').pushObject({
                     id: ignored.id,
                     tagid: tagid,
                     element: jqElem,
                     ignoreBeneath: ignored.ignore_beneath
                 });
+                this.updateData('pluginState');
+
                 this.get('document.view').config({
                     listener: this.get('previousListener'),
                     partialSelects: true
                 });
                 this.set('document.view.restrictToDescendants', null);
-                this.get('document.view').setInteractionsBlocked(true);
+                this.get('document.view').setInteractionsBlocked(this.get('inDoc'));
                 this.set('ignoring', false);
                 this.show();
             }
@@ -536,6 +540,15 @@ export default Ember.Component.extend({
         return mappings;
     }.property('data.annotations', 'data.required', 'mappedElement', 'refreshMapped'),
 
+    subElementIgnores: function() {
+        var mappedElement = this.get('mappedElement');
+        var ignores = this.get('pluginState.ignores').filter(function(ignore) {
+            return mappedElement.find('[data-tagid=' +
+                ignore.tagid + ']').length;
+        });
+        return ignores;
+    }.property('mappedElement', 'pluginState.ignores.@each'),
+
     fieldIdNameMap: function() {
         return this._makeFieldMap('id', 'name');
     }.property('item.fields.@each'),
@@ -581,6 +594,29 @@ export default Ember.Component.extend({
         }
         if (this.get('data.generated')) {
             this.get('mappedElement').attr('data-genid', this.get('data').id);
+        }
+    },
+
+    setIgnores: function() {
+        var ignoreData, elem, ignores;
+        if (!this.get('pluginState').ignores) {
+            ignores = [];
+            ignoreData = this.get('alldata')
+                .filter(function(item) {
+                    return item['ignore'];
+                });
+            ignoreData.forEach(function(data) {
+                elem = this.get('document.iframe').find('[data-tagid=' + 
+                    data.tagid + ']');
+                ignores.addObject(Ember.Object.create({
+                    id: data.id,
+                    tagid: data.tagid,
+                    element: elem,
+                    ignoreBeneath: data.ignore_beneath
+                }));
+            }, this);
+            this.set("pluginState.ignores", ignores);
+            this.updateData('pluginState');
         }
     },
 
@@ -633,6 +669,7 @@ export default Ember.Component.extend({
             this.set('data.annotations', newData.annotations);
         }
         this.setData();
+        this.setIgnores();
         this.mapToElement();
         this.get('document.view').scrollToElement(elem);
         this.set('pos', {x: boundingBox.top, y: boundingBox.left});
@@ -837,9 +874,9 @@ export default Ember.Component.extend({
 
     setup: function() {
         this.setData();
+        this.setIgnores();
         this.mapToElement();
         this.updateExtractedFields();
-        this.set('ignores', []);
         this.setPluginStateVariables();
         if (this.get('inDoc') && Object.keys(this.get('data.annotations')).length < 1) {
             this.addNewMapping();
@@ -850,7 +887,6 @@ export default Ember.Component.extend({
         this.set('data', null);
         this.set('mappedElement', null);
         this.set('mappedDOMElement', null);
-        this.set('ignores', []);
         this.set('fieldName', null);
         this.set('fieldType', null);
         this.set('showingBasic', true);
@@ -865,6 +901,6 @@ export default Ember.Component.extend({
 
     willDestroyElement: function() {
         this.get('document.view').setInteractionsBlocked(false);
-    },
+    }
 
 });
