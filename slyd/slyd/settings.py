@@ -26,6 +26,8 @@ SPEC_FACTORY = {
         'delete_projects': True,
         'rename_projects': True,
         'deploy_projects': False,
+        'rename_spiders': True,
+        'rename_templates': True
     }
 }
 

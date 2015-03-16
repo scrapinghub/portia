@@ -155,12 +155,14 @@ export default BaseController.extend({
                                 window.location = result['schedule_url'];
                             });
                     } else {
-                        this.showAlert('Save Successful', this.messages.get('publish_ok'));
+                        this.showAlert('Publish Successful', this.messages.get('publish_ok'));
                     }
                     this.set('changedFiles', []);
-                } else {
-                    this.showAlert('Save Error', this.messages.get('publish_conflict'));
+                } else if (result['status'] == 'conflict') {
+                    this.showAlert('Publish Error', this.messages.get('publish_conflict'));
                     this.transitionToRoute('conflicts');
+                } else {
+                    this.showAlert('Publish Error', result['message'])
                 }
             }.bind(this));
         },

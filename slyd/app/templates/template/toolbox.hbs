@@ -1,7 +1,11 @@
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
-	{{#inline-editable-text-field text=content.name validation='^[a-zA-Z0-9_-]+$' name='content.name' action='updateField'}}
-		Template {{content.name}}
-	{{/inline-editable-text-field}}
+	{{#if capabilities.rename_templates}}
+		{{#inline-editable-text-field text=content.name validation='^[a-zA-Z0-9_-]+$' name='content.name' action='updateField'}}
+			Template {{model.name}}
+		{{/inline-editable-text-field}}
+	{{else}}
+		<h4>Template {{model.name}}</h4>
+	{{/if}}
 </div>
 
 {{#closable-accordion configName='bs' selected-idx=0}}
