@@ -403,7 +403,11 @@ export default BaseController.extend({
         updatePluginField: function(field, value) {
             this.set(['extractionTools', this.get('activeExtractionTool.component'), field].join('.'),
                      value);
-        }
+        },
+
+        updateScraped: function(name) {
+            this.set('model.scrapes', name);
+        },
     },
 
     documentActions: {
