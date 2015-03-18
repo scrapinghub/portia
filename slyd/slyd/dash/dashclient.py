@@ -158,7 +158,8 @@ def _archive_project(name, buff, files=None, repo=None, branch='master'):
         split_file_path = file_path.split('/')
         if len(split_file_path) > 2:
             template_paths[split_file_path[1]].append(file_path)
-    extractors = json.loads(repo.file_contents_for_branch(file_path, branch))
+    extractors = json.loads(repo.file_contents_for_branch('extractors.json',
+                                                          branch) or '{}')
 
     seen_files = set()
     spiders = set()
