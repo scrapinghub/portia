@@ -121,8 +121,8 @@ class ProjectSpec(object):
                           '"%s", already exists for this project.' % to_name)
         os.rename(self._rfilename('spiders', from_name),
                   self._rfilename('spiders', to_name))
-        os.rename(join('spiders', from_name),
-                  join('spiders', to_name))
+        os.rename(self._rdirname('spiders', from_name),
+                  self._rdirname('spiders', to_name))
 
     def remove_spider(self, name):
         os.remove(self._rfilename('spiders', name))

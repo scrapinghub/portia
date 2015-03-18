@@ -369,7 +369,7 @@ export default BaseController.extend({
                 return;
             }
             var sprites = this.get('documentView.sprites');
-            this.set('documentView.sprites', []);
+            this.set('documentView.sprites', new SpriteStore());
             saveFuture.then(function() {
                 this.transitionToRoute('spider', {
                     queryParams: {
@@ -384,7 +384,7 @@ export default BaseController.extend({
         },
 
         discardChanges: function() {
-            this.set('documentView.sprites', []);
+            this.set('documentView.sprites', new SpriteStore());
             this.transitionToRoute('spider', {
                 queryParams: {
                     url: this.get('model.url')

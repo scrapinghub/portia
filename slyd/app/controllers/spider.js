@@ -533,8 +533,6 @@ export default BaseController.extend({
         },
 
         rename: function(newName, oldName) {
-            var spidersForProject = this.get('controllers.project.model') || [];
-            newName = this.getUnusedName(newName, spidersForProject);
             this.set('model.name', newName);
             this.get('slyd').renameSpider(oldName, newName).then(
                 function() {

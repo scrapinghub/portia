@@ -66,7 +66,7 @@ export default BaseController.extend({
         this.set('spiderPage', null);
         return this.get('slyd').saveSpider(spider).then(function() {
                 this.set('addingNewSpider', false);
-                this.editSpider(newSpiderName);
+                this.editSpider(newSpiderName, siteUrl);
             }.bind(this), function(err) {
                 this.set('addingNewSpider', false);
                 this.showHTTPAlert('Error Adding Spider', err);
@@ -74,9 +74,15 @@ export default BaseController.extend({
         );
     },
 
-    editSpider: function(spiderName) {
+    editSpider: function(spiderName, siteUrl) {
         this.get('slyd').loadSpider(spiderName).then(function(spider) {
-            this.transitionToRoute('spider', spider);
+            var query = {};
+            if (siteUrl) {
+                query['queryParams'] = {url: siteUrl};
+                this.transitionToRoute('spider', spider, query);
+            } else {
+                this.transitionToRoute('spider', spider);
+            }
         }.bind(this), function(err) {
             this.showHTTPAlert('Error Editing Spider', err);
         }.bind(this));
@@ -129,7 +135,8 @@ export default BaseController.extend({
         rename: function(newName, oldName) {
             this.get('slyd').renameProject(oldName, newName).then(
                 function() {
-                    this.replaceRoute('project', { id: newName });
+                    this.set('slyd.project', newName);
+                    this.replaceRoute('project', newName);
                 }.bind(this),
                 function() {
                     this.set('name', oldName);
@@ -139,11 +146,19 @@ export default BaseController.extend({
         },
 
         publishProject: function() {
-            this.publishProject().then(function(result){
-                if (result === 'OK') {
-                    this.showAlert('Save Successful', this.messages.get('publish_ok'));
+            this.publishProject().then(function(result) {
+                if (result['status'] === 'ok') {
+                    if (!Ember.isEmpty(result['schedule_url'])) {
+                        this.showConfirm('Schedule Project',
+                            this.messages.get('publish_ok_schedule'),
+                            function() {
+                                window.location = result['schedule_url'];
+                            });
+                    } else {
+                        this.showAlert('Save Successful', this.messages.get('publish_ok'));
+                    }
                     this.set('changedFiles', []);
-                } else if (result === 'CONFLICT') {
+                } else {
                     this.showAlert('Save Error', this.messages.get('publish_conflict'));
                     this.transitionToRoute('conflicts');
                 }

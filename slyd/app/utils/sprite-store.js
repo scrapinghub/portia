@@ -2,9 +2,6 @@ import Ember from 'ember';
 import { AnnotationSprite, IgnoreSprite } from './canvas';
 
 export default Ember.Object.extend({
-    _sprites: [],
-    _ignores: [],
-    _elements: [],
 
     init: function(options) {
         options = options || this.getWithDefault('options', {});
@@ -14,6 +11,9 @@ export default Ember.Object.extend({
         this.set('fillColor', fillColor);
         this.set('strokeColor', strokeColor);
         this.set('textColor', textColor);
+        this.set('_sprites', []);
+        this.set('_ignores', []);
+        this.set('_elements', []);
     },
 
     sprites: function() {

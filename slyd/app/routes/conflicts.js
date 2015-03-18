@@ -1,4 +1,4 @@
-import BaseRoute from '../base-route';
+import BaseRoute from './base-route';
 
 export default BaseRoute.extend({
     model: function() {
