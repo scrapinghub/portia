@@ -380,8 +380,11 @@ export default BaseController.extend({
     }.observes('model'),
 
     saveSpider: function() {
+        if (this.get('saving')) {
+            return;
+        }
         this.set('saving', true);
-        return this.get('slyd').saveSpider(this.get('content')).then(function() {
+        return this.get('slyd').saveSpider(this.get('model')).then(function() {
             this.set('saving', false);
         }.bind(this),function(err) {
             this.set('saving', false);
@@ -392,7 +395,7 @@ export default BaseController.extend({
     reset: function() {
         this.set('browseHistory', []);
         this.set('pageMap', {});
-    }.observes('content'),
+    }.observes('model'),
 
     testSpider: function(urls) {
         if (this.get('testing') && urls.length) {
@@ -532,11 +535,14 @@ export default BaseController.extend({
             this.set('showItems', !this.get('showItems'));
         },
 
-        rename: function(newName, oldName) {
+        rename: function(newName) {
+            var oldName = this.get('model.name')
+            if (newName.trim() === oldName.trim()) {
+                return;
+            }
             this.set('model.name', newName);
             this.get('slyd').renameSpider(oldName, newName).then(
                 function() {
-                    this.set('spiderName', newName);
                     this.replaceRoute('spider', newName);
                 }.bind(this),
                 function(reason) {
