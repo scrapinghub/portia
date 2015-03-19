@@ -27,6 +27,15 @@ export default BaseController.extend({
         }.bind(this));
     },
 
+    displayProjects: function() {
+        return (this.get('model') || []).map(function(p) {
+            if (p instanceof Object) {
+                return p;
+            }
+            return { id: p, name: p };
+        });
+    }.property('model', 'model.@each'),
+
     actions: {
 
         openProject: function(projectName) {
@@ -43,7 +52,17 @@ export default BaseController.extend({
                 function() {
                     this.get('slyd').deleteProject(projectName).then(
                         function() {
-                            this.get('model').removeObject(projectName);
+                            this.set('model', this.get('model').filter(function(p) {
+                                if (p instanceof Object) {
+                                    if (p.id !== projectName) {
+                                        return p;
+                                    }
+                                } else {
+                                    if (p !== projectName) {
+                                        return p;
+                                    }
+                                }
+                            }));
                         }.bind(this),
                         function(err) {
                             this.showHTTPAlert('Delete Error', err);
@@ -71,7 +90,7 @@ export default BaseController.extend({
                     // Setup automatic creation of an initial spider.
                     this.set('controllers.application.siteWizard', projectSite);
                     Ember.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
-                        this.get('model').pushObject(newProjectName);
+                        this.get('model').pushObject({id: newProjectName, name: newProjectName});
                         this.transitionToRoute('project', { id: newProjectName });
                     }.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
                 }.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));

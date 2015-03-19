@@ -18,6 +18,12 @@ class ProjectsManager(GitProjectsManager):
         GitProjectsManager.__init__(self, *args, **kwargs)
         self.project_commands['deploy'] = self.deploy_project
 
+    def list_projects(self):
+        if 'projects_data' in self.auth_info:
+            return self.auth_info['projects_data']
+        elif 'authorized_projects' in self.auth_info:
+            return self.auth_info['authorized_projects']
+
     @run_in_thread
     def edit_project(self, name, revision):
         if not Repoman.repo_exists(name):
