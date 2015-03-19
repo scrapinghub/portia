@@ -3,15 +3,16 @@ import json
 from slyd.gitstorage.repoman import Repoman
 from slyd.gitstorage.projects import GitProjectsManager, run_in_thread
 from .dashclient import (import_project, deploy_project, set_dash_url,
-                         DeployError)
+                         set_allow_delete, DeployError)
 
 
 class ProjectsManager(GitProjectsManager):
 
     @classmethod
-    def setup(cls, storage_backend, location, dash_url):
+    def setup(cls, storage_backend, location, dash_url, allow_delete=False):
         GitProjectsManager.setup(storage_backend, location)
         set_dash_url(dash_url)
+        set_allow_delete(allow_delete)
 
     def __init__(self, *args, **kwargs):
         GitProjectsManager.__init__(self, *args, **kwargs)
