@@ -1,9 +1,10 @@
 import Ember from 'ember';
 
 export function initialize(container, application) {
-    var globals = Ember.Object.create({items: null, extractors: null});
+    var globals = Ember.Object.create({items: null, extractors: null, projects: {}});
     container.register('projects:models', globals, { instantiate: false });
     application.inject('controller', 'project_models', 'projects:models');
+    application.inject('route', 'project_models', 'projects:models');
 }
 
 export default {

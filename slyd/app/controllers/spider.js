@@ -536,7 +536,7 @@ export default BaseController.extend({
         },
 
         rename: function(newName) {
-            var oldName = this.get('model.name')
+            var oldName = this.get('model.name');
             if (newName.trim() === oldName.trim()) {
                 return;
             }

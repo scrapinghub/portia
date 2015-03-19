@@ -2,10 +2,10 @@
 	<div style="text-align:center;font-size:1.1em;margin-bottom:5px">
 		{{#if capabilities.rename_projects}}
 			{{#inline-editable-text-field text=slyd.project validation='^[a-zA-Z0-9_-]+$' name=slyd.project action='rename'}}
-				Project {{slyd.project}}
+				Project: {{slyd.project}}
 			{{/inline-editable-text-field}}
 		{{else}}
-			<h4>Project {{slyd.project}}</h4>
+			<h4>Project: {{project_name}}</h4>
 		{{/if}}
 	</div>
 

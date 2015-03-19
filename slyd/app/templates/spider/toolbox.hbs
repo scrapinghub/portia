@@ -2,10 +2,10 @@
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
     {{#if capabilities.rename_spiders}}
         {{#inline-editable-text-field text=model.name validation='^[a-zA-Z0-9_-]+$' name=model.name action='rename'}}
-            Spider {{model.name}}
+            Spider: {{model.name}}
         {{/inline-editable-text-field}}
     {{else}}
-        <h4>Spider {{model.name}}</h4>
+        <h4>Spider: {{model.name}}</h4>
     {{/if}}
 </div>
 

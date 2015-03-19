@@ -44,17 +44,18 @@ body{
 }
 
 #topbar {
-    width: 100%;
+    width:22%;
     min-height: 32px;
     max-height: 38px;
     z-index: 200;
-    position: fixed;
-    top: 0px;
-    left: 0px;
+    position:absolute;
+    top: 5px;
     background-color: #F5F5F5;
     background-image: linear-gradient(to bottom, #F5F5F5 0px, #F8F8F8 100%);
     box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);
     padding: 3px;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
 #topbar .url {
@@ -707,4 +708,18 @@ ul.breadcrumbs {
 
 input[type="checkbox"].offset-checkbox {
     margin-top: 1px;
+}
+
+.crumbs {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.current-crumb {
+    max-width: 50%;
+}
+
+.inactive-crumb {
+    max-width: 25%;
 }
