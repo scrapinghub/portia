@@ -307,6 +307,7 @@ export default BaseController.extend({
         }
         this.get('model.template_names').pushObject(template_name);
         this.get('slyd').saveTemplate(this.get('name'), template).then(function() {
+            this.set('saving', false);
             this.saveSpider().then(
                 function() {
                     this.editTemplate(template_name);

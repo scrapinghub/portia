@@ -44,26 +44,26 @@ body{
 }
 
 #topbar {
-    width:22%;
+    width: 100%;
     min-height: 32px;
     max-height: 38px;
     z-index: 200;
-    position:absolute;
-    top: 5px;
+    position: fixed;
+    top: 0px;
+    left: 0px;
     background-color: #F5F5F5;
     background-image: linear-gradient(to bottom, #F5F5F5 0px, #F8F8F8 100%);
     box-shadow: 0px 0px 12px 0px rgba(0,0,0,1.0);
     padding: 3px;
-    overflow:hidden;
-    text-overflow:ellipsis;
 }
 
 #topbar .url {
-    color:#444;
-    float:left;
-    padding:4px;
-    margin:1px 20px 0px 6px;
-    width: 80%;
+    width: 74%;
+    color: #444;
+    float: left;
+    padding: 4px;
+    margin: 1px 20px 0px 6px;
+    top: 5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

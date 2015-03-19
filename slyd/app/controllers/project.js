@@ -19,7 +19,7 @@ export default BaseController.extend({
     spiderPage: null,
 
     _project_name: function(project_id) {
-        return this.get('project_models.projects.' + project_id) || project_id
+        return this.get('project_models.projects.' + project_id) || project_id;
     },
 
     project_name: function() {
