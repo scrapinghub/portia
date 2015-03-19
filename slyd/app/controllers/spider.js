@@ -575,7 +575,7 @@ export default BaseController.extend({
                     }]);
                 }
             }
-        }
+        },
     },
 
     documentActions: {

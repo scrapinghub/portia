@@ -31,7 +31,10 @@ class Capabilities(SlydJsonObjectResource):
         self.spec_manager = spec_manager
 
     def render_GET(self, request):
-        return self.spec_manager.capabilities
+        return {
+            'capabilities': self.spec_manager.capabilities,
+            'custom': self.spec_manager.customizations
+        }
 
 
 def create_root(config):

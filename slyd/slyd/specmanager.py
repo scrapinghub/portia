@@ -20,6 +20,7 @@ class SpecManager(object):
         self.manager_class = load_object(factory_settings['PROJECT_MANAGER'])
         self.manager_class.setup(**factory_settings['PARAMS'])
         self.capabilities = factory_settings.get('CAPABILITIES', {})
+        self.customizations = factory_settings.get('CUSTOM', {})
         self.capabilities['plugins'] = [
             {'component': p['ui'], 'options': p.get('options', {})}
             for p in factory_settings.get('PLUGINS', settings['PLUGINS'])]

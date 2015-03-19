@@ -94,6 +94,9 @@ export default BaseController.extend({
     },
 
     willEnter: function() {
+        if (this.get('controllers.application.currentRouteName').split('.')[1] === 'index') {
+            this.set('slyd.project', null);
+        }
         this.get('documentView').reset();
         this.get('documentView').showSpider();
     },
