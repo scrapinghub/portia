@@ -48,15 +48,16 @@ export default Ember.Object.extend({
     }.property('_sprites.@each', '_ignores.@each'),
 
     addSprite: function(element, text) {
-        var notFound = true, updated = false;
+        var updated = false;
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
                 sprite.set('name', text);
-                notFound = false;
                 updated = true;
             }
         });
-        if (notFound) {
+        if (updated) {
+            this.notifyPropertyChange('_sprites');
+        } else {
             this.get('_sprites').pushObject(Ember.Object.create({
                 name: text,
                 element: element,
@@ -66,21 +67,19 @@ export default Ember.Object.extend({
                 textColor: this.get('textColor')
             }));
         }
-        if (notFound || updated) {
-            this.notifyPropertyChange('_sprites');
-        }
     },
 
     addIgnore: function(element, ignoreBeneath) {
-        var notFound = true, updated = false;
+        var updated = false;
         this.get('_ignores').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
                 sprite.set('ignoreBeneath', ignoreBeneath);
-                notFound = false;
                 updated = true;
             }
         });
-        if (notFound) {
+        if (updated) {
+            this.notifyPropertyChange('_ignores');
+        } else {
             this.get('_ignores').pushObject(Ember.Object.create({
                 element: element,
                 highlight: false,
@@ -89,9 +88,6 @@ export default Ember.Object.extend({
                 strokeColor: this.get('strokeColor'),
                 textColor: this.get('textColor')
             }));
-        }
-        if (notFound || updated) {
-            this.notifyPropertyChange('_ignores');
         }
     },
 
