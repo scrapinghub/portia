@@ -441,6 +441,7 @@ export default Ember.Component.extend({
     closeWidget: function() {
         this.sendAction('close');
         this.reset();
+        this.get('document.view').setInteractionsBlocked(false);
         this.destroy();
     },
 
