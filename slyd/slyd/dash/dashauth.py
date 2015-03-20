@@ -31,12 +31,20 @@ class ApiKeyChecker(object):
     def _validate_apikey(self, apikey):
         payload = {'apikey': apikey}
         r = requests.get(self.dash_api_url + 'users/get.json', params=payload)
-        auth_info = r.json()
-        if auth_info['status'] != 'ok':
+        if r.status_code != 200:
             raise InvalidApiKey('Invalid apikey')
-        auth_info['apikey'] = apikey
-        auth_info['expires_at'] = datetime.now() + timedelta(
-            seconds=AUTH_EXPIRATION_TIME)
+        projects = requests.get(self.dash_api_url + 'projects.json',
+                                params=payload)
+        auth_info = r.json()
+        user_projects = set(auth_info['projects'])
+        auth_info.update({
+            'apikey': apikey,
+            'expires_at': datetime.now() + timedelta(
+                seconds=AUTH_EXPIRATION_TIME),
+            'projects_data': [{'id': str(p['id']), 'name': p['name']}
+                              for p in projects.json()
+                              if p['id'] in user_projects]
+        })
         return auth_info
 
     def _expired(self, auth_info):
@@ -85,6 +93,7 @@ class AuthResource(Resource):
         request.auth_info = {
             'username': self.auth_info['username'],
             'authorized_projects': map(str, self.auth_info['projects']),
+            'projects_data': self.auth_info.get('projects_data', []),
             'service_token': self.auth_info['apikey'],
             'staff': self.auth_info['staff'],
         }

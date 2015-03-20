@@ -84,7 +84,8 @@ def import_project(name, apikey, repo):
         files[filename] = contents
     if 'extractors.json' not in files:
         files['extractors.json'] = '{}'
-    if 'items.json' not in files:
+    if ('items.json' not in files or not files['items.json'] or
+            files['items.json'] == '{}'):
         files['items.json'] = DEFAULT_DASH_ITEM
     repo.save_files(files, 'master', 'Publishing initial import.')
     # XXX: Tell dash that project has been opened in Portia

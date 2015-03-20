@@ -25,7 +25,7 @@ class ProjectsManagerResource(SlydJsonResource):
 
     def getChildWithDefault(self, project_path_element, request):
         auth_info = request.auth_info
-        if (not 'authorized_projects' in auth_info or
+        if ('authorized_projects' not in auth_info or
                 auth_info.get('staff', False) or
                 project_path_element in auth_info['authorized_projects']):
             request.project = project_path_element

@@ -441,6 +441,7 @@ export default Ember.Component.extend({
     closeWidget: function() {
         this.sendAction('close');
         this.reset();
+        this.get('document.view').setInteractionsBlocked(false);
         this.destroy();
     },
 
@@ -492,17 +493,14 @@ export default Ember.Component.extend({
         if (this.get('inDoc')) {
             var x = this.get('pos.x'),
                 y = this.get('pos.y');
-            if (x < 200) {
-                x = 100;
-            }
             if (x > window.innerWidth - 350) {
                 x = window.innerWidth - 350;
             }
             if (y > window.innerHeight - 230) {
                 y = window.innerHeight - 230;
             }
-            Ember.$(this.get('element')).css({ 'top': Math.max(this.get('pos.y'), 50),
-                                         'left': Math.max(this.get('pos.x') - 100, 50)});
+            Ember.$(this.get('element')).css({ 'top': Math.max(y, 50),
+                                         'left': Math.max(x - 100, 50)});
             this.get('document.view').setInteractionsBlocked(true);
         }
     },
@@ -606,7 +604,7 @@ export default Ember.Component.extend({
                     return item['ignore'];
                 });
             ignoreData.forEach(function(data) {
-                elem = this.get('document.iframe').find('[data-tagid=' + 
+                elem = this.get('document.iframe').find('[data-tagid=' +
                     data.tagid + ']');
                 ignores.addObject(Ember.Object.create({
                     id: data.id,
@@ -898,10 +896,11 @@ export default Ember.Component.extend({
     didInsertElement: function() {
         this.positionWidget();
         this._super();
+        Ember.run.scheduleOnce('afterRender', this, this.afterRenderEvent);
     },
 
-    willDestroyElement: function() {
-        this.get('document.view').setInteractionsBlocked(false);
+    afterRenderEvent: function() {
+        this.notifyPropertyChange('sprite')
     }
 
 });

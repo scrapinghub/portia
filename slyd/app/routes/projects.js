@@ -5,6 +5,16 @@ export default BaseRoute.extend({
         return this.get('slyd').getProjectNames();
     },
 
+    afterModel: function() {
+        this.modelFor('projects').forEach(function(project) {
+            if (project instanceof Object) {
+                this.set('project_models.projects.'+project.id, project.name);
+            } else {
+                this.set('project_models.projects.'+project, project);
+            }
+        }.bind(this));
+    },
+
     renderTemplate: function() {
         var controller = this.controllerFor('projects');
         this.render('projects/toolbox', {

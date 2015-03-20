@@ -6,17 +6,27 @@ import Spider from '../models/spider';
 
 export default BaseController.extend({
     fixedToolbox: true,
-    breadCrumb: function() {
-        return this.get('slyd.project');
+    breadCrumbs: function() {
+        var project_id = this.get('slyd.project');
+        return [{
+            label: this._project_name(project_id),
+            model: project_id
+        }];
     }.property('slyd.project'),
 
     needs: ['application', 'project'],
 
     spiderPage: null,
 
-    changedFiles: [],
+    _project_name: function(project_id) {
+        return this.get('project_models.projects.' + project_id) || project_id;
+    },
 
-    nameBinding: 'slyd.project',
+    project_name: function() {
+        return this._project_name(this.get('slyd.project'));
+    }.property('slyd.project'),
+
+    changedFiles: [],
 
     isDeploying: false,
 

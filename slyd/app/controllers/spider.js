@@ -307,6 +307,7 @@ export default BaseController.extend({
         }
         this.get('model.template_names').pushObject(template_name);
         this.get('slyd').saveTemplate(this.get('name'), template).then(function() {
+            this.set('saving', false);
             this.saveSpider().then(
                 function() {
                     this.editTemplate(template_name);
@@ -536,7 +537,7 @@ export default BaseController.extend({
         },
 
         rename: function(newName) {
-            var oldName = this.get('model.name')
+            var oldName = this.get('model.name');
             if (newName.trim() === oldName.trim()) {
                 return;
             }

@@ -58,11 +58,12 @@ body{
 }
 
 #topbar .url {
-    color:#444;
-    float:left;
-    padding:4px;
-    margin:1px 20px 0px 6px;
-    width: 80%;
+    width: 74%;
+    color: #444;
+    float: left;
+    padding: 4px;
+    margin: 1px 20px 0px 6px;
+    top: 5px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -707,4 +708,18 @@ ul.breadcrumbs {
 
 input[type="checkbox"].offset-checkbox {
     margin-top: 1px;
+}
+
+.crumbs {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.current-crumb {
+    max-width: 50%;
+}
+
+.inactive-crumb {
+    max-width: 25%;
 }
