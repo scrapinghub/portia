@@ -1,6 +1,12 @@
 image: python2.7
 script:
+  - sudo mkdir -p ~/.npm
+  - sudo mkdir -p ~/.cache
+  - sudo chown ubuntu ~/.npm
+  - sudo chown ubuntu ~/.cache
+  - npm install -g bower ember-cli --cache-min 999999
   - docker/restore-mtime.sh
+  - docker/compile-assets.sh
 
 publish:
   docker:
