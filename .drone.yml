@@ -1,16 +1,17 @@
-image: python2.7
+image: bradrydzewski/python:2.7-scrapinghub
+
 script:
-  - docker/restore-mtime.sh
+  - sudo mkdir -p ~/.npm
+  - sudo mkdir -p ~/.cache
+  - sudo chown ubuntu ~/.npm
+  - sudo chown ubuntu ~/.cache
+  - npm install -g bower ember-cli --cache-min 999999
+  - git restore-mtime
+  - docker/compile-assets.sh
 
 publish:
   docker:
-    docker_host: $$DOCKER_HOST
-    docker_version: 1.3.1
-    registry_login: true
-    registry_login_url: $$LOGIN_URL
-    username: $$LOGIN_USER
-    password: $$LOGIN_PASS
-    email: $$LOGIN_EMAIL
+    docker_host: $DOCKER_HOST
     image_name: i.scrapinghub.com/portia/$CI_BRANCH
     keep_build: true
 
