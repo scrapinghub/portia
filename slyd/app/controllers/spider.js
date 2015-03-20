@@ -219,7 +219,7 @@ export default BaseController.extend({
     },
 
     wrapItem: function(item) {
-        var itemDefinition = this.get('itemDefinitions').findBy('name', item['_type']);
+        var itemDefinition = (this.get('project_models.items') || this.get('itemDefinitions')).findBy('name', item['_type']);
         return ExtractedItem.create({ extracted: item,
                                       definition: itemDefinition,
                                       matchedTemplate: item['_template_name'] });
