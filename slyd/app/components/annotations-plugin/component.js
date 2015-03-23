@@ -900,7 +900,7 @@ export default Ember.Component.extend({
     },
 
     afterRenderEvent: function() {
-        this.notifyPropertyChange('sprite')
+        this.notifyPropertyChange('sprite');
     }
 
 });

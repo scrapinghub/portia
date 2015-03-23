@@ -294,16 +294,17 @@ export default BaseController.extend({
             );
         },
 
-        rename: function(oldName, newName) {
-            this.set('name', oldName);
+        rename: function(newName) {
+            var oldName = this.get('model.name');
             var saveFuture = this.saveTemplate();
             if (!saveFuture) {
                 return;
             }
+            this.set('model.name', newName);
             saveFuture.then(function() {
                 var templateNames = this.get('controllers.spider.model.template_names');
                 newName = this.getUnusedName(newName, templateNames);
-                var spiderName = this.get('controllers.spider.name');
+                var spiderName = this.get('controllers.spider.model.name');
                 this.get('slyd').renameTemplate(spiderName, oldName, newName).then(
                     function() {
                         templateNames.removeObject(oldName);

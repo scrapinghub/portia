@@ -43,6 +43,8 @@ def retry_operation(retries=3, catches=(Exception,), seconds=0):
                 except catches as e:
                     err = e
                     yield sleep(seconds)
+                else:
+                    break
             if err is not None:
                 raise err
         return wrapped

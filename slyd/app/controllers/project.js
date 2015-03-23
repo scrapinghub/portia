@@ -99,15 +99,15 @@ export default BaseController.extend({
     },
 
     publishProject: function() {
-        return this.get('slyd').publishProject(this.get('name'));
+        return this.get('slyd').publishProject(this.get('slyd.project'));
     },
 
     discardChanges: function() {
-        return this.get('slyd').discardChanges(this.get('name'));
+        return this.get('slyd').discardChanges(this.get('slyd.project'));
     },
 
     deployProject: function() {
-        return this.get('slyd').deployProject(this.get('name'));
+        return this.get('slyd').deployProject(this.get('slyd.project'));
     },
 
     actions: {
@@ -149,7 +149,7 @@ export default BaseController.extend({
                     this.replaceRoute('project', newName);
                 }.bind(this),
                 function() {
-                    this.set('name', oldName);
+                    this.set('slyd.project', oldName);
                     this.showAlert('Save Error','The name ' + newName + ' is not a valid project name.');
                 }.bind(this)
             );
