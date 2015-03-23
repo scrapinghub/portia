@@ -11,12 +11,14 @@ RUN apt-add-repository ppa:chris-lea/node.js &&\
 ADD requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
+EXPOSE 9001
+
 ADD . /app
 
 RUN ln -sf /app/nginx/nginx.conf /etc/nginx/nginx.conf
 
 RUN pip install -e /app/slybot
 
-EXPOSE 9001
+WORKDIR /app/slyd
 # TODO(dangra): fix handling of nginx service, it won't be restarted in case if crashed.
 CMD service nginx start; twistd --pidfile=/tmp/twistd.pid -n slyd -p 9002
