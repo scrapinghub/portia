@@ -33,8 +33,17 @@ class ApiKeyChecker(object):
         r = requests.get(self.dash_api_url + 'users/get.json', params=payload)
         if r.status_code != 200:
             raise InvalidApiKey('Invalid apikey')
-        projects = requests.get(self.dash_api_url + 'projects.json',
-                                params=payload)
+        payload = {
+            'ordering': 'name',
+            'page': 1,
+            'page_size': 100,
+            'project_type': 'portia'
+        }
+        headers = {
+            'Authorization': 'Token %s' % apikey
+        }
+        projects = requests.get(self.dash_api_url + 'v2/projects',
+                                params=payload, headers=headers)
         auth_info = r.json()
         user_projects = set(auth_info['projects'])
         auth_info.update({
@@ -42,7 +51,7 @@ class ApiKeyChecker(object):
             'expires_at': datetime.now() + timedelta(
                 seconds=AUTH_EXPIRATION_TIME),
             'projects_data': [{'id': str(p['id']), 'name': p['name']}
-                              for p in projects.json()
+                              for p in projects.json().get('results', [])
                               if p['id'] in user_projects]
         })
         return auth_info
