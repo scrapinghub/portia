@@ -117,6 +117,15 @@ def deploy_project(name, apikey, changed_files=None, repo=None,
         raise DeployError('Deploy to Dash failed: %s' % req.text)
 
 
+def package_project(name, spiders, repo=None, branch='master'):
+    zbuff = StringIO()
+    spider_paths = ['spiders/%s.json' % spider for spider in spiders]
+    files = list(set(spider_paths) | REQUIRED_FILES)
+    _archive_project(name, zbuff, files, repo, branch, ignore_deleted=True)
+    zbuff.reset()
+    return zbuff
+
+
 def search_spider_names(project, apikey, name=''):
     """Search existing spider names in a project"""
     payload = {'project': project, 'apikey': apikey, 'spider': name}
@@ -149,7 +158,8 @@ def _add_to_archive(archive, filename, contents, tstamp):
     archive.writestr(fileinfo, contents, zipfile.ZIP_DEFLATED)
 
 
-def _archive_project(name, buff, files=None, repo=None, branch='master'):
+def _archive_project(name, buff, files=None, repo=None, branch='master',
+                     ignore_deleted=False):
     """Archive a project stored in GIT into a zip file."""
     if repo is None:
         repo = Repoman.open_repo(name)
@@ -213,7 +223,7 @@ def _archive_project(name, buff, files=None, repo=None, branch='master'):
                         _add_to_archive(archive, file_path,
                                         json.dumps(as_json), now)
             except TypeError:
-                if not ALLOW_DELETE:
+                if not ALLOW_DELETE or ignore_deleted:
                     continue
                 # Handle Deleted Spiders
                 file_contents = repo.file_contents_for_branch(file_path,

@@ -62,7 +62,6 @@ class ProjectsManagerResource(SlydJsonResource):
             raise
         except BaseError as ex:
             self.error(ex.status, ex.title, ex.body)
-            raise
         return retval or ''
 
     def render_GET(self, request):
@@ -86,6 +85,10 @@ class ProjectsManagerResource(SlydJsonResource):
         obj = self.read_json(request)
         try:
             retval = self.handle_project_command(project_manager, obj)
+            modifier = project_manager.modify_request.get(obj.get('cmd'))
+            if modifier:
+                print(obj)
+                request = modifier(request, obj, retval)
             if isinstance(retval, Deferred):
                 retval.addCallbacks(finish_request, request_failed)
                 return NOT_DONE_YET
@@ -111,6 +114,7 @@ class ProjectsManager(object):
         self.auth_info = auth_info
         self.user = auth_info['username']
         self.projectsdir = ProjectsManager.base_dir
+        self.modify_request = {}
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,
