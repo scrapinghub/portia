@@ -37,7 +37,7 @@ class ApiKeyChecker(object):
             'ordering': 'name',
             'page': 1,
             'page_size': 100,
-            'project_type': 'portia'
+            'visual_project_type': 'portia'
         }
         headers = {
             'Authorization': 'Token %s' % apikey
