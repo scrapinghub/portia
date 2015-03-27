@@ -47,6 +47,10 @@ export default BaseController.extend({
         return !Ember.isEmpty(this.get('changedFiles'));
     }.property('changedFiles.[]'),
 
+    noChanges: function() {
+        return !this.get('hasChanges');
+    }.property('hasChanges'),
+
     addSpider: function(siteUrl) {
         if (this.get('addingNewSpider')) {
             return;

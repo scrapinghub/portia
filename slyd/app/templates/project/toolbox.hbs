@@ -37,16 +37,15 @@
 		</div>
 	</div>
 	{{#if capabilities.version_control}}
-		{{#if controller.hasChanges}}
-			<div class="button-spacer">
-				{{#bs-button clicked="publishProject" size="sm" icon="fa fa-icon fa-upload" type="primary"}}
-					Publish changes
-				{{/bs-button}}
-				{{#bs-button clicked="discardChanges" size="sm" icon="fa fa-icon fa-trash" type="danger"}}
-					Discard Changes
-				{{/bs-button}}
-			</div>
-		{{else}}
+		<div class="button-spacer">
+			{{#bs-button clicked="publishProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.noChanges}}
+				Publish changes
+			{{/bs-button}}
+			{{#bs-button clicked="discardChanges" size="sm" icon="fa fa-icon fa-trash" type="danger" disabled=controller.noChanges}}
+				Discard Changes
+			{{/bs-button}}
+		</div>
+		{{#unless controller.hasChanges}}
 			{{#if capabilities.deploy_projects}}
 				<div style="text-align:center;font-size:1.1em;margin-top:10px">
 					{{#bs-button clicked="deployProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.isDeploying}}
@@ -54,7 +53,7 @@
 					{{/bs-button}}
 				</div>
 			{{/if}}
-		{{/if}}
+		{{/unless}}
 	{{/if}}
 </div>
 
