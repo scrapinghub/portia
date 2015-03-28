@@ -55,6 +55,8 @@ export default BaseController.extend({
         if (siteUrl.indexOf('http') !== 0) {
             siteUrl = 'http://' + siteUrl;
         }
+        var documentView = this.get('documentView');
+        documentView.showLoading();
         this.get('slyd').fetchDocument(siteUrl)
             .then(function(data) {
                 if (data.error) {
@@ -81,6 +83,9 @@ export default BaseController.extend({
                       'plugins': {}
                     });
                 this.get('slyd').saveSpider(spider).then(function() {
+                        documentView.hideLoading();
+                        data.url = siteUrl;
+                        this.set('project_models.newSpiderPage', data);
                         this.editSpider(newSpiderName, siteUrl);
                     }.bind(this), function(err) {
                         this.showHTTPAlert('Error Adding Spider', err);
