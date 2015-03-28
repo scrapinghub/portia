@@ -613,7 +613,7 @@ export default BaseController.extend({
         if (newSpiderPage) {
             Ember.run.next(this, function() {
                 this.set('documentView.sprites', new SpriteStore());
-                this.renderPage(newSpiderPage.url, newSpiderPage, null);
+                this.renderPage(newSpiderPage.url, newSpiderPage, true);
                 this.set('newSpiderPage', null);
                 Ember.run.once(this, 'saveSpider');
             });
