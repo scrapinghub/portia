@@ -9,12 +9,6 @@ script:
   - git restore-mtime
   - docker/compile-assets.sh
 
-publish:
-  docker:
-    docker_host: $DOCKER_HOST
-    image_name: i.scrapinghub.com/portia/$CI_BRANCH
-    keep_build: true
-
 cache:
   - /home/ubuntu/.npm
   - /home/ubuntu/.cache

@@ -12,7 +12,6 @@ from slybot.validation.schema import get_schema_validator
 
 
 DASH_API_URL = None
-ALLOW_DELETE = False
 DEFAULT_DASH_ITEM = '''{
   "default": {
     "fields": {
@@ -29,11 +28,6 @@ REQUIRED_FILES = {'extractors.json', 'items.json', 'project.json'}
 def set_dash_url(dash_url):
     global DASH_API_URL
     DASH_API_URL = dash_url
-
-
-def set_allow_delete(allow_delete):
-    global ALLOW_DELETE
-    ALLOW_DELETE = allow_delete
 
 
 class DeployError(Exception):
@@ -223,7 +217,7 @@ def _archive_project(name, buff, files=None, repo=None, branch='master',
                         _add_to_archive(archive, file_path,
                                         json.dumps(as_json), now)
             except TypeError:
-                if not ALLOW_DELETE or ignore_deleted:
+                if ignore_deleted:
                     continue
                 # Handle Deleted Spiders
                 file_contents = repo.file_contents_for_branch(file_path,
