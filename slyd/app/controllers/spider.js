@@ -230,6 +230,33 @@ export default BaseController.extend({
         this.set('extractedItems', extractedItems);
     },
 
+    renderPage: function(url, data, skipHistory, callback) {
+        data.url = url;
+        if (!skipHistory) {
+            this.get('browseHistory').pushObject(data.fp);
+        }
+        this.get('documentView').displayDocument(data.page,
+            function(){
+                this.get('documentView').reset();
+                this.get('documentView').config({ mode: 'browse',
+                                  listener: this,
+                                  dataSource: this });
+                this.set('documentView.sprites', this.get('spriteStore'));
+                this.set('loadedPageFp', data.fp);
+                this.set('followedLinks', data.links);
+                this.get('pageMap')[data.fp] = data;
+                this.updateExtractedItems(data.items || []);
+                Ember.run.later(function() {
+                    this.get('documentView').redrawNow();
+                }.bind(this), 100);
+                if (callback) {
+                    callback();
+                }
+            }.bind(this)
+        );
+
+    },
+
     fetchPage: function(url, parentFp, skipHistory) {
         this.set('loadedPageFp', null);
         var documentView = this.get('documentView');
@@ -244,28 +271,10 @@ export default BaseController.extend({
                     return;
                 }
                 if (!data.error && data.response.status === 200) {
-                    data.url = url;
-                    if (!skipHistory) {
-                        this.get('browseHistory').pushObject(data.fp);
-                    }
-                    documentView.displayDocument(data.page,
-                        function(){
-                            documentView.hideLoading();
-                            this.get('pendingFetches').removeObject(fetchId);
-                            this.get('documentView').reset();
-                            this.get('documentView').config({ mode: 'browse',
-                                              listener: this,
-                                              dataSource: this });
-                            this.set('documentView.sprites', this.get('spriteStore'));
-                            this.set('loadedPageFp', data.fp);
-                            this.set('followedLinks', data.links);
-                            this.get('pageMap')[data.fp] = data;
-                            this.updateExtractedItems(data.items || []);
-                            Ember.run.later(function() {
-                                this.get('documentView').redrawNow();
-                            }.bind(this), 100);
-                        }.bind(this)
-                    );
+                    this.renderPage(url, data, skipHistory, function() {
+                        this.get('pendingFetches').removeObject(fetchId);
+                        documentView.hideLoading();
+                    }.bind(this));
                 } else {
                     documentView.hideLoading();
                     this.get('pendingFetches').removeObject(fetchId);
@@ -600,12 +609,12 @@ export default BaseController.extend({
                                           listener: this,
                                           dataSource: this });
         this.get('documentView').showSpider();
-        var newSpiderSite = this.get('controllers.application.siteWizard');
-        if (newSpiderSite) {
+        var newSpiderPage = this.get('project_models.newSpiderPage');
+        if (newSpiderPage) {
             Ember.run.next(this, function() {
-                this.addStartUrls(newSpiderSite);
-                this.fetchPage(this.get('model.start_urls')[0]);
-                this.set('controllers.application.siteWizard', null);
+                this.set('documentView.sprites', new SpriteStore());
+                this.renderPage(newSpiderPage.url, newSpiderPage, true);
+                this.set('newSpiderPage', null);
                 Ember.run.once(this, 'saveSpider');
             });
         }
