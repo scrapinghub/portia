@@ -23,7 +23,7 @@ from scrapy.http import Request
 from scrapy.item import DictItem
 from scrapy import signals, log
 from scrapy.crawler import Crawler
-from scrapy.http import HtmlResponse
+from scrapy.http import HtmlResponse, XmlResponse
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
 try:
@@ -108,10 +108,11 @@ class Fetch(BotResource):
         if response.status != 200:
             finish_request(request, response=result_response)
             return
-        if not isinstance(response, HtmlResponse):
+        if not isinstance(response, (HtmlResponse, XmlResponse)):
             msg = "Non-html response: %s" % response.headers.get(
                 'content-type', 'no content type')
             finish_request(request, error=msg)
+            return
         try:
             params = response.meta['slyd_request_params']
             original_html = extract_html(response)
