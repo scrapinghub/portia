@@ -59,33 +59,49 @@ export default BaseController.extend({
         if (siteUrl.indexOf('http') !== 0) {
             siteUrl = 'http://' + siteUrl;
         }
-        // XXX: Deal with incorrect model
-        var names = this.get('model');
-        if (names instanceof Object) {
-            names = [];
-        }
-        var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, names);
-        this.set('controllers.application.siteWizard', null);
-        var spider = Spider.create(
-            { 'id': this.shortGuid(),
-              'name': newSpiderName,
-              'start_urls': [siteUrl],
-              'follow_patterns': [],
-              'exclude_patterns': [],
-              'init_requests': [],
-              'templates': [],
-              'template_names': [],
-              'plugins': {}
-            });
-        this.set('spiderPage', null);
-        return this.get('slyd').saveSpider(spider).then(function() {
+        var documentView = this.get('documentView');
+        documentView.showLoading();
+        this.get('slyd').fetchDocument(siteUrl)
+            .then(function(data) {
+                if (data.error) {
+                    var title = "Spider wasn't created";
+                    var content = "Server responded with error: <br><br>" + data.error;
+                    this.showAlert(title, content);
+                    return;
+                }
+                // XXX: Deal with incorrect model
+                var names = this.get('model');
+                if (names instanceof Object) {
+                    names = [];
+                }
+                var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, names);
+                var spider = Spider.create(
+                    { 'id': this.shortGuid(),
+                      'name': newSpiderName,
+                      'start_urls': [siteUrl],
+                      'follow_patterns': [],
+                      'exclude_patterns': [],
+                      'init_requests': [],
+                      'templates': [],
+                      'template_names': [],
+                      'plugins': {}
+                    });
+                this.get('slyd').saveSpider(spider).then(function() {
+                        documentView.hideLoading();
+                        data.url = siteUrl;
+                        this.set('project_models.newSpiderPage', data);
+                        this.editSpider(newSpiderName, siteUrl);
+                    }.bind(this), function(err) {
+                        this.showHTTPAlert('Error Adding Spider', err);
+                    }.bind(this)
+                );
+
+            }.bind(this))
+            .finally(function() {
+                this.set('controllers.application.siteWizard', null);
+                this.set('spiderPage', null);
                 this.set('addingNewSpider', false);
-                this.editSpider(newSpiderName, siteUrl);
-            }.bind(this), function(err) {
-                this.set('addingNewSpider', false);
-                this.showHTTPAlert('Error Adding Spider', err);
-            }.bind(this)
-        );
+            }.bind(this));
     },
 
     editSpider: function(spiderName, siteUrl) {
