@@ -57,7 +57,8 @@ class ProjectsManager(GitProjectsManager):
                                   branch=branch)
             if repoman is not None and data['status'] != 'error':
                 repoman.publish_branch(branch, force=True)
-                repoman.kill_branch(branch)
+                if branch != 'master':
+                    repoman.kill_branch(branch)
         except DeployError as e:
             data = e.data
         return data
