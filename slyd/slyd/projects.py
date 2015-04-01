@@ -87,7 +87,6 @@ class ProjectsManagerResource(SlydJsonResource):
             retval = self.handle_project_command(project_manager, obj)
             modifier = project_manager.modify_request.get(obj.get('cmd'))
             if modifier:
-                print(obj)
                 request = modifier(request, obj, retval)
             if isinstance(retval, Deferred):
                 retval.addCallbacks(finish_request, request_failed)
