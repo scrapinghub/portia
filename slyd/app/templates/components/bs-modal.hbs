@@ -14,7 +14,7 @@
         </div>
         <div {{bind-attr class=":modal-footer fullSizeButtons:modal-footer-full"}}>
             {{#each btn in footerButtons}}
-                {{#bs-button clicked=btn.clicked type=btn.type size=btn.size targetObjectBinding="view.targetObject"}}
+                {{#bs-button clicked=btn.clicked type=btn.type size=btn.size targetObject=targetObject}}
                     {{btn.label}}
                 {{/bs-button}}
             {{/each}}

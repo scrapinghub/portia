@@ -17,25 +17,25 @@ export default Ember.Mixin.create({
     },
 
     full_box_style: function() {
-        return 'max-height: ' + this.full_box_height + 'px;';
+        return ('max-height: ' + this.full_box_height + 'px;').htmlSafe();
     }.property('full_box_height'),
 
     mid_box_style: function() {
-        return 'max-height: ' + this.mid_box_height + 'px;';
+        return ('max-height: ' + this.mid_box_height + 'px;').htmlSafe();
     }.property('mid_box_height'),
 
 
     small_box_style: function() {
-        return 'max-height: ' + this.small_box_height + 'px;';
+        return ('max-height: ' + this.small_box_height + 'px;').htmlSafe();
     }.property('small_box_height'),
 
 
     tiny_box_style: function() {
-        return 'max-height: ' + this.tiny_box_height + 'px;';
+        return ('max-height: ' + this.tiny_box_height + 'px;').htmlSafe();
     }.property('tiny_box_height'),
 
     ex_tiny_box_style: function() {
-        return 'max-height: ' + this.ex_tiny_box_height + 'px;';
+        return ('max-height: ' + this.ex_tiny_box_height + 'px;').htmlSafe();
     }.property('ex_tiny_box_height'),
 
     bindResizeEvent: function() {
