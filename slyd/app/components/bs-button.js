@@ -10,9 +10,13 @@ export default Ember.Component.extend(Popover, {
   classNameBindings: ['class'],
   activeType: null,
   inactiveType: null,
+  processing: false,
 
   attributeBindings: ['disabled', 'title', 'width'],
-  iconClasses: Ember.computed.alias('icon'),
+
+  activeIcon: function() {
+    return this.get('processing') ? 'fa fa-icon fa-circle-o-notch spinner' : this.get('icon');
+  }.property('processing'),
 
   class: function() {
     var classes = ['btn', 'btn-' + this.getWithDefault('type', 'default')],

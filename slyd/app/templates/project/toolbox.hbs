@@ -38,7 +38,7 @@
 	</div>
 	{{#if capabilities.version_control}}
 		<div class="button-spacer">
-			{{#bs-button clicked="publishProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.noChanges}}
+			{{#bs-button clicked="publishProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.noChanges processing=controller.isPublishing}}
 				Publish changes
 			{{/bs-button}}
 			{{#bs-button clicked="discardChanges" size="sm" icon="fa fa-icon fa-trash" type="danger" disabled=controller.noChanges}}
@@ -48,7 +48,7 @@
 		{{#unless controller.hasChanges}}
 			{{#if capabilities.deploy_projects}}
 				<div style="text-align:center;font-size:1.1em;margin-top:10px">
-					{{#bs-button clicked="deployProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.isDeploying}}
+					{{#bs-button clicked="deployProject" size="sm" icon="fa fa-icon fa-upload" type="primary" disabled=controller.isDeploying processing=controller.isDeploying}}
 						Deploy
 					{{/bs-button}}
 				</div>
