@@ -228,8 +228,9 @@ def _archive_project(name, buff, files=None, repo=None, branch='master',
                 _add_to_archive(archive, file_path, json.dumps(file_info), now)
         else:
             file_contents = repo.file_contents_for_branch(file_path, branch)
-            _add_to_archive(archive, file_path, file_contents, now)
-        seen_files.add(file_path)
+            if file_contents:
+                _add_to_archive(archive, file_path, file_contents, now)
+                seen_files.add(file_path)
 
     # Add empty placeholders for missing files required by dash
     for file_path in {'extractors.json', 'items.json'} - seen_files:

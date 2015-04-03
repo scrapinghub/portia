@@ -72,12 +72,12 @@ class ProjectsManager(GitProjectsManager):
                            'error': 'Project "%s" not found' % name})
 
     def _render_file(self, request, request_data, body):
-        if isinstance(body, basestring):
+        try:
             error = json.loads(body)
             if error.get('status', 0) == 404:
                 request.setResponseCode(404)
                 request.setHeader('Content-Type', 'application/json')
-        else:
+        except (TypeError, ValueError):
             try:
                 id = request_data.get('args')[0]
                 name = self._get_project_name(id).encode('utf-8')
@@ -86,7 +86,8 @@ class ProjectsManager(GitProjectsManager):
             request.setHeader('Content-Type', 'application/zip')
             request.setHeader('Content-Disposition', 'attachment; '
                               'filename="%s.zip"' % name)
-        return request
+            request.setHeader('Content-Length', len(body))
+        return body
 
     def _get_project_name(self, id):
         if not id:
