@@ -84,6 +84,7 @@ class ProjectsManagerResource(SlydJsonResource):
             return failure
 
         project_manager = self.spec_manager.project_manager(request.auth_info)
+        project_manager.request = request
         obj = self.read_json(request)
         try:
             retval = self.handle_project_command(project_manager, obj)

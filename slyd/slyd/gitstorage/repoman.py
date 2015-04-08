@@ -102,6 +102,10 @@ class Repoman(object):
         self.commit = sentinel
         self.tree = sentinel
 
+    @property
+    def refs(self):
+        return self._repo.refs
+
     def create_branch(self, branch_name, at_revision=None):
         '''Creates a new branch.
 
