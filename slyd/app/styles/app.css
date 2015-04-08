@@ -723,3 +723,16 @@ input[type="checkbox"].offset-checkbox {
 .inactive-crumb {
     max-width: 25%;
 }
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner {
+    animation: rotation 2s infinite;
+}

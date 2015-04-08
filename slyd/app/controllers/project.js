@@ -29,6 +29,7 @@ export default BaseController.extend({
     changedFiles: [],
 
     isDeploying: false,
+    isPublishing: false,
 
     filteredSpiders: function() {
         var a = Ember.A(),
@@ -48,8 +49,8 @@ export default BaseController.extend({
     }.property('changedFiles.[]'),
 
     noChanges: function() {
-        return !this.get('hasChanges');
-    }.property('hasChanges'),
+        return this.get('isPublishing') || this.get('isDeploying') || !this.get('hasChanges');
+    }.property('hasChanges', 'isDeploying', 'isPublishing'),
 
     addSpider: function(siteUrl) {
         if (this.get('addingNewSpider')) {
@@ -176,7 +177,9 @@ export default BaseController.extend({
         },
 
         publishProject: function() {
+            this.set('isPublishing', true);
             this.publishProject().then(function(result) {
+                this.set('isPublishing', false);
                 if (result['status'] === 'ok') {
                     if (!Ember.isEmpty(result['schedule_url'])) {
                         this.showConfirm('Schedule Project',
@@ -194,7 +197,9 @@ export default BaseController.extend({
                 } else {
                     this.showAlert('Publish Error', result['message']);
                 }
-            }.bind(this));
+            }.bind(this), function() {
+                this.set('isPublishing', false);
+            });
         },
 
         deployProject: function() {
@@ -219,9 +224,12 @@ export default BaseController.extend({
         },
 
         discardChanges: function() {
+            this.set('isPublishing', true);
             this.discardChanges().then(function(){
+                this.set('isPublishing', false);
                 this.transitionToRoute('projects');
             }.bind(this), function(err) {
+                this.set('isPublishing', false);
                 this.showHTTPAlert('Revert Error', err);
             }.bind(this));
         },
