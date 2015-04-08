@@ -19,6 +19,7 @@ class SlybotSpiderManager(object):
     def __init__(self, datadir, spider_cls=None, settings=None, **kwargs):
         self.spider_cls = load_object(spider_cls) if spider_cls else IblSpider
         self._specs = open_project_from_dir(datadir)
+        settings = settings.copy()
         settings.set('PLUGINS', load_plugins(settings))
         self.settings = settings
 
