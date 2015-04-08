@@ -20,6 +20,7 @@ class SlybotSpiderManager(object):
         self.spider_cls = load_object(spider_cls) if spider_cls else IblSpider
         self._specs = open_project_from_dir(datadir)
         settings = settings.copy()
+        settings.frozen = False
         settings.set('PLUGINS', load_plugins(settings))
         self.settings = settings
 
@@ -40,8 +41,8 @@ class SlybotSpiderManager(object):
         extractors = self._specs["extractors"]
 
         class SlybotSpider(self.spider_cls):
-            def __init__(self, **kwargs):
-                super(SlybotSpider, self).__init__(spider_name, spec, items,
+            def __init__(self_, **kwargs):
+                super(SlybotSpider, self_).__init__(spider_name, spec, items,
                                                    extractors, self.settings,
                                                    **kwargs)
 
