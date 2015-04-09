@@ -64,14 +64,25 @@ class ProjectsManager(GitProjectsManager):
         return data
 
     @run_in_thread
-    def download_project(self, name, spiders=[]):
+    def download_project(self, name, spiders=None):
+        if spiders is None:
+            spiders = []
         if (self.auth_info.get('staff') or
                 name in self.auth_info['authorized_projects']):
+            request = self.request
+            etag_str = (request.getHeader('If-None-Match') or '').split(',')
+            etags = [etag.strip() for etag in etag_str]
+            last_commit = self._open_repo(name).refs['refs/heads/master']
+            if self._gen_etag(last_commit, spiders) in etags:
+                return ''
             return package_project(name, spiders).read()
         return json.dumps({'status': 404,
                            'error': 'Project "%s" not found' % name})
 
     def _render_file(self, request, request_data, body):
+        if len(body) == 0:
+            request.setResponseCode(304)
+            return ''
         try:
             error = json.loads(body)
             if error.get('status', 0) == 404:
@@ -83,6 +94,10 @@ class ProjectsManager(GitProjectsManager):
                 name = self._get_project_name(id).encode('utf-8')
             except (TypeError, ValueError, IndexError):
                 name = 'archive'
+            last_commit = self._open_repo(id).refs['refs/heads/master']
+            args = request_data.get('args')
+            spiders = args[1] if len(args) > 1 else []
+            request.setHeader('ETag', self._gen_etag(last_commit, spiders))
             request.setHeader('Content-Type', 'application/zip')
             request.setHeader('Content-Disposition', 'attachment; '
                               'filename="%s.zip"' % name)
@@ -98,3 +113,6 @@ class ProjectsManager(GitProjectsManager):
                     return project['name']
         else:
             return id
+
+    def _gen_etag(self, commit, spiders):
+        return '.'.join([commit] + spiders or []).encode('utf-8')

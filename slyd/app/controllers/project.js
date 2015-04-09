@@ -72,10 +72,11 @@ export default BaseController.extend({
                 }
                 // XXX: Deal with incorrect model
                 var names = this.get('model');
-                if (names instanceof Object) {
+                if (!(names instanceof Array)) {
                     names = [];
                 }
-                var newSpiderName = this.getUnusedName(URI.parse(siteUrl).hostname, names);
+                var baseName = URI.parse(siteUrl).hostname.replace(/^www[0-9]?\./, '');
+                var newSpiderName = this.getUnusedName(baseName, names);
                 var spider = Spider.create(
                     { 'id': this.shortGuid(),
                       'name': newSpiderName,
