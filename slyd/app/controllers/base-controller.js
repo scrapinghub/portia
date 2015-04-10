@@ -7,6 +7,14 @@ import ToolboxStateMixin from '../mixins/toolbox-state-mixin';
 
 export default Ember.Controller.extend(ApplicationUtils, SizeListener, ModalHandler, ControllerUtils, ToolboxStateMixin, {
     documentView: null,
+    breadCrumb: null,
+    breadCrumbs: null,
+
+    setBreadCrumbs: function() {
+        this.set('breadCrumb', null);
+        this.set('breadCrumbs', null);
+    }.on('init'),
+
     extractionTypes: ['text', 'number', 'image', 'price', 'raw html',
                       'safe html', 'geopoint', 'url'],
 

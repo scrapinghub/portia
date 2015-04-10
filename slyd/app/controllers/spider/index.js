@@ -22,11 +22,10 @@ export default SpiderController.extend({
         }
     },
 
-    breadCrumb: null,
+    _breadCrumb: null,
 
     willEnter: function() {
         this._super();
-    
         if (this.url) {
             this.fetchQueryUrl();
         }

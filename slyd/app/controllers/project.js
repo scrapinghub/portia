@@ -6,13 +6,16 @@ import Spider from '../models/spider';
 
 export default BaseController.extend({
     fixedToolbox: true,
-    breadCrumbs: function() {
+    breadCrumb: null,
+    _breadCrumbs: function() {
+        this.setBreadCrumb();
+    }.observes('slyd.project'),
+
+    setBreadCrumb: function() {
         var project_id = this.get('slyd.project');
-        return [{
-            label: this._project_name(project_id),
-            model: project_id
-        }];
-    }.property('slyd.project'),
+        this.set('breadCrumb', this._project_name(project_id));
+        this.set('breadCrumbModel', project_id);
+    },
 
     needs: ['application', 'project'],
 
@@ -241,6 +244,7 @@ export default BaseController.extend({
     },
 
     willEnter: function() {
+        this.setBreadCrumb();
         this.get('documentView').reset();
         this.get('documentView').showSpider();
         if (this.get('controllers.application.siteWizard')) {

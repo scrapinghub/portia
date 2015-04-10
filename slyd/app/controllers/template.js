@@ -10,9 +10,9 @@ export default BaseController.extend({
 
     needs: ['application', 'projects', 'project', 'spider', 'spider/index'],
 
-    breadCrumb: function() {
-        return this.get('model.name');
-    }.property('model.name'),
+    _breadCrumb: function() {
+        this.set('breadCrumb', this.get('model.name'));
+    }.observes('model.name'),
 
     annotations: [],
 
