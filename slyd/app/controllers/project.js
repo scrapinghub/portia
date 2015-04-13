@@ -65,9 +65,11 @@ export default BaseController.extend({
         }
         var documentView = this.get('documentView');
         documentView.showLoading();
+        this.set('slyd.spider', null);
         this.get('slyd').fetchDocument(siteUrl)
             .then(function(data) {
                 if (data.error) {
+                    documentView.hideLoading();
                     var title = "Spider wasn't created";
                     var content = "Server responded with error: <br><br>" + data.error;
                     this.showAlert(title, content);
@@ -95,8 +97,9 @@ export default BaseController.extend({
                         documentView.hideLoading();
                         data.url = siteUrl;
                         this.set('project_models.newSpiderPage', data);
-                        this.editSpider(newSpiderName, siteUrl);
+                        this.editSpider(newSpiderName);
                     }.bind(this), function(err) {
+                        documentView.hideLoading();
                         this.showHTTPAlert('Error Adding Spider', err);
                     }.bind(this)
                 );
@@ -114,9 +117,9 @@ export default BaseController.extend({
             var query = {};
             if (siteUrl) {
                 query['queryParams'] = {url: siteUrl};
-                this.transitionToRoute('spider', spider, query);
+                this.transitionToRoute('spider.index', spider, query);
             } else {
-                this.transitionToRoute('spider', spider);
+                this.transitionToRoute('spider.index', spider);
             }
         }.bind(this), function(err) {
             this.showHTTPAlert('Error Editing Spider', err);
@@ -160,11 +163,8 @@ export default BaseController.extend({
                             this.showHTTPAlert('Delete Error', err);
                         }.bind(this)
                     );
-                }.bind(this),
-                function() {},
-                'danger',
-                'Yes, Delete'
-            ).bind(this);
+                }.bind(this), null, 'danger', 'Yes, Delete'
+            );
         },
 
         rename: function(newName, oldName) {

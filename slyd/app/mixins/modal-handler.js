@@ -4,33 +4,33 @@ export default Ember.Mixin.create({
 
     actions: {
         modalConfirmed: function() {
-            var name = this._modalName;
-            this._modalName = null;
-            if (typeof(this._modalOKCallback) === 'function') {
-                this._modalOKCallback();
+            var name = this.get('_modalName');
+            this.set('_modalName', null);
+            if (typeof(this.get('_modalOKCallback')) === 'function') {
+                this.get('_modalOKCallback')();
             }
             if (name) {
-                return this.ModalManager.get(name).destroy();
+                return this.ModalManager.get('name').destroy();
             }
         },
 
         modalCancelled: function() {
             var name = this._modalName;
             this._modalName = null;
-            if (typeof(this._modalCancelCallback) === 'function') {
-                this._modalCancelCallback();
+            if (typeof(this.get('_modalCancelCallback')) === 'function') {
+                this.get('_modalCancelCallback')();
             }
             if (name) {
-                return this.ModalManager.get(name).destroy();
+                return this.ModalManager.get('name').destroy();
             }
         },
     },
 
     showAlert: function(title, content, okCallback) {
-        if (this._modalName) {
+        if (this.get('_modalName')) {
             return;
         }
-        this._modalName = 'AlertModal';
+        this.set('_modalName', 'AlertModal');
         var buttons =  [
             Ember.Object.create({dismiss: 'modal', type: "primary", label: "OK", clicked: 'modalConfirmed', size: 'sm'})
         ];
@@ -44,7 +44,7 @@ export default Ember.Mixin.create({
     },
 
     showConfirm: function(title, content, okCallback, cancelCallback, button_class, button_text) {
-        if (this._modalName) { // There is already a modal visible
+        if (this.get('_modalName')) { // There is already a modal visible
             return;
         }
         if (button_class === undefined) {
@@ -53,7 +53,7 @@ export default Ember.Mixin.create({
         if (button_text === undefined) {
             button_text = 'OK';
         }
-        this._modalName = 'ConfirmModal';
+        this.set('_modalName', 'ConfirmModal');
         var buttons =  [
             Ember.Object.create({dismiss: 'modal', type: "default", label: "Cancel", clicked: 'modalCancelled', size: 'sm'}),
             Ember.Object.create({dismiss: 'modal', type: button_class, label: button_text, clicked: 'modalConfirmed', size: 'sm'})
@@ -62,8 +62,8 @@ export default Ember.Mixin.create({
     },
 
     showModal: function(title, content, buttons, okCallback, cancelCallback) {
-        this._modalOKCallback = okCallback;
-        this._modalCancelCallback = cancelCallback;
-        return this.ModalManager.open(this._modalName, title, buttons, content, this);
+        this.set('_modalOKCallback', okCallback);
+        this.set('_modalCancelCallback', cancelCallback);
+        return this.ModalManager.open(this.get('_modalName'), title, buttons, content, this);
     },
 });
