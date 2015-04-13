@@ -1,3 +1,4 @@
+import base64
 import requests
 
 from datetime import datetime, timedelta
@@ -40,7 +41,7 @@ class ApiKeyChecker(object):
             'visual_project_type': 'portia'
         }
         headers = {
-            'Authorization': 'Token %s' % apikey
+            'Authorization': 'Basic %s:' % base64.b64encode(apikey)
         }
         projects = requests.get(self.dash_api_url + 'v2/projects',
                                 params=payload, headers=headers)
