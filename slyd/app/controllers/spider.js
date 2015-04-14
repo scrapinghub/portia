@@ -550,6 +550,7 @@ export default BaseController.extend({
             if (newName.trim() === oldName.trim()) {
                 return;
             }
+            this.set('spiderName', oldName);
             this.set('model.name', newName);
             this.get('slyd').renameSpider(oldName, newName).then(
                 function() {
@@ -611,13 +612,6 @@ export default BaseController.extend({
         this.get('documentView').showSpider();
         this.set('spiderName', this.get('model.name'));
         this.set('documentView.sprites', new SpriteStore());
-        var newSpiderPage = this.get('project_models.newSpiderPage');
-        if (newSpiderPage) {
-            this.renderPage(newSpiderPage.url, newSpiderPage, true);
-            this.set('newSpiderPage', null);
-            Ember.run.once(this, 'saveSpider');
-            return;
-        }
         if (this.get('autoloadTemplate')) {
             Ember.run.next(this, function() {
                 this.saveSpider().then(function() {

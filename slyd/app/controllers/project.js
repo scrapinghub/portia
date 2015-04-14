@@ -95,9 +95,8 @@ export default BaseController.extend({
                     });
                 this.get('slyd').saveSpider(spider).then(function() {
                         documentView.hideLoading();
-                        data.url = siteUrl;
-                        this.set('project_models.newSpiderPage', data);
-                        this.editSpider(newSpiderName);
+                        this.set('slyd.spider', newSpiderName);
+                        this.editSpider(newSpiderName, siteUrl);
                     }.bind(this), function(err) {
                         documentView.hideLoading();
                         this.showHTTPAlert('Error Adding Spider', err);
@@ -117,9 +116,9 @@ export default BaseController.extend({
             var query = {};
             if (siteUrl) {
                 query['queryParams'] = {url: siteUrl};
-                this.transitionToRoute('spider.index', spider, query);
+                this.transitionToRoute('spider', spider, query);
             } else {
-                this.transitionToRoute('spider.index', spider);
+                this.transitionToRoute('spider', spider);
             }
         }.bind(this), function(err) {
             this.showHTTPAlert('Error Editing Spider', err);
