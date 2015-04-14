@@ -1,5 +1,9 @@
 import ProjectController from '../project';
 
 export default ProjectController.extend({
-    breadCrumbs: null
+    breadCrumb: null,
+    _breadCrumb: null,
+    setBreadCrumb: function() {
+
+    }
 });

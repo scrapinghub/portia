@@ -15,18 +15,15 @@ export default SpiderController.extend({
     fetchQueryUrl: function() {
         var url = this.url;
         this.set('url', null);
-        if (!this.get('project_models.newSpiderPage')) {
-            Ember.run.next(this, function() {
-                this.fetchPage(url, null, true);
-            });
-        }
+        Ember.run.next(this, function() {
+            this.fetchPage(url, null, true);
+        });
     },
 
-    breadCrumb: null,
+    _breadCrumb: null,
 
     willEnter: function() {
         this._super();
-    
         if (this.url) {
             this.fetchQueryUrl();
         }

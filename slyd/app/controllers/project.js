@@ -6,13 +6,16 @@ import Spider from '../models/spider';
 
 export default BaseController.extend({
     fixedToolbox: true,
-    breadCrumbs: function() {
+    breadCrumb: null,
+    _breadCrumbs: function() {
+        this.setBreadCrumb();
+    }.observes('slyd.project'),
+
+    setBreadCrumb: function() {
         var project_id = this.get('slyd.project');
-        return [{
-            label: this._project_name(project_id),
-            model: project_id
-        }];
-    }.property('slyd.project'),
+        this.set('breadCrumb', this._project_name(project_id));
+        this.set('breadCrumbModel', project_id);
+    },
 
     needs: ['application', 'project'],
 
@@ -62,9 +65,11 @@ export default BaseController.extend({
         }
         var documentView = this.get('documentView');
         documentView.showLoading();
+        this.set('slyd.spider', null);
         this.get('slyd').fetchDocument(siteUrl)
             .then(function(data) {
                 if (data.error) {
+                    documentView.hideLoading();
                     var title = "Spider wasn't created";
                     var content = "Server responded with error: <br><br>" + data.error;
                     this.showAlert(title, content);
@@ -90,10 +95,10 @@ export default BaseController.extend({
                     });
                 this.get('slyd').saveSpider(spider).then(function() {
                         documentView.hideLoading();
-                        data.url = siteUrl;
-                        this.set('project_models.newSpiderPage', data);
+                        this.set('slyd.spider', newSpiderName);
                         this.editSpider(newSpiderName, siteUrl);
                     }.bind(this), function(err) {
+                        documentView.hideLoading();
                         this.showHTTPAlert('Error Adding Spider', err);
                     }.bind(this)
                 );
@@ -157,11 +162,8 @@ export default BaseController.extend({
                             this.showHTTPAlert('Delete Error', err);
                         }.bind(this)
                     );
-                }.bind(this),
-                function() {},
-                'danger',
-                'Yes, Delete'
-            ).bind(this);
+                }.bind(this), null, 'danger', 'Yes, Delete'
+            );
         },
 
         rename: function(newName, oldName) {
@@ -241,6 +243,7 @@ export default BaseController.extend({
     },
 
     willEnter: function() {
+        this.setBreadCrumb();
         this.get('documentView').reset();
         this.get('documentView').showSpider();
         if (this.get('controllers.application.siteWizard')) {

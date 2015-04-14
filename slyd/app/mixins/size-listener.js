@@ -6,6 +6,8 @@ export default Ember.Mixin.create({
     small_box_height: 400,
     tiny_box_height: 300,
     ex_tiny_box_height: 200,
+    breadCrumb: null,
+    breadCrumbs: null,
 
     handleResize: function() {
         Ember.$('.adjust-height').height(window.innerHeight - 38);

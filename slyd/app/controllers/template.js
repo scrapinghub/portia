@@ -10,9 +10,9 @@ export default BaseController.extend({
 
     needs: ['application', 'projects', 'project', 'spider', 'spider/index'],
 
-    breadCrumb: function() {
-        return this.get('model.name');
-    }.property('model.name'),
+    _breadCrumb: function() {
+        this.set('breadCrumb', this.get('model.name'));
+    }.observes('model.name'),
 
     annotations: [],
 
@@ -300,6 +300,7 @@ export default BaseController.extend({
             if (!saveFuture) {
                 return;
             }
+            this.set('templateName', oldName);
             this.set('model.name', newName);
             saveFuture.then(function() {
                 var templateNames = this.get('controllers.spider.model.template_names');
@@ -312,6 +313,7 @@ export default BaseController.extend({
                         this.replaceRoute('template', newName);
                     }.bind(this),
                     function() {
+                        this.set('model.name', this.get('templateName'));
                         this.showHTTPAlert('Save Error', 'The name ' + newName + ' is not a valid template name.');
                     }.bind(this)
                 );

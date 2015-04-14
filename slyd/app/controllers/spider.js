@@ -48,10 +48,10 @@ export default BaseController.extend({
         return this.get('model.start_urls').length < 1 && this.get('editAllStartUrlsAction') === 'editAllStartUrls';
     }.property('model.start_urls.@each'),
 
-    breadCrumb: function() {
+    _breadCrumb: function() {
         this.set('slyd.spider', this.get('model.name'));
-        return this.get('model.name');
-    }.property('model.name'),
+        this.set('breadCrumb', this.get('model.name'));
+    }.observes('model.name'),
 
     startUrlCount: function() {
         if (!Ember.isEmpty(this.get('model.start_urls'))) {
@@ -550,6 +550,7 @@ export default BaseController.extend({
             if (newName.trim() === oldName.trim()) {
                 return;
             }
+            this.set('spiderName', oldName);
             this.set('model.name', newName);
             this.get('slyd').renameSpider(oldName, newName).then(
                 function() {
@@ -609,15 +610,8 @@ export default BaseController.extend({
                                           listener: this,
                                           dataSource: this });
         this.get('documentView').showSpider();
-        var newSpiderPage = this.get('project_models.newSpiderPage');
-        if (newSpiderPage) {
-            Ember.run.next(this, function() {
-                this.set('documentView.sprites', new SpriteStore());
-                this.renderPage(newSpiderPage.url, newSpiderPage, true);
-                this.set('newSpiderPage', null);
-                Ember.run.once(this, 'saveSpider');
-            });
-        }
+        this.set('spiderName', this.get('model.name'));
+        this.set('documentView.sprites', new SpriteStore());
         if (this.get('autoloadTemplate')) {
             Ember.run.next(this, function() {
                 this.saveSpider().then(function() {
@@ -626,8 +620,6 @@ export default BaseController.extend({
                 }.bind(this));
             });
         }
-        this.set('spiderName', this.get('model.name'));
-        this.set('documentView.sprites', new SpriteStore());
     },
 
     willLeave: function() {
