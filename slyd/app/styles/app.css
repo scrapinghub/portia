@@ -635,7 +635,6 @@ a {
 }
 
 a:hover {
-    color: orange;
     text-decoration: underline;
 }
 
@@ -735,4 +734,19 @@ input[type="checkbox"].offset-checkbox {
 
 .spinner {
     animation: rotation 2s infinite;
+}
+
+#toolbox .panel-default > .panel-heading {
+    background-image: linear-gradient(to bottom, #888 0px, #8f8f8f 100%);
+    color: #EEE;
+    border-radius: 0px;
+}
+
+#toolbox .panel-group .panel, #toolbox .panel {
+    border-radius: 0px;
+}
+
+.btn-xs-size {
+    width: 23px;
+    height: 23px;
 }
