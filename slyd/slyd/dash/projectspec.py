@@ -1,4 +1,3 @@
-from slyd.gitstorage.repoman import Repoman
 from slyd.gitstorage.projectspec import GitProjectSpec
 from slyd.dash.dashclient import search_spider_names
 from slyd.errors import BadRequest

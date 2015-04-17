@@ -1,5 +1,5 @@
 import json
-from os.path import join
+from os.path import splitext, split, join, sep
 from functools import wraps
 
 from twisted.internet.threads import deferToThread
@@ -51,7 +51,36 @@ def retry_operation(retries=3, catches=(Exception,), seconds=0):
     return wrapper
 
 
-class GitProjectsManager(ProjectsManager):
+class GitProjectMixin(object):
+    def _project_name(self, name):
+        if name is None:
+            name = getattr(self, 'project_name')
+        return name
+
+    def _open_repo(self, name=None):
+        return Repoman.open_repo(self._project_name(name))
+
+    def _get_branch(self, repo=None, read_only=False):
+        if repo is None:
+            repo = self._open_repo()
+        if repo.has_branch(self.user):
+            return self.user
+        elif not read_only:
+            repo.create_branch(self.user, repo.get_branch('master'))
+            return self.user
+        else:
+            return 'master'
+
+    def list_spiders(self, name=None):
+        repoman = self._open_repo(self._project_name(name))
+        files = repoman.list_files_for_branch(self._get_branch(repoman,
+                                                               read_only=True))
+        return [splitext(split(f)[1])[0] for f in files
+                if f.startswith("spiders") and f.count(sep) == 1
+                and f.endswith(".json")]
+
+
+class GitProjectsManager(ProjectsManager, GitProjectMixin):
 
     @classmethod
     def setup(cls, storage_backend, location):
@@ -71,18 +100,6 @@ class GitProjectsManager(ProjectsManager):
             'changes': self.changed_files,
             'save': self.save_file,
         }
-
-    def _open_repo(self, name):
-        return Repoman.open_repo(name)
-
-    def _get_branch(self, repo, read_only=False):
-        if repo.has_branch(self.user):
-            return self.user
-        elif not read_only:
-            repo.create_branch(self.user, repo.get_branch('master'))
-            return self.user
-        else:
-            return 'master'
 
     def all_projects(self):
         return Repoman.list_repos()

@@ -1,30 +1,17 @@
 import json
-import os
-from os.path import splitext, split, join
+
+from os.path import join
 from .repoman import Repoman
 from slyd.projectspec import ProjectSpec
-from slyd.gitstorage.projects import retry_operation
+from slyd.gitstorage.projects import retry_operation, GitProjectMixin
 from slyd.errors import BadRequest
 
 
-class GitProjectSpec(ProjectSpec):
+class GitProjectSpec(GitProjectMixin, ProjectSpec):
 
     @classmethod
     def setup(cls, storage_backend, location, **kwargs):
         Repoman.setup(storage_backend, location)
-
-    def _open_repo(self):
-        return Repoman.open_repo(self.project_name)
-
-    def _get_branch(self, read_only=False):
-        repo = self._open_repo()
-        if repo.has_branch(self.user):
-            return self.user
-        elif not read_only:
-            repo.create_branch(self.user, repo.get_branch('master'))
-            return self.user
-        else:
-            return 'master'
 
     def _rfile_contents(self, resources):
         return self._open_repo().file_contents_for_branch(
@@ -32,13 +19,6 @@ class GitProjectSpec(ProjectSpec):
 
     def _rfile_name(self, *resources):
         return join(*resources) + '.json'
-
-    def list_spiders(self):
-        files = self._open_repo().list_files_for_branch(
-            self._get_branch(read_only=True))
-        return [splitext(split(f)[1])[0] for f in files
-                if f.startswith("spiders") and f.count(os.sep) == 1
-                and f.endswith(".json")]
 
     def rename_spider(self, from_name, to_name):
         if to_name == from_name:
