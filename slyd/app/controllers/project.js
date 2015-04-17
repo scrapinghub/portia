@@ -17,6 +17,18 @@ export default BaseController.extend({
         this.set('breadCrumbModel', project_id);
     },
 
+    additionalActions: [{
+            component: 'file-download',
+        }, {
+            modal: 'copy-spider',
+            text: 'Copy Spider',
+            title: 'Copy Spider to project'
+        }, {
+            text: 'Documentation',
+            url: 'http://doc.scrapinghub.com'
+        }
+    ],
+
     needs: ['application', 'project'],
 
     spiderPage: null,

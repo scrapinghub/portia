@@ -770,3 +770,7 @@ input[type="checkbox"].offset-checkbox {
     width: 23px;
     height: 23px;
 }
+
+.dropdown-menu a {
+    cursor: pointer;
+}

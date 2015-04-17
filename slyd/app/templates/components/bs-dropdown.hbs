@@ -1,0 +1,16 @@
+<button type="button" class="btn btn-default btn-xs dropdown-toggle {{toggle}}" {{action 'clicked'}}>
+    <i class="{{iconClasses}}"></i>
+</button>
+<ul class="dropdown-menu pull-right" role="menu">
+    <li>
+    {{#each actions as |_action|}}
+        {{#if _action.component}}
+            {{component _action.component clicked="close" actionData=_action}}
+        {{else if _action.modal}}
+            <a {{action "openModal" _action}} title="{{_action.title}}">{{_action.text}}</a>
+        {{else}}
+            <a href="{{_action.url}}" target="_blank" title="{{_action.title}}" {{action 'close' on="mouseUp"}}>{{_action.text}}</a>
+        {{/if}}
+    {{/each}}
+    </li>
+</ul>

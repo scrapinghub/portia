@@ -67,6 +67,8 @@ class ProjectsManager(GitProjectsManager):
     def download_project(self, name, spiders=None):
         if spiders is None:
             spiders = []
+        if spiders == '*':
+            spiders = self.list_spiders(name)
         if (self.auth_info.get('staff') or
                 name in self.auth_info['authorized_projects']):
             request = self.request

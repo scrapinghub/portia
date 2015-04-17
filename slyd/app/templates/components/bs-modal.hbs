@@ -10,14 +10,20 @@
             </h4>
         </div>
         <div class="modal-body">
-            {{{body}}}
+            {{#if component}}
+                {{component data=componentData}}
+            {{else}}
+                {{{body}}}
+            {{/if}}
         </div>
-        <div {{bind-attr class=":modal-footer fullSizeButtons:modal-footer-full"}}>
-            {{#each btn in footerButtons}}
-                {{#bs-button clicked=btn.clicked type=btn.type size=btn.size targetObject=targetObject}}
-                    {{btn.label}}
-                {{/bs-button}}
-            {{/each}}
-        </div>
+        {{#if footerButtons}}
+            <div {{bind-attr class=":modal-footer fullSizeButtons:modal-footer-full"}}>
+                {{#each btn in footerButtons}}
+                    {{#bs-button clicked=btn.clicked type=btn.type size=btn.size targetObject=targetObject}}
+                        {{btn.label}}
+                    {{/bs-button}}
+                {{/each}}
+            </div>
+        {{/if}}
     </div>
 </div>
