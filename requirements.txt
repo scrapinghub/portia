@@ -1,5 +1,5 @@
 # slybot reqs
-scrapy==0.24.4
+https://github.com/scrapy/scrapy/archive/4b11501eb5bcf12340851a288e9ab89d47793b0f.zip
 scrapely==0.12.0
 loginform==1.0
 lxml==3.4.1
