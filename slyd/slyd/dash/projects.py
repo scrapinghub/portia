@@ -2,8 +2,8 @@ import json
 
 from slyd.gitstorage.repoman import Repoman
 from slyd.gitstorage.projects import GitProjectsManager, run_in_thread
-from .dashclient import (import_project, package_project, deploy_project,
-                         set_dash_url, DeployError)
+from .dashclient import (import_project, deploy_project, set_dash_url,
+                         DeployError)
 
 
 class ProjectsManager(GitProjectsManager):
@@ -16,8 +16,6 @@ class ProjectsManager(GitProjectsManager):
     def __init__(self, *args, **kwargs):
         GitProjectsManager.__init__(self, *args, **kwargs)
         self.project_commands['deploy'] = self.deploy_project
-        self.project_commands['download'] = self.download_project
-        self.modify_request['download'] = self._render_file
 
     def list_projects(self):
         if 'projects_data' in self.auth_info:
@@ -63,46 +61,6 @@ class ProjectsManager(GitProjectsManager):
             data = e.data
         return data
 
-    @run_in_thread
-    def download_project(self, name, spiders=None):
-        if spiders is None:
-            spiders = []
-        if spiders == '*':
-            spiders = self.list_spiders(name)
-        if (self.auth_info.get('staff') or
-                name in self.auth_info['authorized_projects']):
-            request = self.request
-            etag_str = (request.getHeader('If-None-Match') or '').split(',')
-            etags = [etag.strip() for etag in etag_str]
-            if self._gen_etag({'args': [name, spiders]}) in etags:
-                return ''
-            return package_project(name, spiders).read()
-        return json.dumps({'status': 404,
-                           'error': 'Project "%s" not found' % name})
-
-    def _render_file(self, request, request_data, body):
-        if len(body) == 0:
-            request.setHeader('ETag', self._gen_etag(request_data))
-            request.setResponseCode(304)
-            return ''
-        try:
-            error = json.loads(body)
-            if error.get('status', 0) == 404:
-                request.setResponseCode(404)
-                request.setHeader('Content-Type', 'application/json')
-        except (TypeError, ValueError):
-            try:
-                id = request_data.get('args')[0]
-                name = self._get_project_name(id).encode('utf-8')
-            except (TypeError, ValueError, IndexError):
-                name = 'archive'
-            request.setHeader('ETag', self._gen_etag(request_data))
-            request.setHeader('Content-Type', 'application/zip')
-            request.setHeader('Content-Disposition', 'attachment; '
-                              'filename="%s.zip"' % name)
-            request.setHeader('Content-Length', len(body))
-        return body
-
     def _get_project_name(self, id):
         if not id:
             raise ValueError('Need id to find project Name')
@@ -112,10 +70,3 @@ class ProjectsManager(GitProjectsManager):
                     return project['name']
         else:
             return id
-
-    def _gen_etag(self, request_data):
-        args = request_data.get('args')
-        id = args[0]
-        last_commit = self._open_repo(id).refs['refs/heads/master']
-        spiders = args[1] if len(args) > 1 and args[1] else []
-        return (last_commit + '.' + '.'.join(spiders)).encode('utf-8')

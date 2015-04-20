@@ -54,9 +54,6 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
     def resource(self, *resources):
         return json.loads(self._rfile_contents(resources))
 
-    def writejson(self, outf, *resources):
-        outf.write(self._rfile_contents(resources))
-
     @retry_operation(catches=(KeyError,), seconds=0.5)
     def savejson(self, obj, resources):
         self._open_repo().save_file(self._rfile_name(*resources),
