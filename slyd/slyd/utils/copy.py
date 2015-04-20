@@ -23,7 +23,7 @@ class SpiderCopier(object):
     def _spider_path(self, spider):
         return 'spiders/%s.json' % spider
 
-    def copy(self, spiders, items=[]):
+    def copy(self, spiders, items=None):
         """
         Copies the provided spiders and items from the source project to the
         destination project. If spiders have name collisions the copied spider
@@ -36,6 +36,8 @@ class SpiderCopier(object):
                                by the provided spiders
         raises CopyError
         """
+        if items is None:
+            items = []
         spider_paths = set(self._spider_path(s) for s in spiders)
         self._check_missing(spider_paths)
         templates = self._load_templates(spiders)
@@ -52,6 +54,9 @@ class SpiderCopier(object):
         })
         return self._build_summary(spider_paths, renamed_spiders,
                                    renamed_items)
+
+    def _refresh_destination_files(self):
+        self.destination_files = set(self.list_files(self.destination))
 
     def _check_missing(self, spider_paths):
         """
@@ -76,7 +81,7 @@ class SpiderCopier(object):
         Handle renamed items during copy.
         """
         updated_templates = {}
-        for file_path, template in templates.itemitems():
+        for file_path, template in templates.iteritems():
             scrapes = template['scrapes']
             if scrapes in renamed_items:
                 template['scrapes'] = renamed_items[scrapes]
@@ -92,25 +97,26 @@ class SpiderCopier(object):
         return updated_templates
 
     def _load_spiders(self, spider_paths):
-        dest_files = self.destination_files
         spiders = {p: self.read_file(self.source, p) for p in spider_paths}
         renamed_spiders = {}
         for spider_path in spiders.keys():
-            if spider_path in dest_files:
-                moved_spider = self._rename(spider_path[8:-5], dest_files)
+            if spider_path in self.destination_files:
+                moved_spider = self._rename(spider_path[8:-5],
+                                            self.destination_files)
+                self._refresh_destination_files()
                 spiders[moved_spider] = spiders.pop(spider_path)
 
         return spiders, renamed_spiders
 
-    def _rename(self, name, dest_values, base='spiders/%s_%s%s'):
-        name = base % (name, 'copy', '')
+    def _rename(self, name, dest_values, base='spiders/%s_%s%s.json'):
+        new_name = base % (name, 'copy', '')
         start = 1
-        while name in dest_values:
-            name = base % (name, 'copy', start)
+        while new_name in dest_values:
+            new_name = base % (name, 'copy', start)
             start += 1
-        return name
+        return new_name
 
-    def _build_combined_items(self, templates):
+    def _build_combined_items(self, templates, items):
         """
         Compare items from both source and destination. Merge compatible files,
         copy files that exist in the source and not the destination,
@@ -119,7 +125,12 @@ class SpiderCopier(object):
         source_items = self.read_file(self.source, 'items.json')
         dest_items = self.read_file(self.destination, 'items.json')
         renamed_items = {}
-        for name, item in source_items:
+        copy_items = set(t['scrapes'] for t in templates if 'scrapes' in t)
+        for item in items:
+            copy_items.add(item)
+        for name, item in source_items.iteritems():
+            if name not in copy_items:
+                continue
             if name in dest_items:
                 new_name, item = self._merge_items(name, item,
                                                    dest_items[name],
@@ -136,11 +147,16 @@ class SpiderCopier(object):
         intersection = source_fields & dest_fields
         if intersection:
             for field in intersection:
-                s_field, d_field = source[field], dest[field]
+                s_field = source['fields'].get(field)
+                d_field = dest['fields'].get(field)
+                if s_field is None:
+                    continue
+                elif d_field is None and s_field['required']:
+                    return self._rename(name, existing, '%s_%s%s'), source
                 if any(s_field[p] != d_field[p] for p in ('required', 'type')):
                     return self._rename(name, existing, '%s_%s%s'), source
         for field in source_fields - dest_fields:
-            dest[field] = source[field]
+            dest['fields'][field] = source['fields'][field]
         return name, dest
 
     def _build_combined_extractors(self, templates):
@@ -165,25 +181,49 @@ class SpiderCopier(object):
         files_data = {}
         for path in data.keys():
             if path.endswith('.json'):
-                files_data[path] = json.dumps(data.pop(path))
+                files_data[path] = json.dumps(data.pop(path),
+                                              sort_keys=True, indent=4)
             else:
                 sub_directories = data.pop(path)
                 for path in sub_directories.keys():
-                    files_data[path] = json.dumps(sub_directories.pop(path))
+                    files_data[path] = json.dumps(sub_directories.pop(path),
+                                                  sort_keys=True, indent=4)
         self.save_files(self.destination, files_data)
 
     def read_file(self, location, filename):
-        with open(os.path.join(location, filename), 'r') as f:
+        raise NotImplementedError
+
+    def list_files(self, location):
+        raise NotImplementedError
+
+    def save_files(self, location, files):
+        raise NotImplementedError
+
+
+class FileSystemSpiderCopier(SpiderCopier):
+    def __init__(self, source, destination, base_dir='.'):
+        self.base_dir = os.path.join(base_dir, '')
+        super(FileSystemSpiderCopier, self).__init__(source, destination)
+
+    def read_file(self, location, filename):
+        with open(os.path.join(self.base_dir, location, filename), 'r') as f:
             return json.loads(f.read())
 
     def list_files(self, location):
-        return [os.path.join(dir[2:], filename)
-                for dir, _, files in os.walk('.') for filename in files
-                if filename.endswith('.json')]
+        file_paths = []
+        project_dir = os.path.join(self.base_dir, location)
+        for dir, _, files in os.walk(project_dir):
+            dir = dir.split(project_dir)[1]
+            dir = dir[1:] if dir.startswith(os.path.sep) else dir
+            for filename in files:
+                if filename.endswith('.json'):
+                    file_paths.append(os.path.join(dir, filename))
+        return file_paths
 
     def save_files(self, location, files):
         for filename, data in files.iteritems():
-            with open(os.path.join(location), 'w') as f:
+            file_path = os.path.join(self.base_dir, location, filename)
+            with open(file_path, 'w') as f:
                 f.write(data)
 
 
@@ -191,10 +231,7 @@ class GitSpiderCopier(SpiderCopier):
 
     def __init__(self, source, destination, branch):
         self.branch = branch
-        self.source = source
-        self.source_files = set(source.list_files_for_branch(branch))
-        self.destination = destination
-        self.destination_files = set(destination.list_files_for_branch(branch))
+        super(SpiderCopier, self).__init__(source, destination)
 
     def read_file(self, location, filename):
         return location.file_contents_for_branch(filename, self.branch)

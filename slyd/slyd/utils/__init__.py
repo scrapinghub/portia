@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from scrapely.htmlpage import HtmlPage, HtmlTag, HtmlTagType
 
+
 TAGID = u"data-tagid"
 GENERATEDTAGID = u"data-genid"
 OPEN_TAG = HtmlTagType.OPEN_TAG
