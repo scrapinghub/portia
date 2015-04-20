@@ -3,10 +3,9 @@ import requests
 import zipfile
 import json
 
-from collections import defaultdict
 from cStringIO import StringIO
-from datetime import datetime
-from slyd.gitstorage.repoman import Repoman, retry_operation
+from slyd.gitstorage.repoman import retry_operation, Repoman
+from slyd.utils.download import GitProjectArchiver
 
 from slybot.validation.schema import get_schema_validator
 
@@ -80,11 +79,19 @@ def import_project(name, apikey, repo):
 def deploy_project(name, apikey, changed_files=None, repo=None,
                    branch='master'):
     """Archive a GIT project and upload it to Dash."""
-    zbuff = StringIO()
+    if repo is None:
+        repo = Repoman.open_repo(name)
+    archiver = GitProjectArchiver(repo,
+                                  branch=branch,
+                                  ignore_deleted=False,
+                                  version=(0, 9),
+                                  required_files=REQUIRED_FILES)
+    spiders = None
     if changed_files is not None:
-        changed_files = list(set(changed_files) | REQUIRED_FILES)
-    _archive_project(name, zbuff, changed_files, repo, branch)
-    zbuff.reset()
+        spiders = {archiver._spider_name(name)
+                   for name in changed_files if name.startswith('spiders/')}
+    print(spiders)
+    zbuff = archiver.archive(spiders)
     payload = {'apikey': apikey, 'project': name}
     req = requests.post(
         DASH_API_URL + 'as/import.json?version=portia',
@@ -99,15 +106,6 @@ def deploy_project(name, apikey, changed_files=None, repo=None,
         }
     else:
         raise DeployError('Deploy to Dash failed: %s' % req.text)
-
-
-def package_project(name, spiders, repo=None, branch='master'):
-    zbuff = StringIO()
-    spider_paths = ['spiders/%s.json' % spider for spider in spiders]
-    files = list(set(spider_paths) | REQUIRED_FILES)
-    _archive_project(name, zbuff, files, repo, branch, ignore_deleted=True)
-    zbuff.reset()
-    return zbuff
 
 
 def search_spider_names(project, apikey, name=''):
@@ -133,96 +131,3 @@ def _download_project(name, apikey):
     payload = {'apikey': apikey, 'project': name, 'version': 'portia'}
     r = requests.get(DASH_API_URL + 'as/project-slybot.zip', params=payload)
     return r.content
-
-
-def _add_to_archive(archive, filename, contents, tstamp):
-    """Add a file to a zip archive."""
-    fileinfo = zipfile.ZipInfo(filename, tstamp)
-    fileinfo.external_attr = 0666 << 16L
-    archive.writestr(fileinfo, contents, zipfile.ZIP_DEFLATED)
-
-
-def _archive_project(name, buff, files=None, repo=None, branch='master',
-                     ignore_deleted=False):
-    """Archive a project stored in GIT into a zip file."""
-    if repo is None:
-        repo = Repoman.open_repo(name)
-    now = datetime.now().timetuple()[:6]
-    archive = zipfile.ZipFile(buff, "w", zipfile.ZIP_DEFLATED)
-    files_list = files if files is not None else \
-        repo.list_files_for_branch(branch)
-    all_files = files_list if files is None else \
-        repo.list_files_for_branch(branch)
-
-    template_paths = defaultdict(list)
-    for file_path in all_files:
-        split_file_path = file_path.split('/')
-        if len(split_file_path) > 2:
-            template_paths[split_file_path[1]].append(file_path)
-    extractors = json.loads(repo.file_contents_for_branch('extractors.json',
-                                                          branch) or '{}')
-
-    seen_files = set()
-    spiders = set()
-    for file_path in files_list:
-        if file_path.startswith('spiders'):
-            try:
-                parts = file_path.split("/")
-                if len(parts) >= 2:
-                    spider_name = parts[1]
-                    if spider_name.endswith('.json'):
-                        spider_name = spider_name[:-5]
-                    if spider_name not in spiders:
-                        # Load spider if necessary
-                        if len(parts) > 2:
-                            file_path = 'spiders/' + spider_name + '.json'
-                        file_contents = repo.file_contents_for_branch(
-                            file_path, branch)
-                        as_json = json.loads(file_contents)
-                        templates = []
-                        # Load all spider templates
-                        spider_templates = template_paths.get(spider_name, [])
-                        for template_path in spider_templates:
-                            seen_files.add(template_path)
-                            existing = {}
-                            # Ignore deleted templates
-                            try:
-                                templ_contents = repo.file_contents_for_branch(
-                                    template_path, branch)
-                            except (TypeError, ValueError):
-                                continue
-                            json_template = json.loads(templ_contents)
-                            # Validate extractors
-                            template_extractors = json_template.get(
-                                'extractors', {})
-                            for field, eids in template_extractors.items():
-                                existing[field] = [eid for eid in eids
-                                                   if eid in extractors]
-                            json_template['extractors'] = existing
-                            spider_name = parts[1]
-                            templates.append(json_template)
-                        spiders.add(spider_name)
-                        as_json.pop('template_names', None)
-                        as_json['templates'] = templates
-                        _add_to_archive(archive, file_path,
-                                        json.dumps(as_json), now)
-            except TypeError:
-                if ignore_deleted:
-                    continue
-                # Handle Deleted Spiders
-                file_contents = repo.file_contents_for_branch(file_path,
-                                                              'master')
-                file_info = {'deleted': True}
-                if file_contents:
-                    as_json = json.loads(file_contents)
-                _add_to_archive(archive, file_path, json.dumps(file_info), now)
-        else:
-            file_contents = repo.file_contents_for_branch(file_path, branch)
-            if file_contents:
-                _add_to_archive(archive, file_path, file_contents, now)
-                seen_files.add(file_path)
-
-    # Add empty placeholders for missing files required by dash
-    for file_path in {'extractors.json', 'items.json'} - seen_files:
-        _add_to_archive(archive, file_path, '{}', now)
-    archive.close()

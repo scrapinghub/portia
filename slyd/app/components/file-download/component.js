@@ -10,7 +10,7 @@ export default Ember.Component.extend({
                 type: 'POST',
                 url: '/projects',
                 data: JSON.stringify({'cmd': 'download',
-                                      'args': [this.get('slyd.project'), '*']}),
+                                      'args': [this.get('slyd.project'), '*', [0, 10]]}),
                 dataType: 'binary'
             }).then(function(blob) {
                 this.element.setAttribute('href', window.URL.createObjectURL(blob));
