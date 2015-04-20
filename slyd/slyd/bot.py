@@ -22,7 +22,7 @@ from twisted.web.server import NOT_DONE_YET
 from scrapy.http import Request
 from scrapy.item import DictItem
 from scrapy import signals, log
-from scrapy.crawler import Crawler
+from scrapy.crawler import CrawlerRunner
 from scrapy.http import HtmlResponse, XmlResponse
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
@@ -42,22 +42,19 @@ def create_bot_resource(spec_manager):
     return bot
 
 
+class SlydSpider(Spider):
+    name = 'slyd'
+
+
 class Bot(Resource):
-    spider = Spider('slyd')
+    spider = SlydSpider()
 
     def __init__(self, settings, spec_manager):
         # twisted base class is old-style so we cannot user super()
         Resource.__init__(self)
         self.spec_manager = spec_manager
         settings.set('PLUGINS', [p['bot'] for p in settings.get('PLUGINS')])
-        # initialize scrapy crawler
-        crawler = Crawler(settings)
-        crawler.configure()
-        crawler.signals.connect(self.keep_spider_alive, signals.spider_idle)
-        crawler.crawl(self.spider)
-        crawler.start()
-
-        self.crawler = crawler
+        self.runner = CrawlerRunner(settings)
         log.msg("bot initialized", level=log.DEBUG)
 
     def keep_spider_alive(self, spider):
@@ -65,7 +62,7 @@ class Bot(Resource):
 
     def stop(self):
         """Stop the crawler"""
-        self.crawler.stop()
+        self.runner.stop()
         log.msg("bot stopped", level=log.DEBUG)
 
 
@@ -93,7 +90,11 @@ class Fetch(BotResource):
             )
         )
         request = Request(**scrapy_request_kwargs)
-        self.bot.crawler.engine.schedule(request, self.bot.spider)
+        self.bot.runner.crawl(SlydSpider)
+        crawler = list(self.bot.runner.crawlers)[0]
+        crawler.signals.connect(self.bot.keep_spider_alive,
+                                signals.spider_idle)
+        crawler.engine.schedule(request, crawler.spider)
         return NOT_DONE_YET
 
     def _get_template_name(self, template_id, templates):
@@ -156,7 +157,7 @@ class Fetch(BotResource):
         try:
             spider_spec = pspec.resource('spiders', spider)
             spider_spec['templates'] = []
-            for template in spider_spec['template_names']:
+            for template in spider_spec.get('template_names', []):
                 try:
                     spider_spec['templates'].append(
                         pspec.resource('spiders', spider, template))
@@ -166,7 +167,7 @@ class Fetch(BotResource):
             items_spec = pspec.resource('items')
             extractors = pspec.resource('extractors')
             return (IblSpider(spider, spider_spec, items_spec, extractors,
-                              self.bot.crawler.settings, **kwargs),
+                              self.bot.runner.settings, **kwargs),
                     spider_spec['templates'])
         except IOError as ex:
             if ex.errno == errno.ENOENT:
