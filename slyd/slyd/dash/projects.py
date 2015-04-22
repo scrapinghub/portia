@@ -72,8 +72,7 @@ class ProjectsManager(GitProjectsManager):
             request = self.request
             etag_str = (request.getHeader('If-None-Match') or '').split(',')
             etags = [etag.strip() for etag in etag_str]
-            last_commit = self._open_repo(name).refs['refs/heads/master']
-            if self._gen_etag(last_commit, spiders) in etags:
+            if self._gen_etag({'args': [name, spiders]}) in etags:
                 return ''
             return package_project(name, spiders).read()
         return json.dumps({'status': 404,
@@ -81,6 +80,7 @@ class ProjectsManager(GitProjectsManager):
 
     def _render_file(self, request, request_data, body):
         if len(body) == 0:
+            request.setHeader('ETag', self._gen_etag(request_data))
             request.setResponseCode(304)
             return ''
         try:
@@ -94,10 +94,7 @@ class ProjectsManager(GitProjectsManager):
                 name = self._get_project_name(id).encode('utf-8')
             except (TypeError, ValueError, IndexError):
                 name = 'archive'
-            last_commit = self._open_repo(id).refs['refs/heads/master']
-            args = request_data.get('args')
-            spiders = args[1] if len(args) > 1 else []
-            request.setHeader('ETag', self._gen_etag(last_commit, spiders))
+            request.setHeader('ETag', self._gen_etag(request_data))
             request.setHeader('Content-Type', 'application/zip')
             request.setHeader('Content-Disposition', 'attachment; '
                               'filename="%s.zip"' % name)
@@ -114,5 +111,9 @@ class ProjectsManager(GitProjectsManager):
         else:
             return id
 
-    def _gen_etag(self, commit, spiders):
-        return '.'.join([commit] + spiders or []).encode('utf-8')
+    def _gen_etag(self, request_data):
+        args = request_data.get('args')
+        id = args[0]
+        last_commit = self._open_repo(id).refs['refs/heads/master']
+        spiders = args[1] if len(args) > 1 and args[1] else []
+        return (last_commit + '.' + '.'.join(spiders)).encode('utf-8')
