@@ -59,6 +59,10 @@ class SlybotSpiderManager(object):
     def list(self):
         return self._specs["spiders"].keys()
 
+    def find_by_request(self, request):
+        """Placeholder to meet SpiderManager interface"""
+        raise NotImplementedError()
+
 
 class ZipfileSlybotSpiderManager(SlybotSpiderManager):
 
