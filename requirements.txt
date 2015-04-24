@@ -3,6 +3,7 @@ https://github.com/scrapy/scrapy/archive/4b11501eb5bcf12340851a288e9ab89d47793b0
 scrapely==0.12.0
 loginform==1.0
 lxml==3.4.1
+https://github.com/scrapinghub/dateparser/archive/e2789d101ab2f64bd0f0976a33048a15fc03e3f7.zip
 
 # slyd
 twisted==14.0.2
