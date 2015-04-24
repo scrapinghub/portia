@@ -26,6 +26,7 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.http import HtmlResponse, XmlResponse
 from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
+from scrapy.utils.serialize import ScrapyJSONEncoder
 try:
     from scrapy.spider import Spider
 except ImportError:
@@ -182,7 +183,7 @@ class Fetch(BotResource):
 
 
 def finish_request(trequest, **resp_obj):
-    jdata = json.dumps(resp_obj)
+    jdata = json.dumps(resp_obj, cls=ScrapyJSONEncoder, sort_keys=True)
     trequest.setResponseCode(200)
     trequest.setHeader('Content-Type', 'application/json')
     trequest.setHeader('Content-Length', len(jdata))

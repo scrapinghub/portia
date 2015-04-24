@@ -16,7 +16,7 @@ export default Ember.Controller.extend(ApplicationUtils, SizeListener, ModalHand
     }.on('init'),
 
     extractionTypes: ['text', 'number', 'image', 'price', 'raw html',
-                      'safe html', 'geopoint', 'url'],
+                      'safe html', 'geopoint', 'url', 'date'],
 
     setDocumentView: function() {
         this.set('documentView', this.get('document.view'));
