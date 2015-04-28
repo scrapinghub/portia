@@ -595,18 +595,20 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
 
     makeAjaxCall: function(hash) {
         return ajax(hash).catch(function(reason) {
-            var method = hash.type,
-                title = 'Error processing ' + method + ' to ' + hash['url'];
+            var msg = 'Error processing ' + hash.type + ' to ' + hash.url;
             if (hash.data) {
-                title += '\nwith data ' + hash.data;
+                msg += '\nwith data ' + hash.data;
             }
-            var msg = '\n The server returned ' + reason['textStatus'] +
-                      '(' + reason['errorThrown'] + ')' + '\n' +
-                      reason['jqXHR'].responseText,
-                err = new Error(msg);
-            err.title = title;
+            msg += '\n\nThe server returned ' + reason.textStatus +
+                   '(' + reason.errorThrown + ')' + '\n\n' +
+                   reason.jqXHR.responseText;
+            var err = new Error(msg);
             err.name = 'HTTPError';
+            err.status = reason.jqXHR.status;
             err.reason = reason;
+            if (reason.jqXHR.getResponseHeader('Content-Type') === 'application/json') {
+                err.data = Ember.$.parseJSON(reason.jqXHR.responseText);
+            }
             throw err;
         });
     },
