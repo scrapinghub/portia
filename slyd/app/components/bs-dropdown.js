@@ -28,7 +28,8 @@ export default Ember.Component.extend(ModalHandler, {
         openModal: function(action) {
             this.set('isOpen', !this.get('isOpen'));
             this.set('_modalName', 'name');
-            this.showComponentModal(action.title, action.modal);
+            this.showComponentModal(action.title, action.modal, action,
+                action.okCallback, action.cancelCallback, action.button_class, action.button_text);
         },
 
         closeModal: function() {

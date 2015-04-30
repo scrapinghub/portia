@@ -44,9 +44,13 @@ export default Ember.Mixin.create({
         return this.showModal(title, content, null, null, buttons, okCallback, cancelCallback);
     },
 
-    showComponentModal: function(title, component, componentData) {
+    showComponentModal: function(title, component, componentData, okCallback, cancelCallback, button_class, button_text) {
         this.set('_modalName', 'ComponentModal');
-        this.showModal(title, null, component, componentData);
+        var buttons =  [
+            Ember.Object.create({dismiss: 'modal', type: "default", label: "Cancel", clicked: 'modalCancelled', size: 'sm'}),
+            Ember.Object.create({dismiss: 'modal', type: button_class, label: button_text, clicked: 'modalConfirmed', size: 'sm'})
+        ];
+        this.showModal(title, null, component, componentData, buttons, okCallback, cancelCallback);
     },
 
     showModal: function(title, content, component, componentData, buttons, okCallback, cancelCallback) {

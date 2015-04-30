@@ -17,17 +17,37 @@ export default BaseController.extend({
         this.set('breadCrumbModel', project_id);
     },
 
-    additionalActions: [{
-            component: 'file-download',
-        }, {
+    additionalActions: function() {
+        var copyAction = {
             modal: 'copy-spider',
             text: 'Copy Spider',
-            title: 'Copy Spider to project'
-        }, {
-            text: 'Documentation',
-            url: 'http://doc.scrapinghub.com'
-        }
-    ],
+            title: 'Copy Spider to project',
+            button_class: 'primary',
+            button_text: 'Copy',
+            okCallback: function() {
+                if (!copyAction.params.spiders.length && !copyAction.params.items.length) {
+                    return;
+                }
+                this.get('slyd').copySpider(
+                    this.get('slyd.project'),
+                    copyAction.params.destinationProject,
+                    copyAction.params.spiders,
+                    copyAction.params.items
+                );
+            }.bind(this)
+        };
+
+        return [
+            {
+                component: 'file-download'
+            },
+            copyAction,
+            {
+                text: 'Documentation',
+                url: 'http://doc.scrapinghub.com'
+            }
+        ];
+    }.property(),
 
     needs: ['application', 'project'],
 
