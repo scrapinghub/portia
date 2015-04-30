@@ -1,0 +1,7 @@
+<button type="button" class="close" aria-label="Close" {{action "close" target="view"}}>
+    <span aria-hidden="true">&times;</span>
+</button>
+{{#if view.content.title}}
+    <h4>{{view.content.title}}</h4>
+{{/if}}
+<p>{{view.content.message}}</p>

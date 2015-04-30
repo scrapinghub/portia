@@ -581,6 +581,26 @@ ul.breadcrumbs {
     margin: 1px 0;
 }
 
+.notifications {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px;
+}
+
+.notification.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.notification > h4 {
+    margin-bottom: 10px;
+}
+
 .arrow-left {
     width: 0;
     height: 0;
