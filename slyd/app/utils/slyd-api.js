@@ -338,6 +338,33 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
     /**
     @public
 
+    Copies existing spiders and/or items.
+
+    @method copySpider
+    @for this
+    @param {String} [srcProjectId] The id of the project to copy from.
+    @param {String} [dstProjectId] The id of the project to copy to.
+    @param {Array} [spiderNames] An array of {String} names of the spiders to copy.
+    @param {Array} [itemNames]  An array of {String} names of the items to copy.
+    @return {Promise} a promise that fulfills when the server responds.
+    */
+    copySpider: function(srcProjectId, dstProjectId, spiderNames, itemNames) {
+        var hash = {};
+        hash.type = 'POST';
+        hash.dataType = 'text';
+        hash.url = this.getApiUrl();
+        hash.data = JSON.stringify({cmd: 'copy', args: [
+            srcProjectId,
+            dstProjectId,
+            spiderNames,
+            itemNames
+        ]});
+        return this.makeAjaxCall(hash);
+    },
+
+    /**
+    @public
+
     Deletes an existing template.
 
     @method deleteTemplate

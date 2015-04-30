@@ -729,6 +729,14 @@ input[type="checkbox"].offset-checkbox {
     margin-top: 1px;
 }
 
+.checkbox label {
+    line-height: 20px;
+}
+
+.checkbox input.offset-checkbox {
+    margin-top: 4px;
+}
+
 .crumbs {
     overflow: hidden;
     text-overflow: ellipsis;

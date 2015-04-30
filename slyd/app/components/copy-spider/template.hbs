@@ -1,1 +1,30 @@
-{{yield}}
+<div class="form-group">
+    <label for="targetProject">Destination Project</label>
+    {{view "select" content=projects optionValuePath="content.id" optionLabelPath="content.name" value=destinationProject id="targetProject" class="form-control"}}
+</div>
+
+<div class="row">
+    <div class="form-group col-md-6">
+        <label for="targetProject">Spiders</label>
+        {{#each spiders}}
+            <div class="checkbox">
+                <label>
+                    {{check-box action='selectSpider' value=this}}
+                    {{this}}
+                </label>
+            </div>
+        {{/each}}
+    </div>
+
+    <div class="form-group col-md-6">
+        <label for="targetProject">Items</label>
+        {{#each items}}
+            <div class="checkbox">
+                <label>
+                    {{check-box action='selectItem' value=this}}
+                    {{this}}
+                </label>
+            </div>
+        {{/each}}
+    </div>
+</div>
