@@ -253,7 +253,7 @@ export default BaseController.extend({
         if (!skipHistory) {
             this.get('browseHistory').pushObject(data.fp);
         }
-        this.get('documentView').displayDocument(data.page,
+        this.get('documentView').displayDocument(data,
             function(){
                 this.get('documentView').reset();
                 this.get('documentView').config({ mode: 'browse',
@@ -282,7 +282,7 @@ export default BaseController.extend({
         var fetchId = this.guid();
         this.get('pendingFetches').pushObject(fetchId);
         this.set('documentView.sprites', new SpriteStore());
-        this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp, baseurl).
+        this.get('documentView').fetchDocument(url, this.get('model.name'), parentFp).
             then(function(data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
@@ -309,7 +309,7 @@ export default BaseController.extend({
     displayPage: function(fp) {
         this.set('loadedPageFp', null);
         var documentView = this.get('documentView');
-        documentView.displayDocument(this.get('pageMap')[fp].page,
+        documentView.displayDocument(this.get('pageMap')[fp],
             function(){
                 this.get('documentView').reset();
                 this.get('documentView').config({ mode: 'browse',
@@ -432,7 +432,7 @@ export default BaseController.extend({
         if (this.get('testing') && urls.length) {
             var fetchId = this.guid();
             this.get('pendingFetches').pushObject(fetchId);
-            this.get('slyd').fetchDocument(urls[0], this.get('model.name')).then(
+            this.get('documentView').fetchDocument(urls[0], this.get('model.name')).then(
                 function(data) {
                     if (this.get('pendingFetches').indexOf(fetchId) !== -1) {
                         this.get('pendingFetches').removeObject(fetchId);

@@ -5,6 +5,9 @@
 
 """
 import re
+
+from urlparse import urljoin
+
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response
 from slybot.baseurl import insert_base_url
@@ -57,7 +60,7 @@ def extract_html(response):
     return htmlpage_from_response(response).body
 
 
-def descriptify(doc):
+def descriptify(doc, base=None):
     """Clean JavaScript in a html source string.
     """
     parsed = parse_html(doc)
@@ -66,29 +69,31 @@ def descriptify(doc):
     for element in parsed:
         if isinstance(element, HtmlTag):
             if not inserted_comment and element.tag == "script" and element.tag_type == HtmlTagType.OPEN_TAG:
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
+                newdoc.append('<script>')
                 inserted_comment = True
-            elif element.tag == "script" and element.tag_type == HtmlTagType.CLOSE_TAG:
+            elif element.tag in ("script", "noscript") and element.tag_type == HtmlTagType.CLOSE_TAG:
                 if inserted_comment:
                     inserted_comment = False
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
+                newdoc.append('</%s>' % element.tag)
             elif element.tag == "noscript":
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
+                newdoc.append('<noscript>')
+                inserted_comment = True
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events
                     if key in INTRINSIC_EVENT_ATTRIBUTES:
                         element.attributes[key] = ""
                     # Rewrite javascript URIs
-                    elif key in URI_ATTRIBUTES and val is not None and "javascript:" in _deentitize_unicode(val):
-                        element.attributes[key] = "about:blank"
-                    else:
-                        continue
+                    elif key in URI_ATTRIBUTES and val is not None:
+                            if "javascript:" in _deentitize_unicode(val):
+                                element.attributes[key] = "about:blank"
+                            elif base:
+                                element.attributes[key] = urljoin(base, val)
                 newdoc.append(serialize_tag(element))
         else:
             text = doc[element.start:element.end]
             if inserted_comment and text.strip() and not (text.startswith("<!--") and text.endswith("-->")):
-                newdoc.append(_AS_COMMENT_BEGIN + text + _AS_COMMENT_END)
+                newdoc.append('<!-- Removed by portia -->')
             else:
                 newdoc.append(text)
 

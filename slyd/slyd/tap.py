@@ -47,6 +47,9 @@ def create_root(config, settings_module):
     from slyd.bot import create_bot_resource
     from slyd.projects import create_projects_manager_resource
 
+    from slyd.splash.ferry import (FerryServerProtocol, FerryServerFactory,
+                                   create_ferry_resource)
+
     root = Resource()
     static = Resource()
     for file_name in listdir(config['docroot']):
@@ -79,6 +82,14 @@ def create_root(config, settings_module):
     spec = create_project_resource(spec_manager)
     projects.putChild('spec', spec)
 
+    # add websockets for communicating with splash
+    factory = FerryServerFactory("ws://127.0.0.1:%s" % config['port'],
+                                 debug=False)
+    factory.protocol = FerryServerProtocol
+    factory.setProtocolOptions(allowHixie76=True)
+    websocket = create_ferry_resource(spec_manager, factory)
+    root.putChild("ws", websocket)
+
     auth_manager = AuthManager(settings)
     return auth_manager.protectResource(root)
 
@@ -87,4 +98,4 @@ def makeService(config):
     import slyd.settings
     root = create_root(config, slyd.settings)
     site = Site(root, logFormatter=debugLogFormatter)
-    return TCPServer(config['port'], site)
+    return site

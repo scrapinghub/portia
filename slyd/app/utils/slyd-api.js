@@ -15,6 +15,10 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
     getApiUrl: function() {
         return (config.SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
     },
+
+    getRootUrl: function() {
+        return config.SLYD_URL || window.location.protocol + '//' + window.location.host;
+    },
     /**
     @public
 

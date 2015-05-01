@@ -463,7 +463,7 @@ export default BaseController.extend({
         if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
             return;
         }
-        this.get('documentView').displayDocument(this.get('model.annotated_body'),
+        this.get('documentView').displayDocument({page: this.get('model.annotated_body'), fp: this.get('model.fp')},
         function() {
             if (!this.get('model.plugins')) {
                 this.set('model.plugins', Ember.Object.create({
