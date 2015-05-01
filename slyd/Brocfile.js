@@ -27,6 +27,7 @@ app.import('bower_components/canvasloader/js/heartcode-canvasloader-min.js');
 app.import('vendor/uri.js');
 app.import('vendor/bootstrap.min.js');
 app.import('vendor/jquery.binarytransport.js');
+app.import('vendor/virtual-dom-utils.js');
 
 app.import('bower_components/bootstrap/dist/css/bootstrap.min.css');
 app.import('bower_components/bootstrap/dist/css/bootstrap-theme.min.css');

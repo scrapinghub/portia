@@ -1,16 +1,22 @@
 FROM scrapinghub/base:12.04
 
-RUN apt-get update -qq &&\
-    apt-get install -qy python-software-properties nginx
+RUN echo deb http://nginx.org/packages/ubuntu/ precise nginx > /etc/apt/sources.list.d/nginx.list && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
 
-# nodejs
-RUN apt-add-repository ppa:chris-lea/node.js &&\
-    apt-get update -qq &&\
-    apt-get install -qy nodejs
+RUN apt-get update && \
+    apt-get -y install python-software-properties nginx
+
+# Install splash requirements
+ADD docker/splash.sh /splash.sh
+RUN /splash.sh
 
 # Install python stuff.
 ADD requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt
+RUN apt-get install -y python-dev && \
+    pip install --no-cache-dir -r /requirements.txt && \
+    apt-get remove -y --purge python-dev && \
+    apt-get clean -y && \
+    apt-get autoremove -y
 
 EXPOSE 9001
 
@@ -22,4 +28,4 @@ RUN pip install -e /app/slybot
 
 WORKDIR /app/slyd
 # TODO(dangra): fix handling of nginx service, it won't be restarted in case if crashed.
-CMD service nginx start; twistd --pidfile=/tmp/twistd.pid -n slyd -p 9002
+CMD service nginx start; bin/slyd

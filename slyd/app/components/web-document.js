@@ -290,6 +290,7 @@ export default Ember.Component.extend({
     installEventHandlersForBrowsing: function() {
         this.uninstallEventHandlers();
         this.getIframe().bind('click', this.clickHandlerBrowse.bind(this));
+        this.getIframe().bind('scroll', this.scrollHandlerBrowse.bind(this));
     },
 
     installEventHandlersForSelecting: function() {
