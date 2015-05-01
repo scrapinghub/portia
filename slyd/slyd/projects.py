@@ -185,7 +185,7 @@ class ProjectsManager(object):
 
     def copy_data(self, source, destination, spiders, items):
         copier = FileSystemSpiderCopier(source, destination, self.projectsdir)
-        return copier.copy(spiders, items)
+        return json.dumps(copier.copy(spiders, items))
 
     def download_project(self, name, spiders=None, version=None):
         archiver = FileSystemProjectArchiver(name, base_dir=self.projectsdir)

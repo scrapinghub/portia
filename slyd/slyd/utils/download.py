@@ -95,7 +95,7 @@ class ProjectArchiver(object):
             file_path, data, added = self._add_legacy_spider(file_path,
                                                              templates,
                                                              extractors)
-        if data.get('deleted'):
+        if data is not None and data.get('deleted'):
             return self._deleted_spider(file_path, data, templates)
 
         spider_content = json.dumps(data, sort_keys=True, indent=4)

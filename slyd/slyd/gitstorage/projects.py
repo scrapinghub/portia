@@ -175,11 +175,11 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
             sort_keys=True, indent=4), self._get_branch(repoman))
 
     def copy_data(self, source, destination, spiders, items):
-        branch = self._get_branch()
         source = self._open_repo(source)
+        branch = self._get_branch(source)
         destination = self._open_repo(destination)
         copier = GitSpiderCopier(source, destination, branch)
-        return copier.copy(spiders, items)
+        return json.dumps(copier.copy(spiders, items))
 
     @run_in_thread
     def download_project(self, name, spiders=None, version=None):

@@ -87,11 +87,10 @@ class SpiderCopier(object):
                 template['scrapes'] = renamed_items[scrapes]
 
             spider = file_path.split('/')[1]
-            spider_path = self._spider_path(spider)
-            if spider_path in renamed_spiders:
+            if spider in renamed_spiders:
                 template_name = file_path.split('/')[-1]
-                spider = renamed_spiders[spider_path][8:-5]
-                file_path = os.path.join(('spiders', spider, template_name))
+                spider = renamed_spiders[spider]
+                file_path = os.path.join('spiders', spider, template_name)
             updated_templates[file_path] = template
 
         return updated_templates
@@ -101,10 +100,13 @@ class SpiderCopier(object):
         renamed_spiders = {}
         for spider_path in spiders.keys():
             if spider_path in self.destination_files:
-                moved_spider = self._rename(spider_path[8:-5],
+                spider_name = spider_path[8:-5]
+                moved_spider = self._rename(spider_name,
                                             self.destination_files)
                 self._refresh_destination_files()
                 spiders[moved_spider] = spiders.pop(spider_path)
+                if spider_name != moved_spider:
+                    renamed_spiders[spider_name] = moved_spider[8:-5]
 
         return spiders, renamed_spiders
 
@@ -125,7 +127,8 @@ class SpiderCopier(object):
         source_items = self.read_file(self.source, 'items.json')
         dest_items = self.read_file(self.destination, 'items.json')
         renamed_items = {}
-        copy_items = set(t['scrapes'] for t in templates if 'scrapes' in t)
+        copy_items = set(t['scrapes'] for t in templates.values()
+                         if 'scrapes' in t)
         for item in items:
             copy_items.add(item)
         for name, item in source_items.iteritems():
@@ -176,16 +179,34 @@ class SpiderCopier(object):
         """
         Build a summary of copied spiders and items
         """
+        spider_text = '", "'.join(sp[8:-5] for sp in spider_paths)
+        message = ('Summary:<br>The following spiders were copied: "%s"<br>' %
+                   spider_text)
+        if (renamed_spiders):
+            spider_renames = ', '.join(('%s -> %s' % (f, t)
+                                        for f, t in renamed_spiders.items()))
+            message = '%s<br>These spiders were renamed (from, to): %s' % (
+                message, spider_renames)
+        if renamed_items:
+            item_renames = ', '.join(('%s -> %s' % (f, t)
+                                      for f, t in renamed_items.items()))
+            message = '%s<br>These items were renamed (from, to): %s' % (
+                message, item_renames)
+        return {'message': message.encode('utf-8')}
 
     def _save_data(self, data):
         files_data = {}
         for path in data.keys():
+            if isinstance(path, unicode):
+                path = path.encode('utf-8')
             if path.endswith('.json'):
                 files_data[path] = json.dumps(data.pop(path),
                                               sort_keys=True, indent=4)
             else:
                 sub_directories = data.pop(path)
                 for path in sub_directories.keys():
+                    if isinstance(path, unicode):
+                        path = path.encode('utf-8')
                     files_data[path] = json.dumps(sub_directories.pop(path),
                                                   sort_keys=True, indent=4)
         self.save_files(self.destination, files_data)
@@ -231,13 +252,20 @@ class GitSpiderCopier(SpiderCopier):
 
     def __init__(self, source, destination, branch):
         self.branch = branch
-        super(SpiderCopier, self).__init__(source, destination)
+        super(GitSpiderCopier, self).__init__(source, destination)
 
     def read_file(self, location, filename):
-        return location.file_contents_for_branch(filename, self.branch)
+        f = location.file_contents_for_branch(filename, self.branch)
+        if f:
+            return json.loads(f)
+        else:
+            return {}
 
     def list_files(self, location):
-        return location.list_files_for_branch(self.branch)
+        try:
+            return location.list_files_for_branch(self.branch)
+        except KeyError:
+            return location.list_files_for_branch('master')
 
     def save_files(self, location, files):
         return location.save_files(files, self.branch)
