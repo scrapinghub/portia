@@ -3,7 +3,7 @@ from os.path import join
 from twisted.web.resource import NoResource, ErrorPage
 from twisted.internet.defer import Deferred
 from twisted.web.server import NOT_DONE_YET
-from .errors import BaseError
+from .errors import BaseError, BadRequest
 from .resource import SlydJsonResource
 from .projecttemplates import templates
 from .errors import BaseHTTPError
@@ -46,23 +46,24 @@ class ProjectsManagerResource(SlydJsonResource):
         dispatch_func = projects_manager.project_commands.get(command)
         if dispatch_func is None:
             self.bad_request(
-                "unrecognised cmd arg %s, available commands: %s" %
+                "Unrecognised command %s, available commands: %s." %
                 (command, ', '.join(projects_manager.project_commands.keys())))
         args = command_spec.get('args', [])
         try:
             retval = dispatch_func(*args)
         except TypeError:
-            self.bad_request("incorrect args for %s" % command)
+            self.bad_request("Incorrect arguments for command %s." % command)
         except OSError as ex:
             if ex.errno == errno.ENOENT:
-                self.error(404, "Not Found", "No such resource")
+                self.not_found()
             elif ex.errno == errno.EEXIST or ex.errno == errno.ENOTEMPTY:
-                self.error(400, "Bad Request",
-                           "A project with that name already exists")
+                self.bad_request("A project with that name already exists.")
             raise
         except BaseError as ex:
             self.error(ex.status, ex.title, ex.body)
-        return retval or ''
+        else:
+            return retval or ''
+        return ''
 
     def render_GET(self, request):
         project_manager = self.spec_manager.project_manager(request.auth_info)
@@ -175,4 +176,4 @@ class ProjectsManager(object):
 
     def validate_project_name(self, name):
         if not allowed_project_name(name):
-            self.error(400, 'Bad Request', 'invalid project name %s' % name)
+            raise BadRequest('Bad Request', 'Invalid project name %s.' % name)

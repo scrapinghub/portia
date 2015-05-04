@@ -99,26 +99,17 @@ export default BaseController.extend({
                         this.set('currentFileName', null);
                         if (Ember.isEmpty(this.get('conflictedFileNames'))) {
                             this.get('slyd').publishProject(this.get('slyd.project'), true);
-                            this.showAlert('Save Successful', this.messages.get('conflicts_solved'));
+                            this.showSuccessNotification(this.messages.get('conflicts_solved'));
                             this.transitionToRoute('projects');
                         } else {
                             this.displayConflictedFile(this.get('conflictedFileNames')[0]);
                         }
-                    }.bind(this),
-                    function(err) {
-                        this.showHTTPAlert('Conflict Resolution Error', err);
                     }.bind(this)
-                ).then(function() { }, function(err) {
-                    this.showHTTPAlert('Save Error', err);
-                }.bind(this));
+                );
         },
 
         publish: function() {
-            this.get('slyd').publishProject(this.get('slyd.project'), true).then(
-                function() { }, function(err) {
-                    this.showHTTPAlert('Publish Error', err);
-                }.bind(this)
-            );
+            this.get('slyd').publishProject(this.get('slyd.project'), true);
         },
     },
 
