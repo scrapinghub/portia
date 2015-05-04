@@ -210,16 +210,6 @@ export default Ember.Component.extend({
     },
 
     /**
-        Displays an error message as the content of the iframe.
-    */
-    showError: function(error) {
-        error = '<div style="color:red;font-size:1.2em;padding:15px">' + error + '</div>';
-        Ember.run.schedule('afterRender', this, function() {
-            this.setIframeContent(error);
-        });
-    },
-
-    /**
         Displays the spider image place holder as the content of the
         iframe.
     */

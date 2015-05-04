@@ -100,7 +100,8 @@ class GitProjectsManager(ProjectsManager):
             Repoman.create_repo(name).save_files(project_files, 'master')
         except NameError:
             raise BadRequest("Bad Request",
-                             "Project already exists with that name")
+                             'A project already exists with the name "%s".'
+                             % name)
 
     def remove_project(self, name):
         Repoman.delete_repo(name)

@@ -17,8 +17,9 @@ import json
 import errno
 
 from functools import partial
+from twisted.web.http import RESPONSES
 from twisted.web.resource import Resource
-from twisted.web.server import NOT_DONE_YET
+from twisted.web.server import failure, NOT_DONE_YET
 from scrapy.http import Request
 from scrapy.item import DictItem
 from scrapy import signals, log
@@ -107,11 +108,17 @@ class Fetch(BotResource):
         result_response = dict(status=response.status,
                                headers=response.headers.to_string())
         if response.status != 200:
-            finish_request(request, response=result_response)
+            msg = "The request to the web-server was not successful. " \
+                  "The server returned: %d %s" % (
+                      response.status,
+                      RESPONSES[response.status])
+            finish_request(request, error=msg, response=result_response)
             return
         if not isinstance(response, (HtmlResponse, XmlResponse)):
-            msg = "Non-html response: %s" % response.headers.get(
-                'content-type', 'no content type')
+            msg = "The request to the web-server was not successful. " \
+                  "The web-server returned a non-html response: %s" % \
+                  response.headers.get(
+                      'content-type', 'no content type')
             finish_request(request, error=msg)
             return
         try:
@@ -144,10 +151,8 @@ class Fetch(BotResource):
                 result['items'] = items
                 result['links'] = links
             finish_request(request, **result)
-        except Exception as ex:
-            log.err(ex)
-            finish_request(request, response=result_response,
-                           error="unexpected internal error: %s" % ex)
+        except Exception:
+            request.processingFailed(failure.Failure())
 
     def create_spider(self, project, auth_info, params, **kwargs):
         spider = params.get('spider')
@@ -176,8 +181,10 @@ class Fetch(BotResource):
                 raise
 
     def fetch_errback(self, twisted_request, failure):
-        msg = "unexpected error response: %s" % failure
-        log.msg(msg, level=log.ERROR)
+        msg = "The request to the web-server failed. " \
+              "The crawler engine returned an error: %s" \
+              % failure.getErrorMessage()
+        log.err(failure)
         finish_request(twisted_request, error=msg)
 
 
