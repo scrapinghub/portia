@@ -12,7 +12,7 @@ export default WebDocument.extend(ApplicationUtils, {
 
     connect: function() {
         Ember.run.schedule('afterRender', function() {
-            var ws = new WebSocket(this.get('slyd').getRootUrl().replace(/https?:\/\//, 'ws://') + '/ws');
+            var ws = new WebSocket(this.get('slyd').getRootUrl().replace(/https?:\/\//, 'ws://') + '/ws/');
             ws.onopen = function(e) {
                 console.log('<Opened Websocket>');
                 setInterval(function() {
