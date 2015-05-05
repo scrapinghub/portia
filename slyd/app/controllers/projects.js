@@ -22,8 +22,6 @@ export default BaseController.extend({
         this.get('slyd').editProject(projectName, revision).then(function() {
             this.set('slyd.project', projectName);
             this.transitionToRoute('project', { id: projectName });
-        }.bind(this), function(err) {
-            this.showHTTPAlert('Error Opening project "' + projectName + '"', err);
         }.bind(this));
     },
 
@@ -63,9 +61,6 @@ export default BaseController.extend({
                                     }
                                 }
                             }));
-                        }.bind(this),
-                        function(err) {
-                            this.showHTTPAlert('Delete Error', err);
                         }.bind(this)
                     );
                 }.bind(this),
@@ -92,17 +87,15 @@ export default BaseController.extend({
                     Ember.RSVP.all([itemsPromise, extractorsPromise]).then(function() {
                         this.get('model').pushObject({id: newProjectName, name: newProjectName});
                         this.transitionToRoute('project', { id: newProjectName });
-                    }.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
-                }.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
-            }.bind(this), function(err) {this.showHTTPAlert('Save Error', err);}.bind(this));
+                    }.bind(this));
+                }.bind(this));
+            }.bind(this));
         },
 
         showProjectRevisions: function(projectName) {
             this.get('slyd').projectRevisions(projectName).then(function(revisions) {
                 this.get('projectRevisions')[projectName] = revisions['revisions'];
                 this.notifyPropertyChange('projectRevisions');
-            }.bind(this), function(err) {
-                this.showHTTPAlert('Error Getting Projects', err);
             }.bind(this));
         },
 

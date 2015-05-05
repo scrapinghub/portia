@@ -44,8 +44,8 @@ class GitProjectSpec(ProjectSpec):
         if to_name == from_name:
             return
         if to_name in self.list_spiders():
-            raise BadRequest('Bad Request', 'Spider already exists with the '
-                             'name, "%s"' % to_name)
+            raise BadRequest('Bad Request', 'A spider already exists with the '
+                             'name, "%s".' % to_name)
         self._open_repo().rename_file(self._rfile_name('spiders', from_name),
                                       self._rfile_name('spiders', to_name),
                                       self._get_branch())

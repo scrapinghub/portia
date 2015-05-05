@@ -8,9 +8,9 @@ from os.path import join, dirname, isfile
 from twisted.python import usage
 from twisted.web.resource import Resource
 from twisted.application.internet import TCPServer
-from twisted.web.server import Site
 from twisted.web.static import File
 from .resource import SlydJsonObjectResource
+from .server import Site
 
 DEFAULT_PORT = 9001
 DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'dist')

@@ -213,9 +213,16 @@ export default BaseController.extend({
             var newWindow = window.open('about:blank',
                 '_blank',
                 'resizable=yes, scrollbars=yes');
-            newWindow.document.write(template.get('annotated_body'));
-            newWindow.document.title = ('Template ' + template.get('name'));
-        }, function(err) {this.showHTTPAlert('Error Getting Template', err);}.bind(this));
+            if (newWindow) {
+                newWindow.document.write(template.get('annotated_body'));
+                newWindow.document.title = ('Template ' + template.get('name'));
+            } else {
+                this.showWarningNotification(
+                    'Could not open a new browser window. ' +
+                    'Please check your browser\'s pop-up settings.'
+                );
+            }
+        }.bind(this));
     },
 
     wrapItem: function(item) {
@@ -270,7 +277,7 @@ export default BaseController.extend({
                     // This fetch has been cancelled.
                     return;
                 }
-                if (!data.error && data.response.status === 200) {
+                if (!data.error) {
                     this.renderPage(url, data, skipHistory, function() {
                         this.get('pendingFetches').removeObject(fetchId);
                         documentView.hideLoading();
@@ -278,9 +285,13 @@ export default BaseController.extend({
                 } else {
                     documentView.hideLoading();
                     this.get('pendingFetches').removeObject(fetchId);
-                    documentView.showError(data.error || data.response.status);
+                    this.showErrorNotification('Failed to fetch page', data.error);
                 }
-            }.bind(this), function(err) {this.showHTTPAlert('Fetch Error', err);}.bind(this)
+            }.bind(this), function(err) {
+                documentView.hideLoading();
+                this.get('pendingFetches').removeObject(fetchId);
+                throw err;  // re-throw for the notification
+            }.bind(this)
         );
     },
 
@@ -311,22 +322,16 @@ export default BaseController.extend({
               url: page.url }),
             itemDefs = this.get('itemDefinitions');
         if (!itemDefs.findBy('name', 'default') && !Ember.isEmpty(itemDefs)) {
-            // The deault item doesn't exist but we have at least one item def.
+            // The default item doesn't exist but we have at least one item def.
             template.set('scrapes', itemDefs[0].get('name'));
         }
         this.get('model.template_names').pushObject(template_name);
         this.get('slyd').saveTemplate(this.get('name'), template).then(function() {
             this.set('saving', false);
-            this.saveSpider().then(
-                function() {
-                    this.editTemplate(template_name);
-                }.bind(this), function(err) {
-                    this.showHTTPAlert('Save Error', err);
-                }.bind(this));
-            }.bind(this), function(err) {
-                this.showHTTPAlert('Save Error', err);
-            }.bind(this)
-        );
+            this.saveSpider().then(function() {
+                this.editTemplate(template_name);
+            }.bind(this));
+        }.bind(this));
     },
 
     addStartUrls: function(urls) {
@@ -396,9 +401,9 @@ export default BaseController.extend({
         this.set('saving', true);
         return this.get('slyd').saveSpider(this.get('model')).then(function() {
             this.set('saving', false);
-        }.bind(this),function(err) {
+        }.bind(this), function(err) {
             this.set('saving', false);
-            this.showHTTPAlert('Save Error', err);
+            throw err;
         }.bind(this));
     },
 
@@ -426,13 +431,18 @@ export default BaseController.extend({
                     }
                 }.bind(this),
                 function(err) {
-                    this.showHTTPAlert('Fetch Error', err);
+                    this.get('documentView').hideLoading();
+                    if (this.get('pendingFetches').indexOf(fetchId) !== -1) {
+                        this.get('pendingFetches').removeObject(fetchId);
+                    }
+                    this.set('testing', false);
+                    throw err;
                 }.bind(this)
             );
         } else {
             this.get('documentView').hideLoading();
             if (Ember.isEmpty(this.get('extractedItems'))) {
-                this.showAlert('Test Completed', this.messages.get('no_items_extracted'));
+                this.showSuccessNotification('Test Completed', this.messages.get('no_items_extracted'));
             }
             this.set('testing', false);
         }
@@ -476,10 +486,7 @@ export default BaseController.extend({
 
         deleteTemplate: function(templateName) {
             this.get('model.template_names').removeObject(templateName);
-            this.get('slyd').deleteTemplate(this.get('name'), templateName).then(
-                function() { }, function(err) {
-                    this.showHTTPAlert('Delete Error', err);
-                }.bind(this));
+            this.get('slyd').deleteTemplate(this.get('name'), templateName);
         },
 
         viewTemplate: function(templateName) {
@@ -556,9 +563,9 @@ export default BaseController.extend({
                 function() {
                     this.replaceRoute('spider', newName);
                 }.bind(this),
-                function(reason) {
+                function(err) {
                     this.set('model.name', this.get('spiderName'));
-                    this.showHTTPAlert('Save Error', reason);
+                    throw err;
                 }.bind(this)
             );
         },

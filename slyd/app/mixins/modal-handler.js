@@ -26,23 +26,6 @@ export default Ember.Mixin.create({
         },
     },
 
-    showAlert: function(title, content, okCallback) {
-        if (this.get('_modalName')) {
-            return;
-        }
-        this.set('_modalName', 'AlertModal');
-        var buttons =  [
-            Ember.Object.create({dismiss: 'modal', type: "primary", label: "OK", clicked: 'modalConfirmed', size: 'sm'})
-        ];
-        return this.showModal(title, content, buttons, okCallback);
-    },
-
-    showHTTPAlert: function(title, err, okCallback) {
-        var reason = err.reason;
-        var content = reason['jqXHR'].responseText;
-        return this.showAlert(title, content, okCallback);
-    },
-
     showConfirm: function(title, content, okCallback, cancelCallback, button_class, button_text) {
         if (this.get('_modalName')) { // There is already a modal visible
             return;

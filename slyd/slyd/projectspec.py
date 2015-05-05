@@ -219,7 +219,7 @@ class ProjectResource(SlydJsonResource):
             if pathelement and not allowed_file_name(pathelement):
                 resource_class = NoResource if request.method == 'GET' \
                     else ForbiddenResource
-                resource = resource_class("Bad path element %r" % pathelement)
+                resource = resource_class("Bad path element %r." % pathelement)
                 return resource.render(request)
         return SlydJsonResource.render(self, request)
 
@@ -244,13 +244,14 @@ class ProjectResource(SlydJsonResource):
                     project_spec.writejson(request, *rpath)
             # Trying to access non existent path
             except (KeyError, IndexError, TypeError):
-                self.error(404, "Not Found", "No such resource")
+                self.not_found()
         return '\n'
 
     def render_POST(self, request, merge=False):
         obj = self.read_json(request)
         project_spec = self.spec_manager.project_spec(
             request.project, request.auth_info)
+        resource = None
         try:
             # validate the request path and data
             rpath = request.postpath
@@ -269,9 +270,11 @@ class ProjectResource(SlydJsonResource):
                     obj = add_plugin_data(obj, project_spec.plugins)
             get_schema_validator(resource).validate(obj)
         except (KeyError, IndexError):
-            self.error(404, "Not Found", "No such resource")
-        except ValidationError as ex:
-            self.bad_request("Json failed validation: %s" % ex.message)
+            self.not_found()
+        except (AssertionError, ValidationError) as ex:
+            self.bad_request(
+                "The %s data was not valid. Validation failed with the error: %s."
+                % (resource or 'input', ex.message))
         except BaseHTTPError as ex:
             self.error(ex.status, ex.title, ex.body)
         else:
@@ -283,18 +286,20 @@ class ProjectResource(SlydJsonResource):
         dispatch_func = project_spec.spider_commands.get(command)
         if dispatch_func is None:
             self.bad_request(
-                "unrecognised cmd arg %s, available commands: %s" %
+                "Unrecognised command %s, available commands: %s." %
                 (command, ', '.join(project_spec.spider_commands.keys())))
         args = map(str, command_spec.get('args', []))
         for name in args:
             if not allowed_file_name(name):
-                self.bad_request('invalid name %s' % name)
+                self.bad_request('Invalid name %s.' % name)
         try:
             retval = dispatch_func(*args)
         except TypeError:
-            self.bad_request("incorrect args for %s" % command)
+            self.bad_request("Incorrect arguments for command %s." % command)
         except OSError as ex:
             if ex.errno == errno.ENOENT:
-                self.error(404, "Not Found", "No such resource")
+                self.not_found()
             raise
-        return retval or ''
+        else:
+            return retval or ''
+        return ''

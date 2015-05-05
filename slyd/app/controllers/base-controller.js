@@ -2,10 +2,11 @@ import Ember from 'ember';
 import ApplicationUtils from '../mixins/application-utils';
 import ControllerUtils from '../mixins/controller-utils';
 import ModalHandler from '../mixins/modal-handler';
+import NotificationHandler from '../mixins/notification-handler';
 import SizeListener from '../mixins/size-listener';
 import ToolboxStateMixin from '../mixins/toolbox-state-mixin';
 
-export default Ember.Controller.extend(ApplicationUtils, SizeListener, ModalHandler, ControllerUtils, ToolboxStateMixin, {
+export default Ember.Controller.extend(ApplicationUtils, SizeListener, ModalHandler, NotificationHandler, ControllerUtils, ToolboxStateMixin, {
     documentView: null,
     breadCrumb: null,
     breadCrumbs: null,
