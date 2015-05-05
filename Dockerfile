@@ -24,7 +24,7 @@ ADD . /app
 
 RUN ln -sf /app/nginx/nginx.conf /etc/nginx/nginx.conf
 
-RUN pip install -e /app/slybot
+RUN pip install -e /app/slybot /app/slyd
 
 WORKDIR /app/slyd
 # TODO(dangra): fix handling of nginx service, it won't be restarted in case if crashed.
