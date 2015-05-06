@@ -214,7 +214,7 @@ export default BaseController.extend({
                 '_blank',
                 'resizable=yes, scrollbars=yes');
             newWindow.document.write(template.get('annotated_body'));
-            newWindow.document.title = ('Template ' + template.get('name'));
+            newWindow.document.title = ('Sample ' + template.get('name'));
         }, function(err) {this.showHTTPAlert('Error Getting Template', err);}.bind(this));
     },
 
@@ -298,8 +298,13 @@ export default BaseController.extend({
     },
 
     addTemplate: function() {
-        var page = this.get('pageMap')[this.get('loadedPageFp')];
-        var template_name = this.shortGuid();
+        var page = this.get('pageMap')[this.get('loadedPageFp')],
+            iframeTitle = this.get('documentView').getIframe().get(0).title,
+            template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
+                                       .substring(0, 48).trim().replace(/\s+/g, '_');
+        if (!template_name || ('' + template_name).length < 1) {
+            this.shortGuid();
+        }
         var template = Template.create(
             { name: template_name,
               extractors: {},
