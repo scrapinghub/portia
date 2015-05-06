@@ -12,16 +12,6 @@ from slybot.validation.schema import get_schema_validator
 
 
 DASH_API_URL = None
-DEFAULT_DASH_ITEM = '''{
-  "default": {
-    "fields": {
-      "images": {"type": "image", "required": true, "vary": false},
-      "price": {"type": "price", "required": true, "vary": false},
-      "name": {"type": "text", "required": true, "vary": false},
-      "description": {"type": "safe html", "required": false, "vary": false}
-    }
-  }
-}'''
 REQUIRED_FILES = {'extractors.json', 'items.json', 'project.json'}
 
 
@@ -80,7 +70,7 @@ def import_project(name, apikey, repo):
         files['extractors.json'] = '{}'
     if ('items.json' not in files or not files['items.json'] or
             files['items.json'] == '{}'):
-        files['items.json'] = DEFAULT_DASH_ITEM
+        files['items.json'] = '{}'
     repo.save_files(files, 'master', 'Publishing initial import.')
     # XXX: Tell dash that project has been opened in Portia
     deploy_project(name, apikey, changed_files=[])
