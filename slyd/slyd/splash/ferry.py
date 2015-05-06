@@ -114,11 +114,14 @@ def interact_page(data, socket):
     data.pop('_command', {})
     try:
         interaction = json.dumps(data.get('interaction', {}))
-        result = socket.tab.evaljs(
-            'window.livePortiaPage.interact(%s);' % interaction
-        )
+        try:
+            result = socket.tab.evaljs(
+                'window.livePortiaPage.interact(%s);' % interaction
+            )
+        except JsError:
+            result = None
         if result:
-            return {'diff': clean(result, socket.tab.url)}
+            return {'diff': result}
         else:
             return {}
     except JsError as exc:
@@ -151,9 +154,12 @@ def close_tab(data, socket):
 def heartbeat(data, socket):
     res = {'heartbeat': True}
     if socket.tab and socket.tab.loaded:
-        diff = socket.tab.evaljs('window.livePortiaPage.interact()')
+        try:
+            diff = socket.tab.evaljs('window.livePortiaPage.interact()')
+        except JsError:
+            diff = None
         if diff:
-            res['diff'] = clean(diff, socket.tab.url)
+            res['diff'] = diff
     return res
 
 

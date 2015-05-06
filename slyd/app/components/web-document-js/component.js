@@ -12,7 +12,7 @@ export default WebDocument.extend(ApplicationUtils, {
 
     connect: function() {
         Ember.run.schedule('afterRender', function() {
-            var ws = new WebSocket(this.get('slyd').getRootUrl().replace(/https?:\/\//, 'ws://') + '/ws/');
+            var ws = new WebSocket(this.get('slyd').getRootUrl().replace(/https?:\/\//, 'ws://') + '/ws');
             ws.onopen = function(e) {
                 console.log('<Opened Websocket>');
                 setInterval(function() {
@@ -100,12 +100,14 @@ export default WebDocument.extend(ApplicationUtils, {
 
     updateDOM: function(data) {
         var root = document.getElementById(this.get('iframeId')).contentDocument.body;
-        //if (!(data instanceof Object)) {
-        //     data = JSON.parse(data);
+        if (!(data instanceof Object)) {
+            data = JSON.parse(data);
+        }
+        var patch = this._buildPatch(data, root);
+        virtualDomPatchOp(root, patch);
+        // if (root) {
+        //     root.innerHTML = data;
         // }
-        // var patch = this._buildPatch(data, root);
-        // virtualDomPatchOp(root, patch);
-        root.innerHTML = data;
     },
 
     _buildPatch: function(data, root) {
@@ -156,7 +158,11 @@ export default WebDocument.extend(ApplicationUtils, {
                 }
             }
         }
-        patch['a'] = convertHTML(root.outerHTML);
+        patch['a'] = convertHTML({
+            getVNodeKey: function (attributes) {
+                return attributes['data-tagid'];
+            }
+        }, root.outerHTML);
         return patch;
     },
 

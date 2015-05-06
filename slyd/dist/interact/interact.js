@@ -5945,7 +5945,7 @@ exports.prepend = function(elem, prev){
 	if(elem.prev){
 		elem.prev.next = prev;
 	}
-
+	
 	prev.parent = parent;
 	prev.prev = elem.prev;
 	prev.next = elem;
@@ -7282,6 +7282,7 @@ PortiaPage.prototype.screenY = function() {
 };
 
 PortiaPage.prototype.currentState = function() {
+    body = this._html();
     return {
         url: this.url,
         scroll: {
@@ -7292,15 +7293,17 @@ PortiaPage.prototype.currentState = function() {
             mx: window.scrollMaxX,
             my: window.scrollMaxY
         },
-        vtree: convertHTML(this._html())
+        vtree: convertHTML({
+            getVNodeKey: function (attributes) {
+                return attributes['data-tagid'];
+            }
+        }, body)
     };
 };
 
 PortiaPage.prototype.diff = function(a, b) {
     d = diff(a, b);
-    if (Object.keys(d).length > 1) {
-        return document.body.innerHTML;
-    } else {
+    if (Object.keys(d).length <= 1) {
         return null;
     }
     delete d['a'];
@@ -7326,14 +7329,36 @@ PortiaPage.prototype.diff = function(a, b) {
 PortiaPage.prototype.sendEvent = function(eventType, target, data) {
     var ev,
         element = this._findElement(target);
-        eventType = this.events[eventType] || Event;
-    // if (element) {
-    //     data = this._injectCoords(element, data);
-    //     data.cancelable = true;
-    //     data.bubbles = true;
-    //     ev = new eventType(data.type, data);
-    //     element.dispatchEvent(ev);
-    // }
+    if (element) {
+        data = this._injectCoords(element, data);
+        data.cancelable = true;
+        data.bubbles = true;
+        try {
+            switch (eventType) {
+                case 'mouse':
+                    ev = document.createEvent("MouseEvents");
+                    ev.initMouseEvent(data.type, true, true, window, data.detail || 0,
+                                      data.screenX, data.screenY, data.clientX,
+                                      data.clientY, data.ctrlKey, data.altKey,
+                                      data.shiftKey, data.metaKey, data.button, null);
+                    break;
+                case 'wheel':
+                    ev = new WheelEvent(data.type, data);
+                    break;
+                case 'keyboard':
+                    ev = new KeyboardEvent(data.type, data);
+                    break;
+                default:
+                    ev = new Event(data.type, data);
+            }
+        } catch (e) {
+        }
+        if (data.type === 'click' && element.click) {
+            element.click();
+        } else {
+            element.dispatchEvent(ev);
+        }
+    }
     var body = document.body,
         html = document.documentElement,
         height = Math.max( body.scrollHeight, body.offsetHeight,
@@ -7343,10 +7368,6 @@ PortiaPage.prototype.sendEvent = function(eventType, target, data) {
     if (data.scrollX || data.scrollY) {
         window.scroll((data.scrollX * width) || window.scrollX,
                       (data.scrollY * height) || window.scrollY);
-    }
-    if (element && eventType === MouseEvent) {
-        console.log('Clicking Element')
-        element.click();
     }
 };
 
@@ -7442,8 +7463,8 @@ PortiaPage.prototype.interact = function(interaction) {
     var page = this.page;
     if (interaction) {
         this.sendEvent(interaction.eventType, interaction.target, interaction.data);
-        this._tagUntaggedElements();
     }
+    this._tagUntaggedElements();
     var updatedPage = this.currentState();
     this.page = updatedPage;
     return this.diff(page.vtree, updatedPage.vtree);
