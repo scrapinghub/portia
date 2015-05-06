@@ -108,7 +108,7 @@ export default BaseController.extend({
         }
         var missingFields = this.getMissingFields();
         if (missingFields.length > 0) {
-            this.showAlert('Required Fields Missing',
+            this.showWarningNotification('Required Fields Missing',
                 'You are unable to save this template as the following required fields are missing: "' +
                 missingFields.join('", "') + '".');
         } else {
@@ -265,7 +265,7 @@ export default BaseController.extend({
                 new RegExp(extractorDefinition);
             } catch (e) {
                 if (e instanceof SyntaxError) {
-                    this.showAlert('Save Error','The text, "' + extractorDefinition + '", you provided is not a valid regex.');
+                    this.showErrorNotification('The text, "' + extractorDefinition + '", you provided is not a valid regex.');
                 }
                 return;
             }
@@ -287,11 +287,7 @@ export default BaseController.extend({
 
         createField: function(item, fieldName, fieldType) {
             item.addField(fieldName, fieldType);
-            this.get('slyd').saveItems(this.get('items').toArray()).then(function() { },
-                function(reason) {
-                    this.showHTTPAlert('Save Error', reason);
-                }.bind(this)
-            );
+            this.get('slyd').saveItems(this.get('items').toArray());
         },
 
         rename: function(newName) {
@@ -312,9 +308,9 @@ export default BaseController.extend({
                         templateNames.addObject(newName);
                         this.replaceRoute('template', newName);
                     }.bind(this),
-                    function() {
+                    function(err) {
                         this.set('model.name', this.get('templateName'));
-                        this.showHTTPAlert('Save Error', 'The name ' + newName + ' is not a valid template name.');
+                        throw err;
                     }.bind(this)
                 );
             }.bind(this));
@@ -380,9 +376,9 @@ export default BaseController.extend({
                     }
                 });
             }.bind(this),
-            function(reason) {
+            function(err) {
                 this.set('documentView.sprites', sprites);
-                this.showHTTPAlert('Save Error', reason);
+                throw err;
             }.bind(this));
         },
 

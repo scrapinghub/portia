@@ -70,9 +70,7 @@ export default BaseController.extend({
             .then(function(data) {
                 if (data.error) {
                     documentView.hideLoading();
-                    var title = "Spider wasn't created";
-                    var content = "Server responded with error: <br><br>" + data.error;
-                    this.showAlert(title, content);
+                    this.showErrorNotification('Failed to create spider', data.error);
                     return;
                 }
                 // XXX: Deal with incorrect model
@@ -99,11 +97,13 @@ export default BaseController.extend({
                         this.editSpider(newSpiderName, siteUrl);
                     }.bind(this), function(err) {
                         documentView.hideLoading();
-                        this.showHTTPAlert('Error Adding Spider', err);
+                        throw err;  // re-throw for the notification
                     }.bind(this)
                 );
-
-            }.bind(this))
+            }.bind(this), function(err) {
+                documentView.hideLoading();
+                throw err;  // re-throw for the notification
+            })
             .finally(function() {
                 this.set('controllers.application.siteWizard', null);
                 this.set('spiderPage', null);
@@ -120,8 +120,6 @@ export default BaseController.extend({
             } else {
                 this.transitionToRoute('spider', spider);
             }
-        }.bind(this), function(err) {
-            this.showHTTPAlert('Error Editing Spider', err);
         }.bind(this));
     },
 
@@ -157,9 +155,6 @@ export default BaseController.extend({
                             this.get('model').removeObject(spiderName);
                             this.set('refreshSpiders', !this.get('refreshSpiders'));
                             this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
-                        }.bind(this),
-                        function(err) {
-                            this.showHTTPAlert('Delete Error', err);
                         }.bind(this)
                     );
                 }.bind(this), null, 'danger', 'Yes, Delete'
@@ -172,9 +167,9 @@ export default BaseController.extend({
                     this.set('slyd.project', newName);
                     this.replaceRoute('project', newName);
                 }.bind(this),
-                function() {
+                function(err) {
                     this.set('slyd.project', oldName);
-                    this.showAlert('Save Error','The name ' + newName + ' is not a valid project name.');
+                    throw err;
                 }.bind(this)
             );
         },
@@ -191,18 +186,19 @@ export default BaseController.extend({
                                 window.location = result['schedule_url'];
                             });
                     } else {
-                        this.showAlert('Publish Successful', this.messages.get('publish_ok'));
+                        this.showSuccessNotification(this.messages.get('publish_ok'));
                     }
                     this.set('changedFiles', []);
                 } else if (result['status'] === 'conflict') {
-                    this.showAlert('Publish Error', this.messages.get('publish_conflict'));
+                    this.showWarningNotification(this.messages.get('publish_conflict'));
                     this.transitionToRoute('conflicts');
                 } else {
-                    this.showAlert('Publish Error', result['message']);
+                    this.showErrorNotification('Failed to publish project', result['message']);
                 }
-            }.bind(this), function() {
+            }.bind(this), function(err) {
                 this.set('isPublishing', false);
-            });
+                throw err;
+            }.bind(this));
         },
 
         deployProject: function() {
@@ -217,12 +213,12 @@ export default BaseController.extend({
                                 window.location = result['schedule_url'];
                             });
                     } else {
-                        this.showAlert('Save Successful', this.messages.get('deploy_ok'));
+                        this.showSuccessNotification(this.messages.get('deploy_ok'));
                     }
                 }
             }.bind(this), function(err) {
                 this.set('isDeploying', false);
-                this.showHTTPAlert('Deploy Error', err);
+                throw err;
             }.bind(this));
         },
 
@@ -233,7 +229,7 @@ export default BaseController.extend({
                 this.transitionToRoute('projects');
             }.bind(this), function(err) {
                 this.set('isPublishing', false);
-                this.showHTTPAlert('Revert Error', err);
+                throw err;
             }.bind(this));
         },
 
