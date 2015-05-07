@@ -81,7 +81,7 @@ export default BaseController.extend({
             copyAction,
             {
                 text: 'Documentation',
-                url: 'http://doc.scrapinghub.com'
+                url: 'http://support.scrapinghub.com/list/24895-knowledge-base/?category=17201'
             }
         ];
     }.property(),
