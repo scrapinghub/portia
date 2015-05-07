@@ -351,7 +351,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
     copySpider: function(srcProjectId, dstProjectId, spiderNames, itemNames) {
         var hash = {};
         hash.type = 'POST';
-        hash.dataType = 'text';
+        hash.dataType = 'json';
         hash.url = this.getApiUrl();
         hash.data = JSON.stringify({cmd: 'copy', args: [
             srcProjectId,
