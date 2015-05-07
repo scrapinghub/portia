@@ -41,19 +41,20 @@ class SpiderCopier(object):
         spider_paths = set(self._spider_path(s) for s in spiders)
         self._check_missing(spider_paths)
         templates = self._load_templates(spiders)
-        items, renamed_items = self._build_combined_items(templates, items)
+        combined_items, renamed_items = \
+            self._build_combined_items(templates, items)
         spider_data, renamed_spiders = self._load_spiders(spider_paths)
         templates = self._update_templates(templates, renamed_items,
                                            renamed_spiders)
         extractors = self._build_combined_extractors(templates)
         self._save_data({
-            'items.json': items,
+            'items.json': combined_items,
             'extractors.json': extractors,
             'spiders': spider_data,
             'templates': templates,
         })
-        return self._build_summary(spider_paths, renamed_spiders,
-                                   renamed_items)
+        return self._build_summary(spider_paths, items,
+                                   renamed_spiders, renamed_items)
 
     def _refresh_destination_files(self):
         self.destination_files = set(self.list_files(self.destination))
@@ -175,24 +176,18 @@ class SpiderCopier(object):
                     dest_extractors[extractor] = source_extractors[extractor]
         return dest_extractors
 
-    def _build_summary(self, spider_paths, renamed_spiders, renamed_items):
+    def _build_summary(self, spider_paths, items, renamed_spiders, renamed_items):
         """
         Build a summary of copied spiders and items
         """
-        spider_text = '", "'.join(sp[8:-5] for sp in spider_paths)
-        message = ('Summary:<br>The following spiders were copied: "%s"<br>' %
-                   spider_text)
-        if (renamed_spiders):
-            spider_renames = ', '.join(('%s -> %s' % (f, t)
-                                        for f, t in renamed_spiders.items()))
-            message = '%s<br>These spiders were renamed (from, to): %s' % (
-                message, spider_renames)
-        if renamed_items:
-            item_renames = ', '.join(('%s -> %s' % (f, t)
-                                      for f, t in renamed_items.items()))
-            message = '%s<br>These items were renamed (from, to): %s' % (
-                message, item_renames)
-        return {'message': message.encode('utf-8')}
+        spiders = [sp[8:-5] for sp in spider_paths]
+        items = list(set(items) | set(renamed_items.keys()))
+        return {
+            'copied_spiders': spiders,
+            'renamed_spiders': renamed_spiders,
+            'copied_items': items,
+            'renamed_items': renamed_items,
+        }
 
     def _save_data(self, data):
         files_data = {}
