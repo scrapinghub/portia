@@ -26,8 +26,7 @@ class ProjectsManager(GitProjectsManager):
     @run_in_thread
     def edit_project(self, name, revision):
         if not Repoman.repo_exists(name):
-            repo = Repoman.create_repo(name, author=self.user)
-            import_project(name, self.auth_info['service_token'], repo)
+            self._init_project(name)
         return GitProjectsManager.edit_project(self, name, revision)
 
     @run_in_thread
@@ -47,6 +46,17 @@ class ProjectsManager(GitProjectsManager):
     @run_in_thread
     def deploy_project(self, name):
         return deploy_project(name, self.auth_info['service_token'])
+
+    @run_in_thread
+    def copy_data(self, source, destination, spiders, items):
+        if not Repoman.repo_exists(destination):
+            self._init_project(destination)
+        return GitProjectsManager.copy_data(self, source, destination,
+                                            spiders, items)
+
+    def _init_project(self, name):
+        repo = Repoman.create_repo(name, author=self.user)
+        import_project(name, self.auth_info['service_token'], repo)
 
     def _deploy_project(self, name, files, repoman=None, branch='master'):
         try:
