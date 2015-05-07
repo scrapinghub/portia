@@ -1,12 +1,13 @@
 import json, re, shutil, errno, os
 from os.path import join
-from twisted.web.resource import NoResource, ErrorPage
 from twisted.internet.defer import Deferred
+from twisted.web.resource import NoResource, ErrorPage
 from twisted.web.server import NOT_DONE_YET
-from .errors import BaseError, BadRequest
-from .resource import SlydJsonResource
+from .errors import BaseError, BaseHTTPError, BadRequest
 from .projecttemplates import templates
-from .errors import BaseHTTPError
+from .resource import SlydJsonResource
+from .utils.copy import FileSystemSpiderCopier
+from .utils.download import FileSystemProjectArchiver
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -117,11 +118,15 @@ class ProjectsManager(object):
         self.auth_info = auth_info
         self.user = auth_info['username']
         self.projectsdir = ProjectsManager.base_dir
-        self.modify_request = {}
+        self.modify_request = {
+            'download': self._render_file
+        }
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,
-            'rm': self.remove_project
+            'rm': self.remove_project,
+            'copy': self.copy_data,
+            'download': self.download_project
         }
 
     def all_projects(self):
@@ -177,3 +182,19 @@ class ProjectsManager(object):
     def validate_project_name(self, name):
         if not allowed_project_name(name):
             raise BadRequest('Bad Request', 'Invalid project name %s.' % name)
+
+    def copy_data(self, source, destination, spiders, items):
+        copier = FileSystemSpiderCopier(source, destination, self.projectsdir)
+        return json.dumps(copier.copy(spiders, items))
+
+    def download_project(self, name, spiders=None, version=None):
+        archiver = FileSystemProjectArchiver(name, base_dir=self.projectsdir)
+        return archiver.archive(spiders).read()
+
+    def _render_file(self, request, request_data, body):
+        name = request_data.get('args')[0].encode('utf-8')
+        request.setHeader('Content-Type', 'application/zip')
+        request.setHeader('Content-Disposition', 'attachment; '
+                          'filename="%s.zip"' % name)
+        request.setHeader('Content-Length', len(body))
+        return body

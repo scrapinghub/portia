@@ -729,6 +729,14 @@ input[type="checkbox"].offset-checkbox {
     margin-top: 1px;
 }
 
+.checkbox label {
+    line-height: 20px;
+}
+
+.checkbox input.offset-checkbox {
+    margin-top: 4px;
+}
+
 .crumbs {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -769,4 +777,8 @@ input[type="checkbox"].offset-checkbox {
 .btn-xs-size {
     width: 23px;
     height: 23px;
+}
+
+.dropdown-menu a {
+    cursor: pointer;
 }

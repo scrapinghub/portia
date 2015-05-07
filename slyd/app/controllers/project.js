@@ -17,6 +17,75 @@ export default BaseController.extend({
         this.set('breadCrumbModel', project_id);
     },
 
+    additionalActions: function() {
+        function makeCopyMessage(type, copied, renamed) {
+            return copied.length + " " + type + (copied.length > 1 ? "s" : "") +
+                " (" + copied.map(function(item) {
+                    if (renamed[item]) {
+                        return item + " as " + renamed[item];
+                    }
+                    return item;
+                }).join(", ") + ")";
+        }
+
+        var copyAction = {
+            modal: 'copy-spider',
+            text: 'Copy Spider',
+            title: 'Copy Spider to project',
+            button_class: 'primary',
+            button_text: 'Copy',
+            okCallback: function() {
+                if (!copyAction.params.spiders.length && !copyAction.params.items.length) {
+                    return;
+                }
+                this.get('slyd').copySpider(
+                    this.get('slyd.project'),
+                    copyAction.params.destinationProject,
+                    copyAction.params.spiders,
+                    copyAction.params.items
+                ).then(function(response) {
+                    /*
+                        Create a notification message like:
+                            Successfully copied 2 spiders (spider1, spider2 as spider2_copy)
+                            and 1 item (default as default_copy).
+                    */
+                    var copiedSpiders = response.copied_spiders;
+                    var renamedSpiders = response.renamed_spiders;
+                    var copiedItems = response.copied_items;
+                    var renamedItems = response.renamed_items;
+                    var messageParts = [];
+                    if (copiedSpiders.length) {
+                        messageParts.push(
+                            makeCopyMessage("spider", copiedSpiders, renamedSpiders)
+                        );
+                    }
+                    if (copiedItems.length) {
+                        messageParts.push(
+                            makeCopyMessage("item", copiedItems, renamedItems)
+                        );
+                    }
+                    if (messageParts.length) {
+                        this.showSuccessNotification(
+                            "Successfully copied " +
+                            messageParts.join(" and ") + "."
+                        );
+                    }
+                }.bind(this));
+            }.bind(this)
+        };
+
+        return [
+            {
+                component: 'file-download'
+            },
+            copyAction,
+            {
+                text: 'Documentation',
+                url: 'http://support.scrapinghub.com/list/24895-knowledge-base/?category=17201'
+            }
+        ];
+    }.property(),
+
     needs: ['application', 'project'],
 
     spiderPage: null,

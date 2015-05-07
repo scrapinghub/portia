@@ -41,12 +41,21 @@ export default Ember.Mixin.create({
             Ember.Object.create({dismiss: 'modal', type: "default", label: "Cancel", clicked: 'modalCancelled', size: 'sm'}),
             Ember.Object.create({dismiss: 'modal', type: button_class, label: button_text, clicked: 'modalConfirmed', size: 'sm'})
         ];
-        return this.showModal(title, content, buttons, okCallback, cancelCallback);
+        return this.showModal(title, content, null, null, buttons, okCallback, cancelCallback);
     },
 
-    showModal: function(title, content, buttons, okCallback, cancelCallback) {
+    showComponentModal: function(title, component, componentData, okCallback, cancelCallback, button_class, button_text) {
+        this.set('_modalName', 'ComponentModal');
+        var buttons =  [
+            Ember.Object.create({dismiss: 'modal', type: "default", label: "Cancel", clicked: 'modalCancelled', size: 'sm'}),
+            Ember.Object.create({dismiss: 'modal', type: button_class, label: button_text, clicked: 'modalConfirmed', size: 'sm'})
+        ];
+        this.showModal(title, null, component, componentData, buttons, okCallback, cancelCallback);
+    },
+
+    showModal: function(title, content, component, componentData, buttons, okCallback, cancelCallback) {
         this.set('_modalOKCallback', okCallback);
         this.set('_modalCancelCallback', cancelCallback);
-        return this.ModalManager.open(this.get('_modalName'), title, buttons, content, this);
+        return this.ModalManager.open(this.get('_modalName'), title, buttons, content, component, componentData, this);
     },
 });
