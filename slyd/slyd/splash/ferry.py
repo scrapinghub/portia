@@ -82,7 +82,8 @@ def build_response(data, socket):
         'response': {
             'headers': {},
             'status': socket.tab.last_http_status()
-        }
+        },
+        '_command': 'fetch',
     }
 
 
@@ -152,7 +153,7 @@ def close_tab(data, socket):
 
 
 def heartbeat(data, socket):
-    res = {'heartbeat': True}
+    res = {}
     if socket.tab and socket.tab.loaded:
         try:
             diff = socket.tab.evaljs('window.livePortiaPage.interact()')
@@ -235,7 +236,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
             payload = payload.decode('utf-8')
         data = json.loads(payload)
         if '_command' in data and data['_command'] in self._handlers:
-            self.sendMessage(self._handlers[data['_command']](data, self))
+            command = data['_command']
+            result = self._handlers[command](data, self)
+            result['_command'] = data.get('_callback') or command
+            self.sendMessage(result)
         else:
             self.sendMessage({'error': 4000,
                               'reason': 'No matching command found.'})

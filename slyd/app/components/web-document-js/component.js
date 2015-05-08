@@ -7,56 +7,42 @@ import interactionEvent from '../../utils/interaction-event';
 /* global virtualDomPatchOp, virtualDomPatch, virtualDomNode, virtualDomText, convertHTML */
 
 export default WebDocument.extend(ApplicationUtils, {
-    ws: null,
     ws_deferreds: {},
 
     connect: function() {
-        Ember.run.schedule('afterRender', function() {
-            var ws = new WebSocket(this.get('slyd').getRootUrl().replace(/https?:\/\//, 'ws://') + '/ws');
-            ws.onopen = function(e) {
-                console.log('<Opened Websocket>');
-                setInterval(function() {
-                    this.get('ws').send(JSON.stringify({'_command': 'heartbeat'}));
-                }.bind(this), 5000);
-            }.bind(this);
-            ws.onclose = function(e) {
-                console.log('<Closed Websocket>');
-            };
-            ws.onmessage = function(e) {
-                var data;
-                try {
-                    data = JSON.parse(e.data);
-                } catch (err) {
-                    return;
+        this.get('ws').addCommand('fetch', function(data) {
+            if (data.id && this.get('ws_deferreds.' + data.id)) {
+                var deferred = this.get('ws_deferreds.' + data.id);
+                if (data.error) {
+                    deferred.reject(data);
+                } else {
+                    deferred.resolve(data);
                 }
-                if (data.id && this.get('ws_deferreds.' + data.id)) {
-                    var deferred = this.get('ws_deferreds.' + data.id);
-                    if (data.error) {
-                        deferred.reject(data);
-                    } else {
-                        deferred.resolve(data);
-                    }
-                }
-                if (data.diff) {
-                    this.updateDOM(data.diff);
-                    Ember.run.next(this, function() {
-                        this.redrawNow();
-                    });
-                }
-                if (data.state) {
-                }
-
-            }.bind(this);
-            this.set('ws', ws);
+            }
+        }.bind(this));
+        this.get('ws').addCommand('interact', function(data) {
+            if (data.diff) {
+                this.updateDOM(data.diff);
+                // TODO: Refresh followed links
+                Ember.run.next(this, function() {
+                    this.redrawNow();
+                });
+            }
+        }.bind(this));
+        setInterval(function() {
+            this.get('ws').send({
+                _command: 'updates',
+                _callback: 'interact'
+            });
         }.bind(this));
     }.on('init'),
 
-    fetchDocument: function(url, spider, parentFp) {
-        var unique_id = parentFp + this.shortGuid(),
+    fetchDocument: function(url, spider) {
+        var unique_id = this.shortGuid(),
             deferred = new Ember.RSVP.defer(),
             ifWindow = document.getElementById(this.get('iframeId')).contentWindow;
         this.set('ws_deferreds.' + unique_id, deferred);
-        this.get('ws').send(JSON.stringify({
+        this.get('ws').send({
             _meta: {
                 spider: spider,
                 project: this.get('slyd.project'),
@@ -65,7 +51,7 @@ export default WebDocument.extend(ApplicationUtils, {
             },
             _command: 'fetch',
             url: url
-        }));
+        });
         return deferred.promise;
     },
 
@@ -105,9 +91,6 @@ export default WebDocument.extend(ApplicationUtils, {
         }
         var patch = this._buildPatch(data, root);
         virtualDomPatchOp(root, patch);
-        // if (root) {
-        //     root.innerHTML = data;
-        // }
     },
 
     _buildPatch: function(data, root) {
@@ -192,7 +175,7 @@ export default WebDocument.extend(ApplicationUtils, {
     clickHandlerBrowse: function(evt) {
         var interaction = new interactionEvent(evt);
         interaction.type = 'click';
-        this.get('ws').send(JSON.stringify({
+        this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
                 project: this.get('slyd.project'),
@@ -201,13 +184,13 @@ export default WebDocument.extend(ApplicationUtils, {
             eventType: 'mouse',
             target: evt.target.getAttribute('data-tagid'),
             interaction: interaction
-        }));
+        });
         evt.preventDefault();
         var linkingElement = Ember.$(evt.target).closest('[href]');
 
         if (linkingElement.length > 0) {
             var href = Ember.$(linkingElement).get(0).href;
-            if (href.length > 0 && href.search('#') == -1) {
+            if (href.length > 0 && href.search('#') === -1) {
                 this.sendDocumentEvent('linkClicked', href);
             }
         }
@@ -220,7 +203,7 @@ export default WebDocument.extend(ApplicationUtils, {
         var ifWindow = document.getElementById(this.get('iframeId')).contentWindow,
             scrollState = {data: {scrollX: ifWindow.scrollX / Ember.$(ifWindow).width(),
                            scrollY: ifWindow.scrollY / Ember.$(ifWindow).height()}};
-        this.get('ws').send(JSON.stringify({
+        this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
                 project: this.get('slyd.project'),
@@ -229,7 +212,7 @@ export default WebDocument.extend(ApplicationUtils, {
             eventType: 'wheel',
             target: '-1',
             interaction: scrollState
-        }));
+        });
         this.set('splashScrolling', true);
         Ember.run.later(this, function() {
             this.set('splashScrolling', false);
