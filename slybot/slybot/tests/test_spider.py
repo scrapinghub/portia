@@ -26,11 +26,11 @@ class SpiderTest(TestCase):
         t1, t2 = spec["templates"]
         target1, target2 = [HtmlPage(url=t["url"], body=t["original_body"]) for t in spec["templates"]]
 
-        items, link_regions = spider.extract_items(target1)
+        items, link_regions = spider.plugins['Annotations'].extract_items(target1)
         self.assertEqual(items, [])
-        self.assertEqual(len(list(spider._process_link_regions(target1, link_regions))), 104)
+        self.assertEqual(len(list(spider.plugins['Annotations']._process_link_regions(target1, link_regions))), 104)
 
-        items, link_regions = spider.extract_items(target2)
+        items, link_regions = spider.plugins['Annotations'].extract_items(target2)
         self.assertEqual(items[0], {
                 '_template': u'4fac3b47688f920c7800000f',
                 '_type': u'default',
@@ -46,7 +46,7 @@ class SpiderTest(TestCase):
                 u'weight': [None]}
         )
         self.assertEqual(link_regions, [])
-        self.assertEqual(len(list(spider._process_link_regions(target2, link_regions))), 0)
+        self.assertEqual(len(list(spider.plugins['Annotations']._process_link_regions(target2, link_regions))), 0)
 
     def test_spider_with_link_region_but_not_link_template(self):
         name = "seedsofchange2"
@@ -55,7 +55,7 @@ class SpiderTest(TestCase):
         t1, t2 = spec["templates"]
 
         target1, target2 = [HtmlPage(url=t["url"], body=t["original_body"]) for t in spec["templates"]]
-        items, link_regions = spider.extract_items(target1)
+        items, link_regions = spider.plugins['Annotations'].extract_items(target1)
         self.assertEqual(items[0], {
                 '_template': u'4fad6a7c688f922437000014',
                 '_type': u'default',
@@ -71,7 +71,7 @@ class SpiderTest(TestCase):
         )
         self.assertEqual(link_regions, [])
 
-        items, link_regions = spider.extract_items(target2)
+        items, link_regions = spider.plugins['Annotations'].extract_items(target2)
         self.assertEqual(items[0], {
                 '_template': u'4fad6a7d688f922437000017',
                 '_type': u'default',
@@ -86,7 +86,7 @@ class SpiderTest(TestCase):
                 u'weight': [None]}
         )
         self.assertEqual(len(link_regions), 1)
-        self.assertEqual(len(list(spider._process_link_regions(target1, link_regions))), 25)
+        self.assertEqual(len(list(spider.plugins['Annotations']._process_link_regions(target1, link_regions))), 25)
 
     def test_login_requests(self):
         name = "pinterest.com"
@@ -190,7 +190,7 @@ class SpiderTest(TestCase):
             {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url':
             u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_nkw2=Cars&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=3&_nkw=Boats&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=',
             'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
-            {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 
+            {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {},
             'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_nkw2=Cars&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=4&_nkw=Boats&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=',
             'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
             {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {},
@@ -260,8 +260,8 @@ class SpiderTest(TestCase):
         name = "ebay4"
         spider = self.smanager.create(name)
         generic_form_request = list(spider.start_requests())[0]
-        
-        response = Response(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc", 
+
+        response = Response(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
                             body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
         response.request = generic_form_request
         # must not raise an error
@@ -276,7 +276,7 @@ class SpiderTest(TestCase):
         spec = self.smanager._specs["spiders"][name]
         template, = spec["templates"]
         target = HtmlPage(url=template["url"], body=template["original_body"])
-        items, link_regions = spider.extract_items(target)
+        items, link_regions = spider.plugins['Annotations'].extract_items(target)
         for item in items:
             for variant in item["variants"]:
                 self.assertEqual(type(variant), dict)
@@ -290,7 +290,7 @@ class SpiderTest(TestCase):
         self.assertEqual(start_requests[0].url, 'http://www.example.com/products.csv')
         self.assertEqual(start_requests[1].url, 'http://www.example.com/index.html')
 
-        csv = """ 
+        csv = """
 My feed
 
 name,url,id
