@@ -2,7 +2,7 @@
 Link extraction for auto scraping
 """
 from scrapy.link import Link
-from scrapy.selector import XmlXPathSelector
+from scrapy.selector import Selector
 
 from slybot.linkextractor.base import BaseLinkExtractor
 
@@ -14,10 +14,13 @@ class XmlLinkExtractor(BaseLinkExtractor):
         self.xpath = xpath
 
     def _extract_links(self, response):
-        xxs = XmlXPathSelector(response)
+        type = 'html'
+        if response.body_as_unicode().strip().startswith('<?xml version='):
+            type = 'xml'
+        xxs = Selector(response, type=type)
         if self.remove_namespaces:
             xxs.remove_namespaces()
-        for url in xxs.select(self.xpath).extract():
+        for url in xxs.xpath(self.xpath).extract():
             yield Link(url.encode(response.encoding))
 
 class RssLinkExtractor(XmlLinkExtractor):
@@ -35,4 +38,3 @@ class AtomLinkExtractor(XmlLinkExtractor):
      def __init__(self, **kwargs):
         kwargs['remove_namespaces'] = True
         super(AtomLinkExtractor, self).__init__("//link/@href", **kwargs)
-

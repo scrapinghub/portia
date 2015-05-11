@@ -2,6 +2,8 @@ from urlparse import urlparse
 import os
 import json
 
+from collections import OrderedDict
+
 from scrapy.utils.misc import load_object
 
 from scrapely.htmlpage import HtmlPage
@@ -64,9 +66,74 @@ def htmlpage_from_response(response):
 
 
 def load_plugins(settings):
-    if settings['PLUGINS']:
-        return [load_object(p) if isinstance(p, str) else p
-                for p in settings['PLUGINS']]
+    if settings.get('LOADED_PLUGINS', None):
+        return settings.get('LOADED_PLUGINS', None)
+    plugins = settings['PLUGINS']
+    if plugins:
+        return [load_object(p) if isinstance(p, str) else p for p in plugins]
     else:
         from slybot.plugins.scrapely_annotations import Annotations
         return [Annotations]
+
+
+def load_plugin_names(settings):
+    """
+    Generate a unique name for a plugin based on the class name module name
+    and path
+
+    >>> settings = {'PLUGINS': ['a', 'b.c', 'a.c']}
+    >>> load_plugin_names(settings)
+    ['a', 'c', 'a.c']
+    """
+    seen = set()
+
+    def generate_name(path, maxsplit=0, splits=None):
+        if splits is None:
+            splits = len(path.split('.')) - 1
+        name = '.'.join(path.split('.', splits - maxsplit)[-1].rsplit('.',
+                        maxsplit))
+        if name not in seen or maxsplit >= splits:
+            seen.add(name)
+            return name
+        return generate_name(path, maxsplit + 1, splits)
+
+    return [generate_name(path) for path in settings['PLUGINS']]
+
+
+class IndexedDict(OrderedDict):
+    """
+    Ordered dictionary where values can also be obtained by their index as if
+    they were in a list
+
+    >>> idd = IndexedDict([('spam', 1), ('eggs', 2), ('bacon', 3)])
+    >>> idd['spam']
+    1
+    >>> idd[0]
+    1
+    >>> idd['bacon']
+    3
+    >>> idd[2]
+    3
+    >>> idd[2] = 'ham'
+    Traceback (most recent call last):
+        ...
+    TypeError: keys must not be an integers
+    >>> idd[3]
+    Traceback (most recent call last):
+        ...
+    IndexError: index out of range
+    """
+    def __setitem__(self, key, value):
+        if isinstance(key, int):
+            raise TypeError("keys must not be an integers")
+        super(IndexedDict, self).__setitem__(key, value)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            if key >= len(self):
+                raise IndexError('index out of range')
+            for i, k in enumerate(self):
+                if i == key:
+                    key = k
+                    break
+        return super(IndexedDict, self).__getitem__(key)

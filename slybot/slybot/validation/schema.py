@@ -7,7 +7,8 @@ from urlparse import urlparse, parse_qsl
 from urllib import urlencode
 from urllib2 import unquote
 
-from jsonschema import Draft3Validator, RefResolver, FormatChecker
+from jsonschema import (Draft3Validator, RefResolver, FormatChecker,
+                        ValidationError)
 
 
 _PATH = dirname(__file__)
