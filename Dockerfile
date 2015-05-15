@@ -21,6 +21,9 @@ RUN apt-get install -y python-dev && \
 EXPOSE 9001
 
 ADD . /app
+RUN mkdir -p /app/slyd/splash_utils/filters
+ADD https://easylist-downloads.adblockplus.org/easylist.txt \
+    /app/slyd/splash_utils/filters/easylist.txt
 
 RUN ln -sf /app/nginx/nginx.conf /etc/nginx/nginx.conf
 
