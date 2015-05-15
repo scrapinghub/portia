@@ -1,34 +1,25 @@
 import json
-import hashlib
 
 from urlparse import urlparse
-from collections import namedtuple
 
 from autobahn.twisted.resource import WebSocketResource
 from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
 from weakref import WeakKeyDictionary
 
-from scrapy.http import Request, HtmlResponse
-from scrapy.item import DictItem
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
 from splash import network_manager
-from splash.browser_tab import BrowserTab, JsError
+from splash.browser_tab import BrowserTab
 from splash.render_options import RenderOptions
-
-from slyd.html import descriptify
-from slybot.baseurl import insert_base_url
 
 from slybot.spider import IblSpider
 
+from .commands import (fetch_page, fetch_response, interact_page, close_tab,
+                       extract, updates, resize)
 
-Auth = namedtuple('Auth', ('staff', 'authorized_projects', 'username',
-                           'service_token'))
-
-
-def clean(html, url):
-    return insert_base_url(descriptify(html, url), url)
+_DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
+_DEFAULT_VIEWPORT = '1240x680'
 
 
 def create_ferry_resource(spec_manager, factory):
@@ -48,120 +39,6 @@ class FerryWebSocketResource(WebSocketResource):
         request.requestHeaders.setRawHeaders('X-Auth-Info',
                                              [json.dumps(request.auth_info)])
         return WebSocketResource.render(self, request)
-
-
-def build_response(data, socket):
-    def _get_template_name(template_id, templates):
-        for template in templates:
-            if template['page_id'] == template_id:
-                return template['name']
-
-    socket.tab.run_js_files('/app/slyd/public/interact', handle_errors=False)
-    socket.tab.loaded = True
-    url = socket.tab.url
-    html = socket.tab.evaljs('document.documentElement.outerHTML')
-    links, items = [], []
-    templates = socket.spiderspec.templates
-    for value in socket.spider.parse(page(url, html)):
-        if isinstance(value, Request):
-            links.append(value.url)
-        elif isinstance(value, DictItem):
-            value['_template_name'] = _get_template_name(value['_template'],
-                                                         templates)
-            items.append(value._values)
-        else:
-            raise ValueError("Unexpected type %s from spider" %
-                             type(value))
-    return {
-        'id': data['_meta'].get('id'),
-        'fp': hashlib.sha1(socket.tab.url).hexdigest(),
-        'page': clean(html, url),
-        'original': html,
-        'items': items,
-        'links': links,
-        'response': {
-            'headers': {},
-            'status': socket.tab.last_http_status()
-        },
-        '_command': 'fetch',
-    }
-
-
-def open_tab(func):
-    def wrapper(data, socket):
-        if socket.tab is None:
-            socket.open_tab(data.get('_meta'))
-            socket.open_spider(data.get('_meta'))
-        return func(data, socket)
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
-    return wrapper
-
-
-@open_tab
-def fetch_page(data, socket):
-    if 'url' in data:
-        socket.tab.loaded = False
-        socket.tab.go(data['url'],
-                      lambda: socket.sendMessage(build_response(data, socket)),
-                      lambda: socket.sendMessage({'error': 4500,
-                                                  'message': 'Unknown error'}))
-        return {'message': 'loading "%s" in tab' % data['url']}
-
-
-@open_tab
-def interact_page(data, socket):
-    data.pop('_meta', {})
-    data.pop('_command', {})
-    try:
-        interaction = json.dumps(data.get('interaction', {}))
-        try:
-            result = socket.tab.evaljs(
-                'window.livePortiaPage.interact(%s);' % interaction
-            )
-        except JsError:
-            result = None
-        if result:
-            return {'diff': result}
-        else:
-            return {}
-    except JsError as exc:
-        return {'error': str(exc)}
-
-
-def extract_data(data, socket):
-    """Use scrapely and templates to extract data from the page"""
-    return {
-        'items': socket.spider.parse_html(page(socket.tab))
-    }
-
-
-def page(url, html):
-    return HtmlResponse(url, 200, {}, html, encoding='utf-8')
-
-
-def follow_links(data, socket):
-    """Return the links that will be followed in the page according to the
-    exclude and follow patterns of the spider"""
-
-
-def close_tab(data, socket):
-    if socket.tab is not None:
-        socket.tab.close()
-        socket.factory[socket] = None
-    return {}
-
-
-def heartbeat(data, socket):
-    res = {}
-    if socket.tab and socket.tab.loaded:
-        try:
-            diff = socket.tab.evaljs('window.livePortiaPage.interact()')
-        except JsError:
-            diff = None
-        if diff:
-            res['diff'] = diff
-    return res
 
 
 class User(object):
@@ -196,9 +73,11 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'fetch': fetch_page,
         'interact': interact_page,
         'close_tab': close_tab,
-        'follow_links': follow_links,
-        'extract_data': extract_data,
-        'heartbeat': heartbeat,
+        'extract': extract,
+        'heartbeat': lambda d, s: {},
+        'updates': updates,
+        'resize': resize,
+        'loadCurrent': fetch_response
     }
     spec_manager = None
     settings = None
@@ -237,12 +116,18 @@ class FerryServerProtocol(WebSocketServerProtocol):
         data = json.loads(payload)
         if '_command' in data and data['_command'] in self._handlers:
             command = data['_command']
-            result = self._handlers[command](data, self)
-            result['_command'] = data.get('_callback') or command
+            result = self._handlers[command](data, self) or {}
+            if '_command' not in result:
+                result['_command'] = data.get('_callback') or command
             self.sendMessage(result)
         else:
+            command = data.get('_command')
+            if command:
+                message = 'No command named "%s" found.' % command
+            else:
+                message = "No command received"
             self.sendMessage({'error': 4000,
-                              'reason': 'No matching command found.'})
+                              'reason': message})
 
     def onClose(self, was_clean, code, reason):
         if self in self.factory and self.tab is not None:
@@ -263,8 +148,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
         data = {}
         data['uid'] = id(data)
 
-        # TODO: Fill in appropriate config
-        #       user agent and other properties
         self.factory[self].tab = BrowserTab(
             network_manager=manager,
             splash_proxy_factory=None,
@@ -273,9 +156,21 @@ class FerryServerProtocol(WebSocketServerProtocol):
             visible=True,
         )
         self.tab.set_images_enabled(False)
-        self.tab.set_viewport(meta.get('viewport', '1240x680'))
+        self.tab.set_viewport(meta.get('viewport', _DEFAULT_VIEWPORT))
+        self.tab.set_user_agent(meta.get('user_agent', _DEFAULT_USER_AGENT))
+        self.tab.web_page.mainFrame().loadStarted.connect(
+            self._on_load_started)
+        self.tab.web_page.mainFrame().loadFinished.connect(
+            self._on_load_finished)
         # self.tab._jsconsole_enable()
         self.tab.loaded = False
+
+    def _on_load_started(self):
+        self.sendMessage({'_command': 'loadStarted'})
+
+    def _on_load_finished(self):
+        self.sendMessage({'_command': 'loadFinished',
+                          'url': self.tab.url})
 
     def open_spider(self, meta):
         if ('project' not in meta or 'spider' not in meta or
@@ -295,7 +190,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                                template))
             except TypeError:
                 # Template names not consistent with templates
-                self.spec.remove_template(spider, template)
+                spec.remove_template(spider, template)
         spider['templates'] = templates
         self.factory[self].spider = IblSpider(spider_name, spider, items,
                                               extractors, self.settings)

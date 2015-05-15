@@ -261,9 +261,7 @@ export default BaseController.extend({
                                   dataSource: this });
                 this.set('documentView.sprites', this.get('spriteStore'));
                 this.set('loadedPageFp', data.fp);
-                this.set('followedLinks', data.links);
                 this.get('pageMap')[data.fp] = data;
-                this.updateExtractedItems(data.items || []);
                 Ember.run.later(function() {
                     this.get('documentView').redrawNow();
                 }.bind(this), 100);
@@ -272,7 +270,6 @@ export default BaseController.extend({
                 }
             }.bind(this)
         );
-
     },
 
     fetchPage: function(url, parentFp, skipHistory, baseurl) {
@@ -650,5 +647,6 @@ export default BaseController.extend({
         this.get('documentView').redrawNow();
         this.get('pendingFetches').setObjects([]);
         this.get('documentView').hideLoading();
+        this.get('documentView.ws').send({'_command': 'close_tab'});
     },
 });

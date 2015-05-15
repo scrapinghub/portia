@@ -7256,6 +7256,7 @@ PortiaPage.prototype.init = function() {
     if (!root.getAttribute('data-tagid')) {
         this.maxElement = 0;
         root.setAttribute('data-tagid', 0);
+        root.setAttribute('data-parentid', 0);
         this._tagUntaggedElements();
     }
     this.page = this.currentState();
@@ -7295,36 +7296,98 @@ PortiaPage.prototype.currentState = function() {
         },
         vtree: convertHTML({
             getVNodeKey: function (attributes) {
-                return attributes['data-tagid'];
+                return JSON.stringify({
+                    id: Number(attributes['data-tagid']),
+                    pid: Number(attributes['data-parentid'])
+                });
             }
         }, body)
     };
 };
 
 PortiaPage.prototype.diff = function(a, b) {
-    d = diff(a, b);
+    var d = diff(a, b), res = {};
     if (Object.keys(d).length <= 1) {
         return null;
     }
     delete d['a'];
     for (var key in d) {
-        var node = d[key],
-            vNode = node.vNode;
-        if (vNode instanceof Object) {
-            vNode.type = vNode.type;
-            vNode.version = vNode.version;
+        var vpatch = d[key], patch;
+        if (this.isArray(vpatch)) {
+            res[key] = [];
+            for (var i=0; i < vpatch.length; i++) {
+                var patch = this.cleanVPatch(vpatch[i]);
+                if (patch) {
+                    res[key].push(patch);
+                }
+            }
+            if (!res[key].length) {
+                delete res[key];
+            }
+        } else {
+            res[key] = this.cleanVPatch(vpatch);
         }
-        if (node.children && node.children.length) {
-            // TODO: Do this recursively
-            for (var i=0; i < node.children.length; i++) {
-                var child = node.children[i]
-                child.type = child.type;
-                child.version = child.version;
+    }
+    return JSON.stringify(res);
+};
+
+PortiaPage.prototype.cleanVPatch = function(vpatch) {
+    var res = {};
+    if (vpatch.type) {
+        res = {type: vpatch.type}
+        if (vpatch.vNode instanceof Object) {
+            res.vNode = this.cleanVNode(vpatch.vNode, vpatch.type);
+        } else {
+            res.vNode = vpatch.vNode;
+        }
+        if (vpatch.patch instanceof Object && vpatch.patch.tagName) {
+            res.patch = this.cleanVNode(vpatch.patch, vpatch.type);
+        } else {
+            res.patch = vpatch.patch;
+        }
+        return res;
+    }
+};
+
+PortiaPage.prototype.isArray = Array.isArray || function(obj) {
+    return Object.prototype.toString.call(obj) === "[object Array]";
+};
+
+PortiaPage.prototype.cleanVNode = function(vNode, type) {
+    try {
+        vNode.key = JSON.parse(vNode.key);
+    } catch (e) {
+    }
+    if (type === 7 || type === 5 || type === 3 || type === 4) {
+        return {
+            key: Number(vNode.key.id)
+        };
+    }
+    vNode.key = Number(type === 6 ? vNode.key.pid : vNode.key.id);
+    if (vNode.properties) {
+        for (var attr in vNode.properties) {
+            if (attr.substring(0, 5) === 'data-') {
+                delete vNode.properties[attr];
             }
         }
     }
-    return JSON.stringify(d);
-};
+    for (var i=0; i < (vNode.children || []).length; i++) {
+        vNode.children[i] = this.cleanVNode(vNode.children[i], type);
+    }
+    vNode.p = vNode.properties;
+    vNode.t = vNode.tagName;
+    vNode.c = vNode.children;
+    vNode.n = vNode.namespace;
+    delete vNode.properties;
+    delete vNode.tagName;
+    delete vNode.children;
+    delete vNode.descendantHooks;
+    delete vNode.namespace;
+    delete vNode.count;
+    delete vNode.hasWidgets;
+    delete vNode.hasThunks;
+    return vNode;
+}
 
 PortiaPage.prototype.sendEvent = function(eventType, target, data) {
     var ev,
@@ -7336,7 +7399,7 @@ PortiaPage.prototype.sendEvent = function(eventType, target, data) {
         try {
             switch (eventType) {
                 case 'mouse':
-                    ev = document.createEvent("MouseEvents");
+                    ev = document.createEvent("MouseEvent");
                     ev.initMouseEvent(data.type, true, true, window, data.detail || 0,
                                       data.screenX, data.screenY, data.clientX,
                                       data.clientY, data.ctrlKey, data.altKey,
@@ -7346,7 +7409,10 @@ PortiaPage.prototype.sendEvent = function(eventType, target, data) {
                     ev = new WheelEvent(data.type, data);
                     break;
                 case 'keyboard':
-                    ev = new KeyboardEvent(data.type, data);
+                    ev = document.createEvent("KeyboardEvent");
+                    ev.initKeyEvent(data.type, true, true, window, data.ctrlKey,
+                                    data.altKey, data.shiftKey, data.metaKey,
+                                    data.keyCode, data.charCode || 0);
                     break;
                 default:
                     ev = new Event(data.type, data);
@@ -7403,6 +7469,7 @@ PortiaPage.prototype._tagUntaggedElements = function() {
         if (id > this.maxElement) {
             this.maxElement = Math.ceil(id);
         }
+        elem.setAttribute('data-parentid', elem.parentElement.getAttribute('data-tagid'))
         elem.setAttribute('data-tagid', id);
     }
 };
@@ -7460,14 +7527,19 @@ PortiaPage.prototype._getElemId = function(elem) {
 };
 
 PortiaPage.prototype.interact = function(interaction) {
-    var page = this.page;
+    var page = this.page, diff;
     if (interaction) {
         this.sendEvent(interaction.eventType, interaction.target, interaction.data);
     }
     this._tagUntaggedElements();
     var updatedPage = this.currentState();
     this.page = updatedPage;
-    return this.diff(page.vtree, updatedPage.vtree);
+    diff =this.diff(page.vtree, updatedPage.vtree);
+    if (diff !== this.previous_diff) {
+        this.previous_diff = diff;
+        return diff;
+    }
+    return null;
 };
 window.livePortiaPage = new PortiaPage();
 window.livePortiaPage.init();

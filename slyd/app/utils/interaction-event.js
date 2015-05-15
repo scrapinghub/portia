@@ -36,8 +36,8 @@ interactionEvent.prototype.getData = function(evt) {
 var ATTRIBUTE_WHITELIST = [
     'altKey', 'bubbles', 'button', 'buttons', 'cancelable', 'code', 'ctrlKey',
     'deltaX', 'deltaY', 'deltaZ', 'deltaMode', 'detail', 'isComposing',
-    'isTrusted', 'key', 'location', 'metaKey', 'relatedTargetId', 'shiftKey',
-    'type'
+    'isTrusted', 'key', 'keyCode', 'location', 'metaKey', 'relatedTargetId',
+    'shiftKey', 'type'
 ];
 
 export default interactionEvent;
