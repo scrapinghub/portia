@@ -9,5 +9,13 @@ def make_server(*args, **kwargs):
     reactor.listenTCP(9002, makeService({'port': 9002,
                                          'docroot': '/app/slyd/dist'}))
 
+
+def add_args():
+    opts, args = splash.server._parse_opts()
+    opts.filters_path = '/app/slyd/splash_utils/filters'
+    return (opts, args)
+
+splash.server._parse_opts = splash.server.parse_opts
+splash.server.parse_opts = add_args
 splash.server.splash_server = make_server
 splash.server.main()
