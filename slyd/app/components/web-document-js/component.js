@@ -3,16 +3,18 @@ import Ember from 'ember';
 import ApplicationUtils from '../../mixins/application-utils';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
-
-/* global virtualDomPatchOp, virtualDomPatch, virtualDomNode, virtualDomText, convertHTML */
+import {patchDom, VirtualText, VirtualNode, VirtualPatch} from '../../utils/patch';
 
 export default WebDocument.extend(ApplicationUtils, {
     ws_deferreds: {},
+    previous_diff: '',
 
     connect: function() {
         this.get('ws').addCommand('fetch', function(data) {
             if (data.id && this.get('ws_deferreds.' + data.id)) {
                 var deferred = this.get('ws_deferreds.' + data.id);
+                this.get('ws').send({_command: 'extract'});
+                this.set('currentUrl', data.url);
                 if (data.error) {
                     deferred.reject(data);
                 } else {
@@ -20,24 +22,59 @@ export default WebDocument.extend(ApplicationUtils, {
                 }
             }
         }.bind(this));
+
         this.get('ws').addCommand('interact', function(data) {
-            if (data.diff) {
-                this.updateDOM(data.diff);
+            if (data.diff && data.diff !== this.get('previous_diff')) {
+                var updated = this.updateDOM(data.diff);
+                if (updated) {
+                    this.get('ws').send({_command: 'extract'});
+                }
+                this.set('previous_diff', data.diff);
                 // TODO: Refresh followed links
                 Ember.run.next(this, function() {
                     this.redrawNow();
                 });
             }
         }.bind(this));
+
+        this.get('ws').addCommand('loadStarted', function() {
+            this.setInteractionsBlocked(true);
+            this.showLoading();
+        }.bind(this));
+
+        this.get('ws').addCommand('extract', function(data) {
+            if (this.get('listener') && this.get('listener').updateExtractedItems) {
+                this.get('listener').set('followedLinks', data.links);
+                this.get('listener').updateExtractedItems(data.items || []);
+            }
+        }.bind(this));
+
+        this.get('ws').addCommand('loadFinished', function(data) {
+            if (data.url === this.getWithDefault('currentUrl', data.url)) {
+                return;
+            }
+            this.fetchDocument(null, null, null, 'loadCurrent').then(function(data) {
+                this.displayDocument(data, function() {
+                    this.reset();
+                    this.set('loadedPageFp', data.fp);
+                    this.set('followedLinks', data.links);
+                    this.hideLoading();
+                }.bind(this));
+            }.bind(this));
+        }.bind(this));
+
         setInterval(function() {
+            if (this.get('loadingDoc')) {
+                return;
+            }
             this.get('ws').send({
                 _command: 'updates',
                 _callback: 'interact'
             });
-        }.bind(this));
+        }.bind(this), 2000);
     }.on('init'),
 
-    fetchDocument: function(url, spider) {
+    fetchDocument: function(url, spider, fp, command) {
         var unique_id = this.shortGuid(),
             deferred = new Ember.RSVP.defer(),
             ifWindow = document.getElementById(this.get('iframeId')).contentWindow;
@@ -47,9 +84,10 @@ export default WebDocument.extend(ApplicationUtils, {
                 spider: spider,
                 project: this.get('slyd.project'),
                 id: unique_id,
-                viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight
+                viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight,
+                user_agent: navigator.userAgent,
             },
-            _command: 'fetch',
+            _command: command || 'fetch',
             url: url
         });
         return deferred.promise;
@@ -85,16 +123,18 @@ export default WebDocument.extend(ApplicationUtils, {
     },
 
     updateDOM: function(data) {
-        var root = document.getElementById(this.get('iframeId')).contentDocument.body;
+        var rootDocument = document.getElementById(this.get('iframeId')).contentDocument,
+            root = rootDocument.body;
         if (!(data instanceof Object)) {
             data = JSON.parse(data);
         }
-        var patch = this._buildPatch(data, root);
-        virtualDomPatchOp(root, patch);
+        var patch = this._buildPatch(data);
+        patchDom(root, patch, rootDocument);
+        return Object.keys(patch).length > 0;
     },
 
-    _buildPatch: function(data, root) {
-        var patch = {}, vpatch, sp, type, vnode;
+    _buildPatch: function(data) {
+        var patch = {}, vpatch, sp;
         for (var key in data) {
             var value = data[key];
             if (value instanceof Array) {
@@ -102,51 +142,44 @@ export default WebDocument.extend(ApplicationUtils, {
                 for (var i=0; i < value.length; i++) {
                     // Add patches
                     sp = value[i];
-                    type = sp.type;
-                    vnode = sp.vNode instanceof Object ? sp.vNode : null;
-                    if(sp.patch) {
-                        if (sp.patch.text) {
-                            vpatch = new virtualDomText(sp.patch.text);
-                        } else {
-                            vpatch = new virtualDomNode(sp.patch.tagName,
-                                                        sp.patch.properties,
-                                                        sp.patch.children,
-                                                        sp.patch.key,
-                                                        sp.patch.namespace);
-                        }
+                    vpatch = this._makePatchObject(sp);
+                    if (vpatch) {
+                        patches.push(vpatch);
                     }
-                    if (!sp.patch || sp.patch && sp.patch.tagName !== 'script') {
-                        patches.push(new virtualDomPatch(type, vnode, vpatch));
-                    }
-                    vpatch = undefined;
                 }
                 patch[key] = patches;
             } else {
                 sp = value;
-                type = sp.type;
-                vnode = sp.vNode instanceof Object ? sp.vNode : null;
-                if(sp.patch) {
-                    if (sp.patch.text) {
-                        vpatch = new virtualDomText(sp.patch.text);
-                    } else {
-                        vpatch = new virtualDomNode(sp.patch.tagName,
-                                                    sp.patch.properties,
-                                                    sp.patch.children,
-                                                    sp.patch.key,
-                                                    sp.patch.namespace);
-                    }
-                }
-                if (!sp.patch || sp.patch && sp.patch.tagName !== 'script') {
-                    patch[key] = new virtualDomPatch(type, vnode, vpatch);
+                vpatch = this._makePatchObject(sp);
+                if (vpatch) {
+                    patch[key] = vpatch;
                 }
             }
         }
-        patch['a'] = convertHTML({
-            getVNodeKey: function (attributes) {
-                return attributes['data-tagid'];
-            }
-        }, root.outerHTML);
         return patch;
+    },
+
+    _makePatchObject: function(sp) {
+        var vpatch, type = sp.type,
+            vnode = sp.vNode instanceof Object ? sp.vNode : null;
+        if(sp.patch) {
+            if (sp.patch.text) {
+                vpatch = new VirtualText(sp.patch.text);
+            } else if (sp.patch && sp.patch.tagName) {
+                vpatch = new VirtualNode(sp.patch.t,
+                                         sp.patch.p,
+                                         sp.patch.c,
+                                         null,
+                                         sp.patch.n);
+                vpatch.key = sp.patch.key;
+            } else {
+                vpatch = sp.patch;
+            }
+        }
+        if (!sp.patch || sp.patch && sp.patch.t !== 'script' &&
+            sp.patch.t !== 'iframe') {
+            return new VirtualPatch(type, vnode, vpatch);
+        }
     },
 
     mouseOverHandler:  function(event) {
@@ -259,4 +292,17 @@ export default WebDocument.extend(ApplicationUtils, {
             }
         }
     },
+
+    bindResizeEvent: function() {
+        Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+    }.on('init'),
+
+    handleResize: function() {
+        var iframe_window = document.getElementById(this.get('iframeId')).contentWindow;
+        this.get('ws').send({
+            _command: 'resize',
+            _callback: 'heartbeat',
+            size: iframe_window.innerWidth + 'x' + iframe_window.innerHeight
+        });
+    }
 });

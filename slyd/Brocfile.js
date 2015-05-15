@@ -46,4 +46,8 @@ var publicFiles = pickFiles('public', {
     destDir: '/',
 })
 
+minifyJS: {
+  enabled: false
+}
+
 module.exports = mergeTrees([app.toTree(), fontTree, publicFiles], {overwrite: true});

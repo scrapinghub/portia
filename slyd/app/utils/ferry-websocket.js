@@ -61,6 +61,9 @@ FerryWebsocket.prototype._createWebsocket = function() {
             return;
         }
         if (command in this.commands) {
+            if (Object.keys(data).length > 1) {
+                console.log(data)
+            }
             this.commands[command](data);
         } else {
             Ember.Logger.warn('Received unknown command: ' + command);
