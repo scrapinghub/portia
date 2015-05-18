@@ -1,20 +1,28 @@
----
-language: node_js
-
-sudo: false
-
+language: python
+python: 2.7
+env:
+- WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
 cache:
   directories:
-    - node_modules
-
-before_install:
-  - "npm config set spin false"
-  - "npm install -g npm@^2"
-
+  - "$HOME/.cache/pip"
+  - "$HOME/.cache/wheelhouse"
 install:
-  - npm install -g bower
-  - npm install
-  - bower install
-
+- pip wheel -r ./slybot/requirements.txt
+- pip install --use-wheel -r ./slybot/requirements.txt
+- pip install -e ./slybot[tests]
 script:
-  - npm test
+- cd ./slybot
+- nosetests --with-doctest
+- cd ../
+before_deploy: cd ./slybot
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: scrapinghub
+  password:
+    secure: S5hZT2YBncUSkPTyR5RUQnACfTsW2ZtpHeQucIamKWN+xkE8KK9O0cWUMuKQ0q3U5ShFkZdhO4PnBjvtP54Dq9IogJAudkDJCylctf4qGoIlWu01mAoJzcUfrS5KW+VolF/opBJObwG38EIOOsVy9UYq7DeQcryAAG1RuMjONAk=
+  on:
+    all_branches: true
+    tag: true
+    repo: scrapinghub/portia
+    condition: "$TRAVIS_TAG =~ ^slybot-[0-9][.][0-9]*"

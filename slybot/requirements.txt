@@ -6,13 +6,3 @@ lxml==3.4.1
 rfc3987==1.3.4
 https://github.com/scrapinghub/dateparser/archive/e2789d101ab2f64bd0f0976a33048a15fc03e3f7.zip
 jsonschema==2.4.0
-
-# Slyd requirements
-twisted==14.0.2
-service_identity==14.0.0
-jsonschema==2.4.0
-requests==2.5.1
-
-# Dulwich's MySQL backend
---allow-external=mysql-connector-python
-https://github.com/scrapinghub/dulwich/tarball/420a056#egg=dulwich
