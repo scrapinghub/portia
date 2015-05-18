@@ -157,6 +157,9 @@ class ProjectsManager(object):
         with open(join(project_filename, 'setup.py'), 'w') as outf:
             outf.write(templates['SETUP'] % name)
 
+        with open(join(project_filename, 'items.json'), 'w') as outf:
+            outf.write(templates['ITEMS'])
+
         os.makedirs(join(project_filename, 'spiders'))
 
         init_py = join(project_filename, 'spiders', '__init__.py')

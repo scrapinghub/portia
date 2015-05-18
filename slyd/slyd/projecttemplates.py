@@ -50,10 +50,17 @@ _SCRAPY_TEMPLATE = """\
 default = slybot.settings
 """
 
+_ITEMS_TEMPLATE = """\
+{
+    "default": {}
+}
+"""
+
 
 templates = {
     'PROJECT': _PROJECT_TEMPLATE,
     'SETTINGS': _SETTINGS_TEMPLATE,
     'SETUP': _SETUP_PY_TEMPLATE,
-    'SCRAPY': _SCRAPY_TEMPLATE
+    'SCRAPY': _SCRAPY_TEMPLATE,
+    'ITEMS': _ITEMS_TEMPLATE
 }

@@ -5,6 +5,7 @@ import json
 
 from cStringIO import StringIO
 from slyd.gitstorage.repoman import retry_operation, Repoman
+from slyd.projecttemplates import templates as default_templates
 from slyd.utils.download import GitProjectArchiver
 
 from slybot.validation.schema import get_schema_validator
@@ -69,7 +70,7 @@ def import_project(name, apikey, repo):
         files['extractors.json'] = '{}'
     if ('items.json' not in files or not files['items.json'] or
             files['items.json'] == '{}'):
-        files['items.json'] = '{}'
+        files['items.json'] = default_templates['ITEMS']
     repo.save_files(files, 'master', 'Publishing initial import.')
     # XXX: Tell dash that project has been opened in Portia
     deploy_project(name, apikey, changed_files=[])
