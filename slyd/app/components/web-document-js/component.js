@@ -74,6 +74,56 @@ export default WebDocument.extend(ApplicationUtils, {
         }.bind(this), 2000);
     }.on('init'),
 
+    connectionStatusType: 'warning',
+    connectionStatusMessage: '',
+    reconnectInteractions: null,
+    _reconnectClock: function() {
+        if (Number(this.get('connectionStatusTime')) >= 2) {
+            this.decrementProperty('connectionStatusTime');
+            this.set('connectionStatusMessage', 'Reconnecting to server in ' + this.get('connectionStatusTime') + ' seconds.');
+            this.set('connectionAction', true);
+        } else {
+            this.set('connectionStatusMessage', 'Reconnecting...');
+            this.set('connectionAction', null);
+        }
+    },
+
+    connectionLost: function() {
+        if (this.get('ws.closed')) {
+            Ember.run.later(this, function() {
+                this.set('showConnectionLost', true);
+            }, 500)
+            if (this.get('reconnectInteractions') === null) {
+                var reconnect = this.get('canvas._interactionsBlocked');
+                this.setInteractionsBlocked(true);
+                this.set('reconnectInteractions', reconnect);
+            }            this.set('connectionStatusTime', this.get('ws.reconnectTimeout') / 1000);
+            this.addObserver('clock.second', this, this._reconnectClock);
+        } else {
+            this.removeObserver('clock.second', this, this._reconnectClock);
+        }
+    }.observes('ws.closed'),
+
+    connectionReEstablished: function() {
+        if (this.get('ws.opened')) {
+            if (this.get('reconnectInteractions') !== null) {
+                var reconnect = this.get('reconnectInteractions');
+                this.set('reconnectInteractions', null);
+                this.setInteractionsBlocked(reconnect);
+            }
+            this.set('connectionStatusMessage', null);
+            this.set('connectionAction', null);
+            this.set('showConnectionLost', false);
+        }
+    }.observes('ws.opened'),
+
+    connectionConnecting: function() {
+        if (this.get('ws.connecting')) {
+            this.set('connectionStatusMessage', 'Reconnecting...');
+            this.set('connectionAction', null);
+        }
+    }.observes('ws.connecting'),
+
     fetchDocument: function(url, spider, fp, command) {
         var unique_id = this.shortGuid(),
             deferred = new Ember.RSVP.defer(),
@@ -114,6 +164,16 @@ export default WebDocument.extend(ApplicationUtils, {
                 this.set('loadingDoc', false);
             }, 800);
         });
+    },
+
+    setInteractionsBlocked: function(blocked) {
+        if (this.get('reconnectInteractions') !== null) {
+            this.set('reconnectInteractions', blocked);
+            return;
+        }
+        if (this.get('canvas.interactionsBlocked') !== blocked) {
+            this.set('canvas.interactionsBlocked', blocked);
+        }
     },
 
     setIframeContent: function(doc) {
@@ -304,5 +364,11 @@ export default WebDocument.extend(ApplicationUtils, {
             _callback: 'heartbeat',
             size: iframe_window.innerWidth + 'x' + iframe_window.innerHeight
         });
+    },
+
+    actions: {
+        reconnectWebsocket: function() {
+            this.get('ws').connect();
+        }
     }
 });
