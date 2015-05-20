@@ -154,10 +154,9 @@ export default BaseController.extend({
             template_ext = this.get('model.extractors'),
             new_extractors = {},
             validated_extractors = {},
-            extractor_ids = {},
-            arr = [],
+            extractor_ids = new Set(),
             addExtractorToSet = function(extractor_id) {
-                if (extractor_ids[extractor_id]) {
+                if (extractor_ids.has(extractor_id)) {
                     new_extractors[field] = new_extractors[field] || new Set();
                     new_extractors[field].add(extractor_id);
                 }
@@ -166,7 +165,7 @@ export default BaseController.extend({
                 arr.push(extractor);
             };
         extractors.forEach(function(extractor) {
-            extractor_ids[extractor.id] = true;
+            extractor_ids.add(extractor.id);
         });
 
         for (var plugin in this.get('extractionTools')) {
@@ -181,6 +180,7 @@ export default BaseController.extend({
         }
 
         for (var key in new_extractors) {
+            var arr = [];
             new_extractors[key].forEach(addExtractorToArray);
             validated_extractors[key] = arr;
         }
@@ -188,20 +188,22 @@ export default BaseController.extend({
     },
 
     getAppliedExtractors: function(fieldName) {
-        var extractorIds = this.get('model.extractors.' + fieldName) || [];
-        return extractorIds.map(function(extractorId) {
-                var extractor = this.get('extractors').filterBy('name', extractorId)[0];
-                if (extractor) {
-                    extractor = extractor.copy();
-                    extractor['fieldName'] = fieldName;
-                    extractor['type'] = extractor.get('regular_expression') ? '<RegEx>' : '<Type>';
-                    extractor['label'] = extractor.get('regular_expression') || extractor.get('type_extractor');
-                    return extractor;
-                } else {
-                    return null;
+        var extractorIds = this.get('model.extractors.' + fieldName) || [],
+            extractors = [], seen = new Set();
+        for (var i=0; i < extractorIds.length; i++) {
+            var extractor = this.get('extractors').filterBy('name', extractorIds[i])[0];
+            if (extractor) {
+                extractor = extractor.copy();
+                extractor['fieldName'] = fieldName;
+                extractor['type'] = extractor.get('regular_expression') ? '<RegEx>' : '<Type>';
+                extractor['label'] = extractor.get('regular_expression') || extractor.get('type_extractor');
+                if (!seen.has(extractor['type']+extractor['label'])) {
+                    extractors.push(extractor);
+                    seen.add(extractor['type']+extractor['label']);
                 }
-            }.bind(this)
-        ).filter(function(extractor){ return !!extractor; });
+            }
+        }
+        return extractors;
     },
 
     mappedFieldsData: function() {
