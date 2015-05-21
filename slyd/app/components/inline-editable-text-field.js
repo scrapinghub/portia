@@ -1,10 +1,11 @@
 import Ember from 'ember';
+import NotificationHandler from '../mixins/notification-handler';
 
-export default Ember.Component.extend({
+export default Ember.Component.extend(NotificationHandler, {
     tagName: 'div',
     classNames: 'class',
     editing: false,
-    validation: '*',
+    validation: '.*',
     text: '',
     name: null,
 
@@ -26,14 +27,16 @@ export default Ember.Component.extend({
             if (Ember.$.trim(text).length < 1) {
                 return;
             }
-            var re = new RegExp(this.get('regex'), 'g');
-            if (text !== this.get('text') && re.test(text)) {
-                this.set('text', text);
-                this.sendAction('action', this.get('text'), this.get('name'));
-            } else {
-                this.sendAction('showAlert', 'Validation Error',
-                    '"' + text + '" is not a valid name. Names must match "' + this.get('validation') +'".',
-                    function() { this.set('editing', true);}.bind(this));
+            if (text !== this.get('text')) {
+                var re = new RegExp(this.get('validation'), 'g');
+                if (re.test(text)) {
+                    this.set('text', text);
+                    this.sendAction('action', this.get('text'), this.get('name'));
+                } else {
+                    this.showWarningNotification('Validation Error',
+                        '"' + text + '" is not a valid name. Names must match "' + this.get('validation') +'".');
+                    this.set('editing', true);
+                }
             }
         }
     }

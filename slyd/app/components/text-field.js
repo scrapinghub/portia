@@ -27,7 +27,12 @@ export default Ember.Component.extend({
 
     keyUp: function(e) {
         if (e.which === 13) {
-            this.sendAction('action', this.get('element').value, this.get('name'));
+            if (this.get('saveOnExit')) {
+                // XXX: Focusout will trigger to avoid double save
+                Ember.$(this.get('element')).trigger('focusout');
+            } else {
+                this.sendAction('action', this.get('element').value, this.get('name'));
+            }
             if (this.get('clear')) {
                 this.get('element').value = '';
                 this.set('clear', false);

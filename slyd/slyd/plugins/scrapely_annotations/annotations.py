@@ -14,7 +14,7 @@ class Annotations(object):
 
     def save_extraction_data(self, data, template, options={}):
         """
-        data = {   
+        data = {
             extracts: [
                 {
                     annotatations: {"content": "Title"},
@@ -111,7 +111,7 @@ def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
             removed = 0
             inserted = False
             for j, (pre, selected, annotation) in enumerate(pre_selected[:]):
-                if selected in text:
+                if selected and selected in text:
                     previous, post = text.split(selected, 1)
                     if previous.strip() in pre:
                         pre_selected.pop(j - removed)

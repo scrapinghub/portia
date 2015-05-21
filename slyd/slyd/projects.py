@@ -1,12 +1,13 @@
 import json, re, shutil, errno, os
 from os.path import join
-from twisted.web.resource import NoResource, ErrorPage
 from twisted.internet.defer import Deferred
+from twisted.web.resource import NoResource, ErrorPage
 from twisted.web.server import NOT_DONE_YET
-from .errors import BaseError
-from .resource import SlydJsonResource
+from .errors import BaseError, BaseHTTPError, BadRequest
 from .projecttemplates import templates
-from .errors import BaseHTTPError
+from .resource import SlydJsonResource
+from .utils.copy import FileSystemSpiderCopier
+from .utils.download import FileSystemProjectArchiver
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -46,23 +47,24 @@ class ProjectsManagerResource(SlydJsonResource):
         dispatch_func = projects_manager.project_commands.get(command)
         if dispatch_func is None:
             self.bad_request(
-                "unrecognised cmd arg %s, available commands: %s" %
+                "Unrecognised command %s, available commands: %s." %
                 (command, ', '.join(projects_manager.project_commands.keys())))
         args = command_spec.get('args', [])
         try:
             retval = dispatch_func(*args)
         except TypeError:
-            self.bad_request("incorrect args for %s" % command)
+            self.bad_request("Incorrect arguments for command %s." % command)
         except OSError as ex:
             if ex.errno == errno.ENOENT:
-                self.error(404, "Not Found", "No such resource")
+                self.not_found()
             elif ex.errno == errno.EEXIST or ex.errno == errno.ENOTEMPTY:
-                self.error(400, "Bad Request",
-                           "A project with that name already exists")
+                self.bad_request("A project with that name already exists.")
             raise
         except BaseError as ex:
             self.error(ex.status, ex.title, ex.body)
-        return retval or ''
+        else:
+            return retval or ''
+        return ''
 
     def render_GET(self, request):
         project_manager = self.spec_manager.project_manager(request.auth_info)
@@ -116,11 +118,15 @@ class ProjectsManager(object):
         self.auth_info = auth_info
         self.user = auth_info['username']
         self.projectsdir = ProjectsManager.base_dir
-        self.modify_request = {}
+        self.modify_request = {
+            'download': self._render_file
+        }
         self.project_commands = {
             'create': self.create_project,
             'mv': self.rename_project,
-            'rm': self.remove_project
+            'rm': self.remove_project,
+            'copy': self.copy_data,
+            'download': self.download_project
         }
 
     def all_projects(self):
@@ -151,6 +157,9 @@ class ProjectsManager(object):
         with open(join(project_filename, 'setup.py'), 'w') as outf:
             outf.write(templates['SETUP'] % name)
 
+        with open(join(project_filename, 'items.json'), 'w') as outf:
+            outf.write(templates['ITEMS'])
+
         os.makedirs(join(project_filename, 'spiders'))
 
         init_py = join(project_filename, 'spiders', '__init__.py')
@@ -175,4 +184,20 @@ class ProjectsManager(object):
 
     def validate_project_name(self, name):
         if not allowed_project_name(name):
-            self.error(400, 'Bad Request', 'invalid project name %s' % name)
+            raise BadRequest('Bad Request', 'Invalid project name %s.' % name)
+
+    def copy_data(self, source, destination, spiders, items):
+        copier = FileSystemSpiderCopier(source, destination, self.projectsdir)
+        return json.dumps(copier.copy(spiders, items))
+
+    def download_project(self, name, spiders=None, version=None):
+        archiver = FileSystemProjectArchiver(name, base_dir=self.projectsdir)
+        return archiver.archive(spiders).read()
+
+    def _render_file(self, request, request_data, body):
+        name = request_data.get('args')[0].encode('utf-8')
+        request.setHeader('Content-Type', 'application/zip')
+        request.setHeader('Content-Disposition', 'attachment; '
+                          'filename="%s.zip"' % name)
+        request.setHeader('Content-Length', len(body))
+        return body

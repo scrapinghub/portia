@@ -2,6 +2,20 @@ import json, errno
 from twisted.web.resource import Resource, NoResource, ErrorPage
 
 
+class SlydJsonErrorPage(ErrorPage):
+    def render(self, request):
+        request.setResponseCode(self.code)
+        request.setHeader(b'content-type', b"application/json")
+        return json.dumps({
+            'error': self.brief,
+            'detail': self.detail
+        })
+
+
+class SlydJsonNoResource(NoResource, SlydJsonErrorPage):
+    pass
+
+
 class SlydJsonResource(Resource):
     """Base Resource for Slyd Resources
 
@@ -15,10 +29,15 @@ class SlydJsonResource(Resource):
             return Resource.render(self, request)
         except IOError as ex:
             if ex.errno == errno.ENOENT:
-                return NoResource().render(request)
+                if request.is_ajax():
+                    return SlydJsonNoResource().render(request)
+                else:
+                    return NoResource().render(request)
             else:
                 raise
         except ErrorPage as ex:
+            if request.is_ajax():
+                ex = SlydJsonErrorPage(ex.code, ex.brief, ex.detail)
             return ex.render(request)
 
     def error(self, request, status, why):
@@ -26,6 +45,11 @@ class SlydJsonResource(Resource):
 
     def bad_request(self, why):
         self.error(400, "Bad Request", why)
+
+    def not_found(self, message=None):
+        if message is not None:
+            raise NoResource(message)
+        raise NoResource()
 
     def read_json(self, request):
         try:

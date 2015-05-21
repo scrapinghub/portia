@@ -108,7 +108,7 @@ export default BaseController.extend({
         }
         var missingFields = this.getMissingFields();
         if (missingFields.length > 0) {
-            this.showAlert('Required Fields Missing',
+            this.showWarningNotification('Required Fields Missing',
                 'You are unable to save this template as the following required fields are missing: "' +
                 missingFields.join('", "') + '".');
         } else {
@@ -154,10 +154,9 @@ export default BaseController.extend({
             template_ext = this.get('model.extractors'),
             new_extractors = {},
             validated_extractors = {},
-            extractor_ids = {},
-            arr = [],
+            extractor_ids = new Set(),
             addExtractorToSet = function(extractor_id) {
-                if (extractor_ids[extractor_id]) {
+                if (extractor_ids.has(extractor_id)) {
                     new_extractors[field] = new_extractors[field] || new Set();
                     new_extractors[field].add(extractor_id);
                 }
@@ -166,7 +165,7 @@ export default BaseController.extend({
                 arr.push(extractor);
             };
         extractors.forEach(function(extractor) {
-            extractor_ids[extractor.id] = true;
+            extractor_ids.add(extractor.id);
         });
 
         for (var plugin in this.get('extractionTools')) {
@@ -181,6 +180,7 @@ export default BaseController.extend({
         }
 
         for (var key in new_extractors) {
+            var arr = [];
             new_extractors[key].forEach(addExtractorToArray);
             validated_extractors[key] = arr;
         }
@@ -188,20 +188,22 @@ export default BaseController.extend({
     },
 
     getAppliedExtractors: function(fieldName) {
-        var extractorIds = this.get('model.extractors.' + fieldName) || [];
-        return extractorIds.map(function(extractorId) {
-                var extractor = this.get('extractors').filterBy('name', extractorId)[0];
-                if (extractor) {
-                    extractor = extractor.copy();
-                    extractor['fieldName'] = fieldName;
-                    extractor['type'] = extractor.get('regular_expression') ? '<RegEx>' : '<Type>';
-                    extractor['label'] = extractor.get('regular_expression') || extractor.get('type_extractor');
-                    return extractor;
-                } else {
-                    return null;
+        var extractorIds = this.get('model.extractors.' + fieldName) || [],
+            extractors = [], seen = new Set();
+        for (var i=0; i < extractorIds.length; i++) {
+            var extractor = this.get('extractors').filterBy('name', extractorIds[i])[0];
+            if (extractor) {
+                extractor = extractor.copy();
+                extractor['fieldName'] = fieldName;
+                extractor['type'] = extractor.get('regular_expression') ? '<RegEx>' : '<Type>';
+                extractor['label'] = extractor.get('regular_expression') || extractor.get('type_extractor');
+                if (!seen.has(extractor['type']+extractor['label'])) {
+                    extractors.push(extractor);
+                    seen.add(extractor['type']+extractor['label']);
                 }
-            }.bind(this)
-        ).filter(function(extractor){ return !!extractor; });
+            }
+        }
+        return extractors;
     },
 
     mappedFieldsData: function() {
@@ -265,7 +267,7 @@ export default BaseController.extend({
                 new RegExp(extractorDefinition);
             } catch (e) {
                 if (e instanceof SyntaxError) {
-                    this.showAlert('Save Error','The text, "' + extractorDefinition + '", you provided is not a valid regex.');
+                    this.showErrorNotification('The text, "' + extractorDefinition + '", you provided is not a valid regex.');
                 }
                 return;
             }
@@ -287,11 +289,7 @@ export default BaseController.extend({
 
         createField: function(item, fieldName, fieldType) {
             item.addField(fieldName, fieldType);
-            this.get('slyd').saveItems(this.get('items').toArray()).then(function() { },
-                function(reason) {
-                    this.showHTTPAlert('Save Error', reason);
-                }.bind(this)
-            );
+            this.get('slyd').saveItems(this.get('items').toArray());
         },
 
         rename: function(newName) {
@@ -312,9 +310,9 @@ export default BaseController.extend({
                         templateNames.addObject(newName);
                         this.replaceRoute('template', newName);
                     }.bind(this),
-                    function() {
+                    function(err) {
                         this.set('model.name', this.get('templateName'));
-                        this.showHTTPAlert('Save Error', 'The name ' + newName + ' is not a valid template name.');
+                        throw err;
                     }.bind(this)
                 );
             }.bind(this));
@@ -380,9 +378,9 @@ export default BaseController.extend({
                     }
                 });
             }.bind(this),
-            function(reason) {
+            function(err) {
                 this.set('documentView.sprites', sprites);
-                this.showHTTPAlert('Save Error', reason);
+                throw err;
             }.bind(this));
         },
 

@@ -4,7 +4,7 @@ Field Types
 Spiders extracts items of a given type. These item types are defined by a
 schema, which specifies the type of each field in the item. This module
 contains FieldProcessor implementations, which are the classes responsible for
-custom processing of these types. 
+custom processing of these types.
 
 We keep the types of scrapers supported flexible and allow different methods
 for each. In the future, we expect many different types, for example one might
@@ -21,6 +21,8 @@ from .url import UrlFieldTypeProcessor
 from .number import NumberTypeProcessor
 from .point import GeoPointFieldTypeProcessor
 from .price import PriceTypeProcessor
+from .date import DateTimeFieldTypeProcessor
+
 
 class FieldTypeManager(object):
     _TYPEMAP = dict((c.name, c) for c in (
@@ -28,6 +30,7 @@ class FieldTypeManager(object):
         ImagesFieldTypeProcessor, NumberTypeProcessor,
         UrlFieldTypeProcessor, SafeHtmlFieldTypeProcessor,
         GeoPointFieldTypeProcessor, PriceTypeProcessor,
+        DateTimeFieldTypeProcessor
     ))
     _names = sorted(_TYPEMAP.keys())
 
@@ -47,4 +50,3 @@ class FieldTypeManager(object):
     def all_processor_classes(self):
         """Retrieve all processor classes registered"""
         return self._TYPEMAP.values()
-

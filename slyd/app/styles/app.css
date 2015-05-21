@@ -581,6 +581,26 @@ ul.breadcrumbs {
     margin: 1px 0;
 }
 
+.notifications {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 50px;
+}
+
+.notification.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.notification > h4 {
+    margin-bottom: 10px;
+}
+
 .arrow-left {
     width: 0;
     height: 0;
@@ -709,6 +729,14 @@ input[type="checkbox"].offset-checkbox {
     margin-top: 1px;
 }
 
+.checkbox label {
+    line-height: 20px;
+}
+
+.checkbox input.offset-checkbox {
+    margin-top: 4px;
+}
+
 .crumbs {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -749,4 +777,8 @@ input[type="checkbox"].offset-checkbox {
 .btn-xs-size {
     width: 23px;
     height: 23px;
+}
+
+.dropdown-menu a {
+    cursor: pointer;
 }

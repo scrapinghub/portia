@@ -16,7 +16,7 @@ export default BaseController.extend({
 
     addField: function(owner, name, type) {
         if (!owner) {
-            this.showAlert('Annotation Error', 'No Item selected for extraction');
+            this.showErrorNotification('No Item selected for extraction');
             return;
         }
         var newField = ItemField.create({ name: name || 'new_field',
@@ -31,7 +31,7 @@ export default BaseController.extend({
         var valid = true;
         this.get('content').forEach(function(item) {
             if (!item.isValid()) {
-                this.showAlert('Save Error','The item ' + item.get('name') +
+                this.showErrorNotification('The item ' + item.get('name') +
                     ' or one of its fields has an invalid name. Only A-Z, a-z, 0-9, - and _ are allowed characters.');
                 valid = false;
             }
@@ -40,8 +40,6 @@ export default BaseController.extend({
             this.get('slyd').saveItems(this.model).then(function() {
                 this.set('project_models.items', this.model);
                 this.transitionToRoute('template');
-            }.bind(this), function(err) {
-                this.showHTTPAlert('Save Error', err);
             }.bind(this));
         }
     },
@@ -72,8 +70,6 @@ export default BaseController.extend({
             this.get('slyd').loadItems().then(function(items) {
                 this.set('content', items);
                 this.transitionToRoute('template');
-            }.bind(this), function(err) {
-                this.showHTTPAlert('Discard Error', err);
             }.bind(this));
         },
     },

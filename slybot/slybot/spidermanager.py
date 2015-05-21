@@ -7,6 +7,7 @@ from zipfile import ZipFile
 from zope.interface import implements
 from scrapy.interfaces import ISpiderManager
 from scrapy.utils.misc import load_object
+from scrapy.utils.project import get_project_settings
 
 from slybot.spider import IblSpider
 from slybot.utils import open_project_from_dir, load_plugins
@@ -17,11 +18,13 @@ class SlybotSpiderManager(object):
     implements(ISpiderManager)
 
     def __init__(self, datadir, spider_cls=None, settings=None, **kwargs):
+        if settings is None:
+            settings = get_project_settings()
         self.spider_cls = load_object(spider_cls) if spider_cls else IblSpider
         self._specs = open_project_from_dir(datadir)
         settings = settings.copy()
         settings.frozen = False
-        settings.set('PLUGINS', load_plugins(settings))
+        settings.set('LOADED_PLUGINS', load_plugins(settings))
         self.settings = settings
 
     @classmethod
@@ -43,8 +46,8 @@ class SlybotSpiderManager(object):
         class SlybotSpider(self.spider_cls):
             def __init__(self_, **kwargs):
                 super(SlybotSpider, self_).__init__(spider_name, spec, items,
-                                                   extractors, self.settings,
-                                                   **kwargs)
+                                                    extractors, self.settings,
+                                                    **kwargs)
 
         return SlybotSpider
 

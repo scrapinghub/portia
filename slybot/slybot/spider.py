@@ -11,7 +11,8 @@ except ImportError:
 
 from loginform import fill_login_form
 
-from slybot.utils import iter_unique_scheme_hostname, load_plugins
+from slybot.utils import (iter_unique_scheme_hostname, load_plugins,
+                          load_plugin_names, IndexedDict)
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.generic_form import GenericForm
 
@@ -36,11 +37,12 @@ class IblSpider(Spider):
 
         self._templates = [templ for _, templ in self._item_template_pages]
 
-        self.plugins = []
-        for plugin_class in load_plugins(settings):
+        self.plugins = IndexedDict()
+        for plugin_class, plugin_name in zip(load_plugins(settings),
+                                             load_plugin_names(settings)):
             instance = plugin_class()
             instance.setup_bot(settings, spec, item_schemas, all_extractors)
-            self.plugins.append(instance)
+            self.plugins[plugin_name] = instance
 
         self.login_requests = []
         self.form_requests = []
@@ -171,11 +173,11 @@ class IblSpider(Spider):
 
     def handle_rss(self, response):
         seen = set()
-        for plugin in self.plugins:
+        for plugin in self.plugins.values():
             for item_or_request in plugin.handle_rss(response, seen):
                 yield item_or_request
 
     def handle_html(self, response):
-        for plugin in self.plugins:
+        for plugin in self.plugins.values():
             for item_or_request in plugin.handle_html(response):
                 yield item_or_request

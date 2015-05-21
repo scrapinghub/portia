@@ -1,8 +1,11 @@
 from slybot import __version__
 from setuptools import setup, find_packages
 
-install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema']
-tests_requires = install_requires
+install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema',
+                    'dateparser', 'rfc3987']
+extras = {
+    'tests': ['nose']
+}
 
 setup(name='slybot',
       version=__version__,
@@ -15,7 +18,7 @@ setup(name='slybot',
       platforms=['Any'],
       scripts=['bin/slybot', 'bin/portiacrawl'],
       install_requires=install_requires,
-      tests_requires=tests_requires,
+      extras_require=extras,
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: BSD License',

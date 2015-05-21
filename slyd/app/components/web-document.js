@@ -35,8 +35,10 @@ export default Ember.Component.extend({
 
     annotationStore: null,
 
-    spiderPage: '<html>' +
+    spiderPage: '<!DOCTYPE html>' +
+'<html>' +
 '<head>' +
+    '<meta http-equiv="Content-type" content="text/html;charset=UTF-8">' +
     '<style>' +
         'html {' +
            'width:100%;' +
@@ -207,16 +209,6 @@ export default Ember.Component.extend({
             this.get('loader').hide();
         }
         this.setInteractionsBlocked(false);
-    },
-
-    /**
-        Displays an error message as the content of the iframe.
-    */
-    showError: function(error) {
-        error = '<div style="color:red;font-size:1.2em;padding:15px">' + error + '</div>';
-        Ember.run.schedule('afterRender', this, function() {
-            this.setIframeContent(error);
-        });
     },
 
     /**
