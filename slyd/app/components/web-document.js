@@ -35,8 +35,10 @@ export default Ember.Component.extend({
 
     annotationStore: null,
 
-    spiderPage: '<html>' +
+    spiderPage: '<!DOCTYPE html>' +
+'<html>' +
 '<head>' +
+    '<meta http-equiv="Content-type" content="text/html;charset=UTF-8">' +
     '<style>' +
         'html {' +
            'width:100%;' +
