@@ -3,7 +3,7 @@ import Ember from 'ember';
 export default Ember.Component.extend({
     outerClasses: ['row'],
     tagName: 'div',
-    classNames: this.outerClasses,
+    classNameBindings: ['outerClasses'],
     text: null,
     placeholder: '',
 
