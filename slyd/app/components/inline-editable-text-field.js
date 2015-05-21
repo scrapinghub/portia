@@ -5,7 +5,7 @@ export default Ember.Component.extend(NotificationHandler, {
     tagName: 'div',
     classNames: 'class',
     editing: false,
-    validation: '*',
+    validation: '.*',
     text: '',
     name: null,
 
