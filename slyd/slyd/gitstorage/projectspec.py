@@ -34,22 +34,27 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
                                         self._get_branch())
 
     def remove_spider(self, name):
-        self._open_repo().delete_file(
-            self._rfile_name('spiders', name), self._get_branch())
+        repo, branch = self._open_repo(), self._get_branch()
+        for file_path in repo.list_files_for_branch(branch):
+            split_path = file_path.split('/')
+            if len(split_path) > 2 and split_path[1] == name:
+                repo.delete_file(file_path, branch)
+        repo.delete_file(self._rfile_name('spiders', name), branch)
 
-    def remove_template(self, spider_name, name):
+    def remove_template(self, spider_name, name, save_spider=True):
         try:
             self._open_repo().delete_file(
                 self._rfile_name('spiders', spider_name, name),
                 self._get_branch())
         except KeyError:
             pass
-        spider = self.spider_json(spider_name)
-        try:
-            spider['template_names'].remove(name)
-        except ValueError:
-            pass
-        self.savejson(spider, ['spiders', spider_name])
+        if save_spider:
+            spider = self.spider_json(spider_name)
+            try:
+                spider['template_names'].remove(name)
+            except ValueError:
+                pass
+            self.savejson(spider, ['spiders', spider_name])
 
     def resource(self, *resources):
         return json.loads(self._rfile_contents(resources))
