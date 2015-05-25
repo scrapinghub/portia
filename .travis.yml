@@ -23,6 +23,6 @@ deploy:
     secure: S5hZT2YBncUSkPTyR5RUQnACfTsW2ZtpHeQucIamKWN+xkE8KK9O0cWUMuKQ0q3U5ShFkZdhO4PnBjvtP54Dq9IogJAudkDJCylctf4qGoIlWu01mAoJzcUfrS5KW+VolF/opBJObwG38EIOOsVy9UYq7DeQcryAAG1RuMjONAk=
   on:
     all_branches: true
-    tag: true
+    tags: true
     repo: scrapinghub/portia
     condition: "$TRAVIS_TAG =~ ^slybot-[0-9][.][0-9]*"

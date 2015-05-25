@@ -97,7 +97,10 @@ def load_plugin_names(settings):
             return name
         return generate_name(path, maxsplit + 1, splits)
 
-    return [generate_name(path) for path in settings['PLUGINS']]
+    if settings['PLUGINS']:
+        return [generate_name(path) for path in settings['PLUGINS']]
+    else:
+        return ['Annotations']
 
 
 class IndexedDict(OrderedDict):

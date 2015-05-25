@@ -2,9 +2,9 @@ Source: python-slybot
 Section: python
 Priority: extra
 Maintainer: Scrapinghub Team <info@scrapinghub.com>
-Build-Depends: debhelper (>= 7), python (>=2.5)
+Build-Depends: debhelper (>= 7), python (>=2.7)
 Standards-Version: 3.8.3
-Homepage: https://github.com/scrapy/slybot
+Homepage: https://github.com/scrapinghub/portia
 
 Package: python-slybot
 Architecture: all
