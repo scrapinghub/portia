@@ -91,7 +91,6 @@ def deploy_project(name, apikey, changed_files=None, repo=None,
     if changed_files is not None:
         spiders = {archiver._spider_name(name)
                    for name in changed_files if name.startswith('spiders/')}
-    print(spiders)
     zbuff = archiver.archive(spiders)
     payload = {'apikey': apikey, 'project': name}
     req = requests.post(
