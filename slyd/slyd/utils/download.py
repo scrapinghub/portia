@@ -112,9 +112,10 @@ class ProjectArchiver(object):
             return file_path, spider_data, {file_path}
         spider_data.pop('template_names', None)
         spider_templates = templates.get(spider, [])
-        templates, added = self._spider_templates(spider_templates, extractors)
+        loaded_templates, added = self._spider_templates(spider_templates,
+                                                         extractors)
         added.add(file_path)
-        spider_data['templates'] = templates
+        spider_data['templates'] = loaded_templates
         return file_path, spider_data, added
 
     def _deleted_spider(self, file_path, spider_data, templates):
@@ -130,13 +131,13 @@ class ProjectArchiver(object):
         spider_content = json.dumps(spider_data, sort_keys=True, indent=4)
         return file_path, spider_content, added
 
-    def _spider_templates(self, templates, extractors):
+    def _spider_templates(self, spider_templates, extractors):
         """
         Find all templates for a legacy spider and combine them into a single
         list.
         """
         templates, added = [], set()
-        for template_path in templates:
+        for template_path in spider_templates:
             added.add(template_path)
             existing = {}
             template = self.read_file(template_path, deserialize=True)
