@@ -77,7 +77,7 @@ class ProjectArchiver(object):
         """
         Add a file to the zip archive.
         """
-        if filename is None or contents is None:
+        if filename is None or contents in (None, 'null'):
             return
         fileinfo = zipfile.ZipInfo(filename, tstamp)
         fileinfo.external_attr = 0666 << 16L
@@ -110,8 +110,9 @@ class ProjectArchiver(object):
         spider_data = self.read_file(file_path, deserialize=True)
         if spider_data.get('deleted'):
             return file_path, spider_data, {file_path}
-        spider_data.pop('template_names', None)
-        spider_templates = templates.get(spider, [])
+        names = set(spider_data.pop('template_names', []))
+        spider_templates = [tp for tp in templates.get(spider, [])
+                            if self._name(tp) in names]
         loaded_templates, added = self._spider_templates(spider_templates,
                                                          extractors)
         added.add(file_path)
@@ -159,6 +160,15 @@ class ProjectArchiver(object):
         if len(split) > 2:
             return split[1]
         return split[1][:-5]
+
+    def _name(self, file_path):
+        """
+        Get the name for the current json path
+        """
+        split = file_path.split(self.separator)
+        if split[-1].endswith('.json'):
+            return split[-1][:-5]
+        return ''
 
     def _spider_path(self, file_path):
         if len(file_path.split(self.separator)) > 2:
