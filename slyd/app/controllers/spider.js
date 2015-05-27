@@ -160,11 +160,11 @@ export default BaseController.extend({
     }.property('model.init_requests'),
 
     loginUser: function() {
-        return this._get_init_request_property('loginuser');
+        return this._get_init_request_property('username');
     }.property('model.init_requests'),
 
     loginPassword: function() {
-        return this._get_init_request_property('loginpassword');
+        return this._get_init_request_property('password');
     }.property('model.init_requests'),
 
     spiderDomains: function() {

@@ -29,7 +29,7 @@ def convert_template(template):
 def clean_spider(obj):
     """Removes incomplete data from the spider"""
     if 'init_requests' in obj:
-        required_fields = ('type', 'login_url', 'login_user', 'login_password')
+        required_fields = ('type', 'loginurl', 'username', 'password')
         obj['init_requests'] = [req for req in obj['init_requests']
                                 if all(f in req for f in required_fields)]
     if 'start_urls' in obj:

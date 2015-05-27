@@ -5111,11 +5111,11 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
         }).property('model.init_requests'),
 
         loginUser: (function () {
-            return this._get_init_request_property('loginuser');
+            return this._get_init_request_property('username');
         }).property('model.init_requests'),
 
         loginPassword: (function () {
-            return this._get_init_request_property('loginpassword');
+            return this._get_init_request_property('password');
         }).property('model.init_requests'),
 
         spiderDomains: (function () {
@@ -16761,9 +16761,9 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             element(env, element11, context, "bind-attr", [], {"style": "tiny_box_style"});
             block(env, morph2, context, "each", [get(env, context, "model.start_urls")], {"keyword": "url"}, child1, child2);
             inline(env, morph3, context, "text-area-with-button", [], {"placeholder": "Enter one or multiple start page urls here", "action": get(env, context, "startUrlsAction"), "reset": true, "value": get(env, context, "startUrls")});
-            inline(env, morph4, context, "check-box", [], {"checked": get(env, context, "performLogin"), "name": "performLoginCheck"});
+            inline(env, morph4, context, "check-box", [], {"checked": get(env, context, "model.performLogin"), "name": "performLoginCheck"});
             inline(env, morph5, context, "inline-help", [], {"message": "perform_login"});
-            block(env, morph6, context, "if", [get(env, context, "performLogin")], {}, child3, null);
+            block(env, morph6, context, "if", [get(env, context, "model.performLogin")], {}, child3, null);
             return fragment;
           }
         };
