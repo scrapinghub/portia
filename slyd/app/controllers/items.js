@@ -37,7 +37,7 @@ export default BaseController.extend({
             }
         }.bind(this));
         if (valid) {
-            this.get('slyd').saveItems(this.model).then(function() {
+            this.get('ws').save('items', this.model).then(function() {
                 this.set('project_models.items', this.model);
                 this.transitionToRoute(this.getParentRoute());
             }.bind(this));

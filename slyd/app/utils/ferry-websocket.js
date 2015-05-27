@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import config from '../config/environment';
+import ApplicationUtils from '../mixins/application-utils';
 
 /* global URI */
 
@@ -7,6 +8,9 @@ const DEFAULT_RECONNECT_TIMEOUT = 5000;
 const DEFAULT_MAX_RECONNECT_TIMEOUT = 60000;
 const DEFAULT_COMMANDS = Object.freeze({
     heartbeat: function() {},
+    saveChanges: function() {},
+    delete: function() {},
+    rename: function() {},
 });
 
 var defaultUrl = function() {
@@ -18,7 +22,7 @@ var defaultUrl = function() {
     return URI.build(uri);
 };
 
-export default Ember.Object.extend({
+export default Ember.Object.extend(ApplicationUtils, {
     init: function(options) {
         options = options || {};
         this.set('commands', options.commands || {});
@@ -33,6 +37,7 @@ export default Ember.Object.extend({
         this.set('opened', false);
         this.set('connecting', false);
         this.set('nextConnect', null);
+        this.set('deferreds', {});
         this.heartbeat = null;
     },
 
@@ -84,6 +89,19 @@ export default Ember.Object.extend({
             if (!command) {
                 Ember.Logger.warn('Received response with no command: ' + e.data);
                 return;
+            }
+            var deferred = data.id;
+            if (deferred in this.get('deferreds')) {
+                deferred = this.get('deferreds.' + deferred);
+                delete this.get('deferreds')[data.id];
+                if (data.error) {
+                    var err = new Error(data.reason);
+                    err.reason = {jqXHR: {responseText: data.reason}};
+                    deferred.reject(err);
+                    throw err;
+                } else {
+                    deferred.resolve(data);
+                }
             }
             if (command in this.get('commands')) {
                 this.get('commands')[command](data);
@@ -147,4 +165,50 @@ export default Ember.Object.extend({
             return this.get('ws').send(data);
         }
     },
+
+    save: function(type, obj) {
+        var data = {
+            _meta: this._metadata(type),
+            _command: 'saveChanges'
+        };
+        if (obj.serialize) {
+            data[type] = obj.serialize();
+        } else {
+            data[type] = obj;
+        }
+        return this._sendPromise(data);
+    },
+
+    delete: function(type, name) {
+        return this._sendPromise({
+            _meta: this._metadata(type),
+            _command: 'delete',
+            name: name
+        });
+    },
+
+    rename: function(type, from, to) {
+        return this._sendPromise({
+            _meta: this._metadata(type),
+            _command: 'rename',
+            old: from,
+            new: to
+        });
+    },
+
+    _sendPromise: function(data) {
+        var deferred = new Ember.RSVP.defer();
+        this.set('deferreds.' + data._meta.id, deferred);
+        this.send(data);
+        return deferred.promise;
+    },
+
+    _metadata: function(type) {
+        return {
+            spider: this.get('spider'),
+            project: this.get('project'),
+            type: type,
+            id: this.shortGuid()
+        };
+    }
 });

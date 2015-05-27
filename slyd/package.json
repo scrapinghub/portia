@@ -41,7 +41,7 @@
     "ember-idx-accordion": "^0.1.0",
     "express": "^5.0.0-alpha.1",
     "glob": "^5.0.6",
-    "rimraf": "^2.3.4"
+    "rimraf": "^2.3.4",
     "html-to-vdom": "^0.5.5",
     "virtual-dom": "^2.0.1"
   }

@@ -92,7 +92,7 @@ export default WebDocument.extend(ApplicationUtils, {
         if (this.get('ws.closed')) {
             Ember.run.later(this, function() {
                 this.set('showConnectionLost', true);
-            }, 500)
+            }, 500);
             if (this.get('reconnectInteractions') === null) {
                 var reconnect = this.get('canvas._interactionsBlocked');
                 this.setInteractionsBlocked(true);

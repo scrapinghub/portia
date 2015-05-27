@@ -116,8 +116,7 @@ export default BaseController.extend({
                 'You are unable to save this template as the following required fields are missing: "' +
                 missingFields.join('", "') + '".');
         } else {
-            return this.get('slyd').saveTemplate(
-                this.get('controllers.spider.name'), this.get('model'));
+            return this.get('ws').save('template', this.get('model'));
         }
     },
 
@@ -150,7 +149,7 @@ export default BaseController.extend({
         this.get('extractors').forEach(function(extractor) {
             delete extractor['dragging'];
         });
-        this.get('slyd').saveExtractors(this.get('extractors'));
+        this.get('ws').save('extractors', this.get('extractors'));
     },
 
     validateExtractors: function() {
@@ -294,7 +293,7 @@ export default BaseController.extend({
 
         createField: function(item, fieldName, fieldType) {
             item.addField(fieldName, fieldType);
-            this.get('slyd').saveItems(this.get('items').toArray());
+            this.get('ws').save('items', this.get('items').toArray());
         },
 
         rename: function(newName) {
@@ -311,8 +310,7 @@ export default BaseController.extend({
             saveFuture.then(function() {
                 var templateNames = this.get('controllers.spider.model.template_names');
                 newName = this.getUnusedName(newName, templateNames);
-                var spiderName = this.get('controllers.spider.model.name');
-                this.get('slyd').renameTemplate(spiderName, oldName, newName).then(
+                this.get('ws').rename('template', oldName, newName).then(
                     function() {
                         templateNames.removeObject(oldName);
                         templateNames.addObject(newName);

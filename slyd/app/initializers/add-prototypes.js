@@ -65,7 +65,7 @@ export function initialize() {
     Ember.$.fn.getAttributeList.ignoredAttributes = ['id', 'class',
         'width', 'style', 'height', 'cellpadding',
         'cellspacing', 'border', 'bgcolor', 'color', 'colspan',
-        'data-scrapy-annotate', 'data-tagid', 'data-genid'];
+        'data-scrapy-annotate', 'data-tagid', 'data-genid', 'data-parentid'];
 
     Ember.$.fn.boundingBox = function() {
         if (!this || !this.offset()) {
