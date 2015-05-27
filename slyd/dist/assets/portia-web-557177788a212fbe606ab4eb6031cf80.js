@@ -2251,6 +2251,20 @@ define('portia-web/components/bs-label', ['exports', 'ember'], function (exports
     });
 
 });
+define('portia-web/components/bs-message', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Component.extend({
+        tagName: 'div',
+        classNames: 'bs-message',
+        classNameBindings: ['bgType'],
+
+        bgType: (function () {
+            return 'bg-' + (this.get('background') || 'default');
+        }).property('type') });
+
+});
 define('portia-web/components/bs-modal', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -3315,7 +3329,7 @@ define('portia-web/components/pin-toolbox-button', ['exports', 'ember', 'portia-
         } });
 
 });
-define('portia-web/components/regex-text-field-with-button/component', ['exports', 'ember', 'portia-web/components/text-field-with-button', 'portia-web/mixins/notification-handler'], function (exports, Ember, TextFieldWithButton, NotificationHandler) {
+define('portia-web/components/regex-text-field-with-button/component', ['exports', 'portia-web/components/text-field-with-button', 'portia-web/mixins/notification-handler'], function (exports, TextFieldWithButton, NotificationHandler) {
 
     'use strict';
 
@@ -3793,6 +3807,587 @@ define('portia-web/components/top-bar', ['exports', 'ember'], function (exports,
 	exports['default'] = Ember['default'].Component.extend({});
 
 });
+define('portia-web/components/web-document-js/component', ['exports', 'ember', 'portia-web/mixins/application-utils', 'portia-web/components/web-document', 'portia-web/utils/interaction-event', 'portia-web/utils/patch'], function (exports, Ember, ApplicationUtils, WebDocument, interactionEvent, utils__patch) {
+
+    'use strict';
+
+    exports['default'] = WebDocument['default'].extend(ApplicationUtils['default'], {
+        ws_deferreds: {},
+        previous_diff: '',
+
+        connect: (function () {
+            this.get('ws').addCommand('fetch', (function (data) {
+                if (data.id && this.get('ws_deferreds.' + data.id)) {
+                    var deferred = this.get('ws_deferreds.' + data.id);
+                    this.get('ws').send({ _command: 'extract' });
+                    this.set('currentUrl', data.url);
+                    if (data.error) {
+                        deferred.reject(data);
+                    } else {
+                        deferred.resolve(data);
+                    }
+                }
+            }).bind(this));
+
+            this.get('ws').addCommand('interact', (function (data) {
+                if (data.diff && data.diff !== this.get('previous_diff')) {
+                    var updated = this.updateDOM(data.diff);
+                    if (updated) {
+                        this.get('ws').send({ _command: 'extract' });
+                    }
+                    this.set('previous_diff', data.diff);
+                    // TODO: Refresh followed links
+                    Ember['default'].run.next(this, function () {
+                        this.redrawNow();
+                    });
+                }
+            }).bind(this));
+
+            this.get('ws').addCommand('loadStarted', (function () {
+                this.setInteractionsBlocked(true);
+                this.showLoading();
+            }).bind(this));
+
+            this.get('ws').addCommand('extract', (function (data) {
+                if (this.get('listener') && this.get('listener').updateExtractedItems) {
+                    this.get('listener').set('followedLinks', data.links);
+                    this.get('listener').updateExtractedItems(data.items || []);
+                }
+            }).bind(this));
+
+            this.get('ws').addCommand('loadFinished', (function (data) {
+                if (data.url === this.getWithDefault('currentUrl', data.url)) {
+                    return;
+                }
+                this.fetchDocument(null, null, null, 'loadCurrent').then((function (data) {
+                    this.displayDocument(data, (function () {
+                        this.reset();
+                        this.set('loadedPageFp', data.fp);
+                        this.set('followedLinks', data.links);
+                        this.hideLoading();
+                    }).bind(this));
+                }).bind(this));
+            }).bind(this));
+
+            setInterval((function () {
+                if (this.get('loadingDoc')) {
+                    return;
+                }
+                this.get('ws').send({
+                    _command: 'updates',
+                    _callback: 'interact'
+                });
+            }).bind(this), 2000);
+        }).on('init'),
+
+        connectionStatusType: 'warning',
+        connectionStatusMessage: '',
+        reconnectInteractions: null,
+        _reconnectClock: function _reconnectClock() {
+            if (Number(this.get('connectionStatusTime')) >= 2) {
+                this.decrementProperty('connectionStatusTime');
+                this.set('connectionStatusMessage', 'Reconnecting to server in ' + this.get('connectionStatusTime') + ' seconds.');
+                this.set('connectionAction', true);
+            } else {
+                this.set('connectionStatusMessage', 'Reconnecting...');
+                this.set('connectionAction', null);
+            }
+        },
+
+        connectionLost: (function () {
+            if (this.get('ws.closed')) {
+                Ember['default'].run.later(this, function () {
+                    this.set('showConnectionLost', true);
+                }, 500);
+                if (this.get('reconnectInteractions') === null) {
+                    var reconnect = this.get('canvas._interactionsBlocked');
+                    this.setInteractionsBlocked(true);
+                    this.set('reconnectInteractions', reconnect);
+                }this.set('connectionStatusTime', this.get('ws.reconnectTimeout') / 1000);
+                this.addObserver('clock.second', this, this._reconnectClock);
+            } else {
+                this.removeObserver('clock.second', this, this._reconnectClock);
+            }
+        }).observes('ws.closed'),
+
+        connectionReEstablished: (function () {
+            if (this.get('ws.opened')) {
+                if (this.get('reconnectInteractions') !== null) {
+                    var reconnect = this.get('reconnectInteractions');
+                    this.set('reconnectInteractions', null);
+                    this.setInteractionsBlocked(reconnect);
+                }
+                this.set('connectionStatusMessage', null);
+                this.set('connectionAction', null);
+                this.set('showConnectionLost', false);
+            }
+        }).observes('ws.opened'),
+
+        connectionConnecting: (function () {
+            if (this.get('ws.connecting')) {
+                this.set('connectionStatusMessage', 'Reconnecting...');
+                this.set('connectionAction', null);
+            }
+        }).observes('ws.connecting'),
+
+        fetchDocument: function fetchDocument(url, spider, fp, command) {
+            var unique_id = this.shortGuid(),
+                deferred = new Ember['default'].RSVP.defer(),
+                ifWindow = document.getElementById(this.get('iframeId')).contentWindow;
+            this.set('ws_deferreds.' + unique_id, deferred);
+            this.get('ws').send({
+                _meta: {
+                    spider: spider,
+                    project: this.get('slyd.project'),
+                    id: unique_id,
+                    viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight,
+                    user_agent: navigator.userAgent },
+                _command: command || 'fetch',
+                url: url
+            });
+            return deferred.promise;
+        },
+
+        /**
+            Displays a document by setting it as the content of the iframe.
+            readyCallback will be called when the document finishes rendering.
+        */
+        displayDocument: function displayDocument(servedDoc, readyCallback) {
+            Ember['default'].run.schedule('afterRender', this, function () {
+                this.set('loadingDoc', true);
+                this.setIframeContent(servedDoc);
+                // We need to disable all interactions with the document we are loading
+                // until we trigger the callback.
+                this.setInteractionsBlocked(true);
+                Ember['default'].run.later(this, function () {
+                    var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
+                    doc.onscroll = this.redrawNow.bind(this);
+                    this.setInteractionsBlocked(false);
+                    if (readyCallback) {
+                        readyCallback(this.getIframe());
+                    }
+                    this.set('loadingDoc', false);
+                }, 800);
+            });
+        },
+
+        setInteractionsBlocked: function setInteractionsBlocked(blocked) {
+            if (this.get('reconnectInteractions') !== null) {
+                this.set('reconnectInteractions', blocked);
+                return;
+            }
+            if (this.get('canvas.interactionsBlocked') !== blocked) {
+                this.set('canvas.interactionsBlocked', blocked);
+            }
+        },
+
+        setIframeContent: function setIframeContent(doc) {
+            var iframe = Ember['default'].$('#' + this.get('iframeId'));
+            iframe.attr('srcdoc', doc.page || doc);
+            this.set('document.iframe', iframe);
+        },
+
+        updateDOM: function updateDOM(data) {
+            var rootDocument = document.getElementById(this.get('iframeId')).contentDocument,
+                root = rootDocument.body;
+            if (!(data instanceof Object)) {
+                data = JSON.parse(data);
+            }
+            var patch = this._buildPatch(data);
+            utils__patch.patchDom(root, patch, rootDocument);
+            return Object.keys(patch).length > 0;
+        },
+
+        _buildPatch: function _buildPatch(data) {
+            var patch = {},
+                vpatch,
+                sp;
+            for (var key in data) {
+                var value = data[key];
+                if (value instanceof Array) {
+                    var patches = [];
+                    for (var i = 0; i < value.length; i++) {
+                        // Add patches
+                        sp = value[i];
+                        vpatch = this._makePatchObject(sp);
+                        if (vpatch) {
+                            patches.push(vpatch);
+                        }
+                    }
+                    patch[key] = patches;
+                } else {
+                    sp = value;
+                    vpatch = this._makePatchObject(sp);
+                    if (vpatch) {
+                        patch[key] = vpatch;
+                    }
+                }
+            }
+            return patch;
+        },
+
+        _makePatchObject: function _makePatchObject(sp) {
+            var vpatch,
+                type = sp.type,
+                vnode = sp.vNode instanceof Object ? sp.vNode : null;
+            if (sp.patch) {
+                if (sp.patch.text) {
+                    vpatch = new utils__patch.VirtualText(sp.patch.text);
+                } else if (sp.patch && sp.patch.tagName) {
+                    vpatch = new utils__patch.VirtualNode(sp.patch.t, sp.patch.p, sp.patch.c, null, sp.patch.n);
+                    vpatch.key = sp.patch.key;
+                } else {
+                    vpatch = sp.patch;
+                }
+            }
+            if (!sp.patch || sp.patch && sp.patch.t !== 'script' && sp.patch.t !== 'iframe') {
+                return new utils__patch.VirtualPatch(type, vnode, vpatch);
+            }
+        },
+
+        mouseOverHandler: function mouseOverHandler(event) {
+            event.preventDefault();
+            var target = event.target;
+            var tagName = Ember['default'].$(target).prop('tagName').toLowerCase();
+            if (Ember['default'].$.inArray(tagName, this.get('ignoredElementTags')) === -1 && !this.mouseDown) {
+                if (!this.get('restrictToDescendants') || Ember['default'].$(target).isDescendant(this.get('restrictToDescendants'))) {
+                    this.setElementHovered(target);
+                    this.sendElementHoveredEvent(target, 0, event.clientX, event.clientY);
+                }
+            }
+        },
+
+        mouseOutHandler: function mouseOutHandler() {
+            this.set('hoveredSprite', null);
+        },
+
+        clickHandler: function clickHandler(event) {
+            event.preventDefault();
+        },
+
+        clickHandlerBrowse: function clickHandlerBrowse(evt) {
+            var interaction = new interactionEvent['default'](evt);
+            interaction.type = 'click';
+            this.get('ws').send({
+                _meta: {
+                    spider: this.get('slyd.spider'),
+                    project: this.get('slyd.project') },
+                _command: 'interact',
+                eventType: 'mouse',
+                target: evt.target.getAttribute('data-tagid'),
+                interaction: interaction
+            });
+            evt.preventDefault();
+            var linkingElement = Ember['default'].$(evt.target).closest('[href]');
+
+            if (linkingElement.length > 0) {
+                var href = Ember['default'].$(linkingElement).get(0).href;
+                if (href.length > 0 && href.search('#') === -1) {
+                    this.sendDocumentEvent('linkClicked', href);
+                }
+            }
+        },
+
+        scrollHandlerBrowse: function scrollHandlerBrowse(evt) {
+            if (this.getWithDefault('splashScrolling', false)) {
+                return;
+            }
+            var ifWindow = document.getElementById(this.get('iframeId')).contentWindow,
+                scrollState = { data: { scrollX: ifWindow.scrollX / Ember['default'].$(ifWindow).width(),
+                    scrollY: ifWindow.scrollY / Ember['default'].$(ifWindow).height() } };
+            this.get('ws').send({
+                _meta: {
+                    spider: this.get('slyd.spider'),
+                    project: this.get('slyd.project') },
+                _command: 'interact',
+                eventType: 'wheel',
+                target: '-1',
+                interaction: scrollState
+            });
+            this.set('splashScrolling', true);
+            Ember['default'].run.later(this, function () {
+                this.set('splashScrolling', false);
+            }, 500);
+        },
+
+        mouseDownHandler: function mouseDownHandler(event) {
+            if (event.target.draggable) {
+                // Disable dragging of images, links, etc...
+                // This interferes with partial selection of links,
+                // but it's a lesser evil than dragging.
+                event.preventDefault();
+            }
+            this.set('hoveredSprite', null);
+            this.set('mouseDown', true);
+            this.redrawNow();
+        },
+
+        mouseUpHandler: function mouseUpHandler(event) {
+            this.set('mouseDown', false);
+            var selectedText = this.getIframeSelectedText();
+            if (selectedText) {
+                if (this.get('partialSelectionEnabled')) {
+                    if (selectedText.anchorNode === selectedText.focusNode) {
+                        this.sendDocumentEvent('partialSelection', selectedText, event.clientX, event.clientY);
+                    } else {
+                        alert('The selected text must belong to a single HTML element');
+                        selectedText.collapse(this.getIframe().find('html').get(0), 0);
+                    }
+                } else {
+                    selectedText.collapse(this.getIframe().find('html').get(0), 0);
+                }
+            } else if (event && event.target) {
+                var target = event.target;
+                var tagName = Ember['default'].$(target).prop('tagName').toLowerCase();
+                if (Ember['default'].$.inArray(tagName, this.get('ignoredElementTags')) === -1) {
+                    if (!this.get('restrictToDescendants') || Ember['default'].$(target).isDescendant(this.get('restrictToDescendants'))) {
+                        this.sendDocumentEvent('elementSelected', target, event.clientX, event.clientY);
+                    } else {
+                        this.sendDocumentEvent('elementSelected', null);
+                    }
+                }
+            }
+        },
+
+        bindResizeEvent: (function () {
+            Ember['default'].$(window).on('resize', Ember['default'].run.bind(this, this.handleResize));
+        }).on('init'),
+
+        handleResize: function handleResize() {
+            var iframe_window = document.getElementById(this.get('iframeId')).contentWindow;
+            this.get('ws').send({
+                _command: 'resize',
+                _callback: 'heartbeat',
+                size: iframe_window.innerWidth + 'x' + iframe_window.innerHeight
+            });
+        },
+
+        actions: {
+            reconnectWebsocket: function reconnectWebsocket() {
+                this.get('ws').connect();
+            }
+        }
+    });
+
+});
+define('portia-web/components/web-document-js/template', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      var child0 = (function() {
+        var child0 = (function() {
+          return {
+            isHTMLBars: true,
+            revision: "Ember@1.11.3",
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Try Again");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode(".\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, element = hooks.element;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var element0 = dom.childAt(fragment, [1]);
+              element(env, element0, context, "action", ["reconnectWebsocket"], {"on": "click"});
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          revision: "Ember@1.11.3",
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, content = hooks.content, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+            var morph1 = dom.createMorphAt(fragment,3,3,contextualElement);
+            dom.insertBoundary(fragment, null);
+            content(env, morph0, context, "connectionStatusMessage");
+            block(env, morph1, context, "if", [get(env, context, "connectionAction")], {}, child0, null);
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        revision: "Ember@1.11.3",
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, null);
+          dom.insertBoundary(fragment, 0);
+          block(env, morph0, context, "bs-message", [], {"background": get(env, context, "connectionStatusType")}, child0, null);
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      revision: "Ember@1.11.3",
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("div");
+        dom.setAttribute(el1,"id","scraped-doc");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("iframe");
+        dom.setAttribute(el2,"id","scraped-doc-iframe");
+        dom.setAttribute(el2,"src","/static/start.html");
+        dom.setAttribute(el2,"class","adjust-height");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("canvas");
+        dom.setAttribute(el2,"id","infocanvas");
+        dom.setAttribute(el2,"class","doc-canvas adjust-height");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"id","loader-container");
+        dom.setAttribute(el2,"class","adjust-height");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"style","position:absolute;z-index:20;width:100%;pointer-events:none");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"id","hovered-element-info");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, get = hooks.get, block = hooks.block;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),9,9);
+        block(env, morph0, context, "if", [get(env, context, "showConnectionLost")], {}, child0, null);
+        return fragment;
+      }
+    };
+  }()));
+
+});
 define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/utils/canvas', 'portia-web/utils/annotation-store'], function (exports, Ember, utils__canvas, AnnotationStore) {
 
     'use strict';
@@ -4063,6 +4658,8 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         installEventHandlersForBrowsing: function installEventHandlersForBrowsing() {
             this.uninstallEventHandlers();
             this.getIframe().bind('click', this.clickHandlerBrowse.bind(this));
+            this.getIframe().bind('scroll', this.scrollHandlerBrowse.bind(this));
+            this.getIframe().bind('keyup', this.keyUpHandler.bind(this));
         },
 
         installEventHandlersForSelecting: function installEventHandlersForSelecting() {
@@ -4225,6 +4822,8 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
                 }
             }
         },
+
+        keyUpHandler: function keyUpHandler() {},
 
         sendDocumentEvent: function sendDocumentEvent(name) {
             var actions = this.get('listener.documentActions');
@@ -4515,7 +5114,7 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
                 }
             }).bind(this));
             if (valid) {
-                this.get('slyd').saveItems(this.model).then((function () {
+                this.get('ws').save('items', this.model).then((function () {
                     this.set('project_models.items', this.model);
                     this.transitionToRoute('template');
                 }).bind(this));
@@ -4672,6 +5271,7 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             var documentView = this.get('documentView');
             documentView.showLoading();
             this.set('slyd.spider', null);
+            this.set('ws.spider', null);
             this.get('slyd').fetchDocument(siteUrl).then((function (data) {
                 if (data.error) {
                     documentView.hideLoading();
@@ -4695,12 +5295,15 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
                     'template_names': [],
                     'plugins': {}
                 });
-                this.get('slyd').saveSpider(spider).then((function () {
+                this.set('ws.spider', newSpiderName);
+                this.get('ws').save('spider', spider).then((function () {
                     documentView.hideLoading();
                     this.set('slyd.spider', newSpiderName);
+                    this.set('ws.spider', newSpiderName);
                     this.editSpider(newSpiderName, siteUrl);
                 }).bind(this), (function (err) {
                     documentView.hideLoading();
+                    this.set('ws.spider', this.get('slyd.spider'));
                     throw err; // re-throw for the notification
                 }).bind(this));
             }).bind(this), function (err) {
@@ -4750,7 +5353,7 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             deleteSpider: function deleteSpider(spider) {
                 var spiderName = spider;
                 this.showConfirm('Delete ' + spiderName, 'Are you sure you want to delete spider ' + spiderName + '?', (function () {
-                    this.get('slyd').deleteSpider(spiderName).then((function () {
+                    this.get('ws')['delete']('spider', spiderName).then((function () {
                         this.get('model').removeObject(spiderName);
                         this.set('refreshSpiders', !this.get('refreshSpiders'));
                         this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
@@ -4761,9 +5364,11 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             rename: function rename(newName, oldName) {
                 this.get('slyd').renameProject(oldName, newName).then((function () {
                     this.set('slyd.project', newName);
+                    this.set('ws.project', newName);
                     this.replaceRoute('project', newName);
                 }).bind(this), (function (err) {
                     this.set('slyd.project', oldName);
+                    this.set('ws.project', oldName);
                     throw err;
                 }).bind(this));
             },
@@ -4871,6 +5476,7 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
         openProject: function openProject(projectName, revision) {
             this.get('slyd').editProject(projectName, revision).then((function () {
                 this.set('slyd.project', projectName);
+                this.set('ws.project', projectName);
                 this.transitionToRoute('project', { id: projectName });
             }).bind(this));
         },
@@ -4917,6 +5523,7 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
                 this.get('slyd').createProject(newProjectName).then((function () {
                     this.get('slyd').editProject(newProjectName).then((function () {
                         this.set('slyd.project', newProjectName);
+                        this.set('ws.project', newProjectName);
                         // Initialize items spec.
                         var itemsPromise = this.get('slyd').saveItems([Item['default'].create({ name: 'default', fields: []
                         })]);
@@ -4948,6 +5555,7 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
             this.set('breadCrumb', 'home');
             if (this.get('controllers.application.currentRouteName').split('.')[1] === 'index') {
                 this.set('slyd.project', null);
+                this.set('ws.project', null);
             }
             this.get('documentView').reset();
             this.get('documentView').showSpider();
@@ -5005,6 +5613,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
 
         _breadCrumb: (function () {
             this.set('slyd.spider', this.get('model.name'));
+            this.set('ws.spider', this.get('model.name'));
             this.set('breadCrumb', this.get('model.name'));
         }).observes('model.name'),
 
@@ -5130,7 +5739,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (!this.get('loadedPageFp') || !this.get('showLinks')) {
                 return [];
             }
-            var followedLinks = this.get('followedLinks'),
+            var followedLinks = this.getWithDefault('followedLinks', []),
                 allLinks = Ember['default'].$(Ember['default'].$('#scraped-doc-iframe').contents().get(0).links),
                 sprites = [];
             allLinks.each((function (i, link) {
@@ -5187,16 +5796,14 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (!skipHistory) {
                 this.get('browseHistory').pushObject(data.fp);
             }
-            this.get('documentView').displayDocument(data.page, (function () {
+            this.get('documentView').displayDocument(data, (function () {
                 this.get('documentView').reset();
                 this.get('documentView').config({ mode: 'browse',
                     listener: this,
                     dataSource: this });
                 this.set('documentView.sprites', this.get('spriteStore'));
                 this.set('loadedPageFp', data.fp);
-                this.set('followedLinks', data.links);
                 this.get('pageMap')[data.fp] = data;
-                this.updateExtractedItems(data.items || []);
                 Ember['default'].run.later((function () {
                     this.get('documentView').redrawNow();
                 }).bind(this), 100);
@@ -5213,7 +5820,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             var fetchId = this.guid();
             this.get('pendingFetches').pushObject(fetchId);
             this.set('documentView.sprites', new SpriteStore['default']());
-            this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp).then((function (data) {
+            this.get('documentView').fetchDocument(url, this.get('model.name'), parentFp).then((function (data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
                     return;
@@ -5238,7 +5845,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
         displayPage: function displayPage(fp) {
             this.set('loadedPageFp', null);
             var documentView = this.get('documentView');
-            documentView.displayDocument(this.get('pageMap')[fp].page, (function () {
+            documentView.displayDocument(this.get('pageMap')[fp], (function () {
                 this.get('documentView').reset();
                 this.get('documentView').config({ mode: 'browse',
                     listener: this,
@@ -5266,9 +5873,13 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (!itemDefs.findBy('name', 'default') && !Ember['default'].isEmpty(itemDefs)) {
                 // The default item doesn't exist but we have at least one item def.
                 template.set('scrapes', itemDefs[0].get('name'));
+            } else {
+                template.set('scrapes', 'default');
             }
             this.get('model.template_names').pushObject(template_name);
-            this.get('slyd').saveTemplate(this.get('name'), template).then((function () {
+            var serialized = template.serialize();
+            serialized.original_body = page.original;
+            this.get('ws').save('template', serialized).then((function () {
                 this.set('saving', false);
                 this.saveSpider().then((function () {
                     this.editTemplate(template_name);
@@ -5322,9 +5933,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
 
         autoFetch: (function () {
             if (this.get('loadedPageFp') && this.get('showLinks')) {
-                this.saveSpider().then((function () {
-                    this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
-                }).bind(this));
+                this.saveSpider().then((function () {}).bind(this));
             }
         }).observes('model.follow_patterns.@each', 'model.exclude_patterns.@each', 'links_to_follow'),
 
@@ -5339,11 +5948,11 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 return;
             }
             this.set('saving', true);
-            return this.get('slyd').saveSpider(this.get('model')).then((function () {
+            return this.get('ws').save('spider', this.get('model')).then((function () {
                 this.set('saving', false);
-            }).bind(this), (function (err) {
+                this.get('ws').send({ '_command': 'extract' });
+            }).bind(this), (function () {
                 this.set('saving', false);
-                throw err;
             }).bind(this));
         },
 
@@ -5356,7 +5965,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (this.get('testing') && urls.length) {
                 var fetchId = this.guid();
                 this.get('pendingFetches').pushObject(fetchId);
-                this.get('slyd').fetchDocument(urls[0], this.get('model.name')).then((function (data) {
+                this.get('documentView').fetchDocument(urls[0], this.get('model.name')).then((function (data) {
                     if (this.get('pendingFetches').indexOf(fetchId) !== -1) {
                         this.get('pendingFetches').removeObject(fetchId);
                         if (!Ember['default'].isEmpty(data.items)) {
@@ -5423,7 +6032,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
 
             deleteTemplate: function deleteTemplate(templateName) {
                 this.get('model.template_names').removeObject(templateName);
-                this.get('slyd').deleteTemplate(this.get('name'), templateName);
+                this.get('ws')['delete']('template', templateName);
             },
 
             viewTemplate: function viewTemplate(templateName) {
@@ -5496,7 +6105,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 }
                 this.set('spiderName', oldName);
                 this.set('model.name', newName);
-                this.get('slyd').renameSpider(oldName, newName).then((function () {
+                this.get('ws').rename('spider', oldName, newName).then((function () {
                     this.replaceRoute('spider', newName);
                 }).bind(this), (function (err) {
                     this.set('model.name', this.get('spiderName'));
@@ -5567,7 +6176,10 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.get('documentView').redrawNow();
             this.get('pendingFetches').setObjects([]);
             this.get('documentView').hideLoading();
+            this.get('documentView.ws').send({ '_command': 'close_tab' });
         } });
+
+    //this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
 
 });
 define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/controllers/spider'], function (exports, Ember, SpiderController) {
@@ -5711,7 +6323,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             if (missingFields.length > 0) {
                 this.showWarningNotification('Required Fields Missing', 'You are unable to save this template as the following required fields are missing: "' + missingFields.join('", "') + '".');
             } else {
-                return this.get('slyd').saveTemplate(this.get('controllers.spider.name'), this.get('model'));
+                return this.get('ws').save('template', this.get('model'));
             }
         },
 
@@ -5744,7 +6356,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             this.get('extractors').forEach(function (extractor) {
                 delete extractor['dragging'];
             });
-            this.get('slyd').saveExtractors(this.get('extractors'));
+            this.get('ws').save('extractors', this.get('extractors'));
         },
 
         validateExtractors: function validateExtractors() {
@@ -5884,7 +6496,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             createField: function createField(item, fieldName, fieldType) {
                 item.addField(fieldName, fieldType);
-                this.get('slyd').saveItems(this.get('items').toArray());
+                this.get('ws').save('items', this.get('items').toArray());
             },
 
             rename: function rename(newName) {
@@ -5898,8 +6510,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 saveFuture.then((function () {
                     var templateNames = this.get('controllers.spider.model.template_names');
                     newName = this.getUnusedName(newName, templateNames);
-                    var spiderName = this.get('controllers.spider.model.name');
-                    this.get('slyd').renameTemplate(spiderName, oldName, newName).then((function () {
+                    this.get('ws').rename('template', oldName, newName).then((function () {
                         templateNames.removeObject(oldName);
                         templateNames.addObject(newName);
                         this.replaceRoute('template', newName);
@@ -6022,7 +6633,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
                 return;
             }
-            this.get('documentView').displayDocument(this.get('model.annotated_body'), (function () {
+            this.get('documentView').displayDocument({ page: this.get('model.annotated_body'), fp: this.get('model.fp') }, (function () {
                 if (!this.get('model.plugins')) {
                     this.set('model.plugins', Ember['default'].Object.create({}));
                 }
@@ -6157,7 +6768,7 @@ define('portia-web/initializers/add-prototypes', ['exports', 'ember', 'portia-we
             return attributeList;
         };
 
-        Ember['default'].$.fn.getAttributeList.ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding', 'cellspacing', 'border', 'bgcolor', 'color', 'colspan', 'data-scrapy-annotate', 'data-tagid', 'data-genid'];
+        Ember['default'].$.fn.getAttributeList.ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding', 'cellspacing', 'border', 'bgcolor', 'color', 'colspan', 'data-scrapy-annotate', 'data-tagid', 'data-genid', 'data-parentid'];
 
         Ember['default'].$.fn.boundingBox = function () {
             if (!this || !this.offset()) {
@@ -6475,6 +7086,7 @@ define('portia-web/initializers/register-page-interaction', ['exports', 'ember']
       iframe: null }), { instantiate: false });
     application.inject('controller', 'document', 'document:obj');
     application.inject('component:web-document', 'document', 'document:obj');
+    application.inject('component:web-document-js', 'document', 'document:obj');
     application.inject('component:tool-box', 'document', 'document:obj');
     application.inject('component:annotation-widget', 'document', 'document:obj');
     application.inject('model', 'document', 'document:obj');
@@ -6484,6 +7096,34 @@ define('portia-web/initializers/register-page-interaction', ['exports', 'ember']
     name: 'register-page-interaction',
     initialize: initialize
   };
+
+});
+define('portia-web/initializers/register-websocket', ['exports', 'portia-web/utils/ferry-websocket'], function (exports, FerryWebsocket) {
+
+    'use strict';
+
+    exports.initialize = initialize;
+
+    function initialize(container, application) {
+        application.deferReadiness();
+        var websocket = new FerryWebsocket['default']();
+        websocket.connect().then(function () {
+            container.register('websocket:slyd', websocket, { instantiate: false });
+            application.inject('route', 'ws', 'websocket:slyd');
+            application.inject('adapter', 'ws', 'websocket:slyd');
+            application.inject('controller', 'ws', 'websocket:slyd');
+            application.inject('component', 'ws', 'websocket:slyd');
+            window.addEventListener('beforeunload', function () {
+                websocket.close();
+            });
+            application.advanceReadiness();
+        });
+    }
+
+    exports['default'] = {
+        name: 'register-websocket',
+        initialize: initialize
+    };
 
 });
 define('portia-web/initializers/toolbox', ['exports', 'ember'], function (exports, Ember) {
@@ -7393,6 +8033,7 @@ define('portia-web/routes/project', ['exports', 'portia-web/routes/base-route'],
         beforeModel: function beforeModel(s) {
             if (s.params.project.project_id) {
                 this.set('slyd.project', s.params.project.project_id);
+                this.set('ws.project', s.params.project.project_id);
                 return this.get('slyd').editProject(s.params.project.project_id, 'master');
             }
         },
@@ -7821,7 +8462,7 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         block(env, morph0, context, "top-bar", [], {"branding": get(env, context, "customizations.branding"), "project": get(env, context, "slyd.project")}, child0, null);
         inline(env, morph1, context, "outlet", ["conflictResolver"], {});
         inline(env, morph2, context, "outlet", ["modal"], {});
-        content(env, morph3, context, "web-document");
+        content(env, morph3, context, "web-document-js");
         block(env, morph4, context, "tool-box", [], {}, child1, null);
         content(env, morph5, context, "bs-notifications");
         return fragment;
@@ -8848,6 +9489,53 @@ define('portia-web/templates/components/bs-label', ['exports'], function (export
         dom.insertBoundary(fragment, null);
         dom.insertBoundary(fragment, 0);
         content(env, morph0, context, "content");
+        return fragment;
+      }
+    };
+  }()));
+
+});
+define('portia-web/templates/components/bs-message', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      isHTMLBars: true,
+      revision: "Ember@1.11.3",
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+        dom.insertBoundary(fragment, null);
+        dom.insertBoundary(fragment, 0);
+        content(env, morph0, context, "yield");
         return fragment;
       }
     };
@@ -20220,6 +20908,268 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
     exports.ElementSprite = ElementSprite;
 
 });
+define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/config/environment', 'portia-web/mixins/application-utils'], function (exports, Ember, config, ApplicationUtils) {
+
+    'use strict';
+
+    var DEFAULT_RECONNECT_TIMEOUT = 5000;
+    var DEFAULT_MAX_RECONNECT_TIMEOUT = 60000;
+    var DEFAULT_COMMANDS = Object.freeze({
+        heartbeat: function heartbeat() {},
+        saveChanges: function saveChanges() {},
+        'delete': function _delete() {},
+        rename: function rename() {} });
+
+    var defaultUrl = function defaultUrl() {
+        var uri = URI.parse(config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host);
+        if (!/wss?/.test(uri.protocol)) {
+            uri.protocol = uri.protocol === 'https' ? 'wss' : 'ws';
+        }
+        uri.path = '/ws';
+        return URI.build(uri);
+    };
+
+    exports['default'] = Ember['default'].Object.extend(ApplicationUtils['default'], {
+        init: function init(options) {
+            options = options || {};
+            this.set('commands', options.commands || {});
+            this.set('url', options.url || defaultUrl());
+            this.set('cleanup', options.cleanup || function () {});
+            this.set('init', options.init || function () {});
+            this.set('protocols', options.protocols);
+            this.set('commands', this._buildCommands(options.commands || {}));
+            this.set('ws', null);
+            this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
+            this.set('closed', true);
+            this.set('opened', false);
+            this.set('connecting', false);
+            this.set('nextConnect', null);
+            this.set('deferreds', {});
+            this.heartbeat = null;
+        },
+
+        connect: function connect() {
+            return this._createWebsocket();
+        },
+
+        _createWebsocket: function _createWebsocket() {
+            var ws,
+                deferred = new Ember['default'].RSVP.defer();
+            if (this.get('nextConnect')) {
+                Ember['default'].run.cancel(this.get('nextConnect'));
+                this.set('nextConnect', null);
+            }
+            try {
+                this.set('connecting', true);
+                this.notifyPropertyChange('connecting');
+                ws = new WebSocket(this.get('url'));
+            } catch (err) {
+                Ember['default'].Logger.log('Error connecting to server: ' + err);
+            } finally {
+                this.set('connecting', false);
+                this.notifyPropertyChange('connecting');
+            }
+            ws.onclose = (function () {
+                this.get('cleanup')();
+                if (this.heartbeat) {
+                    clearInterval(this.heartbeat);
+                }
+                this.set('closed', true);
+                this.notifyPropertyChange('closed');
+                this.set('opened', false);
+                Ember['default'].Logger.log('<Closed Websocket>');
+                var next = Ember['default'].run.later(this, (function () {
+                    if (this.get('ws').readyState === WebSocket.CLOSED) {
+                        this._createWebsocket();
+                    }
+                }).bind(this), this._connectTimeout());
+                this.set('nextConnect', next);
+            }).bind(this);
+            ws.onmessage = (function (e) {
+                var data;
+                try {
+                    data = JSON.parse(e.data);
+                } catch (err) {
+                    Ember['default'].Logger.warn('Error parsing data returned by server: ' + err + '\n' + data);
+                    return;
+                }
+                var command = data._command;
+                if (!command) {
+                    Ember['default'].Logger.warn('Received response with no command: ' + e.data);
+                    return;
+                }
+                var deferred = data.id;
+                if (deferred in this.get('deferreds')) {
+                    deferred = this.get('deferreds.' + deferred);
+                    delete this.get('deferreds')[data.id];
+                    if (data.error) {
+                        var err = new Error(data.reason);
+                        err.reason = { jqXHR: { responseText: data.reason } };
+                        deferred.reject(err);
+                        throw err;
+                    } else {
+                        deferred.resolve(data);
+                    }
+                }
+                if (command in this.get('commands')) {
+                    this.get('commands')[command](data);
+                } else {
+                    Ember['default'].Logger.warn('Received unknown command: ' + command);
+                }
+            }).bind(this);
+            ws.onopen = (function () {
+                Ember['default'].Logger.log('<Opened Websocket>');
+                this.set('closed', false);
+                this.set('opened', true);
+                this.notifyPropertyChange('opened');
+                this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
+                this.heartbeat = setInterval((function () {
+                    this.send({ _command: 'heartbeat' });
+                }).bind(this), 20000);
+                deferred.resolve(this);
+            }).bind(this);
+            this.set('ws', ws);
+            return deferred.promise;
+        },
+
+        _connectTimeout: function _connectTimeout() {
+            var timeout = Math.max(this.get('reconnectTimeout'), DEFAULT_RECONNECT_TIMEOUT);
+            this.set('reconnectTimeout', Math.min(timeout * 2, DEFAULT_MAX_RECONNECT_TIMEOUT));
+            return this.get('reconnectTimeout');
+        },
+
+        _buildCommands: function _buildCommands(commands) {
+            var key,
+                result = {};
+            for (key in DEFAULT_COMMANDS) {
+                result[key] = DEFAULT_COMMANDS[key];
+            }
+            for (key in commands) {
+                result[key] = commands[key];
+            }
+            return result;
+        },
+
+        addCommand: function addCommand(command, func) {
+            this.get('commands')[command] = func;
+        },
+
+        close: function close(code, reason) {
+            code = code || 1000;
+            reason = reason || 'application called close';
+            return this.get('ws').close();
+        },
+
+        send: function send(data) {
+            if (!this.get('closed') && data) {
+                if (typeof data !== 'string') {
+                    try {
+                        data = JSON.stringify(data);
+                    } catch (err) {
+                        Ember['default'].Logger.warn('Error sending data to server: ' + err);
+                        return;
+                    }
+                }
+                return this.get('ws').send(data);
+            }
+        },
+
+        save: function save(type, obj) {
+            var data = {
+                _meta: this._metadata(type),
+                _command: 'saveChanges'
+            };
+            if (obj.serialize) {
+                data[type] = obj.serialize();
+            } else {
+                data[type] = obj;
+            }
+            return this._sendPromise(data);
+        },
+
+        'delete': function _delete(type, name) {
+            return this._sendPromise({
+                _meta: this._metadata(type),
+                _command: 'delete',
+                name: name
+            });
+        },
+
+        rename: function rename(type, from, to) {
+            return this._sendPromise({
+                _meta: this._metadata(type),
+                _command: 'rename',
+                old: from,
+                'new': to
+            });
+        },
+
+        _sendPromise: function _sendPromise(data) {
+            var deferred = new Ember['default'].RSVP.defer();
+            this.set('deferreds.' + data._meta.id, deferred);
+            this.send(data);
+            return deferred.promise;
+        },
+
+        _metadata: function _metadata(type) {
+            return {
+                spider: this.get('spider'),
+                project: this.get('project'),
+                type: type,
+                id: this.shortGuid()
+            };
+        }
+    });
+
+});
+define('portia-web/utils/interaction-event', ['exports'], function (exports) {
+
+    'use strict';
+
+    var interactionEvent = function interactionEvent(evt) {
+        return this.createEvent(evt.originalEvent);
+    };
+
+    interactionEvent.prototype.createEvent = function (evt) {
+        return {
+            eventType: this.getType(evt),
+            target: this.getElementId(evt),
+            data: this.getData(evt)
+        };
+    };
+
+    interactionEvent.prototype.getType = function (evt) {
+        switch (evt.constructor.name) {
+            case 'MouseEvent':
+                return 'mouse';
+            case 'KeyboardEvent':
+                return 'keyboard';
+            case 'WheelEvent':
+                return 'wheel';
+            default:
+                return 'event';
+        }
+    };
+
+    interactionEvent.prototype.getElementId = function (evt) {
+        return evt.originalTarget.getAttribute('data-tagid');
+    };
+
+    interactionEvent.prototype.getData = function (evt) {
+        var data = {};
+        ATTRIBUTE_WHITELIST.forEach(function (attr) {
+            if (attr in evt) {
+                data[attr] = evt[attr];
+            }
+        });
+        return data;
+    };
+
+    var ATTRIBUTE_WHITELIST = ['altKey', 'bubbles', 'button', 'buttons', 'cancelable', 'code', 'ctrlKey', 'deltaX', 'deltaY', 'deltaZ', 'deltaMode', 'detail', 'isComposing', 'isTrusted', 'key', 'keyCode', 'location', 'metaKey', 'relatedTargetId', 'shiftKey', 'type'];
+
+    exports['default'] = interactionEvent;
+
+});
 define('portia-web/utils/messages', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -20310,6 +21260,313 @@ define('portia-web/utils/notification-manager', ['exports', 'ember'], function (
     exports['default'] = NotificationManager;
 
 });
+define('portia-web/utils/patch', ['exports'], function (exports) {
+
+    'use strict';
+
+    exports.patchDom = patchDom;
+    exports.VirtualText = VirtualText;
+    exports.VirtualPatch = VirtualPatch;
+    exports.VirtualNode = VirtualNode;
+
+    function patchDom(rootNode, patches, doc) {
+        var renderOptions = {
+            patch: patchRecursive,
+            render: createElement,
+            document: doc
+        };
+        return patchRecursive(rootNode, patches, renderOptions);
+    }
+
+    function VirtualText(text) {
+        this.text = String(text);
+        this.type = "VirtualText";
+    }
+
+    function VirtualPatch(type, vNode, patch) {
+        this.type = Number(type);
+        this.vNode = vNode;
+        this.patch = patch;
+    }
+
+    function VirtualNode(tagName, properties, children, key, namespace) {
+        this.tagName = tagName;
+        this.properties = properties || {};
+        this.children = children || [];
+        this.key = key != null ? String(key) : undefined;
+        this.namespace = typeof namespace === "string" ? namespace : null;
+        this.count = children && children.length || 0;
+        this.hasWidgets = false;
+        this.hasThunks = false;
+        this.hooks = null;
+        this.descendantHooks = false;
+        this.type = "VirtualNode";
+    }
+
+    var OPERATION = {
+        NONE: 0,
+        VTEXT: 1,
+        VNODE: 2,
+        WIDGET: 3,
+        PROPS: 4,
+        ORDER: 5,
+        INSERT: 6,
+        REMOVE: 7,
+        THUNK: 8
+    };
+
+    var RESTRICTED_PROPS = new Set(["tagName"]);
+
+    function patchRecursive(rootNode, patches, renderOptions) {
+        if (Object.keys(patches).length === 0) {
+            return rootNode;
+        }
+        var ownerDocument = rootNode.ownerDocument;
+        if (!renderOptions.document && ownerDocument !== document) {
+            renderOptions.document = ownerDocument;
+        }
+        for (var key in patches) {
+            rootNode = applyPatch(rootNode, patches[key], renderOptions);
+        }
+        return rootNode;
+    }
+
+    function applyPatch(rootNode, patchList, renderOptions) {
+        var newNode, domNode;
+        if (isArray(patchList)) {
+            for (var i = 0; i < patchList.length; i++) {
+                domNode = findNode(patchList[i], renderOptions);
+                newNode = patchOp(patchList[i], domNode, renderOptions);
+
+                if (domNode === rootNode) {
+                    rootNode = newNode;
+                }
+            }
+        } else {
+            domNode = findNode(patchList, renderOptions);
+            newNode = patchOp(patchList, domNode, renderOptions);
+            if (domNode === rootNode) {
+                rootNode = newNode;
+            }
+        }
+        return rootNode;
+    }
+
+    function patchOp(vpatch, domNode, renderOptions) {
+        var type = vpatch.type,
+            vNode = vpatch.vNode,
+            patch = vpatch.patch;
+        if (!domNode) {
+            return domNode;
+        }
+        switch (type) {
+            case OPERATION.REMOVE:
+                return removeNode(domNode, vNode);
+            case OPERATION.INSERT:
+                return insertNode(domNode, patch, renderOptions);
+            case OPERATION.VTEXT:
+                return stringPatch(domNode, vNode, patch, renderOptions);
+            case OPERATION.WIDGET:
+                console.log("Updating Widget");
+                return domNode;
+            case OPERATION.VNODE:
+                return vNodePatch(domNode, vNode, patch, renderOptions);
+            case OPERATION.ORDER:
+                // reorderChildren(domNode, patch);
+                console.log("Reording node: " + domNode);
+                return domNode;
+            case OPERATION.PROPS:
+                applyProperties(domNode, patch, vNode.properties);
+                return domNode;
+            case OPERATION.THUNK:
+                console.log("Updating Thunk");
+                return domNode;
+            default:
+                return domNode;
+        }
+    }
+
+    function findNode(vpatch, renderOptions) {
+        var vnode = vpatch.vNode || {},
+            patch = vpatch.patch || {},
+            key = patch.key || vnode.key;
+        if (!key) {
+            return null;
+        }
+        if (isObject(key)) {
+            key = vpatch.type === OPERATION.INSERT ? key.pid : key.id;
+        }
+        return renderOptions.document.querySelector("[data-tagid=\"" + key + "\"]");
+    }
+
+    function removeNode(domNode) {
+        var parentNode = domNode.parentNode;
+        if (parentNode) {
+            parentNode.removeChild(domNode);
+        }
+        return null;
+    }
+
+    function insertNode(parentNode, vNode, renderOptions) {
+        var node = renderOptions.render(vNode, renderOptions);
+        if (node && parentNode) {
+            parentNode.appendChild(node);
+        }
+        return parentNode;
+    }
+
+    function stringPatch(domNode, leftVNode, vText, renderOptions) {
+        var newNode;
+        if (domNode.nodeType === 3) {
+            domNode.replaceData(0, domNode.length, vText.text);
+            newNode = domNode;
+        } else {
+            var parentNode = domNode.parentNode;
+            newNode = renderOptions.render(vText, renderOptions);
+            if (parentNode && newNode !== domNode) {
+                parentNode.replaceChild(newNode, domNode);
+            }
+        }
+        return newNode;
+    }
+
+    function vNodePatch(domNode, leftVNode, vNode, renderOptions) {
+        var parentNode = domNode.parentNode,
+            newNode = renderOptions.render(vNode, renderOptions);
+        if (parentNode && newNode !== domNode) {
+            parentNode.replaceChild(newNode, domNode);
+        }
+        return newNode;
+    }
+
+    function reorderChildren(domNode, moves) {
+        var childNodes = domNode.childNodes,
+            keyMap = {},
+            node,
+            remove,
+            insert;
+        for (var i = 0; i < moves.removes.length; i++) {
+            remove = moves.removes[i];
+            node = childNodes[remove.from];
+            if (remove.key) {
+                keyMap[remove.key] = node;
+            }
+            if (node) {
+                domNode.removeChild(node);
+            }
+        }
+        var length = childNodes.length;
+        for (var j = 0; j < moves.inserts.length; j++) {
+            insert = moves.inserts[j];
+            node = keyMap[insert.key];
+            // Handle bug in webkit
+            if (node) {
+                domNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to]);
+            }
+        }
+    }
+
+    function createElement(vnode, opts) {
+        var doc = opts ? opts.document || document : document;
+        if (isVirtualText(vnode)) {
+            return doc.createTextNode(vnode.text);
+        } else if (!isVirtualNode(vnode)) {
+            return null;
+        }
+        var node = vnode.namespace === null ? doc.createElement(vnode.tagName) : doc.createElementNS(vnode.namespace, vnode.tagName);
+        var props = vnode.properties;
+        applyProperties(node, props);
+        var children = vnode.children;
+        for (var i = 0; i < children.length; i++) {
+            var childNode = createElement(children[i], opts);
+            if (childNode) {
+                node.appendChild(childNode);
+            }
+        }
+        return node;
+    }
+
+    function isVirtualText(x) {
+        return x && x.text;
+    }
+
+    function isVirtualNode(x) {
+        return x && x.tagName && x.properties;
+    }
+
+    function isObject(x) {
+        return typeof x === "object" && x !== null;
+    }
+
+    var isArray = Array.isArray || function (obj) {
+        return Object.prototype.toString.call(obj) === "[object Array]";
+    };
+
+    function applyProperties(node, props, previous) {
+        for (var propName in props) {
+            var propValue = props[propName];
+            if (propName && !RESTRICTED_PROPS.has(propName)) {
+                if (propValue === undefined) {
+                    removeProperty(node, propName);
+                } else {
+                    if (isObject(propValue)) {
+                        patchObject(node, props, previous, propName, propValue);
+                    } else {
+                        node[propName] = propValue;
+                    }
+                }
+            }
+        }
+    }
+
+    function removeProperty(node, propName) {
+        var previousValue = node[propName];
+        if (previousValue) {
+            if (typeof previousValue === "string") {
+                node[propName] = "";
+            } else {
+                node[propName] = null;
+            }
+        }
+    }
+
+    function patchObject(node, props, previous, propName, propValue) {
+        var previousValue = previous ? previous[propName] : undefined;
+        // Set attributes
+        if (propName === "attributes") {
+            for (var attrName in propValue) {
+                var attrValue = propValue[attrName];
+                if (attrValue === undefined) {
+                    node.removeAttribute(attrName);
+                } else {
+                    node.setAttribute(attrName, attrValue);
+                }
+            }
+            return;
+        }
+        if (previousValue && isObject(previousValue) && getPrototype(previousValue) !== getPrototype(propValue)) {
+            node[propName] = propValue;
+            return;
+        }
+        if (!isObject(node[propName])) {
+            node[propName] = {};
+        }
+        var replacer = propName === "style" ? "" : undefined;
+        for (var k in propValue) {
+            var value = propValue[k];
+            node[propName][k] = value === undefined ? replacer : value;
+        }
+    }
+
+    function getPrototype(value) {
+        if (Object.getPrototypeOf) {
+            return Object.getPrototypeOf(value);
+        } else if (value.constructor) {
+            return value.constructor.prototype;
+        }
+    }
+
+});
 define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/mixins/application-utils', 'portia-web/models/spider', 'portia-web/models/template', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/models/extractor', 'portia-web/config/environment'], function (exports, Ember, ajax, ApplicationUtils, Spider, Template, Item, ItemField, Extractor, config) {
 
     'use strict';
@@ -20317,6 +21574,10 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
     var SlydApi = Ember['default'].Object.extend(ApplicationUtils['default'], {
         getApiUrl: function getApiUrl() {
             return (config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
+        },
+
+        getRootUrl: function getRootUrl() {
+            return config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host;
         },
         /**
         @public

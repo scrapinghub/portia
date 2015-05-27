@@ -1,6 +1,7 @@
 from scrapy.http import HtmlResponse
 
 from slyd.html import descriptify
+from slyd.errors import BaseHTTPError
 from slybot.baseurl import insert_base_url
 
 
@@ -21,3 +22,25 @@ def open_tab(func):
 
 def page(url, html):
     return HtmlResponse(url, 200, {}, html, encoding='utf-8')
+
+
+class BaseWSError(BaseHTTPError):
+    @property
+    def status(self):
+        return self._status + 4000
+
+
+class BadRequest(BaseWSError):
+    _status = 400
+
+
+class Forbidden(BaseWSError):
+    _status = 403
+
+
+class NotFound(BaseWSError):
+    _status = 404
+
+
+class InternalServerError(BaseWSError):
+    _status = 500

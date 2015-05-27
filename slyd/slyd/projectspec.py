@@ -1,60 +1,24 @@
 import json, re, shutil, errno, os
+
+import slyd.errors
+
 from os.path import join, splitext
 from twisted.web.resource import NoResource, ForbiddenResource
 from jsonschema.exceptions import ValidationError
-from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 from .html import html4annotation
 from .errors import BaseHTTPError
-from .utils import short_guid
+from .utils.projects import allowed_file_name, ProjectModifier
 
 
 def create_project_resource(spec_manager):
     return ProjectResource(spec_manager)
-
-# stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
-_INVALID_FILE_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
-
-
-def allowed_file_name(name):
-    return not _INVALID_FILE_RE.search(name)
 
 
 def convert_template(template):
     """Converts the template annotated body for being used in the UI."""
     template['annotated_body'] = html4annotation(
         template['annotated_body'], template['url'])
-
-
-def clean_spider(obj):
-    """Removes incomplete data from the spider"""
-    if 'init_requests' in obj:
-        required_fields = ('type', 'loginurl', 'username', 'password')
-        obj['init_requests'] = [req for req in obj['init_requests']
-                                if all(f in req for f in required_fields)]
-    if 'start_urls' in obj:
-        obj['start_urls'] = list(set(obj['start_urls']))
-    # XXX: Need id to keep track of renames for deploy and export
-    if 'id' not in obj:
-        obj['id'] = short_guid()
-
-
-def add_plugin_data(obj, plugins):
-    try:
-        plugin_data = obj['plugins']
-    except KeyError:
-        plugin_data = {}
-        obj['plugins'] = plugin_data
-    for plugin, opts in plugins:
-        plugin_name = opts['name']
-        try:
-            data = plugin_data[plugin_name]
-        except KeyError:
-            data = {}
-            plugin_data[plugin_name] = {}
-        result = plugin().save_extraction_data(data, obj, opts)
-        obj['plugins'][plugin_name] = result
-    return obj
 
 
 class ProjectSpec(object):
@@ -206,8 +170,9 @@ class ProjectSpec(object):
         out.write(json_template[last:])
 
 
-class ProjectResource(SlydJsonResource):
+class ProjectResource(SlydJsonResource, ProjectModifier):
     isLeaf = True
+    errors = slyd.errors
 
     def __init__(self, spec_manager):
         SlydJsonResource.__init__(self)
@@ -254,21 +219,7 @@ class ProjectResource(SlydJsonResource):
         resource = None
         try:
             # validate the request path and data
-            rpath = request.postpath
-            resource = rpath[0]
-            if resource == 'spiders':
-                resource = 'spider'
-                if len(rpath) == 1 or not rpath[1]:
-                    return self.handle_spider_command(project_spec, obj)
-                elif len(rpath) == 2:
-                    clean_spider(obj)
-                elif len(rpath) == 3:
-                    resource = 'template'
-                    if obj.get('original_body') is None:
-                        templ = project_spec.template_json(rpath[1], rpath[2])
-                        obj['original_body'] = templ.get('original_body', '')
-                    obj = add_plugin_data(obj, project_spec.plugins)
-            get_schema_validator(resource).validate(obj)
+            obj = self.verify_data(request.postpath, obj, project_spec)
         except (KeyError, IndexError):
             self.not_found()
         except (AssertionError, ValidationError) as ex:
@@ -280,26 +231,3 @@ class ProjectResource(SlydJsonResource):
         else:
             project_spec.savejson(obj, request.postpath)
             return ''
-
-    def handle_spider_command(self, project_spec, command_spec):
-        command = command_spec.get('cmd')
-        dispatch_func = project_spec.spider_commands.get(command)
-        if dispatch_func is None:
-            self.bad_request(
-                "Unrecognised command %s, available commands: %s." %
-                (command, ', '.join(project_spec.spider_commands.keys())))
-        args = map(str, command_spec.get('args', []))
-        for name in args:
-            if not allowed_file_name(name):
-                self.bad_request('Invalid name %s.' % name)
-        try:
-            retval = dispatch_func(*args)
-        except TypeError:
-            self.bad_request("Incorrect arguments for command %s." % command)
-        except OSError as ex:
-            if ex.errno == errno.ENOENT:
-                self.not_found()
-            raise
-        else:
-            return retval or ''
-        return ''

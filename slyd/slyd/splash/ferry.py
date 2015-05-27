@@ -15,8 +15,11 @@ from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
 
+from slyd.errors import BaseHTTPError
+
 from .commands import (fetch_page, fetch_response, interact_page, close_tab,
-                       extract, updates, resize)
+                       extract, updates, resize, update_project_data,
+                       rename_project_data, delete_project_data)
 
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
 _DEFAULT_VIEWPORT = '1240x680'
@@ -57,7 +60,8 @@ class User(object):
 
 
 class SpiderSpec(object):
-    def __init__(self, spider, items, extractors):
+    def __init__(self, name, spider, items, extractors):
+        self.name = name
         self.spider = spider
         self.items = items
         self.extractors = extractors
@@ -77,7 +81,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'heartbeat': lambda d, s: {},
         'updates': updates,
         'resize': resize,
-        'loadCurrent': fetch_response
+        'loadCurrent': fetch_response,
+        'saveChanges': update_project_data,
+        'delete': delete_project_data,
+        'rename': rename_project_data,
     }
     spec_manager = None
     settings = None
@@ -116,7 +123,14 @@ class FerryServerProtocol(WebSocketServerProtocol):
         data = json.loads(payload)
         if '_command' in data and data['_command'] in self._handlers:
             command = data['_command']
-            result = self._handlers[command](data, self) or {}
+            try:
+                result = self._handlers[command](data, self) or {}
+            except BaseHTTPError as e:
+                command = data.get('_callback') or command
+                return self.sendMessage({'error': e.status,
+                                         '_command': command,
+                                         'id': data.get('_meta', {}).get('id'),
+                                         'reason': e.title})
             if '_command' not in result:
                 result['_command'] = data.get('_callback') or command
             self.sendMessage(result)
@@ -190,11 +204,39 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                                template))
             except TypeError:
                 # Template names not consistent with templates
-                spec.remove_template(spider, template)
+                spec.remove_template(spider_name, template)
         spider['templates'] = templates
         self.factory[self].spider = IblSpider(spider_name, spider, items,
                                               extractors, self.settings)
-        self.factory[self].spiderspec = SpiderSpec(spider, items, extractors)
+        self.factory[self].spiderspec = SpiderSpec(spider_name, spider, items,
+                                                   extractors)
+
+    def update_spider(self, meta, spider=None, template=None, items=None,
+                      extractors=None):
+        if not hasattr(self.factory[self], 'spiderspec'):
+            return self.open_spider(meta)
+        spec = self.factory[self].spiderspec
+        if spec is None or spec.name != meta.get('spider'):
+            return self.open_spider(meta)
+        items = items or spec.items
+        extractors = extractors or spec.extractors
+        if spider:
+            spider['templates'] = spec.spider['templates']
+        else:
+            spider = spec.spider
+        if template:
+            idx = 0
+            for idx, tmpl in enumerate(spider['templates']):
+                if template['original_body'] == tmpl['original_body']:
+                    spider['templates'][idx] = template
+                    break
+            else:
+                spider['templates'].append(template)
+            spider['template_names'] = [t['name'] for t in spider['templates']]
+        self.factory[self].spider = IblSpider(meta['spider'], spider, items,
+                                              extractors, self.settings)
+        self.factory[self].spiderspec = SpiderSpec(meta['spider'], spider,
+                                                   items, extractors)
 
 
 class FerryServerFactory(WebSocketServerFactory):

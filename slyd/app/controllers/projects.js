@@ -21,6 +21,7 @@ export default BaseController.extend({
     openProject: function(projectName, revision) {
         this.get('slyd').editProject(projectName, revision).then(function() {
             this.set('slyd.project', projectName);
+            this.set('ws.project', projectName);
             this.transitionToRoute('project', { id: projectName });
         }.bind(this));
     },
@@ -75,6 +76,7 @@ export default BaseController.extend({
             this.get('slyd').createProject(newProjectName).then(function() {
                 this.get('slyd').editProject(newProjectName).then(function() {
                     this.set('slyd.project', newProjectName);
+                    this.set('ws.project', newProjectName);
                     // Initialize items spec.
                     var itemsPromise = this.get('slyd').saveItems([
                         Item.create({ name: 'default', fields: [ ]
@@ -109,6 +111,7 @@ export default BaseController.extend({
         this.set('breadCrumb', 'home');
         if (this.get('controllers.application.currentRouteName').split('.')[1] === 'index') {
             this.set('slyd.project', null);
+            this.set('ws.project', null);
         }
         this.get('documentView').reset();
         this.get('documentView').showSpider();

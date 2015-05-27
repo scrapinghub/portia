@@ -50,6 +50,7 @@ export default BaseController.extend({
 
     _breadCrumb: function() {
         this.set('slyd.spider', this.get('model.name'));
+        this.set('ws.spider', this.get('model.name'));
         this.set('breadCrumb', this.get('model.name'));
     }.observes('model.name'),
 
@@ -179,7 +180,7 @@ export default BaseController.extend({
         if (!this.get('loadedPageFp') || !this.get('showLinks')) {
             return [];
         }
-        var followedLinks = this.get('followedLinks'),
+        var followedLinks = this.getWithDefault('followedLinks', []),
             allLinks = Ember.$(Ember.$('#scraped-doc-iframe').contents().get(0).links),
             sprites = [];
         allLinks.each(function(i, link) {
@@ -326,9 +327,13 @@ export default BaseController.extend({
         if (!itemDefs.findBy('name', 'default') && !Ember.isEmpty(itemDefs)) {
             // The default item doesn't exist but we have at least one item def.
             template.set('scrapes', itemDefs[0].get('name'));
+        } else {
+            template.set('scrapes', 'default');
         }
         this.get('model.template_names').pushObject(template_name);
-        this.get('slyd').saveTemplate(this.get('name'), template).then(function() {
+        var serialized = template.serialize();
+        serialized.original_body = page.original;
+        this.get('ws').save('template', serialized).then(function() {
             this.set('saving', false);
             this.saveSpider().then(function() {
                 this.editTemplate(template_name);
@@ -383,7 +388,7 @@ export default BaseController.extend({
     autoFetch: function() {
         if (this.get('loadedPageFp') && this.get('showLinks')) {
             this.saveSpider().then(function() {
-                this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
+                //this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
             }.bind(this));
         }
     }.observes('model.follow_patterns.@each',
@@ -401,11 +406,11 @@ export default BaseController.extend({
             return;
         }
         this.set('saving', true);
-        return this.get('slyd').saveSpider(this.get('model')).then(function() {
+        return this.get('ws').save('spider', this.get('model')).then(function() {
             this.set('saving', false);
-        }.bind(this), function(err) {
+            this.get('ws').send({'_command': 'extract'});
+        }.bind(this),function() {
             this.set('saving', false);
-            throw err;
         }.bind(this));
     },
 
@@ -488,7 +493,7 @@ export default BaseController.extend({
 
         deleteTemplate: function(templateName) {
             this.get('model.template_names').removeObject(templateName);
-            this.get('slyd').deleteTemplate(this.get('name'), templateName);
+            this.get('ws').delete('template', templateName);
         },
 
         viewTemplate: function(templateName) {
@@ -561,7 +566,7 @@ export default BaseController.extend({
             }
             this.set('spiderName', oldName);
             this.set('model.name', newName);
-            this.get('slyd').renameSpider(oldName, newName).then(
+            this.get('ws').rename('spider', oldName, newName).then(
                 function() {
                     this.replaceRoute('spider', newName);
                 }.bind(this),

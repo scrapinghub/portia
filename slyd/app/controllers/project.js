@@ -135,6 +135,7 @@ export default BaseController.extend({
         var documentView = this.get('documentView');
         documentView.showLoading();
         this.set('slyd.spider', null);
+        this.set('ws.spider', null);
         this.get('slyd').fetchDocument(siteUrl)
             .then(function(data) {
                 if (data.error) {
@@ -160,12 +161,15 @@ export default BaseController.extend({
                       'template_names': [],
                       'plugins': {}
                     });
-                this.get('slyd').saveSpider(spider).then(function() {
+                this.set('ws.spider', newSpiderName);
+                this.get('ws').save('spider', spider).then(function() {
                         documentView.hideLoading();
                         this.set('slyd.spider', newSpiderName);
+                        this.set('ws.spider', newSpiderName);
                         this.editSpider(newSpiderName, siteUrl);
                     }.bind(this), function(err) {
                         documentView.hideLoading();
+                        this.set('ws.spider', this.get('slyd.spider'));
                         throw err;  // re-throw for the notification
                     }.bind(this)
                 );
@@ -219,7 +223,7 @@ export default BaseController.extend({
             this.showConfirm('Delete ' + spiderName,
                 'Are you sure you want to delete spider ' + spiderName + '?',
                 function() {
-                    this.get('slyd').deleteSpider(spiderName).then(
+                    this.get('ws').delete('spider', spiderName).then(
                         function() {
                             this.get('model').removeObject(spiderName);
                             this.set('refreshSpiders', !this.get('refreshSpiders'));
@@ -234,10 +238,12 @@ export default BaseController.extend({
             this.get('slyd').renameProject(oldName, newName).then(
                 function() {
                     this.set('slyd.project', newName);
+                    this.set('ws.project', newName);
                     this.replaceRoute('project', newName);
                 }.bind(this),
                 function(err) {
                     this.set('slyd.project', oldName);
+                    this.set('ws.project', oldName);
                     throw err;
                 }.bind(this)
             );
