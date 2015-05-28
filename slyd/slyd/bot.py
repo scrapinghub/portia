@@ -124,8 +124,9 @@ class Fetch(BotResource):
             return
         try:
             params = response.meta['slyd_request_params']
+            baseurl = params.get('baseurl', response.url)
             original_html = extract_html(response)
-            cleaned_html = html4annotation(original_html, response.url)
+            cleaned_html = html4annotation(original_html, baseurl)
             # we may want to include some headers
             fingerprint = request_fingerprint(response.request)
             result_response = dict(status=response.status,

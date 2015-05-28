@@ -264,21 +264,21 @@ export default BaseController.extend({
 
     },
 
-    fetchPage: function(url, parentFp, skipHistory) {
+    fetchPage: function(url, parentFp, skipHistory, baseurl) {
         this.set('loadedPageFp', null);
         var documentView = this.get('documentView');
         documentView.showLoading();
         var fetchId = this.guid();
         this.get('pendingFetches').pushObject(fetchId);
         this.set('documentView.sprites', new SpriteStore());
-        this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp).
+        this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp, baseurl).
             then(function(data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
                     return;
                 }
                 if (!data.error) {
-                    this.renderPage(url, data, skipHistory, function() {
+                    this.renderPage(baseurl || url, data, skipHistory, function() {
                         this.get('pendingFetches').removeObject(fetchId);
                         documentView.hideLoading();
                     }.bind(this));

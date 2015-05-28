@@ -2,8 +2,9 @@ import Ember from 'ember';
 import SpiderController from '../spider';
 
 export default SpiderController.extend({
-    queryParams: 'url',
+    queryParams: ['url', 'baseurl'],
     url: null,
+    baseurl: null,
 
     queryUrl: function() {
         if (!this.url) {
@@ -13,10 +14,11 @@ export default SpiderController.extend({
     }.observes('url'),
 
     fetchQueryUrl: function() {
-        var url = this.url;
+        var url = this.url, baseurl = this.baseurl;
         this.set('url', null);
+        this.set('baseurl', null)
         Ember.run.next(this, function() {
-            this.fetchPage(url, null, true);
+            this.fetchPage(url, null, true, baseurl);
         });
     },
 

@@ -5206,20 +5206,20 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             }).bind(this));
         },
 
-        fetchPage: function fetchPage(url, parentFp, skipHistory) {
+        fetchPage: function fetchPage(url, parentFp, skipHistory, baseurl) {
             this.set('loadedPageFp', null);
             var documentView = this.get('documentView');
             documentView.showLoading();
             var fetchId = this.guid();
             this.get('pendingFetches').pushObject(fetchId);
             this.set('documentView.sprites', new SpriteStore['default']());
-            this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp).then((function (data) {
+            this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp, baseurl).then((function (data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
                     return;
                 }
                 if (!data.error) {
-                    this.renderPage(url, data, skipHistory, (function () {
+                    this.renderPage(baseurl || url, data, skipHistory, (function () {
                         this.get('pendingFetches').removeObject(fetchId);
                         documentView.hideLoading();
                     }).bind(this));
@@ -5575,8 +5575,9 @@ define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/c
     'use strict';
 
     exports['default'] = SpiderController['default'].extend({
-        queryParams: 'url',
+        queryParams: ['url', 'baseurl'],
         url: null,
+        baseurl: null,
 
         queryUrl: (function () {
             if (!this.url) {
@@ -5586,10 +5587,12 @@ define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/c
         }).observes('url'),
 
         fetchQueryUrl: function fetchQueryUrl() {
-            var url = this.url;
+            var url = this.url,
+                baseurl = this.baseurl;
             this.set('url', null);
+            this.set('baseurl', null);
             Ember['default'].run.next(this, function () {
-                this.fetchPage(url, null, true);
+                this.fetchPage(url, null, true, baseurl);
             });
         },
 
@@ -20866,11 +20869,14 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             extracted items (items), the request fingerprint (fp), an error
             message (error) and the links that will be followed (links).
         */
-        fetchDocument: function fetchDocument(pageUrl, spiderName, parentFp) {
+        fetchDocument: function fetchDocument(pageUrl, spiderName, parentFp, baseurl) {
             var hash = {};
             hash.type = 'POST';
             var data = { spider: spiderName || this.get('spider'),
                 request: { url: pageUrl } };
+            if (baseurl) {
+                data.baseurl = baseurl;
+            }
             if (parentFp) {
                 data['parent_fp'] = parentFp;
             }
