@@ -183,8 +183,9 @@ export default BaseController.extend({
             allLinks = Ember.$(Ember.$('#scraped-doc-iframe').contents().get(0).links),
             sprites = [];
         allLinks.each(function(i, link) {
-            var followed = followedLinks.indexOf(link.href) >= 0 &&
-                this.get('spiderDomains').has(URI.parse(link.href)['hostname']);
+            var uri = URI(link.href),
+                followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 &&
+                this.get('spiderDomains').has(uri.hostname());
             sprites.pushObject(ElementSprite.create({
                 element: link,
                 hasShadow: false,
