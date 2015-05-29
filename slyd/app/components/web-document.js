@@ -424,10 +424,13 @@ export default Ember.Component.extend({
     },
 
     clickHandlerBrowse: function(event) {
+        if(event.which > 1 || event.ctrlKey) { // Ignore right/middle click or Ctrl+click
+            return;
+        }
         event.preventDefault();
         var linkingElement = Ember.$(event.target).closest('[href]');
         if (linkingElement.length) {
-            var href = Ember.$(linkingElement).get(0).href;
+            var href = linkingElement.get(0).href;
             this.sendDocumentEvent('linkClicked', href);
         }
     },
