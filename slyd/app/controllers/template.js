@@ -226,9 +226,10 @@ export default BaseController.extend({
             for (var i = 0; i < extractedFields.length; i++) {
                 var field = extractedFields[i];
                 if (scrapedItemFields.has(field.name)) {
-                    var mappedFieldData = mappedFields[field.name] || MappedFieldData.create();
+                    var mappedFieldData = mappedFields[field.name] || MappedFieldData.create(),
+                        required = mappedFieldData.required ? true : field.required || item_required_fields.has(field.name);
                     mappedFieldData.set('fieldName', field.name);
-                    mappedFieldData.set('required', mappedFieldData.required ? true : field.required);
+                    mappedFieldData.set('required', required);
                     mappedFieldData.set('disabled', true);
                     mappedFieldData.set('extracted', true);
                     mappedFieldData.set('extractors', this.getAppliedExtractors(field.name));
@@ -255,7 +256,7 @@ export default BaseController.extend({
         return mappedFieldsData;
     }.property('model.extractors.@each',
                'extractors.@each',
-               'activeExtractionTool.pluginsState.extracted',
+               'activeExtractionTool.pluginState.extracted',
                'scrapedItem.fields.@each'),
 
     createExtractor: function(extractorType, extractorDefinition) {
@@ -404,6 +405,7 @@ export default BaseController.extend({
         updatePluginField: function(field, value) {
             this.set(['extractionTools', this.get('activeExtractionTool.component'), field].join('.'),
                      value);
+            this.notifyPropertyChange(['activeExtractionTool', field].join('.'));
         },
 
         updateScraped: function(name) {

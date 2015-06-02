@@ -87,6 +87,18 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 if (this.get('mappedDOMElement').tagName === 'INS') {
                     this.get('mappedElement').removePartialAnnotation();
                 }
+                var id = this.get('data.id'),
+                    extracted = this.getWithDefault('pluginState.extracted', []),
+                    deleted = extracted.filter(function (ann) {
+                    if (ann.id && id === ann.id) {
+                        return true;
+                    }
+                });
+                deleted.forEach(function (ann) {
+                    extracted.removeObject(ann);
+                });
+                this.set('pluginState.extracted', extracted);
+                this.updateData('pluginState.extracted');
                 this.closeWidget();
             },
 
@@ -301,11 +313,11 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 }
                 update = true;
             }
-            if (required && !annotation['required']) {
+            if ((required || required === false) && annotation['required'] !== required) {
                 try {
-                    annotation.set('required', true);
+                    annotation.set('required', required);
                 } catch (e) {
-                    annotation['required'] = true;
+                    annotation['required'] = required;
                 }
                 update = true;
             }
@@ -372,15 +384,15 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             for (var key in annotations) {
                 var fieldName = annotations[key];
                 if (fieldName && fieldName[0] !== '#') {
-                    extracted.push({
+                    extracted.pushObject({
                         id: id,
                         name: fieldName,
-                        required: required.indexOf(annotations[key]) > 0
+                        required: required.indexOf(annotations[key]) > -1
                     });
                 }
             }
             this.set('pluginState.extracted', extracted);
-            this.updateData('pluginState');
+            this.updateData('pluginState.extracted');
         },
 
         //*******************************************************************\\
@@ -5829,9 +5841,10 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 for (var i = 0; i < extractedFields.length; i++) {
                     var field = extractedFields[i];
                     if (scrapedItemFields.has(field.name)) {
-                        var mappedFieldData = mappedFields[field.name] || MappedFieldData['default'].create();
+                        var mappedFieldData = mappedFields[field.name] || MappedFieldData['default'].create(),
+                            required = mappedFieldData.required ? true : field.required || item_required_fields.has(field.name);
                         mappedFieldData.set('fieldName', field.name);
-                        mappedFieldData.set('required', mappedFieldData.required ? true : field.required);
+                        mappedFieldData.set('required', required);
                         mappedFieldData.set('disabled', true);
                         mappedFieldData.set('extracted', true);
                         mappedFieldData.set('extractors', this.getAppliedExtractors(field.name));
@@ -5856,7 +5869,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 }).bind(this));
             }
             return mappedFieldsData;
-        }).property('model.extractors.@each', 'extractors.@each', 'activeExtractionTool.pluginsState.extracted', 'scrapedItem.fields.@each'),
+        }).property('model.extractors.@each', 'extractors.@each', 'activeExtractionTool.pluginState.extracted', 'scrapedItem.fields.@each'),
 
         createExtractor: function createExtractor(extractorType, extractorDefinition) {
             var extractor = Extractor['default'].create({
@@ -5998,6 +6011,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             updatePluginField: function updatePluginField(field, value) {
                 this.set(['extractionTools', this.get('activeExtractionTool.component'), field].join('.'), value);
+                this.notifyPropertyChange(['activeExtractionTool', field].join('.'));
             },
 
             updateScraped: function updateScraped(name) {

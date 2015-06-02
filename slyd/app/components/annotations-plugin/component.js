@@ -42,6 +42,18 @@ export default Ember.Component.extend({
             if (this.get('mappedDOMElement').tagName === 'INS') {
                 this.get('mappedElement').removePartialAnnotation();
             }
+            var id = this.get('data.id'),
+                extracted = this.getWithDefault('pluginState.extracted', []),
+                deleted = extracted.filter(function(ann) {
+                    if (ann.id && id === ann.id) {
+                        return true;
+                    }
+                });
+            deleted.forEach(function(ann) {
+                extracted.removeObject(ann);
+            })
+            this.set('pluginState.extracted', extracted);
+            this.updateData('pluginState.extracted');
             this.closeWidget();
         },
 
@@ -258,11 +270,11 @@ export default Ember.Component.extend({
             }
             update = true;
         }
-        if (required && !annotation['required']) {
+        if ((required || required === false) && annotation['required'] !== required) {
             try {
-                annotation.set('required', true);
+                annotation.set('required', required);
             } catch(e) {
-                annotation['required'] = true;
+                annotation['required'] = required;
             }
             update = true;
         }
@@ -330,15 +342,15 @@ export default Ember.Component.extend({
         for (var key in annotations) {
             var fieldName = annotations[key];
             if (fieldName && fieldName[0] !== '#') {
-                extracted.push({
+                extracted.pushObject({
                     id: id,
                     name: fieldName,
-                    required: required.indexOf(annotations[key]) > 0
+                    required: required.indexOf(annotations[key]) > -1
                 });
             }
         }
         this.set('pluginState.extracted', extracted);
-        this.updateData('pluginState');
+        this.updateData('pluginState.extracted');
     },
 
     //*******************************************************************\\
