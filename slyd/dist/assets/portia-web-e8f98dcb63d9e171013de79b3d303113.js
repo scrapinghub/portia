@@ -87,6 +87,18 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 if (this.get('mappedDOMElement').tagName === 'INS') {
                     this.get('mappedElement').removePartialAnnotation();
                 }
+                var id = this.get('data.id'),
+                    extracted = this.getWithDefault('pluginState.extracted', []),
+                    deleted = extracted.filter(function (ann) {
+                    if (ann.id && id === ann.id) {
+                        return true;
+                    }
+                });
+                deleted.forEach(function (ann) {
+                    extracted.removeObject(ann);
+                });
+                this.set('pluginState.extracted', extracted);
+                this.updateData('pluginState.extracted');
                 this.closeWidget();
             },
 
@@ -301,11 +313,11 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 }
                 update = true;
             }
-            if (required && !annotation['required']) {
+            if ((required || required === false) && annotation['required'] !== required) {
                 try {
-                    annotation.set('required', true);
+                    annotation.set('required', required);
                 } catch (e) {
-                    annotation['required'] = true;
+                    annotation['required'] = required;
                 }
                 update = true;
             }
@@ -372,15 +384,15 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             for (var key in annotations) {
                 var fieldName = annotations[key];
                 if (fieldName && fieldName[0] !== '#') {
-                    extracted.push({
+                    extracted.pushObject({
                         id: id,
                         name: fieldName,
-                        required: required.indexOf(annotations[key]) > 0
+                        required: required.indexOf(annotations[key]) > -1
                     });
                 }
             }
             this.set('pluginState.extracted', extracted);
-            this.updateData('pluginState');
+            this.updateData('pluginState.extracted');
         },
 
         //*******************************************************************\\
@@ -3678,6 +3690,11 @@ define('portia-web/components/text-field', ['exports', 'ember'], function (expor
             if (this.get('saveOnExit') && this.get('element')) {
                 this.sendAction('action', this.get('element').value, this.get('name'));
             }
+            if (this.get('clear')) {
+                this.get('element').value = '';
+                this.set('clear', false);
+            }
+            this.change();
         },
 
         change: function change() {
@@ -5111,11 +5128,11 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
         }).property('model.init_requests'),
 
         loginUser: (function () {
-            return this._get_init_request_property('loginuser');
+            return this._get_init_request_property('username');
         }).property('model.init_requests'),
 
         loginPassword: (function () {
-            return this._get_init_request_property('loginpassword');
+            return this._get_init_request_property('password');
         }).property('model.init_requests'),
 
         spiderDomains: (function () {
@@ -5134,7 +5151,8 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 allLinks = Ember['default'].$(Ember['default'].$('#scraped-doc-iframe').contents().get(0).links),
                 sprites = [];
             allLinks.each((function (i, link) {
-                var followed = followedLinks.indexOf(link.href) >= 0 && this.get('spiderDomains').has(URI.parse(link.href)['hostname']);
+                var uri = URI(link.href),
+                    followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 && this.get('spiderDomains').has(uri.hostname());
                 sprites.pushObject(canvas.ElementSprite.create({
                     element: link,
                     hasShadow: false,
@@ -5206,20 +5224,20 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             }).bind(this));
         },
 
-        fetchPage: function fetchPage(url, parentFp, skipHistory) {
+        fetchPage: function fetchPage(url, parentFp, skipHistory, baseurl) {
             this.set('loadedPageFp', null);
             var documentView = this.get('documentView');
             documentView.showLoading();
             var fetchId = this.guid();
             this.get('pendingFetches').pushObject(fetchId);
             this.set('documentView.sprites', new SpriteStore['default']());
-            this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp).then((function (data) {
+            this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp, baseurl).then((function (data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
                     return;
                 }
                 if (!data.error) {
-                    this.renderPage(url, data, skipHistory, (function () {
+                    this.renderPage(baseurl || url, data, skipHistory, (function () {
                         this.get('pendingFetches').removeObject(fetchId);
                         documentView.hideLoading();
                     }).bind(this));
@@ -5575,8 +5593,10 @@ define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/c
     'use strict';
 
     exports['default'] = SpiderController['default'].extend({
-        queryParams: 'url',
+        queryParams: ['url', 'baseurl', 'rmt'],
         url: null,
+        baseurl: null,
+        rmt: null,
 
         queryUrl: (function () {
             if (!this.url) {
@@ -5586,12 +5606,21 @@ define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/c
         }).observes('url'),
 
         fetchQueryUrl: function fetchQueryUrl() {
-            var url = this.url;
+            var url = this.url,
+                baseurl = this.baseurl;
             this.set('url', null);
+            this.set('baseurl', null);
             Ember['default'].run.next(this, function () {
-                this.fetchPage(url, null, true);
+                this.fetchPage(url, null, true, baseurl);
             });
         },
+
+        removeTemplate: (function () {
+            if (this.get('rmt')) {
+                this.get('model.template_names').removeObject(this.get('rmt'));
+                this.set('rmt', null);
+            }
+        }).observes('rmt'),
 
         _breadCrumb: null,
 
@@ -5825,9 +5854,10 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 for (var i = 0; i < extractedFields.length; i++) {
                     var field = extractedFields[i];
                     if (scrapedItemFields.has(field.name)) {
-                        var mappedFieldData = mappedFields[field.name] || MappedFieldData['default'].create();
+                        var mappedFieldData = mappedFields[field.name] || MappedFieldData['default'].create(),
+                            required = mappedFieldData.required ? true : field.required || item_required_fields.has(field.name);
                         mappedFieldData.set('fieldName', field.name);
-                        mappedFieldData.set('required', mappedFieldData.required ? true : field.required);
+                        mappedFieldData.set('required', required);
                         mappedFieldData.set('disabled', true);
                         mappedFieldData.set('extracted', true);
                         mappedFieldData.set('extractors', this.getAppliedExtractors(field.name));
@@ -5852,7 +5882,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 }).bind(this));
             }
             return mappedFieldsData;
-        }).property('model.extractors.@each', 'extractors.@each', 'activeExtractionTool.pluginsState.extracted', 'scrapedItem.fields.@each'),
+        }).property('model.extractors.@each', 'extractors.@each', 'activeExtractionTool.pluginState.extracted', 'scrapedItem.fields.@each'),
 
         createExtractor: function createExtractor(extractorType, extractorDefinition) {
             var extractor = Extractor['default'].create({
@@ -5891,6 +5921,9 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 var oldName = this.get('model.name');
                 var saveFuture = this.saveTemplate();
                 if (!saveFuture) {
+                    Ember['default'].run.next(this, function () {
+                        this.set('model.name', oldName);
+                    });
                     return;
                 }
                 this.set('templateName', oldName);
@@ -5976,12 +6009,32 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             },
 
             discardChanges: function discardChanges() {
-                this.set('documentView.sprites', new SpriteStore['default']());
-                this.transitionToRoute('spider', {
-                    queryParams: {
+                var hasData = false,
+                    tools = this.get('extractionTools'),
+                    finishDiscard = (function () {
+                    var params = {
                         url: this.get('model.url')
+                    };
+                    if (!hasData) {
+                        params.rmt = this.get('model.name');
                     }
-                });
+                    this.transitionToRoute('spider', {
+                        queryParams: params
+                    });
+                }).bind(this);
+                this.set('documentView.sprites', new SpriteStore['default']());
+                for (var key in tools) {
+                    if (((tools[key]['pluginState'] || {})['extracted'] || []).length > 0) {
+                        hasData = true;
+                        break;
+                    }
+                }
+
+                if (hasData) {
+                    finishDiscard();
+                } else {
+                    this.get('slyd').deleteTemplate(this.get('slyd.spider'), this.get('model.name')).then(finishDiscard);
+                }
             },
 
             hideFloatingAnnotationWidget: function hideFloatingAnnotationWidget() {
@@ -5994,6 +6047,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             updatePluginField: function updatePluginField(field, value) {
                 this.set(['extractionTools', this.get('activeExtractionTool.component'), field].join('.'), value);
+                this.notifyPropertyChange(['activeExtractionTool', field].join('.'));
             },
 
             updateScraped: function updateScraped(name) {
@@ -16761,9 +16815,9 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             element(env, element11, context, "bind-attr", [], {"style": "tiny_box_style"});
             block(env, morph2, context, "each", [get(env, context, "model.start_urls")], {"keyword": "url"}, child1, child2);
             inline(env, morph3, context, "text-area-with-button", [], {"placeholder": "Enter one or multiple start page urls here", "action": get(env, context, "startUrlsAction"), "reset": true, "value": get(env, context, "startUrls")});
-            inline(env, morph4, context, "check-box", [], {"checked": get(env, context, "performLogin"), "name": "performLoginCheck"});
+            inline(env, morph4, context, "check-box", [], {"checked": get(env, context, "model.performLogin"), "name": "performLoginCheck"});
             inline(env, morph5, context, "inline-help", [], {"message": "perform_login"});
-            block(env, morph6, context, "if", [get(env, context, "performLogin")], {}, child3, null);
+            block(env, morph6, context, "if", [get(env, context, "model.performLogin")], {}, child3, null);
             return fragment;
           }
         };
@@ -20866,11 +20920,14 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             extracted items (items), the request fingerprint (fp), an error
             message (error) and the links that will be followed (links).
         */
-        fetchDocument: function fetchDocument(pageUrl, spiderName, parentFp) {
+        fetchDocument: function fetchDocument(pageUrl, spiderName, parentFp, baseurl) {
             var hash = {};
             hash.type = 'POST';
             var data = { spider: spiderName || this.get('spider'),
                 request: { url: pageUrl } };
+            if (baseurl) {
+                data.baseurl = baseurl;
+            }
             if (parentFp) {
                 data['parent_fp'] = parentFp;
             }

@@ -160,11 +160,11 @@ export default BaseController.extend({
     }.property('model.init_requests'),
 
     loginUser: function() {
-        return this._get_init_request_property('loginuser');
+        return this._get_init_request_property('username');
     }.property('model.init_requests'),
 
     loginPassword: function() {
-        return this._get_init_request_property('loginpassword');
+        return this._get_init_request_property('password');
     }.property('model.init_requests'),
 
     spiderDomains: function() {
@@ -183,8 +183,9 @@ export default BaseController.extend({
             allLinks = Ember.$(Ember.$('#scraped-doc-iframe').contents().get(0).links),
             sprites = [];
         allLinks.each(function(i, link) {
-            var followed = followedLinks.indexOf(link.href) >= 0 &&
-                this.get('spiderDomains').has(URI.parse(link.href)['hostname']);
+            var uri = URI(link.href),
+                followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 &&
+                this.get('spiderDomains').has(uri.hostname());
             sprites.pushObject(ElementSprite.create({
                 element: link,
                 hasShadow: false,
@@ -264,21 +265,21 @@ export default BaseController.extend({
 
     },
 
-    fetchPage: function(url, parentFp, skipHistory) {
+    fetchPage: function(url, parentFp, skipHistory, baseurl) {
         this.set('loadedPageFp', null);
         var documentView = this.get('documentView');
         documentView.showLoading();
         var fetchId = this.guid();
         this.get('pendingFetches').pushObject(fetchId);
         this.set('documentView.sprites', new SpriteStore());
-        this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp).
+        this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp, baseurl).
             then(function(data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
                     return;
                 }
                 if (!data.error) {
-                    this.renderPage(url, data, skipHistory, function() {
+                    this.renderPage(baseurl || url, data, skipHistory, function() {
                         this.get('pendingFetches').removeObject(fetchId);
                         documentView.hideLoading();
                     }.bind(this));

@@ -44,11 +44,11 @@
 
         <div style="margin-top:20px" class="scrolling-container">
             <span class="important-label">Perform login</span>
-            {{check-box checked=performLogin name="performLoginCheck"}}
+            {{check-box checked=model.performLogin name="performLoginCheck"}}
             {{inline-help message="perform_login"}}
         </div>
 
-        {{#if performLogin}}
+        {{#if model.performLogin}}
             <div class="scrolling-container" {{bind-attr style="ex_tiny_box_style"}}>
                 <div style="margin-top:10px"></div>
                 {{text-field value=loginUrl name='loginUrl' width='94%' placeholder='Login URL' action='updateLoginInfo' update='addInitRequest'}}
