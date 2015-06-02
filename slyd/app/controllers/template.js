@@ -365,7 +365,7 @@ export default BaseController.extend({
         },
 
         editItems: function() {
-            this.transitionToRoute('items');
+            this.transitionToRoute('template-items');
         },
 
         continueBrowsing: function() {

@@ -80,6 +80,10 @@ export default BaseController.extend({
             },
             copyAction,
             {
+                component: 'edit-items',
+                controller: this
+            },
+            {
                 text: 'Documentation',
                 url: 'http://support.scrapinghub.com/list/24895-knowledge-base/?category=17201'
             }
