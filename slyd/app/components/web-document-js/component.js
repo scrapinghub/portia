@@ -190,6 +190,9 @@ export default WebDocument.extend(ApplicationUtils, {
         }
         var patch = this._buildPatch(data);
         patchDom(root, patch, rootDocument);
+        if (this.get('listener') && this.get('listener').updateExtractedItems) {
+            this.get('listener').notifyPropertyChange('followedLinks');
+        }
         return Object.keys(patch).length > 0;
     },
 
@@ -274,8 +277,6 @@ export default WebDocument.extend(ApplicationUtils, {
                 project: this.get('slyd.project'),
             },
             _command: 'interact',
-            eventType: 'mouse',
-            target: evt.target.getAttribute('data-tagid'),
             interaction: interaction
         });
         evt.preventDefault();
@@ -294,16 +295,17 @@ export default WebDocument.extend(ApplicationUtils, {
             return;
         }
         var ifWindow = document.getElementById(this.get('iframeId')).contentWindow,
-            scrollState = {data: {scrollX: ifWindow.scrollX / Ember.$(ifWindow).width(),
-                           scrollY: ifWindow.scrollY / Ember.$(ifWindow).height()}};
+            ifDocument = ifWindow.document,
+            maxScrollX = Ember.$(ifDocument).width() - Ember.$(ifWindow).width(),
+            maxScrollY = Ember.$(ifDocument).height() - Ember.$(ifWindow).height(),
+            scrollState = {data: {scrollX: ifWindow.scrollX / maxScrollX,
+                           scrollY: ifWindow.scrollY / maxScrollY}, target: '-1'};
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
                 project: this.get('slyd.project'),
             },
             _command: 'interact',
-            eventType: 'wheel',
-            target: '-1',
             interaction: scrollState
         });
         this.set('splashScrolling', true);
