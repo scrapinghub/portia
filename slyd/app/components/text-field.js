@@ -45,6 +45,11 @@ export default Ember.Component.extend({
         if (this.get('saveOnExit') && this.get('element')) {
             this.sendAction('action', this.get('element').value, this.get('name'));
         }
+        if (this.get('clear')) {
+            this.get('element').value = '';
+            this.set('clear', false);
+        }
+        this.change();
     },
 
     change: function() {

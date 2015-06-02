@@ -3690,6 +3690,11 @@ define('portia-web/components/text-field', ['exports', 'ember'], function (expor
             if (this.get('saveOnExit') && this.get('element')) {
                 this.sendAction('action', this.get('element').value, this.get('name'));
             }
+            if (this.get('clear')) {
+                this.get('element').value = '';
+                this.set('clear', false);
+            }
+            this.change();
         },
 
         change: function change() {
@@ -5916,6 +5921,9 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 var oldName = this.get('model.name');
                 var saveFuture = this.saveTemplate();
                 if (!saveFuture) {
+                    Ember['default'].run.next(this, function () {
+                        this.set('model.name', oldName);
+                    });
                     return;
                 }
                 this.set('templateName', oldName);

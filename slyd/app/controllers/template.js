@@ -297,6 +297,9 @@ export default BaseController.extend({
             var oldName = this.get('model.name');
             var saveFuture = this.saveTemplate();
             if (!saveFuture) {
+                Ember.run.next(this, function() {
+                    this.set('model.name', oldName);
+                })
                 return;
             }
             this.set('templateName', oldName);
