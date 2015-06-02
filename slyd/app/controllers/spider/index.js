@@ -2,9 +2,10 @@ import Ember from 'ember';
 import SpiderController from '../spider';
 
 export default SpiderController.extend({
-    queryParams: ['url', 'baseurl'],
+    queryParams: ['url', 'baseurl', 'rmt'],
     url: null,
     baseurl: null,
+    rmt: null,
 
     queryUrl: function() {
         if (!this.url) {
@@ -21,6 +22,13 @@ export default SpiderController.extend({
             this.fetchPage(url, null, true, baseurl);
         });
     },
+
+    removeTemplate: function() {
+        if (this.get('rmt')) {
+            this.get('model.template_names').removeObject(this.get('rmt'));
+            this.set('rmt', null);
+        }
+    }.observes('rmt'),
 
     _breadCrumb: null,
 

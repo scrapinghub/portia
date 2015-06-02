@@ -386,12 +386,32 @@ export default BaseController.extend({
         },
 
         discardChanges: function() {
+            var hasData = false, tools = this.get('extractionTools'),
+                finishDiscard = function() {
+                    var params = {
+                        url: this.get('model.url')
+                    }
+                    if (!hasData) {
+                        params.rmt = this.get('model.name');
+                    }
+                    this.transitionToRoute('spider', {
+                        queryParams: params
+                    });
+                }.bind(this);
             this.set('documentView.sprites', new SpriteStore());
-            this.transitionToRoute('spider', {
-                queryParams: {
-                    url: this.get('model.url')
+            for (var key in tools) {
+                if (((tools[key]['pluginState']||{})['extracted']||[]).length > 0) {
+                    hasData = true;
+                    break;
                 }
-            });
+            }
+
+            if (hasData) {
+                finishDiscard()
+            } else {
+                this.get('slyd').deleteTemplate(this.get('slyd.spider'),
+                                                this.get('model.name')).then(finishDiscard);
+            }
         },
 
         hideFloatingAnnotationWidget: function() {

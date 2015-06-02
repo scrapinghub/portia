@@ -5588,9 +5588,10 @@ define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/c
     'use strict';
 
     exports['default'] = SpiderController['default'].extend({
-        queryParams: ['url', 'baseurl'],
+        queryParams: ['url', 'baseurl', 'rmt'],
         url: null,
         baseurl: null,
+        rmt: null,
 
         queryUrl: (function () {
             if (!this.url) {
@@ -5608,6 +5609,13 @@ define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/c
                 this.fetchPage(url, null, true, baseurl);
             });
         },
+
+        removeTemplate: (function () {
+            if (this.get('rmt')) {
+                this.get('model.template_names').removeObject(this.get('rmt'));
+                this.set('rmt', null);
+            }
+        }).observes('rmt'),
 
         _breadCrumb: null,
 
@@ -5993,12 +6001,32 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             },
 
             discardChanges: function discardChanges() {
-                this.set('documentView.sprites', new SpriteStore['default']());
-                this.transitionToRoute('spider', {
-                    queryParams: {
+                var hasData = false,
+                    tools = this.get('extractionTools'),
+                    finishDiscard = (function () {
+                    var params = {
                         url: this.get('model.url')
+                    };
+                    if (!hasData) {
+                        params.rmt = this.get('model.name');
                     }
-                });
+                    this.transitionToRoute('spider', {
+                        queryParams: params
+                    });
+                }).bind(this);
+                this.set('documentView.sprites', new SpriteStore['default']());
+                for (var key in tools) {
+                    if (((tools[key]['pluginState'] || {})['extracted'] || []).length > 0) {
+                        hasData = true;
+                        break;
+                    }
+                }
+
+                if (hasData) {
+                    finishDiscard();
+                } else {
+                    this.get('slyd').deleteTemplate(this.get('slyd.spider'), this.get('model.name')).then(finishDiscard);
+                }
             },
 
             hideFloatingAnnotationWidget: function hideFloatingAnnotationWidget() {
