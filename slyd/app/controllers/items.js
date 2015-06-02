@@ -4,7 +4,7 @@ import ItemField from '../models/item-field';
 
 export default BaseController.extend({
 
-    needs: ['application', 'projects', 'project', 'spider', 'spider/index', 'template'],
+    needs: ['application', 'projects', 'project'],
 
     documentView: null,
 
@@ -39,9 +39,14 @@ export default BaseController.extend({
         if (valid) {
             this.get('slyd').saveItems(this.model).then(function() {
                 this.set('project_models.items', this.model);
-                this.transitionToRoute('template');
+                this.transitionToRoute(this.getParentRoute());
             }.bind(this));
         }
+    },
+
+    getParentRoute: function() {
+        var handlerInfo = this.get('router').router.currentHandlerInfos;
+        return handlerInfo[handlerInfo.length - 2].name;
     },
 
     actions: {
@@ -69,7 +74,7 @@ export default BaseController.extend({
         undoChanges: function() {
             this.get('slyd').loadItems().then(function(items) {
                 this.set('content', items);
-                this.transitionToRoute('template');
+                this.transitionToRoute(this.getParentRoute());
             }.bind(this));
         },
     },

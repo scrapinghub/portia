@@ -2908,6 +2908,62 @@ define('portia-web/components/edit-item', ['exports', 'ember'], function (export
     });
 
 });
+define('portia-web/components/edit-items/component', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Component.extend({
+        tagName: 'a',
+
+        click: function click() {
+            this.get('actionData.controller').transitionToRoute('items');
+            this.sendAction('clicked');
+        }
+    });
+
+});
+define('portia-web/components/edit-items/template', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      isHTMLBars: true,
+      revision: "Ember@1.11.3",
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createTextNode("Edit Items");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        return fragment;
+      }
+    };
+  }()));
+
+});
 define('portia-web/components/em-accordion-item', ['exports', 'ember-idx-accordion/accordion-item'], function (exports, AccordionItemComponent) {
 
 	'use strict';
@@ -4500,7 +4556,7 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
 
     exports['default'] = BaseController['default'].extend({
 
-        needs: ['application', 'projects', 'project', 'spider', 'spider/index', 'template'],
+        needs: ['application', 'projects', 'project'],
 
         documentView: null,
 
@@ -4534,9 +4590,14 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
             if (valid) {
                 this.get('slyd').saveItems(this.model).then((function () {
                     this.set('project_models.items', this.model);
-                    this.transitionToRoute('template');
+                    this.transitionToRoute(this.getParentRoute());
                 }).bind(this));
             }
+        },
+
+        getParentRoute: function getParentRoute() {
+            var handlerInfo = this.get('router').router.currentHandlerInfos;
+            return handlerInfo[handlerInfo.length - 2].name;
         },
 
         actions: {
@@ -4564,7 +4625,7 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
             undoChanges: function undoChanges() {
                 this.get('slyd').loadItems().then((function (items) {
                     this.set('content', items);
-                    this.transitionToRoute('template');
+                    this.transitionToRoute(this.getParentRoute());
                 }).bind(this));
             } },
 
@@ -4635,6 +4696,9 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             return [{
                 component: 'file-download'
             }, copyAction, {
+                component: 'edit-items',
+                controller: this
+            }, {
                 text: 'Documentation',
                 url: 'http://support.scrapinghub.com/list/24895-knowledge-base/?category=17201'
             }];
@@ -5633,6 +5697,13 @@ define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/c
     });
 
 });
+define('portia-web/controllers/template-items', ['exports', 'portia-web/controllers/items'], function (exports, Items) {
+
+	'use strict';
+
+	exports['default'] = Items['default'];
+
+});
 define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/extractor', 'portia-web/models/mapped-field-data', 'portia-web/utils/sprite-store'], function (exports, Ember, BaseController, Extractor, MappedFieldData, SpriteStore) {
 
     'use strict';
@@ -5986,7 +6057,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             },
 
             editItems: function editItems() {
-                this.transitionToRoute('items');
+                this.transitionToRoute('template-items');
             },
 
             continueBrowsing: function continueBrowsing() {
@@ -6297,6 +6368,22 @@ define('portia-web/initializers/bread-crumbs', ['exports'], function (exports) {
       app.inject("component:bread-crumbs", "router", "router:main");
       app.inject("component:bread-crumbs", "applicationController", "controller:application");
     }
+  };
+
+});
+define('portia-web/initializers/controller-helper', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports.initialize = initialize;
+
+  function initialize(_, app) {
+    app.inject('controller', 'router', 'router:main');
+  }
+
+  exports['default'] = {
+    name: 'controller-helper',
+    initialize: initialize
   };
 
 });
@@ -7332,10 +7419,13 @@ define('portia-web/router', ['exports', 'ember', 'portia-web/config/environment'
           this.resource("template", {
             path: ":template_id"
           }, function () {
-            this.resource("items");
+            this.resource("template-items", {
+              path: "items"
+            });
           });
         });
         this.resource("conflicts");
+        this.resource("items");
       });
     });
     this.route("base-route");
@@ -7366,7 +7456,7 @@ define('portia-web/routes/base-route', ['exports', 'ember'], function (exports, 
         },
 
         getControllerName: function getControllerName() {
-            return this.get('routeName').split('.').get(0);
+            return this.getWithDefault('defaultControllerName', this.get('routeName').split('.').get(0));
         }
     });
 
@@ -7421,12 +7511,14 @@ define('portia-web/routes/items', ['exports', 'portia-web/routes/base-route'], f
     'use strict';
 
     exports['default'] = BaseRoute['default'].extend({
+        defaultControllerName: 'items',
+
         model: function model() {
             return this.get('slyd').loadItems();
         },
 
         renderTemplate: function renderTemplate() {
-            var controller = this.controllerFor('items');
+            var controller = this.controllerFor(this.get('defaultControllerName'));
             this.render('items/toolbox', {
                 into: 'application',
                 outlet: 'main',
@@ -7588,6 +7680,14 @@ define('portia-web/routes/spider/index', ['exports', 'portia-web/routes/base-rou
             return this.modelFor('spider');
         }
     });
+
+});
+define('portia-web/routes/template-items', ['exports', 'portia-web/routes/items'], function (exports, Items) {
+
+    'use strict';
+
+    exports['default'] = Items['default'].extend({
+        defaultControllerName: 'template-items' });
 
 });
 define('portia-web/routes/template', ['exports', 'ember', 'portia-web/routes/base-route'], function (exports, Ember, BaseRoute) {
@@ -18241,6 +18341,54 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         block(env, morph5, context, "if", [get(env, context, "showNoItemsExtracted")], {}, child3, null);
         block(env, morph6, context, "if", [get(env, context, "saving")], {}, child4, null);
         block(env, morph7, context, "if", [get(env, context, "showItems")], {}, child5, null);
+        return fragment;
+      }
+    };
+  }()));
+
+});
+define('portia-web/templates/template-items', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      isHTMLBars: true,
+      revision: "Ember@1.11.3",
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+        dom.insertBoundary(fragment, 0);
+        content(env, morph0, context, "outlet");
         return fragment;
       }
     };
