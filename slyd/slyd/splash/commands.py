@@ -8,14 +8,11 @@ import slyd.splash.utils
 from twisted.python import log
 from jsonschema.exceptions import ValidationError
 
-from scrapy.http import Request
-from scrapy.item import DictItem
-
 from splash.browser_tab import JsError
 
 from slyd.utils.projects import ProjectModifier
-from .utils import (clean, page, open_tab, BaseWSError, BadRequest, NotFound,
-                    InternalServerError)
+from .utils import (clean, open_tab, extract_data, BaseWSError, BadRequest,
+                    NotFound, InternalServerError)
 
 
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
@@ -28,7 +25,8 @@ def fetch_page(data, socket):
         socket.tab.loaded = False
         socket.tab.go(data['url'],
                       lambda: socket.sendMessage(fetch_response(data, socket)),
-                      lambda: InternalServerError('Unknown Error'))
+                      lambda: InternalServerError('Unknown Error'),
+                      baseurl=data['url'])
         return {'message': 'loading "%s" in tab' % data['url']}
 
 
@@ -40,7 +38,8 @@ def interact_page(data, socket):
     event = json.dumps(data.get('interaction', {}))
     try:
         diff = socket.tab.evaljs('window.livePortiaPage.interact(%s);' % event)
-    except JsError:
+    except JsError as e:
+        print('Error: %s' % e)
         diff = None
     if diff:
         return {'diff': diff}
@@ -69,32 +68,26 @@ def fetch_response(data, socket):
 
 def extract(data, socket):
     """Run spider on page URL to get extracted links and items"""
-    def _get_template_name(template_id, templates):
-        for template in templates:
-            if template['page_id'] == template_id:
-                return template['name']
     if socket.tab is None:
         return {
             'items': [],
-            'links': []
+            'links': {},
         }
-    items, links = [], []
     templates = socket.spiderspec.templates
-    url = socket.tab.url
+    url = str(socket.tab.url)
     html = socket.tab.evaljs('document.documentElement.outerHTML')
-    for value in socket.spider.parse(page(url, html)):
-        if isinstance(value, Request):
-            links.append(value.url)
-        elif isinstance(value, DictItem):
-            value['_template_name'] = _get_template_name(value['_template'],
-                                                         templates)
-            items.append(value._values)
-        else:
-            raise ValueError("Unexpected type %s from spider" %
-                             type(value))
+    js_items, js_links = extract_data(url, html, socket.spider, templates)
+    raw_html = getattr(socket.tab, '_raw_html', None)
+    if raw_html:
+        _, links = extract_data(url, raw_html, socket.spider, templates)
+    else:
+        links = []
+    raw = {l: 'raw' for l in links}
+    js = {l: 'js' for l in js_links}
+    js.update(raw)
     return {
-        'items': items,
-        'links': links
+        'items': js_items,
+        'links': js,
     }
 
 

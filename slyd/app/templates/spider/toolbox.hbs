@@ -75,6 +75,24 @@
                 </div>
             {{/if}}
 
+            <ul class="list-group small-group">
+                <li class="list-group-item">
+                    <h4>Key:</h4>
+                </li>
+                <li class="list-group-item">
+                    <span class="fa fa-square will-follow"></span>
+                    Followed
+                </li>
+                <li class="list-group-item">
+                    <span class="fa fa-square maybe-follow"></span>
+                    Followed when Javascript is enabled
+                </li>
+                <li class="list-group-item">
+                    <span class="fa fa-square will-not-follow"></span>
+                    Not Followed
+                </li>
+            </ul>
+
             {{#if displayEditPatterns}}
                 <h4>Follow links that match this patterns</h4>
                 {{inline-help message="follow_links"}}

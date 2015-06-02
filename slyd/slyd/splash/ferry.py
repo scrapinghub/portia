@@ -29,6 +29,14 @@ def create_ferry_resource(spec_manager, factory):
     return FerryWebSocketResource(spec_manager, factory)
 
 
+class PortiaBrowserTab(BrowserTab):
+    def set_content(self, data, callback, errback, mime_type=None,
+                    baseurl=None):
+        self._raw_html = str(data)
+        super(PortiaBrowserTab, self).set_content(data, callback, errback,
+                                                  mime_type, baseurl)
+
+
 class FerryWebSocketResource(WebSocketResource):
     def __init__(self, spec_manager, factory):
         self.spec_manager = spec_manager
@@ -124,6 +132,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if '_command' in data and data['_command'] in self._handlers:
             command = data['_command']
             try:
+                if any(not key.startswith('_') for key in data):
+                    print(data)
                 result = self._handlers[command](data, self) or {}
             except BaseHTTPError as e:
                 command = data.get('_callback') or command
@@ -162,7 +172,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         data = {}
         data['uid'] = id(data)
 
-        self.factory[self].tab = BrowserTab(
+        self.factory[self].tab = PortiaBrowserTab(
             network_manager=manager,
             splash_proxy_factory=None,
             verbosity=2,

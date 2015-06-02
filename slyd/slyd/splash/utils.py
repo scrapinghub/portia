@@ -1,4 +1,5 @@
-from scrapy.http import HtmlResponse
+from scrapy.http import HtmlResponse, Request
+from scrapy.item import DictItem
 
 from slyd.html import descriptify
 from slyd.errors import BaseHTTPError
@@ -20,8 +21,29 @@ def open_tab(func):
     return wrapper
 
 
+def extract_data(url, html, spider, templates):
+    items, links = [], []
+    for value in spider.parse(page(url, html)):
+        if isinstance(value, Request):
+            links.append(value.url)
+        elif isinstance(value, DictItem):
+            value['_template_name'] = _get_template_name(value['_template'],
+                                                         templates)
+            items.append(value._values)
+        else:
+            raise ValueError("Unexpected type %s from spider" %
+                             type(value))
+    return items, links
+
+
 def page(url, html):
     return HtmlResponse(url, 200, {}, html, encoding='utf-8')
+
+
+def _get_template_name(template_id, templates):
+    for template in templates:
+        if template['page_id'] == template_id:
+            return template['name']
 
 
 class BaseWSError(BaseHTTPError):

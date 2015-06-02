@@ -3831,6 +3831,7 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
 
             this.get('ws').addCommand('interact', (function (data) {
                 if (data.diff && data.diff !== this.get('previous_diff')) {
+                    console.log(data.diff);
                     var updated = this.updateDOM(data.diff);
                     if (updated) {
                         this.get('ws').send({ _command: 'extract' });
@@ -3995,6 +3996,9 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
             }
             var patch = this._buildPatch(data);
             utils__patch.patchDom(root, patch, rootDocument);
+            if (this.get('listener') && this.get('listener').updateExtractedItems) {
+                this.get('listener').notifyPropertyChange('followedLinks');
+            }
             return Object.keys(patch).length > 0;
         },
 
@@ -4073,8 +4077,6 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
                     spider: this.get('slyd.spider'),
                     project: this.get('slyd.project') },
                 _command: 'interact',
-                eventType: 'mouse',
-                target: evt.target.getAttribute('data-tagid'),
                 interaction: interaction
             });
             evt.preventDefault();
@@ -4093,15 +4095,16 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
                 return;
             }
             var ifWindow = document.getElementById(this.get('iframeId')).contentWindow,
-                scrollState = { data: { scrollX: ifWindow.scrollX / Ember['default'].$(ifWindow).width(),
-                    scrollY: ifWindow.scrollY / Ember['default'].$(ifWindow).height() } };
+                ifDocument = ifWindow.document,
+                maxScrollX = Ember['default'].$(ifDocument).width() - Ember['default'].$(ifWindow).width(),
+                maxScrollY = Ember['default'].$(ifDocument).height() - Ember['default'].$(ifWindow).height(),
+                scrollState = { data: { scrollX: ifWindow.scrollX / maxScrollX,
+                    scrollY: ifWindow.scrollY / maxScrollY }, target: '-1' };
             this.get('ws').send({
                 _meta: {
                     spider: this.get('slyd.spider'),
                     project: this.get('slyd.project') },
                 _command: 'interact',
-                eventType: 'wheel',
-                target: '-1',
                 interaction: scrollState
             });
             this.set('splashScrolling', true);
@@ -5739,16 +5742,20 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (!this.get('loadedPageFp') || !this.get('showLinks')) {
                 return [];
             }
-            var followedLinks = this.getWithDefault('followedLinks', []),
+            var followedLinks = this.getWithDefault('followedLinks', {}),
                 allLinks = Ember['default'].$(Ember['default'].$('#scraped-doc-iframe').contents().get(0).links),
                 sprites = [];
             allLinks.each((function (i, link) {
-                var followed = followedLinks.indexOf(link.href) >= 0 && this.get('spiderDomains').has(URI.parse(link.href)['hostname']);
+                var followed = followedLinks[link.href] && this.get('spiderDomains').has(URI.parse(link.href)['hostname'].split('.').slice(-2).join('.')),
+                    colors = {
+                    'raw': 'rgba(45,136,45,0.3)',
+                    'js': 'rgba(34,102,102,0.3)'
+                };
                 sprites.pushObject(canvas.ElementSprite.create({
                     element: link,
                     hasShadow: false,
-                    fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
-                    strokeColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)' }));
+                    fillColor: followed ? colors[followedLinks[link.href]] : 'rgba(255,57,57,0.3)',
+                    strokeColor: 'rgba(164,164,164,0.1)' }));
             }).bind(this));
             this.set('spriteStore.sprites', sprites);
         }).observes('followedLinks', 'showLinks', 'spiderDomains'),
@@ -17862,7 +17869,63 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             dom.appendChild(el1, el2);
             var el2 = dom.createComment("");
             dom.appendChild(el1, el2);
-            var el2 = dom.createTextNode("\n");
+            var el2 = dom.createTextNode("\n            ");
+            dom.appendChild(el1, el2);
+            var el2 = dom.createElement("ul");
+            dom.setAttribute(el2,"class","list-group small-group");
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("h4");
+            var el5 = dom.createTextNode("Key:");
+            dom.appendChild(el4, el5);
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("span");
+            dom.setAttribute(el4,"class","fa fa-square will-follow");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                    Followed\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("span");
+            dom.setAttribute(el4,"class","fa fa-square maybe-follow");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                    Followed when Javascript is enabled\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("span");
+            dom.setAttribute(el4,"class","fa fa-square will-not-follow");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                    Not Followed\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n            ");
+            dom.appendChild(el2, el3);
+            dom.appendChild(el1, el2);
+            var el2 = dom.createTextNode("\n\n");
             dom.appendChild(el1, el2);
             var el2 = dom.createComment("");
             dom.appendChild(el1, el2);
@@ -17899,7 +17962,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             var morph1 = dom.createMorphAt(element6,1,1);
             var morph2 = dom.createMorphAt(element6,5,5);
             var morph3 = dom.createMorphAt(element5,5,5);
-            var morph4 = dom.createMorphAt(element5,7,7);
+            var morph4 = dom.createMorphAt(element5,9,9);
             element(env, element5, context, "bind-attr", [], {"style": "mid_box_style"});
             inline(env, morph0, context, "item-select", [], {"options": get(env, context, "followPatternOptions"), "value": get(env, context, "controller.links_to_follow")});
             inline(env, morph1, context, "check-box", [], {"checked": get(env, context, "showLinks"), "name": "showLinks"});

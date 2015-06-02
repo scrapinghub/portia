@@ -797,3 +797,20 @@ input[type="checkbox"].offset-checkbox {
 .dropdown-menu a, .red-label.fa-times, .green-label.fa-check {
     cursor: pointer;
 }
+
+.will-follow {
+    color: rgb(45,136,45);
+}
+
+.maybe-follow {
+    color: rgb(34,102,102);
+}
+
+.will-not-follow {
+    color: rgb(255,57,57);
+}
+
+.small-group > .list-group-item {
+    padding: 2px 10px;
+    margin-right: 5px;
+}

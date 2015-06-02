@@ -7357,6 +7357,7 @@ PortiaPage.prototype.cleanVNode = function(vNode, type) {
     try {
         vNode.key = JSON.parse(vNode.key);
     } catch (e) {
+        return vNode; // Text node
     }
     if (type === 7 || type === 5 || type === 3 || type === 4) {
         return {
@@ -7404,9 +7405,6 @@ PortiaPage.prototype.sendEvent = function(eventType, target, data) {
                                       data.screenX, data.screenY, data.clientX,
                                       data.clientY, data.ctrlKey, data.altKey,
                                       data.shiftKey, data.metaKey, data.button, null);
-                    break;
-                case 'wheel':
-                    ev = new WheelEvent(data.type, data);
                     break;
                 case 'keyboard':
                     ev = document.createEvent("KeyboardEvent");
@@ -7528,13 +7526,13 @@ PortiaPage.prototype._getElemId = function(elem) {
 
 PortiaPage.prototype.interact = function(interaction) {
     var page = this.page, diff;
-    if (interaction) {
+    if (interaction.target && interaction.data) {
         this.sendEvent(interaction.eventType, interaction.target, interaction.data);
     }
     this._tagUntaggedElements();
     var updatedPage = this.currentState();
     this.page = updatedPage;
-    diff =this.diff(page.vtree, updatedPage.vtree);
+    diff = this.diff(page.vtree, updatedPage.vtree);
     if (diff !== this.previous_diff) {
         this.previous_diff = diff;
         return diff;

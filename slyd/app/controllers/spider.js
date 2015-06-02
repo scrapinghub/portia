@@ -180,18 +180,22 @@ export default BaseController.extend({
         if (!this.get('loadedPageFp') || !this.get('showLinks')) {
             return [];
         }
-        var followedLinks = this.getWithDefault('followedLinks', []),
+        var followedLinks = this.getWithDefault('followedLinks', {}),
             allLinks = Ember.$(Ember.$('#scraped-doc-iframe').contents().get(0).links),
             sprites = [];
         allLinks.each(function(i, link) {
             var uri = URI(link.href),
                 followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 &&
                            this._allowedDomain(uri.hostname());
+                colors = {
+                    'raw': 'rgba(45,136,45,0.3)',
+                    'js': 'rgba(34,102,102,0.3)'
+                };
             sprites.pushObject(ElementSprite.create({
                 element: link,
                 hasShadow: false,
-                fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
-                strokeColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)' }));
+                fillColor: followed ? colors[followedLinks[link.href]] : 'rgba(255,57,57,0.3)',
+                strokeColor: 'rgba(164,164,164,0.1)' }));
         }.bind(this));
         this.set('spriteStore.sprites', sprites);
     }.observes('followedLinks', 'showLinks', 'spiderDomains'),
