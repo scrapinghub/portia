@@ -19,54 +19,54 @@ _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 
 
 @open_tab
-def fetch_page(data, socket):
+def load_page(data, socket):
     """Load page in virtual url from provided url"""
-    if 'url' in data:
-        socket.tab.loaded = False
-        socket.tab.go(data['url'],
-                      lambda: socket.sendMessage(fetch_response(data, socket)),
-                      lambda: InternalServerError('Unknown Error'),
-                      baseurl=data['url'])
-        return {'message': 'loading "%s" in tab' % data['url']}
+    if 'url' not in data:
+        return {'error': 4001, 'message': 'Requires parameter url'}
 
+    socket.tab.loaded = False
+    def on_complete(error):
+        extra_meta = {'id': data.get('_meta', {}).get('id')}
+        if error:
+            extra_meta.update(error=4500, message='Unknown error')
+        else:
+            socket.tab.loaded = True
+        print "on_complete", error, extra_meta
+        socket.sendMessage(metadata(socket, extra_meta))
+
+    socket.tab.go(data['url'], lambda: on_complete(False), lambda: on_complete(True))
 
 @open_tab
 def interact_page(data, socket):
     """Execute JS event from front end on virtual tab"""
-    data.pop('_meta', {})
-    data.pop('_command', {})
     event = json.dumps(data.get('interaction', {}))
     try:
-        diff = socket.tab.evaljs('window.livePortiaPage.interact(%s);' % event)
-    except JsError as e:
-        print('Error: %s' % e)
-        diff = None
-    if diff:
-        return {'diff': diff}
+        socket.tab.evaljs('window.livePortiaPage.interact(%s);' % event)
+    except JsError, e:
+        print e
 
-
-def fetch_response(data, socket):
-    socket.tab.run_js_files('/app/slyd/public/interact', handle_errors=False)
+def metadata(socket, extra={}):
     socket.tab.loaded = True
-    url = socket.tab.url
     html = socket.tab.evaljs('document.documentElement.outerHTML')
-    return {
-        'id': data['_meta'].get('id'),
-        'fp': hashlib.sha1(socket.tab.url).hexdigest(),
-        'page': clean(html, url),
-        'url': url,
-        'original': html,
-        'items': [],
-        'links': [],
-        'response': {
-            'headers': {},  # TODO: Get headers
-            'status': socket.tab.last_http_status()
-        },
-        '_command': 'fetch',
+    res = {
+        '_command': 'metadata',
+        'loaded': socket.tab.loaded
     }
+    if socket.tab.loaded:
+        res.update(
+            url=socket.tab.url,
+            fp=hashlib.sha1(socket.tab.url).hexdigest(),
+            response={
+                'headers': {},  # TODO: Get headers
+                'status': socket.tab.last_http_status()
+            }
+        )
+        if socket.spiderspec:
+            res.update(extract(socket))
+    res.update(extra)
+    return res
 
-
-def extract(data, socket):
+def extract(socket):
     """Run spider on page URL to get extracted links and items"""
     if socket.tab is None:
         return {
@@ -105,13 +105,6 @@ def close_tab(data, socket):
     if socket.tab is not None:
         socket.tab.close()
         socket.factory[socket].tab = None
-
-
-def updates(data, socket):
-    """Get any changes that might have occurred asynchronously"""
-    if socket.tab and socket.tab.loaded:
-        data['interaction'] = {}
-        return interact_page(data, socket)
 
 
 class ProjectData(ProjectModifier):

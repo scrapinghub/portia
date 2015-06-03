@@ -1,6 +1,7 @@
 /* global require, module */
 var mergeTrees = require('broccoli-merge-trees');
 var pickFiles = require('broccoli-static-compiler');
+var concat = require('broccoli-concat');
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
 var app = new EmberApp({
@@ -22,6 +23,8 @@ var app = new EmberApp({
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
+app.import('vendor/mutation-summary.js');
+app.import('vendor/tree-mirror.js');
 app.import('bower_components/ic-ajax/dist/named-amd/main.js');
 app.import('bower_components/canvasloader/js/heartcode-canvasloader-min.js');
 app.import('vendor/uri.js');
@@ -43,10 +46,24 @@ var fontTree = pickFiles('bower_components/fontawesome/fonts', {
 var publicFiles = pickFiles('public', {
     srcDir: '/',
     destDir: '/',
-})
+});
+
+var injectFiles = concat('splash_utils/', {
+    inputFiles: [
+        '../node_modules/es5-shim/es5-shim.js',
+        '../node_modules/mutationobserver-shim/MutationObserver.js',
+        '../vendor/mutation-summary.js',
+        '../vendor/tree-mirror.js',
+        'inject_this.js'
+    ],
+    outputFile: '/splash_content_scripts/combined.js',
+    wrapInFunction: false,
+    header: '(function(){',
+    footer: '})();'
+});
 
 minifyJS: {
-  enabled: false
+    enabled: false
 }
 
-module.exports = mergeTrees([app.toTree(), fontTree, publicFiles], {overwrite: true});
+module.exports = mergeTrees([app.toTree(), fontTree, publicFiles, injectFiles], {overwrite: true});
