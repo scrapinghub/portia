@@ -22,7 +22,7 @@ _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 def load_page(data, socket):
     """Load page in virtual url from provided url"""
     if 'url' not in data:
-        return {'error': 4001, 'message': 'Requires parameter url'}
+        return {'error': 4001, 'message': 'Required parameter url'}
 
     socket.tab.loaded = False
     def on_complete(error):
@@ -31,7 +31,6 @@ def load_page(data, socket):
             extra_meta.update(error=4500, message='Unknown error')
         else:
             socket.tab.loaded = True
-        print "on_complete", error, extra_meta
         socket.sendMessage(metadata(socket, extra_meta))
 
     socket.tab.go(data['url'], lambda: on_complete(False), lambda: on_complete(True))
