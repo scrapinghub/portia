@@ -40,7 +40,7 @@ def interact_page(data, socket):
     event = json.dumps(data.get('interaction', {}))
     try:
         socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
-    except JsError, e:
+    except JsError as e:
         print e
 
 def metadata(socket, extra={}):
