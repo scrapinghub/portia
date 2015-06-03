@@ -165,7 +165,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                          'id': data.get('_meta', {}).get('id'),
                                          'reason': e.title})
             if result:
-                result['_command'] = result['_command'] or data.get('_callback') or command
+                result.setdefault('_command', data.get('_callback', command))
                 self.sendMessage(result)
         else:
             command = data.get('_command')
