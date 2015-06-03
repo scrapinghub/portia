@@ -11,8 +11,7 @@ from jsonschema.exceptions import ValidationError
 from splash.browser_tab import JsError
 
 from slyd.utils.projects import ProjectModifier
-from .utils import (clean, open_tab, extract_data, BaseWSError, BadRequest,
-                    NotFound, InternalServerError)
+from .utils import open_tab, extract_data, BaseWSError, BadRequest, NotFound
 
 
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')

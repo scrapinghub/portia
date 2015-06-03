@@ -20,8 +20,8 @@ from PyQt4.QtWebKit import QWebElement
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
 
-from .commands import (load_page, interact_page, close_tab, metadata,
-					   update_project_data, rename_project_data, delete_project_data))
+from .commands import (load_page, interact_page, close_tab, metadata, resize,
+                       update_project_data, rename_project_data, delete_project_data)
 
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
 _DEFAULT_VIEWPORT = '1240x680'

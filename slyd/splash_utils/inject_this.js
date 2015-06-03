@@ -12,8 +12,6 @@ var PortiaPage = function PortiaPage() {
     });
 };
 
-
-
 PortiaPage.prototype.sendMutation = function(){
     this.sendMessage('mutation', Array.prototype.splice.call(arguments, 0));
 };
@@ -56,63 +54,49 @@ PortiaPage.prototype.currentState = function() {
     };
 };
 
+PortiaPage.sendEvent = {};
+
+PortiaPage.sendEvent.keyboard = function(element, data, type){
+    var ev = document.createEvent("KeyboardEvent");
+    ev.initKeyEvent(type, true, true, window, data.ctrlKey, data.altKey, data.shiftKey, data.metaKey, data.keyCode, data.charCode);
+    element.dispatchEvent(ev);
+};
+
+PortiaPage.sendEvent.simple = function(element, data, type) {
+    var ev = document.createEvent('Event');
+    ev.initEvent(type, true, false);
+    element.dispatchEvent(ev);
+};
+
+PortiaPage.sendEvent.scroll = function(element, data){
+    // Scroll events in the body are dispatched on the documentElement, reverse this
+    if(element.scrollTopMax === 0 && element === document.documentElement){
+        element = document.body;
+    }
+    element.scrollTop = data.scrollTop;
+    element.scrollLeft = data.scrollLeft;
+};
+
+PortiaPage.sendEvent.mouse = function(element, data, type) {
+    var clientRect = element.getBoundingClientRect();
+    var clientX = data.targetX + clientRect.left;
+    var clientY = data.targetY + clientRect.top;
+};
+
 PortiaPage.prototype.sendEvent = function(eventType, target, data) {
-    var ev, element = this.getByNodeId(target);
-    if (element) {
-        data = this._injectCoords(element, data);
-        data.cancelable = true;
-        data.bubbles = true;
-        try {
-            switch (eventType) {
-                case 'mouse':
-                    ev = document.createEvent("MouseEvent");
-                    ev.initMouseEvent(data.type, true, true, window, data.detail || 0,
-                                      data.screenX, data.screenY, data.clientX,
-                                      data.clientY, data.ctrlKey, data.altKey,
-                                      data.shiftKey, data.metaKey, data.button, null);
-                    break;
-                case 'keyboard':
-                    ev = document.createEvent("KeyboardEvent");
-                    ev.initKeyEvent(data.type, true, true, window, data.ctrlKey,
-                                    data.altKey, data.shiftKey, data.metaKey,
-                                    data.keyCode, data.charCode || 0);
-                    break;
-                default:
-                    ev = new Event(data.type, data);
-            }
-        } catch (e) {
-        }
-        if (data.type === 'click' && element.click) {
-            element.click();
-        } else {
-            element.dispatchEvent(ev);
-        }
+    var element = this.getByNodeId(target);
+    if (!element) {
+        throw new Error("Event target doesn't exist.");
     }
-    var body = document.body,
-        html = document.documentElement,
-        height = Math.max( body.scrollHeight, body.offsetHeight,
-                           html.clientHeight, html.scrollHeight, html.offsetHeight ),
-        width = Math.max( body.scrollWidth, body.offsetWidth,
-                          html.clientWidth, html.scrollWidth, html.offsetWidth );
-    if (data.scrollX || data.scrollY) {
-        window.scroll((data.scrollX * width) || window.scrollX,
-                      (data.scrollY * height) || window.scrollY);
-    }
-};
+    Object.keys(data.propsBefore || {}).forEach(function(propName){
+        element[propName] = data.propsBefore[propName];
+    });
 
-PortiaPage.prototype._injectCoords = function(elem, data) {
-    var rect = elem.getBoundingClientRect(),
-        x = rect.x + rect.width/2,
-        y = rect.y + rect.height/2;
-    data.clientX = x;
-    data.screenX = x;
-    data.clientY = y;
-    data.screenY = y;
-    return data;
-};
+    PortiaPage.sendEvent[eventType].call(this, element, data, data.type);
 
-PortiaPage.prototype._html = function() {
-    return document.body.outerHTML;
+    Object.keys(data.propsAfter || {}).forEach(function(propName){
+        element[propName] = data.propsAfter[propName];
+    });
 };
 
 PortiaPage.prototype.getByNodeId = function(nodeId){
