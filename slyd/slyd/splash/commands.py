@@ -39,7 +39,7 @@ def interact_page(data, socket):
     """Execute JS event from front end on virtual tab"""
     event = json.dumps(data.get('interaction', {}))
     try:
-        socket.tab.evaljs('window.livePortiaPage.interact(%s);' % event)
+        socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
     except JsError, e:
         print e
 

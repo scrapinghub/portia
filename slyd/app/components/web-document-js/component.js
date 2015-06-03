@@ -187,26 +187,18 @@ export default WebDocument.extend(ApplicationUtils, {
         if(evt.which > 1 || evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
             return;
         }
-        this.sendEvent(evt);
-        evt.preventDefault();
-        var linkingElement = Ember.$(evt.target).closest('[href]');
-
-        if (linkingElement.length > 0) {
-            var href = Ember.$(linkingElement).get(0).href;
-            if (href.length > 0 && href.search('#') === -1) {
-                this.sendDocumentEvent('linkClicked', href);
-            }
-        }
+        this.postEvent(evt);
+        return this._super(evt);
     },
 
     scrollHandlerBrowse: function(evt) {
         if (this.getWithDefault('splashScrolling', false)) {
             return;
         }
-        this.sendEvent(evt);
+        this.postEvent(evt);
     },
 
-    sendEvent: function(event){
+    postEvent: function(event){
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),

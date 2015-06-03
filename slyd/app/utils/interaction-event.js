@@ -1,4 +1,4 @@
-function getEventType (evt) {
+function getEventCategory (evt) {
     switch (evt.constructor.name) {
         case 'MouseEvent': return 'mouse';
         case 'KeyboardEvent': return 'keyboard';
@@ -10,23 +10,29 @@ function getEventType (evt) {
 
 var interactionEvent = function(evt) {
     var target = evt.target;
+    var doc = target.ownerDocument;
+
+    if(target.nodeType === Node.DOCUMENT_NODE){
+        doc = target;
+        target = doc.documentElement;
+    }
 
     var data = {
-        eventType: getEventType(evt.originalEvent || evt),
+        category: getEventCategory(evt.originalEvent || evt),
+        type: evt.type,
         target: target.nodeid,
         propsBefore: {},
         propsAfter: {}
     };
 
-    var doc = target.ownerDocument;
 
-    if(data.eventType === 'mouse') {
+    if(data.category === 'mouse') {
         // Send coordinates as a offset of the element instead of the document
         var clientRect = target.getBoundingClientRect();
         data.targetX = evt.clientX - clientRect.left;
         data.targetY = evt.clientY - clientRect.top;
         data.relatedTarget = evt.relatedTarget && evt.relatedTarget.nodeid;
-    } else if (data.eventType === 'scroll') {
+    } else if (data.type === 'scroll') {
         let scrollTarget = target;
         // Scroll events in the body are dispatched in the document, reverse
         if(scrollTarget === doc.documentElement && !(target.scrollTopMax || target.scrollLeftMax)) {
