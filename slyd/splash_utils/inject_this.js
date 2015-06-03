@@ -1,31 +1,26 @@
-var VNode = require('virtual-dom/vnode/vnode');
-var VText = require('virtual-dom/vnode/vtext');
-var diff = require('virtual-dom/diff');
+MutationObserver._period = 500;
 
-var convertHTML = require('html-to-vdom')({
-    VNode: VNode,
-    VText: VText
-});
-
-var PortiaPage = function() {
-    this.page = null;
-    this.events = {
-        mouse: MouseEvent,
-        keyboard: KeyboardEvent,
-        wheel: WheelEvent
-    };
+var PortiaPage = function PortiaPage() {
+    var that = this;
+    this.mirrorClient = new TreeMirrorClient(document, {
+        initialize: function(rootId, children, baseURI){
+            that.sendMessage('mutation', ['initialize', rootId, children, baseURI]);
+        },
+        applyChanged: function(removed, addedOrMoved, attributes, text){
+            that.sendMessage('mutation', ['applyChanged', removed, addedOrMoved, attributes, text]);
+        }
+    });
 };
 
-PortiaPage.prototype.init = function() {
-    var root = document.documentElement;
-    if (!root.getAttribute('data-tagid')) {
-        this.maxElement = 0;
-        root.setAttribute('data-tagid', 0);
-        root.setAttribute('data-parentid', 0);
-        this._tagUntaggedElements();
-    }
-    this.page = this.currentState();
-}
+
+
+PortiaPage.prototype.sendMutation = function(){
+    this.sendMessage('mutation', Array.prototype.splice.call(arguments, 0));
+};
+
+PortiaPage.prototype.sendMessage = function(action, message) {
+    __portiaApi.sendMessage(JSON.stringify([action, message]));
+};
 
 PortiaPage.prototype.url = function() {
     return window.location;
@@ -48,7 +43,6 @@ PortiaPage.prototype.screenY = function() {
 };
 
 PortiaPage.prototype.currentState = function() {
-    body = this._html();
     return {
         url: this.url,
         scroll: {
@@ -58,106 +52,12 @@ PortiaPage.prototype.currentState = function() {
             h: this.screenY(),
             mx: window.scrollMaxX,
             my: window.scrollMaxY
-        },
-        vtree: convertHTML({
-            getVNodeKey: function (attributes) {
-                return JSON.stringify({
-                    id: Number(attributes['data-tagid']),
-                    pid: Number(attributes['data-parentid'])
-                });
-            }
-        }, body)
+        }
     };
 };
 
-PortiaPage.prototype.diff = function(a, b) {
-    var d = diff(a, b), res = {};
-    if (Object.keys(d).length <= 1) {
-        return null;
-    }
-    delete d['a'];
-    for (var key in d) {
-        var vpatch = d[key], patch;
-        if (this.isArray(vpatch)) {
-            res[key] = [];
-            for (var i=0; i < vpatch.length; i++) {
-                var patch = this.cleanVPatch(vpatch[i]);
-                if (patch) {
-                    res[key].push(patch);
-                }
-            }
-            if (!res[key].length) {
-                delete res[key];
-            }
-        } else {
-            res[key] = this.cleanVPatch(vpatch);
-        }
-    }
-    return JSON.stringify(res);
-};
-
-PortiaPage.prototype.cleanVPatch = function(vpatch) {
-    var res = {};
-    if (vpatch.type) {
-        res = {type: vpatch.type}
-        if (vpatch.vNode instanceof Object) {
-            res.vNode = this.cleanVNode(vpatch.vNode, vpatch.type);
-        } else {
-            res.vNode = vpatch.vNode;
-        }
-        if (vpatch.patch instanceof Object && vpatch.patch.tagName) {
-            res.patch = this.cleanVNode(vpatch.patch, vpatch.type);
-        } else {
-            res.patch = vpatch.patch;
-        }
-        return res;
-    }
-};
-
-PortiaPage.prototype.isArray = Array.isArray || function(obj) {
-    return Object.prototype.toString.call(obj) === "[object Array]";
-};
-
-PortiaPage.prototype.cleanVNode = function(vNode, type) {
-    try {
-        vNode.key = JSON.parse(vNode.key);
-    } catch (e) {
-        return vNode; // Text node
-    }
-    if (type === 7 || type === 5 || type === 3 || type === 4) {
-        return {
-            key: Number(vNode.key.id)
-        };
-    }
-    vNode.key = Number(type === 6 ? vNode.key.pid : vNode.key.id);
-    if (vNode.properties) {
-        for (var attr in vNode.properties) {
-            if (attr.substring(0, 5) === 'data-') {
-                delete vNode.properties[attr];
-            }
-        }
-    }
-    for (var i=0; i < (vNode.children || []).length; i++) {
-        vNode.children[i] = this.cleanVNode(vNode.children[i], type);
-    }
-    vNode.p = vNode.properties;
-    vNode.t = vNode.tagName;
-    vNode.c = vNode.children;
-    vNode.n = vNode.namespace;
-    delete vNode.properties;
-    delete vNode.tagName;
-    delete vNode.children;
-    delete vNode.descendantHooks;
-    delete vNode.namespace;
-    delete vNode.count;
-    delete vNode.hasWidgets;
-    delete vNode.hasThunks;
-    return vNode;
-}
-
 PortiaPage.prototype.sendEvent = function(eventType, target, data) {
-    var ev,
-        element = this._findElement(target);
+    var ev, element = this.getByNodeId(target);
     if (element) {
         data = this._injectCoords(element, data);
         data.cancelable = true;
@@ -202,8 +102,8 @@ PortiaPage.prototype.sendEvent = function(eventType, target, data) {
 
 PortiaPage.prototype._injectCoords = function(elem, data) {
     var rect = elem.getBoundingClientRect(),
-        x = (rect.x + rect.width) / 2,
-        y = (rect.y + rect.height) / 2;
+        x = rect.x + rect.width/2,
+        y = rect.y + rect.height/2;
     data.clientX = x;
     data.screenX = x;
     data.clientY = y;
@@ -215,94 +115,24 @@ PortiaPage.prototype._html = function() {
     return document.body.outerHTML;
 };
 
-// Return first matching element
-PortiaPage.prototype._findElement = function(id) {
-    return document.querySelector('[data-tagid="'+id+'"]');
+PortiaPage.prototype.getByNodeId = function(nodeId){
+    return this.mirrorClient.knownNodes.byId[nodeId];
 };
 
-PortiaPage.prototype._findUntaggedElements = function() {
-    return document.querySelectorAll(':not([data-tagid])');
-};
-
-PortiaPage.prototype._tagUntaggedElements = function() {
-    var nodes = this._findUntaggedElements();
-    for (var i=0; i < nodes.length; i++) {
-        elem = nodes[i];
-        var id = this._getElemId(elem);
-        if (id > this.maxElement) {
-            this.maxElement = Math.ceil(id);
-        }
-        elem.setAttribute('data-parentid', elem.parentElement.getAttribute('data-tagid'))
-        elem.setAttribute('data-tagid', id);
+PortiaPage.prototype.pyGetByNodeId = function(nodeId){
+    // Workarround to return QWebElement in python
+    var res = this.getByNodeId(nodeId);
+    if(res) {
+        __portiaApi.returnElement(res);
     }
-};
-
-PortiaPage.prototype._getNextSiblingId = function(elem) {
-    var next = elem.nextSibling;
-    if (next !== null) {
-        if (next.getAttribute && next.getAttribute('data-tagid')) {
-            return parseFloat(next.getAttribute('data-tagid'));
-        }
-        return this._getNextSiblingId(next);
-    } else {
-        var parent = elem.parentElement;
-        if (parent) {
-            return this._getNextSiblingId(parent);
-        }
-        return -1;
-    }
-};
-
-PortiaPage.prototype._getElemId = function(elem) {
-    // Find siblings and parent to get correct id
-    var previous, next, unique_id = 0, previous_id, next_id,
-        parent = elem.parentElement,
-        parent_id = parseFloat(parent.getAttribute('data-tagid') || 0);
-        siblings = parent.children;
-
-    for (i = 0; i < siblings.length; i++) {
-        previous_id = -1, next_id = -1;
-        next = siblings[i+1];
-        if (siblings[i] === elem) {
-            if (previous) {
-                previous_id = parseFloat(previous.getAttribute('data-tagid') || -1);
-            }
-
-            if (next) {
-                next_id = parseFloat(next.getAttribute('data-tagid') || -1);
-            }
-
-            if (previous_id < parent_id) {
-                previous_id = parent_id;
-            }
-            if (next_id < parent_id) {
-                next_id = this._getNextSiblingId(parent);
-                if (next_id === -1) {
-                    return this.maxElement + 1;
-                }
-            }
-
-            return (previous_id + next_id) / 2;
-        }
-        previous = siblings[i];
-    }
-    return -1;
 };
 
 PortiaPage.prototype.interact = function(interaction) {
-    var page = this.page, diff;
-    if (interaction.target && interaction.data) {
+    if (interaction && interaction.target && interaction.data) {
         this.sendEvent(interaction.eventType, interaction.target, interaction.data);
-    }
-    this._tagUntaggedElements();
-    var updatedPage = this.currentState();
-    this.page = updatedPage;
-    diff = this.diff(page.vtree, updatedPage.vtree);
-    if (diff !== this.previous_diff) {
-        this.previous_diff = diff;
-        return diff;
     }
     return null;
 };
-window.livePortiaPage = new PortiaPage();
-window.livePortiaPage.init();
+if(!('livePortiaPage' in window)){
+    window.livePortiaPage = new PortiaPage();
+}
