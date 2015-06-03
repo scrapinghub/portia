@@ -73,6 +73,7 @@ PortiaPage.sendEvent.scroll = function(element, data){
     if(element.scrollTopMax === 0 && element === document.documentElement){
         element = document.body;
     }
+    // This will trigger the scroll event
     element.scrollTop = data.scrollTop;
     element.scrollLeft = data.scrollLeft;
 };
@@ -81,10 +82,16 @@ PortiaPage.sendEvent.mouse = function(element, data, type) {
     var clientRect = element.getBoundingClientRect();
     var clientX = data.targetX + clientRect.left;
     var clientY = data.targetY + clientRect.top;
+
+    var ev = document.createEvent("MouseEvent");
+    ev.initMouseEvent(type, true, true, window, data.detail || 0,
+                      clientX, clientY, clientX, clientY,
+                      data.ctrlKey, data.altKey, data.shiftKey, data.metaKey, data.button, null);
+    element.dispatchEvent(ev);
 };
 
-PortiaPage.prototype.sendEvent = function(eventType, target, data) {
-    var element = this.getByNodeId(target);
+PortiaPage.prototype.sendEvent = function(data) {
+    var element = this.getByNodeId(data.target);
     if (!element) {
         throw new Error("Event target doesn't exist.");
     }
@@ -92,7 +99,7 @@ PortiaPage.prototype.sendEvent = function(eventType, target, data) {
         element[propName] = data.propsBefore[propName];
     });
 
-    PortiaPage.sendEvent[eventType].call(this, element, data, data.type);
+    PortiaPage.sendEvent[data.category].call(this, element, data, data.type);
 
     Object.keys(data.propsAfter || {}).forEach(function(propName){
         element[propName] = data.propsAfter[propName];
@@ -111,12 +118,6 @@ PortiaPage.prototype.pyGetByNodeId = function(nodeId){
     }
 };
 
-PortiaPage.prototype.interact = function(interaction) {
-    if (interaction && interaction.target && interaction.data) {
-        this.sendEvent(interaction.eventType, interaction.target, interaction.data);
-    }
-    return null;
-};
 if(!('livePortiaPage' in window)){
     window.livePortiaPage = new PortiaPage();
 }
