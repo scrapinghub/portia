@@ -187,18 +187,7 @@ export default WebDocument.extend(ApplicationUtils, {
         if(evt.which > 1 || evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
             return;
         }
-        var interaction = new interactionEvent(evt);
-        interaction.type = 'click';
-        this.get('ws').send({
-            _meta: {
-                spider: this.get('slyd.spider'),
-                project: this.get('slyd.project'),
-            },
-            _command: 'interact',
-            eventType: 'mouse',
-            target: evt.target.nodeid,
-            interaction: interaction
-        });
+        this.sendEvent(evt);
         evt.preventDefault();
         var linkingElement = Ember.$(evt.target).closest('[href]');
 
@@ -214,26 +203,18 @@ export default WebDocument.extend(ApplicationUtils, {
         if (this.getWithDefault('splashScrolling', false)) {
             return;
         }
-        var ifWindow = this.getIframeNode().contentWindow,
-            ifDocument = ifWindow.document,
-            maxScrollX = Ember.$(ifDocument).width() - Ember.$(ifWindow).width(),
-            maxScrollY = Ember.$(ifDocument).height() - Ember.$(ifWindow).height(),
-            scrollState = {data: {scrollX: ifWindow.scrollX / maxScrollX,
-                           scrollY: ifWindow.scrollY / maxScrollY}, target: '-1'};
+        this.sendEvent(evt);
+    },
+
+    sendEvent: function(event){
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
                 project: this.get('slyd.project'),
             },
             _command: 'interact',
-            eventType: 'wheel',
-            target: '-1',
-            interaction: scrollState
+            interaction: interactionEvent(event)
         });
-        this.set('splashScrolling', true);
-        Ember.run.later(this, function() {
-            this.set('splashScrolling', false);
-        }, 500);
     },
 
     bindResizeEvent: function() {
