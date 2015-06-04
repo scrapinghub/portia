@@ -1,3 +1,5 @@
+/*global $:false */
+/*global TreeMirror:false */
 import Ember from 'ember';
 
 import ApplicationUtils from '../../mixins/application-utils';
@@ -15,6 +17,9 @@ function treeMirrorDelegate(webdoc){
                 var base = document.createElement('BASE');
                 base.setAttribute('href', webdoc.treeMirror.baseURI);
                 node.appendChild(base);
+            } else if(tagName === 'FORM') {
+                node = document.createElement(tagName);
+                $(node).on('submit', ()=>false);
             }
             return node;
         },
@@ -22,6 +27,8 @@ function treeMirrorDelegate(webdoc){
             if(/^on/.test(attrName)) {
                 return true;
             }
+            node.setAttribute(attrName, value);
+            return true;
         }
     };
 }
