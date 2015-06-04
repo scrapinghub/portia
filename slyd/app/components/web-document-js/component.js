@@ -199,8 +199,9 @@ export default WebDocument.extend(ApplicationUtils, {
     installEventHandlersForBrowsing: function() {
         this._super();
         var iframe = this.getIframe();
-        iframe.on('scroll.portia', Ember.run.throttle.bind(Ember.run, this, this.postEvent, 200));
-        iframe.on('keyup.portia keydown.portia keypress.portia input.portia', this.postEvent.bind(this));
+        iframe.on('scroll.portia', e => Ember.run.throttle(this, this.postEvent, e, 200));
+        iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
+                  'mousedown.portia mouseup.portia', this.postEvent.bind(this));
         this.addFrameEventListener('focus', this.postEvent.bind(this), true);
         this.addFrameEventListener('blur', this.postEvent.bind(this), true);
         this.addFrameEventListener('change', this.postEvent.bind(this), true);
