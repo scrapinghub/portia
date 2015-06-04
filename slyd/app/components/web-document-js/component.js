@@ -183,19 +183,19 @@ export default WebDocument.extend(ApplicationUtils, {
         return defer.promise;
     },
 
+    installEventHandlersForBrowsing: function() {
+        this._super();
+        var iframe = this.getIframe();
+        iframe.on('scroll.portia', Ember.run.throttle.bind(Ember.run, this, this.postEvent, 200));
+        iframe.on('keyup.portia keydown.portia keypress.portia', this.postEvent.bind(this));
+    },
+
     clickHandlerBrowse: function(evt) {
         if(evt.which > 1 || evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
             return;
         }
         this.postEvent(evt);
         return this._super(evt);
-    },
-
-    scrollHandlerBrowse: function(evt) {
-        if (this.getWithDefault('splashScrolling', false)) {
-            return;
-        }
-        this.postEvent(evt);
     },
 
     postEvent: function(event){
