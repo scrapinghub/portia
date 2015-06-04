@@ -190,11 +190,29 @@ export default WebDocument.extend(ApplicationUtils, {
         return defer.promise;
     },
 
+    frameEventListeners: [],
+    addFrameEventListener: function(event, fn, useCapture=false){
+        this.frameEventListeners.push([event, fn, useCapture]);
+        this.getIframe()[0].addEventListener(event, fn, useCapture);
+    },
+
     installEventHandlersForBrowsing: function() {
         this._super();
         var iframe = this.getIframe();
         iframe.on('scroll.portia', Ember.run.throttle.bind(Ember.run, this, this.postEvent, 200));
-        iframe.on('keyup.portia keydown.portia keypress.portia', this.postEvent.bind(this));
+        iframe.on('keyup.portia keydown.portia keypress.portia input.portia', this.postEvent.bind(this));
+        this.addFrameEventListener('focus', this.postEvent.bind(this), true);
+        this.addFrameEventListener('blur', this.postEvent.bind(this), true);
+        this.addFrameEventListener('change', this.postEvent.bind(this), true);
+    },
+
+    uninstallEventHandlers: function(){
+        var frameDoc = this.getIframe()[0];
+        this.frameEventListeners.forEach(([event, fn, useCapture]) => {
+            frameDoc.removeEventListener(event, fn, useCapture);
+        });
+        this.frameEventListeners = [];
+        this._super();
     },
 
     clickHandlerBrowse: function(evt) {
