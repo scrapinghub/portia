@@ -89,45 +89,7 @@ Setting a field's type will ensure the field will only match certain types of da
     </tbody>
 </table>
 
-The ``safe html`` field type keeps the following elements:
-
-* br
-* p
-* big
-* em
-* small
-* strong
-* sub
-* sup
-* ins
-* del
-* code
-* kbd
-* samp
-* tt
-* var
-* pre
-* listing
-* plaintext
-* abbr
-* acronym
-* address
-* bdo
-* blockquote
-* q
-* cite
-* dfn
-* table
-* tr
-* th
-* td
-* tbody
-* ul
-* ol
-* li
-* dl
-* dd
-* dt
+The ``safe html`` field type keeps the following elements: ``br``, ``p``, ``big``, ``em``, ``small``, ``strong``, ``sub``, ``sup``, ``ins``, ``del``, ``code``, ``kbd``, ``samp``, ``tt``, ``var``, ``pre``, ``listing``, ``plaintext``, ``abbr``, ``acronym``, ``address``, ``bdo``, ``blockquote``, ``q``, ``cite``, ``dfn``, ``table``, ``tr``, ``th``, ``td``, ``tbody``, ``ul``, ``ol``, ``li``, ``dl``, ``dd``, ``dt``.
 
 All other elements are discarded, with the exception of header tags (`h1`, `h2` ... `h6`) and `b` which are replaced with `strong`, and `i` which is replaced with `em`. Whitelisted elements contained within non-whitelisted elements will still be retained, with the exception of elements contained within a `script`, `img` or `input` element. For example,`` <div><code>example</code></div>`` would extract to ``<code>example</code>``, whereas ``<script><code>example</code</script>`` would be discarded completely.
 
