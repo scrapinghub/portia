@@ -58,7 +58,7 @@ PortiaPage.sendEvent = {};
 
 PortiaPage.sendEvent.keyboard = function(element, data, type){
     var ev = document.createEvent("KeyboardEvent");
-    ev.initKeyEvent(type, true, true, window, data.ctrlKey, data.altKey, data.shiftKey, data.metaKey, data.keyCode, data.charCode);
+    ev.initKeyboardEvent(type, true, true, window, data.ctrlKey, data.altKey, data.shiftKey, data.metaKey, data.keyCode, data.charCode);
     element.dispatchEvent(ev);
 };
 
