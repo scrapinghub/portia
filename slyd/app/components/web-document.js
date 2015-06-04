@@ -290,29 +290,24 @@ export default Ember.Component.extend({
 
     installEventHandlersForBrowsing: function() {
         this.uninstallEventHandlers();
-        this.getIframe().bind('click', this.clickHandlerBrowse.bind(this));
-        this.getIframe().bind('scroll', this.scrollHandlerBrowse.bind(this));
-        this.getIframe().bind('keyup', this.keyUpHandler.bind(this));
+        this.getIframe().on('click.portia', this.clickHandlerBrowse.bind(this));
+
     },
 
     installEventHandlersForSelecting: function() {
         this.uninstallEventHandlers();
-        this.getIframe().bind('click', this.clickHandler.bind(this));
-        this.getIframe().bind('mouseover', this.mouseOverHandler.bind(this));
-        this.getIframe().bind('mouseout', this.mouseOutHandler.bind(this));
-        this.getIframe().bind('mousedown', this.mouseDownHandler.bind(this));
-        this.getIframe().bind('mouseup', this.mouseUpHandler.bind(this));
-        this.getIframe().bind('hover', function(event) {event.preventDefault();});
+        var iframe = this.getIframe();
+        iframe.on('click.portia', this.clickHandler.bind(this));
+        iframe.on('mouseover.portia', this.mouseOverHandler.bind(this));
+        iframe.on('mouseout.portia', this.mouseOutHandler.bind(this));
+        iframe.on('mousedown.portia', this.mouseDownHandler.bind(this));
+        iframe.on('mouseup.portia', this.mouseUpHandler.bind(this));
+        iframe.on('hover.portia', function(event) {event.preventDefault();});
         this.redrawNow();
     },
 
     uninstallEventHandlers: function() {
-        this.getIframe().unbind('click');
-        this.getIframe().unbind('mouseover');
-        this.getIframe().unbind('mouseout');
-        this.getIframe().unbind('mousedown');
-        this.getIframe().unbind('mouseup');
-        this.getIframe().unbind('hover');
+        this.getIframe().off('.portia');
         this.set('hoveredSprite', null);
     },
 
@@ -481,9 +476,6 @@ export default Ember.Component.extend({
                 }
             }
         }
-    },
-
-    keyUpHandler: function() {
     },
 
     sendDocumentEvent: function(name) {
