@@ -3,8 +3,9 @@ function getEventCategory (evt) {
         case 'MouseEvent': return 'mouse';
         case 'KeyboardEvent': return 'keyboard';
         case 'UIEvent': return 'scroll';
-        case 'Event': return 'simple';
-        default: return evt.constructor.name;
+        case 'FocusEvent': return 'focus';
+        case 'Event': case 'InputEvent': return 'simple';
+        default: return 'unknown';
     }
 }
 
@@ -71,7 +72,7 @@ var ATTRIBUTE_WHITELIST = [
 // When this events are fired, update the specified properties in the server
 // to the ones in the client before sending the event
 var UPDATE_PROPS_BEFORE = {
-    'changed': ['selectedIndex'], // selects
+    'change': ['selectedIndex'], // selects
     'input': ['value'], // text input, textareas
     'keyup': ['value'], // text input, textareas
     'click': ['checked'] // input type radio or check

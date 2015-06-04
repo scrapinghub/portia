@@ -68,6 +68,12 @@ PortiaPage.sendEvent.simple = function(element, data, type) {
     element.dispatchEvent(ev);
 };
 
+PortiaPage.sendEvent.focus = function(element, data, type) {
+    if(type in element){
+        element[type](); // This will trigger the event
+    }
+};
+
 PortiaPage.sendEvent.scroll = function(element, data){
     // Scroll events in the body are dispatched on the documentElement, reverse this
     if(element.scrollTopMax === 0 && element === document.documentElement){
@@ -76,6 +82,10 @@ PortiaPage.sendEvent.scroll = function(element, data){
     // This will trigger the scroll event
     element.scrollTop = data.scrollTop;
     element.scrollLeft = data.scrollLeft;
+};
+
+PortiaPage.sendEvent.unknown = function(element, data, type) {
+    console.log('Unknown event category for event ' + type);
 };
 
 PortiaPage.sendEvent.mouse = function(element, data, type) {
