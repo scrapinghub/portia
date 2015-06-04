@@ -104,6 +104,13 @@ export default Ember.Component.extend({
     },
 
     /**
+        Returns the document iFrame node.
+    */
+    getIframeNode: function() {
+        return Ember.$('#' + this.get('iframeId'))[0];
+    },
+
+    /**
         Redraws all datasource sprites and the hovered element (if in select
         mode). This method can be called manually but it gets called
         automatically:
@@ -156,7 +163,7 @@ export default Ember.Component.extend({
             // until we trigger the callback.
             this.setInteractionsBlocked(true);
             Ember.run.later(this, function() {
-                var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
+                var doc = this.getIframeNode().contentWindow.document;
                 doc.onscroll = this.redrawNow.bind(this);
                 this.setInteractionsBlocked(false);
                 if (readyCallback) {
@@ -259,7 +266,7 @@ export default Ember.Component.extend({
     scrollToElement: function(element) {
         var rect = Ember.$(element).boundingBox();
         this.updateHoveredInfo(element);
-        Ember.$('#' + this.get('iframeId')).get(0).contentWindow.scrollTo(
+        this.getIframeNode().contentWindow.scrollTo(
             Math.max(0, parseInt(rect.left - 100)),
             Math.max(0, parseInt(rect.top - 100))
         );
@@ -289,29 +296,24 @@ export default Ember.Component.extend({
 
     installEventHandlersForBrowsing: function() {
         this.uninstallEventHandlers();
-        this.getIframe().bind('click', this.clickHandlerBrowse.bind(this));
-        this.getIframe().bind('scroll', this.scrollHandlerBrowse.bind(this));
-        this.getIframe().bind('keyup', this.keyUpHandler.bind(this));
+        this.getIframe().on('click.portia', this.clickHandlerBrowse.bind(this));
+
     },
 
     installEventHandlersForSelecting: function() {
         this.uninstallEventHandlers();
-        this.getIframe().bind('click', this.clickHandler.bind(this));
-        this.getIframe().bind('mouseover', this.mouseOverHandler.bind(this));
-        this.getIframe().bind('mouseout', this.mouseOutHandler.bind(this));
-        this.getIframe().bind('mousedown', this.mouseDownHandler.bind(this));
-        this.getIframe().bind('mouseup', this.mouseUpHandler.bind(this));
-        this.getIframe().bind('hover', function(event) {event.preventDefault();});
+        var iframe = this.getIframe();
+        iframe.on('click.portia', this.clickHandler.bind(this));
+        iframe.on('mouseover.portia', this.mouseOverHandler.bind(this));
+        iframe.on('mouseout.portia', this.mouseOutHandler.bind(this));
+        iframe.on('mousedown.portia', this.mouseDownHandler.bind(this));
+        iframe.on('mouseup.portia', this.mouseUpHandler.bind(this));
+        iframe.on('hover.portia', function(event) {event.preventDefault();});
         this.redrawNow();
     },
 
     uninstallEventHandlers: function() {
-        this.getIframe().unbind('click');
-        this.getIframe().unbind('mouseover');
-        this.getIframe().unbind('mouseout');
-        this.getIframe().unbind('mousedown');
-        this.getIframe().unbind('mouseup');
-        this.getIframe().unbind('hover');
+        this.getIframe().off('.portia');
         this.set('hoveredSprite', null);
     },
 
@@ -415,10 +417,13 @@ export default Ember.Component.extend({
     },
 
     clickHandlerBrowse: function(event) {
+        if(event.which > 1 || event.ctrlKey) { // Ignore right/middle click or Ctrl+click
+            return;
+        }
         event.preventDefault();
         var linkingElement = Ember.$(event.target).closest('[href]');
         if (linkingElement.length) {
-            var href = Ember.$(linkingElement).get(0).href;
+            var href = linkingElement.get(0).href;
             this.sendDocumentEvent('linkClicked', href);
         }
     },
@@ -462,9 +467,6 @@ export default Ember.Component.extend({
                 }
             }
         }
-    },
-
-    keyUpHandler: function() {
     },
 
     sendDocumentEvent: function(name) {
