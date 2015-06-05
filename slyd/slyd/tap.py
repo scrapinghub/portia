@@ -10,7 +10,7 @@ from twisted.web.resource import Resource
 from twisted.application.internet import TCPServer
 from twisted.web.static import File
 from .resource import SlydJsonObjectResource
-from .server import Site
+from .server import Site, debugLogFormatter
 
 DEFAULT_PORT = 9001
 DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'dist')
@@ -33,7 +33,8 @@ class Capabilities(SlydJsonObjectResource):
     def render_GET(self, request):
         return {
             'capabilities': self.spec_manager.capabilities,
-            'custom': self.spec_manager.customizations
+            'custom': self.spec_manager.customizations,
+            'username': request.auth_info.get('username'),
         }
 
 
@@ -86,5 +87,5 @@ def create_root(config):
 
 def makeService(config):
     root = create_root(config)
-    site = Site(root)
+    site = Site(root, logFormatter=debugLogFormatter)
     return TCPServer(config['port'], site)

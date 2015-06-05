@@ -40,7 +40,8 @@ define('portia-web/components/accordion-item', ['exports', 'ember', 'ember-idx-a
             }
             this.set('reTrigger', false);
             return this.get('accordion').select(this);
-        }).on('click') });
+        }).on('click')
+    });
 
 });
 define('portia-web/components/annotations-plugin/component', ['exports', 'ember'], function (exports, Ember) {
@@ -261,7 +262,8 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
 
             elementHovered: function elementHovered() {
                 this.get('document.view').redrawNow();
-            } },
+            }
+        },
 
         //*******************************************************************\\
         //
@@ -2535,7 +2537,8 @@ define('portia-web/components/collapsible-text', ['exports', 'ember', 'portia-we
 
         click: function click() {
             this.set('collapsed', !this.get('collapsed'));
-        } });
+        }
+    });
 
 });
 define('portia-web/components/copy-clipboard', ['exports', 'ember-cli-zero-clipboard/components/zero-clipboard'], function (exports, ZeroClipboard) {
@@ -3021,7 +3024,8 @@ define('portia-web/components/extracted-item', ['exports', 'ember'], function (e
             editTemplate: function editTemplate(templateName) {
                 this.sendAction('editTemplate', templateName);
             }
-        } });
+        }
+    });
 
 });
 define('portia-web/components/extractor-dropzone', ['exports', 'ember', 'portia-web/mixins/droppable'], function (exports, Ember, Droppable) {
@@ -3029,7 +3033,8 @@ define('portia-web/components/extractor-dropzone', ['exports', 'ember', 'portia-
     'use strict';
 
     exports['default'] = Ember['default'].Component.extend(Droppable['default'], {
-        tagName: 'span' });
+        tagName: 'span'
+    });
 
 });
 define('portia-web/components/file-download/component', ['exports', 'ember'], function (exports, Ember) {
@@ -3045,8 +3050,8 @@ define('portia-web/components/file-download/component', ['exports', 'ember'], fu
                 this.get('slyd').makeAjaxCall({
                     type: 'POST',
                     url: '/projects',
-                    data: JSON.stringify({ 'cmd': 'download',
-                        'args': [this.get('slyd.project'), '*', [0, 10]] }),
+                    data: { 'cmd': 'download',
+                        'args': [this.get('slyd.project'), '*', [0, 10]] },
                     dataType: 'binary'
                 }).then((function (blob) {
                     this.element.setAttribute('href', window.URL.createObjectURL(blob));
@@ -3162,7 +3167,8 @@ define('portia-web/components/inline-help', ['exports', 'ember', 'portia-web/mix
             if (this.get('message')) {
                 return this.messages.get(this.get('message'));
             }
-        }).property('message') });
+        }).property('message')
+    });
 
 });
 define('portia-web/components/item-select', ['exports', 'ember'], function (exports, Ember) {
@@ -3232,7 +3238,8 @@ define('portia-web/components/item-select', ['exports', 'ember'], function (expo
                 changedTo = target.value;
             this.set('value', changedTo);
             this.sendAction('changed', changedTo, this.get('name'));
-        } });
+        }
+    });
 
 });
 define('portia-web/components/j-breadcrumb', ['exports', 'ember'], function (exports, Ember) {
@@ -3261,7 +3268,8 @@ define('portia-web/components/j-breadcrumb', ['exports', 'ember'], function (exp
         mouseLeave: function mouseLeave() {
             this.set('info.showFull', false);
             this.sendAction('hovered', this.get('info'), this.get('index'), false);
-        } });
+        }
+    });
 
 });
 define('portia-web/components/j-breadcrumbs', ['exports', 'ember'], function (exports, Ember) {
@@ -3346,7 +3354,8 @@ define('portia-web/components/json-file-compare', ['exports', 'ember'], function
             } else {
                 return null;
             }
-        }).property('json') });
+        }).property('json')
+    });
 
 });
 define('portia-web/components/label-with-tooltip', ['exports', 'ember'], function (exports, Ember) {
@@ -3373,14 +3382,16 @@ define('portia-web/components/pin-toolbox-button', ['exports', 'ember', 'portia-
         }).property('toolbox.fixed'),
 
         pinned: (function () {
-            return this.disabled || this.get('toolbox.pinned');
+            return this.get('disabled') || this.get('toolbox.pinned');
         }).property('toolbox.fixed', 'toolbox.pinned'),
 
         click: function click() {
             this.set('toolbox.pinned', !this.get('toolbox.pinned'));
-            this.set('pinned', this.get('toolbox.pinned'));
-            this.notifyPropertyChange('pinned');
-        } });
+            if (window.localStorage) {
+                localStorage.portia_toolbox_pinned = this.get('toolbox.pinned') ? 'true' : '';
+            }
+        }
+    });
 
 });
 define('portia-web/components/regex-text-field-with-button/component', ['exports', 'ember', 'portia-web/components/text-field-with-button', 'portia-web/mixins/notification-handler'], function (exports, Ember, TextFieldWithButton, NotificationHandler) {
@@ -3404,7 +3415,8 @@ define('portia-web/components/regex-text-field-with-button/component', ['exports
                     this.$().find('textarea').val('');
                     this.$().find('input[type="text"]').val('');
                 }
-            } }
+            }
+        }
     });
 
 });
@@ -3554,7 +3566,8 @@ define('portia-web/components/text-area-with-button', ['exports', 'portia-web/co
 
     exports['default'] = TextFieldWithButton['default'].extend({
         outerClasses: ['box-spacer'],
-        classNameBindings: ['outerClasses'] });
+        classNameBindings: ['outerClasses']
+    });
 
 });
 define('portia-web/components/text-area', ['exports', 'ember'], function (exports, Ember) {
@@ -3771,6 +3784,8 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
     'use strict';
 
     exports['default'] = Ember['default'].Component.extend({
+        classNameBindings: ['fixed:toolbox-fixed'],
+
         documentView: (function () {
             this.set('documentView', this.get('document.view'));
         }).property('document.view'),
@@ -3793,44 +3808,30 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
             }
         }).observes('fixed'),
 
-        timeoutHandle: null,
-
-        showToolbox: function showToolbox() {
-            if (this.get('timeoutHandle')) {
-                Ember['default'].run.cancel(this.get('timeoutHandle'));
-                this.set('timeoutHandle', null);
+        setToolboxNow: function setToolboxNow(show) {
+            if (!show && this.get('control.fixed')) {
+                return;
             }
-            var timeoutHandle = Ember['default'].run.later((function () {
-                var self = this;
-                Ember['default'].$('#toolbox').css('margin-right', 0);
-                Ember['default'].$('#scraped-doc').css('margin-right', 400);
-                Ember['default'].run.later(function () {
-                    if (self.get && self.get('documentView') && self.get('documentView').redrawNow) {
-                        self.get('documentView').redrawNow();
-                    }
-                }, 320);
-            }).bind(this), 300);
-            this.set('timeoutHandle', timeoutHandle);
+            Ember['default'].$('#toolbox').css('margin-right', show ? 0 : -365);
+            Ember['default'].$('#scraped-doc').css('margin-right', show ? 400 : 35);
+
+            Ember['default'].run.later(this, function () {
+                var docView = this.get('documentView');
+                if (docView && docView.redrawNow) {
+                    docView.redrawNow();
+                }
+            }, show ? 320 : 820);
         },
 
+        setToolbox: function setToolbox(show) {
+            Ember['default'].run.debounce(this, this.setToolboxNow, show, show ? 300 : 800);
+        },
+
+        showToolbox: function showToolbox() {
+            return this.setToolbox(true);
+        },
         hideToolbox: function hideToolbox() {
-            if (this.get('timeoutHandle')) {
-                Ember['default'].run.cancel(this.get('timeoutHandle'));
-                this.set('timeoutHandle', null);
-            }
-            var timeoutHandle = Ember['default'].run.later((function () {
-                var self = this;
-                if (!this.get('control.fixed')) {
-                    Ember['default'].$('#toolbox').css('margin-right', -365);
-                    Ember['default'].$('#scraped-doc').css('margin-right', 35);
-                    Ember['default'].run.later(function () {
-                        if (self.get && self.get('documentView') && self.get('documentView').redrawNow) {
-                            self.get('documentView').redrawNow();
-                        }
-                    }, 820);
-                }
-            }).bind(this), 800);
-            this.set('timeoutHandle', timeoutHandle);
+            return this.setToolbox(false);
         },
 
         mouseEnter: function mouseEnter() {
@@ -3856,7 +3857,8 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
 
         didInsertElement: function didInsertElement() {
             this._super();
-        } });
+        }
+    });
 
 });
 define('portia-web/components/top-bar', ['exports', 'ember'], function (exports, Ember) {
@@ -4391,11 +4393,11 @@ define('portia-web/controllers/application', ['exports', 'portia-web/controllers
 	exports['default'] = BaseController['default'].extend({});
 
 });
-define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-web/mixins/application-utils', 'portia-web/mixins/controller-utils', 'portia-web/mixins/modal-handler', 'portia-web/mixins/notification-handler', 'portia-web/mixins/size-listener', 'portia-web/mixins/toolbox-state-mixin'], function (exports, Ember, ApplicationUtils, ControllerUtils, ModalHandler, NotificationHandler, SizeListener, ToolboxStateMixin) {
+define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-web/mixins/application-utils', 'portia-web/mixins/controller-utils', 'portia-web/mixins/modal-handler', 'portia-web/mixins/notification-handler', 'portia-web/mixins/size-listener', 'portia-web/mixins/toolbox-state-mixin', 'portia-web/mixins/app-visibility'], function (exports, Ember, ApplicationUtils, ControllerUtils, ModalHandler, NotificationHandler, SizeListener, ToolboxStateMixin, AppVisibility) {
 
     'use strict';
 
-    exports['default'] = Ember['default'].Controller.extend(ApplicationUtils['default'], SizeListener['default'], ModalHandler['default'], NotificationHandler['default'], ControllerUtils['default'], ToolboxStateMixin['default'], {
+    exports['default'] = Ember['default'].Controller.extend(ApplicationUtils['default'], SizeListener['default'], ModalHandler['default'], NotificationHandler['default'], ControllerUtils['default'], ToolboxStateMixin['default'], AppVisibility['default'], {
         documentView: null,
         breadCrumb: null,
         breadCrumbs: null,
@@ -4420,7 +4422,8 @@ define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-we
                 if (field) {
                     this.set(field, value);
                 }
-            } }
+            }
+        }
     });
 
 });
@@ -4532,14 +4535,16 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
 
             publish: function publish() {
                 this.get('slyd').publishProject(this.get('slyd.project'), true);
-            } },
+            }
+        },
 
         willEnter: function willEnter() {
             this.set('model', this.get('model') || {});
             if (!Ember['default'].isEmpty(this.get('conflictedFileNames'))) {
                 this.displayConflictedFile(this.get('conflictedFileNames')[0]);
             }
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/conflicts/index', ['exports', 'portia-web/controllers/conflicts'], function (exports, ConflictsController) {
@@ -4547,7 +4552,8 @@ define('portia-web/controllers/conflicts/index', ['exports', 'portia-web/control
     'use strict';
 
     exports['default'] = ConflictsController['default'].extend({
-        breadCrumb: null });
+        breadCrumb: null
+    });
 
 });
 define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-controller', 'portia-web/models/item', 'portia-web/models/item-field'], function (exports, BaseController, Item, ItemField) {
@@ -4627,9 +4633,11 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
                     this.set('content', items);
                     this.transitionToRoute(this.getParentRoute());
                 }).bind(this));
-            } },
+            }
+        },
 
-        willEnter: function willEnter() {} });
+        willEnter: function willEnter() {}
+    });
 
 });
 define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/spider'], function (exports, Ember, BaseController, Spider) {
@@ -4906,7 +4914,8 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
 
             conflictedFiles: function conflictedFiles() {
                 this.transitionToRoute('conflicts');
-            } },
+            }
+        },
 
         willEnter: function willEnter() {
             this.setBreadCrumb();
@@ -4915,7 +4924,8 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             if (this.get('controllers.application.siteWizard')) {
                 Ember['default'].run.next(this, this.addSpider, this.get('controllers.application.siteWizard'));
             }
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/project/index', ['exports', 'portia-web/controllers/project'], function (exports, ProjectController) {
@@ -5023,7 +5033,8 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
             hideProjectRevisions: function hideProjectRevisions(projectName) {
                 delete this.get('projectRevisions')[projectName];
                 this.notifyPropertyChange('projectRevisions');
-            } },
+            }
+        },
 
         willEnter: function willEnter() {
             this.set('breadCrumb', 'home');
@@ -5032,7 +5043,8 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
             }
             this.get('documentView').reset();
             this.get('documentView').showSpider();
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/projects/index', ['exports', 'portia-web/controllers/projects'], function (exports, ProjectsController) {
@@ -5040,7 +5052,8 @@ define('portia-web/controllers/projects/index', ['exports', 'portia-web/controll
     'use strict';
 
     exports['default'] = ProjectsController['default'].extend({
-        breadCrumb: null });
+        breadCrumb: null
+    });
 
 });
 define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/utils/canvas', 'portia-web/utils/sprite-store', 'portia-web/models/extracted-item', 'portia-web/models/template'], function (exports, Ember, BaseController, canvas, SpriteStore, ExtractedItem, Template) {
@@ -5615,7 +5628,8 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                         }]);
                     }
                 }
-            } },
+            }
+        },
 
         documentActions: {
 
@@ -5649,7 +5663,8 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.get('documentView').redrawNow();
             this.get('pendingFetches').setObjects([]);
             this.get('documentView').hideLoading();
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/controllers/spider'], function (exports, Ember, SpiderController) {
@@ -5768,7 +5783,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 mode: 'select',
                 listener: this,
                 dataSource: this,
-                partialSelects: true });
+                partialSelects: true
+            });
             this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
         },
 
@@ -5957,7 +5973,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
         createExtractor: function createExtractor(extractorType, extractorDefinition) {
             var extractor = Extractor['default'].create({
-                name: this.shortGuid() });
+                name: this.shortGuid()
+            });
             if (extractorType === 'regular_expression') {
                 try {
                     new RegExp(extractorDefinition);
@@ -6123,7 +6140,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             updateScraped: function updateScraped(name) {
                 this.set('model.scrapes', name);
-            } },
+            }
+        },
 
         documentActions: {
 
@@ -6141,7 +6159,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             elementHovered: function elementHovered() {
                 this.get('documentView').redrawNow();
-            } },
+            }
+        },
 
         setDocument: (function () {
             if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
@@ -6188,7 +6207,8 @@ define('portia-web/controllers/template/index', ['exports', 'portia-web/controll
 
     exports['default'] = TemplateController['default'].extend({
         breadCrumb: null,
-        _breadCrumb: null });
+        _breadCrumb: null
+    });
 
 });
 define('portia-web/helpers/trim', ['exports', 'ember'], function (exports, Ember) {
@@ -6545,12 +6565,13 @@ define('portia-web/initializers/project-models', ['exports', 'ember'], function 
     };
 
 });
-define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', 'portia-web/config/environment', 'portia-web/utils/slyd-api'], function (exports, Ember, ajax, config, SlydApi) {
+define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', 'portia-web/config/environment', 'portia-web/utils/slyd-api', 'portia-web/utils/timer', 'portia-web/mixins/application-utils'], function (exports, Ember, ajax, config, SlydApi, Timer, ApplicationUtils) {
 
     'use strict';
 
     exports.initialize = initialize;
 
+    var UUID = Ember['default'].Object.extend(ApplicationUtils['default'], {});
     function initialize(container, application) {
         application.deferReadiness();
         var hash = {};
@@ -6565,7 +6586,10 @@ define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', '
             container.register('api:capabilities', Ember['default'].Object.create().setProperties(application.get('serverCapabilities')), { instantiate: false });
             container.register('app:custom', Ember['default'].Object.create().setProperties(application.get('serverCustomization')), { instantiate: false });
             var api = new SlydApi['default']();
+            api.set('username', settings.username);
+            api.set('sessionid', new UUID().shortGuid());
             api.set('serverCapabilities', container.lookup('api:capabilities'));
+            api.set('timer', new Timer['default']());
             container.register('api:slyd', api, { instantiate: false });
             application.inject('route', 'slyd', 'api:slyd');
             application.inject('adapter', 'slyd', 'api:slyd');
@@ -6637,7 +6661,8 @@ define('portia-web/initializers/toolbox', ['exports', 'ember'], function (export
         container.register('toolbox:state', Ember['default'].Object.create({
             fixed: false,
             expand: false,
-            pinned: false }), { instantiate: false });
+            pinned: !!(window.localStorage && localStorage.portia_toolbox_pinned)
+        }), { instantiate: false });
         application.inject('route', 'toolbox', 'toolbox:state');
         application.inject('component:tool-box', 'control', 'toolbox:state');
         application.inject('component:tool-box', 'router', 'router:main');
@@ -6648,6 +6673,45 @@ define('portia-web/initializers/toolbox', ['exports', 'ember'], function (export
         name: 'toolbox',
         initialize: initialize
     };
+
+});
+define('portia-web/mixins/app-visibility', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Mixin.create({
+        init: function init() {
+            var hidden, visibilityChange;
+            if (typeof document.hidden !== "undefined") {
+                hidden = "hidden";
+                visibilityChange = "visibilitychange";
+            } else if (typeof document.mozHidden !== "undefined") {
+                hidden = "mozHidden";
+                visibilityChange = "mozvisibilitychange";
+            } else if (typeof document.msHidden !== "undefined") {
+                hidden = "msHidden";
+                visibilityChange = "msvisibilitychange";
+            } else if (typeof document.webkitHidden !== "undefined") {
+                hidden = "webkitHidden";
+                visibilityChange = "webkitvisibilitychange";
+            }
+            // Handle user changing tab
+            document.addEventListener(visibilityChange, (function () {
+                if (document[hidden]) {
+                    this.get("slyd.timer").pause();
+                } else {
+                    this.get("slyd.timer").resume();
+                }
+            }).bind(this), false);
+            // Handle user putting browser into background
+            window.addEventListener("blur", (function () {
+                this.get("slyd.timer").pause();
+            }).bind(this));
+            window.addEventListener("focus", (function () {
+                this.get("slyd.timer").resume();
+            }).bind(this));
+        }
+    });
 
 });
 define('portia-web/mixins/application-utils', ['exports', 'ember'], function (exports, Ember) {
@@ -6697,7 +6761,9 @@ define('portia-web/mixins/controller-utils', ['exports', 'ember'], function (exp
                 newName = baseName + "_" + i++;
             }
             return newName;
-        } });
+        }
+
+    });
 
 });
 define('portia-web/mixins/draggable', ['exports', 'ember'], function (exports, Ember) {
@@ -6743,7 +6809,8 @@ define('portia-web/mixins/droppable', ['exports', 'ember'], function (exports, E
         dragOver: function dragOver(event) {
             event.preventDefault();
             this.set('dragClass', 'drop-target-dragging');
-        } });
+        }
+    });
 
 });
 define('portia-web/mixins/modal-handler', ['exports', 'ember'], function (exports, Ember) {
@@ -6773,7 +6840,8 @@ define('portia-web/mixins/modal-handler', ['exports', 'ember'], function (export
                 if (name) {
                     return this.ModalManager.get('name').destroy();
                 }
-            } },
+            }
+        },
 
         showConfirm: function showConfirm(title, content, okCallback, cancelCallback, button_class, button_text) {
             if (this.get('_modalName')) {
@@ -6801,7 +6869,8 @@ define('portia-web/mixins/modal-handler', ['exports', 'ember'], function (export
             this.set('_modalOKCallback', okCallback);
             this.set('_modalCancelCallback', cancelCallback);
             return this.ModalManager.open(this.get('_modalName'), title, buttons, content, component, componentData, this);
-        } });
+        }
+    });
 
 });
 define('portia-web/mixins/notification-handler', ['exports', 'ember', 'portia-web/utils/notification-manager'], function (exports, Ember, NotificationManager) {
@@ -6908,7 +6977,8 @@ define('portia-web/mixins/size-listener', ['exports', 'ember'], function (export
 
         openAccordion: function openAccordion(accordionNumber) {
             Ember['default'].$('.accordion').accordion('option', 'active', accordionNumber);
-        } });
+        }
+    });
 
 });
 define('portia-web/mixins/toolbox-state-mixin', ['exports', 'ember'], function (exports, Ember) {
@@ -6917,7 +6987,7 @@ define('portia-web/mixins/toolbox-state-mixin', ['exports', 'ember'], function (
 
     exports['default'] = Ember['default'].Mixin.create({
         willEnter: function willEnter() {
-            this.set('toolbox.fixed', this.get('toolboxFixed') || false);
+            this.set('toolbox.fixed', this.get('fixedToolbox') || false);
         }
     });
 
@@ -7125,7 +7195,8 @@ define('portia-web/models/annotation', ['exports', 'ember', 'portia-web/models/s
             return this._mappedAttributes(function (fieldName) {
                 return fieldName && fieldName.indexOf('_sticky') === 0;
             });
-        }).property('attributes.@each', 'annotations') });
+        }).property('attributes.@each', 'annotations')
+    });
 
 });
 define('portia-web/models/attribute', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7135,7 +7206,8 @@ define('portia-web/models/attribute', ['exports', 'portia-web/models/simple-mode
     exports['default'] = SimpleModel['default'].extend({
         value: null,
         mappedField: null,
-        annotation: null });
+        annotation: null
+    });
 
 });
 define('portia-web/models/conflict', ['exports', 'ember'], function (exports, Ember) {
@@ -7152,7 +7224,8 @@ define('portia-web/models/extracted-field', ['exports', 'ember'], function (expo
     exports['default'] = Ember['default'].Object.extend({
         name: null,
         type: null,
-        value: null });
+        value: null
+    });
 
 });
 define('portia-web/models/extracted-item', ['exports', 'ember', 'portia-web/models/extracted-field', 'portia-web/models/extracted-variant'], function (exports, Ember, ExtractedField, ExtractedVariant) {
@@ -7193,7 +7266,8 @@ define('portia-web/models/extracted-item', ['exports', 'ember', 'portia-web/mode
                 }).bind(this));
             }
             return variants;
-        }).property('extracted', 'definition') });
+        }).property('extracted', 'definition')
+    });
 
 });
 define('portia-web/models/extracted-variant', ['exports', 'ember'], function (exports, Ember) {
@@ -7201,7 +7275,8 @@ define('portia-web/models/extracted-variant', ['exports', 'ember'], function (ex
     'use strict';
 
     exports['default'] = Ember['default'].Object.extend({
-        fields: null });
+        fields: null
+    });
 
 });
 define('portia-web/models/extractor', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7221,7 +7296,8 @@ define('portia-web/models/extractor', ['exports', 'portia-web/models/simple-mode
         }).property('regular_expression', 'type_extractor'),
 
         regular_expression: null,
-        type_extractor: null });
+        type_extractor: null
+    });
 
 });
 define('portia-web/models/ignore', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7231,7 +7307,8 @@ define('portia-web/models/ignore', ['exports', 'portia-web/models/simple-model']
     exports['default'] = SimpleModel['default'].extend({
         element: null,
         ignoreBeneath: false,
-        highlighted: false });
+        highlighted: false
+    });
 
 });
 define('portia-web/models/item-field', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7242,7 +7319,8 @@ define('portia-web/models/item-field', ['exports', 'portia-web/models/simple-mod
         serializedProperties: ['name', 'type', 'required', 'vary'],
         type: 'text',
         required: false,
-        vary: false });
+        vary: false
+    });
 
 });
 define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', 'portia-web/models/item-field'], function (exports, SimpleModel, ItemField) {
@@ -7283,7 +7361,8 @@ define('portia-web/models/mapped-field-data', ['exports', 'ember'], function (ex
         extractors: [],
         required: false,
         extracted: false,
-        disabled: true });
+        disabled: true
+    });
 
 });
 define('portia-web/models/simple-model', ['exports', 'ember'], function (exports, Ember) {
@@ -7314,7 +7393,8 @@ define('portia-web/models/simple-model', ['exports', 'ember'], function (exports
                 }).bind(this));
             }
             return serialized;
-        } });
+        }
+    });
 
 });
 define('portia-web/models/spider', ['exports', 'ember', 'portia-web/models/simple-model'], function (exports, Ember, SimpleModel) {
@@ -7381,7 +7461,8 @@ define('portia-web/models/spider', ['exports', 'ember', 'portia-web/models/simpl
                 reqs[0]['password'] = loginPassword;
             }
             return reqs.length ? reqs[0]['password'] : null;
-        }).property('init_requests') });
+        }).property('init_requests')
+    });
 
 });
 define('portia-web/models/template', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7397,7 +7478,8 @@ define('portia-web/models/template', ['exports', 'portia-web/models/simple-model
         annotated_body: '',
         original_body: '',
         _new: false,
-        extractors: null });
+        extractors: null
+    });
 
 });
 define('portia-web/router', ['exports', 'ember', 'portia-web/config/environment'], function (exports, Ember, config) {
@@ -7475,18 +7557,22 @@ define('portia-web/routes/conflicts', ['exports', 'portia-web/routes/base-route'
             this.render('conflicts/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('conflicts/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('conflicts/resolver', {
                 into: 'application',
                 outlet: 'conflictResolver',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/conflicts/index', ['exports', 'portia-web/routes/conflicts'], function (exports, ConflictsRoute) {
@@ -7503,7 +7589,8 @@ define('portia-web/routes/index', ['exports', 'ember'], function (exports, Ember
     exports['default'] = Ember['default'].Route.extend({
         activate: function activate() {
             this.transitionTo('projects');
-        } });
+        }
+    });
 
 });
 define('portia-web/routes/items', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7522,13 +7609,16 @@ define('portia-web/routes/items', ['exports', 'portia-web/routes/base-route'], f
             this.render('items/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('template/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/project', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7582,18 +7672,21 @@ define('portia-web/routes/project/index', ['exports', 'portia-web/routes/base-ro
             this.render('project/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('project/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
+                controller: controller
+            });
         },
 
         serialize: function serialize() {
             var controller = this.controllerFor('project.index');
             return { project_id: controller.get('name') };
-        } });
+        }
+    });
 
 });
 define('portia-web/routes/projects', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7620,13 +7713,16 @@ define('portia-web/routes/projects', ['exports', 'portia-web/routes/base-route']
             this.render('projects/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('projects/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/projects/index', ['exports', 'portia-web/routes/projects'], function (exports, ProjectRoute) {
@@ -7660,13 +7756,16 @@ define('portia-web/routes/spider', ['exports', 'portia-web/routes/base-route'], 
             this.render('spider/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('spider/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/spider/index', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7687,7 +7786,8 @@ define('portia-web/routes/template-items', ['exports', 'portia-web/routes/items'
     'use strict';
 
     exports['default'] = Items['default'].extend({
-        defaultControllerName: 'template-items' });
+        defaultControllerName: 'template-items'
+    });
 
 });
 define('portia-web/routes/template', ['exports', 'ember', 'portia-web/routes/base-route'], function (exports, Ember, BaseRoute) {
@@ -7725,12 +7825,15 @@ define('portia-web/routes/template', ['exports', 'ember', 'portia-web/routes/bas
             this.render('template/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
             this.render('template/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/template/index', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -20179,7 +20282,8 @@ define('portia-web/utils/annotation-store', ['exports', 'ember', 'portia-web/mix
                 });
                 Ember['default'].$(annotation.get('element')).attr('data-scrapy-annotate', JSON.stringify(annotation.serialize()));
             }).bind(this));
-        } });
+        }
+    });
 
 });
 define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember) {
@@ -20254,7 +20358,9 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
             } else {
                 return this.get('_interactionsBlocked');
             }
-        }).property('_interactionsBlocked') });
+        }).property('_interactionsBlocked')
+
+    });
 
     var Sprite = Ember['default'].Object.extend({
 
@@ -20266,7 +20372,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
 
         draw: function draw() {
             throw 'You must implement this method.';
-        } });
+        }
+    });
 
     var RECT_ZERO = { left: 0, top: 0, width: 0, height: 0 };
 
@@ -20369,7 +20476,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
             } else {
                 return this.get('_zPosition');
             }
-        }).property('annotation.highlighted') });
+        }).property('annotation.highlighted')
+    });
 
     var IgnoreSprite = RectSprite.extend({
         ignore: null,
@@ -20399,7 +20507,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
                 }).bind(this));
             }
             this.drawRect(context, element.boundingBox());
-        } });
+        }
+    });
 
     var ElementSprite = RectSprite.extend({
         element: null,
@@ -20411,7 +20520,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
 
         getBoundingBox: function getBoundingBox() {
             return Ember['default'].$(this.get('element')).boundingBox();
-        } });
+        }
+    });
 
     exports.Canvas = Canvas;
     exports.Sprite = Sprite;
@@ -20450,7 +20560,8 @@ define('portia-web/utils/messages', ['exports', 'ember'], function (exports, Emb
         deploy_ok: 'The project was successfully deployed.',
         deploy_ok_schedule: 'The project was successfully deployed. Do you want to be redirected to the schedule page?',
         publish_conflict: 'There was a conflict that could not be automatically resolved. You will have to resolve the conflict manually.',
-        conflicts_solved: 'You have resolved all conflicts, your changes have been published.' });
+        conflicts_solved: 'You have resolved all conflicts, your changes have been published.'
+    });
 
 });
 define('portia-web/utils/modal-manager', ['exports', 'ember'], function (exports, Ember) {
@@ -20571,7 +20682,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'create', args: [projectName] });
+            hash.data = { cmd: 'create', args: [projectName] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to create project';
@@ -20591,7 +20702,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'rm', args: [projectName] });
+            hash.data = { cmd: 'rm', args: [projectName] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to delete project';
@@ -20614,7 +20725,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'mv', args: [oldProjectName, newProjectName] });
+            hash.data = { cmd: 'mv', args: [oldProjectName, newProjectName] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to rename project';
@@ -20706,7 +20817,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.get('projectSpecUrl') + 'spiders';
-            hash.data = JSON.stringify({ cmd: 'mv', args: [oldSpiderName || this.get('spider'), newSpiderName] });
+            hash.data = { cmd: 'mv', args: [oldSpiderName || this.get('spider'), newSpiderName] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to rename spider';
@@ -20730,7 +20841,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.get('projectSpecUrl') + 'spiders';
-            hash.data = JSON.stringify({ cmd: 'mvt', args: [spiderName || this.get('spiderName'), oldTemplateName, newTemplateName] });
+            hash.data = { cmd: 'mvt', args: [spiderName || this.get('spiderName'), oldTemplateName, newTemplateName] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to rename template';
@@ -20756,7 +20867,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             if (excludeTemplates) {
                 delete serialized['templates'];
             }
-            hash.data = JSON.stringify(serialized);
+            hash.data = serialized;
             hash.dataType = 'text';
             hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
             return this.makeAjaxCall(hash)['catch'](function (err) {
@@ -20784,7 +20895,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
                 serialized['original_body'] = template.get('original_body');
                 template.set('_new', false);
             }
-            hash.data = JSON.stringify(serialized);
+            hash.data = serialized;
             hash.dataType = 'text';
             hash.url = this.get('projectSpecUrl') + 'spiders/' + (spiderName || this.get('spider')) + '/' + templateName;
             return this.makeAjaxCall(hash)['catch'](function (err) {
@@ -20806,7 +20917,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             hash.type = 'POST';
             hash.dataType = 'text';
             hash.url = this.get('projectSpecUrl') + 'spiders';
-            hash.data = JSON.stringify({ cmd: 'rm', args: [spiderName || this.get('spider')] });
+            hash.data = { cmd: 'rm', args: [spiderName || this.get('spider')] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to delete spider';
                 throw err;
@@ -20829,7 +20940,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             hash.type = 'POST';
             hash.dataType = 'json';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'copy', args: [srcProjectId, dstProjectId, spiderNames, itemNames] });
+            hash.data = { cmd: 'copy', args: [srcProjectId, dstProjectId, spiderNames, itemNames] };
             return this.makeAjaxCall(hash);
         },
 
@@ -20847,7 +20958,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             hash.type = 'POST';
             hash.dataType = 'text';
             hash.url = this.get('projectSpecUrl') + 'spiders';
-            hash.data = JSON.stringify({ cmd: 'rmt', args: [spiderName || this.get('spider'), templateName] });
+            hash.data = { cmd: 'rmt', args: [spiderName || this.get('spider'), templateName] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to delete template';
                 throw err;
@@ -20901,7 +21012,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             items = this.listToDict(items);
             var hash = {};
             hash.type = 'POST';
-            hash.data = JSON.stringify(items);
+            hash.data = items;
             hash.dataType = 'text';
             hash.url = this.get('projectSpecUrl') + 'items';
             return this.makeAjaxCall(hash)['catch'](function (err) {
@@ -20946,7 +21057,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             extractors = this.listToDict(extractors);
             var hash = {};
             hash.type = 'POST';
-            hash.data = JSON.stringify(extractors);
+            hash.data = extractors;
             hash.dataType = 'text';
             hash.url = this.get('projectSpecUrl') + 'extractors';
             return this.makeAjaxCall(hash)['catch'](function (err) {
@@ -20967,7 +21078,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
                 var hash = {};
                 hash.type = 'POST';
                 hash.url = this.getApiUrl();
-                hash.data = JSON.stringify({ cmd: 'edit', args: [project_name, revision] });
+                hash.data = { cmd: 'edit', args: [project_name, revision] };
                 hash.dataType = 'text';
                 return this.makeAjaxCall(hash)['catch'](function (err) {
                     err.title = 'Failed to load project';
@@ -20980,7 +21091,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'revisions', args: [projectName] });
+            hash.data = { cmd: 'revisions', args: [projectName] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to load project revisions';
                 throw err;
@@ -20991,7 +21102,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'conflicts', args: [projectName] });
+            hash.data = { cmd: 'conflicts', args: [projectName] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to load conflicted files';
                 throw err;
@@ -21002,7 +21113,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'changes', args: [projectName] });
+            hash.data = { cmd: 'changes', args: [projectName] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to load changed files';
                 throw err;
@@ -21013,7 +21124,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'publish', args: [projectName, !!force] });
+            hash.data = { cmd: 'publish', args: [projectName, !!force] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to publish project';
                 throw err;
@@ -21024,7 +21135,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'deploy', args: [projectName] });
+            hash.data = { cmd: 'deploy', args: [projectName] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to deploy project';
                 throw err;
@@ -21035,7 +21146,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'discard', args: [projectName] });
+            hash.data = { cmd: 'discard', args: [projectName] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to discard changes';
@@ -21047,7 +21158,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify({ cmd: 'save', args: [projectName, fileName, contents] });
+            hash.data = { cmd: 'save', args: [projectName, fileName, contents] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to save file';
@@ -21079,7 +21190,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             if (parentFp) {
                 data['parent_fp'] = parentFp;
             }
-            hash.data = JSON.stringify(data);
+            hash.data = data;
             hash.url = this.get('botUrl') + 'fetch';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to fetch page';
@@ -21146,6 +21257,17 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
         },
 
         makeAjaxCall: function makeAjaxCall(hash) {
+            var headers = hash.headers || {},
+                data = hash.data || {},
+                cmd;
+            try {
+                cmd = data.cmd;
+            } catch (_) {
+                cmd = '-';
+            }
+            headers['x-portia'] = [this.get('sessionid'), this.get('timer').totalTime(), this.get('username'), cmd].join(':');
+            hash.data = JSON.stringify(hash.data);
+            hash.headers = headers;
             return ajax['default'](hash)['catch'](function (reason) {
                 var msg = 'Error processing ' + hash.type + ' to ' + hash.url;
                 if (hash.data) {
@@ -21161,7 +21283,8 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
                 }
                 throw err;
             });
-        } });
+        }
+    });
 
     exports['default'] = SlydApi;
 
@@ -21294,7 +21417,42 @@ define('portia-web/utils/sprite-store', ['exports', 'ember', 'portia-web/utils/c
                     return true;
                 }
             }));
-        } });
+        }
+    });
+
+});
+define('portia-web/utils/timer', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Object.extend({
+        init: function init() {
+            this.set('_startTime', new Date());
+        },
+
+        totalTime: function totalTime() {
+            return parseInt((new Date() - this.get('_startTime') - this.getWithDefault('_pausedTime', 0)) / 1000);
+        },
+
+        pause: function pause() {
+            if (this.get('paused')) {
+                // Avoid overwriting pause if called twice without resume
+                return;
+            }
+            this.set('paused', new Date());
+        },
+
+        resume: function resume() {
+            if (!this.get('paused')) {
+                return;
+            }
+            var paused = this.getWithDefault('_pausedTime', 0),
+                pausedAt = this.get('paused');
+            paused = paused + (new Date() - pausedAt);
+            this.set('_pausedTime', paused);
+            this.set('paused', null);
+        }
+    });
 
 });
 /* jshint ignore:start */
