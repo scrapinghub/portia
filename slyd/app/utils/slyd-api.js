@@ -73,7 +73,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify({ cmd: 'create', args: [projectName] });
+        hash.data = { cmd: 'create', args: [projectName] };
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to create project';
@@ -95,7 +95,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify({ cmd: 'rm', args: [projectName] });
+        hash.data = { cmd: 'rm', args: [projectName] };
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to delete project';
@@ -120,7 +120,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify({ cmd: 'mv', args: [oldProjectName, newProjectName] });
+        hash.data = { cmd: 'mv', args: [oldProjectName, newProjectName] };
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to rename project';
@@ -220,7 +220,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.get('projectSpecUrl') + 'spiders';
-        hash.data = JSON.stringify({ cmd: 'mv', args: [oldSpiderName || this.get('spider'), newSpiderName] });
+        hash.data = { cmd: 'mv', args: [oldSpiderName || this.get('spider'), newSpiderName] };
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to rename spider';
@@ -246,7 +246,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.get('projectSpecUrl') + 'spiders';
-        hash.data = JSON.stringify({ cmd: 'mvt', args: [spiderName || this.get('spiderName'), oldTemplateName, newTemplateName] });
+        hash.data = { cmd: 'mvt', args: [spiderName || this.get('spiderName'), oldTemplateName, newTemplateName] };
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to rename template';
@@ -274,7 +274,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         if (excludeTemplates) {
             delete serialized['templates'];
         }
-        hash.data = JSON.stringify(serialized);
+        hash.data = serialized;
         hash.dataType = 'text';
         hash.url = this.get('projectSpecUrl') + 'spiders/' + spiderName;
         return this.makeAjaxCall(hash).catch(function(err) {
@@ -304,7 +304,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
             serialized['original_body'] = template.get('original_body');
             template.set('_new', false);
         }
-        hash.data = JSON.stringify(serialized);
+        hash.data = serialized;
         hash.dataType = 'text';
         hash.url = this.get('projectSpecUrl') + 'spiders/' + (spiderName || this.get('spider')) + '/' + templateName;
         return this.makeAjaxCall(hash).catch(function(err) {
@@ -328,7 +328,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         hash.type = 'POST';
         hash.dataType = 'text';
         hash.url = this.get('projectSpecUrl') + 'spiders';
-        hash.data = JSON.stringify({ cmd: 'rm', args: [spiderName || this.get('spider')] });
+        hash.data = { cmd: 'rm', args: [spiderName || this.get('spider')] };
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to delete spider';
             throw err;
@@ -353,12 +353,12 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         hash.type = 'POST';
         hash.dataType = 'json';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify({cmd: 'copy', args: [
+        hash.data = {cmd: 'copy', args: [
             srcProjectId,
             dstProjectId,
             spiderNames,
             itemNames
-        ]});
+        ]};
         return this.makeAjaxCall(hash);
     },
 
@@ -378,7 +378,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         hash.type = 'POST';
         hash.dataType = 'text';
         hash.url = this.get('projectSpecUrl') + 'spiders';
-        hash.data = JSON.stringify({ cmd: 'rmt', args: [spiderName || this.get('spider'), templateName] });
+        hash.data = { cmd: 'rmt', args: [spiderName || this.get('spider'), templateName] };
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to delete template';
             throw err;
@@ -436,7 +436,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         items = this.listToDict(items);
         var hash = {};
         hash.type = 'POST';
-        hash.data = JSON.stringify(items);
+        hash.data = items;
         hash.dataType = 'text';
         hash.url = this.get('projectSpecUrl') + 'items';
         return this.makeAjaxCall(hash).catch(function(err) {
@@ -485,7 +485,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         extractors = this.listToDict(extractors);
         var hash = {};
         hash.type = 'POST';
-        hash.data = JSON.stringify(extractors);
+        hash.data = extractors;
         hash.dataType = 'text';
         hash.url = this.get('projectSpecUrl') + 'extractors';
         return this.makeAjaxCall(hash).catch(function(err) {
@@ -506,8 +506,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
             var hash = {};
             hash.type = 'POST';
             hash.url = this.getApiUrl();
-            hash.data = JSON.stringify(
-                { cmd: 'edit', args: [project_name, revision] });
+            hash.data = { cmd: 'edit', args: [project_name, revision] };
             hash.dataType = 'text';
             return this.makeAjaxCall(hash).catch(function(err) {
                 err.title = 'Failed to load project';
@@ -520,8 +519,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify(
-            { cmd: 'revisions', args: [projectName] });
+        hash.data = { cmd: 'revisions', args: [projectName] };
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to load project revisions';
             throw err;
@@ -532,8 +530,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify(
-            { cmd: 'conflicts', args: [projectName] });
+        hash.data = { cmd: 'conflicts', args: [projectName] };
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to load conflicted files';
             throw err;
@@ -544,8 +541,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify(
-            { cmd: 'changes', args: [projectName] });
+        hash.data = { cmd: 'changes', args: [projectName] };
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to load changed files';
             throw err;
@@ -556,8 +552,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify(
-            { cmd: 'publish', args: [projectName, !!force] });
+        hash.data = { cmd: 'publish', args: [projectName, !!force] };
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to publish project';
             throw err;
@@ -568,8 +563,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify(
-            { cmd: 'deploy', args: [projectName] });
+        hash.data = { cmd: 'deploy', args: [projectName] };
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to deploy project';
             throw err;
@@ -580,8 +574,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify(
-            { cmd: 'discard', args: [projectName] });
+        hash.data = { cmd: 'discard', args: [projectName] };
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to discard changes';
@@ -593,8 +586,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         var hash = {};
         hash.type = 'POST';
         hash.url = this.getApiUrl();
-        hash.data = JSON.stringify(
-            { cmd: 'save', args: [projectName, fileName, contents] });
+        hash.data = { cmd: 'save', args: [projectName, fileName, contents] };
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to save file';
@@ -628,7 +620,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         if (parentFp) {
             data['parent_fp'] = parentFp;
         }
-        hash.data = JSON.stringify(data);
+        hash.data = data;
         hash.url = this.get('botUrl') + 'fetch';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to fetch page';
@@ -701,6 +693,18 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
     },
 
     makeAjaxCall: function(hash) {
+        var headers = hash.headers || {},
+            data = hash.data || {},
+            cmd;
+        try {
+            cmd = data.cmd;
+        } catch (_) {
+            cmd = '-';
+        }
+        headers['x-portia'] = [this.get('sessionid'), this.get('timer').totalTime(),
+                               this.get('username'), cmd].join(':');
+        hash.data = JSON.stringify(hash.data);
+        hash.headers = headers;
         return ajax(hash).catch(function(reason) {
             var msg = 'Error processing ' + hash.type + ' to ' + hash.url;
             if (hash.data) {

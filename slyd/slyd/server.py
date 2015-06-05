@@ -1,7 +1,10 @@
 from twisted.python import log
 from twisted.python.compat import intToBytes
 from twisted.web import http
+from twisted.web.http import _escape
 from twisted.web.server import Site as WebSite, Request as WebRequest
+from twisted.web.iweb import IAccessLogFormatter
+from zope.interface.declarations import provider
 
 
 class Request(WebRequest):
@@ -29,3 +32,40 @@ class Request(WebRequest):
 
 class Site(WebSite):
     requestFactory = Request
+
+
+@provider(IAccessLogFormatter)
+def debugLogFormatter(timestamp, request):
+    """
+    @return: A combined log formatted log line for the given request.
+
+    @see: L{IAccessLogFormatter}
+    """
+    referrer = _escape(request.getHeader(b"referer") or b"-")
+    agent = _escape(request.getHeader(b"user-agent") or b"-")
+    line = (
+        u'"%(ip)s" - - %(timestamp)s "%(method)s %(uri)s %(protocol)s" '
+        u'%(code)d %(length)s "%(referrer)s" "%(agent)s"' % dict(
+            ip=_escape(request.getClientIP() or b"-"),
+            timestamp=timestamp,
+            method=_escape(request.method),
+            uri=_escape(request.uri),
+            protocol=_escape(request.clientproto),
+            code=request.code,
+            length=request.sentLength or u"-",
+            referrer=referrer,
+            agent=agent,
+        )
+    )
+    additional_data = request.getHeader(b"x-portia")
+    if additional_data:
+        split_data = _escape(additional_data).split(':')
+        if len(split_data) == 4:
+            session, session_time, user, command = split_data
+            line += (u' id=%(session)s t=%(session_time)s user=%(user)s '
+                     u'command=%(command)s' % dict(
+                         session=session,
+                         session_time=session_time,
+                         user=user,
+                         command=command))
+    return line
