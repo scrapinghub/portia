@@ -10,7 +10,7 @@ body{
 #scraped-doc {
     top: 38px;
     position:relative;
-    margin-right: 30px;
+    margin-right: 400px;
     transition: margin-right 0.3s ease-out;
 }
 
@@ -27,7 +27,7 @@ body{
     margin-top:35px;
     float: right;
     width: 400px;
-    margin-right: -365px;
+    margin-right: 0px;
     height: 100%;
     min-height: 200px;
     z-index: 100;
@@ -163,6 +163,10 @@ body{
 #toolbox .section {
     margin:10px 0px 10px 5px;
     overflow-x: hidden;
+}
+
+.toolbox-fixed .fa-thumb-tack, .toolbox-fixed .arrow-left {
+    display: none;
 }
 
 .scrolling-container {
