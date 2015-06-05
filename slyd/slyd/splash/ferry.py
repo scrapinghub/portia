@@ -38,6 +38,8 @@ class PortiaBrowserTab(BrowserTab):
         self._raw_html = str(data)
         super(PortiaBrowserTab, self).set_content(data, callback, errback,
                                                   mime_type, baseurl)
+
+
 class FerryWebSocketResource(WebSocketResource):
     def __init__(self, spec_manager, factory):
         self.spec_manager = spec_manager
