@@ -23,7 +23,8 @@ class PortiaCookieJar(SplashCookieJar):
         return super(PortiaCookieJar, self).setAllCookies(qt_cookies)
 
     def update_client_cookies(self):
-        print 'cookies', cookies2har(self.allCookies())
-        self.socket.sendMessage({'_command': 'cookies',
-            '_data': cookies2har(self.allCookies())})
+        self.socket.sendMessage({
+            '_command': 'cookies',
+            '_data': cookies2har(self.allCookies())
+        })
 
