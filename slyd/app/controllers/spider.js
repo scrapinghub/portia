@@ -470,6 +470,10 @@ export default BaseController.extend({
         }
     },
 
+    reload: function(){
+        this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
+    },
+
     actions: {
 
         editAllStartUrls: function() {
@@ -522,7 +526,7 @@ export default BaseController.extend({
         },
 
         reload: function() {
-            this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
+            this.reload();
         },
 
         browseBack: function() {

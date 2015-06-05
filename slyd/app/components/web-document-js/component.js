@@ -122,6 +122,10 @@ export default WebDocument.extend(ApplicationUtils, {
                 var reconnect = this.get('reconnectInteractions');
                 this.set('reconnectInteractions', null);
                 this.setInteractionsBlocked(reconnect);
+                var listener = this.get('listener');
+                if(listener && listener.reload && listener.get('loadedPageFp')) {
+                    listener.reload();
+                }
             }
             this.set('connectionStatusMessage', null);
             this.set('connectionAction', null);
