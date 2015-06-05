@@ -1,6 +1,8 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+    classNameBindings: ['fixed:toolbox-fixed'],
+
     documentView: function() {
         this.set('documentView', this.get('document.view'));
     }.property('document.view'),
@@ -23,47 +25,27 @@ export default Ember.Component.extend({
         }
     }.observes('fixed'),
 
-    timeoutHandle: null,
-
-    showToolbox: function() {
-        if (this.get('timeoutHandle')) {
-            Ember.run.cancel(this.get('timeoutHandle'));
-            this.set('timeoutHandle', null);
+    setToolboxNow: function(show){
+        if (!show && this.get('control.fixed')) {
+            return;
         }
-        var timeoutHandle = Ember.run.later(function() {
-            var self = this;
-            Ember.$('#toolbox').css('margin-right', 0);
-            Ember.$('#scraped-doc').css('margin-right', 400);
-            Ember.run.later(function() {
-                if (self.get && self.get('documentView') &&
-                      self.get('documentView').redrawNow) {
-                    self.get('documentView').redrawNow();
-                }
-            }, 320);
-        }.bind(this), 300);
-        this.set('timeoutHandle', timeoutHandle);
-    },
+        Ember.$('#toolbox').css('margin-right', show ? 0 : -365);
+        Ember.$('#scraped-doc').css('margin-right', show ? 400 : 35);
 
-    hideToolbox: function() {
-        if (this.get('timeoutHandle')) {
-            Ember.run.cancel(this.get('timeoutHandle'));
-            this.set('timeoutHandle', null);
-        }
-        var timeoutHandle = Ember.run.later(function() {
-            var self = this;
-            if (!this.get('control.fixed')) {
-                Ember.$('#toolbox').css('margin-right', -365);
-                Ember.$('#scraped-doc').css('margin-right', 35);
-                Ember.run.later(function() {
-                    if (self.get && self.get('documentView') &&
-                          self.get('documentView').redrawNow) {
-                        self.get('documentView').redrawNow();
-                    }
-                }, 820);
+        Ember.run.later(this, function(){
+            var docView = this.get('documentView');
+            if(docView && docView.redrawNow) {
+                docView.redrawNow();
             }
-        }.bind(this), 800);
-        this.set('timeoutHandle', timeoutHandle);
+        }, show ? 320 : 820);
     },
+
+    setToolbox: function(show) {
+        Ember.run.debounce(this, this.setToolboxNow, show, show ? 300 : 800);
+    },
+
+    showToolbox: function(){ return this.setToolbox(true); },
+    hideToolbox: function() { return this.setToolbox(false); },
 
     mouseEnter: function() {
         this.showToolbox();
