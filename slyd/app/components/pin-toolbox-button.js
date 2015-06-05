@@ -11,12 +11,13 @@ export default BsButton.extend({
     }.property('toolbox.fixed'),
 
     pinned: function() {
-        return this.disabled || this.get('toolbox.pinned');
+        return this.get('disabled') || this.get('toolbox.pinned');
     }.property('toolbox.fixed', 'toolbox.pinned'),
 
     click: function() {
         this.set('toolbox.pinned', !this.get('toolbox.pinned'));
-        this.set('pinned', this.get('toolbox.pinned'));
-        this.notifyPropertyChange('pinned');
+        if(window.localStorage) {
+            localStorage.portia_toolbox_pinned = this.get('toolbox.pinned') ? 'true' : '';
+        }
     },
 });
