@@ -20,6 +20,7 @@ from PyQt4.QtWebKit import QWebElement
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
 
+from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        update_project_data, rename_project_data, delete_project_data)
 
@@ -37,8 +38,6 @@ class PortiaBrowserTab(BrowserTab):
         self._raw_html = str(data)
         super(PortiaBrowserTab, self).set_content(data, callback, errback,
                                                   mime_type, baseurl)
-
-
 class FerryWebSocketResource(WebSocketResource):
     def __init__(self, spec_manager, factory):
         self.spec_manager = spec_manager
@@ -207,6 +206,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
             visible=True,
         )
         main_frame = self.tab.web_page.mainFrame()
+        cookiejar = PortiaCookieJar(self.tab.web_page, self)
+        self.tab.web_page.cookiejar = cookiejar
+        if meta.get('cookies'):
+            cookiejar.put_client_cookies(meta['cookies'])
 
         main_frame.loadStarted.connect(self._on_load_started)
         self.js_api = PortiaJSApi(self)

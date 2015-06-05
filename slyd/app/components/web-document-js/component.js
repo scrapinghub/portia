@@ -82,6 +82,8 @@ export default WebDocument.extend(ApplicationUtils, {
                 this.treeMirror[action].apply(this.treeMirror, args);
             }.bind(this));
         }.bind(this));
+
+        ws.addCommand('cookies', msg => this.saveCookies(msg._data));
     }.on('init'),
 
     connectionStatusType: 'warning',
@@ -146,6 +148,7 @@ export default WebDocument.extend(ApplicationUtils, {
                 id: unique_id,
                 viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight,
                 user_agent: navigator.userAgent,
+                cookies: this.cookies
             },
             _command: command || 'load',
             url: url
@@ -246,6 +249,18 @@ export default WebDocument.extend(ApplicationUtils, {
             size: iframe_window.innerWidth + 'x' + iframe_window.innerHeight
         });
     },
+
+    saveCookies: function(cookies){
+        this.cookies = cookies;
+        if(window.sessionStorage){
+            window.sessionStorage.portia_cookies = JSON.stringify(cookies);
+        }
+    },
+    loadCookies: function(){
+        if(window.sessionStorage && sessionStorage.portia_cookies){
+            this.cookies = JSON.parse(sessionStorage.portia_cookies);
+        }
+    }.on('init'),
 
     actions: {
         reconnectWebsocket: function() {
