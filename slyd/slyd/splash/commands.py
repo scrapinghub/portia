@@ -104,7 +104,6 @@ def close_tab(data, socket):
         socket.tab.close()
         socket.factory[socket].tab = None
 
-
 class ProjectData(ProjectModifier):
     errors = slyd.splash.utils
 
