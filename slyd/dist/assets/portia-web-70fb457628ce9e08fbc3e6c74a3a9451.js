@@ -3560,6 +3560,89 @@ define('portia-web/components/scrapinghub-branding/template', ['exports'], funct
   }()));
 
 });
+define('portia-web/components/scrapinghub-help/component', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Component.extend({
+        init: function init() {
+            var username = this.get('slyd.username'),
+                appId = this.get('data.app_id');
+            if (!username || !appId) {
+                return;
+            }
+            window.intercomSettings = {
+                app_id: appId,
+                user_id: username
+            };
+            var w = window;
+            var d = document;
+            var i = function i() {
+                i.c(arguments);
+            };
+            i.q = [];
+            i.c = function (args) {
+                i.q.push(args);
+            };
+            w.Intercom = i;
+            var s = d.createElement('script');
+            s.type = 'text/javascript';
+            s.async = true;
+            s.src = 'https://widget.intercom.io/widget/' + appId;
+            var x = d.getElementsByTagName('script')[0];
+            x.parentNode.insertBefore(s, x);
+        }
+    });
+
+});
+define('portia-web/components/scrapinghub-help/template', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      isHTMLBars: true,
+      revision: "Ember@1.11.3",
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+        dom.insertBoundary(fragment, 0);
+        content(env, morph0, context, "yield");
+        return fragment;
+      }
+    };
+  }()));
+
+});
 define('portia-web/components/text-area-with-button', ['exports', 'portia-web/components/text-field-with-button'], function (exports, TextFieldWithButton) {
 
     'use strict';
@@ -8046,6 +8129,10 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
         return el0;
       },
       render: function render(context, env, contextualElement) {
@@ -8074,6 +8161,7 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         var morph3 = dom.createMorphAt(fragment,5,5,contextualElement);
         var morph4 = dom.createMorphAt(fragment,7,7,contextualElement);
         var morph5 = dom.createMorphAt(fragment,8,8,contextualElement);
+        var morph6 = dom.createMorphAt(fragment,10,10,contextualElement);
         dom.insertBoundary(fragment, 0);
         block(env, morph0, context, "top-bar", [], {"branding": get(env, context, "customizations.branding"), "project": get(env, context, "slyd.project")}, child0, null);
         inline(env, morph1, context, "outlet", ["conflictResolver"], {});
@@ -8081,6 +8169,7 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         content(env, morph3, context, "web-document");
         block(env, morph4, context, "tool-box", [], {}, child1, null);
         content(env, morph5, context, "bs-notifications");
+        inline(env, morph6, context, "component", [get(env, context, "customizations.help.component")], {"data": get(env, context, "customizations.help.data")});
         return fragment;
       }
     };
