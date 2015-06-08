@@ -91,6 +91,11 @@ class Fetch(BotResource):
                 slyd_request_params=params
             )
         )
+        scrapy_request_kwargs.setdefault('headers', {})
+        user_agent = request.requestHeaders.getRawHeaders('user-agent')
+        if user_agent:
+            scrapy_request_kwargs['headers'].setdefault('user-agent',
+                                                        user_agent[0])
         request = Request(**scrapy_request_kwargs)
         self.bot.runner.crawl(SlydSpider)
         crawler = list(self.bot.runner.crawlers)[0]
