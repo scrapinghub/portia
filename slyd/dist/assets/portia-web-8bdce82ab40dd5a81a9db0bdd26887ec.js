@@ -2887,25 +2887,45 @@ define('portia-web/components/dummy-component', ['exports', 'ember'], function (
 	exports['default'] = Ember['default'].Component.extend({});
 
 });
-define('portia-web/components/edit-item', ['exports', 'ember'], function (exports, Ember) {
+define('portia-web/components/edit-item', ['exports', 'ember', 'portia-web/mixins/notification-handler'], function (exports, Ember, NotificationHandler) {
 
     'use strict';
 
-    exports['default'] = Ember['default'].Component.extend({
+    exports['default'] = Ember['default'].Component.extend(NotificationHandler['default'], {
         item: null,
+        itemFields: null,
         extractionTypes: [],
+
+        updateFields: (function () {
+            this.set('itemFields', this.getWithDefault('item.fields', []).copy());
+        }).on('init'),
 
         actions: {
             addField: function addField() {
                 this.sendAction('addField', this.get('item'));
+                this.updateFields();
             },
 
             deleteField: function deleteField(field) {
                 this.sendAction('deleteField', this.get('item'), field);
+                this.updateFields();
             },
 
             'delete': function _delete() {
                 this.sendAction('delete', this.get('item'));
+            },
+
+            editField: function editField(text, index) {
+                if (text == 'url') {
+                    var field = this.get('item.fields').get(index);
+                    if (field) {
+                        field.set('name', this.get('itemFields').get(index).name);
+                        this.get('item.fields').replace(index, 1, [field]);
+                    }
+                    this.showErrorNotification('Naming a field "url" is not allowed as there is already a field with this name');
+                    return;
+                }
+                this.updateFields();
             }
         }
     });
@@ -10277,7 +10297,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
         return {
           isHTMLBars: true,
           revision: "Ember@1.11.3",
-          blockParams: 0,
+          blockParams: 2,
           cachedFragment: null,
           hasRendered: false,
           build: function build(dom) {
@@ -10358,9 +10378,9 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
             dom.appendChild(el0, el1);
             return el0;
           },
-          render: function render(context, env, contextualElement) {
+          render: function render(context, env, contextualElement, blockArguments) {
             var dom = env.dom;
-            var hooks = env.hooks, get = hooks.get, block = hooks.block, inline = hooks.inline;
+            var hooks = env.hooks, set = hooks.set, get = hooks.get, block = hooks.block, inline = hooks.inline;
             dom.detectNamespace(contextualElement);
             var fragment;
             if (env.useFragmentCache && dom.canClone) {
@@ -10384,7 +10404,9 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
             var morph2 = dom.createMorphAt(dom.childAt(element0, [5]),1,1);
             var morph3 = dom.createMorphAt(dom.childAt(element0, [7]),1,1);
             var morph4 = dom.createMorphAt(dom.childAt(element0, [9]),1,1);
-            block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "field.name"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
+            set(env, context, "field", blockArguments[0]);
+            set(env, context, "index", blockArguments[1]);
+            block(env, morph0, context, "inline-editable-text-field", [], {"action": "editField", "text": get(env, context, "field.name"), "name": get(env, context, "index"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
             inline(env, morph1, context, "item-select", [], {"options": get(env, context, "extractionTypes"), "value": get(env, context, "field.type")});
             inline(env, morph2, context, "check-box", [], {"checked": get(env, context, "field.required")});
             inline(env, morph3, context, "check-box", [], {"checked": get(env, context, "field.vary")});
@@ -10510,7 +10532,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
           var morph1 = dom.createMorphAt(fragment,5,5,contextualElement);
           dom.insertBoundary(fragment, null);
           inline(env, morph0, context, "bs-button", [], {"icon": "fa fa-icon fa-trash", "type": "danger", "disabled": true, "size": "xs"});
-          block(env, morph1, context, "each", [get(env, context, "item.fields")], {"keyword": "field"}, child0, null);
+          block(env, morph1, context, "each", [get(env, context, "item.fields")], {}, child0, null);
           return fragment;
         }
       };
