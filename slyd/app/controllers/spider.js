@@ -185,7 +185,7 @@ export default BaseController.extend({
         allLinks.each(function(i, link) {
             var uri = URI(link.href),
                 followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 &&
-                this.get('spiderDomains').has(uri.hostname());
+                           this._allowedDomain(uri.hostname());
             sprites.pushObject(ElementSprite.create({
                 element: link,
                 hasShadow: false,
@@ -194,6 +194,16 @@ export default BaseController.extend({
         }.bind(this));
         this.set('spriteStore.sprites', sprites);
     }.observes('followedLinks', 'showLinks', 'spiderDomains'),
+
+    _allowedDomain: function(hostname) {
+        var split_host = hostname.split('.');
+        for (var i=1; i < split_host.length; i++) {
+            if (this.get('spiderDomains').has(split_host.slice(-i-2).slice().join('.'))) {
+                return true;
+            }
+        }
+        return false;
+    },
 
     currentUrl: function() {
         if (!Ember.isEmpty(this.get('pendingFetches'))) {
