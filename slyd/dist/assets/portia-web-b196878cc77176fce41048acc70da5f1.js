@@ -5332,7 +5332,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 sprites = [];
             allLinks.each((function (i, link) {
                 var uri = URI(link.href),
-                    followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 && this.get('spiderDomains').has(uri.hostname());
+                    followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 && this._allowedDomain(uri.hostname());
                 sprites.pushObject(canvas.ElementSprite.create({
                     element: link,
                     hasShadow: false,
@@ -5341,6 +5341,19 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             }).bind(this));
             this.set('spriteStore.sprites', sprites);
         }).observes('followedLinks', 'showLinks', 'spiderDomains'),
+
+        _allowedDomain: function _allowedDomain(hostname) {
+            var split_host = hostname.split('.');
+            console.log('SpiderDomains:');
+            console.log(this.get('spiderDomains'));
+            for (var i = 0; i < split_host.length; i++) {
+                console.log(split_host.slice(-i - 1).join('.'));
+                if (this.get('spiderDomains').has(split_host.slice(-i - 1).join('.'))) {
+                    return true;
+                }
+            }
+            return false;
+        },
 
         currentUrl: (function () {
             if (!Ember['default'].isEmpty(this.get('pendingFetches'))) {
