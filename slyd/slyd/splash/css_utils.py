@@ -9,7 +9,7 @@ CSS_URL = re.compile(r'''\burl\(("[^"]+"|'[^']+'|[^"')][^)]+)\)''')
 BAD_CSS = re.compile(r'''(-moz-binding|expression\s*\(|javascript\s*:)''', re.I)
 
 
-def wrap_url(url, base=None):
+def wrap_url(url, tabid, base=None):
     referer = None
     if base:
         referer = urlparse(base).netloc
@@ -24,10 +24,11 @@ def wrap_url(url, base=None):
 
     return "/proxy?" + urllib.urlencode({
         "url": url,
-        "referer": referer
+        "referer": referer,
+        "tabid": tabid
     })
 
-def process_css(css_source, base_uri):
+def process_css(css_source, tabid, base_uri):
     """
     Wraps urls in css source.
 
@@ -36,11 +37,11 @@ def process_css(css_source, base_uri):
     '@import "/proxy?..."'
     """
     def _absolutize_css_import(match):
-        return '@import "{}"'.format(wrap_url(match.group(1), base_uri).replace('"', '%22'))
+        return '@import "{}"'.format(wrap_url(match.group(1), tabid, base_uri).replace('"', '%22'))
 
     def _absolutize_css_url(match):
         url = match.group(1).strip("\"'")
-        return 'url("{}")'.format(wrap_url(url, base_uri).replace('"', '%22'))
+        return 'url("{}")'.format(wrap_url(url, tabid, base_uri).replace('"', '%22'))
 
     css_source = CSS_IMPORT.sub(_absolutize_css_import, css_source)
     css_source = CSS_URL.sub(_absolutize_css_url, css_source)
