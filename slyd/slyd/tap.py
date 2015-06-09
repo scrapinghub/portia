@@ -49,6 +49,7 @@ def create_root(config, settings_module):
 
     from slyd.splash.ferry import (FerryServerProtocol, FerryServerFactory,
                                    create_ferry_resource)
+    from slyd.splash.proxy import ProxyResource
 
     root = Resource()
     static = Resource()
@@ -89,6 +90,8 @@ def create_root(config, settings_module):
     factory.setProtocolOptions(allowHixie76=True)
     websocket = create_ferry_resource(spec_manager, factory)
     root.putChild("ws", websocket)
+
+    root.putChild('proxy', ProxyResource())
 
     auth_manager = AuthManager(settings)
     return auth_manager.protectResource(root)

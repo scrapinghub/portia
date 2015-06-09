@@ -23,6 +23,7 @@ from slyd.errors import BaseHTTPError
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        update_project_data, rename_project_data, delete_project_data)
+from .css_utils import process_css, wrap_url
 
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
 _DEFAULT_VIEWPORT = '1240x680'
@@ -103,6 +104,14 @@ class PortiaJSApi(QObject):
         element = self.element
         self.element = None
         return element
+
+    @pyqtSlot(str, str, result=str)
+    def processCss(self, css, baseuri):
+        return process_css(unicode(css), unicode(baseuri))
+
+    @pyqtSlot(str, str, result=str)
+    def wrapUrl(self, url, baseuri):
+        return wrap_url(unicode(url), unicode(baseuri))
 
     @pyqtSlot(str)
     def sendMessage(self, message):
