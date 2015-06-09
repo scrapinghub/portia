@@ -370,6 +370,9 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             });
             this.set('data.annotations', annotations);
             this.set('data.required', required);
+            if (this.get('mappedElement').attr('content')) {
+                this.set('data.text-content', 'text content');
+            }
             this.updateExtractedFields();
             this.notifyPropertyChange('sprite');
         },
@@ -5344,11 +5347,8 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
 
         _allowedDomain: function _allowedDomain(hostname) {
             var split_host = hostname.split('.');
-            console.log('SpiderDomains:');
-            console.log(this.get('spiderDomains'));
-            for (var i = 0; i < split_host.length; i++) {
-                console.log(split_host.slice(-i - 1).join('.'));
-                if (this.get('spiderDomains').has(split_host.slice(-i - 1).join('.'))) {
+            for (var i = 1; i < split_host.length; i++) {
+                if (this.get('spiderDomains').has(split_host.slice(-i - 2).slice().join('.'))) {
                     return true;
                 }
             }
@@ -6398,10 +6398,14 @@ define('portia-web/initializers/add-prototypes', ['exports', 'ember', 'portia-we
         };
 
         Ember['default'].$.fn.getAttributeList = function () {
-            var attributeList = [];
+            var attributeList = [],
+                text_content_key = 'content';
+            if (this.attr('content')) {
+                text_content_key = 'text content';
+            }
             if (this.text()) {
                 attributeList.push(Attribute['default'].create({
-                    name: 'content',
+                    name: text_content_key,
                     value: this.text() }));
             }
             var element = this.get(0);

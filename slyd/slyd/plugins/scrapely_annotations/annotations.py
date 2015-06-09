@@ -67,7 +67,8 @@ def _gen_annotation_info(annotation):
             'annotations': annotation.get('annotations', {}),
             'required': annotation.get('required', []),
             'variant': int(annotation.get('variant', 0)),
-            'generated': annotation.get('generated', False)
+            'generated': annotation.get('generated', False),
+            'text-content': annotation.get('text-content', 'content'),
         }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):
