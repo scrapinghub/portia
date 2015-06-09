@@ -57,18 +57,18 @@ class FerryWebSocketResource(WebSocketResource):
 
 
 class User(object):
-    _by_username = WeakValueDictionary()
+    _by_id = WeakValueDictionary()
     def __init__(self, auth, tab=None, spider=None, spiderspec=None):
         self.auth = auth
         self.tab = tab
         self.spider = spider
         self.spiderspec = spiderspec
-        if 'username' in self.auth:
-            User._by_username[self.auth['username']] = self
+        self.tabid = id(self)
+        User._by_id[self.tabid] = self
 
     @classmethod
-    def findByUserName(cls, username):
-        return cls._by_username.get(username, None)
+    def findById(cls, tabid):
+        return cls._by_id.get(tabid, None)
 
     def __getattr__(self, key):
         try:
@@ -107,11 +107,11 @@ class PortiaJSApi(QObject):
 
     @pyqtSlot(str, str, result=str)
     def processCss(self, css, baseuri):
-        return process_css(unicode(css), unicode(baseuri))
+        return process_css(unicode(css), self.protocol.user.tabid, unicode(baseuri))
 
     @pyqtSlot(str, str, result=str)
     def wrapUrl(self, url, baseuri):
-        return wrap_url(unicode(url), unicode(baseuri))
+        return wrap_url(unicode(url), self.protocol.user.tabid, unicode(baseuri))
 
     @pyqtSlot(str)
     def sendMessage(self, message):
