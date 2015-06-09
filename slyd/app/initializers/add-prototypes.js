@@ -37,10 +37,14 @@ export function initialize() {
     };
 
     Ember.$.fn.getAttributeList = function() {
-        var attributeList = [];
+        var attributeList = [],
+            text_content_key = 'content';
+        if (this.attr('content')) {
+            text_content_key = 'text content';
+        }
         if (this.text()) {
             attributeList.push(Attribute.create({
-                name: 'content',
+                name: text_content_key,
                 value: this.text()}));
         }
         var element = this.get(0);
