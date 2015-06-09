@@ -5,7 +5,7 @@ from urlparse import urlparse
 from autobahn.twisted.resource import WebSocketResource
 from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
-from weakref import WeakKeyDictionary
+from weakref import WeakKeyDictionary, WeakValueDictionary
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
@@ -56,11 +56,18 @@ class FerryWebSocketResource(WebSocketResource):
 
 
 class User(object):
+    _by_username = WeakValueDictionary()
     def __init__(self, auth, tab=None, spider=None, spiderspec=None):
         self.auth = auth
         self.tab = tab
         self.spider = spider
         self.spiderspec = spiderspec
+        if 'username' in self.auth:
+            User._by_username[self.auth['username']] = self
+
+    @classmethod
+    def findByUserName(cls, username):
+        return cls._by_username.get(username, None)
 
     def __getattr__(self, key):
         try:
