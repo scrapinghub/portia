@@ -3530,161 +3530,6 @@ define('portia-web/components/regex-text-field-with-button/template', ['exports'
   }()));
 
 });
-define('portia-web/components/scrapinghub-branding/component', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Component.extend({
-        data: {},
-        project: null,
-
-        url: (function () {
-            if (this.get('project')) {
-                return [this.get('data.url'), 'p', this.get('project')].join('/');
-            }
-            return this.get('data.url');
-        }).property('data.url', 'project')
-    });
-
-});
-define('portia-web/components/scrapinghub-branding/template', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("a");
-        dom.setAttribute(el1,"style","position:absolute;top:4px;right:4px;");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("img");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, concat = hooks.concat, attribute = hooks.attribute;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var element0 = dom.childAt(fragment, [0]);
-        var element1 = dom.childAt(element0, [1]);
-        var attrMorph0 = dom.createAttrMorph(element0, 'href');
-        var attrMorph1 = dom.createAttrMorph(element1, 'src');
-        attribute(env, attrMorph0, element0, "href", concat(env, [get(env, context, "url")]));
-        attribute(env, attrMorph1, element1, "src", concat(env, [get(env, context, "data.logo_url")]));
-        return fragment;
-      }
-    };
-  }()));
-
-});
-define('portia-web/components/scrapinghub-help/component', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Component.extend({
-        init: function init() {
-            var username = this.get('slyd.username'),
-                appId = this.get('data.app_id');
-            if (!username || !appId) {
-                return;
-            }
-            window.intercomSettings = {
-                app_id: appId,
-                user_id: username };
-            var w = window;
-            var d = document;
-            var i = function i() {
-                i.c(arguments);
-            };
-            i.q = [];
-            i.c = function (args) {
-                i.q.push(args);
-            };
-            w.Intercom = i;
-            var s = d.createElement('script');
-            s.type = 'text/javascript';
-            s.async = true;
-            s.src = 'https://widget.intercom.io/widget/' + appId;
-            var x = d.getElementsByTagName('script')[0];
-            x.parentNode.insertBefore(s, x);
-        }
-    });
-
-});
-define('portia-web/components/scrapinghub-help/template', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, content = hooks.content;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
-        dom.insertBoundary(fragment, 0);
-        content(env, morph0, context, "yield");
-        return fragment;
-      }
-    };
-  }()));
-
-});
 define('portia-web/components/text-area-with-button', ['exports', 'portia-web/components/text-field-with-button'], function (exports, TextFieldWithButton) {
 
     'use strict';
@@ -6732,10 +6577,7 @@ define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', '
         hash.url = (config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host) + '/server_capabilities';
         ajax['default'](hash).then((function (settings) {
             this.set('serverCapabilities', settings['capabilities']);
-            this.set('serverCustomization', Ember['default'].Object.create());
-            for (var key in settings['custom']) {
-                this.set('serverCustomization.' + key, Ember['default'].Object.create().setProperties(settings['custom'][key]));
-            }
+            this.set('serverCustomization', settings['custom']);
             container.register('api:capabilities', Ember['default'].Object.create().setProperties(application.get('serverCapabilities')), { instantiate: false });
             container.register('app:custom', Ember['default'].Object.create().setProperties(application.get('serverCustomization')), { instantiate: false });
             var api = new SlydApi['default']();
@@ -6749,6 +6591,7 @@ define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', '
             application.inject('controller', 'slyd', 'api:slyd');
             application.inject('component', 'slyd', 'api:slyd');
             application.inject('controller', 'customizations', 'app:custom');
+            application.inject('component', 'customizations', 'app:custom');
             application.inject('controller', 'capabilities', 'api:capabilities');
             application.inject('route', 'capabilities', 'api:capabilities');
             this.advanceReadiness();
@@ -8230,15 +8073,11 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
         return el0;
       },
       render: function render(context, env, contextualElement) {
         var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block, inline = hooks.inline, content = hooks.content;
+        var hooks = env.hooks, block = hooks.block, inline = hooks.inline, content = hooks.content;
         dom.detectNamespace(contextualElement);
         var fragment;
         if (env.useFragmentCache && dom.canClone) {
@@ -8262,15 +8101,13 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         var morph3 = dom.createMorphAt(fragment,5,5,contextualElement);
         var morph4 = dom.createMorphAt(fragment,7,7,contextualElement);
         var morph5 = dom.createMorphAt(fragment,8,8,contextualElement);
-        var morph6 = dom.createMorphAt(fragment,10,10,contextualElement);
         dom.insertBoundary(fragment, 0);
-        block(env, morph0, context, "top-bar", [], {"branding": get(env, context, "customizations.branding"), "project": get(env, context, "slyd.project")}, child0, null);
+        block(env, morph0, context, "top-bar", [], {}, child0, null);
         inline(env, morph1, context, "outlet", ["conflictResolver"], {});
         inline(env, morph2, context, "outlet", ["modal"], {});
         content(env, morph3, context, "web-document");
         block(env, morph4, context, "tool-box", [], {}, child1, null);
         content(env, morph5, context, "bs-notifications");
-        inline(env, morph6, context, "component", [get(env, context, "customizations.help.component")], {"data": get(env, context, "customizations.help.data")});
         return fragment;
       }
     };
@@ -12578,58 +12415,6 @@ define('portia-web/templates/components/pin-toolbox-button', ['exports'], functi
   }()));
 
 });
-define('portia-web/templates/components/portia-branding', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("span");
-        dom.setAttribute(el1,"class","pull-right label-align");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, inline = hooks.inline;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
-        inline(env, morph0, context, "bs-label", [], {"type": "danger", "content": "Beta"});
-        return fragment;
-      }
-    };
-  }()));
-
-});
 define('portia-web/templates/components/text-area-with-button', ['exports'], function (exports) {
 
   'use strict';
@@ -13057,16 +12842,25 @@ define('portia-web/templates/components/top-bar', ['exports'], function (exports
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
+        var el2 = dom.createElement("span");
+        dom.setAttribute(el2,"class","pull-right label-align");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         return el0;
       },
       render: function render(context, env, contextualElement) {
         var dom = env.dom;
-        var hooks = env.hooks, content = hooks.content, get = hooks.get, inline = hooks.inline;
+        var hooks = env.hooks, content = hooks.content, inline = hooks.inline;
         dom.detectNamespace(contextualElement);
         var fragment;
         if (env.useFragmentCache && dom.canClone) {
@@ -13087,10 +12881,10 @@ define('portia-web/templates/components/top-bar', ['exports'], function (exports
         var element0 = dom.childAt(fragment, [0]);
         var morph0 = dom.createMorphAt(dom.childAt(element0, [1]),1,1);
         var morph1 = dom.createMorphAt(element0,3,3);
-        var morph2 = dom.createMorphAt(element0,5,5);
+        var morph2 = dom.createMorphAt(dom.childAt(element0, [5]),1,1);
         content(env, morph0, context, "bread-crumbs");
         content(env, morph1, context, "yield");
-        inline(env, morph2, context, "component", [get(env, context, "branding.component")], {"project": get(env, context, "project"), "data": get(env, context, "branding.data")});
+        inline(env, morph2, context, "bs-label", [], {"type": "danger", "content": "Beta"});
         return fragment;
       }
     };
