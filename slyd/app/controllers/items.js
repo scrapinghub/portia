@@ -20,9 +20,9 @@ export default BaseController.extend({
             return;
         }
         var newField = ItemField.create({ name: name || 'new_field',
-                                                 type: type || 'text',
-                                                 required: false,
-                                                 vary: false });
+                                          type: type || 'text',
+                                          required: false,
+                                          vary: false });
         owner.set('fields', owner.fields || []);
         owner.fields.pushObject(newField);
     },

@@ -33,6 +33,10 @@ SPEC_FACTORY = {
         'branding': {
             'component': 'portia-branding',
             'data': {}
+        },
+        'help': {
+            'component': 'dummy-component',
+            'data': {}
         }
     }
 }

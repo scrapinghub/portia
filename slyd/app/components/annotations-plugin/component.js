@@ -325,6 +325,9 @@ export default Ember.Component.extend({
         });
         this.set('data.annotations', annotations);
         this.set('data.required', required);
+        if (this.get('mappedElement').attr('content')) {
+            this.set('data.text-content', 'text content');
+        }
         this.updateExtractedFields();
         this.notifyPropertyChange('sprite');
     },

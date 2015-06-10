@@ -9,8 +9,8 @@ export default Ember.Component.extend({
             this.get('slyd').makeAjaxCall({
                 type: 'POST',
                 url: '/projects',
-                data: JSON.stringify({'cmd': 'download',
-                                      'args': [this.get('slyd.project'), '*', [0, 10]]}),
+                data: {'cmd': 'download',
+                       'args': [this.get('slyd.project'), '*', [0, 10]]},
                 dataType: 'binary'
             }).then(function(blob) {
                 this.element.setAttribute('href', window.URL.createObjectURL(blob));
