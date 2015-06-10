@@ -5,7 +5,7 @@ from urlparse import urlparse
 from autobahn.twisted.resource import WebSocketResource
 from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
-from weakref import WeakKeyDictionary
+from weakref import WeakKeyDictionary, WeakValueDictionary
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
@@ -23,6 +23,7 @@ from slyd.errors import BaseHTTPError
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        update_project_data, rename_project_data, delete_project_data)
+from .css_utils import process_css, wrap_url
 
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
 _DEFAULT_VIEWPORT = '1240x680'
@@ -56,11 +57,18 @@ class FerryWebSocketResource(WebSocketResource):
 
 
 class User(object):
+    _by_id = WeakValueDictionary()
     def __init__(self, auth, tab=None, spider=None, spiderspec=None):
         self.auth = auth
         self.tab = tab
         self.spider = spider
         self.spiderspec = spiderspec
+        self.tabid = id(self)
+        User._by_id[self.tabid] = self
+
+    @classmethod
+    def findById(cls, tabid):
+        return cls._by_id.get(tabid, None)
 
     def __getattr__(self, key):
         try:
@@ -96,6 +104,14 @@ class PortiaJSApi(QObject):
         element = self.element
         self.element = None
         return element
+
+    @pyqtSlot(str, str, result=str)
+    def processCss(self, css, baseuri):
+        return process_css(unicode(css), self.protocol.user.tabid, unicode(baseuri))
+
+    @pyqtSlot(str, str, result=str)
+    def wrapUrl(self, url, baseuri):
+        return wrap_url(unicode(url), self.protocol.user.tabid, unicode(baseuri))
 
     @pyqtSlot(str)
     def sendMessage(self, message):

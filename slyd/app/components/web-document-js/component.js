@@ -12,11 +12,6 @@ function treeMirrorDelegate(webdoc){
             var node = null;
             if(tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
                 node = document.createElement('NOSCRIPT');
-            } else if(tagName === 'HEAD') {
-                node = document.createElement('HEAD');
-                var base = document.createElement('BASE');
-                base.setAttribute('href', webdoc.treeMirror.baseURI);
-                node.appendChild(base);
             } else if(tagName === 'FORM') {
                 node = document.createElement(tagName);
                 $(node).on('submit', ()=>false);
