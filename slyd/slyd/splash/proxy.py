@@ -36,10 +36,12 @@ class ProxyResource(Resource):
             'pragma': 'no-cache',
             'content-type': 'application/octet-stream',
         }
-        for header in 'content-type', 'cache-control', 'pragma':
+        for header in 'content-type', 'cache-control', 'pragma', 'vary', 'max-age':
             if reply.hasRawHeader(header):
                 headers[header] = str(reply.rawHeader(header))
-                request.setHeader(header, headers[header])
+
+        for header, value in headers.iteritems():
+            request.setHeader(header, value)
 
         if headers['content-type'].strip().startswith('text/css'):
             content = process_css(content, tabid, original_url)
