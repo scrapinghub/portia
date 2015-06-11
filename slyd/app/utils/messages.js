@@ -15,6 +15,8 @@ export default Ember.Object.create({
     selected_region_children: 'Refine your selection by navigating its children.',
     sticky_fields: 'Required attributes are not extracted, but they must be present for a page to match the sample.',
     annotation_widget: 'Select the attribute you want to extract and an item field to map it. <br/><br/>Choose <b>-just required-</b> to indicate that the sample must match a particular feature without generating any extracted data. <br/><br/> You can create new fields by clicking the <b>+ field button</b> or by seleting the <b>-create new-</b> option from the <b>field</b> combobox.',
+    enable_js_for_links: 'Javascript will be run on pages matching the patterns below before data and links are extracted.',
+    disable_js_for_links: 'Only raw HTML will be fetched for pages matching the patterns below.',
 
     // Other messages.
     confirm_change_selection: 'If you select a different region you will lose all current attribute mappings and ignored subregions, proceed anyway?',

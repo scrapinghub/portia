@@ -22,7 +22,8 @@ from slyd.errors import BaseHTTPError
 
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
-                       update_project_data, rename_project_data, delete_project_data)
+                       update_project_data, rename_project_data,
+                       delete_project_data)
 from .css_utils import process_css, wrap_url
 
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
@@ -97,7 +98,8 @@ class PortiaJSApi(QObject):
 
     @pyqtSlot(QWebElement)
     def returnElement(self, element):
-        """ Hack to return an DOM node as a QWebElement instead of QVariant(QVariantMap) """
+        """Hack to return an DOM node as a QWebElement instead of
+        QVariant(QVariantMap) """
         self.element = element
 
     def getReturnedElement(self):
@@ -205,7 +207,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
         )
 
     def getElementByNodeId(self, nodeid):
-        self.tab.web_page.mainFrame().evaluateJavaScript('livePortiaPage.pyGetByNodeId(%s)' % nodeid);
+        self.tab.web_page.mainFrame().evaluateJavaScript(
+            'livePortiaPage.pyGetByNodeId(%s)' % nodeid
+        )
         return self.js_api.getReturnedElement()
 
     def open_tab(self, meta=None):
@@ -231,7 +235,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
         main_frame.loadStarted.connect(self._on_load_started)
         self.js_api = PortiaJSApi(self)
-        main_frame.javaScriptWindowObjectCleared.connect(self.populate_window_object)
+        main_frame.javaScriptWindowObjectCleared.connect(
+            self.populate_window_object
+        )
 
         self.tab.set_images_enabled(False)
         self.tab.set_viewport(meta.get('viewport', _DEFAULT_VIEWPORT))
@@ -242,8 +248,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.sendMessage({'_command': 'loadStarted'})
 
     def populate_window_object(self):
-        self.tab.web_page.mainFrame().addToJavaScriptWindowObject('__portiaApi', self.js_api)
-        self.tab.run_js_files('/app/slyd/dist/splash_content_scripts', handle_errors=False)
+        self.tab.web_page.mainFrame().addToJavaScriptWindowObject(
+            '__portiaApi', self.js_api)
+        self.tab.run_js_files('/app/slyd/dist/splash_content_scripts',
+                              handle_errors=False)
 
     def open_spider(self, meta):
         if ('project' not in meta or 'spider' not in meta or

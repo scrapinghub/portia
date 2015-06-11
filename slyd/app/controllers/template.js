@@ -2,6 +2,8 @@ import Ember from 'ember';
 import BaseController from './base-controller';
 import Extractor from '../models/extractor';
 import MappedFieldData from '../models/mapped-field-data';
+import Item from '../models/item';
+import ItemField from '../models/item-field';
 import SpriteStore from '../utils/sprite-store';
 
 export default BaseController.extend({
@@ -293,7 +295,26 @@ export default BaseController.extend({
 
         createField: function(item, fieldName, fieldType) {
             item.addField(fieldName, fieldType);
-            this.get('ws').save('items', this.get('items').toArray());
+            var items = this.get('items').toArray(),
+                slyd = this.get('slyd');
+            items = items.map(function(item) {
+                item = item.serialize();
+                if (item.fields) {
+                    item.fields = slyd.listToDict(item.fields);
+                }
+                return item;
+            });
+            items = slyd.listToDict(items);
+            this.get('ws').save('items', items).then(function(data) {
+
+                items = slyd.dictToList(data.saved.items, Item);
+                items.forEach(function(item) {
+                    if (item.fields) {
+                        item.fields = slyd.dictToList(item.fields, ItemField);
+                    }
+                });
+                this.set('project_models.items', items);
+            }.bind(this));
         },
 
         rename: function(newName) {
@@ -458,10 +479,10 @@ export default BaseController.extend({
     },
 
     setDocument: function() {
-        if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
+        if (!this.get('model') || !this.get('model.annotated_body') || !this.get('loadDocument')) {
             return;
         }
-        this.get('documentView').displayDocument({page: this.get('model.annotated_body'), fp: this.get('model.fp')},
+        this.get('documentView').displayDocument(this.get('model.annotated_body'),
         function() {
             if (!this.get('model.plugins')) {
                 this.set('model.plugins', Ember.Object.create({

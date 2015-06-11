@@ -1,3 +1,5 @@
+import re
+
 from operator import itemgetter
 from copy import deepcopy
 import itertools
@@ -45,6 +47,8 @@ class IblSpider(Spider):
             instance.setup_bot(settings, spec, item_schemas, all_extractors)
             self.plugins[plugin_name] = instance
 
+        self.js_enabled = spec.get('js_enabled', False)
+        self._filter_js_urls = self._build_js_url_filter(spec)
         self.login_requests = []
         self.form_requests = []
         self._start_requests = []
@@ -186,6 +190,10 @@ class IblSpider(Spider):
                 self._plugin_hook('process_request', item_or_request, response)
             else:
                 self._plugin_hook('process_item', item_or_request, response)
+            if (self.js_enabled and
+                    isinstance(item_or_request, Request) and
+                    self._filter_js_urls(item_or_request.url)):
+                item_or_request = self._add_splash_meta(item_or_request)
             yield item_or_request
 
     def handle_rss(self, response):
@@ -193,3 +201,33 @@ class IblSpider(Spider):
 
     def handle_html(self, response):
         return self._handle('handle_html', response)
+
+    def _build_js_url_filter(self, spec):
+        if not self.js_enabled:
+            return lambda x: None
+        enable_patterns = spec.get('js_enable_patterns')
+        disable_patterns = spec.get('js_disable_patterns')
+        filterf = None
+        enablef = None
+        if enable_patterns:
+            pattern = enable_patterns[0] if len(enable_patterns) == 1 else \
+                "(?:%s)" % '|'.join(enable_patterns)
+            pattern_re = re.compile(pattern)
+            enablef = lambda x: pattern_re.search(x)
+        if disable_patterns:
+            pattern = disable_patterns[0] if len(disable_patterns) == 1 else \
+                "(?:%s)" % '|'.join(disable_patterns)
+            pattern_re = re.compile(pattern)
+            disablef = lambda x: pattern_re.search(x)
+            if not enablef:
+                filterf = lambda x: not disablef(x)
+            else:
+                filterf = lambda x: enablef(x) and not disablef(x)
+        return filterf if filterf else lambda x: x
+
+    def _add_splash_meta(self, request):
+        request.meta['splash'] = {
+            'wait': 1,
+            'images': 0,
+        }
+        return request

@@ -37,9 +37,25 @@ export default BaseController.extend({
             }
         }.bind(this));
         if (valid) {
-            this.get('ws').save('items', this.model).then(function() {
-                this.set('project_models.items', this.model);
-                this.transitionToRoute(this.getParentRoute());
+            var items = this.get('model'),
+                slyd = this.get('slyd');
+            items = items.map(function(item) {
+                item = item.serialize();
+                if (item.fields) {
+                    item.fields = slyd.listToDict(item.fields);
+                }
+                return item;
+            });
+            items = slyd.listToDict(items);
+            this.get('ws').save('items', items).then(function(data) {
+                items = slyd.dictToList(data.saved.items, Item);
+                items.forEach(function(item) {
+                    if (item.fields) {
+                        item.fields = slyd.dictToList(item.fields, ItemField);
+                    }
+                });
+                this.set('project_models.items', items);
+                this.transitionToRoute('template');
             }.bind(this));
         }
     },

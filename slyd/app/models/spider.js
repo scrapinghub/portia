@@ -4,6 +4,7 @@ import SimpleModel from './simple-model';
 export default SimpleModel.extend({
     serializedProperties: ['start_urls',
         'start_urls', 'links_to_follow', 'follow_patterns',
+        'js_enabled', 'js_enable_patterns', 'js_disable_patterns',
         'exclude_patterns', 'respect_nofollow',
         'init_requests', 'template_names'],
     serializedRelations: ['templates'],

@@ -657,23 +657,29 @@ export default Ember.Component.extend(GuessTypes, {
                 id = data.id,
                 generated = data.generated,
                 insertAfter = data.insert_after,
+                iframe = this.getIframe(),
                 tagid = data.tagid;
             if (generated) {
-                var elem = this.get('document.iframe').find('[data-genid=' + id + ']');
+                var elem = iframe.find('[data-genid=' + id + ']');
                 if (elem.length < 1) {
                     if (insertAfter) {
-                        elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').parent().find('ins');
+                        elem = iframe.find('[data-tagid=' + tagid + ']').parent().find('ins');
                     } else {
-                        elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').siblings('ins');
+                        elem = iframe.find('[data-tagid=' + tagid + ']').siblings('ins');
                     }
                 }
                 this.set('mappedElement', elem);
             } else {
-                this.set('mappedElement', this.get('document.iframe').find('[data-tagid=' + tagid + ']'));
+                this.set('mappedElement', iframe.find('[data-tagid=' + tagid + ']'));
             }
             this.set('mappedDOMElement', this.get('mappedElement').get(0));
         }
-        this.notifyPropertyChange('sprite');
+        this.updateSprite();
+        this.updateIgnore();
+    },
+
+    getIframe: function() {
+        return this.get('document.view').getIframe();
     },
 
     mapToNewElement: function(elem) {
