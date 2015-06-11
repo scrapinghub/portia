@@ -182,14 +182,15 @@ export default BaseController.extend({
         }
         var followedLinks = this.getWithDefault('followedLinks', {}),
             allLinks = Ember.$(Ember.$('#scraped-doc-iframe').contents().get(0).links),
-            sprites = [];
+            sprites = [],
+            colors = {
+                'raw': 'rgba(45,136,45,0.3)',
+                'js': 'rgba(34,102,102,0.3)'
+            };
         allLinks.each(function(i, link) {
-            var followed = followedLinks[link.href] &&
-                this.get('spiderDomains').has(URI.parse(link.href)['hostname'].split('.').slice(-2).join('.')),
-                colors = {
-                    'raw': 'rgba(45,136,45,0.3)',
-                    'js': 'rgba(34,102,102,0.3)'
-                };
+            var uri = URI(link.href),
+                followed = followedLinks[uri.fragment('').toString()] &&
+                           this._allowedDomain(uri.hostname());
             sprites.pushObject(ElementSprite.create({
                 element: link,
                 hasShadow: false,
@@ -198,6 +199,16 @@ export default BaseController.extend({
         }.bind(this));
         this.set('spriteStore.sprites', sprites);
     }.observes('followedLinks', 'showLinks', 'spiderDomains'),
+
+    _allowedDomain: function(hostname) {
+        var split_host = hostname.split('.');
+        for (var i=0; i < split_host.length; i++) {
+            if (this.get('spiderDomains').has(split_host.slice(-i-2).join('.'))) {
+                return true;
+            }
+        }
+        return false;
+    },
 
     currentUrl: function() {
         if (!Ember.isEmpty(this.get('pendingFetches'))) {
@@ -273,6 +284,7 @@ export default BaseController.extend({
         var fetchId = this.guid();
         this.get('pendingFetches').pushObject(fetchId);
         this.set('documentView.sprites', new SpriteStore());
+        this.set('documentView.listener', this);
         this.get('documentView').fetchDocument(url, this.get('model.name'), parentFp).
             then(function(data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
@@ -297,19 +309,6 @@ export default BaseController.extend({
         );
     },
 
-    displayPage: function(fp) {
-        this.set('loadedPageFp', null);
-        var documentView = this.get('documentView');
-        documentView.displayDocument(this.get('pageMap')[fp],
-            function(){
-                this.get('documentView').reset();
-                this.get('documentView').config({ mode: 'browse',
-                    listener: this,
-                    dataSource: this });
-                this.set('loadedPageFp', fp);
-            }.bind(this));
-    },
-
     addTemplate: function() {
         var page = this.get('pageMap')[this.get('loadedPageFp')],
             iframeTitle = this.get('documentView').getIframe().get(0).title,
@@ -322,8 +321,6 @@ export default BaseController.extend({
             { name: template_name,
               extractors: {},
               annotations: {},
-              annotated_body: page.page,
-              original_body: page.original,
               page_id: page.fp,
               _new: true,
               url: page.url }),
@@ -336,7 +333,7 @@ export default BaseController.extend({
         }
         this.get('model.template_names').pushObject(template_name);
         var serialized = template.serialize();
-        serialized.original_body = page.original;
+        serialized._new = true;
         this.get('ws').save('template', serialized).then(function() {
             this.set('saving', false);
             this.saveSpider().then(function() {
@@ -412,7 +409,6 @@ export default BaseController.extend({
         this.set('saving', true);
         return this.get('ws').save('spider', this.get('model')).then(function() {
             this.set('saving', false);
-            this.get('ws').send({'_command': 'extract'});
         }.bind(this),function() {
             this.set('saving', false);
         }.bind(this));
@@ -522,7 +518,8 @@ export default BaseController.extend({
             var history = this.get('browseHistory');
             history.removeAt(history.length - 1);
             var lastPageFp = history.get('lastObject');
-            this.displayPage(lastPageFp);
+            this.fetchPage(this.get('pageMap')[lastPageFp].url,
+                           history.length > 1 ? history.get(history.length -1) : null);
         },
 
         addStartUrls: function(urls) {
@@ -561,6 +558,30 @@ export default BaseController.extend({
         editFollowPattern: function(newVal, index) {
             this.deleteFollowPattern(this.get('model.follow_patterns').objectAt(index));
             this.addFollowPattern(newVal, index);
+        },
+
+        addJSEnablePattern: function(text) {
+            this.addJSPattern(text, 'disable');
+        },
+
+        editJSEnablePattern: function(newVal, index) {
+            this.editJSPattern(newVal, index, 'enable');
+        },
+
+        deleteJSEnablePattern: function(text) {
+            this.deleteJSPattern(text, 'enable');
+        },
+
+        addJSDisablePattern: function(text) {
+            this.addJSPattern(text, 'disable');
+        },
+
+        editJSDisablePattern: function(newVal, index) {
+            this.editJSPattern(newVal, index, 'disable');
+        },
+
+        deleteJSDisablePattern: function(text) {
+            this.deleteJSPattern(text, 'disable');
         },
 
         toggleShowItems: function() {
@@ -625,14 +646,38 @@ export default BaseController.extend({
         }
     },
 
+    addJSPattern: function(text, type) {
+        if (!this.get('model.js_'+type+'_patterns')) {
+            this.set('model.js_'+type+'_patterns', [text]);
+        } else {
+            this.get('model.js_'+type+'_patterns').pushObject(text);
+        }
+        this.notifyPropertyChange('model.js_'+type+'_patterns');
+        this.notifyPropertyChange('links_to_follow');
+    },
+
+    editJSPattern: function(val, index, type) {
+        this.deleteJSPattern(this.get('model.js_'+type+'_patterns').objectAt(index), type);
+        this.get('model.js_'+type+'_patterns').insertAt(index, val);
+        this.notifyPropertyChange('model.js_'+type+'_patterns');
+        this.notifyPropertyChange('links_to_follow');
+    },
+
+    deleteJSPattern: function(text, type) {
+        this.get('model.js_'+type+'_patterns').removeObject(text);
+        this.notifyPropertyChange('model.js_'+type+'_patterns');
+        this.notifyPropertyChange('links_to_follow');
+    },
+
     willEnter: function() {
         this.set('loadedPageFp', null);
         this.get('extractedItems').setObjects([]);
+        this.set('spiderName', this.get('model.name'));
         this.get('documentView').config({ mode: 'browse',
                                           listener: this,
                                           dataSource: this });
+        this.set('documentView.listener', this);
         this.get('documentView').showSpider();
-        this.set('spiderName', this.get('model.name'));
         this.set('documentView.sprites', new SpriteStore());
         if (this.get('autoloadTemplate')) {
             Ember.run.next(this, function() {

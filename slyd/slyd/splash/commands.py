@@ -24,6 +24,7 @@ def load_page(data, socket):
         return {'error': 4001, 'message': 'Required parameter url'}
 
     socket.tab.loaded = False
+
     def on_complete(error):
         extra_meta = {'id': data.get('_meta', {}).get('id')}
         if error:
@@ -32,7 +33,11 @@ def load_page(data, socket):
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
 
-    socket.tab.go(data['url'], lambda: on_complete(False), lambda: on_complete(True))
+    socket.tab.go(data['url'],
+                  lambda: on_complete(False),
+                  lambda: on_complete(True),
+                  baseurl=data['url'])
+
 
 @open_tab
 def interact_page(data, socket):
@@ -43,9 +48,9 @@ def interact_page(data, socket):
     except JsError as e:
         print e
 
+
 def metadata(socket, extra={}):
     socket.tab.loaded = True
-    html = socket.tab.evaljs('document.documentElement.outerHTML')
     res = {
         '_command': 'metadata',
         'loaded': socket.tab.loaded
@@ -64,27 +69,33 @@ def metadata(socket, extra={}):
     res.update(extra)
     return res
 
+
 def extract(socket):
     """Run spider on page URL to get extracted links and items"""
-    if socket.tab is None:
+    if socket.tab is None or not socket.tab.loaded:
         return {
             'items': [],
             'links': {},
         }
     templates = socket.spiderspec.templates
     url = str(socket.tab.url)
-    html = socket.tab.evaljs('document.documentElement.outerHTML')
+    html = socket.tab.html()
     js_items, js_links = extract_data(url, html, socket.spider, templates)
     raw_html = getattr(socket.tab, '_raw_html', None)
     if raw_html:
-        _, links = extract_data(url, raw_html, socket.spider, templates)
+        raw_items, links = extract_data(url, raw_html, socket.spider,
+                                        templates)
     else:
+        raw_items = []
         links = []
     raw = {l: 'raw' for l in links}
     js = {l: 'js' for l in js_links}
     js.update(raw)
+    items = js_items
+    if socket.spider.js_enabled and socket.spider._filter_js_urls(url):
+        items = raw_items
     return {
-        'items': js_items,
+        'items': items,
         'links': js,
     }
 
@@ -110,23 +121,28 @@ class ProjectData(ProjectModifier):
 
     def save_spider(self, data, socket):
         spider, meta = data.get('spider'), data.get('_meta')
-        spider = self.save_data(['spiders', meta.get('spider')], 'spider',
-                                data=spider, socket=socket, meta=meta)
+        return self.save_data(['spiders', meta.get('spider')], 'spider',
+                              data=spider, socket=socket, meta=meta)
 
     def save_template(self, data, socket):
         sample, meta = data.get('template'), data.get('_meta')
         path = ['spiders', meta.get('spider'), sample.get('name')]
-        sample = self.save_data(path, 'template', data=sample, socket=socket,
-                                meta=meta)
+        if '_new' in sample:
+            if socket.spider._filter_js_urls(sample['url']):
+                sample['original_body'] = socket.tab.html().decode('utf-8')
+            else:
+                sample['original_body'] = socket.tab._raw_html.decode('utf-8')
+        return self.save_data(path, 'template', data=sample, socket=socket,
+                              meta=meta)
 
     def save_extractors(self, data, socket):
         extractors, meta = data.get('extractors'), data.get('_meta')
-        self.save_data(['extractors'], data=extractors, socket=socket,
-                       meta=meta)
+        return self.save_data(['extractors'], data=extractors, socket=socket,
+                              meta=meta)
 
     def save_items(self, data, socket):
         items, meta = data.get('items'), data.pop('_meta', None)
-        self.save_data(['items'], data=items, socket=socket, meta=meta)
+        return self.save_data(['items'], data=items, socket=socket, meta=meta)
 
     def save_data(self, path, type=None, data=None, socket=None, meta=None):
         if type is None:
@@ -169,11 +185,11 @@ def update_project_data(data, socket):
     except AttributeError:
         raise BadRequest('Unknown option "%s" received' % option)
     else:
-        command(data, socket)
-    resp = {}
+        resp = {'saved': {option: command(data, socket)}}
     id = meta.get('id')
     if id:
         resp['id'] = id
+    resp.update(extract(socket))
     return resp
 
 
@@ -200,7 +216,9 @@ def delete_project_data(data, socket):
             command(spider, name)
             if socket.spiderspec:
                 socket.open_spider(meta)
-    return {'id': meta.get('id')}
+    resp = {'id': meta.get('id')}
+    resp.update(extract(socket))
+    return resp
 
 
 def rename_project_data(data, socket):

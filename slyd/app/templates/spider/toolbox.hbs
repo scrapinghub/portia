@@ -94,7 +94,7 @@
             </ul>
 
             {{#if displayEditPatterns}}
-                <h4>Follow links that match this patterns</h4>
+                <h4>Follow links that match these patterns</h4>
                 {{inline-help message="follow_links"}}
                 <div class="scrolling-container" {{bind-attr style="ex_tiny_box_style"}}>
                     {{#each model.follow_patterns as |pattern index|}}
@@ -110,7 +110,7 @@
 
                 <div style="margin-top:10px"></div>
 
-                <h4>Exclude links that match this patterns</h4>
+                <h4>Exclude links that match these patterns</h4>
                 {{inline-help message="exclude_links"}}
                 <div class="scrolling-container" {{bind-attr style="ex_tiny_box_style"}}>
                     {{#each model.exclude_patterns as |pattern index|}}
@@ -123,6 +123,42 @@
                 </div>
                 <div style="margin-top:10px"></div>
                 {{regex-text-field-with-button action='addExcludePattern' placeholder='New exclude pattern' reset=true}}
+            {{/if}}
+
+            <div style="margin-top:10px;margin-bottom:10px">
+                {{check-box checked=model.js_enabled name="enableJS"}}
+                <span class="important-label">Enable JS</span>
+            </div>
+            {{#if model.js_enabled}}
+                <h4>Enable JS for links that match these patterns</h4>
+                {{inline-help message="enable_js_for_links"}}
+                <div class="scrolling-container" {{bind-attr style="ex_tiny_box_style"}}>
+                    {{#each model.js_enable_patterns as |pattern index|}}
+                        {{display-button-edit-delete save='editJSEnablePattern' delete='deleteJSEnablePattern' text=pattern name=index}}
+                    {{else}}
+                        <div class="col-xs-12">
+                            <h5>No JS enabled patterns defined yet.</h5>
+                        </div>
+                    {{/each}}
+                </div>
+                <div style="margin-top:10px"></div>
+                {{regex-text-field-with-button action='addJSEnablePattern' placeholder='New JS enabled pattern' reset=true}}
+
+                <div style="margin-top:10px"></div>
+
+                <h4>Disable JS for links that match these patterns</h4>
+                {{inline-help message="disable_js_for_links"}}
+                <div class="scrolling-container" {{bind-attr style="ex_tiny_box_style"}}>
+                    {{#each model.js_disable_patterns as |pattern index|}}
+                        {{display-button-edit-delete save='editJSDisablePattern' delete='deleteJSDisablePattern' text=pattern name=index}}
+                    {{else}}
+                        <div class="col-xs-12">
+                            <h5>No JS disabled patterns defined yet.</h5>
+                        </div>
+                    {{/each}}
+                </div>
+                <div style="margin-top:10px"></div>
+                {{regex-text-field-with-button action='addJSDisablePattern' placeholder='New JS disabled pattern' reset=true}}
             {{/if}}
         </div>
     {{/accordion-item}}
