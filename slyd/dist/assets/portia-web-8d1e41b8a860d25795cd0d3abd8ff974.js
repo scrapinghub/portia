@@ -3841,11 +3841,6 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
                 var node = null;
                 if (tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
                     node = document.createElement('NOSCRIPT');
-                } else if (tagName === 'HEAD') {
-                    node = document.createElement('HEAD');
-                    var base = document.createElement('BASE');
-                    base.setAttribute('href', webdoc.treeMirror.baseURI);
-                    node.appendChild(base);
                 } else if (tagName === 'FORM') {
                     node = document.createElement(tagName);
                     $(node).on('submit', function () {
@@ -3894,6 +3889,7 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
                     listener.set('loadedPageFp', data.fp);
                 }
                 this.set('loadedPageFp', data.fp);
+                this.set('followedLinks', data.links);
                 this.set('currentUrl', data.url);
                 Ember['default'].run.next(this, function () {
                     this.redrawNow();
@@ -5849,7 +5845,6 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             var template = Template['default'].create({ name: template_name,
                 extractors: {},
                 annotations: {},
-                original_body: page.original,
                 page_id: page.fp,
                 _new: true,
                 url: page.url }),
@@ -5862,7 +5857,6 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             }
             this.get('model.template_names').pushObject(template_name);
             var serialized = template.serialize();
-            serialized.original_body = page.original;
             serialized._new = true;
             this.get('ws').save('template', serialized).then((function () {
                 this.set('saving', false);
