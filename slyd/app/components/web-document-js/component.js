@@ -22,7 +22,11 @@ function treeMirrorDelegate(webdoc){
             if(/^on/.test(attrName)) {
                 return true;
             }
-            node.setAttribute(attrName, value);
+            try{
+                node.setAttribute(attrName, value);
+            }catch(e){
+                console.log(e, attrName, value);
+            }
             return true;
         }
     };
@@ -201,9 +205,9 @@ export default WebDocument.extend(ApplicationUtils, {
     installEventHandlersForBrowsing: function() {
         this._super();
         var iframe = this.getIframe();
-        iframe.on('scroll.portia', e => Ember.run.throttle(this, this.postEvent, e, 200));
         iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
                   'mousedown.portia mouseup.portia', this.postEvent.bind(this));
+        this.addFrameEventListener("scroll", e => Ember.run.throttle(this, this.postEvent, e, 200), true);
         this.addFrameEventListener('focus', this.postEvent.bind(this), true);
         this.addFrameEventListener('blur', this.postEvent.bind(this), true);
         this.addFrameEventListener('change', this.postEvent.bind(this), true);

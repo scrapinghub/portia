@@ -76,7 +76,7 @@ PortiaPage.sendEvent.focus = function(element, data, type) {
 
 PortiaPage.sendEvent.scroll = function(element, data){
     // Scroll events in the body are dispatched on the documentElement, reverse this
-    if(element.scrollTopMax === 0 && element === document.documentElement){
+    if(element === document.documentElement && element.scrollHeight === document.body.scrollHeight){
         element = document.body;
     }
     // This will trigger the scroll event
