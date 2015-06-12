@@ -3,7 +3,7 @@ import json
 from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 
 from collections import defaultdict
-from itertools import tee
+from itertools import tee, count
 from uuid import uuid4
 
 from slyd.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
@@ -40,12 +40,21 @@ class Annotations(object):
 
 def _clean_annotation_data(data):
     result = []
+    sticky_count, stickies = count(1), set()
     for ann in data:
         if 'annotations' in ann and ann['annotations']:
-            filtered_annotations = {k: v for k, v in ann['annotations'].items()
-                                    if v and v.strip()}
+            filtered_annotations = {}
+            for k, v in ann['annotations'].items():
+                if not (v and v.strip()):
+                    continue
+                if v == '#sticky':
+                    next_sticky = '_sticky%s' % next(sticky_count)
+                    stickies.add(next_sticky)
+                    v = next_sticky
+                filtered_annotations[k] = v
+
             ann['annotations'] = filtered_annotations
-            ann['required'] = list(set(ann.get('required', [])) &
+            ann['required'] = list((set(ann.get('required', [])) | stickies) &
                                    set(filtered_annotations.values()))
             result.append(ann)
         elif "ignore" in ann or "ignore_beneath" in ann:
