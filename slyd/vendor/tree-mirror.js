@@ -148,7 +148,6 @@ var URL_ATTRIBUTES = {
     embed_src: true,
     object_data: true,
     video_poster: true,
-    a_href: true,
     iframe_src: true
 };
 function isUrlAttribute(tagName, attribute) {

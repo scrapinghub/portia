@@ -3849,6 +3849,34 @@ var TreeMirror = (function () {
     return TreeMirror;
 })();
 
+var URL_ATTRIBUTES = {
+    img_src: true,
+    link_href: true,
+    input_src: true,
+    body_background: true,
+    table_background: true,
+    td_background: true,
+    tr_background: true,
+    th_background: true,
+    tbody_background: true,
+    thead_background: true,
+    tfoot_background: true,
+    col_background: true,
+    colgroup_background: true,
+    section_background: true,
+    head_profile: true,
+    html_manifest: true,
+    command_icon: true,
+    embed_src: true,
+    object_data: true,
+    video_poster: true,
+    iframe_src: true
+};
+function isUrlAttribute(tagName, attribute) {
+    var key = tagName.toLowerCase() + '_' + attribute.toLowerCase();
+    return URL_ATTRIBUTES[key] || false;
+}
+
 var TreeMirrorClient = (function () {
     function TreeMirrorClient(target, mirror, testingQueries) {
         var _this = this;
@@ -3923,6 +3951,9 @@ var TreeMirrorClient = (function () {
             case Node.COMMENT_NODE:
             case Node.TEXT_NODE:
                 data.textContent = node.textContent;
+                if(node.parentNode && node.parentNode.tagName == "STYLE"){
+                    data.textContent = __portiaApi.processCss(data.textContent, node.baseURI);
+                }
                 break;
 
             case Node.ELEMENT_NODE:
@@ -3931,7 +3962,13 @@ var TreeMirrorClient = (function () {
                 data.attributes = {};
                 for (var i = 0; i < elm.attributes.length; i++) {
                     var attr = elm.attributes[i];
-                    data.attributes[attr.name] = attr.value;
+                    var value = attr.value;
+                    if(attr.name == "style"){
+                        value = __portiaApi.processCss(value, node.baseURI);
+                    } else if (isUrlAttribute(data.tagName, attr.name)){
+                        value = __portiaApi.wrapUrl(value, node.baseURI);
+                    }
+                    data.attributes[attr.name] = value;
                 }
 
                 if (recursive && elm.childNodes.length) {

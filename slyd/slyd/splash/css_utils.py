@@ -18,7 +18,7 @@ def wrap_url(url, tabid, base=None):
     referer = referer or parsed.netloc
 
     if parsed.scheme == 'data':
-        return url # TODO: process CSS inside data: urls
+        return url  # TODO: process CSS inside data: urls
     if parsed.scheme not in ('http', 'https', 'ftp'):
         return 'data:text/plain,invalid_scheme'
 
@@ -27,6 +27,7 @@ def wrap_url(url, tabid, base=None):
         "referer": referer,
         "tabid": tabid
     })
+
 
 def process_css(css_source, tabid, base_uri):
     """
@@ -37,11 +38,13 @@ def process_css(css_source, tabid, base_uri):
     '@import "/proxy?..."'
     """
     def _absolutize_css_import(match):
-        return '@import "{}"'.format(wrap_url(match.group(1), tabid, base_uri).replace('"', '%22'))
+        return '@import "{}"'.format(wrap_url(match.group(1), tabid,
+                                              base_uri).replace('"', '%22'))
 
     def _absolutize_css_url(match):
         url = match.group(1).strip("\"'")
-        return 'url("{}")'.format(wrap_url(url, tabid, base_uri).replace('"', '%22'))
+        return 'url("{}")'.format(wrap_url(url, tabid,
+                                           base_uri).replace('"', '%22'))
 
     css_source = CSS_IMPORT.sub(_absolutize_css_import, css_source)
     css_source = CSS_URL.sub(_absolutize_css_url, css_source)

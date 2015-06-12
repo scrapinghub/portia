@@ -59,6 +59,7 @@ class FerryWebSocketResource(WebSocketResource):
 
 class User(object):
     _by_id = WeakValueDictionary()
+
     def __init__(self, auth, tab=None, spider=None, spiderspec=None):
         self.auth = auth
         self.tab = tab
@@ -109,15 +110,21 @@ class PortiaJSApi(QObject):
 
     @pyqtSlot(str, str, result=str)
     def processCss(self, css, baseuri):
-        return process_css(unicode(css), self.protocol.user.tabid, unicode(baseuri))
+        return process_css(unicode(css), self.protocol.user.tabid,
+                           unicode(baseuri))
 
     @pyqtSlot(str, str, result=str)
     def wrapUrl(self, url, baseuri):
-        return wrap_url(unicode(url), self.protocol.user.tabid, unicode(baseuri))
+        return wrap_url(unicode(url), self.protocol.user.tabid,
+                        unicode(baseuri))
 
     @pyqtSlot(str)
     def sendMessage(self, message):
-        command, data = json.loads(unicode(message))
+        message = unicode(message)
+        try:
+            command, data = json.loads(message)
+        except ValueError:  # XXX: Possibly null terminated string
+            command, data = json.loads(message[:-1])
         self.protocol.sendMessage({
             '_command': command,
             '_data': data
