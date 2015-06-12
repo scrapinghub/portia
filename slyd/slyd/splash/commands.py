@@ -92,7 +92,7 @@ def extract(socket):
     js = {l: 'js' for l in js_links}
     js.update(raw)
     items = js_items
-    if socket.spider.js_enabled and socket.spider._filter_js_urls(url):
+    if not (socket.spider.js_enabled and socket.spider._filter_js_urls(url)):
         items = raw_items
     return {
         'items': items,
@@ -127,7 +127,7 @@ class ProjectData(ProjectModifier):
     def save_template(self, data, socket):
         sample, meta = data.get('template'), data.get('_meta')
         path = ['spiders', meta.get('spider'), sample.get('name')]
-        if '_new' in sample:
+        if sample.get('_new'):
             if socket.spider._filter_js_urls(sample['url']):
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
