@@ -1,10 +1,13 @@
 import functools
+import requests
 
+from twisted.internet.threads import deferToThread
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
 
 from .ferry import User
 from .css_utils import process_css
+
 
 class ProxyResource(Resource):
     def render_GET(self, request):
@@ -19,29 +22,36 @@ class ProxyResource(Resource):
         tabid = int(request.args['tabid'][0])
 
         user = User.findById(tabid)
+        cb = functools.partial(self.end_response, request, url, tabid)
         if not user:
-            return self._error(request, 403, "Browser Session doesn't exist")
+            d = deferToThread(requests.get, url, headers={'referer': referer})
+            d.addCallback(cb)
+            return NOT_DONE_YET
 
         if request.auth_info['username'] != user.auth['username']:
             return self._error(request, 403, "You don't own that browser session")
 
-        cb = functools.partial(self.end_response, request, url, tabid)
         user.tab.http_client.get(url, cb, headers={'referer': referer})
         return NOT_DONE_YET
 
     def end_response(self, request, original_url, tabid, reply):
-        content = str(reply.readAll())
+        if hasattr(reply, 'readAll'):
+            content = str(reply.readAll())
+        else:
+            content = ''.join(chunk for chunk in reply.iter_content(65535))
         headers = {
             'cache-control': 'private',
             'pragma': 'no-cache',
             'content-type': 'application/octet-stream',
         }
-        for header in 'content-type', 'cache-control', 'pragma', 'vary', 'max-age':
-            if reply.hasRawHeader(header):
-                headers[header] = str(reply.rawHeader(header))
 
-        for header, value in headers.iteritems():
-            request.setHeader(header, value)
+        for header in ('content-type', 'cache-control', 'pragma', 'vary',
+                       'max-age'):
+            if hasattr(reply, 'hasRawHeader') and reply.hasRawHeader(header):
+                headers[header] = str(reply.rawHeader(header))
+            elif hasattr(reply, 'headers') and header in reply.headers:
+                headers[header] = str(reply.headers.get(header))
+            request.setHeader(header, headers[header])
 
         if headers['content-type'].strip().startswith('text/css'):
             content = process_css(content, tabid, original_url)
