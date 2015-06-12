@@ -186,7 +186,7 @@ class IblSpider(Spider):
             _handler = getattr(plugin, handler, None)
             if _handler is None:
                 continue
-            for item_or_request in _handler(response):
+            for item_or_request in _handler(response, set()):
                 if (self.js_enabled and
                         isinstance(item_or_request, Request) and
                         self._filter_js_urls(item_or_request.url)):
