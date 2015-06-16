@@ -203,6 +203,22 @@ var TreeMirrorClient = (function () {
         this.knownNodes.delete(node);
     };
 
+    TreeMirrorClient.prototype.getAttribute = function (node, attr) {
+        var value = node.getAttribute(attr);
+        var tagName = node.tagName;
+
+        if(!value) { return value; }
+
+        if(attr === "style"){
+            return __portiaApi.processCss(value, node.baseURI);
+        } else if (isUrlAttribute(tagName, attr)){
+            return __portiaApi.wrapUrl(value, node.baseURI);
+        } else if (tagName === 'A' && attr === 'href') {
+            return node.href;
+        }
+        return value;
+    };
+
     TreeMirrorClient.prototype.serializeNode = function (node, recursive) {
         if (node === null)
             return null;
@@ -240,13 +256,7 @@ var TreeMirrorClient = (function () {
                 data.attributes = {};
                 for (var i = 0; i < elm.attributes.length; i++) {
                     var attr = elm.attributes[i];
-                    var value = attr.value;
-                    if(attr.name == "style"){
-                        value = __portiaApi.processCss(value, node.baseURI);
-                    } else if (isUrlAttribute(data.tagName, attr.name)){
-                        value = __portiaApi.wrapUrl(value, node.baseURI);
-                    }
-                    data.attributes[attr.name] = value;
+                    data.attributes[attr.name] = this.getAttribute(node, attr.name);
                 }
 
                 if (recursive && elm.childNodes.length) {
@@ -318,7 +328,7 @@ var TreeMirrorClient = (function () {
                     map.set(element, record);
                 }
 
-                record.attributes[attrName] = element.getAttribute(attrName);
+                record.attributes[attrName] = _this.getAttribute(element, attrName);
             });
         });
 
