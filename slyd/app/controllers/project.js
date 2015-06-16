@@ -140,8 +140,11 @@ export default BaseController.extend({
         documentView.showLoading();
         this.set('slyd.spider', null);
         this.set('ws.spider', null);
-        this.get('slyd').fetchDocument(siteUrl)
-            .then(function(data) {
+        this.get('ws')._sendPromise({
+            _command: 'resolve',
+            _meta: {id: this.shortGuid()},
+            url: siteUrl
+        }).then(function(data) {
                 if (data.error) {
                     documentView.hideLoading();
                     this.showErrorNotification('Failed to create spider', data.error);
@@ -227,8 +230,10 @@ export default BaseController.extend({
             this.showConfirm('Delete ' + spiderName,
                 'Are you sure you want to delete spider ' + spiderName + '?',
                 function() {
+                    this.set('ws.spider', spiderName);
                     this.get('ws').delete('spider', spiderName).then(
                         function() {
+                            this.set('ws.spider', null);
                             this.get('model').removeObject(spiderName);
                             this.set('refreshSpiders', !this.get('refreshSpiders'));
                             this.get('changedFiles').addObject('spiders/' + spiderName + '.json');

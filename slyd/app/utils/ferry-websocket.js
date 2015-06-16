@@ -11,6 +11,7 @@ const DEFAULT_COMMANDS = Object.freeze({
     saveChanges: function() {},
     delete: function() {},
     rename: function() {},
+    resolve: function() {},
 });
 
 var defaultUrl = function() {

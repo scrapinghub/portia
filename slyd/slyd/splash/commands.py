@@ -1,6 +1,8 @@
 import hashlib
 import json
 import re
+import socket as _socket
+import urlparse
 import traceback
 
 import slyd.splash.utils
@@ -47,6 +49,20 @@ def interact_page(data, socket):
         socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
     except JsError as e:
         print e
+
+
+def resolve(data, socket):
+    result = {'id': data.get('_meta', {}).get('id')}
+    try:
+        url = data['url']
+        parsed = urlparse.urlparse(url)
+        port = 443 if parsed.scheme == 'https' else 80
+        _socket.getaddrinfo(parsed.hostname, port)
+    except KeyError:
+        result['error'] = 'Can\'t create a spider without a start url'
+    except socket.gaierror:
+        result['error'] = 'Could not resolve "%s"' % url
+    return result
 
 
 def metadata(socket, extra={}):

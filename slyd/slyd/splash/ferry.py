@@ -22,7 +22,7 @@ from slyd.errors import BaseHTTPError
 
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
-                       update_project_data, rename_project_data,
+                       resolve, update_project_data, rename_project_data,
                        delete_project_data)
 from .css_utils import process_css, wrap_url
 
@@ -144,6 +144,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'saveChanges': update_project_data,
         'delete': delete_project_data,
         'rename': rename_project_data,
+        'resolve': resolve
     }
     spec_manager = None
     settings = None
