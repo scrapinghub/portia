@@ -299,7 +299,7 @@ export default BaseController.extend({
             if (!saveFuture) {
                 Ember.run.next(this, function() {
                     this.set('model.name', oldName);
-                })
+                });
                 return;
             }
             this.set('templateName', oldName);
@@ -393,7 +393,7 @@ export default BaseController.extend({
                 finishDiscard = function() {
                     var params = {
                         url: this.get('model.url')
-                    }
+                    };
                     if (!hasData) {
                         params.rmt = this.get('model.name');
                     }
@@ -410,7 +410,7 @@ export default BaseController.extend({
             }
 
             if (hasData) {
-                finishDiscard()
+                finishDiscard();
             } else {
                 this.get('slyd').deleteTemplate(this.get('slyd.spider'),
                                                 this.get('model.name')).then(finishDiscard);

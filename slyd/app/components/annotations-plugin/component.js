@@ -51,7 +51,7 @@ export default Ember.Component.extend({
                 });
             deleted.forEach(function(ann) {
                 extracted.removeObject(ann);
-            })
+            });
             this.set('pluginState.extracted', extracted);
             this.updateData('pluginState.extracted');
             this.closeWidget();
