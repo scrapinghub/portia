@@ -1,5 +1,4 @@
 import timer from '../../../utils/timer';
-import { module, test } from 'qunit';
 
 module('Unit | Utility | timer');
 

@@ -1,6 +1,5 @@
 import Ember from 'ember';
 import { initialize } from '../../../initializers/controller-helper';
-import { module, test } from 'qunit';
 
 var container, application;
 
