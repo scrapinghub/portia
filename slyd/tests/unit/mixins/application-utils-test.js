@@ -1,11 +1,11 @@
 import Ember from 'ember';
-import PortiaApplicationMixin from 'portia-web/mixins/portia-application';
+import PortiaUtilsMixin from 'portia-web/mixins/application-utils';
 
-module('PortiaApplicationMixin');
+module('PortiaUtilsMixin');
 
 // Replace this with your real tests.
 test('it works', function() {
-  var PortiaApplicationObject = Ember.Object.extend(PortiaApplicationMixin);
-  var subject = PortiaApplicationObject.create();
+  var PortiaUtilsObject = Ember.Object.extend(PortiaUtilsMixin);
+  var subject = PortiaUtilsObject.create();
   ok(subject);
 });

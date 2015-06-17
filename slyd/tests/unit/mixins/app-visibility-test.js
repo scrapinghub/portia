@@ -1,6 +1,5 @@
 import Ember from 'ember';
 import AppVisibilityMixin from '../../../mixins/app-visibility';
-import { module, test } from 'qunit';
 
 module('Unit | Mixin | app visibility');
 
