@@ -29,10 +29,10 @@
         <div class="row">
             <div class="col-md-1"></div>
             <div class="col-md-4">
-                {{text-field action="createField" update="updateNewFieldName" width="110px" placeholder="Enter name"}}
+                {{text-field action="createField" update="updateNewFieldName" width="110px" placeholder=guessedName default=defaultName}}
             </div>
             <div class="col-md-4" style="margin-top:3px;">
-                {{item-select options=extractionFieldTypes changed="updateNewFieldType" width="100px"}}
+                {{item-select options=extractionFieldTypes value=guessedType changed="updateNewFieldType" submit="createField" width="100px"}}
             </div>
             <div class="col-md-3" style="margin-top:4px;">
                 {{#bs-button clicked="createField" icon="fa fa-icon fa-plus" size="xs" type="primary" disabled=createFieldDisabled}}

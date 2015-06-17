@@ -748,7 +748,7 @@ input[type="checkbox"].offset-checkbox {
 }
 
 .current-crumb {
-    max-width: 48%;
+    max-width: 40%;
 }
 
 .inactive-crumb {
