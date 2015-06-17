@@ -57,6 +57,18 @@ export default WebDocument.extend(ApplicationUtils, {
             if(listener && listener.updateExtractedItems) {
                 listener.updateExtractedItems(data.items || []);
                 listener.set('followedLinks', data.links || []);
+                var pageMap = listener.get('pageMap')
+                // Handle page change in browser tab on the server caused by event
+                if (!pageMap[data.fp] || data.fp !== listener.get('loadedPageFp')) {
+                    pageMap[data.fp] = data;
+                    this.installEventHandlersForBrowsing();
+                    this.hideLoading();
+                    listener.get('browseHistory').pushObject(data.fp);
+                    Ember.run.later(this, function() {
+                        var doc = this.getIframeNode().contentWindow.document;
+                        doc.onscroll = this.redrawNow.bind(this);
+                    }, 500);
+                }
                 listener.set('loadedPageFp', data.fp);
             }
             this.set('loadedPageFp', data.fp);
