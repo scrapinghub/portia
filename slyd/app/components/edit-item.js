@@ -26,7 +26,7 @@ export default Ember.Component.extend(NotificationHandler, {
         },
 
         editField: function(text, index) {
-            if (text == 'url') {
+            if (text === 'url') {
                 var field = this.get('item.fields').get(index);
                 if (field) {
                     field.set('name', this.get('itemFields').get(index).name);
