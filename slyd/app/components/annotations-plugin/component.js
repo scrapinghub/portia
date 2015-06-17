@@ -1,8 +1,9 @@
 import Ember from 'ember';
+import GuessTypes from '../../mixins/guess-types';
 
-// TODO: Add ids to name fields. Allow for names to be changed them later.
+// TODO: Add ids to name fields. Allow for names to be changed later.
 
-export default Ember.Component.extend({
+export default Ember.Component.extend(GuessTypes, {
     tagName: 'div',
     classNameBindings: ['inDoc:in-doc', 'showAnnotation:annotation-widget'],
     fieldName: null,
@@ -69,6 +70,18 @@ export default Ember.Component.extend({
             if (value === '#create') {
                 value = null;
                 this.set('createNewIndex', index);
+                var annotation = this.get('mappings').get(index),
+                    extractedData = annotation.content,
+                    attribute = annotation.attribute,
+                    element = this.get('mappedDOMElement'),
+                    guess = this.get('guessedAttribute') !== attribute;
+                this.set('guessedType', this.guessFieldType(extractedData, element, guess));
+                var name = this.guessFieldName(element);
+                if (this.get('itemFields').mapBy('value').contains(name)) {
+                    name = null;
+                }
+                this.set('guessedName', name ? name : 'Enter name');
+                this.set('defaultName', name);
                 this.setState(true, false, false);
             } else if (value === '#sticky') {
                 this.setAttr(index, '#sticky', 'field', true);
@@ -97,7 +110,12 @@ export default Ember.Component.extend({
             var fieldName = this.get('newFieldName'),
                 fieldType = this.get('newFieldType');
             if (!fieldName || fieldName.length < 1) {
-                return;
+                var defaultName = this.get('defaultName');
+                if (defaultName && defaultName.length > 0) {
+                    this.set('newFieldName', defaultName);
+                } else {
+                    return;
+                }
             }
             if (!fieldType || fieldType.length < 1) {
                 this.set('newFieldType', 'text');
@@ -828,6 +846,9 @@ export default Ember.Component.extend({
             this.set('newFieldType', null);
             this.set('newFieldName', null);
             this.set('createNewIndex', null);
+            this.set('guessedName', null);
+            this.set('guessedType', null);
+            this.set('defaultName', null);
             this.sendAction('createField', this.get('item'), fieldName, fieldType);
             this.setAttr(attrIndex, fieldName, 'field');
             this.setState(false, false, true);
@@ -840,7 +861,13 @@ export default Ember.Component.extend({
         if (!annotations || attributes.length < 1) {
             return;
         }
-        annotations[attributes.get(0)] = null;
+        var attribute = this.guessFieldExtraction(this.get('mappedDOMElement'),
+                                                  attributes);
+        this.set('guessedAttribute', attribute);
+        if (!attribute) {
+            attribute = attributes.get(0);
+        }
+        annotations[attribute] = null;
         this.set('data.annotations', annotations);
         this.notifyPropertyChange('data.annotations');
     },

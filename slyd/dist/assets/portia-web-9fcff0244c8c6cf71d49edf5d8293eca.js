@@ -44,11 +44,11 @@ define('portia-web/components/accordion-item', ['exports', 'ember', 'ember-idx-a
     });
 
 });
-define('portia-web/components/annotations-plugin/component', ['exports', 'ember'], function (exports, Ember) {
+define('portia-web/components/annotations-plugin/component', ['exports', 'ember', 'portia-web/mixins/guess-types'], function (exports, Ember, GuessTypes) {
 
     'use strict';
 
-    exports['default'] = Ember['default'].Component.extend({
+    exports['default'] = Ember['default'].Component.extend(GuessTypes['default'], {
         tagName: 'div',
         classNameBindings: ['inDoc:in-doc', 'showAnnotation:annotation-widget'],
         fieldName: null,
@@ -115,6 +115,18 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 if (value === '#create') {
                     value = null;
                     this.set('createNewIndex', index);
+                    var annotation = this.get('mappings').get(index),
+                        extractedData = annotation.content,
+                        attribute = annotation.attribute,
+                        element = this.get('mappedDOMElement'),
+                        guess = this.get('guessedAttribute') !== attribute;
+                    this.set('guessedType', this.guessFieldType(extractedData, element, guess));
+                    var name = this.guessFieldName(element);
+                    if (this.get('itemFields').mapBy('value').contains(name)) {
+                        name = null;
+                    }
+                    this.set('guessedName', name ? name : 'Enter name');
+                    this.set('defaultName', name);
                     this.setState(true, false, false);
                 } else if (value === '#sticky') {
                     this.setAttr(index, '#sticky', 'field', true);
@@ -143,7 +155,12 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 var fieldName = this.get('newFieldName'),
                     fieldType = this.get('newFieldType');
                 if (!fieldName || fieldName.length < 1) {
-                    return;
+                    var defaultName = this.get('defaultName');
+                    if (defaultName && defaultName.length > 0) {
+                        this.set('newFieldName', defaultName);
+                    } else {
+                        return;
+                    }
                 }
                 if (!fieldType || fieldType.length < 1) {
                     this.set('newFieldType', 'text');
@@ -869,6 +886,9 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 this.set('newFieldType', null);
                 this.set('newFieldName', null);
                 this.set('createNewIndex', null);
+                this.set('guessedName', null);
+                this.set('guessedType', null);
+                this.set('defaultName', null);
                 this.sendAction('createField', this.get('item'), fieldName, fieldType);
                 this.setAttr(attrIndex, fieldName, 'field');
                 this.setState(false, false, true);
@@ -881,7 +901,12 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             if (!annotations || attributes.length < 1) {
                 return;
             }
-            annotations[attributes.get(0)] = null;
+            var attribute = this.guessFieldExtraction(this.get('mappedDOMElement'), attributes);
+            this.set('guessedAttribute', attribute);
+            if (!attribute) {
+                attribute = attributes.get(0);
+            }
+            annotations[attribute] = null;
             this.set('data.annotations', annotations);
             this.notifyPropertyChange('data.annotations');
         },
@@ -1216,7 +1241,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
           },
           render: function render(context, env, contextualElement) {
             var dom = env.dom;
-            var hooks = env.hooks, inline = hooks.inline, get = hooks.get, block = hooks.block;
+            var hooks = env.hooks, get = hooks.get, inline = hooks.inline, block = hooks.block;
             dom.detectNamespace(contextualElement);
             var fragment;
             if (env.useFragmentCache && dom.canClone) {
@@ -1238,8 +1263,8 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
             var morph0 = dom.createMorphAt(dom.childAt(element3, [3]),1,1);
             var morph1 = dom.createMorphAt(dom.childAt(element3, [5]),1,1);
             var morph2 = dom.createMorphAt(dom.childAt(element3, [7]),1,1);
-            inline(env, morph0, context, "text-field", [], {"action": "createField", "update": "updateNewFieldName", "width": "110px", "placeholder": "Enter name"});
-            inline(env, morph1, context, "item-select", [], {"options": get(env, context, "extractionFieldTypes"), "changed": "updateNewFieldType", "width": "100px"});
+            inline(env, morph0, context, "text-field", [], {"action": "createField", "update": "updateNewFieldName", "width": "110px", "placeholder": get(env, context, "guessedName"), "default": get(env, context, "defaultName")});
+            inline(env, morph1, context, "item-select", [], {"options": get(env, context, "extractionFieldTypes"), "value": get(env, context, "guessedType"), "changed": "updateNewFieldType", "submit": "createField", "width": "100px"});
             block(env, morph2, context, "bs-button", [], {"clicked": "createField", "icon": "fa fa-icon fa-plus", "size": "xs", "type": "primary", "disabled": get(env, context, "createFieldDisabled")}, child0, null);
             return fragment;
           }
@@ -2900,7 +2925,7 @@ define('portia-web/components/edit-item', ['exports', 'ember', 'portia-web/mixin
         extractionTypes: [],
 
         updateFields: (function () {
-            this.set('itemFields', this.getWithDefault('item.fields', []).copy());
+            this.set('itemFields', (this.getWithDefault('item.fields', []) || []).copy());
         }).on('init'),
 
         actions: {
@@ -3213,6 +3238,12 @@ define('portia-web/components/item-select', ['exports', 'ember'], function (expo
             }
             return '';
         }).property('width'),
+
+        keyUp: function keyUp(e) {
+            if (e.which === 13) {
+                this.sendAction('submit', this.get('value'), this.get('name'));
+            }
+        },
 
         buildOptions: function buildOptions() {
             var selectedValue = this.get('value'),
@@ -5909,7 +5940,11 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
         scrapedItem: (function () {
             if (!Ember['default'].isEmpty(this.get('items'))) {
-                return this.get('items').findBy('name', this.get('model.scrapes'));
+                var item = this.get('items').findBy('name', this.get('model.scrapes'));
+                if (!item.fields) {
+                    item.fields = [];
+                }
+                return item;
             } else {
                 return null;
             }
@@ -6490,6 +6525,16 @@ define('portia-web/initializers/add-prototypes', ['exports', 'ember', 'portia-we
         String.prototype.lstrip = function () {
             return this.replace(/^[\s\r\n]*/g, '');
         };
+
+        if (!String.prototype.trim) {
+            (function () {
+                // Make sure we trim BOM and NBSP
+                var rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
+                String.prototype.trim = function () {
+                    return this.replace(rtrim, '');
+                };
+            })();
+        }
     }
 
     exports['default'] = {
@@ -6929,6 +6974,195 @@ define('portia-web/mixins/droppable', ['exports', 'ember'], function (exports, E
         dragOver: function dragOver(event) {
             event.preventDefault();
             this.set('dragClass', 'drop-target-dragging');
+        }
+    });
+
+});
+define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    var TAG_TYPES = {
+        text: new Set(["b", "blockquote", "cite", "code", "dd", "del", "dfn", "div", "em", "h1", "h2", "h3", "h4", "h5", "h6", "i", "id", "ins", "kbd", "lang", "mark", "p", "rb", "s", "samp", "small", "span", "strong", "sub", "sup", "td", "th", "title", "u"]),
+        date: new Set(["time"]),
+        media: new Set(["audio", "embed", "img", "source", "video"]),
+        url: new Set(["a", "area"]),
+        data: new Set(["data"]),
+        option: new Set(["option"]),
+        input: new Set(["input"]),
+        quote: new Set(["q"]),
+        meta: new Set(["meta"]),
+        map: new Set(["map"]),
+        article: new Set(["article"]),
+        abbr: new Set(["abbr"])
+    };
+
+    var TYPE_FIELD_ORDER = {
+        text: ["text content"],
+        date: ["datetime", "text content"],
+        media: ["src", "srcset", "media"],
+        url: ["href"],
+        data: ["value", "text content"],
+        option: ["label", "value", "text content"],
+        input: ["value", "src", "name", "type"],
+        quote: ["cite", "text content"],
+        meta: ["content"],
+        map: ["name"],
+        article: ["text content"],
+        abbr: ["title", "text content"]
+    };
+
+    var FIELD_TYPE = {
+        text: "text",
+        date: "date",
+        media: "image",
+        url: "url",
+        map: "text",
+        article: "safe html"
+    };
+
+    var VOCAB_FIELD_PROPERTY = {
+        image: new Set(["photo"]),
+        price: new Set(["price"]),
+        geopoint: new Set(["geo"]),
+        url: new Set(["logo", "agent", "sound", "url", "attach", "license"]),
+        date: new Set(["bday", "rev", "dtstart", "dtend", "exdate", "rdate", "created", "last-modified"])
+    };
+
+    var VOCAB_FIELD_CLASS = {
+        number: new Set(["p-rating", "p-best", "p-worst", "p-longitude", "p-latitude", "p-yield"]),
+        image: new Set(["u-photo"]),
+        geopoint: new Set(["u-geo", "p-geo"]),
+        url: new Set(["u-url", "u-url"]),
+        date: new Set(["dt-bday", "dt-reviewed", "dt-start", "dt-end", "dt-rev", "dt-published", "dt-updated"])
+    };
+
+    exports['default'] = Ember['default'].Mixin.create({
+        guessFieldName: function guessFieldName(element) {
+            if (element.attributes.property) {
+                return element.attributes.property.value;
+            }
+            if (element.attributes.itemprop) {
+                return element.attributes.itemprop.value;
+            }
+            if (element.attributes.name) {
+                return element.attributes.name.value;
+            }
+        },
+
+        guessFieldType: function guessFieldType(extractedData, element, guess) {
+            var type = this.guessFieldClassification(element);
+            if (type !== null) {
+                var classes = element.classList,
+                    attributes = element.attributes,
+                    property;
+                if (attributes.property) {
+                    property = attributes.property.value;
+                }
+                if (attributes.itemprop) {
+                    property = attributes.itemprop.value;
+                }
+                if (guess || !FIELD_TYPE[type]) {
+                    return this.guessType(extractedData, property, classes);
+                }
+                return FIELD_TYPE[type];
+            }
+        },
+
+        guessFieldExtraction: function guessFieldExtraction(element, attributes) {
+            var type = this.guessFieldClassification(element);
+            if (type !== null) {
+                var fieldOrders = TYPE_FIELD_ORDER[type];
+                attributes = attributes || element.attributes;
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = fieldOrders[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var f = _step.value;
+
+                        if (f === "text content") {
+                            if (attributes.contains("text content")) {
+                                return f;
+                            } else {
+                                return "content";
+                            }
+                        }
+                        if (attributes.contains(f)) {
+                            return f;
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator["return"]) {
+                            _iterator["return"]();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+            }
+        },
+
+        guessFieldClassification: function guessFieldClassification(element) {
+            var tag = element.tagName.toLowerCase();
+            for (var key in TAG_TYPES) {
+                if (TAG_TYPES[key].has(tag)) {
+                    return key;
+                }
+            }
+            return null;
+        },
+
+        guessType: function guessType(data, property, classes) {
+            var classes = Array.prototype.slice.call(classes, 0),
+                key;
+            if (property) {
+                for (key in VOCAB_FIELD_PROPERTY) {
+                    if (VOCAB_FIELD_PROPERTY[key].has(property)) {
+                        return key;
+                    }
+                }
+            }
+            if (classes) {
+                var prefixes = new Set(["p", "u", "dt"]);
+                classes = classes.filter(function (c) {
+                    return prefixes.has(c.split("-")[0]);
+                });
+                if (classes.length) {
+                    for (key in VOCAB_FIELD_CLASS) {
+                        for (var i = 0; i < classes.length; i++) {
+                            property = classes[i];
+                            if (VOCAB_FIELD_CLASS[key].has(property)) {
+                                return key;
+                            }
+                        }
+                    }
+                }
+            }
+            if (/^(?:(?:http)|(?:\/))/.test(data)) {
+                return "url";
+            }
+            data = data.trim();
+            var geopoint = data.match(/[+-]?\d+(?:\.\d+)?[,;]\s?[+-]?\d+(?:\.\d+)?/);
+            if (geopoint !== null) {
+                return "geopoint";
+            }
+            var prices = data.match(/\d+(?:(?:,\d{3})+)?(?:.\d+)?/);
+            if (prices !== null && prices.length && prices[0].length / data.length > 0.05) {
+                return "prices";
+            }
+            var numbers = data.match(/\d+(?:\.\d+)?/);
+            if (numbers !== null && numbers.length && numbers[0].length / data.length > 0.05) {
+                return "number";
+            }
+            return "text";
         }
     });
 

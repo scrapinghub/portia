@@ -16,6 +16,11 @@ export default Ember.Component.extend({
         return '';
     }.property('width'),
 
+    keyUp: function(e) {
+        if (e.which === 13) {
+            this.sendAction('submit', this.get('value'), this.get('name'))
+        }
+    },
 
     buildOptions: function() {
         var selectedValue = this.get('value'),
