@@ -1,9 +1,9 @@
 import {
-  moduleForModel,
+  moduleFor,
   test
 } from 'ember-qunit';
 
-moduleForModel('annotation', 'Annotation', {
+moduleFor('model:annotation', 'Annotation', {
   // Specify the other units that are required for this test.
   needs: []
 });

@@ -1,9 +1,9 @@
 import {
-  moduleForModel,
+  moduleFor,
   test
 } from 'ember-qunit';
 
-moduleForModel('extracted-variant', 'ExtractedVariant', {
+moduleFor('model:extracted-variant', 'ExtractedVariant', {
   // Specify the other units that are required for this test.
   needs: []
 });

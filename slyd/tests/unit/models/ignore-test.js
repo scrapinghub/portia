@@ -1,9 +1,9 @@
 import {
-  moduleForModel,
+  moduleFor,
   test
 } from 'ember-qunit';
 
-moduleForModel('ignore', 'Ignore', {
+moduleFor('model:ignore', 'Ignore', {
   // Specify the other units that are required for this test.
   needs: []
 });
