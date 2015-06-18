@@ -6,6 +6,8 @@ cache:
   directories:
   - "$HOME/.cache/pip"
   - "$HOME/.cache/wheelhouse"
+  - slyd/node_modules
+  - slyd/bower_components
 install:
 - pip wheel -r ./slybot/requirements.txt
 - pip install --use-wheel -r ./slybot/requirements.txt
