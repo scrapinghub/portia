@@ -6,6 +6,6 @@ module('TrimHelper');
 
 // Replace this with your real tests.
 test('it works', function() {
-  var result = trim(42);
+  var result = trim("Hello World");
   ok(result);
 });

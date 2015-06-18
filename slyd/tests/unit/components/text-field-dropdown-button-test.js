@@ -5,7 +5,7 @@ import {
 
 moduleForComponent('text-field-dropdown-button', 'TextFieldDropdownButtonComponent', {
   // specify the other units that are required for this test
-  // needs: ['component:foo', 'helper:bar']
+   needs: ['component:text-field', 'component:item-select', 'component:bs-button']
 });
 
 test('it renders', function() {
