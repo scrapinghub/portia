@@ -1,9 +1,9 @@
 import {
-  moduleForModel,
+  moduleFor,
   test
 } from 'ember-qunit';
 
-moduleForModel('mapped-field-data', 'MappedFieldData', {
+moduleFor('model:mapped-field-data', 'MappedFieldData', {
   // Specify the other units that are required for this test.
   needs: []
 });

@@ -1,9 +1,9 @@
 import {
-  moduleForModel,
+  moduleFor,
   test
 } from 'ember-qunit';
 
-moduleForModel('extracted-field', 'ExtractedField', {
+moduleFor('model:extracted-field', 'ExtractedField', {
   // Specify the other units that are required for this test.
   needs: []
 });
