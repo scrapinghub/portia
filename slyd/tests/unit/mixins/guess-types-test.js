@@ -1,6 +1,5 @@
 import Ember from 'ember';
 import GuessTypesMixin from '../../../mixins/guess-types';
-import { module, test } from 'qunit';
 
 module('Unit | Mixin | guess types');
 
