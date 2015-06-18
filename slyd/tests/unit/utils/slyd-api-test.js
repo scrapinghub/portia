@@ -4,6 +4,6 @@ module('slydApi');
 
 // Replace this with your real tests.
 test('it works', function() {
-  var result = slydApi();
+  var result = slydApi.create();
   ok(result);
 });

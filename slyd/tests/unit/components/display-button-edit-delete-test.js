@@ -6,6 +6,7 @@ import {
 moduleForComponent('display-button-edit-delete', 'DisplayButtonEditDeleteComponent', {
   // specify the other units that are required for this test
   // needs: ['component:foo', 'helper:bar']
+   needs: ['component:inline-editable-text-field', 'component:bs-button']
 });
 
 test('it renders', function() {
