@@ -7,7 +7,7 @@ export default Ember.Component.extend(NotificationHandler, {
     extractionTypes: [],
 
     updateFields: function() {
-        this.set('itemFields', this.getWithDefault('item.fields', []).copy());
+        this.set('itemFields', (this.getWithDefault('item.fields', []) || []).copy());
     }.on('init'),
 
     actions: {
