@@ -1,17 +1,17 @@
 {{#if isObject}}
     {{#if isConflict}}
         {{#if resolved}}
-            <span style="color:green;font-weight:bold">RESOLVED TO {{selectedOption}}</span>
+            <span style="color:#2d882d;font-weight:bold">RESOLVED</span>
             <div {{action 'conflictOptionSelected' path null}} style="margin:5px 0px 0px 40px;background:#AEA;" class="conflict-option">
-                <span style="font-weight:bold;color:green;margin:5px"> [CHANGE SELECTION] </span>
+                <span style="font-weight:bold;color:#2d882d;margin:5px"> [CHANGE SELECTION] </span>
                 {{resolvedValue}},
             </div>
         {{else}}
-            <span style="color:red;font-weight:bold">CONFLICTED VALUE</span>
+            <span style="color:#ff3939;font-weight:bold">CONFLICT</span>
             <div style="margin-left:40px;">
                 {{#each value in conflictValues}}
-                    <div {{action 'conflictOptionSelected' path this.key}} class="conflict-option">
-                        <div style="color:white">{{value.label}}:</div>
+                    <div {{action 'conflictOptionSelected' path value.key}} class="conflict-option">
+                        <div style="color:#F3F3F3;font-weight:bold">{{value.label}}:</div>
                         <div style="word-break:break-word">
                             {{value.value}}
                         </div>
@@ -20,13 +20,13 @@
             </div>
         {{/if}}
     {{else}}
-        <div>{
+        <div>
             {{#each entry in entries}}
                 <div style="margin:5px 5px 0px 20px;">
-                    <span style="font-weight:bold">{{entry.key}}:</span>{{json-file-compare json=entry.json path=entry.path}}
+                    <span style="font-weight:bold">{{entry.key}}:</span>{{json-file-compare json=entry.json path=entry.path conflictedKeyPaths=conflictedKeyPaths conflictOptionSelected="conflictOptionSelected"}}
                 </div>
             {{/each}}
-        },</div>
+        </div>
     {{/if}}
 {{else}}
     {{value}},

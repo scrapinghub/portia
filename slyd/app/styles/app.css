@@ -466,12 +466,12 @@ ul.breadcrumbs {
     border:dotted 1px #999;
     margin:2px;
     padding:3px;
-    background:#EAA;
+    background:rgba(255,57,57,0.4);
     word-wrap:break-word;
 }
 
 .conflict-option:hover {
-    border:dotted 1px green;
+    border:dotted 1px #2D882D;
     background:#AEA;
 }
 

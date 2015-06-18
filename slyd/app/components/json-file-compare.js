@@ -6,8 +6,8 @@ export default Ember.Component.extend({
     path: '',
 
     selectedOption: function() {
-        return this.get('controller.conflictedKeyPaths')[this.get('path')];
-    }.property('controller.conflictedKeyPaths'),
+        return this.get('conflictedKeyPaths.'+this.get('path'));
+    }.property('conflictedKeyPaths'),
 
     v: function(json) {
         if (json) {
@@ -62,4 +62,12 @@ export default Ember.Component.extend({
             return null;
         }
     }.property('json'),
+
+    actions: {
+        conflictOptionSelected: function(path, option) {
+            this.set('conflictedKeyPaths.'+path, option);
+            this.sendAction('conflictOptionSelected', path, option);
+            this.notifyPropertyChange('conflictedKeyPaths');
+        }
+    }
 });

@@ -6,7 +6,6 @@ from slybot.validation.schema import get_schema_validator
 from .resource import SlydJsonResource
 from .html import html4annotation
 from .errors import BaseHTTPError
-from .utils import short_guid
 
 
 def create_project_resource(spec_manager):
@@ -34,9 +33,6 @@ def clean_spider(obj):
                                 if all(f in req for f in required_fields)]
     if 'start_urls' in obj:
         obj['start_urls'] = list(set(obj['start_urls']))
-    # XXX: Need id to keep track of renames for deploy and export
-    if 'id' not in obj:
-        obj['id'] = short_guid()
 
 
 def add_plugin_data(obj, plugins):

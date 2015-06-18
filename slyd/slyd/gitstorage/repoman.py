@@ -226,7 +226,7 @@ class Repoman(object):
         conflicts = self._publish_branch(branch_name, force, message)
         if dry_run:
             if conflicts:
-                return False
+                return conflicts
             return True
 
         if conflicts:
@@ -251,18 +251,18 @@ class Repoman(object):
         else:
             # We need to merge and maybe deal with conflicts.
             common_ancestor = self.get_branch_checkpoints(branch_name)[-1]
-            merge_tree, had_conflict = self._merge_branches(
+            merge_tree, conflicts = self._merge_branches(
                 common_ancestor, branch, head)
             commit = self._create_commit()
             commit.tree = merge_tree.id
-            if had_conflict:
+            if conflicts:
                 commit.parents = [branch]
                 commit.message = 'Resolve merge conflicts'
             else:
                 commit.parents = [head]
                 commit.message = 'Publishing changes'
             self.commit = commit
-            return had_conflict
+            return conflicts
 
     def advance_branch(self, commit, tree=sentinel, branch='master'):
         if commit is not sentinel:
@@ -317,7 +317,11 @@ class Repoman(object):
 
         conflicts = {}
         for file_path in self.get_branch_changed_files(branch_name):
-            content_str = self.file_contents_for_branch(file_path, branch_name)
+            try:
+                content_str = self.file_contents_for_branch(file_path,
+                                                            branch_name)
+            except TypeError:  # XXX: File was delete in one branch
+                content_str = None
             content = loads(content_str or '{}')
             if has_conflict(content):
                 conflicts[file_path] = content
@@ -362,7 +366,7 @@ class Repoman(object):
         def load_json(path, branch):
             try:
                 blob = self.blob(path, branch)
-            except KeyError:
+            except (KeyError, TypeError):
                 return {}
             else:
                 return loads(blob.as_raw_string())
@@ -371,6 +375,7 @@ class Repoman(object):
         base_tree, my_tree, other_tree = (self._get_tree(x)
                                           for x in (base, mine, other))
         ren_detector = RenameDetector(self._repo.object_store)
+        conflicts = {}
 
         my_changes, other_changes = (
             tree_changes(
@@ -417,6 +422,8 @@ class Repoman(object):
                         jsons[1] = load_json(my_changes.new.path, mine)
                         path = my_changes.new.path
                     merged_json, merge_conflict = merge_jsons(*jsons)
+                    if merge_conflict:
+                        conflicts[path] = merged_json
                     had_conflict = had_conflict or merge_conflict
                     merged_blob = Blob.from_string(
                         dumps(merged_json, sort_keys=True, indent=4))
@@ -425,7 +432,7 @@ class Repoman(object):
             else:
                 merge_tree.add(path, FILE_MODE, changes[0].new.sha)
         self._update_store(merge_tree)
-        return merge_tree, had_conflict
+        return merge_tree, conflicts
 
     @retry_operation(retries=3)
     def _perform_file_operation(self, branch_name, operation, *args):

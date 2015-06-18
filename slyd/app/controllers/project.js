@@ -154,8 +154,7 @@ export default BaseController.extend({
                 var baseName = URI.parse(siteUrl).hostname.replace(/^www[0-9]?\./, '');
                 var newSpiderName = this.getUnusedName(baseName, names);
                 var spider = Spider.create(
-                    { 'id': this.shortGuid(),
-                      'name': newSpiderName,
+                    { 'name': newSpiderName,
                       'start_urls': [siteUrl],
                       'follow_patterns': [],
                       'exclude_patterns': [],

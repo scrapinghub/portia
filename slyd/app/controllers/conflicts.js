@@ -71,7 +71,7 @@ export default BaseController.extend({
         this.set('currentFileName', fileName);
         var conflictedPaths = this.getConflictedKeyPaths(this.get('currentFileContents'));
         conflictedPaths.forEach(function(path) {
-            this.get('conflictedKeyPaths')[path] = '';
+            this.set('conflictedKeyPaths.'+path, '');
         }, this);
         this.notifyPropertyChange('conflictedKeyPaths');
     },
@@ -79,11 +79,12 @@ export default BaseController.extend({
     actions: {
 
         displayConflictedFile: function(fileName) {
+            this.get('document.view').setInteractionsBlocked(false)
             this.displayConflictedFile(fileName);
         },
 
         conflictOptionSelected: function(path, option) {
-            this.get('conflictedKeyPaths')[path] = option;
+            this.set('conflictedKeyPaths.'+path, option);
             this.notifyPropertyChange('conflictedKeyPaths');
         },
 
@@ -115,6 +116,7 @@ export default BaseController.extend({
 
     willEnter: function() {
         this.set('model', this.get('model') || {});
+        this.get('document.view').setInteractionsBlocked(false)
         if (!Ember.isEmpty(this.get('conflictedFileNames'))) {
             this.displayConflictedFile(this.get('conflictedFileNames')[0]);
         }
