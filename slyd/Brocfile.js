@@ -22,6 +22,7 @@ var app = new EmberApp({
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
+app.import('bower_components/babel-polyfill/browser-polyfill.js');
 app.import('bower_components/ic-ajax/dist/named-amd/main.js');
 app.import('bower_components/canvasloader/js/heartcode-canvasloader-min.js');
 app.import('vendor/uri.js');
@@ -37,6 +38,7 @@ app.import('bower_components/fontawesome/css/font-awesome.min.css');
 if (app.env !== 'production') {
     // For testing
     app.import('bower_components/ember/ember-template-compiler.js');
+    app.import('vendor/test-loader.js');
 }
 
 var fontTree = pickFiles('bower_components/fontawesome/fonts', {
