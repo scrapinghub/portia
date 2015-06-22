@@ -5,7 +5,7 @@ import {
 
 moduleFor('controller:spider', 'SpiderController', {
   // Specify the other units that are required for this test.
-  // needs: ['controller:foo']
+   needs: ['controller:application', 'controller:projects', 'controller:project', 'controller:project/index']
 });
 
 // Replace this with your real tests.

@@ -5,7 +5,7 @@ import {
 
 moduleFor('route:base-route', 'BaseRouteRoute', {
   // Specify the other units that are required for this test.
-  // needs: ['controller:foo']
+   needs: ['controller:application']
 });
 
 test('it exists', function() {
