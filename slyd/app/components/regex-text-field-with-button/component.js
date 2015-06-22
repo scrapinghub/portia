@@ -1,4 +1,3 @@
-import Ember from 'ember';
 import TextFieldWithButton from '../text-field-with-button';
 import NotificationHandler from '../../mixins/notification-handler';
 

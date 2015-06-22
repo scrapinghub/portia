@@ -17,7 +17,7 @@ export default SpiderController.extend({
     fetchQueryUrl: function() {
         var url = this.url, baseurl = this.baseurl;
         this.set('url', null);
-        this.set('baseurl', null)
+        this.set('baseurl', null);
         Ember.run.next(this, function() {
             this.fetchPage(url, null, true, baseurl);
         });

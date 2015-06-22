@@ -1,9 +1,9 @@
 import {
-  moduleForModel,
+  moduleFor,
   test
 } from 'ember-qunit';
 
-moduleForModel('conflict', 'Conflict', {
+moduleFor('model:conflict', 'Conflict', {
   // Specify the other units that are required for this test.
   needs: []
 });

@@ -1,9 +1,9 @@
 import {
-  moduleForModel,
+  moduleFor,
   test
 } from 'ember-qunit';
 
-moduleForModel('simple-model', 'SimpleModel', {
+moduleFor('model:simple-model', 'SimpleModel', {
   // Specify the other units that are required for this test.
   needs: []
 });

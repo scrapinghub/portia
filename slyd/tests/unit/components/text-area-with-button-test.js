@@ -5,7 +5,7 @@ import {
 
 moduleForComponent('text-area-with-button', 'TextAreaWithButtonComponent', {
   // specify the other units that are required for this test
-  // needs: ['component:foo', 'helper:bar']
+   needs: ['component:text-area', 'component:bs-button']
 });
 
 test('it renders', function() {

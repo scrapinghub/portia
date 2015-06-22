@@ -22,6 +22,7 @@ var app = new EmberApp({
 // please specify an object with the list of modules as keys
 // along with the exports of each module as its value.
 
+app.import('bower_components/babel-polyfill/browser-polyfill.js');
 app.import('bower_components/ic-ajax/dist/named-amd/main.js');
 app.import('bower_components/canvasloader/js/heartcode-canvasloader-min.js');
 app.import('vendor/uri.js');
@@ -34,6 +35,12 @@ app.import('bower_components/normalize.css/normalize.css');
 app.import('app/styles/jquery-ui-1.10.3.custom.css');
 app.import('bower_components/fontawesome/css/font-awesome.min.css');
 
+if (app.env !== 'production') {
+    // For testing
+    app.import('bower_components/ember/ember-template-compiler.js');
+    app.import('vendor/test-loader.js');
+}
+
 var fontTree = pickFiles('bower_components/fontawesome/fonts', {
     srcDir: '/',
     files: ['fontawesome-webfont.eot','fontawesome-webfont.ttf','fontawesome-webfont.svg','fontawesome-webfont.woff', 'fontawesome-webfont.woff2'],
@@ -43,6 +50,6 @@ var fontTree = pickFiles('bower_components/fontawesome/fonts', {
 var publicFiles = pickFiles('public', {
     srcDir: '/',
     destDir: '/',
-})
+});
 
 module.exports = mergeTrees([app.toTree(), fontTree, publicFiles], {overwrite: true});

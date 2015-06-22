@@ -125,8 +125,8 @@ export default Ember.Mixin.create({
     },
 
     guessType: function(data, property, classes) {
-        var classes = Array.prototype.slice.call(classes, 0),
-            key;
+        var key;
+        classes = Array.prototype.slice.call(classes, 0);
         if (property) {
             for (key in VOCAB_FIELD_PROPERTY) {
                 if (VOCAB_FIELD_PROPERTY[key].has(property)) {

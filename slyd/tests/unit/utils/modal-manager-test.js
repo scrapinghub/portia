@@ -4,6 +4,6 @@ module('modalManager');
 
 // Replace this with your real tests.
 test('it works', function() {
-  var result = modalManager();
+  var result = modalManager.create();
   ok(result);
 });

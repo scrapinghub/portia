@@ -1,10 +1,10 @@
-import timer from '../../../utils/timer';
-import { module, test } from 'qunit';
+import Ember from 'ember';
+import Timer from '../../../utils/timer';
 
 module('Unit | Utility | timer');
 
 // Replace this with your real tests.
 test('it works', function(assert) {
-  var result = timer();
-  assert.ok(result);
+    var timer = Timer.create();
+    ok(timer);
 });

@@ -18,7 +18,7 @@ export default Ember.Component.extend({
 
     keyUp: function(e) {
         if (e.which === 13) {
-            this.sendAction('submit', this.get('value'), this.get('name'))
+            this.sendAction('submit', this.get('value'), this.get('name'));
         }
     },
 

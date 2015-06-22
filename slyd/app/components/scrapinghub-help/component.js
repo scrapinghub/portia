@@ -14,11 +14,11 @@ export default Ember.Component.extend({
         var w = window;
         var d = document;
         var i = function() {
-            i.c(arguments)
+            i.c(arguments);
         };
         i.q = [];
         i.c = function(args) {
-            i.q.push(args)
+            i.q.push(args);
         };
         w.Intercom = i;
         var s = d.createElement('script');
