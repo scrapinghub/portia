@@ -6,7 +6,7 @@ import Ember from 'ember';
 
 moduleFor('route:conflicts', 'ConflictsRoute', {
   // Specify the other units that are required for this test.
-   needs: ['controller:conflicts', 'template:conflicts.resolver']
+   needs: ['controller:application', 'controller:conflicts', 'template:conflicts.resolver']
 });
 
 function conflict(base, my, other) {
