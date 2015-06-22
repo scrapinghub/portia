@@ -107,7 +107,7 @@ export default BaseController.extend({
 
     willEnter: function() {
         this.set('breadCrumb', 'home');
-        if (this.get('controllers.application.currentRouteName').split('.')[1] === 'index') {
+        if (this.getWithDefault('controllers.application.currentRouteName', '').split('.')[1] === 'index') {
             this.set('slyd.project', null);
         }
         this.get('documentView').reset();
