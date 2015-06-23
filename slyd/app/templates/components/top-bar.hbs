@@ -3,5 +3,7 @@
         {{bread-crumbs}}
     </div>
     {{yield}}
-    {{component branding.component project=project data=branding.data}}
+    <span class="pull-right label-align">
+        {{bs-label type="danger" content="Beta"}}
+    </span>
 </div>

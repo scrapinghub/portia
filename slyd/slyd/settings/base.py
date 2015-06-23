@@ -29,16 +29,7 @@ SPEC_FACTORY = {
         'rename_spiders': True,
         'rename_templates': True
     },
-    'CUSTOM': {
-        'branding': {
-            'component': 'portia-branding',
-            'data': {}
-        },
-        'help': {
-            'component': 'dummy-component',
-            'data': {}
-        }
-    }
+    'CUSTOM': {}
 }
 
 PLUGINS = [{
@@ -58,8 +49,3 @@ PLUGINS = [{
 # add them to local_settings.py
 # HTTPCACHE_ENABLED = True
 # HTTPCACHE_DIR = join(DATA_DIR, 'cache')
-
-try:
-    from local_settings import *
-except ImportError:
-    pass
