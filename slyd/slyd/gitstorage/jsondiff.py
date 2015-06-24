@@ -1,4 +1,127 @@
+import difflib
+
 from collections import namedtuple
+from itertools import izip_longest
+
+_BLANK = object()
+
+
+class Conflict(object):
+    def __init__(self, mine, other, base):
+        self.mine = [mine] if mine is not _BLANK else None
+        self.other = [other] if other is not _BLANK else None
+        self.base = [base] if base is not _BLANK else None
+
+    @classmethod
+    def from_prepared(cls, mine, other, base):
+        m = mine[0] if mine else _BLANK
+        o = other[0] if other else _BLANK
+        b = base[0] if base else _BLANK
+        conflict = cls(m, o, b)
+        for m, o, b in izip_longest(mine[1:], other[1:], base[1:],
+                                    fillvalue=_BLANK):
+            conflict.update(m, o, b)
+        return conflict
+
+    @classmethod
+    def resolve_sub_conflict(cls, mine, other):
+        c = cls.from_prepared(mine, other, [])
+        return c.resolve_conflict()
+
+    def update(self, m, o, b):
+        if m is not _BLANK:
+            self.mine.append(m)
+        if o is not _BLANK:
+            self.other.append(o)
+        if b is not _BLANK:
+            self.base.append(b)
+
+    def resolve_conflict(self):
+        if self.mine is None and self.other is not None:
+            return self.other
+        if self.other is None and self.mine is not None:
+            return self.mine
+        if self.other == self.mine:
+            return self.mine
+        if self.base is not None or not any(i in self.other or []
+                                            for i in self.mine or []):
+            return [self]
+        mine = self.mine if self.mine else []
+        other = self.other if self.other else []
+        i_mine, i_other = iter(mine), iter(other)
+        result, new_mine, new_other = [], [], []
+        for diff in difflib.Differ().compare([str(i) for i in other],
+                                             [str(i) for i in mine]):
+            if ((diff.startswith('+') and (new_other or result)) or
+                    (diff.startswith('-') and (new_mine or result)) or
+                    (result and (new_other or new_mine))):
+                if new_mine or new_other:
+                    result.insert(0, Conflict.from_prepared(new_mine,
+                                                            new_other,
+                                                            []))
+                result.extend(Conflict.resolve_sub_conflict(
+                              [i for i in i_mine],
+                              [i for i in i_other]))
+                break
+            elif diff.startswith('-'):
+                new_other.append(next(i_other))
+            elif diff.startswith('+'):
+                new_mine.append(next(i_mine))
+            else:
+                next(i_other)
+                result.append(next(i_mine))
+        return result
+
+    def _asdict(self):
+        return {
+            'my_op': 'CHANGED',
+            'my_val': self.mine,
+            'other_op': 'CHANGED',
+            'other_val': self.other,
+            'base_val': self.base
+        }
+
+    def __eq__(self, other):
+        return (self.mine == other.mine and self.other == other.other and
+                self.base == other.base)
+
+    def __str__(self):
+        return 'Conflict{}'.format(str((self.mine, self.other, self.base)))
+
+    def __repr__(self):
+        return str(self)
+
+
+def merge_lists(base, mine, other):
+    if mine == other:
+        return mine
+    if other == base != mine:
+        return mine
+    if mine == base != other:
+        return other
+    result = []
+    last_conflict = False
+    for i, (m, o, b) in enumerate(izip_longest(mine, other, base,
+                                               fillvalue=_BLANK)):
+        if m == o == b or m == o:
+            result.append(m)
+        elif m != o:  # Conflict
+            if last_conflict:
+                c = result[-1]
+                c.update(m, o, b)
+            else:
+                c = Conflict(m, o, b)
+                result.append(c)
+            last_conflict = True
+            continue
+        else:
+            result.append(b)
+        last_conflict = False
+    for i, r in enumerate(result[:]):
+        if isinstance(r, Conflict):
+            c = r.resolve_conflict()
+            result = result[:i] + c
+    return result
 
 
 class JsonDiff(object):
@@ -61,6 +184,8 @@ def merge_jsons(base, mine, other):
                 base.get(k, {}), mine.get(k), other.get(k))
             if isinstance(my_val, dict) and isinstance(other_val, dict):
                 merge_dict[k] = build_merge_dict(base_val, my_val, other_val)
+            if isinstance(my_val, list) and isinstance(other_val, list):
+                merge_dict[k] = merge_lists(base_val, my_val, other_val)
             else:
                 merge_dict[k] = FieldDiff(base_val=base.get(k),
                                           my_val=my_val,
@@ -73,7 +198,7 @@ def merge_jsons(base, mine, other):
         return diff.other_val == diff.my_val
 
     def conflict(diff):
-        return { '__CONFLICT': diff._asdict() }
+        return {'__CONFLICT': diff._asdict()}
 
     def resolve_json(merge_dict):
         out_json = {}
@@ -82,6 +207,16 @@ def merge_jsons(base, mine, other):
             if isinstance(diff, dict):
                 out_json[key], rconflict = resolve_json(diff)
                 had_conflict = had_conflict or rconflict
+            if isinstance(diff, list):
+                for i, item in enumerate(diff):
+                    if isinstance(item, Conflict):
+                        if (item.mine and isinstance(item.mine[0], dict) and
+                                '__CONFLICT' in item.mine[0]):
+                            diff[i] = item.mine[0]
+                        else:
+                            diff[i] = conflict(item)
+                        had_conflict = True
+                out_json[key] = diff
             elif diff.my_op in ('UNCHANGED', None):
                 if diff.other_op != 'REMOVED':
                     out_json[key] = diff.other_val
