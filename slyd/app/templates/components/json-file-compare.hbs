@@ -1,20 +1,40 @@
-{{#if isObject}}
+{{#if isArray}}
+    [{{#each entries as |entry index|}}
+        {{#if entry.conflict}}
+           {{#each entry in entries}}
+                {{json-file-compare json=entry.json path=entry.path conflictedKeyPaths=conflictedKeyPaths conflictOptionSelected="conflictOptionSelected" conflictOptionRejected="conflictOptionRejected" conflictOptionUpdated="conflictOptionUpdated" multi=true}}
+            {{/each}}
+        {{else}}
+            <span>{{entry.value}},</span>
+        {{/if}}
+    {{/each}}]
+{{else if isObject}}
     {{#if isConflict}}
         {{#if resolved}}
             <span style="color:#2d882d;font-weight:bold">RESOLVED</span>
             <div {{action 'conflictOptionSelected' path null}} style="margin:5px 0px 0px 40px;background:#AEA;" class="conflict-option">
                 <span style="font-weight:bold;color:#2d882d;margin:5px"> [CHANGE SELECTION] </span>
-                {{resolvedValue}},
+                {{resolvedRepr}},
             </div>
         {{else}}
             <span style="color:#ff3939;font-weight:bold">CONFLICT</span>
             <div style="margin-left:40px;">
                 {{#each value in conflictValues}}
-                    <div {{action 'conflictOptionSelected' path value.key}} class="conflict-option">
-                        <div style="color:#F3F3F3;font-weight:bold">{{value.label}}:</div>
-                        <div style="word-break:break-word">
+                    <div class="conflict-option {{value.state}}">
+                        <span style="font-weight:bold">
+                            {{value.label}}:
+                            {{#unless value.accepted}}
+                            <span {{action 'conflictOptionSelected' path value.key}} class="fa fa-icon fa-check green-label"></span>
+                            {{/unless}}
+                            {{#if multi}}
+                                {{#unless value.rejected}}
+                                    <span {{action 'conflictOptionRejected' path value.key}} class="fa fa-icon fa-times red-label"></span>
+                                {{/unless}}
+                            {{/if}}
+                        </span>
+                        <span style="word-break:break-word">
                             {{value.value}}
-                        </div>
+                        </span>
                     </div>
                 {{/each}}
             </div>
@@ -23,11 +43,11 @@
         <div>
             {{#each entry in entries}}
                 <div style="margin:5px 5px 0px 20px;">
-                    <span style="font-weight:bold">{{entry.key}}:</span>{{json-file-compare json=entry.json path=entry.path conflictedKeyPaths=conflictedKeyPaths conflictOptionSelected="conflictOptionSelected"}}
+                    <span style="font-weight:bold">{{entry.key}}:</span>{{json-file-compare json=entry.json path=entry.path conflictedKeyPaths=conflictedKeyPaths conflictOptionRejected="conflictOptionRejected" conflictOptionUpdated="conflictOptionUpdated"}}
                 </div>
             {{/each}}
         </div>
     {{/if}}
 {{else}}
-    {{value}},
+    {{value}}
 {{/if}}

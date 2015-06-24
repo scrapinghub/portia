@@ -409,7 +409,7 @@ ul.breadcrumbs {
 }
 
 .red-label {
-    color:red;
+    color:rgba(255,57,57,0.4);
 }
 
 .blue-label {
@@ -417,7 +417,7 @@ ul.breadcrumbs {
 }
 
 .green-label {
-    color:rgba(186,246,161,1);
+    color:rgba(45,136,45,1);
 }
 
 .yellow-label {
@@ -466,13 +466,12 @@ ul.breadcrumbs {
     border:dotted 1px #999;
     margin:2px;
     padding:3px;
-    background:rgba(255,57,57,0.4);
+    background:rgba(196,196,196,0.4);
     word-wrap:break-word;
 }
 
 .conflict-option:hover {
     border:dotted 1px #2D882D;
-    background:#AEA;
 }
 
 .white-text {
@@ -783,6 +782,6 @@ input[type="checkbox"].offset-checkbox {
     height: 23px;
 }
 
-.dropdown-menu a {
+.dropdown-menu a, .red-label.fa-times, .green-label.fa-check {
     cursor: pointer;
 }

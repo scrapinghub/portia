@@ -1,7 +1,8 @@
 import Ember from 'ember';
 import BaseController from './base-controller';
+import ConflictMixin from '../mixins/conflict-mixin';
 
-export default BaseController.extend({
+export default BaseController.extend(ConflictMixin, {
     needs: ['application'],
 
     currentFileName: null,
@@ -16,10 +17,6 @@ export default BaseController.extend({
         return this.get('model')[this.get('currentFileName')];
     }.property('currentFileName'),
 
-    toType: function(obj) {
-        return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-    },
-
     getConflictedKeyPaths: function(content, parentPath) {
         if (this.toType(content) === 'object') {
             if ('__CONFLICT' in content) {
@@ -32,6 +29,15 @@ export default BaseController.extend({
                 }.bind(this));
                 return conflicted;
             }
+        } else if (this._isArray(content)) {
+            var result = [], idx = -1;
+            for (var v of content) {
+                if (this.toType(v) === 'object' && '__CONFLICT' in v) {
+                    idx += 1;
+                    result.push(parentPath + '.' + idx);
+                }
+            }
+            return result;
         }
         return [];
     },
@@ -40,7 +46,11 @@ export default BaseController.extend({
         var conflict = false;
         if (this.get('conflictedKeyPaths')) {
             conflict = Object.keys(this.get('conflictedKeyPaths')).any(function(key) {
-                    return !this.get('conflictedKeyPaths')[key];
+                    var conflictObj = this.get('conflictedKeyPaths.'+key);
+                    if (this._isArray(conflictObj)) {
+                        return conflictObj.any(key => !key.resolved);
+                    }
+                    return !conflictObj.resolved;
             }, this);
         }
         return conflict;
@@ -51,11 +61,26 @@ export default BaseController.extend({
     }.property('hasUnresolvedConflict', 'currentFileName'),
 
     resolveContent: function(content, parentPath) {
-        if (this.toType(content) === 'object') {
+        if (Array.isArray(content)) {
+            if (this.get('conflictedKeyPaths')[parentPath]) {
+                var result = [],
+                    idx = 0;
+                for (var item of content) {
+                    if (this._isObject(item) && item['__CONFLICT']) {
+                        var resolved = this.resolvedValue(item, [parentPath, idx].join('.'));
+                        Array.prototype.push.apply(result, resolved);
+                        idx += 1;
+                    } else {
+                        result.push(item);
+                    }
+                }
+                content = result;
+            }
+        } else if (this.toType(content) === 'object') {
             if ('__CONFLICT' in content) {
                 if (parentPath in this.get('conflictedKeyPaths')) {
-                    var option = this.get('conflictedKeyPaths')[parentPath];
-                    content = content['__CONFLICT'][option];
+                    var option = this.get('conflictedKeyPaths.'+parentPath)['accepted'];
+                    content = content['__CONFLICT'][option.keys().next().value];
                 }
             } else {
                 Object.keys(content).forEach(function(key) {
@@ -71,7 +96,15 @@ export default BaseController.extend({
         this.set('currentFileName', fileName);
         var conflictedPaths = this.getConflictedKeyPaths(this.get('currentFileContents'));
         conflictedPaths.forEach(function(path) {
-            this.set('conflictedKeyPaths.'+path, '');
+            var splitPath = path.split('.');
+            if (splitPath.slice(-1)[0].match(/[0-9]+/)) {
+                var parent = splitPath.slice(0, -1).join('.');
+                if (!this.get('conflictedKeyPaths.'+parent)) {
+                    this.set('conflictedKeyPaths.'+parent, []);
+                }
+            }
+            this.set('conflictedKeyPaths.'+path, Ember.Object.create({
+                'accepted': new Set(), 'rejected': new Set(), 'resolved': false}));
         }, this);
         this.notifyPropertyChange('conflictedKeyPaths');
     },
@@ -79,12 +112,12 @@ export default BaseController.extend({
     actions: {
 
         displayConflictedFile: function(fileName) {
-            this.get('document.view').setInteractionsBlocked(false)
+            this.get('document.view').setInteractionsBlocked(false);
+            this.get('document.view').setIframeContent('<html></html>');
             this.displayConflictedFile(fileName);
         },
-
-        conflictOptionSelected: function(path, option) {
-            this.set('conflictedKeyPaths.'+path, option);
+        conflictOptionUpdated: function(path, accepted, rejected) {
+            this._conflictOptionUpdated(path, accepted, rejected);
             this.notifyPropertyChange('conflictedKeyPaths');
         },
 
@@ -116,7 +149,8 @@ export default BaseController.extend({
 
     willEnter: function() {
         this.set('model', this.get('model') || {});
-        this.get('document.view').setInteractionsBlocked(false)
+        this.get('document.view').setInteractionsBlocked(false);
+        this.get('document.view').showSpider();
         if (!Ember.isEmpty(this.get('conflictedFileNames'))) {
             this.displayConflictedFile(this.get('conflictedFileNames')[0]);
         }
