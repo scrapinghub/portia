@@ -138,7 +138,7 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
     @run_in_thread
     def publish_project(self, name, force):
         repoman = self._open_repo(name)
-        if repoman.publish_branch(self._get_branch(repoman), force):
+        if repoman.publish_branch(self._get_branch(repoman), force=force):
             repoman.kill_branch(self._get_branch(repoman))
             return {'status': 'ok'}
         else:
