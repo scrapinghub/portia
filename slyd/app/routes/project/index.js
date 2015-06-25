@@ -10,17 +10,7 @@ export default BaseRoute.extend({
     afterModel: function() {
         if (this.get('capabilities.version_control')) {
             var controller = this.controllerFor('project.index');
-            return this.get('slyd').conflictedFiles(this.get('slyd.project')).then(
-                function(conflictedFiles) {
-                    if (Object.keys(conflictedFiles).length !== 0) {
-                        // If there are conflicted files, redirect the user to
-                        // automated concept resolution.
-                        this.transitionTo('conflicts');
-                    }
-                }.bind(this)
-            ).then(function() {
-                return this.get('slyd').changedFiles(this.get('slyd.project'));
-            }.bind(this)).then(function(changes) {
+            return this.get('slyd').changedFiles(this.get('slyd.project')).then(function(changes) {
                 controller.set('changedFiles', changes);
             });
         }

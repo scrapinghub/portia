@@ -21,7 +21,7 @@
             <div style="margin-left:40px;">
                 {{#each value in conflictValues}}
                     <div class="conflict-option {{value.state}}">
-                        <span style="font-weight:bold">
+                        <span style="font-weight:bold" class="{{if value.accepted "green-label" ""}}">
                             {{value.label}}:
                             {{#unless value.accepted}}
                             <span {{action 'conflictOptionSelected' path value.key}} class="fa fa-icon fa-check green-label"></span>
