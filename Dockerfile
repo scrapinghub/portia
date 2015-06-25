@@ -9,16 +9,17 @@ RUN apt-add-repository ppa:chris-lea/node.js &&\
     apt-get install -qy nodejs
 
 # Install python stuff.
-ADD requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt
+ADD slyd/requirements.txt /requirements-slyd.txt
+RUN pip install -r /requirements-slyd.txt
+ADD slybot/requirements.txt /requirements-slybot.txt
+RUN pip install -r/requirements-slybot.txt
 
+ENV PYTHONPATH /app/portia/slybot:/app/portia/slyd
 EXPOSE 9001
 
 ADD . /app
 
 RUN ln -sf /app/nginx/nginx.conf /etc/nginx/nginx.conf
-
-RUN pip install -e /app/slybot
 
 WORKDIR /app/slyd
 # TODO(dangra): fix handling of nginx service, it won't be restarted in case if crashed.

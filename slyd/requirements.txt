@@ -1,7 +1,7 @@
 # Slyd requirements
-twisted==14.0.2
+twisted==15.2.1
 service_identity==14.0.0
-requests==2.5.1
+requests==2.7.0
 
 # Dulwich's MySQL backend
 --allow-external=mysql-connector-python

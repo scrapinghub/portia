@@ -16,7 +16,7 @@ wget -nv -O - https://bootstrap.pypa.io/get-pip.py | python
 echo "Installing portia dependencies"
 echo "=============================="
 cd /vagrant
-pip install -qr requirements.txt
+pip install -q -r slyd/requirements.txt -r slybot/requirements.txt
 pip install -e /vagrant/slybot
 echo "Installing slyd as a Upstart service"
 echo "===================================="
