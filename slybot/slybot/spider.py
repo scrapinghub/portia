@@ -227,7 +227,10 @@ class IblSpider(Spider):
 
     def _add_splash_meta(self, request):
         request.meta['splash'] = {
-            'wait': 1,
-            'images': 0,
+            'endpoint': 'render.html',
+            'args': {
+                'wait': 1,
+                'images': 0,
+            }
         }
         return request
