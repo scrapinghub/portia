@@ -7,7 +7,6 @@ from os import listdir
 from os.path import join, dirname, isfile
 from twisted.python import usage
 from twisted.web.resource import Resource
-from twisted.application.internet import TCPServer
 from twisted.web.static import File
 from .resource import SlydJsonObjectResource
 from .server import Site, debugLogFormatter
@@ -39,7 +38,6 @@ class Capabilities(SlydJsonObjectResource):
 
 
 def create_root(config, settings_module):
-    from scrapy import log
     from scrapy.settings import Settings
     from .specmanager import SpecManager
     from .authmanager import AuthManager
@@ -97,8 +95,9 @@ def create_root(config, settings_module):
     return auth_manager.protectResource(root)
 
 
-def makeService(config):
-    import slyd.settings
-    root = create_root(config, slyd.settings)
+def makeService(config, settings_module=None):
+    if settings_module is None:
+        import slyd.settings as settings_module
+    root = create_root(config, settings_module)
     site = Site(root, logFormatter=debugLogFormatter)
     return site

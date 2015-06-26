@@ -12,10 +12,11 @@ def make_server(*args, **kwargs):
 
 def add_args():
     opts, args = splash.server._parse_opts()
-    opts.filters_path = '/app/slyd/splash_utils/filters'
     return (opts, args)
 
 splash.server._parse_opts = splash.server.parse_opts
 splash.server.parse_opts = add_args
 splash.server.splash_server = make_server
-splash.server.main()
+
+if __name__ == '__main__':
+    splash.server.main()
