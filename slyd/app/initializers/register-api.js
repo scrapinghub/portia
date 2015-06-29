@@ -15,10 +15,7 @@ export function initialize(container, application) {
         window.location.host) + '/server_capabilities';
     ajax(hash).then(function(settings) {
         this.set('serverCapabilities', settings['capabilities']);
-        this.set('serverCustomization', Ember.Object.create());
-        for (var key in settings['custom']) {
-            this.set('serverCustomization.' + key, Ember.Object.create().setProperties(settings['custom'][key]));
-        }
+        this.set('serverCustomization', settings['custom']);
         container.register('api:capabilities',
                                Ember.Object.create().setProperties(application.get('serverCapabilities')),
                                { instantiate: false });
@@ -36,6 +33,7 @@ export function initialize(container, application) {
         application.inject('controller', 'slyd', 'api:slyd');
         application.inject('component', 'slyd', 'api:slyd');
         application.inject('controller', 'customizations', 'app:custom');
+        application.inject('component', 'customizations', 'app:custom');
         application.inject('controller', 'capabilities', 'api:capabilities');
         application.inject('route', 'capabilities', 'api:capabilities');
         this.advanceReadiness();

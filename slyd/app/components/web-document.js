@@ -35,20 +35,8 @@ export default Ember.Component.extend({
 
     annotationStore: null,
 
-    spiderPage: '<!DOCTYPE html>' +
-'<html>' +
-'<head>' +
-    '<meta http-equiv="Content-type" content="text/html;charset=UTF-8">' +
-    '<style>' +
-        'html {' +
-           'width:100%;' +
-           'height:100%;' +
-           'background:url(/static/portia.png) center center no-repeat;' +
-        '}' +
-    '</style>' +
-'</head>' +
-'<body></body>' +
-'</html>',
+    spiderPage: null,
+    spiderPageShown: true,
 
     redrawSprites: function() {
         this.redrawNow();
@@ -152,6 +140,7 @@ export default Ember.Component.extend({
         Ember.run.schedule('afterRender', this, function() {
             this.set('loadingDoc', true);
             this.setIframeContent(documentContents);
+            this.spiderPageShown = false;
             // We need to disable all interactions with the document we are loading
             // until we trigger the callback.
             this.setInteractionsBlocked(true);
@@ -217,8 +206,13 @@ export default Ember.Component.extend({
     */
     showSpider: function() {
         Ember.run.schedule('afterRender', this, function() {
-            if (!Ember.testing){
-                this.setIframeContent(this.spiderPage, true);
+            if (!Ember.testing && !this.spiderPageShown) {
+                if (this.spiderPage) {
+                    this.setIframeContent(this.spiderPage);
+                } else  {
+                    this.reloadIframeContent();
+                }
+                this.spiderPageShown = true;
             }
         });
     },
@@ -313,7 +307,22 @@ export default Ember.Component.extend({
         this.set('hoveredSprite', null);
     },
 
+    reloadIframeContent: function() {
+        return Ember.$('#' + this.get('iframeId')).attr('src',
+            Ember.$('#' + this.get('iframeId')).attr('src')
+        );
+    },
+
+    getIframeContent: function() {
+        var iframe = this.getIframe().get(0);
+        return iframe.documentElement && iframe.documentElement.outerHTML;
+    },
+
     setIframeContent: function(contents) {
+        if (this.spiderPageShown && !this.spiderPage) {
+            this.spiderPage = this.getIframeContent() || null;
+        }
+
         var iframe = this.getIframe();
         iframe.find('html').html(contents);
         this.set('document.iframe', iframe);

@@ -38,7 +38,7 @@ class Capabilities(SlydJsonObjectResource):
         }
 
 
-def create_root(config):
+def create_root(config, settings_module):
     from scrapy import log
     from scrapy.settings import Settings
     from .specmanager import SpecManager
@@ -46,8 +46,6 @@ def create_root(config):
     from .projectspec import create_project_resource
     from slyd.bot import create_bot_resource
     from slyd.projects import create_projects_manager_resource
-
-    import slyd.settings
 
     root = Resource()
     static = Resource()
@@ -63,7 +61,7 @@ def create_root(config):
     root.putChild('', File(join(config['docroot'], 'index.html')))
 
     settings = Settings()
-    settings.setmodule(slyd.settings)
+    settings.setmodule(settings_module)
     spec_manager = SpecManager(settings)
 
     # add server capabilities at /server_capabilities
@@ -86,6 +84,7 @@ def create_root(config):
 
 
 def makeService(config):
-    root = create_root(config)
+    import slyd.settings
+    root = create_root(config, slyd.settings)
     site = Site(root, logFormatter=debugLogFormatter)
     return TCPServer(config['port'], site)
