@@ -71,8 +71,12 @@ fixtures['POST /projects'] = function(data) {
             };
         }
         return {};
+    } else if(data.cmd === 'edit') {
+        return {};
+    } else if(data.cmd === 'changes') {
+        return [];
     }
-    console.log('POST command without fixture', data);
+    console.log('POST command without fixture', JSON.stringify(data));
 };
 
 Ember.$.ajax = function(args){
