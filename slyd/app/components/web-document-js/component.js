@@ -6,7 +6,7 @@ import ApplicationUtils from '../../mixins/application-utils';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 
-function treeMirrorDelegate(webdoc){
+function treeMirrorDelegate(){
     return {
         createElement: function(tagName) {
             var node = null;
@@ -57,7 +57,7 @@ export default WebDocument.extend(ApplicationUtils, {
             if(listener && listener.updateExtractedItems) {
                 listener.updateExtractedItems(data.items || []);
                 listener.set('followedLinks', data.links || []);
-                var pageMap = listener.get('pageMap')
+                var pageMap = listener.get('pageMap');
                 // Handle page change in browser tab on the server caused by event
                 if (!pageMap[data.fp] || data.fp !== listener.get('loadedPageFp')) {
                     pageMap[data.fp] = data;
@@ -242,14 +242,14 @@ export default WebDocument.extend(ApplicationUtils, {
         return this._super(evt);
     },
 
-    postEvent: function(event){
+    postEvent: function(evt){
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
                 project: this.get('slyd.project'),
             },
             _command: 'interact',
-            interaction: interactionEvent(event)
+            interaction: interactionEvent(evt)
         });
     },
 

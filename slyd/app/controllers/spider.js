@@ -601,7 +601,7 @@ export default BaseController.extend({
                 }.bind(this),
                 function(err) {
                     this.set('model.name', this.get('spiderName'));
-                    this.showErrorNotification(err.toString())
+                    this.showErrorNotification(err.toString());
                 }.bind(this)
             );
         },

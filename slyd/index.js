@@ -1,6 +1,7 @@
 /* jshint node: true */
 'use strict';
 var mergeTrees = require('broccoli-merge-trees');
+var concat = require('broccoli-concat');
 var funnel = require('broccoli-funnel');
 var p = require('ember-cli/lib/preprocessors');
 var preprocessTemplates = p.preprocessTemplates;
@@ -9,7 +10,8 @@ module.exports = {
     name: 'portia-web',
     included: function(app) {
         this._super.included.apply(this, arguments);
-
+        app.import('vendor/mutation-summary.js');
+        app.import('vendor/tree-mirror.js');
         app.import('bower_components/babel-polyfill/browser-polyfill.js');
         app.import('bower_components/ic-ajax/dist/named-amd/main.js');
         app.import('bower_components/canvasloader/js/heartcode-canvasloader-min.js');

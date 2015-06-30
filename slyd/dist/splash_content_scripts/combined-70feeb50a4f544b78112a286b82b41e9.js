@@ -15,7 +15,7 @@
 (function (root, factory) {
     'use strict';
 
-    /*global define, exports, module */
+    /* global define, exports, module */
     if (typeof define === 'function' && define.amd) {
         // AMD. Register as an anonymous module.
         define(factory);
@@ -173,7 +173,7 @@ var ES = {
     // http://es5.github.com/#x9.9
     /* replaceable with https://npmjs.com/package/es-abstract ES5.ToObject */
     ToObject: function (o) {
-        /*jshint eqnull: true */
+        /* jshint eqnull: true */
         if (o == null) { // this matches both null and undefined
             throw new TypeError("can't convert " + o + ' to object');
         }
@@ -942,10 +942,10 @@ var doesNotParseY2KNewYear = isNaN(Date.parse('2000-01-01T00:00:00.000Z'));
 if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExtendedYears) {
     // XXX global assignment won't work in embeddings that use
     // an alternate object for the context.
-    /*global Date: true */
-    /*eslint-disable no-undef*/
+    /* global Date: true */
+    /* eslint-disable no-undef */
     Date = (function (NativeDate) {
-    /*eslint-enable no-undef*/
+    /* eslint-enable no-undef */
         // Date.length === 7
         var DateShim = function Date(Y, M, D, h, m, s, ms) {
             var length = arguments.length;
@@ -1030,7 +1030,7 @@ if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExt
         }, true);
 
         // Upgrade Date.parse to handle simplified ISO 8601 strings
-        DateShim.parse = function parse(string) {
+        var parseShim = function parse(string) {
             var match = isoDateExpression.exec(string);
             if (match) {
                 // parse months, days, hours, minutes, seconds, and milliseconds
@@ -1085,10 +1085,11 @@ if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExt
             }
             return NativeDate.parse.apply(this, arguments);
         };
+        defineProperties(DateShim, { parse: parseShim });
 
         return DateShim;
     }(Date));
-    /*global Date: false */
+    /* global Date: false */
 }
 
 // ES5 15.9.4.4
@@ -1330,7 +1331,7 @@ if (
                     // Fix browsers whose `exec` methods don't consistently return `undefined` for
                     // nonparticipating capturing groups
                     if (!compliantExecNpcg && match.length > 1) {
-                        /*eslint-disable no-loop-func */
+                        /* eslint-disable no-loop-func */
                         match[0].replace(separator2, function () {
                             for (var i = 1; i < arguments.length - 2; i++) {
                                 if (typeof arguments[i] === 'undefined') {
@@ -1338,7 +1339,7 @@ if (
                                 }
                             }
                         });
-                        /*eslint-enable no-loop-func */
+                        /* eslint-enable no-loop-func */
                     }
                     if (match.length > 1 && match.index < string.length) {
                         array_push.apply(output, match.slice(1));
@@ -1448,7 +1449,7 @@ defineProperties(StringPrototype, {
 
 // ES-5 15.1.2.2
 if (parseInt(ws + '08') !== 8 || parseInt(ws + '0x16') !== 22) {
-    /*global parseInt: true */
+    /* global parseInt: true */
     parseInt = (function (origParseInt) {
         var hexRegex = /^0[xX]/;
         return function parseInt(str, radix) {
@@ -4164,7 +4165,7 @@ PortiaPage.sendEvent.focus = function(element, data, type) {
 
 PortiaPage.sendEvent.scroll = function(element, data){
     // Scroll events in the body are dispatched on the documentElement, reverse this
-    if(element.scrollTopMax === 0 && element === document.documentElement){
+    if(element === document.documentElement && element.scrollHeight === document.body.scrollHeight){
         element = document.body;
     }
     // This will trigger the scroll event
