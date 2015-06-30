@@ -561,7 +561,7 @@ export default BaseController.extend({
         },
 
         addJSEnablePattern: function(text) {
-            this.addJSPattern(text, 'disable');
+            this.addJSPattern(text, 'enable');
         },
 
         editJSEnablePattern: function(newVal, index) {

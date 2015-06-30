@@ -6170,7 +6170,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             },
 
             addJSEnablePattern: function addJSEnablePattern(text) {
-                this.addJSPattern(text, 'disable');
+                this.addJSPattern(text, 'enable');
             },
 
             editJSEnablePattern: function editJSEnablePattern(newVal, index) {
