@@ -20,7 +20,7 @@ The **Initialization** section is used to set up the spider when it's first laun
 
 The **Crawling** section is used to configure how the spider will behave when it encounters URLs. You can choose how links are followed and whether to respect [nofollow](http://en.wikipedia.org/wiki/nofollow). You can visualise the effects of the crawling rules using the **Overlay blocked links** option; this will highlight links that will be followed in green, links that will only be followed if JavaScript is enabled in dark green, and links that won't be followed in red.
 
-You can enable JavaScript by checking the 'Enable JS' checkbox. Here you can set the patterns to match against for links that should have JavaScript enabled, as well as those that should have it disabled. Note that when deploying you will need to set the SPLASH_URL Scrapy setting to match your Splash endpoint URL in order for JavaScript to work during the crawl.
+You can enable JavaScript by checking the 'Enable JS' checkbox. Here you can set the patterns to match against for links that should have JavaScript enabled, as well as those that should have it disabled. Note that when deploying you will need to set the `SPLASH_URL` Scrapy setting to match your Splash endpoint URL in order for JavaScript to work during the crawl.
 
 The **Extraction** section lists the templates for this spider.
 
@@ -324,7 +324,7 @@ and then schedule your spider with:
 
 :warning: `Running scrapyd from your project directory will cause deployment to fail`
 
-If you have enabled JavaScript in your spider you will need to set the SPLASH_URL variable in Scrapy settings with your Splash endpoint URL.
+If you have enabled JavaScript in your spider you will need to set the `SPLASH_URL` variable in Scrapy settings with your Splash endpoint URL.
 
 Additional Features
 -------------------
