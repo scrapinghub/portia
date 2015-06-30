@@ -30,15 +30,7 @@ fixtures['/server_capabilities'] = {
         "rename_templates": true,
         "version_control": true
     },
-    "custom": {
-        "branding": {
-            "component": "scrapinghub-branding",
-            "data": {
-                "logo_url": "/static/scrapinghub-logo.png",
-                "url": "http://33.33.33.51:8000"
-            }
-        }
-    },
+    "custom": {},
     "username": "tester"
 };
 
@@ -65,11 +57,6 @@ fixtures['/projects/11/spec/spiders/spider1'] = {
 fixtures['POST /projects'] = function(data) {
     var pid = data.args[0];
     if(data.cmd === 'conflicts'){
-        if(pid === 12){
-            return {
-                'fileWithConflicts.json': {}
-            };
-        }
         return {};
     } else if(data.cmd === 'edit') {
         return {};
