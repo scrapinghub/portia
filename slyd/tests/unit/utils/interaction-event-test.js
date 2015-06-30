@@ -4,6 +4,9 @@ module('interactionEvent');
 
 // Replace this with your real tests.
 test('it works', function() {
-  var result = interactionEvent();
+  var evt = document.createEvent('Event');
+  evt.initEvent('TestEvent', true, true);
+  document.documentElement.dispatchEvent(evt);
+  var result = interactionEvent(evt);
   ok(result);
 });

@@ -1,9 +1,9 @@
-import ferryWebsocket from 'portia-web/utils/ferry-websocket';
+import FerryWebsocket from 'portia-web/utils/ferry-websocket';
 
-module('ferryWebsocket');
+module('FerryWebsocket');
 
 // Replace this with your real tests.
 test('it works', function() {
-  var result = ferryWebsocket();
+  var result = new FerryWebsocket();
   ok(result);
 });
