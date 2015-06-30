@@ -1,13 +1,7 @@
 import config from 'portia-web/config/environment';
 import Ember from 'ember';
 
-var origin = (config.SLYD_URL || window.location.protocol + '//' + window.location.host);
-
 var fixtures = {};
-
-function fixture(endpoint, response) {
-    fixtures[endpoint] = response;
-}
 
 fixtures['/server_capabilities'] = {
     "capabilities": {
@@ -66,14 +60,24 @@ fixtures['POST /projects'] = function(data) {
     console.log('POST command without fixture', JSON.stringify(data));
 };
 
+export var lastRequest = {
+    method: null,
+    url: null,
+    data: null
+};
+
 Ember.$.ajax = function(args){
     var url = args.url.replace(/^https?:\/\/[^\/]+/, '');
+    var data = args.data && JSON.parse(args.data);
+    lastRequest.method = args.type;
+    lastRequest.url = url;
+    lastRequest.data = data;
     if(args.type === 'GET' && url in fixtures) {
         args.success(fixtures[url], 'sucess', {});
     } else if (args.type === 'POST' && ('POST ' + url) in fixtures) {
-        args.success(fixtures['POST ' + url](JSON.parse(args.data)), 'sucess', {});
+        args.success(fixtures['POST ' + url](data), 'sucess', {});
     } else {
-        console.log('Undefined fixture', args);
+        console.log('Undefined fixture', args.type, url);
         args.success({}, 'sucess', {});
     }
 };
