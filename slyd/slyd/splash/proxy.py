@@ -51,7 +51,8 @@ class ProxyResource(Resource):
                 headers[header] = str(reply.rawHeader(header))
             elif hasattr(reply, 'headers') and header in reply.headers:
                 headers[header] = str(reply.headers.get(header))
-            request.setHeader(header, headers[header])
+            if header in headers:
+                request.setHeader(header, headers[header])
 
         if headers['content-type'].strip().startswith('text/css'):
             content = process_css(content, tabid, original_url)
