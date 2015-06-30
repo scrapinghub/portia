@@ -40,7 +40,8 @@ define('portia-web/components/accordion-item', ['exports', 'ember', 'ember-idx-a
             }
             this.set('reTrigger', false);
             return this.get('accordion').select(this);
-        }).on('click') });
+        }).on('click')
+    });
 
 });
 define('portia-web/components/annotations-plugin/component', ['exports', 'ember', 'portia-web/mixins/guess-types'], function (exports, Ember, GuessTypes) {
@@ -278,7 +279,8 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
 
             elementHovered: function elementHovered() {
                 this.get('document.view').redrawNow();
-            } },
+            }
+        },
 
         //*******************************************************************\\
         //
@@ -287,7 +289,7 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
         //*******************************************************************\\
 
         s4: function s4() {
-            return Math.floor((1 + Math.random()) * 65536).toString(16).substring(1);
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
         },
 
         createAnnotationData: function createAnnotationData(generatedData) {
@@ -2563,7 +2565,8 @@ define('portia-web/components/collapsible-text', ['exports', 'ember', 'portia-we
 
         click: function click() {
             this.set('collapsed', !this.get('collapsed'));
-        } });
+        }
+    });
 
 });
 define('portia-web/components/copy-clipboard', ['exports', 'ember-cli-zero-clipboard/components/zero-clipboard'], function (exports, ZeroClipboard) {
@@ -3069,7 +3072,8 @@ define('portia-web/components/extracted-item', ['exports', 'ember'], function (e
             editTemplate: function editTemplate(templateName) {
                 this.sendAction('editTemplate', templateName);
             }
-        } });
+        }
+    });
 
 });
 define('portia-web/components/extractor-dropzone', ['exports', 'ember', 'portia-web/mixins/droppable'], function (exports, Ember, Droppable) {
@@ -3077,7 +3081,8 @@ define('portia-web/components/extractor-dropzone', ['exports', 'ember', 'portia-
     'use strict';
 
     exports['default'] = Ember['default'].Component.extend(Droppable['default'], {
-        tagName: 'span' });
+        tagName: 'span'
+    });
 
 });
 define('portia-web/components/file-download/component', ['exports', 'ember'], function (exports, Ember) {
@@ -3210,7 +3215,8 @@ define('portia-web/components/inline-help', ['exports', 'ember', 'portia-web/mix
             if (this.get('message')) {
                 return this.messages.get(this.get('message'));
             }
-        }).property('message') });
+        }).property('message')
+    });
 
 });
 define('portia-web/components/item-select', ['exports', 'ember'], function (exports, Ember) {
@@ -3286,7 +3292,8 @@ define('portia-web/components/item-select', ['exports', 'ember'], function (expo
                 changedTo = target.value;
             this.set('value', changedTo);
             this.sendAction('changed', changedTo, this.get('name'));
-        } });
+        }
+    });
 
 });
 define('portia-web/components/j-breadcrumb', ['exports', 'ember'], function (exports, Ember) {
@@ -3315,7 +3322,8 @@ define('portia-web/components/j-breadcrumb', ['exports', 'ember'], function (exp
         mouseLeave: function mouseLeave() {
             this.set('info.showFull', false);
             this.sendAction('hovered', this.get('info'), this.get('index'), false);
-        } });
+        }
+    });
 
 });
 define('portia-web/components/j-breadcrumbs', ['exports', 'ember'], function (exports, Ember) {
@@ -3400,7 +3408,8 @@ define('portia-web/components/json-file-compare', ['exports', 'ember'], function
             } else {
                 return null;
             }
-        }).property('json') });
+        }).property('json')
+    });
 
 });
 define('portia-web/components/label-with-tooltip', ['exports', 'ember'], function (exports, Ember) {
@@ -3435,7 +3444,8 @@ define('portia-web/components/pin-toolbox-button', ['exports', 'ember', 'portia-
             if (window.localStorage) {
                 localStorage.portia_toolbox_pinned = this.get('toolbox.pinned') ? 'true' : '';
             }
-        } });
+        }
+    });
 
 });
 define('portia-web/components/regex-text-field-with-button/component', ['exports', 'portia-web/components/text-field-with-button', 'portia-web/mixins/notification-handler'], function (exports, TextFieldWithButton, NotificationHandler) {
@@ -3459,7 +3469,8 @@ define('portia-web/components/regex-text-field-with-button/component', ['exports
                     this.$().find('textarea').val('');
                     this.$().find('input[type="text"]').val('');
                 }
-            } }
+            }
+        }
     });
 
 });
@@ -3536,7 +3547,8 @@ define('portia-web/components/text-area-with-button', ['exports', 'portia-web/co
 
     exports['default'] = TextFieldWithButton['default'].extend({
         outerClasses: ['box-spacer'],
-        classNameBindings: ['outerClasses'] });
+        classNameBindings: ['outerClasses']
+    });
 
 });
 define('portia-web/components/text-area', ['exports', 'ember'], function (exports, Ember) {
@@ -3826,7 +3838,8 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
 
         didInsertElement: function didInsertElement() {
             this._super();
-        } });
+        }
+    });
 
 });
 define('portia-web/components/top-bar', ['exports', 'ember'], function (exports, Ember) {
@@ -4009,7 +4022,7 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
                 loader.setShape('spiral');
                 loader.setDiameter(90);
                 loader.setRange(0.9);
-                loader.setSpeed(1);
+                loader.setSpeed(1.0);
                 loader.setFPS(60);
                 var loaderObj = document.getElementById('canvasLoader');
                 loaderObj.style.position = 'absolute';
@@ -4410,7 +4423,8 @@ define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-we
                 if (field) {
                     this.set(field, value);
                 }
-            } }
+            }
+        }
     });
 
 });
@@ -4522,14 +4536,16 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
 
             publish: function publish() {
                 this.get('slyd').publishProject(this.get('slyd.project'), true);
-            } },
+            }
+        },
 
         willEnter: function willEnter() {
             this.set('model', this.get('model') || {});
             if (!Ember['default'].isEmpty(this.get('conflictedFileNames'))) {
                 this.displayConflictedFile(this.get('conflictedFileNames')[0]);
             }
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/conflicts/index', ['exports', 'portia-web/controllers/conflicts'], function (exports, ConflictsController) {
@@ -4537,7 +4553,8 @@ define('portia-web/controllers/conflicts/index', ['exports', 'portia-web/control
     'use strict';
 
     exports['default'] = ConflictsController['default'].extend({
-        breadCrumb: null });
+        breadCrumb: null
+    });
 
 });
 define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-controller', 'portia-web/models/item', 'portia-web/models/item-field'], function (exports, BaseController, Item, ItemField) {
@@ -4617,9 +4634,11 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
                     this.set('content', items);
                     this.transitionToRoute(this.getParentRoute());
                 }).bind(this));
-            } },
+            }
+        },
 
-        willEnter: function willEnter() {} });
+        willEnter: function willEnter() {}
+    });
 
 });
 define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/spider'], function (exports, Ember, BaseController, Spider) {
@@ -4896,7 +4915,8 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
 
             conflictedFiles: function conflictedFiles() {
                 this.transitionToRoute('conflicts');
-            } },
+            }
+        },
 
         willEnter: function willEnter() {
             this.setBreadCrumb();
@@ -4905,7 +4925,8 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             if (this.get('controllers.application.siteWizard')) {
                 Ember['default'].run.next(this, this.addSpider, this.get('controllers.application.siteWizard'));
             }
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/project/index', ['exports', 'portia-web/controllers/project'], function (exports, ProjectController) {
@@ -5013,16 +5034,18 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
             hideProjectRevisions: function hideProjectRevisions(projectName) {
                 delete this.get('projectRevisions')[projectName];
                 this.notifyPropertyChange('projectRevisions');
-            } },
+            }
+        },
 
         willEnter: function willEnter() {
             this.set('breadCrumb', 'home');
-            if (this.get('controllers.application.currentRouteName').split('.')[1] === 'index') {
+            if (this.getWithDefault('controllers.application.currentRouteName', '').split('.')[1] === 'index') {
                 this.set('slyd.project', null);
             }
             this.get('documentView').reset();
             this.get('documentView').showSpider();
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/projects/index', ['exports', 'portia-web/controllers/projects'], function (exports, ProjectsController) {
@@ -5030,7 +5053,8 @@ define('portia-web/controllers/projects/index', ['exports', 'portia-web/controll
     'use strict';
 
     exports['default'] = ProjectsController['default'].extend({
-        breadCrumb: null });
+        breadCrumb: null
+    });
 
 });
 define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/utils/canvas', 'portia-web/utils/sprite-store', 'portia-web/models/extracted-item', 'portia-web/models/template'], function (exports, Ember, BaseController, canvas, SpriteStore, ExtractedItem, Template) {
@@ -5615,7 +5639,8 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                         }]);
                     }
                 }
-            } },
+            }
+        },
 
         documentActions: {
 
@@ -5649,7 +5674,8 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.get('documentView').redrawNow();
             this.get('pendingFetches').setObjects([]);
             this.get('documentView').hideLoading();
-        } });
+        }
+    });
 
 });
 define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/controllers/spider'], function (exports, Ember, SpiderController) {
@@ -5768,7 +5794,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 mode: 'select',
                 listener: this,
                 dataSource: this,
-                partialSelects: true });
+                partialSelects: true
+            });
             this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
         },
 
@@ -5961,7 +5988,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
         createExtractor: function createExtractor(extractorType, extractorDefinition) {
             var extractor = Extractor['default'].create({
-                name: this.shortGuid() });
+                name: this.shortGuid()
+            });
             if (extractorType === 'regular_expression') {
                 try {
                     new RegExp(extractorDefinition);
@@ -6127,7 +6155,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             updateScraped: function updateScraped(name) {
                 this.set('model.scrapes', name);
-            } },
+            }
+        },
 
         documentActions: {
 
@@ -6145,7 +6174,8 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             elementHovered: function elementHovered() {
                 this.get('documentView').redrawNow();
-            } },
+            }
+        },
 
         setDocument: (function () {
             if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
@@ -6192,7 +6222,8 @@ define('portia-web/controllers/template/index', ['exports', 'portia-web/controll
 
     exports['default'] = TemplateController['default'].extend({
         breadCrumb: null,
-        _breadCrumb: null });
+        _breadCrumb: null
+    });
 
 });
 define('portia-web/helpers/trim', ['exports', 'ember'], function (exports, Ember) {
@@ -6657,7 +6688,8 @@ define('portia-web/initializers/toolbox', ['exports', 'ember'], function (export
         container.register('toolbox:state', Ember['default'].Object.create({
             fixed: false,
             expand: false,
-            pinned: !!(window.localStorage && localStorage.portia_toolbox_pinned) }), { instantiate: false });
+            pinned: !!(window.localStorage && localStorage.portia_toolbox_pinned)
+        }), { instantiate: false });
         application.inject('route', 'toolbox', 'toolbox:state');
         application.inject('component:tool-box', 'control', 'toolbox:state');
         application.inject('component:tool-box', 'router', 'router:main');
@@ -6676,7 +6708,7 @@ define('portia-web/mixins/application-utils', ['exports', 'ember'], function (ex
 
     exports['default'] = Ember['default'].Mixin.create({
         s4: function s4() {
-            return Math.floor((1 + Math.random()) * 65536).toString(16).substring(1);
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
         },
 
         guid: function guid() {
@@ -6717,7 +6749,9 @@ define('portia-web/mixins/controller-utils', ['exports', 'ember'], function (exp
                 newName = baseName + "_" + i++;
             }
             return newName;
-        } });
+        }
+
+    });
 
 });
 define('portia-web/mixins/draggable', ['exports', 'ember'], function (exports, Ember) {
@@ -6763,7 +6797,8 @@ define('portia-web/mixins/droppable', ['exports', 'ember'], function (exports, E
         dragOver: function dragOver(event) {
             event.preventDefault();
             this.set('dragClass', 'drop-target-dragging');
-        } });
+        }
+    });
 
 });
 define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports, Ember) {
@@ -6814,7 +6849,8 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
         price: new Set(["price"]),
         geopoint: new Set(["geo"]),
         url: new Set(["logo", "agent", "sound", "url", "attach", "license"]),
-        date: new Set(["bday", "rev", "dtstart", "dtend", "exdate", "rdate", "created", "last-modified"]) };
+        date: new Set(["bday", "rev", "dtstart", "dtend", "exdate", "rdate", "created", "last-modified"])
+    };
 
     var VOCAB_FIELD_CLASS = {
         number: new Set(["p-rating", "p-best", "p-worst", "p-longitude", "p-latitude", "p-yield"]),
@@ -6849,8 +6885,11 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
                 if (attributes.itemprop) {
                     property = attributes.itemprop.value;
                 }
-                if (guess || !FIELD_TYPE[type]) {
-                    return this.guessType(extractedData, property, classes);
+                if (guess || !FIELD_TYPE[type] || type === "text") {
+                    var guessed = this.guessType(extractedData, property, classes);
+                    if (guessed) {
+                        return guessed;
+                    }
                 }
                 return FIELD_TYPE[type];
             }
@@ -6922,7 +6961,7 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
                 classes = classes.filter(function (c) {
                     return prefixes.has(c.split("-")[0]);
                 });
-                if (classes.length) {
+                if (classes.length > 0) {
                     for (key in VOCAB_FIELD_CLASS) {
                         for (var i = 0; i < classes.length; i++) {
                             property = classes[i];
@@ -6943,7 +6982,7 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
             }
             var prices = data.match(/\d+(?:(?:,\d{3})+)?(?:.\d+)?/);
             if (prices !== null && prices.length && prices[0].length / data.length > 0.05) {
-                return "prices";
+                return "price";
             }
             var numbers = data.match(/\d+(?:\.\d+)?/);
             if (numbers !== null && numbers.length && numbers[0].length / data.length > 0.05) {
@@ -6981,7 +7020,8 @@ define('portia-web/mixins/modal-handler', ['exports', 'ember'], function (export
                 if (name) {
                     return this.ModalManager.get('name').destroy();
                 }
-            } },
+            }
+        },
 
         showConfirm: function showConfirm(title, content, okCallback, cancelCallback, button_class, button_text) {
             if (this.get('_modalName')) {
@@ -7009,7 +7049,8 @@ define('portia-web/mixins/modal-handler', ['exports', 'ember'], function (export
             this.set('_modalOKCallback', okCallback);
             this.set('_modalCancelCallback', cancelCallback);
             return this.ModalManager.open(this.get('_modalName'), title, buttons, content, component, componentData, this);
-        } });
+        }
+    });
 
 });
 define('portia-web/mixins/notification-handler', ['exports', 'ember', 'portia-web/utils/notification-manager'], function (exports, Ember, NotificationManager) {
@@ -7116,7 +7157,8 @@ define('portia-web/mixins/size-listener', ['exports', 'ember'], function (export
 
         openAccordion: function openAccordion(accordionNumber) {
             Ember['default'].$('.accordion').accordion('option', 'active', accordionNumber);
-        } });
+        }
+    });
 
 });
 define('portia-web/mixins/toolbox-state-mixin', ['exports', 'ember'], function (exports, Ember) {
@@ -7333,7 +7375,8 @@ define('portia-web/models/annotation', ['exports', 'ember', 'portia-web/models/s
             return this._mappedAttributes(function (fieldName) {
                 return fieldName && fieldName.indexOf('_sticky') === 0;
             });
-        }).property('attributes.@each', 'annotations') });
+        }).property('attributes.@each', 'annotations')
+    });
 
 });
 define('portia-web/models/attribute', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7343,7 +7386,8 @@ define('portia-web/models/attribute', ['exports', 'portia-web/models/simple-mode
     exports['default'] = SimpleModel['default'].extend({
         value: null,
         mappedField: null,
-        annotation: null });
+        annotation: null
+    });
 
 });
 define('portia-web/models/conflict', ['exports', 'ember'], function (exports, Ember) {
@@ -7360,7 +7404,8 @@ define('portia-web/models/extracted-field', ['exports', 'ember'], function (expo
     exports['default'] = Ember['default'].Object.extend({
         name: null,
         type: null,
-        value: null });
+        value: null
+    });
 
 });
 define('portia-web/models/extracted-item', ['exports', 'ember', 'portia-web/models/extracted-field', 'portia-web/models/extracted-variant'], function (exports, Ember, ExtractedField, ExtractedVariant) {
@@ -7401,7 +7446,8 @@ define('portia-web/models/extracted-item', ['exports', 'ember', 'portia-web/mode
                 }).bind(this));
             }
             return variants;
-        }).property('extracted', 'definition') });
+        }).property('extracted', 'definition')
+    });
 
 });
 define('portia-web/models/extracted-variant', ['exports', 'ember'], function (exports, Ember) {
@@ -7409,7 +7455,8 @@ define('portia-web/models/extracted-variant', ['exports', 'ember'], function (ex
     'use strict';
 
     exports['default'] = Ember['default'].Object.extend({
-        fields: null });
+        fields: null
+    });
 
 });
 define('portia-web/models/extractor', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7429,7 +7476,8 @@ define('portia-web/models/extractor', ['exports', 'portia-web/models/simple-mode
         }).property('regular_expression', 'type_extractor'),
 
         regular_expression: null,
-        type_extractor: null });
+        type_extractor: null
+    });
 
 });
 define('portia-web/models/ignore', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7439,7 +7487,8 @@ define('portia-web/models/ignore', ['exports', 'portia-web/models/simple-model']
     exports['default'] = SimpleModel['default'].extend({
         element: null,
         ignoreBeneath: false,
-        highlighted: false });
+        highlighted: false
+    });
 
 });
 define('portia-web/models/item-field', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7450,7 +7499,8 @@ define('portia-web/models/item-field', ['exports', 'portia-web/models/simple-mod
         serializedProperties: ['name', 'type', 'required', 'vary'],
         type: 'text',
         required: false,
-        vary: false });
+        vary: false
+    });
 
 });
 define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', 'portia-web/models/item-field'], function (exports, SimpleModel, ItemField) {
@@ -7491,7 +7541,8 @@ define('portia-web/models/mapped-field-data', ['exports', 'ember'], function (ex
         extractors: [],
         required: false,
         extracted: false,
-        disabled: true });
+        disabled: true
+    });
 
 });
 define('portia-web/models/simple-model', ['exports', 'ember'], function (exports, Ember) {
@@ -7522,7 +7573,8 @@ define('portia-web/models/simple-model', ['exports', 'ember'], function (exports
                 }).bind(this));
             }
             return serialized;
-        } });
+        }
+    });
 
 });
 define('portia-web/models/spider', ['exports', 'ember', 'portia-web/models/simple-model'], function (exports, Ember, SimpleModel) {
@@ -7589,7 +7641,8 @@ define('portia-web/models/spider', ['exports', 'ember', 'portia-web/models/simpl
                 reqs[0]['password'] = loginPassword;
             }
             return reqs.length ? reqs[0]['password'] : null;
-        }).property('init_requests') });
+        }).property('init_requests')
+    });
 
 });
 define('portia-web/models/template', ['exports', 'portia-web/models/simple-model'], function (exports, SimpleModel) {
@@ -7605,7 +7658,8 @@ define('portia-web/models/template', ['exports', 'portia-web/models/simple-model
         annotated_body: '',
         original_body: '',
         _new: false,
-        extractors: null });
+        extractors: null
+    });
 
 });
 define('portia-web/router', ['exports', 'ember', 'portia-web/config/environment'], function (exports, Ember, config) {
@@ -7683,18 +7737,22 @@ define('portia-web/routes/conflicts', ['exports', 'portia-web/routes/base-route'
             this.render('conflicts/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('conflicts/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('conflicts/resolver', {
                 into: 'application',
                 outlet: 'conflictResolver',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/conflicts/index', ['exports', 'portia-web/routes/conflicts'], function (exports, ConflictsRoute) {
@@ -7711,7 +7769,8 @@ define('portia-web/routes/index', ['exports', 'ember'], function (exports, Ember
     exports['default'] = Ember['default'].Route.extend({
         activate: function activate() {
             this.transitionTo('projects');
-        } });
+        }
+    });
 
 });
 define('portia-web/routes/items', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7730,13 +7789,16 @@ define('portia-web/routes/items', ['exports', 'portia-web/routes/base-route'], f
             this.render('items/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('template/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/project', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7790,18 +7852,21 @@ define('portia-web/routes/project/index', ['exports', 'portia-web/routes/base-ro
             this.render('project/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('project/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
+                controller: controller
+            });
         },
 
         serialize: function serialize() {
             var controller = this.controllerFor('project.index');
             return { project_id: controller.get('name') };
-        } });
+        }
+    });
 
 });
 define('portia-web/routes/projects', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7828,13 +7893,16 @@ define('portia-web/routes/projects', ['exports', 'portia-web/routes/base-route']
             this.render('projects/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('projects/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/projects/index', ['exports', 'portia-web/routes/projects'], function (exports, ProjectRoute) {
@@ -7868,13 +7936,16 @@ define('portia-web/routes/spider', ['exports', 'portia-web/routes/base-route'], 
             this.render('spider/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
 
             this.render('spider/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/spider/index', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -7895,7 +7966,8 @@ define('portia-web/routes/template-items', ['exports', 'portia-web/routes/items'
     'use strict';
 
     exports['default'] = Items['default'].extend({
-        defaultControllerName: 'template-items' });
+        defaultControllerName: 'template-items'
+    });
 
 });
 define('portia-web/routes/template', ['exports', 'ember', 'portia-web/routes/base-route'], function (exports, Ember, BaseRoute) {
@@ -7933,12 +8005,15 @@ define('portia-web/routes/template', ['exports', 'ember', 'portia-web/routes/bas
             this.render('template/toolbox', {
                 into: 'application',
                 outlet: 'main',
-                controller: controller });
+                controller: controller
+            });
             this.render('template/topbar', {
                 into: 'application',
                 outlet: 'topbar',
-                controller: controller });
-        } });
+                controller: controller
+            });
+        }
+    });
 
 });
 define('portia-web/routes/template/index', ['exports', 'portia-web/routes/base-route'], function (exports, BaseRoute) {
@@ -20268,7 +20343,8 @@ define('portia-web/utils/annotation-store', ['exports', 'ember', 'portia-web/mix
                 });
                 Ember['default'].$(annotation.get('element')).attr('data-scrapy-annotate', JSON.stringify(annotation.serialize()));
             }).bind(this));
-        } });
+        }
+    });
 
 });
 define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember) {
@@ -20343,7 +20419,9 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
             } else {
                 return this.get('_interactionsBlocked');
             }
-        }).property('_interactionsBlocked') });
+        }).property('_interactionsBlocked')
+
+    });
 
     var Sprite = Ember['default'].Object.extend({
 
@@ -20355,7 +20433,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
 
         draw: function draw() {
             throw 'You must implement this method.';
-        } });
+        }
+    });
 
     var RECT_ZERO = { left: 0, top: 0, width: 0, height: 0 };
 
@@ -20418,7 +20497,7 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
                 context.fillRect(rect.left, rect.top - 18, textWidth + 11, 18);
                 context.fillRect(rect.left, rect.top - 1, rect.width, 2);
                 context.fillStyle = this.get('textColor');
-                context.globalAlpha = 1;
+                context.globalAlpha = 1.0;
                 context.fillText(this.get('text'), rect.left + 6, rect.top - 4);
             }
             context.restore();
@@ -20458,7 +20537,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
             } else {
                 return this.get('_zPosition');
             }
-        }).property('annotation.highlighted') });
+        }).property('annotation.highlighted')
+    });
 
     var IgnoreSprite = RectSprite.extend({
         ignore: null,
@@ -20488,7 +20568,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
                 }).bind(this));
             }
             this.drawRect(context, element.boundingBox());
-        } });
+        }
+    });
 
     var ElementSprite = RectSprite.extend({
         element: null,
@@ -20500,7 +20581,8 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
 
         getBoundingBox: function getBoundingBox() {
             return Ember['default'].$(this.get('element')).boundingBox();
-        } });
+        }
+    });
 
     exports.Canvas = Canvas;
     exports.Sprite = Sprite;
@@ -20539,7 +20621,8 @@ define('portia-web/utils/messages', ['exports', 'ember'], function (exports, Emb
         deploy_ok: 'The project was successfully deployed.',
         deploy_ok_schedule: 'The project was successfully deployed. Do you want to be redirected to the schedule page?',
         publish_conflict: 'There was a conflict that could not be automatically resolved. You will have to resolve the conflict manually.',
-        conflicts_solved: 'You have resolved all conflicts, your changes have been published.' });
+        conflicts_solved: 'You have resolved all conflicts, your changes have been published.'
+    });
 
 });
 define('portia-web/utils/modal-manager', ['exports', 'ember'], function (exports, Ember) {
@@ -20574,7 +20657,8 @@ define('portia-web/utils/modal-manager', ['exports', 'ember'], function (exports
         templateName: 'components/bs-modal'
       });
       this.add(name, modalComponent);
-      return modalComponent.appendTo(Ember['default'].$('body'));
+      var rootElement = controller.container.lookup('application:main').rootElement;
+      return modalComponent.appendTo(rootElement);
     }
   });
 
@@ -21261,7 +21345,8 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
                 }
                 throw err;
             });
-        } });
+        }
+    });
 
     exports['default'] = SlydApi;
 
@@ -21394,7 +21479,8 @@ define('portia-web/utils/sprite-store', ['exports', 'ember', 'portia-web/utils/c
                     return true;
                 }
             }));
-        } });
+        }
+    });
 
 });
 define('portia-web/utils/timer', ['exports', 'ember'], function (exports, Ember) {

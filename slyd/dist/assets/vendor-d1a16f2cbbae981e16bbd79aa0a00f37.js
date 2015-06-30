@@ -56781,12 +56781,13 @@ define("ember/resolver",
     };
   }
 
-  if (!(Object.create && !Object.create(null).hasOwnProperty)) {
+  var create = (Object.create || Ember.create);
+  if (!(create && !create(null).hasOwnProperty)) {
     throw new Error("This browser does not support Object.create(null), please polyfil with es5-sham: http://git.io/yBU2rg");
   }
 
   function makeDictionary() {
-    var cache = Ember.create(null);
+    var cache = create(null);
     cache['_dict'] = null;
     delete cache['_dict'];
     return cache;
@@ -57077,7 +57078,7 @@ define("ember/resolver",
 
     knownForType: function(type) {
       var moduleEntries = requirejs.entries;
-      var moduleKeys = Ember.keys(moduleEntries);
+      var moduleKeys = (Object.keys || Ember.keys)(moduleEntries);
 
       var items = makeDictionary();
       for (var index = 0, length = moduleKeys.length; index < length; index++) {
@@ -59916,9 +59917,9 @@ define('ember-breadcrumbs/components/bread-crumbs', ['exports', 'ember'], functi
     router: null,
     applicationController: null,
 
-    handlerInfos: function() {
+    handlerInfos: Ember['default'].computed("applicationController.currentPath", function() {
       return this.get("router").router.currentHandlerInfos;
-    }.property("applicationController.currentPath"),
+    }),
 
     /*
       For the pathNames and controllers properties, we must be careful not to NOT
@@ -59928,25 +59929,29 @@ define('ember-breadcrumbs/components/bread-crumbs', ['exports', 'ember'], functi
       https://github.com/chrisfarber/ember-breadcrumbs/issues/21
     */
 
-    pathNames: (function() {
+    pathNames: Ember['default'].computed("handlerInfos.[]", function() {
       return this.get("handlerInfos").map(function(handlerInfo) {
         return handlerInfo.name;
       });
-    }).property("handlerInfos.[]"),
+    }),
 
-    controllers: (function() {
+    controllers: Ember['default'].computed("handlerInfos.[]", function() {
       return this.get("handlerInfos").map(function(handlerInfo) {
         return handlerInfo.handler.controller;
       });
-    }).property("handlerInfos.[]"),
+    }),
 
-    breadCrumbs: function() {
+    breadCrumbs: Ember['default'].computed("controllers.@each.breadCrumbs",
+      "controllers.@each.breadCrumb",
+      "controllers.@each.breadCrumbPath",
+      "controllers.@each.breadCrumbModel",
+      "pathNames.[]", function() {
       var controllers = this.get("controllers");
       var defaultPaths = this.get("pathNames");
-      var breadCrumbs = [];
+      var breadCrumbs = Ember['default'].A([]);
 
       controllers.forEach(function(controller, index) {
-        var crumbs = controller.get("breadCrumbs") || [];
+        var crumbs = controller.get("breadCrumbs") || Ember['default'].A([]);
         var singleCrumb = controller.get("breadCrumb");
 
         if (!Ember['default'].isBlank(singleCrumb)) {
@@ -59968,18 +59973,13 @@ define('ember-breadcrumbs/components/bread-crumbs', ['exports', 'ember'], functi
         });
       });
 
-      var deepestCrumb = breadCrumbs.get("lastObject");
+      var deepestCrumb = Ember['default'].get(breadCrumbs, "lastObject");
       if (deepestCrumb) {
         deepestCrumb.isCurrent = true;
       }
 
       return breadCrumbs;
-    }.property(
-      "controllers.@each.breadCrumbs",
-      "controllers.@each.breadCrumb",
-      "controllers.@each.breadCrumbPath",
-      "controllers.@each.breadCrumbModel",
-      "pathNames.[]")
+    })
   });
 
 });

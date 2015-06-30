@@ -87,8 +87,11 @@ export default Ember.Mixin.create({
             if (attributes.itemprop) {
                 property = attributes.itemprop.value;
             }
-            if (guess || !FIELD_TYPE[type]) {
-                return this.guessType(extractedData, property, classes);
+            if (guess || !FIELD_TYPE[type] || type === 'text') {
+                var guessed = this.guessType(extractedData, property, classes);
+                if (guessed) {
+                    return guessed;
+                }
             }
             return FIELD_TYPE[type];
         }
@@ -137,7 +140,7 @@ export default Ember.Mixin.create({
         if (classes) {
             var prefixes = new Set(['p', 'u', 'dt']);
             classes = classes.filter(c => prefixes.has(c.split('-')[0]));
-            if (classes.length) {
+            if (classes.length > 0) {
                 for (key in VOCAB_FIELD_CLASS) {
                     for (var i=0; i < classes.length; i++) {
                         property = classes[i];
@@ -158,7 +161,7 @@ export default Ember.Mixin.create({
         }
         var prices = data.match(/\d+(?:(?:,\d{3})+)?(?:.\d+)?/);
         if (prices !==null && prices.length && (prices[0].length / data.length) > 0.05 ) {
-            return 'prices';
+            return 'price';
         }
         var numbers = data.match(/\d+(?:\.\d+)?/);
         if (numbers !== null && numbers.length && (numbers[0].length / data.length) > 0.05 ) {
