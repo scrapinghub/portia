@@ -28,6 +28,7 @@ export default Ember.Object.extend({
       templateName: 'components/bs-modal'
     });
     this.add(name, modalComponent);
-    return modalComponent.appendTo(Ember.$('body'));
+    var rootElement = controller.container.lookup('application:main').rootElement;
+    return modalComponent.appendTo(rootElement);
   }
 });
