@@ -5198,7 +5198,7 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
 
         willEnter: function willEnter() {
             this.set('breadCrumb', 'home');
-            if (this.get('controllers.application.currentRouteName').split('.')[1] === 'index') {
+            if (this.getWithDefault('controllers.application.currentRouteName', '').split('.')[1] === 'index') {
                 this.set('slyd.project', null);
             }
             this.get('documentView').reset();
@@ -7220,8 +7220,11 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
                 if (attributes.itemprop) {
                     property = attributes.itemprop.value;
                 }
-                if (guess || !FIELD_TYPE[type]) {
-                    return this.guessType(extractedData, property, classes);
+                if (guess || !FIELD_TYPE[type] || type === "text") {
+                    var guessed = this.guessType(extractedData, property, classes);
+                    if (guessed) {
+                        return guessed;
+                    }
                 }
                 return FIELD_TYPE[type];
             }
@@ -7293,7 +7296,7 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
                 classes = classes.filter(function (c) {
                     return prefixes.has(c.split("-")[0]);
                 });
-                if (classes.length) {
+                if (classes.length > 0) {
                     for (key in VOCAB_FIELD_CLASS) {
                         for (var i = 0; i < classes.length; i++) {
                             property = classes[i];
@@ -7314,7 +7317,7 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
             }
             var prices = data.match(/\d+(?:(?:,\d{3})+)?(?:.\d+)?/);
             if (prices !== null && prices.length && prices[0].length / data.length > 0.05) {
-                return "prices";
+                return "price";
             }
             var numbers = data.match(/\d+(?:\.\d+)?/);
             if (numbers !== null && numbers.length && numbers[0].length / data.length > 0.05) {
@@ -20902,7 +20905,8 @@ define('portia-web/utils/modal-manager', ['exports', 'ember'], function (exports
         templateName: 'components/bs-modal'
       });
       this.add(name, modalComponent);
-      return modalComponent.appendTo(Ember['default'].$('body'));
+      var rootElement = controller.container.lookup('application:main').rootElement;
+      return modalComponent.appendTo(rootElement);
     }
   });
 

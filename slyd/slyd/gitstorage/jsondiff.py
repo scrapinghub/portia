@@ -104,7 +104,7 @@ def merge_lists(base, mine, other):
     last_conflict = False
     for i, (m, o, b) in enumerate(izip_longest(mine, other, base,
                                                fillvalue=_BLANK)):
-        if m == o:
+        if m == o and _BLANK not in (m, o):
             result.append(m)
         else:  # Conflict
             if last_conflict:
@@ -116,10 +116,12 @@ def merge_lists(base, mine, other):
             last_conflict = True
             continue
         last_conflict = False
+    offset = 0
     for i, r in enumerate(result[:]):
         if isinstance(r, Conflict):
             c = r.resolve_conflict()
-            result = result[:i] + c
+            result = result[:i + offset] + c + result[i + offset + 1:]
+            offset += len(c) - 1
     return result
 
 
