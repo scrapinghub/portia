@@ -412,17 +412,18 @@ class Repoman(object):
                         continue
                 else:
                     jsons = [load_json(path, x) for x in (base, mine, other)]
+                    base_json, my_json, other_json = jsons
                     # When dealing with renames, file contents are under the
                     # 'new' path. Note that the file will be finally stored
                     # under the name given by the last rename.
                     if other_changes.type == CHANGE_RENAME:
-                        jsons[2] = load_json(other_changes.new.path, other)
+                        other_json = load_json(other_changes.new.path, other)
                         path = other_changes.new.path
                     if my_changes.type == CHANGE_RENAME:
-                        jsons[1] = load_json(my_changes.new.path, mine)
+                        my_json = load_json(my_changes.new.path, mine)
                         path = my_changes.new.path
                     if take_mine:
-                        merged_json = jsons[1] or jsons[2] or jsons[0]
+                        merged_json = my_json or other_json or base_json
                     else:
                         merged_json, merge_conflict = merge_jsons(*jsons)
                         if merge_conflict:

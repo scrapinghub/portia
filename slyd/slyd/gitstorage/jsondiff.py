@@ -43,8 +43,9 @@ class Conflict(object):
             return self.mine
         if self.other == self.mine:
             return self.mine
-        if self.base is not None or not any(i in self.other or []
-                                            for i in self.mine or []):
+        combined = set(self.mine or []) | set(self.other or [])
+        if (self.base is not None and
+                not any(i in combined for i in self.base)):
             return [self]
         mine = self.mine if self.mine else []
         other = self.other if self.other else []
@@ -95,17 +96,17 @@ class Conflict(object):
 def merge_lists(base, mine, other):
     if mine == other:
         return mine
-    if other == base != mine:
+    if other == base:
         return mine
-    if mine == base != other:
+    if mine == base:
         return other
     result = []
     last_conflict = False
     for i, (m, o, b) in enumerate(izip_longest(mine, other, base,
                                                fillvalue=_BLANK)):
-        if m == o == b or m == o:
+        if m == o:
             result.append(m)
-        elif m != o:  # Conflict
+        else:  # Conflict
             if last_conflict:
                 c = result[-1]
                 c.update(m, o, b)
@@ -114,8 +115,6 @@ def merge_lists(base, mine, other):
                 result.append(c)
             last_conflict = True
             continue
-        else:
-            result.append(b)
         last_conflict = False
     for i, r in enumerate(result[:]):
         if isinstance(r, Conflict):

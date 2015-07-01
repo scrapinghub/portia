@@ -157,7 +157,8 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
     def conflicted_files(self, name):
         repoman = self._open_repo(name)
         branch = self._get_branch(repoman, read_only=True)
-        return json.dumps(repoman.publish_branch(branch, dry_run=True))
+        conflicts = repoman.publish_branch(branch, dry_run=True)
+        return json.dumps(conflicts if conflicts is not True else {})
 
     @run_in_thread
     def changed_files(self, name):
