@@ -1,5 +1,6 @@
 from operator import itemgetter
 from copy import deepcopy
+import itertools
 
 from scrapy import log
 from scrapy.http import Request, HtmlResponse, FormRequest
@@ -171,13 +172,24 @@ class IblSpider(Spider):
                      response.url), level=log.DEBUG)
             return []
 
-    def handle_rss(self, response):
-        seen = set()
+    def _plugin_hook(self, name, *args):
+        results = []
         for plugin in self.plugins.values():
-            for item_or_request in plugin.handle_rss(response, seen):
-                yield item_or_request
+            if hasattr(plugin, name):
+                results.append(getattr(plugin, name)(*args))
+        return results
+
+    def _handle(self, hook, response, *extrasrgs):
+        generators = self._plugin_hook(hook, response, *extrasrgs)
+        for item_or_request in itertools.chain(*generators):
+            if isinstance(item_or_request, Request):
+                self._plugin_hook('process_request', item_or_request, response)
+            else:
+                self._plugin_hook('process_item', item_or_request, response)
+            yield item_or_request
+
+    def handle_rss(self, response):
+        return self._handle('handle_rss', response, set([]))
 
     def handle_html(self, response):
-        for plugin in self.plugins.values():
-            for item_or_request in plugin.handle_html(response):
-                yield item_or_request
+        return self._handle('handle_html', response)
