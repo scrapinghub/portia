@@ -289,7 +289,7 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
         //*******************************************************************\\
 
         s4: function s4() {
-            return Math.floor((1 + Math.random()) * 65536).toString(16).substring(1);
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
         },
 
         createAnnotationData: function createAnnotationData(generatedData) {
@@ -4100,7 +4100,7 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
                 loader.setShape('spiral');
                 loader.setDiameter(90);
                 loader.setRange(0.9);
-                loader.setSpeed(1);
+                loader.setSpeed(1.0);
                 loader.setFPS(60);
                 var loaderObj = document.getElementById('canvasLoader');
                 loaderObj.style.position = 'absolute';
@@ -6867,7 +6867,7 @@ define('portia-web/mixins/application-utils', ['exports', 'ember'], function (ex
 
     exports['default'] = Ember['default'].Mixin.create({
         s4: function s4() {
-            return Math.floor((1 + Math.random()) * 65536).toString(16).substring(1);
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
         },
 
         guid: function guid() {
@@ -6963,7 +6963,7 @@ define('portia-web/mixins/conflict-mixin', ['exports', 'ember'], function (expor
             try {
                 this.sendAction('conflictOptionUpdated', path, this.get('conflictedKeyPaths.' + path + '.accepted'), this.get('conflictedKeyPaths.' + path + '.rejected'));
             } catch (e) {
-                if (!/^TypeError/.test(e.toString())) {
+                if (!(e instanceof TypeError)) {
                     throw e;
                 }
             }
@@ -20742,7 +20742,7 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
                 context.fillRect(rect.left, rect.top - 18, textWidth + 11, 18);
                 context.fillRect(rect.left, rect.top - 1, rect.width, 2);
                 context.fillStyle = this.get('textColor');
-                context.globalAlpha = 1;
+                context.globalAlpha = 1.0;
                 context.fillText(this.get('text'), rect.left + 6, rect.top - 4);
             }
             context.restore();

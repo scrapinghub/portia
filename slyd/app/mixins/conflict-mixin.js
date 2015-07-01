@@ -54,7 +54,7 @@ export default Ember.Mixin.create({
                             this.get('conflictedKeyPaths.'+path+'.accepted'),
                             this.get('conflictedKeyPaths.'+path+'.rejected'));
         } catch (e) {
-            if (!/^TypeError/.test(e.toString())) {
+            if (!(e instanceof TypeError)) {
                 throw e;
             }
         }
