@@ -48,6 +48,43 @@ fixtures['/projects/11/spec/spiders/spider1'] = {
     "templates": []
 };
 
+fixtures['/projects/11/spec/items'] = {
+    "default": {
+        "fields": {
+            "required": {
+                "required": true,
+                "type": "text",
+                "vary": false
+            },
+            "optional": {
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "image": {
+                "required": false,
+                "type": "image",
+                "vary": false
+            },
+            "text": {
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "price": {
+                "required": true,
+                "type": "price",
+                "vary": false
+            },
+            "safe_html": {
+                "required": true,
+                "type": "safe html",
+                "vary": false
+            }
+        }
+    }
+};
+
 fixtures['POST /projects'] = function(data) {
     var pid = data.args[0];
     if(data.cmd === 'conflicts'){
@@ -59,6 +96,8 @@ fixtures['POST /projects'] = function(data) {
     }
     console.log('POST command without fixture', JSON.stringify(data));
 };
+
+fixtures['POST /projects/11/spec/spiders/spider1'] = Ember.$.noop;
 
 export var lastRequest = {
     method: null,
@@ -77,7 +116,7 @@ Ember.$.ajax = function(args){
     } else if (args.type === 'POST' && ('POST ' + url) in fixtures) {
         args.success(fixtures['POST ' + url](data), 'sucess', {});
     } else {
-        console.log('Undefined fixture', args.type, url);
+        console.log('Undefined fixture: ' + args.type + ' ' + url + (data ? ' ' + JSON.stringify(data) : ''));
         args.success({}, 'sucess', {});
     }
 };
