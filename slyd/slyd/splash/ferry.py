@@ -231,7 +231,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.factory[self].tab = PortiaBrowserTab(
             network_manager=manager,
             splash_proxy_factory=None,
-            verbosity=2,
+            verbosity=0,
             render_options=RenderOptions(data, defaults.MAX_TIMEOUT),
             visible=True,
         )
@@ -281,6 +281,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 # Template names not consistent with templates
                 spec.remove_template(spider_name, template)
         spider['templates'] = templates
+        if not self.settings.get('SPLASH_URL'):
+            self.settings.set('SPLASH_URL', 'portia')
         self.factory[self].spider = IblSpider(spider_name, spider, items,
                                               extractors, self.settings)
         self.factory[self].spiderspec = SpiderSpec(spider_name, spider, items,

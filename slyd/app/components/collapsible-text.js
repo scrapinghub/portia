@@ -12,7 +12,7 @@ export default Ember.Component.extend(Popover, {
     }.property('fullText', 'trimTo'),
 
     displayedText: function() {
-        var text = this.get('fullText');
+        var text = this.get('fullText') || '';
         if (!this.get('collapsed')) {
             return text.trim();
         } else {

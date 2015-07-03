@@ -2576,7 +2576,7 @@ define('portia-web/components/collapsible-text', ['exports', 'ember', 'portia-we
         }).property('fullText', 'trimTo'),
 
         displayedText: (function () {
-            var text = this.get('fullText');
+            var text = this.get('fullText') || '';
             if (!this.get('collapsed')) {
                 return text.trim();
             } else {
