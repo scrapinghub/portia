@@ -16,10 +16,12 @@ class SpiderTest(TestCase):
 
         item = {
             '_template': u'4fac3b47688f920c7800000f',
-            '_type': u'default'
+            '_type': u'default',
+            'image': u'previous data',
         }
 
         spider.plugins['Selectors'].process_item(item, response)
 
         self.assertEqual(item['breadcrumbs'], [u'Seeds & Supplies', u'Seeds', u'Vegetables', u'Squash & Pumpkins'])
-        self.assertEqual(item['image'], [u'/images/product_shots/PPS14165B.jpg'])
+        self.assertEqual(item['image'], [u'previous data', u'/images/product_shots/PPS14165B.jpg'])
+
