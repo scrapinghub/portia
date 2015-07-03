@@ -23,6 +23,6 @@ export default Ember.Object.create({
     publish_ok_schedule: 'The project was successfully published. Do you want to be redirected to the schedule page?',
     deploy_ok: 'The project was successfully deployed.',
     deploy_ok_schedule: 'The project was successfully deployed. Do you want to be redirected to the schedule page?',
-    publish_conflict: 'There was a conflict that could not be automatically resolved. You will have to resolve the conflict manually.',
+    publish_conflict: 'Another user has made changes to this project which conflict with your changes. You will need to manually resolve these conflicts',
     conflicts_solved: 'You have resolved all conflicts, your changes have been published.',
 });
