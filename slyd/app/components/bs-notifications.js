@@ -31,7 +31,9 @@ var NotificationsView = Ember.CollectionView.extend({
         fadeOut: function() {
             var _this = this;
             clearTimeout(this.get('timeoutId'));
-            return this.$().animate({ opacity: 0 }, this.get('fadeOutTime'), function() {
+            return this.$()
+              .stop()
+              .animate({ opacity: 0 }, this.get('fadeOutTime'), function() {
                 _this.$().slideUp(_this.get('fadeOutTime'), function() {
                     _this.get('parentView.content').removeObject(_this.get('content'));
                 });
