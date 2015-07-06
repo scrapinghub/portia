@@ -76,13 +76,14 @@ export default BaseController.extend({
     scrapedItem: function() {
         if (!Ember.isEmpty(this.get('items'))) {
             var item = this.get('items').findBy('name', this.get('model.scrapes'));
-            if (!item.fields) {
-                item.fields = [];
+            if(item) {
+                if (!item.fields) {
+                    item.fields = [];
+                }
+                return item;
             }
-            return item;
-        } else {
-            return null;
         }
+        return null;
     }.property('model.scrapes', 'items.@each'),
 
     displayExtractors: function() {
