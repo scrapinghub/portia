@@ -258,6 +258,9 @@ class GitProjectArchiver(ProjectArchiver):
 
     def read_file(self, filename, deserialize=False):
         contents = self.project.file_contents_for_branch(filename, self.branch)
+        if contents is None and self.branch != 'master':
+            contents = self.project.file_contents_for_branch(filename,
+                                                             'master')
         if contents is None and not self.ignore_deleted:
             contents = json.dumps({'deleted': True})
         if deserialize and contents is not None:

@@ -138,7 +138,8 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
     @run_in_thread
     def publish_project(self, name, force):
         repoman = self._open_repo(name)
-        if repoman.publish_branch(self._get_branch(repoman), force):
+        if (repoman.publish_branch(self._get_branch(repoman),
+                                   force=force) == True):
             repoman.kill_branch(self._get_branch(repoman))
             return {'status': 'ok'}
         else:
@@ -155,9 +156,9 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
     @run_in_thread
     def conflicted_files(self, name):
         repoman = self._open_repo(name)
-        return json.dumps(
-            repoman.get_branch_conflicted_files(
-                self._get_branch(repoman, read_only=True)))
+        branch = self._get_branch(repoman, read_only=True)
+        conflicts = repoman.publish_branch(branch, dry_run=True)
+        return json.dumps(conflicts if conflicts is not True else {})
 
     @run_in_thread
     def changed_files(self, name):

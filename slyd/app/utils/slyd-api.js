@@ -585,13 +585,18 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
     saveFile: function(projectName, fileName, contents) {
         var hash = {};
         hash.type = 'POST';
-        hash.url = this.getApiUrl();
-        hash.data = { cmd: 'save', args: [projectName, fileName, contents] };
+        hash.url = this._getUrlFromPath(fileName);
+        hash.data = contents;
         hash.dataType = 'text';
         return this.makeAjaxCall(hash).catch(function(err) {
             err.title = 'Failed to save file';
             throw err;
         });
+    },
+
+    _getUrlFromPath: function(path) {
+        path = path.slice(0, -5);
+        return this.get('projectSpecUrl') + path;
     },
 
     /**
