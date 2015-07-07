@@ -18,7 +18,8 @@
         "id": "item",
         "type": "object",
         "properties": {
-            "fields": {"additionalProperties": {"$ref": "field"}, "required": true}
+            "fields": {"additionalProperties": {"$ref": "field"}, "required": true},
+            "displayName": {"type": "string", "required": false}
         }
     },
     {

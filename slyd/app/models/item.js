@@ -3,7 +3,7 @@ import ItemField from './item-field';
 
 export default SimpleModel.extend({
     serializedRelations: ['fields'],
-    serializedProperties: ['name'],
+    serializedProperties: ['name', 'displayName'],
     fields: null,
 
     validateName: function(name) {

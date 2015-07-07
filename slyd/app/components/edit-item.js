@@ -42,7 +42,7 @@ export default Ember.Component.extend(NotificationHandler, {
         },
 
         validateItemName: function(input){
-            if (this.get('items').findBy('name', input.text)) {
+            if (this.get('items').findBy('displayName', input.text)) {
                 input.setInvalid('There is already a item with that name.');
             }
         }

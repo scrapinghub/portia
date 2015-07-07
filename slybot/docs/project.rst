@@ -82,7 +82,7 @@ name : string
 
 version : string
   Version number of the format.
-  
+
 comment : string : optional
   A comment provided by the user.
 
@@ -112,6 +112,10 @@ system, i.e: person, job, category, etc.::
     },
 
 Attributes:
+
+displayName: string : optional
+  User-friendly name of the item. If not specified, the item id will be used
+  instead.
 
 fields : mapping
   This is a mapping of the field names to the field objects representing
