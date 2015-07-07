@@ -498,7 +498,7 @@ export default BaseController.extend({
             });
             var item = Item.create({
                 name: this.get('model.scrapes'),
-                displayName: this.get('model.name'),
+                display_name: this.get('model.name'),
                 fields: []
             });
             fields.forEach((fieldName) => item.addField(fieldName));

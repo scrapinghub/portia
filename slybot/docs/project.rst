@@ -113,7 +113,7 @@ system, i.e: person, job, category, etc.::
 
 Attributes:
 
-displayName: string : optional
+display_name: string : optional
   User-friendly name of the item. If not specified, the item id will be used
   instead.
 

@@ -11,7 +11,7 @@ export default BaseController.extend({
     addItem: function() {
         var newItem = Item.create({
             name: this.shortGuid('_'),
-            displayName: 'New Item'
+            display_name: 'New Item'
         });
         this.addField(newItem);
         this.model.pushObject(newItem);

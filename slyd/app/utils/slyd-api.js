@@ -403,7 +403,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         return this.makeAjaxCall(hash).then(function(items) {
             items = this.dictToList(items, Item);
             items.forEach(function(item) {
-                item.displayName = item.displayName || item.name;
+                item.display_name = item.display_name || item.name;
                 if (item.fields) {
                     item.fields = this.dictToList(item.fields, ItemField);
                 }

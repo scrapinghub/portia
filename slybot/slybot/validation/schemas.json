@@ -19,7 +19,7 @@
         "type": "object",
         "properties": {
             "fields": {"additionalProperties": {"$ref": "field"}, "required": true},
-            "displayName": {"type": "string", "required": false}
+            "display_name": {"type": "string", "required": false}
         }
     },
     {
