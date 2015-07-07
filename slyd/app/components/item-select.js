@@ -35,10 +35,7 @@ export default Ember.Component.extend({
         var seenSelected = false,
             arr = defaultValue.concat(this.get('options').map(function(opt) {
                 if (typeof(opt) === 'string') {
-                    opt = {
-                        value: opt,
-                        label: opt,
-                    };
+                    opt = { value: opt };
                 } else if (opt instanceof Ember.Object) {
                     opt = {
                         value: opt.get(valueProperty),
@@ -47,12 +44,13 @@ export default Ember.Component.extend({
                 } else {
                     opt = {
                         value: opt[valueProperty] || opt.value,
-                        label: opt[labelProperty] || opt.label || opt.value,
+                        label: opt[labelProperty] || opt.label,
                     };
                 }
                 if (opt.value === selectedValue) {
                     seenSelected = true;
                 }
+                opt.label = opt.label || opt.value;
                 opt.selected = opt.value === selectedValue;
                 return opt;
             }));
