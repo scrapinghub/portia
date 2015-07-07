@@ -246,6 +246,22 @@ annotated_body : string
 original_body : string
   The original body (without annotations).
 
+selectors : mapping
+  A mapping from field names to selector objects. If provided when this
+  template extracts an item from a response, the selectors will be run on the
+  page and results added to the item.
+
+Selector
+--------
+
+Attributes:
+
+type : string
+  The type of the selector, can be either ``css`` or ``xpath``.
+
+selector : string
+  The selector expression
+
 Extractor
 ---------
 

@@ -67,7 +67,21 @@
             "url": {"type": "string", "format": "url", "required": true},
             "extractors": {"additionalProperties": {"type": "array", "items": {"type": "string"}}, "required": true},
             "annotated_body": {"type": "string", "required": true},
-            "original_body": {"type": "string", "required": true}
+            "original_body": {"type": "string", "required": true},
+            "selectors": {
+                "type": "object",
+                "patternProperties": {
+                    "[a-zA-Z0-9_-]+": {"$ref": "selector"}
+                }
+            }
+        }
+    },
+    {
+        "id": "selector",
+        "type": "object",
+        "properties": {
+            "type": {"enum": ["xpath", "css"], "required": true},
+            "selector": {"type": "string", "required": true}
         }
     },
     {
