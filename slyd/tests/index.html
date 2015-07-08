@@ -21,6 +21,31 @@
 
     {{content-for 'body'}}
     {{content-for 'test-body'}}
+    <script>
+
+var __setTimeout = setTimeout;
+function WebSocket(){
+  var that = this;
+  __setTimeout(function(){
+    if (that.onopen) {
+      that.onopen();
+    }
+  }, 0);
+}
+
+WebSocket.prototype = {
+    close: function(){},
+    send: function(){},
+    url: '',
+    readyState: 1,
+    OPEN: 1,
+    CLOSED: 3,
+    CONNECTING: 0,
+    CLOSING: 2,
+};
+window.WebSocket = WebSocket;
+
+    </script>
     <script src="assets/vendor.js"></script>
     <script src="assets/test-support.js"></script>
     <script src="assets/portia-web.js"></script>

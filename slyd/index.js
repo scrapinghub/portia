@@ -16,7 +16,6 @@ module.exports = {
         app.import('vendor/uri.js');
         app.import('vendor/bootstrap.min.js');
         app.import('vendor/jquery.binarytransport.js');
-        app.import('vendor/mutation-summary.js');
         app.import('vendor/tree-mirror.js');
 
         if (app.env === 'test') {
