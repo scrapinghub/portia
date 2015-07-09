@@ -15,11 +15,18 @@ function treeMirrorDelegate(){
             } else if(tagName === 'FORM') {
                 node = document.createElement(tagName);
                 $(node).on('submit', ()=>false);
+            } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
+                node = document.createElement(tagName);
+                node.setAttribute('src', '/static/frames-not-supported.html');
             }
             return node;
         },
         setAttribute: function(node, attrName, value){
-            if(/^on/.test(attrName)) {
+            if(
+                /^on/.test(attrName) ||  // Disallow JS attributes
+                ((node.tagName === 'FRAME' || node.tagName === 'IFRAME') &&
+                (attrName === 'src' || attrName === 'srcdoc')) // Frames not supported
+            ) {
                 return true;
             }
             try{
