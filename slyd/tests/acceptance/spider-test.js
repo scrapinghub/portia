@@ -2,6 +2,12 @@
 import acceptanceTest from '../helpers/acceptance-test';
 import Ember from 'ember';
 import { lastRequest } from '../helpers/fixtures';
+import ws from '../helpers/websocket-mock';
+
+ws.commands.delete = function(){
+  console.log('delete spider!');
+  return {_command: 'delete'};
+};
 
 module('Acceptance | Spider', { });
 
@@ -37,8 +43,8 @@ acceptanceTest('List spiders', function(app, assert) {
     ok(/Are you sure/.test(find('.modal-body').text()));
     return click(find('.modal-footer .btn-danger'));
   }).then(function(){
-    equal(lastRequest.data.cmd, 'rm');
-    deepEqual(lastRequest.data.args, ['spider1']);
+    equal(ws.lastMessage._command, 'delete');
+    equal(ws.lastMessage.name, 'spider1');
     deepEqual(getSpiders(), ['spider2']);
   });
 });
