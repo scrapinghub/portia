@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import startApp from 'portia-web/tests/helpers/start-app';
-import WebDocument from 'portia-web/components/web-document';
+import WebDocument from 'portia-web/components/web-document-js/component';
+import FerryWebsocket from 'portia-web/utils/ferry-websocket';
 
 export default function portiaTest(name, fn) {
     test(name, function(assert) {
@@ -15,7 +16,10 @@ export default function portiaTest(name, fn) {
             app.setupForTesting();
             app.injectTestHelpers();
             var doc = app.registry.resolve('document:obj');
-            WebDocument.create({document: doc});
+            WebDocument.create({
+                document: doc,
+                ws: FerryWebsocket.create({})
+            });
             fn.call(that, app, assert);
             andThen(function() {
                 app.destroy();
