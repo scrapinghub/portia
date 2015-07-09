@@ -3,7 +3,7 @@
 	<div>
 		<div class="scrolling-container" {{bind-attr style="full_box_style"}}>
 			{{#each item in model}}
-				{{edit-item item=item extractionTypes=extractionTypes addField='addField' deleteField='deleteField' delete='deleteItem'}}
+				{{edit-item item=item items=model extractionTypes=extractionTypes addField='addField' deleteField='deleteField' delete='deleteItem'}}
 		 	{{else}}
 		 		<h4>No items have been defined yet.</h4>
 		 	{{/each}}
