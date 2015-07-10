@@ -578,6 +578,7 @@ export default BaseController.extend({
             mode: 'browse',
             useBlankPlaceholder: false,
             listener: this,
+            pageActions: this.get('model.page_actions'),
         });
         this.get('browseHistory').clear();
         Ember.run.next(() => {

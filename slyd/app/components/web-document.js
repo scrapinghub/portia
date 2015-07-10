@@ -84,6 +84,7 @@ export default Ember.Component.extend({
         The options dictionary may contain:
 
         listener: the event listener will be attached.
+        pageActions: Array where to save page actions performed.
         mode: a string. Possible values are 'select', 'browse' and 'none'.
         partialSelects: boolean. Whether to allow partial selections. It only
             has effect for the 'select' mode.
@@ -92,6 +93,7 @@ export default Ember.Component.extend({
     */
     config: function(options) {
         this.set('listener', options.listener);
+        this.set('pageActions', options.pageActions);
         if(options.mode && options.mode !== this.get('mode')) {
             this.set('cssEnabled', true);
             this.set('mode', options.mode);

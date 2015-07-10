@@ -75,6 +75,7 @@ class IblSpider(Spider):
             'allowed_domains',
             self._get_allowed_domains(self._templates)
         )
+        self.page_actions = spec.get('page_actions', [])
         if not self.allowed_domains:
             self.allowed_domains = None
 
