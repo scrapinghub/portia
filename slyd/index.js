@@ -17,6 +17,8 @@ module.exports = {
         app.import('vendor/bootstrap.min.js');
         app.import('vendor/jquery.binarytransport.js');
         app.import('vendor/tree-mirror.js');
+        app.import('bower_components/google-diff-match-patch-js/diff_match_patch.js');
+        app.import('vendor/selectorgadget-dom.js');
 
         if (app.env === 'test') {
             app.import('bower_components/ember/ember-template-compiler.js');
@@ -70,9 +72,21 @@ module.exports = {
             footer: '})();'
         });
 
+        var slybotTree = concat(relativeDir + '/splash_utils', {
+            inputFiles: [
+                '../node_modules/async-wait/waitAsync.js',
+                '../splash_utils/perform_actions.js'
+            ],
+            outputFile: '/page_actions_combined.js',
+            wrapInFunction: false,
+            header: '(function(){',
+            footer: '})();'
+        });
+
         return mergeTrees([
             funnel(tree, { destDir: '/' }),
-            splashTree
+            splashTree,
+            slybotTree,
         ]);
     },
     treeForStyles: function(tree) {

@@ -3,6 +3,7 @@ import Ember from 'ember';
 import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
+var $ = Ember.$;
 
 /* global CanvasLoader */
 
@@ -51,6 +52,7 @@ export default Ember.Component.extend({
 
         datasource: the datasource that will be attached.
         listener: the event listener will be attached.
+        pageActions: Array where to save page actions performed.
         mode: a string. Possible values are 'select' and 'browse'.
         partialSelects: boolean. Whether to allow partial selections. It only
             has effect for the 'select' mode.
@@ -58,6 +60,7 @@ export default Ember.Component.extend({
     config: function(options) {
         this.set('dataSource', options.dataSource);
         this.set('listener', options.listener);
+        this.set('pageActions', options.pageActions);
         if (options.mode === 'select') {
             this.set('elementSelectionEnabled', true);
             this.set('partialSelectionEnabled', options.partialSelects);
@@ -78,6 +81,7 @@ export default Ember.Component.extend({
         this.set('partialSelectionEnabled', false);
         this.set('dataSource', null);
         this.set('listener', null);
+        this.set('pageActions', null);
     },
 
     /**

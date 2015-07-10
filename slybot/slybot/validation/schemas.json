@@ -105,5 +105,30 @@
             "link_extractor": {"$ref": "link_extractor"},
             "additionalProperties": {"type": "any"}
         }
+    },
+    {
+        "id": "action",
+        "type": "object",
+        "oneOf": [
+            {
+                "properties": {
+                    "type": {"enum": ["wait"]},
+                    "timeout": {"type": "number", "minimum": 0}
+                }
+            },
+            {
+                "properties": {
+                    "type": {"enum": ["click"]},
+                    "selector": {"type": "string", "required": true}
+                }
+            },
+            {
+                "properties": {
+                    "type": {"enum": ["set"]},
+                    "value": {"type": "string"},
+                    "selector": {"type": "string", "required": true}
+                }
+            }
+        ]
     }
 ]

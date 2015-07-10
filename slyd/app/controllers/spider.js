@@ -261,6 +261,7 @@ export default BaseController.extend({
                 this.get('documentView').reset();
                 this.get('documentView').config({ mode: 'browse',
                                   listener: this,
+                                  pageActions: this.get('model.page_actions'),
                                   dataSource: this });
                 this.set('documentView.sprites', this.get('spriteStore'));
                 this.set('loadedPageFp', data.fp);
@@ -308,21 +309,23 @@ export default BaseController.extend({
     },
 
     addTemplate: function() {
-        var page = this.get('pageMap')[this.get('loadedPageFp')],
-            iframeTitle = this.get('documentView').getIframe().get(0).title,
-            template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
+        var page = this.get('pageMap')[this.get('loadedPageFp')];
+        var docView = this.get('documentView');
+        var iframeTitle = docView.getIframe()[0].title;
+        var template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
                                        .substring(0, 48).trim().replace(/\s+/g, '_');
         if (!template_name || ('' + template_name).length < 1) {
             template_name = this.shortGuid();
         }
-        var template = Template.create(
-            { name: template_name,
-              extractors: {},
-              annotations: {},
-              page_id: page.fp,
-              _new: true,
-              url: page.url }),
-            itemDefs = this.get('itemDefinitions');
+        var template = Template.create({
+            name: template_name,
+            extractors: {},
+            annotations: {},
+            page_id: page.fp,
+            _new: true,
+            url: page.url
+        });
+        var itemDefs = this.get('itemDefinitions');
         if (!itemDefs.findBy('name', 'default') && !Ember.isEmpty(itemDefs)) {
             // The default item doesn't exist but we have at least one item def.
             template.set('scrapes', itemDefs[0].get('name'));
@@ -668,10 +671,12 @@ export default BaseController.extend({
         this.set('loadedPageFp', null);
         this.get('extractedItems').setObjects([]);
         this.set('spiderName', this.get('model.name'));
-        this.get('documentView').config({ mode: 'browse',
-                                          listener: this,
-                                          dataSource: this });
-        this.set('documentView.listener', this);
+        this.get('documentView').config({
+            mode: 'browse',
+            listener: this,
+            dataSource: this,
+            pageActions: this.get('model.page_actions'),
+        });
         this.get('documentView').showSpider();
         this.set('documentView.sprites', new SpriteStore());
         if (this.get('autoloadTemplate')) {
