@@ -11,6 +11,7 @@ from urlparse import urljoin
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response
 from slybot.baseurl import insert_base_url
+from .splash.css_utils import process_css, wrap_url
 from .utils import serialize_tag, add_tagids
 
 ### Known weaknesses
@@ -42,13 +43,13 @@ def _deentitize_unicode(mystr):
     return _ENTITY_RE.sub(lambda m: unichr(int(m.groups()[0])), mystr)
 
 
-def html4annotation(htmlpage, baseurl=None):
+def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     """Convert the given html document for the annotation UI
 
     This adds tags, removes scripts and optionally adds a base url
     """
     htmlpage = add_tagids(htmlpage)
-    cleaned_html = descriptify(htmlpage)
+    cleaned_html = descriptify(htmlpage, baseurl, proxy=proxy_resources)
     if baseurl:
         cleaned_html = insert_base_url(cleaned_html, baseurl)
     return cleaned_html
@@ -60,7 +61,7 @@ def extract_html(response):
     return htmlpage_from_response(response).body
 
 
-def descriptify(doc, base=None):
+def descriptify(doc, base=None, proxy=None):
     """Clean JavaScript in a html source string.
     """
     parsed = parse_html(doc)
@@ -83,10 +84,16 @@ def descriptify(doc, base=None):
                     # Empty intrinsic events
                     if key in INTRINSIC_EVENT_ATTRIBUTES:
                         element.attributes[key] = ""
+                    elif base and proxy and key == "style" and val is not None:
+                        element.attributes[key] = process_css(val, -1, base)
                     # Rewrite javascript URIs
                     elif key in URI_ATTRIBUTES and val is not None:
                             if "javascript:" in _deentitize_unicode(val):
                                 element.attributes[key] = "about:blank"
+                            elif base and proxy and not (element.tag == "a" and key == 'href'):
+                                element.attributes[key] = wrap_url(val, -1,
+                                                                   base)
+                                element.attributes['_portia_%s' % key] = val
                             elif base:
                                 element.attributes[key] = urljoin(base, val)
                 newdoc.append(serialize_tag(element))

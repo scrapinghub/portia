@@ -40,7 +40,7 @@ export default Ember.Component.extend(GuessTypes, {
         delete: function() {
             this.get('alldata').removeObject(this.get('data'));
             this.get('sprites').removeSprite(this.get('mappedDOMElement'));
-            if (this.get('mappedDOMElement').tagName === 'INS') {
+            if (this.get('mappedDOMElement') && this.get('mappedDOMElement').tagName === 'INS') {
                 this.get('mappedElement').removePartialAnnotation();
             }
             var id = this.get('data.id'),
@@ -652,7 +652,7 @@ export default Ember.Component.extend(GuessTypes, {
     },
 
     mapToElement: function() {
-        if (!this.get('mappedElement') && this.get('data')) {
+        if (!this.get('mappedDOMElement') && this.get('data')) {
             var data = this.get('data'),
                 id = data.id,
                 generated = data.generated,
@@ -948,7 +948,11 @@ export default Ember.Component.extend(GuessTypes, {
     },
 
     afterRenderEvent: function() {
-        this.notifyPropertyChange('sprite');
-    }
+        Ember.run.next(this, function() {
+            this.mapToElement();
+            this.notifyPropertyChange('sprite');
+            this.notifyPropertyChange('data.tagid');
+        });
+    }.observes('document.iframe')
 
 });

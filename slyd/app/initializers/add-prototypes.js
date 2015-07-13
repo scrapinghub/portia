@@ -51,12 +51,23 @@ export function initialize() {
         if (!element) {
             return [];
         }
+        var mappedAttributes = {};
+        for (var i = 0; i < element.attributes.length; i++) {
+            var attrib = element.attributes[i];
+            if (attrib.name.startsWith('_portia_')) {
+                var originalName = attrib.name.slice(8);
+                if (!mappedAttributes[originalName]) {
+                    mappedAttributes[originalName] = attrib.value;
+                }
+            }
+        }
         Ember.$(element.attributes).each(function() {
-            if (Ember.$.inArray(this.nodeName, Ember.$.fn.getAttributeList.ignoredAttributes) === -1 &&
+            if (!this.nodeName.startsWith('_portia_') &&
+                Ember.$.inArray(this.nodeName, Ember.$.fn.getAttributeList.ignoredAttributes) === -1 &&
                 this.value) {
                 attributeList.push(Attribute.create({
                     name: this.nodeName,
-                    value: this.value}));
+                    value: mappedAttributes[this.nodeName] || this.value}));
             }
         });
         return attributeList;

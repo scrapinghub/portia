@@ -143,7 +143,7 @@ class ProjectData(ProjectModifier):
     def save_template(self, data, socket):
         sample, meta = data.get('template'), data.get('_meta')
         path = ['spiders', meta.get('spider'), sample.get('name')]
-        if sample.get('_new'):
+        if sample.pop('_new', False):
             if socket.spider._filter_js_urls(sample['url']):
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:

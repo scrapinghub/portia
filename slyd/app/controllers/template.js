@@ -151,7 +151,9 @@ export default BaseController.extend({
         this.get('extractors').forEach(function(extractor) {
             delete extractor['dragging'];
         });
-        this.get('ws').save('extractors', this.get('extractors'));
+        this.get('ws').save('extractors', this.get('extractors').map(function(extractor) {
+            return extractor.serialize();
+        }));
     },
 
     validateExtractors: function() {

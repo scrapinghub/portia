@@ -23,7 +23,7 @@ class ProxyResource(Resource):
 
         user = User.findById(tabid)
         cb = functools.partial(self.end_response, request, url, tabid)
-        if not user:
+        if not user or not user.tab:
             d = deferToThread(requests.get, url, headers={'referer': referer})
             d.addCallback(cb)
             return NOT_DONE_YET

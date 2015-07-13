@@ -18,7 +18,7 @@ def create_project_resource(spec_manager):
 def convert_template(template):
     """Converts the template annotated body for being used in the UI."""
     template['annotated_body'] = html4annotation(
-        template['annotated_body'], template['url'])
+        template['annotated_body'], template['url'], proxy_resources=True)
 
 
 class ProjectSpec(object):
@@ -204,6 +204,7 @@ class ProjectResource(SlydJsonResource, ProjectModifier):
                     request.write(json.dumps(spider))
                 elif rpath[0] == 'spiders' and len(rpath) == 3:
                     template = project_spec.template_json(rpath[1], rpath[2])
+                    template['original_body'] = ''
                     request.write(json.dumps(template))
                 else:
                     project_spec.writejson(request, *rpath)

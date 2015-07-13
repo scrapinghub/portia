@@ -187,7 +187,10 @@ export default WebDocument.extend(ApplicationUtils, {
         }
         var iframe = Ember.$('#' + this.get('iframeId'));
         iframe.attr('srcdoc', doc);
-        this.set('document.iframe', iframe);
+        // Wait until iframe has fully loaded before setting iframe to the current iframe
+        iframe.load(function() {
+            this.set('document.iframe', iframe);
+        }.bind(this));
     },
 
     clearIframe: function() {

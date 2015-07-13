@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
 
@@ -159,7 +160,7 @@ export default Ember.Component.extend({
                     readyCallback(this.getIframe());
                 }
                 this.set('loadingDoc', false);
-            }, 1000);
+            }, 800);
         });
     },
 
@@ -213,11 +214,11 @@ export default Ember.Component.extend({
     */
     showSpider: function() {
         Ember.run.schedule('afterRender', this, function() {
-            if (!Ember.testing && !this.spiderPageShown) {
+            if (!Ember.testing) {
                 if (this.spiderPage) {
-                    this.setIframeContent(this.spiderPage);
+                    this.getIframe().find('html').html(this.spiderPage);
                 } else  {
-                    this.reloadIframeContent();
+                    Ember.run.throttle(this, this.reloadIframeContent, 500);
                 }
                 this.spiderPageShown = true;
             }
@@ -312,9 +313,11 @@ export default Ember.Component.extend({
     },
 
     reloadIframeContent: function() {
-        return Ember.$('#' + this.get('iframeId')).attr('src',
-            Ember.$('#' + this.get('iframeId')).attr('src')
-        );
+        var iframe = Ember.$(this.getIframeNode());
+        ajax({url: iframe.attr('src')}).then(function(data) {
+            this.spiderPage = data || null;
+            this.showSpider();
+        }.bind(this));
     },
 
     getIframeContent: function() {
@@ -323,10 +326,6 @@ export default Ember.Component.extend({
     },
 
     setIframeContent: function(contents) {
-        if (this.spiderPageShown && !this.spiderPage) {
-            this.spiderPage = this.getIframeContent() || null;
-        }
-
         var iframe = this.getIframe();
         iframe.find('html').html(contents);
         this.set('document.iframe', iframe);
@@ -433,7 +432,9 @@ export default Ember.Component.extend({
         var linkingElement = Ember.$(event.target).closest('[href]');
         if (linkingElement.length) {
             var href = linkingElement.get(0).href;
-            this.sendDocumentEvent('linkClicked', href);
+            if (!href.lowerCase().startsWith('javascript:')) {
+                this.sendDocumentEvent('linkClicked', href);
+            }
         }
     },
 
