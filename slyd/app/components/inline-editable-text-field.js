@@ -28,14 +28,23 @@ export default Ember.Component.extend(NotificationHandler, {
                 return;
             }
             if (text !== this.get('text')) {
+                var error = null;
+                this.sendAction('validate', {
+                    text: text,
+                    setInvalid: (err) => error = err
+                });
+
                 var re = new RegExp(this.get('validation'), 'g');
-                if (re.test(text)) {
+                if (!error && !re.test(text)) {
+                    error = '"' + text + '" is not a valid name. Names must match "' + this.get('validation') +'".';
+                }
+
+                if(error) {
+                    this.set('editing', true);
+                    this.showWarningNotification('Validation Error', error);
+                } else {
                     this.set('text', text);
                     this.sendAction('action', this.get('text'), this.get('name'));
-                } else {
-                    this.showWarningNotification('Validation Error',
-                        '"' + text + '" is not a valid name. Names must match "' + this.get('validation') +'".');
-                    this.set('editing', true);
                 }
             }
         }

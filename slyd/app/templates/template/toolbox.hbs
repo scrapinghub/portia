@@ -23,7 +23,7 @@
 
 	{{#accordion-item title="Extracted item"}}
 		<label class="small-label">Extracted item type:</label>
-		{{item-select options=items value=controller.scrapedItem.id changed='updateScraped'}}
+		{{item-select options=items labelProperty='display_name' value=controller.scrapedItem.id changed='updateScraped'}}
 		{{inline-help message="select_item"}}
 		<div style="margin-top:10px">
 			{{#bs-button clicked="editItems" type="primary" size="sm"}}

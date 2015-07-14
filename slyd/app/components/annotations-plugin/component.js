@@ -1,5 +1,7 @@
 import Ember from 'ember';
 import GuessTypes from '../../mixins/guess-types';
+import { validateFieldName } from 'portia-web/components/edit-item';
+import NotificationManager from 'portia-web/utils/notification-manager';
 
 // TODO: Add ids to name fields. Allow for names to be changed later.
 
@@ -848,6 +850,11 @@ export default Ember.Component.extend(GuessTypes, {
         var fieldName = this.get('newFieldName'),
             fieldType = this.get('newFieldType'),
             attrIndex = this.get('createNewIndex');
+
+        var error = validateFieldName(fieldName, this.getWithDefault('item.fields', []));
+        if(error) {
+            return NotificationManager.showWarningNotification('Validation Error', error);
+        }
         if (fieldName && fieldName.length > 0 && fieldType) {
             this.set('newFieldType', null);
             this.set('newFieldName', null);

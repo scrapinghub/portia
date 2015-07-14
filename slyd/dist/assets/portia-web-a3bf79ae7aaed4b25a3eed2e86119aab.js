@@ -44,7 +44,7 @@ define('portia-web/components/accordion-item', ['exports', 'ember', 'ember-idx-a
     });
 
 });
-define('portia-web/components/annotations-plugin/component', ['exports', 'ember', 'portia-web/mixins/guess-types'], function (exports, Ember, GuessTypes) {
+define('portia-web/components/annotations-plugin/component', ['exports', 'ember', 'portia-web/mixins/guess-types', 'portia-web/components/edit-item', 'portia-web/utils/notification-manager'], function (exports, Ember, GuessTypes, edit_item, NotificationManager) {
 
     'use strict';
 
@@ -85,7 +85,7 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             'delete': function _delete() {
                 this.get('alldata').removeObject(this.get('data'));
                 this.get('sprites').removeSprite(this.get('mappedDOMElement'));
-                if (this.get('mappedDOMElement').tagName === 'INS') {
+                if (this.get('mappedDOMElement') && this.get('mappedDOMElement').tagName === 'INS') {
                     this.get('mappedElement').removePartialAnnotation();
                 }
                 var id = this.get('data.id'),
@@ -693,7 +693,7 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
         },
 
         mapToElement: function mapToElement() {
-            if (!this.get('mappedElement') && this.get('data')) {
+            if (!this.get('mappedDOMElement') && this.get('data')) {
                 var data = this.get('data'),
                     id = data.id,
                     generated = data.generated,
@@ -888,6 +888,11 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             var fieldName = this.get('newFieldName'),
                 fieldType = this.get('newFieldType'),
                 attrIndex = this.get('createNewIndex');
+
+            var error = edit_item.validateFieldName(fieldName, this.getWithDefault('item.fields', []));
+            if (error) {
+                return NotificationManager['default'].showWarningNotification('Validation Error', error);
+            }
             if (fieldName && fieldName.length > 0 && fieldType) {
                 this.set('newFieldType', null);
                 this.set('newFieldName', null);
@@ -986,9 +991,13 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             Ember['default'].run.scheduleOnce('afterRender', this, this.afterRenderEvent);
         },
 
-        afterRenderEvent: function afterRenderEvent() {
-            this.notifyPropertyChange('sprite');
-        }
+        afterRenderEvent: (function () {
+            Ember['default'].run.next(this, function () {
+                this.mapToElement();
+                this.notifyPropertyChange('sprite');
+                this.notifyPropertyChange('data.tagid');
+            });
+        }).observes('document.iframe')
 
     });
 
@@ -2491,7 +2500,7 @@ define('portia-web/components/bs-notifications', ['exports', 'ember', 'portia-we
             fadeOut: function fadeOut() {
                 var _this = this;
                 clearTimeout(this.get('timeoutId'));
-                return this.$().animate({ opacity: 0 }, this.get('fadeOutTime'), function () {
+                return this.$().stop().animate({ opacity: 0 }, this.get('fadeOutTime'), function () {
                     _this.$().slideUp(_this.get('fadeOutTime'), function () {
                         _this.get('parentView.content').removeObject(_this.get('content'));
                     });
@@ -2940,41 +2949,51 @@ define('portia-web/components/edit-item', ['exports', 'ember', 'portia-web/mixin
 
     'use strict';
 
+    exports.validateFieldName = _validateFieldName;
+
+    function _validateFieldName(name, fields) {
+        // Ensuring that field names don't start with underscores prevents
+        // overwriting _item, _template and any future "protected" property
+        // we might add to extracted items.
+        if (/^_/.test(name)) {
+            return 'Field can\'t start with underscores';
+        } else if (name === 'url') {
+            return 'Naming a field "url" is not allowed as there is already a field with this name';
+        } else if (fields.findBy('name', name)) {
+            return 'There is already a field with that name.';
+        }
+        return null; // No error
+    }
+
     exports['default'] = Ember['default'].Component.extend(NotificationHandler['default'], {
         item: null,
-        itemFields: null,
+        items: null,
         extractionTypes: [],
-
-        updateFields: (function () {
-            this.set('itemFields', (this.getWithDefault('item.fields', []) || []).copy());
-        }).on('init'),
 
         actions: {
             addField: function addField() {
                 this.sendAction('addField', this.get('item'));
-                this.updateFields();
             },
 
             deleteField: function deleteField(field) {
                 this.sendAction('deleteField', this.get('item'), field);
-                this.updateFields();
             },
 
             'delete': function _delete() {
                 this.sendAction('delete', this.get('item'));
             },
 
-            editField: function editField(text, index) {
-                if (text === 'url') {
-                    var field = this.get('item.fields').get(index);
-                    if (field) {
-                        field.set('name', this.get('itemFields').get(index).name);
-                        this.get('item.fields').replace(index, 1, [field]);
-                    }
-                    this.showErrorNotification('Naming a field "url" is not allowed as there is already a field with this name');
-                    return;
+            validateFieldName: function validateFieldName(input) {
+                var error = _validateFieldName(input.text, this.get('item.fields'));
+                if (error) {
+                    input.setInvalid(error);
                 }
-                this.updateFields();
+            },
+
+            validateItemName: function validateItemName(input) {
+                if (this.get('items').findBy('display_name', input.text)) {
+                    input.setInvalid('There is already a item with that name.');
+                }
             }
         }
     });
@@ -3207,13 +3226,25 @@ define('portia-web/components/inline-editable-text-field', ['exports', 'ember', 
                     return;
                 }
                 if (text !== this.get('text')) {
+                    var error = null;
+                    this.sendAction('validate', {
+                        text: text,
+                        setInvalid: function setInvalid(err) {
+                            return error = err;
+                        }
+                    });
+
                     var re = new RegExp(this.get('validation'), 'g');
-                    if (re.test(text)) {
+                    if (!error && !re.test(text)) {
+                        error = '"' + text + '" is not a valid name. Names must match "' + this.get('validation') + '".';
+                    }
+
+                    if (error) {
+                        this.set('editing', true);
+                        this.showWarningNotification('Validation Error', error);
+                    } else {
                         this.set('text', text);
                         this.sendAction('action', this.get('text'), this.get('name'));
-                    } else {
-                        this.showWarningNotification('Validation Error', '"' + text + '" is not a valid name. Names must match "' + this.get('validation') + '".');
-                        this.set('editing', true);
                     }
                 }
             }
@@ -3268,6 +3299,8 @@ define('portia-web/components/item-select', ['exports', 'ember'], function (expo
 
         buildOptions: function buildOptions() {
             var selectedValue = this.get('value'),
+                labelProperty = this.getWithDefault('labelProperty', 'name'),
+                valueProperty = this.getWithDefault('valueProperty', 'name'),
                 defaultValue = [];
             if (!selectedValue) {
                 defaultValue = [{ value: '', label: '', selected: true }];
@@ -3279,16 +3312,22 @@ define('portia-web/components/item-select', ['exports', 'ember'], function (expo
                 if (typeof opt === 'string') {
                     opt = { value: opt };
                 } else if (opt instanceof Ember['default'].Object) {
-                    opt = { value: opt.get('name') };
+                    opt = {
+                        value: opt.get(valueProperty),
+                        label: opt.get(labelProperty)
+                    };
+                } else {
+                    opt = {
+                        value: opt[valueProperty] || opt.value,
+                        label: opt[labelProperty] || opt.label
+                    };
                 }
                 if (opt.value === selectedValue) {
                     seenSelected = true;
                 }
-                return {
-                    value: opt.value,
-                    label: opt.label || opt.value,
-                    selected: opt.value === selectedValue
-                };
+                opt.label = opt.label || opt.value;
+                opt.selected = opt.value === selectedValue;
+                return opt;
             }));
             if (!seenSelected && selectedValue && this.get('addSelected')) {
                 arr.push({
@@ -4143,7 +4182,10 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
             }
             var iframe = Ember['default'].$('#' + this.get('iframeId'));
             iframe.attr('srcdoc', doc);
-            this.set('document.iframe', iframe);
+            // Wait until iframe has fully loaded before setting iframe to the current iframe
+            iframe.load((function () {
+                this.set('document.iframe', iframe);
+            }).bind(this));
         },
 
         clearIframe: function clearIframe() {
@@ -4471,10 +4513,11 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
   }()));
 
 });
-define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/utils/canvas', 'portia-web/utils/annotation-store'], function (exports, Ember, utils__canvas, AnnotationStore) {
+define('portia-web/components/web-document', ['exports', 'ember', 'ic-ajax', 'portia-web/utils/canvas', 'portia-web/utils/annotation-store'], function (exports, Ember, ajax, utils__canvas, AnnotationStore) {
 
     'use strict';
 
+    /* jshint scripturl:true */
     exports['default'] = Ember['default'].Component.extend({
         _register: (function () {
             this.set('document.view', this); // documentView is a new property
@@ -4626,7 +4669,7 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
                         readyCallback(this.getIframe());
                     }
                     this.set('loadingDoc', false);
-                }, 1000);
+                }, 800);
             });
         },
 
@@ -4680,11 +4723,11 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         */
         showSpider: function showSpider() {
             Ember['default'].run.schedule('afterRender', this, function () {
-                if (!Ember['default'].testing && !this.spiderPageShown) {
+                if (!Ember['default'].testing) {
                     if (this.spiderPage) {
-                        this.setIframeContent(this.spiderPage);
+                        this.getIframe().find('html').html(this.spiderPage);
                     } else {
-                        this.reloadIframeContent();
+                        Ember['default'].run.throttle(this, this.reloadIframeContent, 500);
                     }
                     this.spiderPageShown = true;
                 }
@@ -4777,7 +4820,11 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         },
 
         reloadIframeContent: function reloadIframeContent() {
-            return Ember['default'].$('#' + this.get('iframeId')).attr('src', Ember['default'].$('#' + this.get('iframeId')).attr('src'));
+            var iframe = Ember['default'].$(this.getIframeNode());
+            ajax['default']({ url: iframe.attr('src') }).then((function (data) {
+                this.spiderPage = data || null;
+                this.showSpider();
+            }).bind(this));
         },
 
         getIframeContent: function getIframeContent() {
@@ -4786,10 +4833,6 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         },
 
         setIframeContent: function setIframeContent(contents) {
-            if (this.spiderPageShown && !this.spiderPage) {
-                this.spiderPage = this.getIframeContent() || null;
-            }
-
             var iframe = this.getIframe();
             iframe.find('html').html(contents);
             this.set('document.iframe', iframe);
@@ -4888,7 +4931,9 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
             var linkingElement = Ember['default'].$(event.target).closest('[href]');
             if (linkingElement.length) {
                 var href = linkingElement.get(0).href;
-                this.sendDocumentEvent('linkClicked', href);
+                if (!href.lowerCase().startsWith('javascript:')) {
+                    this.sendDocumentEvent('linkClicked', href);
+                }
             }
         },
 
@@ -5279,7 +5324,10 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
         documentView: null,
 
         addItem: function addItem() {
-            var newItem = Item['default'].create({ name: this.shortGuid('_') });
+            var newItem = Item['default'].create({
+                name: this.shortGuid('_'),
+                display_name: 'New Item'
+            });
             this.addField(newItem);
             this.model.pushObject(newItem);
         },
@@ -6593,13 +6641,14 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
         scrapedItem: (function () {
             if (!Ember['default'].isEmpty(this.get('items'))) {
                 var item = this.get('items').findBy('name', this.get('model.scrapes'));
-                if (!item.fields) {
-                    item.fields = [];
+                if (item) {
+                    if (!item.fields) {
+                        item.fields = [];
+                    }
+                    return item;
                 }
-                return item;
-            } else {
-                return null;
             }
+            return null;
         }).property('model.scrapes', 'items.@each'),
 
         displayExtractors: (function () {
@@ -6663,7 +6712,9 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             this.get('extractors').forEach(function (extractor) {
                 delete extractor['dragging'];
             });
-            this.get('ws').save('extractors', this.get('extractors'));
+            this.get('ws').save('extractors', this.get('extractors').map(function (extractor) {
+                return extractor.serialize();
+            }));
         },
 
         validateExtractors: function validateExtractors() {
@@ -7002,6 +7053,34 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             }).bind(this));
         }).observes('model', 'model.annotated_body'),
 
+        /**
+         * This will make sure the template scrapes a valid item and if not it will create one.
+         */
+        ensureItem: (function () {
+            if (this.get('model') && !this.get('items').findBy('name', this.get('model.scrapes'))) {
+                // Template has an item that doesn't exist, create a new one
+                var fields = new Set();
+                Object.values(this.get('model.plugins')).forEach(function (plugin) {
+                    plugin.extracts.forEach(function (extract) {
+                        Object.values(extract.annotations).forEach(function (fieldName) {
+                            fields.add(fieldName);
+                        });
+                    });
+                });
+                var item = Item['default'].create({
+                    name: this.get('model.scrapes'),
+                    display_name: this.get('model.name'),
+                    fields: []
+                });
+                fields.forEach(function (fieldName) {
+                    return item.addField(fieldName);
+                });
+                this.get('items').pushObject(item);
+                this.showWarningNotification('Missing item', 'This template didn\'t have a valid item assigned so a new one was created.');
+                this.get('slyd').saveItems(this.get('items').toArray());
+            }
+        }).observes('model.scrapes', 'items.@each'),
+
         willEnter: function willEnter() {
             var plugins = {};
             this.get('capabilities.plugins').forEach(function (plugin) {
@@ -7121,11 +7200,21 @@ define('portia-web/initializers/add-prototypes', ['exports', 'ember', 'portia-we
             if (!element) {
                 return [];
             }
+            var mappedAttributes = {};
+            for (var i = 0; i < element.attributes.length; i++) {
+                var attrib = element.attributes[i];
+                if (attrib.name.startsWith('_portia_')) {
+                    var originalName = attrib.name.slice(8);
+                    if (!mappedAttributes[originalName]) {
+                        mappedAttributes[originalName] = attrib.value;
+                    }
+                }
+            }
             Ember['default'].$(element.attributes).each(function () {
-                if (Ember['default'].$.inArray(this.nodeName, Ember['default'].$.fn.getAttributeList.ignoredAttributes) === -1 && this.value) {
+                if (!this.nodeName.startsWith('_portia_') && Ember['default'].$.inArray(this.nodeName, Ember['default'].$.fn.getAttributeList.ignoredAttributes) === -1 && this.value) {
                     attributeList.push(Attribute['default'].create({
                         name: this.nodeName,
-                        value: this.value }));
+                        value: mappedAttributes[this.nodeName] || this.value }));
                 }
             });
             return attributeList;
@@ -8087,31 +8176,10 @@ define('portia-web/mixins/notification-handler', ['exports', 'ember', 'portia-we
     'use strict';
 
     exports['default'] = Ember['default'].Mixin.create({
-        showNotification: function showNotification(title, message, type) {
-            if (title && !message) {
-                message = title;
-                title = null;
-            }
-            if (message) {
-                NotificationManager['default'].add({
-                    title: title,
-                    message: message,
-                    type: type || 'info'
-                });
-            }
-        },
-
-        showSuccessNotification: function showSuccessNotification(title, message) {
-            this.showNotification(title, message, 'success');
-        },
-
-        showWarningNotification: function showWarningNotification(title, message) {
-            this.showNotification(title, message, 'warning');
-        },
-
-        showErrorNotification: function showErrorNotification(title, message) {
-            this.showNotification(title, message, 'danger');
-        }
+        showNotification: NotificationManager['default'].showNotification.bind(NotificationManager['default']),
+        showSuccessNotification: NotificationManager['default'].showSuccessNotification.bind(NotificationManager['default']),
+        showWarningNotification: NotificationManager['default'].showWarningNotification.bind(NotificationManager['default']),
+        showErrorNotification: NotificationManager['default'].showErrorNotification.bind(NotificationManager['default'])
     });
 
 });
@@ -8538,7 +8606,7 @@ define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', '
 
     exports['default'] = SimpleModel['default'].extend({
         serializedRelations: ['fields'],
-        serializedProperties: ['name'],
+        serializedProperties: ['name', 'display_name'],
         fields: null,
 
         validateName: function validateName(name) {
@@ -11361,7 +11429,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
             fragment = this.build(dom);
           }
           var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          content(env, morph0, context, "item.name");
+          content(env, morph0, context, "item.display_name");
           return fragment;
         }
       };
@@ -11526,7 +11594,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
             var morph4 = dom.createMorphAt(dom.childAt(element0, [9]),1,1);
             set(env, context, "field", blockArguments[0]);
             set(env, context, "index", blockArguments[1]);
-            block(env, morph0, context, "inline-editable-text-field", [], {"action": "editField", "text": get(env, context, "field.name"), "name": get(env, context, "index"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
+            block(env, morph0, context, "inline-editable-text-field", [], {"validate": "validateFieldName", "text": get(env, context, "field.name"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
             inline(env, morph1, context, "item-select", [], {"options": get(env, context, "extractionTypes"), "value": get(env, context, "field.type")});
             inline(env, morph2, context, "check-box", [], {"checked": get(env, context, "field.required")});
             inline(env, morph3, context, "check-box", [], {"checked": get(env, context, "field.vary")});
@@ -11798,6 +11866,8 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
         return el0;
       },
       render: function render(context, env, contextualElement) {
@@ -11827,7 +11897,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
         var morph1 = dom.createMorphAt(dom.childAt(element2, [3]),1,1);
         var morph2 = dom.createMorphAt(element3,1,1);
         var morph3 = dom.createMorphAt(dom.childAt(element3, [3]),1,1);
-        block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "item.name"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
+        block(env, morph0, context, "inline-editable-text-field", [], {"validate": "validateItemName", "text": get(env, context, "item.display_name"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
         inline(env, morph1, context, "bs-button", [], {"clicked": "delete", "icon": "fa fa-icon fa-trash", "type": "danger", "size": "xs"});
         block(env, morph2, context, "if", [get(env, context, "item.fields")], {}, child1, child2);
         block(env, morph3, context, "bs-button", [], {"clicked": "addField", "icon": "fa fa-icon fa-plus", "type": "primary", "size": "sm"}, child3, null);
@@ -15749,7 +15819,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
             fragment = this.build(dom);
           }
           var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          inline(env, morph0, context, "edit-item", [], {"item": get(env, context, "item"), "extractionTypes": get(env, context, "extractionTypes"), "addField": "addField", "deleteField": "deleteField", "delete": "deleteItem"});
+          inline(env, morph0, context, "edit-item", [], {"item": get(env, context, "item"), "items": get(env, context, "model"), "extractionTypes": get(env, context, "extractionTypes"), "addField": "addField", "deleteField": "deleteField", "delete": "deleteItem"});
           return fragment;
         }
       };
@@ -20456,7 +20526,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             var morph0 = dom.createMorphAt(fragment,3,3,contextualElement);
             var morph1 = dom.createMorphAt(fragment,5,5,contextualElement);
             var morph2 = dom.createMorphAt(dom.childAt(fragment, [7]),1,1);
-            inline(env, morph0, context, "item-select", [], {"options": get(env, context, "items"), "value": get(env, context, "controller.scrapedItem.id"), "changed": "updateScraped"});
+            inline(env, morph0, context, "item-select", [], {"options": get(env, context, "items"), "labelProperty": "display_name", "value": get(env, context, "controller.scrapedItem.id"), "changed": "updateScraped"});
             inline(env, morph1, context, "inline-help", [], {"message": "select_item"});
             block(env, morph2, context, "bs-button", [], {"clicked": "editItems", "type": "primary", "size": "sm"}, child0, null);
             return fragment;
@@ -22424,6 +22494,32 @@ define('portia-web/utils/notification-manager', ['exports', 'ember'], function (
             */
             var notification = Ember['default'].Object.create(options);
             return this.get('content').pushObject(notification);
+        },
+
+        showNotification: function showNotification(title, message, type) {
+            if (title && !message) {
+                message = title;
+                title = null;
+            }
+            if (message) {
+                this.add({
+                    title: title,
+                    message: message,
+                    type: type || 'info'
+                });
+            }
+        },
+
+        showSuccessNotification: function showSuccessNotification(title, message) {
+            this.showNotification(title, message, 'success');
+        },
+
+        showWarningNotification: function showWarningNotification(title, message) {
+            this.showNotification(title, message, 'warning');
+        },
+
+        showErrorNotification: function showErrorNotification(title, message) {
+            this.showNotification(title, message, 'danger');
         }
     });
 
@@ -22792,6 +22888,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             return this.makeAjaxCall(hash).then((function (items) {
                 items = this.dictToList(items, Item['default']);
                 items.forEach((function (item) {
+                    item.display_name = item.display_name || item.name;
                     if (item.fields) {
                         item.fields = this.dictToList(item.fields, ItemField['default']);
                     }

@@ -78,13 +78,14 @@ export default BaseController.extend({
     scrapedItem: function() {
         if (!Ember.isEmpty(this.get('items'))) {
             var item = this.get('items').findBy('name', this.get('model.scrapes'));
-            if (!item.fields) {
-                item.fields = [];
+            if(item) {
+                if (!item.fields) {
+                    item.fields = [];
+                }
+                return item;
             }
-            return item;
-        } else {
-            return null;
         }
+        return null;
     }.property('model.scrapes', 'items.@each'),
 
     displayExtractors: function() {
@@ -500,6 +501,33 @@ export default BaseController.extend({
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
         }.bind(this));
     }.observes('model', 'model.annotated_body'),
+
+    /**
+     * This will make sure the template scrapes a valid item and if not it will create one.
+     */
+    ensureItem: function() {
+        if (this.get('model') &&  !this.get('items').findBy('name', this.get('model.scrapes'))) {
+            // Template has an item that doesn't exist, create a new one
+            var fields = new Set();
+            Object.values(this.get('model.plugins')).forEach((plugin) => {
+                plugin.extracts.forEach((extract) => {
+                    Object.values(extract.annotations).forEach((fieldName) => {
+                        fields.add(fieldName);
+                    });
+                });
+            });
+            var item = Item.create({
+                name: this.get('model.scrapes'),
+                display_name: this.get('model.name'),
+                fields: []
+            });
+            fields.forEach((fieldName) => item.addField(fieldName));
+            this.get('items').pushObject(item);
+            this.showWarningNotification('Missing item',
+                "This template didn't have a valid item assigned so a new one was created.");
+            this.get('slyd').saveItems(this.get('items').toArray());
+        }
+    }.observes('model.scrapes', 'items.@each'),
 
     willEnter: function() {
         var plugins = {};

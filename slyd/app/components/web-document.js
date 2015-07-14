@@ -1,3 +1,4 @@
+/* jshint scripturl:true */
 import Ember from 'ember';
 import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';

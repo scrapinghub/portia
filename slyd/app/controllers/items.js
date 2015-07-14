@@ -9,7 +9,10 @@ export default BaseController.extend({
     documentView: null,
 
     addItem: function() {
-        var newItem = Item.create({ name: this.shortGuid('_') });
+        var newItem = Item.create({
+            name: this.shortGuid('_'),
+            display_name: 'New Item'
+        });
         this.addField(newItem);
         this.model.pushObject(newItem);
     },
@@ -55,7 +58,7 @@ export default BaseController.extend({
                     }
                 });
                 this.set('project_models.items', items);
-                this.transitionToRoute('template');
+                this.transitionToRoute(this.getParentRoute());
             }.bind(this));
         }
     },

@@ -1,8 +1,8 @@
 <div class="editable-item-container">
     <div>
         <span style="margin:2px 0px 0px 10px">
-            {{#inline-editable-text-field text=item.name validation='^[a-zA-Z0-9_-]+$'}}
-                Item: {{item.name}}
+            {{#inline-editable-text-field validate="validateItemName" text=item.display_name validation='^[a-zA-Z0-9_-]+$'}}
+                Item: {{item.display_name}}
             {{/inline-editable-text-field}}
         </span>
         <span style="float:right">
@@ -27,7 +27,7 @@
                     <div class="row" style="margin:0">
                         <div class="col-xs-4 top-div">
                             <div class="field-name">
-                                {{#inline-editable-text-field action="editField" text=field.name name=index validation='^[a-zA-Z0-9_-]+$'}}
+                                {{#inline-editable-text-field validate="validateFieldName" text=field.name validation='^[a-zA-Z0-9_-]+$'}}
                                     <span class="editable-name">{{field.name}}</span>
                                 {{/inline-editable-text-field}}
                             </div>
