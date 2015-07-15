@@ -14,7 +14,7 @@ RUN pip install -r /requirements-slyd.txt
 ADD slybot/requirements.txt /requirements-slybot.txt
 RUN pip install -r/requirements-slybot.txt
 
-ENV PYTHONPATH /app/portia/slybot:/app/portia/slyd
+ENV PYTHONPATH /app/slybot:/app/slyd
 EXPOSE 9001
 
 ADD . /app
