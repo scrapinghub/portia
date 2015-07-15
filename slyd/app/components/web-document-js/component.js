@@ -273,7 +273,9 @@ export default WebDocument.extend(ApplicationUtils, {
             return;
         }
         this.postEvent(evt);
-        return this._super(evt);
+        if(evt.target.tagName !== 'INPUT') {
+            return this._super(evt);
+        }
     },
 
     postEvent: function(evt){
