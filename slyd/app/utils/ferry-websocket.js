@@ -58,6 +58,8 @@ export default Ember.Object.extend(ApplicationUtils, {
             ws = new WebSocket(this.get('url'));
         } catch (err) {
             Ember.Logger.log('Error connecting to server: ' + err);
+            deferred.reject(err);
+            return deferred.promise;
         } finally {
             this.set('connecting', false);
             this.notifyPropertyChange('connecting');
