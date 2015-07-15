@@ -53,22 +53,16 @@ module.exports = {
         return mergeTrees([tree, processedPodTemplates]);
     },
     treeForPublic: function(tree) {
-        var splashFiles = [
-            'node_modules/es5-shim/es5-shim.js',
-            'node_modules/mutationobserver-shim/MutationObserver.js',
-            'vendor/mutation-summary.js',
-            'vendor/tree-mirror.js',
-            'splash_utils/inject_this.js'
-        ];
+        var relativeDir = this.project.relativeDir || '.',
+            splashFiles = [
+                'node_modules/es5-shim/es5-shim.js',
+                'node_modules/mutationobserver-shim/MutationObserver.js',
+                'vendor/mutation-summary.js',
+                'vendor/tree-mirror.js',
+                'splash_utils/inject_this.js'
+        ].map(function(p) { return '../'+p; });
 
-        // Make a tree that contains only necessary directories, otherwise
-        // broccoli will watch a lot of files it shouldn't
-        var sourceTree = mergeTrees(splashFiles.map(function(file){
-            var dir = file.split('/').slice(0, -1).join('/');
-            return funnel(dir, {destDir: dir});
-        }), {overwrite: true});
-
-        var splashTree = concat(sourceTree, {
+        var splashTree = concat(relativeDir + '/splash_utils', {
             inputFiles: splashFiles,
             outputFile: '/splash_content_scripts/combined.js',
             wrapInFunction: false,

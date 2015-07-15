@@ -3995,6 +3995,24 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
 
     /*global $:false */
     /*global TreeMirror:false */
+    function paintCanvasMessage(canvas) {
+        var ctx = canvas.getContext('2d');
+
+        var pattern = document.createElement('canvas');
+        pattern.width = 20;
+        pattern.height = 20;
+        var pctx = pattern.getContext('2d');
+        pctx.fillStyle = '#ccc';
+        pctx.fillRect(0, 0, 10, 10);
+        pctx.fillRect(10, 10, 10, 10);
+        pattern = ctx.createPattern(pattern, 'repeat');
+
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '16px sans-serif';
+        ctx.fillStyle = 'black';
+        ctx.fillText('Displaying the content of the canvas is not supported', 10, canvas.height / 2);
+    }
     function treeMirrorDelegate() {
         return {
             createElement: function createElement(tagName) {
@@ -4006,18 +4024,31 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
                     $(node).on('submit', function () {
                         return false;
                     });
+                } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
+                    node = document.createElement(tagName);
+                    node.setAttribute('src', '/static/frames-not-supported.html');
+                } else if (tagName === 'CANVAS') {
+                    node = document.createElement(tagName);
+                    paintCanvasMessage(node);
                 }
                 return node;
             },
             setAttribute: function setAttribute(node, attrName, value) {
-                if (/^on/.test(attrName)) {
+                if (/^on/.test(attrName) || (node.tagName === 'FRAME' || node.tagName === 'IFRAME') && (attrName === 'src' || attrName === 'srcdoc') // Frames not supported
+                ) {
                     return true;
                 }
+
                 try {
                     node.setAttribute(attrName, value);
                 } catch (e) {
                     console.log(e, attrName, value);
                 }
+
+                if (node.tagName === 'CANVAS' && (attrName === 'width' || attrName === 'height')) {
+                    paintCanvasMessage(node);
+                }
+
                 return true;
             }
         };
@@ -4249,7 +4280,9 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
                 return;
             }
             this.postEvent(evt);
-            return this._super(evt);
+            if (evt.target.tagName !== 'INPUT') {
+                return this._super(evt);
+            }
         },
 
         postEvent: function postEvent(evt) {
@@ -4293,6 +4326,7 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
             }
         }
     });
+    // Disallow JS attributes
 
 });
 define('portia-web/components/web-document-js/template', ['exports'], function (exports) {
@@ -5372,7 +5406,7 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
                         }
                     });
                     this.set('project_models.items', items);
-                    this.transitionToRoute('template');
+                    this.transitionToRoute(this.getParentRoute());
                 }).bind(this));
             }
         },
@@ -6210,12 +6244,6 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.get('model.follow_patterns').removeObject(pattern);
         },
 
-        autoFetch: (function () {
-            if (this.get('loadedPageFp') && this.get('showLinks')) {
-                this.saveSpider().then((function () {}).bind(this));
-            }
-        }).observes('model.follow_patterns.@each', 'model.exclude_patterns.@each', 'links_to_follow'),
-
         attachAutoSave: (function () {
             this.get('model').addObserver('dirty', (function () {
                 Ember['default'].run.once(this, 'saveSpider');
@@ -6510,8 +6538,6 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.get('documentView.ws').send({ '_command': 'close_tab' });
         }
     });
-
-    //this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
 
 });
 define('portia-web/controllers/spider/index', ['exports', 'ember', 'portia-web/controllers/spider'], function (exports, Ember, SpiderController) {
@@ -22134,7 +22160,7 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
             this.set('ws', null);
             this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
             this.set('closed', true);
-            this.set('opened', false);
+            this.set('opened', Ember['default'].computed.not('closed'));
             this.set('connecting', false);
             this.set('nextConnect', null);
             this.set('deferreds', {});
@@ -22169,7 +22195,6 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
                 }
                 this.set('closed', true);
                 this.notifyPropertyChange('closed');
-                this.set('opened', false);
                 Ember['default'].Logger.log('<Closed Websocket>');
                 var next = Ember['default'].run.later(this, (function () {
                     if (this.get('ws').readyState === WebSocket.CLOSED) {
@@ -22213,7 +22238,6 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
             ws.onopen = (function () {
                 Ember['default'].Logger.log('<Opened Websocket>');
                 this.set('closed', false);
-                this.set('opened', true);
                 this.notifyPropertyChange('opened');
                 this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
                 this.heartbeat = setInterval((function () {

@@ -4089,6 +4089,10 @@ var TreeMirrorClient = (function () {
 
 MutationObserver._period = 500;
 
+// Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
+
+var MAX_DIALOGS = 15;  // Maximum number of dialogs (alert, confirm, prompt) before throwing an exception
+
 var PortiaPage = function PortiaPage() {
     var that = this;
     this.mirrorClient = new TreeMirrorClient(document, {
@@ -4215,6 +4219,24 @@ PortiaPage.prototype.pyGetByNodeId = function(nodeId){
     if(res) {
         __portiaApi.returnElement(res);
     }
+};
+
+var incrementDialogCounter = function(){
+    if(++incrementDialogCounter.count > MAX_DIALOGS) {
+        throw new Error('Not allowed');
+    }
+};
+incrementDialogCounter.count = 0;
+
+window.alert = function(){};
+
+window.prompt = function(){
+    incrementDialogCounter();
+    return null; // dismiss the prompt (clicking cancel or closing the window)
+};
+window.confirm = function(){
+    incrementDialogCounter();
+    return true;
 };
 
 if(!('livePortiaPage' in window)){
