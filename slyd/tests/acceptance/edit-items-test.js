@@ -1,6 +1,8 @@
 import acceptanceTest from '../helpers/acceptance-test';
 import Ember from 'ember';
 import { lastRequest, fixtures } from '../helpers/fixtures';
+import ws from '../helpers/websocket-mock';
+
 
 module('Acceptance | Edit Items', { });
 
@@ -20,16 +22,15 @@ acceptanceTest('Edit Items', function(app, assert) {
   var reset = () => visit('/projects/11/items');
 
   function getItemNames (){
-      return Object.values(savedItems).map((item) => item.display_name).sort();
+      return Object.values(ws.lastMessage.items).map((item) => item.display_name).sort();
   }
 
   reset().then(function(){
-      lastRequest.clear();
       return click(save);
   }).then(function(){
-      var saveReq = lastRequest.captured.filter((req) => req.method === 'POST')[0];
-      equal(saveReq.url, '/projects/11/spec/items');
-      deepEqual(Object.keys(savedItems), ['default']);
+      var saveMeta = ws.lastMessage._meta;
+      equal([saveMeta.project, saveMeta.type].join('/'), '11/items');
+      deepEqual(Object.keys(ws.lastMessage.items), ['default']);
       return reset();
   })
   .then(() => click(add_item))
@@ -68,7 +69,7 @@ acceptanceTest('Edit Items', function(app, assert) {
       var fields = Ember.copy(fixtures['/projects/11/spec/items'].default.fields, true);
       fields.foobar = fields.optional;
       delete fields.optional;
-      deepEqual(savedItems.default.fields, fields);
+      deepEqual(ws.lastMessage.items.default.fields, fields);
       return reset();
   })
   .then(() => click('.row:has(.editable-name:contains("optional")) .fa-trash:eq(0)'))
@@ -78,7 +79,7 @@ acceptanceTest('Edit Items', function(app, assert) {
       var fields = Ember.copy(fixtures['/projects/11/spec/items'].default.fields, true);
       delete fields.optional;
       delete fields.price;
-      deepEqual(savedItems.default.fields, fields);
+      deepEqual(ws.lastMessage.items.default.fields, fields);
   });
 });
 

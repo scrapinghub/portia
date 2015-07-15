@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+import splash.server
+
+
+def make_server(*args, **kwargs):
+    from slyd.tap import makeService
+    from twisted.internet import reactor
+    reactor.listenTCP(9002, makeService({'port': 9002,
+                                         'docroot': '/app/slyd/dist'}))
+
+
+def add_args():
+    opts, args = splash.server._parse_opts()
+    return (opts, args)
+
+splash.server._parse_opts = splash.server.parse_opts
+splash.server.parse_opts = add_args
+splash.server.splash_server = make_server
+
+if __name__ == '__main__':
+    splash.server.main()

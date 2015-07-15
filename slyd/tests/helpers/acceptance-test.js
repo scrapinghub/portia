@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import startApp from 'portia-web/tests/helpers/start-app';
-import WebDocument from 'portia-web/components/web-document';
+import WebDocument from 'portia-web/components/web-document-js/component';
+import FerryWebsocket from 'portia-web/utils/ferry-websocket';
 import { Canvas } from 'portia-web/utils/canvas';
 import { lastRequest } from '../helpers/fixtures';
 
@@ -30,6 +31,7 @@ export default function portiaTest(name, fn) {
             var doc = app.registry.resolve('document:obj');
             WebDocument.create({
                 document: doc,
+                ws: FerryWebsocket.create({}),
                 canvas: Canvas.create({
                     canvasId: canvas.attr('id')
                 })

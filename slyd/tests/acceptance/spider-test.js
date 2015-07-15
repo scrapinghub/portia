@@ -2,6 +2,27 @@
 import acceptanceTest from '../helpers/acceptance-test';
 import Ember from 'ember';
 import { lastRequest } from '../helpers/fixtures';
+import ws from '../helpers/websocket-mock';
+
+ws.commands.delete = function(){
+  console.log('delete spider!');
+  return {_command: 'delete'};
+};
+
+ws.commands.saveChanges = function() {
+  var meta = ws.lastMessage._meta,
+      data = {};
+  data[meta.type] = ws.lastMessage[meta.type];
+  return {
+    id: meta.id,
+    _command: 'saveChanges',
+    saved: data
+  };
+};
+
+ws.commands.close_tab = function() {
+  return {};
+};
 
 module('Acceptance | Spider', { });
 
@@ -37,8 +58,8 @@ acceptanceTest('List spiders', function(app, assert) {
     ok(/Are you sure/.test(find('.modal-body').text()));
     return click(find('.modal-footer .btn-danger'));
   }).then(function(){
-    equal(lastRequest.data.cmd, 'rm');
-    deepEqual(lastRequest.data.args, ['spider1']);
+    equal(ws.lastMessage._command, 'delete');
+    equal(ws.lastMessage.name, 'spider1');
     deepEqual(getSpiders(), ['spider2']);
   });
 });
@@ -53,7 +74,7 @@ acceptanceTest('Initialization Panel', function(app, assert) {
     return $initPanel().find('.clickable-url button').map((i, elm) => $(elm).text().trim()).toArray();
   }
 
-  visit('/projects/11/spider1').then(function(){
+  visit('/projects/11').then(() => visit('/projects/11/spider1')).then(function(){
     equal(currentURL(), '/projects/11/spider1');
     equal(find('.nav-container .current-crumb').text().trim(), 'spider1');
     deepEqual(getStartUrls(), ['http://portiatest.com']);
@@ -64,16 +85,17 @@ acceptanceTest('Initialization Panel', function(app, assert) {
     return click($initPanel().find('button .fa-plus'));
   }).then(function(){
     deepEqual(getStartUrls(), ['http://portiatest.com', 'http://url1.com', 'http://url2.com']);
-    equal(lastRequest.url, '/projects/11/spec/spiders/spider1');
-    deepEqual(lastRequest.data.start_urls, ['http://portiatest.com', 'http://url1.com', 'http://url2.com']);
+    var meta = ws.lastMessage._meta;
+    equal([meta.project, meta.type, meta.spider].join('/'), "11/spider/spider1");
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com', 'http://url1.com', 'http://url2.com']);
     return click($initPanel().find('.btn-danger .fa-trash').eq(1));
   }).then(function(){
     deepEqual(getStartUrls(), ['http://portiatest.com', 'http://url2.com']);
-    deepEqual(lastRequest.data.start_urls, ['http://portiatest.com', 'http://url2.com']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com', 'http://url2.com']);
     return click($initPanel().find('.btn-danger .fa-trash').eq(0));
   }).then(function(){
     deepEqual(getStartUrls(), ['http://url2.com']);
-    deepEqual(lastRequest.data.start_urls, ['http://url2.com']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://url2.com']);
     return click($initPanel().find('button:contains("Edit All")'));
   }).then(function(){
     equal($initPanel().find('textarea').val().trim(), 'http://url2.com');
@@ -82,7 +104,7 @@ acceptanceTest('Initialization Panel', function(app, assert) {
     return click($initPanel().find('button .fa-plus'));
   }).then(function(){
     deepEqual(getStartUrls(), ['http://portiatest.com']);
-    deepEqual(lastRequest.data.start_urls, ['http://portiatest.com']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com']);
     return click($initPanel().find('button:contains("Edit All")'));
   }).then(function(){
     equal($initPanel().find('textarea').val().trim(), 'http://portiatest.com');
@@ -91,7 +113,7 @@ acceptanceTest('Initialization Panel', function(app, assert) {
     return click($initPanel().find('button:contains("cancel")'));
   }).then(function(){
     deepEqual(getStartUrls(), ['http://portiatest.com']);
-    deepEqual(lastRequest.data.start_urls, ['http://portiatest.com']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com']);
   });
 });
 

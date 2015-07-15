@@ -85,7 +85,7 @@ class Annotations(object):
 
         self.build_url_filter(spec)
 
-    def handle_html(self, response):
+    def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
         items, link_regions = self.extract_items(htmlpage)
         for item in items:

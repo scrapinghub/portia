@@ -42,7 +42,7 @@ export default Ember.Component.extend(GuessTypes, {
         delete: function() {
             this.get('alldata').removeObject(this.get('data'));
             this.get('sprites').removeSprite(this.get('mappedDOMElement'));
-            if (this.get('mappedDOMElement').tagName === 'INS') {
+            if (this.get('mappedDOMElement') && this.get('mappedDOMElement').tagName === 'INS') {
                 this.get('mappedElement').removePartialAnnotation();
             }
             var id = this.get('data.id'),
@@ -654,28 +654,34 @@ export default Ember.Component.extend(GuessTypes, {
     },
 
     mapToElement: function() {
-        if (!this.get('mappedElement') && this.get('data')) {
+        if (!this.get('mappedDOMElement') && this.get('data')) {
             var data = this.get('data'),
                 id = data.id,
                 generated = data.generated,
                 insertAfter = data.insert_after,
+                iframe = this.getIframe(),
                 tagid = data.tagid;
             if (generated) {
-                var elem = this.get('document.iframe').find('[data-genid=' + id + ']');
+                var elem = iframe.find('[data-genid=' + id + ']');
                 if (elem.length < 1) {
                     if (insertAfter) {
-                        elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').parent().find('ins');
+                        elem = iframe.find('[data-tagid=' + tagid + ']').parent().find('ins');
                     } else {
-                        elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').siblings('ins');
+                        elem = iframe.find('[data-tagid=' + tagid + ']').siblings('ins');
                     }
                 }
                 this.set('mappedElement', elem);
             } else {
-                this.set('mappedElement', this.get('document.iframe').find('[data-tagid=' + tagid + ']'));
+                this.set('mappedElement', iframe.find('[data-tagid=' + tagid + ']'));
             }
             this.set('mappedDOMElement', this.get('mappedElement').get(0));
         }
-        this.notifyPropertyChange('sprite');
+        this.updateSprite();
+        this.updateIgnore();
+    },
+
+    getIframe: function() {
+        return this.get('document.view').getIframe();
     },
 
     mapToNewElement: function(elem) {
@@ -949,7 +955,11 @@ export default Ember.Component.extend(GuessTypes, {
     },
 
     afterRenderEvent: function() {
-        this.notifyPropertyChange('sprite');
-    }
+        Ember.run.next(this, function() {
+            this.mapToElement();
+            this.notifyPropertyChange('sprite');
+            this.notifyPropertyChange('data.tagid');
+        });
+    }.observes('document.iframe')
 
 });

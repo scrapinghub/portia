@@ -5,9 +5,13 @@
 
 """
 import re
+
+from urlparse import urljoin
+
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response
 from slybot.baseurl import insert_base_url
+from .splash.css_utils import process_css, wrap_url
 from .utils import serialize_tag, add_tagids
 
 ### Known weaknesses
@@ -39,13 +43,13 @@ def _deentitize_unicode(mystr):
     return _ENTITY_RE.sub(lambda m: unichr(int(m.groups()[0])), mystr)
 
 
-def html4annotation(htmlpage, baseurl=None):
+def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     """Convert the given html document for the annotation UI
 
     This adds tags, removes scripts and optionally adds a base url
     """
     htmlpage = add_tagids(htmlpage)
-    cleaned_html = descriptify(htmlpage)
+    cleaned_html = descriptify(htmlpage, baseurl, proxy=proxy_resources)
     if baseurl:
         cleaned_html = insert_base_url(cleaned_html, baseurl)
     return cleaned_html
@@ -57,7 +61,7 @@ def extract_html(response):
     return htmlpage_from_response(response).body
 
 
-def descriptify(doc):
+def descriptify(doc, base=None, proxy=None):
     """Clean JavaScript in a html source string.
     """
     parsed = parse_html(doc)
@@ -66,29 +70,37 @@ def descriptify(doc):
     for element in parsed:
         if isinstance(element, HtmlTag):
             if not inserted_comment and element.tag == "script" and element.tag_type == HtmlTagType.OPEN_TAG:
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
+                newdoc.append('<script>')
                 inserted_comment = True
-            elif element.tag == "script" and element.tag_type == HtmlTagType.CLOSE_TAG:
+            elif element.tag in ("script", "noscript") and element.tag_type == HtmlTagType.CLOSE_TAG:
                 if inserted_comment:
                     inserted_comment = False
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
+                newdoc.append('</%s>' % element.tag)
             elif element.tag == "noscript":
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
+                newdoc.append('<noscript>')
+                inserted_comment = True
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events
                     if key in INTRINSIC_EVENT_ATTRIBUTES:
                         element.attributes[key] = ""
+                    elif base and proxy and key == "style" and val is not None:
+                        element.attributes[key] = process_css(val, -1, base)
                     # Rewrite javascript URIs
-                    elif key in URI_ATTRIBUTES and val is not None and "javascript:" in _deentitize_unicode(val):
-                        element.attributes[key] = "about:blank"
-                    else:
-                        continue
+                    elif key in URI_ATTRIBUTES and val is not None:
+                            if "javascript:" in _deentitize_unicode(val):
+                                element.attributes[key] = "about:blank"
+                            elif base and proxy and not (element.tag == "a" and key == 'href'):
+                                element.attributes[key] = wrap_url(val, -1,
+                                                                   base)
+                                element.attributes['_portia_%s' % key] = val
+                            elif base:
+                                element.attributes[key] = urljoin(base, val)
                 newdoc.append(serialize_tag(element))
         else:
             text = doc[element.start:element.end]
             if inserted_comment and text.strip() and not (text.startswith("<!--") and text.endswith("-->")):
-                newdoc.append(_AS_COMMENT_BEGIN + text + _AS_COMMENT_END)
+                newdoc.append('<!-- Removed by portia -->')
             else:
                 newdoc.append(text)
 
