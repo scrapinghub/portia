@@ -4,6 +4,7 @@ import NotificationHandler from '../mixins/notification-handler';
 export default Ember.Component.extend(NotificationHandler, {
     tagName: 'div',
     classNames: 'class',
+    classNameBindings: ['editing::not-editing'],
     editing: false,
     validation: '.*',
     text: '',
