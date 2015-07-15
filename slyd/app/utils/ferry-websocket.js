@@ -35,7 +35,7 @@ export default Ember.Object.extend(ApplicationUtils, {
         this.set('ws', null);
         this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
         this.set('closed', true);
-        this.set('opened', false);
+        this.set('opened', Ember.computed.not('closed'));
         this.set('connecting', false);
         this.set('nextConnect', null);
         this.set('deferreds', {});
@@ -69,7 +69,6 @@ export default Ember.Object.extend(ApplicationUtils, {
             }
             this.set('closed', true);
             this.notifyPropertyChange('closed');
-            this.set('opened', false);
             Ember.Logger.log('<Closed Websocket>');
             var next = Ember.run.later(this, function() {
                 if (this.get('ws').readyState === WebSocket.CLOSED) {
@@ -113,7 +112,6 @@ export default Ember.Object.extend(ApplicationUtils, {
         ws.onopen = function() {
             Ember.Logger.log('<Opened Websocket>');
             this.set('closed', false);
-            this.set('opened', true);
             this.notifyPropertyChange('opened');
             this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
             this.heartbeat = setInterval(function() {

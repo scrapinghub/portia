@@ -386,16 +386,6 @@ export default BaseController.extend({
         this.get('model.follow_patterns').removeObject(pattern);
     },
 
-    autoFetch: function() {
-        if (this.get('loadedPageFp') && this.get('showLinks')) {
-            this.saveSpider().then(function() {
-                //this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
-            }.bind(this));
-        }
-    }.observes('model.follow_patterns.@each',
-               'model.exclude_patterns.@each',
-               'links_to_follow'),
-
     attachAutoSave: function() {
         this.get('model').addObserver('dirty', function() {
             Ember.run.once(this, 'saveSpider');
