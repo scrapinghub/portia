@@ -7,9 +7,15 @@
 	</span>
 
 	<span class="url">
-		{{#label-with-tooltip title=controller.currentUrl}}
-			{{controller.currentUrl}}
-		{{/label-with-tooltip}}
+		{{#if isFetching }}
+			{{#label-with-tooltip title=controller.currentUrl}}
+				{{controller.currentUrl}}
+			{{/label-with-tooltip}}
+		{{else}}
+			{{#inline-editable-text-field text=documentView.currentUrl placeholder='http://' validation='^(https?://)?[^\s\/]+\.[^\s]*$' action='navigate'}}
+				{{controller.currentUrl}}
+			{{/inline-editable-text-field}}
+		{{/if}}
 	</span>
 </div>
 
