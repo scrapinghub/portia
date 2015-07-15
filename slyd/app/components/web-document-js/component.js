@@ -6,6 +6,24 @@ import ApplicationUtils from '../../mixins/application-utils';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 
+function paintCanvasMessage(canvas) {
+    var ctx = canvas.getContext('2d');
+
+    var pattern = document.createElement('canvas');
+    pattern.width = 20;
+    pattern.height = 20;
+    var pctx = pattern.getContext('2d');
+    pctx.fillStyle = "#ccc";
+    pctx.fillRect(0,0,10,10);
+    pctx.fillRect(10,10,10,10);
+    pattern = ctx.createPattern(pattern, "repeat");
+
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '16px sans-serif';
+    ctx.fillStyle = 'black';
+    ctx.fillText('Displaying the content of the canvas is not supported', 10, canvas.height / 2);
+}
 function treeMirrorDelegate(){
     return {
         createElement: function(tagName) {
@@ -15,18 +33,34 @@ function treeMirrorDelegate(){
             } else if(tagName === 'FORM') {
                 node = document.createElement(tagName);
                 $(node).on('submit', ()=>false);
+            } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
+                node = document.createElement(tagName);
+                node.setAttribute('src', '/static/frames-not-supported.html');
+            } else if (tagName === 'CANVAS') {
+                node = document.createElement(tagName);
+                paintCanvasMessage(node);
             }
             return node;
         },
         setAttribute: function(node, attrName, value){
-            if(/^on/.test(attrName)) {
+            if(
+                /^on/.test(attrName) ||  // Disallow JS attributes
+                ((node.tagName === 'FRAME' || node.tagName === 'IFRAME') &&
+                (attrName === 'src' || attrName === 'srcdoc')) // Frames not supported
+            ) {
                 return true;
             }
+
             try{
                 node.setAttribute(attrName, value);
             }catch(e){
                 console.log(e, attrName, value);
             }
+
+            if(node.tagName === 'CANVAS' && (attrName === 'width' || attrName === 'height')) {
+                paintCanvasMessage(node);
+            }
+
             return true;
         }
     };
@@ -242,7 +276,9 @@ export default WebDocument.extend(ApplicationUtils, {
             return;
         }
         this.postEvent(evt);
-        return this._super(evt);
+        if(evt.target.tagName !== 'INPUT') {
+            return this._super(evt);
+        }
     },
 
     postEvent: function(evt){
