@@ -1,12 +1,24 @@
 from unittest import TestCase
 from os.path import dirname, join
+from contextlib import contextmanager
 
-from scrapy.http import Response, HtmlResponse, XmlResponse, TextResponse
+from scrapy.http import (Response, HtmlResponse, XmlResponse, TextResponse,
+                         Request)
+from scrapy.utils.project import get_project_settings
 from scrapy.utils.reqser import request_to_dict
 
 from scrapely.htmlpage import HtmlPage
 
 from slybot.spidermanager import SlybotSpiderManager
+
+
+@contextmanager
+def splash_spider_manager(splash_url='http://localhost:8050'):
+    settings = get_project_settings()
+    settings.set('SPLASH_URL', splash_url)
+    yield SlybotSpiderManager("%s/data/SampleProject" % _PATH,
+                              settings=settings)
+
 
 _PATH = dirname(__file__)
 
@@ -314,7 +326,6 @@ Product B,http://www.example.com/path2,B"""
         self.assertEqual(start_requests[1].url, 'http://www.example.com/override.html')
 
     def test_links_to_follow(self):
-
         html = "<html><body><a href='http://www.example.com/link.html'>Link</a></body></html>"
         response = HtmlResponse(url='http://www.example.com/index.html', body=html)
 
@@ -324,3 +335,37 @@ Product B,http://www.example.com/path2,B"""
 
         requests = list(start_requests[0].callback(response))
         self.assertEqual(len(requests), 0)
+
+    def test_js_enable_patterns(self):
+        with splash_spider_manager() as manager:
+            spider = manager.create("example3.com", js_enabled=True,
+                                    js_enable_patterns=['/products/'])
+        product_url = 'http://www.example.com/products/1234'
+        aboutus_url = 'http://www.example.com/aboutus'
+        request = spider._add_splash_meta(Request(product_url))
+        self.assertEqual(request.meta['splash']['args']['url'], product_url)
+        request = spider._add_splash_meta(Request(aboutus_url))
+        self.assertEqual(request.meta.get('splash'), None)
+
+    def test_js_disable_patterns(self):
+        with splash_spider_manager() as manager:
+            spider = manager.create("example3.com", js_enabled=True,
+                                    js_disable_patterns=['/products/'])
+        product_url = 'http://www.example.com/products/1234'
+        aboutus_url = 'http://www.example.com/aboutus'
+        request = spider._add_splash_meta(Request(product_url))
+        self.assertEqual(request.meta.get('splash'), None)
+        request = spider._add_splash_meta(Request(aboutus_url))
+        self.assertEqual(request.meta['splash']['args']['url'], aboutus_url)
+
+    def test_js_enable_and_disable_patterns(self):
+        with splash_spider_manager() as manager:
+            spider = manager.create("example3.com", js_enabled=True,
+                                    js_enable_patterns=['/products/'],
+                                    js_disable_patterns=['/products/[a-zA-Z]'])
+        product_list_url = 'http://www.example.com/products/cameras'
+        product_url = 'http://www.example.com/products/1234'
+        request = spider._add_splash_meta(Request(product_list_url))
+        self.assertEqual(request.meta.get('splash'), None)
+        request = spider._add_splash_meta(Request(product_url))
+        self.assertEqual(request.meta['splash']['args']['url'], product_url)

@@ -24,7 +24,8 @@ from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.generic_form import GenericForm
 
 STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
-               'allowed_domains']
+               'allowed_domains', 'js_enabled', 'js_enable_patterns',
+               'js_disable_patterns']
 
 
 class IblSpider(Spider):
@@ -233,13 +234,12 @@ class IblSpider(Spider):
         if enable_patterns:
             pattern = enable_patterns[0] if len(enable_patterns) == 1 else \
                 "(?:%s)" % '|'.join(enable_patterns)
-            pattern_re = re.compile(pattern)
-            enablef = lambda x: pattern_re.search(x)
+            enablef = re.compile(pattern).search
+            filterf = enablef
         if disable_patterns:
             pattern = disable_patterns[0] if len(disable_patterns) == 1 else \
                 "(?:%s)" % '|'.join(disable_patterns)
-            pattern_re = re.compile(pattern)
-            disablef = lambda x: pattern_re.search(x)
+            disablef = re.compile(pattern).search
             if not enablef:
                 filterf = lambda x: not disablef(x)
             else:
