@@ -210,8 +210,10 @@ export default BaseController.extend({
         return false;
     },
 
+    isFetching: Ember.computed.notEmpty('pendingFetches'),
+
     currentUrl: function() {
-        if (!Ember.isEmpty(this.get('pendingFetches'))) {
+        if (this.get('isFetching')) {
             return 'Fetching page...';
         } else if (this.get('loadedPageFp')) {
             return this.get('pageMap')[this.get('loadedPageFp')].url;
@@ -510,6 +512,13 @@ export default BaseController.extend({
             var lastPageFp = history.get('lastObject');
             this.fetchPage(this.get('pageMap')[lastPageFp].url,
                            history.length > 1 ? history.get(history.length -1) : null);
+        },
+
+        navigate: function(url) {
+            if (url.indexOf('http') !== 0) {
+                url = 'http://' + url;
+            }
+            this.fetchPage(url);
         },
 
         addStartUrls: function(urls) {
