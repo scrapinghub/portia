@@ -24,6 +24,10 @@ class ProxyResource(Resource):
         tabid = int(request.args['tabid'][0])
         user = User.findById(tabid)
 
+        # It's not easy to cancel a request that's being made by splash, because it does't
+        # return the QNetworkReply and when redirecting the current QNetworkReply changes,
+        # so if the client closes the connection while fetching the content we simply note
+        # it in this object and let the request finish without aborting.
         connection_status = { "finished": False }
         cb = functools.partial(self.end_response, request, url, connection_status, tabid)
         if not user or not user.tab:
@@ -47,7 +51,6 @@ class ProxyResource(Resource):
             request.finish()
 
     def _requestDisconnect(self, err, deferred=None, connection_status=None):
-        print "_requestDisconnect"
         if deferred:
             deferred.cancel()
         if connection_status:
