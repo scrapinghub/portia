@@ -1,6 +1,11 @@
 import Ember from 'ember';
 import SimpleModel from './simple-model';
 
+const ARRAY_PROPERTIES = ["start_urls", "follow_patterns", "exclude_patterns",
+    "js_enable_patterns", "js_disable_patterns", "allowed_domains",
+    "templates", "template_names"
+];
+
 export default SimpleModel.extend({
     serializedProperties: ['start_urls',
         'start_urls', 'links_to_follow', 'follow_patterns',
@@ -18,15 +23,16 @@ export default SimpleModel.extend({
     init_requests: null,
 
     init: function() {
-        if (this.get('init_requests') === null) {
-            this.set('init_requests', []);
-        }
+        ARRAY_PROPERTIES.forEach((prop) => {
+            if (!this.get(prop)) {
+                this.set(prop, []);
+            }
+        });
 
-        this.get('serializedProperties').forEach(function(prop) {
-            this.addObserver(prop + '.[]', function() {
-                this.notifyPropertyChange('dirty');
-            }.bind(this));
-        }.bind(this));
+        let markDirty = () => this.notifyPropertyChange('dirty');
+        this.serializedProperties.forEach((prop) => {
+            this.addObserver(prop + '.[]', markDirty);
+        });
     },
 
     performLogin: function(key, performLogin) {
