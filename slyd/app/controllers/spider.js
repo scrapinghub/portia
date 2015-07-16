@@ -45,7 +45,7 @@ export default BaseController.extend({
     ],
 
     hasStartUrls: function() {
-        return this.get('model.start_urls').length < 1 && this.get('editAllStartUrlsAction') === 'editAllStartUrls';
+        return this.get('startUrlCount') < 1 && this.get('editAllStartUrlsAction') === 'editAllStartUrls';
     }.property('model.start_urls.@each'),
 
     _breadCrumb: function() {
@@ -55,11 +55,7 @@ export default BaseController.extend({
     }.observes('model.name'),
 
     startUrlCount: function() {
-        if (!Ember.isEmpty(this.get('model.start_urls'))) {
-            return this.get('model.start_urls').length;
-        } else {
-            return 0;
-        }
+        return this.get('model.start_urls').length;
     }.property('model.start_urls.[]'),
 
     displayEditPatterns: function() {
