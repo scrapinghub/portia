@@ -128,6 +128,7 @@
             <div style="margin-top:10px;margin-bottom:10px">
                 {{check-box checked=model.js_enabled name="enableJS"}}
                 <span class="important-label">Enable JS</span>
+                {{inline-help message="enable_js"}}
             </div>
             {{#if model.js_enabled}}
                 <h4>Enable JS for links that match these patterns</h4>
