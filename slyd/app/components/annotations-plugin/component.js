@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import GuessTypes from '../../mixins/guess-types';
-import { validateFieldName } from 'portia-web/components/edit-item';
-import NotificationManager from 'portia-web/utils/notification-manager';
+import validateFieldName from '../../utils/validate-field-name';
+import NotificationManager from '../../utils/notification-manager';
 
 // TODO: Add ids to name fields. Allow for names to be changed later.
 
