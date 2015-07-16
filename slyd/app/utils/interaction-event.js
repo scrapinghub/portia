@@ -39,8 +39,13 @@ var interactionEvent = function(evt) {
         if(scrollTarget === doc.documentElement && !(target.scrollTopMax || target.scrollLeftMax)) {
             scrollTarget = doc.body;
         }
-        data.scrollTop = scrollTarget.scrollTop;
-        data.scrollLeft  = scrollTarget.scrollLeft;
+        if (scrollTarget) {
+            data.scrollTop = scrollTarget.scrollTop;
+            data.scrollLeft  = scrollTarget.scrollLeft;
+        } else {
+            data.scrollTop = 0;
+            data.scrollLeft  = 0;
+        }
     }
 
     ATTRIBUTE_WHITELIST.forEach(function(attr) {

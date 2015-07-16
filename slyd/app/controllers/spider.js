@@ -317,7 +317,7 @@ export default BaseController.extend({
             template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
                                        .substring(0, 48).trim().replace(/\s+/g, '_');
         if (!template_name || ('' + template_name).length < 1) {
-            this.shortGuid();
+            template_name = this.shortGuid();
         }
         var template = Template.create(
             { name: template_name,

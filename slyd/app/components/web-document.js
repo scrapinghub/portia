@@ -433,7 +433,7 @@ export default Ember.Component.extend({
         var linkingElement = Ember.$(event.target).closest('[href]');
         if (linkingElement.length) {
             var href = linkingElement.get(0).href;
-            if (!href.lowerCase().startsWith('javascript:')) {
+            if (href && !href.lowerCase().startsWith('javascript:')) {
                 this.sendDocumentEvent('linkClicked', href);
             }
         }

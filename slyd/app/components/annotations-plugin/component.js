@@ -161,12 +161,13 @@ export default Ember.Component.extend(GuessTypes, {
                 ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
             this.get('alldata').removeObject(ignoreData);
             this.get('pluginState.ignores').removeObject(ignore);
+            this.get('sprites').removeIgnore(ignore.get('element').get(0));
             this.updateData('pluginState');
         },
 
         ignoreBeneath: function(_, value, index) {
             var ignore = this.get('pluginState.ignores').objectAt(index),
-                ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
+                ignoreData = this.get('alldata').findBy('tagid', ignore.get('tagid'));
             ignore.set('ignoreBeneath', value);
             ignoreData['ignore_beneath'] = value;
             this.updateData('pluginState');
@@ -215,12 +216,12 @@ export default Ember.Component.extend(GuessTypes, {
                     };
                     this.get('alldata').pushObject(ignored);
                 }
-                this.get('pluginState.ignores').pushObject({
+                this.get('pluginState.ignores').pushObject(Ember.Object.create({
                     id: ignored.id,
                     tagid: tagid,
                     element: jqElem,
                     ignoreBeneath: ignored.ignore_beneath
-                });
+                }));
                 this.updateData('pluginState');
 
                 this.get('document.view').config({
