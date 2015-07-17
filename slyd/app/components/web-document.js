@@ -3,6 +3,7 @@ import Ember from 'ember';
 import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
+var $ = Ember.$;
 
 /* global CanvasLoader */
 
@@ -374,16 +375,18 @@ export default Ember.Component.extend({
         if (jqElem.prop('id')) {
             attributes.unshift({name: 'id', value: jqElem.prop('id')});
         }
-        var attributesHtml = '';
+        var $attributes = $('#hovered-element-info .attributes').empty();
         attributes.forEach(function(attribute) {
-            var value = attribute.value.trim().substring(0, 50);
-            attributesHtml += '<div class="attribute" style="margin:2px 0px 2px 0px">' +
-                                '<span>' + attribute.name + ": </span>" +
-                                '<span style="color:#AAA">' + value + '</span>' +
-                              '</div>';
+            var value = (attribute.value || "").trim().substring(0, 50);
+            $attributes.append(
+                $('<div class="attribute" style="margin:2px 0px 2px 0px"></div>').append(
+                    $('<span/>').text(attribute.name + ': ')
+                ).append(
+                    $('<span style="color:#AAA"></span>').text(value)
+                )
+            );
         });
-        Ember.$('#hovered-element-info .attributes').html(attributesHtml);
-        Ember.$('#hovered-element-info .path').html(path);
+        $('#hovered-element-info .path').html(path);
     },
 
     sendElementHoveredEvent: function(element, delay, mouseX, mouseY) {
