@@ -730,7 +730,9 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
             if (reason.jqXHR.getResponseHeader('Content-Type') === 'application/json') {
                 try{
                     err.data = Ember.$.parseJSON(reason.jqXHR.responseText);
-                } catch(e) {}
+                } catch(e) {
+                    err.data = reason.jqXHR.responseText;
+                }
             }
             throw err;
         });
