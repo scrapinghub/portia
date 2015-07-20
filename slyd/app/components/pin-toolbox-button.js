@@ -6,9 +6,7 @@ export default BsButton.extend({
 
     classNameBindings: ['pinned'],
 
-    disabled: function() {
-        return this.get('toolbox.fixed');
-    }.property('toolbox.fixed'),
+    disabled: Ember.computed.reads('toolbox.fixed'),
 
     pinned: function() {
         return this.get('disabled') || this.get('toolbox.pinned');

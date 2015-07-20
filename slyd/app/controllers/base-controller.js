@@ -25,9 +25,7 @@ export default Ember.Controller.extend(ApplicationUtils, SizeListener,
         this.set('documentView', this.get('document.view'));
     }.on('init'),
 
-    annotationsStore: function() {
-        return this.get('document.store');
-    }.property('document.store'),
+    annotationsStore: Ember.computed.reads('document.store'),
 
     actions: {
         updateField: function(value, field) {

@@ -58,9 +58,7 @@ export default BaseController.extend({
         return this.get('model.start_urls').length;
     }.property('model.start_urls.[]'),
 
-    displayEditPatterns: function() {
-        return this.get('links_to_follow') === 'patterns';
-    }.property('links_to_follow'),
+    displayEditPatterns: Ember.computed.equal('links_to_follow', 'patterns'),
 
     displayNofollow: function() {
         return this.get('links_to_follow') !== 'none';
@@ -83,17 +81,13 @@ export default BaseController.extend({
 
     showItems: true,
 
-    addTemplateDisabled: function() {
-        return !this.get('loadedPageFp');
-    }.property('loadedPageFp'),
+    addTemplateDisabled: Ember.computed.not('loadedPageFp'),
 
     browseBackDisabled: function() {
         return this.get('browseHistory').length <= 1;
     }.property('browseHistory.@each'),
 
-    reloadDisabled: function() {
-        return !this.get('loadedPageFp');
-    }.property('loadedPageFp'),
+    reloadDisabled: Ember.computed.not('loadedPageFp'),
 
     showItemsDisabled: function() {
         var loadedPageFp = this.get('loadedPageFp');

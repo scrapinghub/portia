@@ -7,9 +7,7 @@ export default Ember.Object.extend({
     extracted: null,
     matchedTemplate: null,
 
-    url: function() {
-        return this.get('extracted.url');
-    }.property('extracted'),
+    url: Ember.computed.reads('extracted.url'),
 
     fields: function() {
         var fields = [],

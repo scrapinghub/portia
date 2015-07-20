@@ -3,9 +3,7 @@ import Ember from 'ember';
 export default Ember.Component.extend({
     extractedItem: null,
 
-    fields: function() {
-        return this.get('extractedItem.fields');
-    }.property('extractedItem'),
+    fields: Ember.computed.reads('extractedItem.fields'),
 
     textFields: function() {
         return this.get('fields').filter(function(field) {
@@ -19,17 +17,11 @@ export default Ember.Component.extend({
         });
     }.property('fields'),
 
-    variants: function() {
-        return this.get('extractedItem.variants');
-    }.property('extractedItem'),
+    variants: Ember.computed.reads('extractedItem.variants'),
 
-    matchedTemplate: function() {
-        return this.get('extractedItem.matchedTemplate');
-    }.property('extractedItem'),
+    matchedTemplate: Ember.computed.reads('extractedItem.matchedTemplate'),
 
-    url: function() {
-        return this.get('extractedItem.url');
-    }.property('extractedItem'),
+    url: Ember.computed.reads('extractedItem.url'),
 
     actions: {
         fetchPage: function() {

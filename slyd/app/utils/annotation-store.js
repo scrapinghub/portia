@@ -4,9 +4,7 @@ import Annotation from '../models/annotation';
 
 export default Ember.Object.extend(ApplicationUtils, {
 
-    iframe: function() {
-        return this.get('document.iframe');
-    }.property('document.iframe'),
+    iframe: Ember.computed.reads('document.iframe'),
 
     findAll: function() {
         var annotatedElements = this.get('iframe').findAnnotatedElements();
