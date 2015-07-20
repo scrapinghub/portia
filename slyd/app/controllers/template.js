@@ -541,7 +541,7 @@ export default BaseController.extend({
 
     willLeave: function() {
         this.hideFloatingAnnotationWidget();
-        this.get('documentView').hideHoveredInfo();
+        this.get('documentView').reset();
         this.set('activeExtractionTool', {extracts: [],
                                           component: 'dummy-component',
                                           pluginState: {}});

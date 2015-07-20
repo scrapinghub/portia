@@ -24,6 +24,8 @@ export default Ember.Component.extend({
 
     listener: null,
 
+    mode: "none", // How it responds to input events, modes are 'none', 'browse' and 'select'
+
     canvas: null,
 
     ignoredElementTags: ['html', 'body'],
@@ -52,20 +54,16 @@ export default Ember.Component.extend({
 
         datasource: the datasource that will be attached.
         listener: the event listener will be attached.
-        mode: a string. Possible values are 'select' and 'browse'.
+        mode: a string. Possible values are 'select', 'browse' and 'none'.
         partialSelects: boolean. Whether to allow partial selections. It only
             has effect for the 'select' mode.
     */
     config: function(options) {
         this.set('dataSource', options.dataSource);
         this.set('listener', options.listener);
+        this.set('mode', options.mode);
         if (options.mode === 'select') {
-            this.set('elementSelectionEnabled', true);
             this.set('partialSelectionEnabled', options.partialSelects);
-        } else if (options.mode === 'browse') {
-            this.set('elementSelectionEnabled', false);
-            this.hideHoveredInfo();
-            this.installEventHandlersForBrowsing();
         }
     },
 
@@ -74,8 +72,7 @@ export default Ember.Component.extend({
         it also unbinds all event handlers.
     */
     reset: function() {
-        this.uninstallEventHandlers();
-        this.set('elementSelectionEnabled', false);
+        this.set('mode', 'none');
         this.set('partialSelectionEnabled', false);
         this.set('dataSource', null);
         this.set('listener', null);
@@ -269,32 +266,25 @@ export default Ember.Component.extend({
         );
     },
 
-    _elementSelectionEnabled: null,
-
-    elementSelectionEnabled: function(key, selectionEnabled) {
-        if (arguments.length > 1) {
-            if (selectionEnabled) {
-                if (!this.get('_elementSelectionEnabled')) {
-                    this.set('_elementSelectionEnabled', true);
-                    this.showHoveredInfo();
-                    this.installEventHandlersForSelecting();
-                }
-            } else {
-                this.set('_elementSelectionEnabled', false);
-                this.uninstallEventHandlers();
-                this.hideHoveredInfo();
-            }
-        } else {
-            return this.get('_elementSelectionEnabled');
+    _updateEventHandlers: function() {
+        var mode = this.get('mode');
+        if (mode === 'select') {
+            this.showHoveredInfo();
+            this.installEventHandlersForSelecting();
+        } else if (mode === 'browse'){
+            this.hideHoveredInfo();
+            this.installEventHandlersForBrowsing();
+        } else { // none
+            this.hideHoveredInfo();
+            this.uninstallEventHandlers();
         }
-    }.property('_elementSelectionEnabled'),
+    }.observes('mode'),
 
     partialSelectionEnabled: false,
 
     installEventHandlersForBrowsing: function() {
         this.uninstallEventHandlers();
         this.getIframe().on('click.portia', this.clickHandlerBrowse.bind(this));
-
     },
 
     installEventHandlersForSelecting: function() {
