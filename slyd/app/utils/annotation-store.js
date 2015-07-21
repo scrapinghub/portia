@@ -1,8 +1,8 @@
 import Ember from 'ember';
-import ApplicationUtils from '../mixins/application-utils';
 import Annotation from '../models/annotation';
+import utils from 'portia-web/utils/utils';
 
-export default Ember.Object.extend(ApplicationUtils, {
+export default Ember.Object.extend({
 
     iframe: Ember.computed.reads('document.iframe'),
 
@@ -15,7 +15,7 @@ export default Ember.Object.extend(ApplicationUtils, {
             if (!annotationJSON['id']) {
                 // This looks like an old Austoscraping project annotation as it doesn't have
                 // an assigned id. Create one for it.
-                annotationJSON['id'] = this.shortGuid();
+                annotationJSON['id'] = utils.shortGuid();
                 jqElem.attr('data-scrapy-annotate', JSON.stringify(annotationJSON));
             }
             annotationJSON['tagid'] = jqElem.data('tagid');

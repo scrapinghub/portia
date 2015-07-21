@@ -274,7 +274,7 @@ export default BaseController.extend({
         this.set('loadedPageFp', null);
         var documentView = this.get('documentView');
         documentView.showLoading();
-        var fetchId = this.guid();
+        var fetchId = utils.guid();
         this.get('pendingFetches').pushObject(fetchId);
         this.set('documentView.sprites', new SpriteStore());
         this.set('documentView.listener', this);
@@ -308,7 +308,7 @@ export default BaseController.extend({
             template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
                                        .substring(0, 48).trim().replace(/\s+/g, '_');
         if (!template_name || ('' + template_name).length < 1) {
-            template_name = this.shortGuid();
+            template_name = utils.shortGuid();
         }
         var template = Template.create(
             { name: template_name,
@@ -399,7 +399,7 @@ export default BaseController.extend({
 
     testSpider: function(urls) {
         if (this.get('testing') && urls.length) {
-            var fetchId = this.guid();
+            var fetchId = utils.guid();
             this.get('pendingFetches').pushObject(fetchId);
             this.get('documentView').fetchDocument(urls[0], this.get('model.name')).then(
                 function(data) {

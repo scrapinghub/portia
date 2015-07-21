@@ -142,7 +142,7 @@ export default BaseController.extend({
         this.set('ws.spider', null);
         this.get('ws')._sendPromise({
             _command: 'resolve',
-            _meta: {id: this.shortGuid()},
+            _meta: {id: utils.shortGuid()},
             url: siteUrl
         }).then(function(data) {
                 if (data.error) {

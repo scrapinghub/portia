@@ -1,6 +1,7 @@
 import BaseController from './base-controller';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
+import utils from 'portia-web/utils/utils';
 
 export default BaseController.extend({
 
@@ -10,7 +11,7 @@ export default BaseController.extend({
 
     addItem: function() {
         var newItem = Item.create({
-            name: this.shortGuid('_'),
+            name: utils.shortGuid('_'),
             display_name: 'New Item'
         });
         this.addField(newItem);

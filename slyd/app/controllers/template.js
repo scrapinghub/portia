@@ -5,6 +5,7 @@ import MappedFieldData from '../models/mapped-field-data';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
 import SpriteStore from '../utils/sprite-store';
+import utils from '../utils/utils';
 
 export default BaseController.extend({
 
@@ -269,7 +270,7 @@ export default BaseController.extend({
 
     createExtractor: function(extractorType, extractorDefinition) {
         var extractor = Extractor.create({
-            name: this.shortGuid(),
+            name: utils.shortGuid(),
         });
         if (extractorType === 'regular_expression') {
             try {

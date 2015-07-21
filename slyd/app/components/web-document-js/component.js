@@ -2,9 +2,10 @@
 /*global TreeMirror:false */
 import Ember from 'ember';
 
-import ApplicationUtils from '../../mixins/application-utils';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
+import utils from '../../utils/utils';
+
 
 function paintCanvasMessage(canvas) {
     var ctx = canvas.getContext('2d');
@@ -66,7 +67,7 @@ function treeMirrorDelegate(){
     };
 }
 
-export default WebDocument.extend(ApplicationUtils, {
+export default WebDocument.extend({
     ws_deferreds: {},
     connect: function() {
         var ws = this.get('ws');
@@ -186,7 +187,7 @@ export default WebDocument.extend(ApplicationUtils, {
     }.observes('ws.connecting'),
 
     fetchDocument: function(url, spider, fp, command) {
-        var unique_id = this.shortGuid(),
+        var unique_id = utils.shortGuid(),
             deferred = new Ember.RSVP.defer(),
             ifWindow = this.getIframeNode().contentWindow;
         this.set('ws_deferreds.' + unique_id, deferred);
@@ -230,7 +231,7 @@ export default WebDocument.extend(ApplicationUtils, {
     clearIframe: function() {
         var defer = new Ember.RSVP.defer();
         var iframe = this.getIframeNode();
-        var id = this.shortGuid();
+        var id = utils.shortGuid();
         // Using a empty static page because using srcdoc or an data:uri gives
         // permission problems and/or broken baseURI behaviour in different browsers.
         iframe.setAttribute('src', '/static/empty-frame.html?' + id);

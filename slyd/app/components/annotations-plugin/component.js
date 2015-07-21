@@ -2,6 +2,7 @@ import Ember from 'ember';
 import GuessTypes from '../../mixins/guess-types';
 import validateFieldName from '../../utils/validate-field-name';
 import NotificationManager from '../../utils/notification-manager';
+import utils from '../../utils/utils';
 
 // TODO: Add ids to name fields. Allow for names to be changed later.
 
@@ -209,7 +210,7 @@ export default Ember.Component.extend(GuessTypes, {
                     ignored = ignoreData;
                 } else {
                     ignored = {
-                        id: this.s4() + '-' + this.s4() + '-' + this.s4(),
+                        id: utils.shortGuid(),
                         tagid: tagid,
                         ignore: true,
                         ignore_beneath: false
@@ -246,17 +247,13 @@ export default Ember.Component.extend(GuessTypes, {
     //
     //*******************************************************************\\
 
-    s4: function() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    },
-
     createAnnotationData: function(generatedData) {
         var element = this.get('mappedElement'),
             data = {
                 annotations: {},
                 required: [],
                 variant: 0,
-                id: this.s4() + '-' + this.s4() + '-' + this.s4(),
+                id: utils.shortGuid(),
                 tagid: element.data('tagid')
             };
         if (element.prop('tagName') === 'INS') {
