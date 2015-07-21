@@ -2,8 +2,10 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     activate: function() {
-        this.set('toolbox.fixed', this.getWithDefault('fixedToolbox', true));
+
         var controller = this.controller || this.controllerFor(this.getControllerName());
+        var fixed = controller.getWithDefault('fixedToolbox', this.getWithDefault('fixedToolbox', true));
+        this.set('toolbox.fixed', fixed);
         if (controller.willEnter) {
             controller.willEnter();
         }

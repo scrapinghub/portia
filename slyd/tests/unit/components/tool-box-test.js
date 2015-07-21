@@ -14,13 +14,7 @@ test('it renders', function() {
 
   // creates the component instance
   var component = this.subject({
-    router: {
-      router: {
-        currentHandlerInfos: []
-      }
-    },
   });
-  component.set('controllers.lastObject', Ember.Object.create({}));
   equal(component._state, 'preRender');
 
   // appends the component to the page

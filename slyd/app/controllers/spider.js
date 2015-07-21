@@ -582,14 +582,13 @@ export default BaseController.extend({
             if (newName.trim() === oldName.trim()) {
                 return;
             }
-            this.set('spiderName', oldName);
             this.set('model.name', newName);
             this.get('ws').rename('spider', oldName, newName).then(
                 function() {
                     this.replaceRoute('spider', newName);
                 }.bind(this),
                 function(err) {
-                    this.set('model.name', this.get('spiderName'));
+                    this.set('model.name', oldName);
                     this.showErrorNotification(err.toString());
                 }.bind(this)
             );
@@ -661,7 +660,6 @@ export default BaseController.extend({
     willEnter: function() {
         this.set('loadedPageFp', null);
         this.get('extractedItems').setObjects([]);
-        this.set('spiderName', this.get('model.name'));
         this.get('documentView').config({ mode: 'browse',
                                           listener: this,
                                           dataSource: this });
