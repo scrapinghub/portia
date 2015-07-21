@@ -58,6 +58,7 @@
             "allowed_domains": {"type": "array", "items": {"type": "string"}},
             "templates": {"type": "array", "items": {"$ref": "template"}},
             "template_names": {"type": "array", "items": {"type": "string"}},
+            "page_actions": {"type": "array", "items": {"$ref": "action"}},
             "init_requests": {"type": "array", "items": {"$ref": "request"}}
         }
     },
@@ -109,26 +110,33 @@
     {
         "id": "action",
         "type": "object",
-        "oneOf": [
-            {
-                "properties": {
-                    "type": {"enum": ["wait"]},
-                    "timeout": {"type": "number", "minimum": 0}
-                }
-            },
-            {
-                "properties": {
-                    "type": {"enum": ["click"]},
-                    "selector": {"type": "string", "required": true}
-                }
-            },
-            {
-                "properties": {
-                    "type": {"enum": ["set"]},
-                    "value": {"type": "string"},
-                    "selector": {"type": "string", "required": true}
-                }
+        "allOf": [{
+            "properties": {
+                "accept": {"type": "string", "format": "regex"},
+                "reject": {"type": "string", "format": "regex"}
             }
-        ]
+        }, {
+            "oneOf": [
+                {
+                    "properties": {
+                        "type": {"enum": ["wait"]},
+                        "timeout": {"type": "number", "minimum": 0, "required": true}
+                    }
+                },
+                {
+                    "properties": {
+                        "type": {"enum": ["click"]},
+                        "selector": {"type": "string", "required": true}
+                    }
+                },
+                {
+                    "properties": {
+                        "type": {"enum": ["set"]},
+                        "value": {"type": "string", "required": true},
+                        "selector": {"type": "string", "required": true}
+                    }
+                }
+            ]
+        }]
     }
 ]
