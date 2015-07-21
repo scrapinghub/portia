@@ -4,6 +4,7 @@ import { ElementSprite } from '../utils/canvas';
 import SpriteStore from '../utils/sprite-store';
 import ExtractedItem from '../models/extracted-item';
 import Template from '../models/template';
+import utils from '../utils/utils';
 
 /* global URI */
 
@@ -339,17 +340,12 @@ export default BaseController.extend({
             urls = urls.match(/[^\s,]+/g);
         }
         var modelUrls = this.get('model.start_urls');
-        urls.forEach(function(url) {
-            var parsed = URI.parse(url);
-            if (Ember.$.inArray(url, modelUrls) > 0) {
-                return;
+        urls.forEach((url) => {
+            url = utils.cleanUrl(url);
+            if (url && Ember.$.inArray(url, modelUrls) < 0) {
+                modelUrls.pushObject(url);
             }
-            if (!parsed.protocol) {
-                parsed.protocol = 'http';
-                url = URI.build(parsed);
-            }
-            modelUrls.pushObject(url);
-        }.bind(this));
+        });
     },
 
     addExcludePattern: function(pattern, index) {
@@ -505,10 +501,10 @@ export default BaseController.extend({
         },
 
         navigate: function(url) {
-            if (url.indexOf('http') !== 0) {
-                url = 'http://' + url;
+            url = utils.cleanUrl(url);
+            if(url) {
+                this.fetchPage(url);
             }
-            this.fetchPage(url);
         },
 
         addStartUrls: function(urls) {
@@ -617,7 +613,7 @@ export default BaseController.extend({
                 if (this.get('loginUrl') && this.get('loginUser') && this.get('loginPassword')) {
                     this.set('model.init_requests', [{
                         "type": "login",
-                        "loginurl": this.get('loginUrl'),
+                        "loginurl": utils.cleanUrl(this.get('loginUrl')),
                         "username": this.get('loginUser'),
                         "password": this.get('loginPassword')
                     }]);

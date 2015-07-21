@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import BaseController from './base-controller';
 import Spider from '../models/spider';
+import utils from '../utils/utils';
 
 /* global URI */
 
@@ -129,13 +130,12 @@ export default BaseController.extend({
     }.property('hasChanges', 'isDeploying', 'isPublishing'),
 
     addSpider: function(siteUrl) {
-        if (this.get('addingNewSpider')) {
+        siteUrl = utils.cleanUrl(siteUrl);
+        if (!siteUrl || this.get('addingNewSpider')) {
             return;
         }
         this.set('addingNewSpider', true);
-        if (siteUrl.indexOf('http') !== 0) {
-            siteUrl = 'http://' + siteUrl;
-        }
+
         var documentView = this.get('documentView');
         documentView.showLoading();
         this.set('slyd.spider', null);
