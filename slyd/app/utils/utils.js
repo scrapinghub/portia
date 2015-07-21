@@ -1,3 +1,4 @@
+/* global URI */
 
 /**
  * Cleans, normalizes and validates URLs
@@ -11,11 +12,11 @@ export function cleanUrl(url) {
         url = 'http://' + url;
     }
     try {
-        url = new URL(url);
+        url = (new URI(url)).normalize();
     } catch(e){
         return null;
     }
-    if(!url.origin) {
+    if(!url.host()) {
         return null;
     }
     return url.toString();

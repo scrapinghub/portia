@@ -77,43 +77,44 @@ acceptanceTest('Initialization Panel', function(app, assert) {
   visit('/projects/11').then(() => visit('/projects/11/spider1')).then(function(){
     equal(currentURL(), '/projects/11/spider1');
     equal(find('.nav-container .current-crumb').text().trim(), 'spider1');
-    deepEqual(getStartUrls(), ['http://portiatest.com']);
+    deepEqual(getStartUrls(), ['http://portiatest.com/']);
     ok($initPanel().find('button .fa-plus').parent()[0].hasAttribute('disabled'), 'Add urls button should be disabled if textarea is empty');
-    return fillIn($initPanel().find('textarea'), '\nhttp://url1.com\n\nhttp://url2.com\n\n');
+    return fillIn($initPanel().find('textarea'), '\nhttp://url1.com\n\nurl2.com\n\n');
   }).then(function(){
     ok(!$initPanel().find('button .fa-plus').parent()[0].hasAttribute('disabled'), 'Add urls button should be enabled if user has types urls');
     return click($initPanel().find('button .fa-plus'));
   }).then(function(){
-    deepEqual(getStartUrls(), ['http://portiatest.com', 'http://url1.com', 'http://url2.com']);
+    equal(getStartUrls().join(':'), 'http://portiatest.com/:http://url1.com/:http://url2.com/', 'asd');
+    deepEqual(getStartUrls(), ['http://portiatest.com/', 'http://url1.com/', 'http://url2.com/'], 'asd');
     var meta = ws.lastMessage._meta;
     equal([meta.project, meta.type, meta.spider].join('/'), "11/spider/spider1");
-    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com', 'http://url1.com', 'http://url2.com']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com/', 'http://url1.com/', 'http://url2.com/']);
     return click($initPanel().find('.btn-danger .fa-trash').eq(1));
   }).then(function(){
-    deepEqual(getStartUrls(), ['http://portiatest.com', 'http://url2.com']);
-    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com', 'http://url2.com']);
+    deepEqual(getStartUrls(), ['http://portiatest.com/', 'http://url2.com/']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com/', 'http://url2.com/']);
     return click($initPanel().find('.btn-danger .fa-trash').eq(0));
   }).then(function(){
-    deepEqual(getStartUrls(), ['http://url2.com']);
-    deepEqual(ws.lastMessage.spider.start_urls, ['http://url2.com']);
+    deepEqual(getStartUrls(), ['http://url2.com/']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://url2.com/']);
     return click($initPanel().find('button:contains("Edit All")'));
   }).then(function(){
-    equal($initPanel().find('textarea').val().trim(), 'http://url2.com');
-    return fillIn($initPanel().find('textarea'), '\nhttp://portiatest.com\n\n');
+    equal($initPanel().find('textarea').val().trim(), 'http://url2.com/');
+    return fillIn($initPanel().find('textarea'), '\nhttp://portiatest.com/\n\n');
   }).then(function(){
     return click($initPanel().find('button .fa-plus'));
   }).then(function(){
-    deepEqual(getStartUrls(), ['http://portiatest.com']);
-    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com']);
+    deepEqual(getStartUrls(), ['http://portiatest.com/']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com/']);
     return click($initPanel().find('button:contains("Edit All")'));
   }).then(function(){
-    equal($initPanel().find('textarea').val().trim(), 'http://portiatest.com');
+    equal($initPanel().find('textarea').val().trim(), 'http://portiatest.com/');
     return fillIn($initPanel().find('textarea'), 'http://asdasdasdad.com');
   }).then(function(){
     return click($initPanel().find('button:contains("cancel")'));
   }).then(function(){
-    deepEqual(getStartUrls(), ['http://portiatest.com']);
-    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com']);
+    deepEqual(getStartUrls(), ['http://portiatest.com/']);
+    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com/']);
   });
 });
 
