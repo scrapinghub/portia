@@ -3,7 +3,6 @@ import Ember from 'ember';
 import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
-var $ = Ember.$;
 
 /* global CanvasLoader */
 
