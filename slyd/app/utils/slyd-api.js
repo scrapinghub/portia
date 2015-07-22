@@ -1,17 +1,17 @@
 import Ember from 'ember';
 import ajax from 'ic-ajax';
-import ApplicationUtils from '../mixins/application-utils';
 import Spider from '../models/spider';
 import Template from '../models/template';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
 import Extractor from '../models/extractor';
 import config from '../config/environment';
+import utils from 'portia-web/utils/utils';
 
 /**
     A Proxy to the slyd backend API.
 */
-export var SlydApi = Ember.Object.extend(ApplicationUtils, {
+export var SlydApi = Ember.Object.extend({
     getApiUrl: function() {
         return (config.SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
     },
@@ -172,7 +172,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
                 // Assign a name to templates. This is needed as Autoscraping templates
                 // are not named.
                 if (Ember.isEmpty(template['name'])) {
-                    template['name'] = this.shortGuid();
+                    template['name'] = utils.shortGuid();
                 }
                 return Template.create(template);
             });
@@ -730,7 +730,9 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
             if (reason.jqXHR.getResponseHeader('Content-Type') === 'application/json') {
                 try{
                     err.data = Ember.$.parseJSON(reason.jqXHR.responseText);
-                } catch(e) {}
+                } catch(e) {
+                    err.data = reason.jqXHR.responseText;
+                }
             }
             throw err;
         });

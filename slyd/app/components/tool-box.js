@@ -7,17 +7,8 @@ export default Ember.Component.extend({
         this.set('documentView', this.get('document.view'));
     }.property('document.view'),
 
-    handlerInfos: function() {
-        return this.get('router').router.currentHandlerInfos;
-    }.property('applicationController.currentPath'),
-
-    pathNames: Ember.computed.mapBy('handlerInfos', 'name'),
-    controllers: Ember.computed.mapBy('handlerInfos', 'handler.controller'),
-
-    fixed: function() {
-        var activeController = this.get('controllers').get('lastObject');
-        return activeController.getWithDefault('fixedToolbox', false) || this.get('control.fixed');
-    }.property('controllers.@each.fixedToolbox', 'control.fixed'),
+    fixed: Ember.computed.reads('control.fixed'),
+    pinned: Ember.computed.reads('control.pinned'),
 
     setBlocked: function() {
         if (this.get('documentView')) {
@@ -26,7 +17,7 @@ export default Ember.Component.extend({
     }.observes('fixed'),
 
     setToolboxNow: function(show){
-        if (!show && this.get('control.fixed')) {
+        if (!show && this.get('fixed')) {
             return;
         }
         Ember.$('#toolbox').css('margin-right', show ? 0 : -365);
@@ -52,7 +43,7 @@ export default Ember.Component.extend({
     },
 
     mouseLeave: function(e) {
-        if (!this.get('fixed') && !this.get('control.pinned')) {
+        if (!this.get('fixed') && !this.get('pinned')) {
             if (e.target.tagName.toLowerCase() !== 'select') {
                 this.hideToolbox();
             }
@@ -60,14 +51,12 @@ export default Ember.Component.extend({
     },
 
     changeState: function() {
-        if (this.get('control.expand') || this.get('control.pinned') ||
-              this.get('fixed')) {
+        if (this.get('pinned') || this.get('fixed')) {
             this.showToolbox();
-            this.get('control').set('expand', false);
         } else {
             this.hideToolbox();
         }
-    }.observes('fixed', 'control.fixed'),
+    }.observes('fixed', 'pinned'),
 
     didInsertElement: function() {
         this._super();

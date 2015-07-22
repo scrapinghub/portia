@@ -3,6 +3,7 @@ import Ember from 'ember';
 import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
+var $ = Ember.$;
 
 /* global CanvasLoader */
 
@@ -22,6 +23,8 @@ export default Ember.Component.extend({
     sprites: [],
 
     listener: null,
+
+    mode: "none", // How it responds to input events, modes are 'none', 'browse' and 'select'
 
     canvas: null,
 
@@ -51,20 +54,16 @@ export default Ember.Component.extend({
 
         datasource: the datasource that will be attached.
         listener: the event listener will be attached.
-        mode: a string. Possible values are 'select' and 'browse'.
+        mode: a string. Possible values are 'select', 'browse' and 'none'.
         partialSelects: boolean. Whether to allow partial selections. It only
             has effect for the 'select' mode.
     */
     config: function(options) {
         this.set('dataSource', options.dataSource);
         this.set('listener', options.listener);
+        this.set('mode', options.mode);
         if (options.mode === 'select') {
-            this.set('elementSelectionEnabled', true);
             this.set('partialSelectionEnabled', options.partialSelects);
-        } else if (options.mode === 'browse') {
-            this.set('elementSelectionEnabled', false);
-            this.hideHoveredInfo();
-            this.installEventHandlersForBrowsing();
         }
     },
 
@@ -73,8 +72,7 @@ export default Ember.Component.extend({
         it also unbinds all event handlers.
     */
     reset: function() {
-        this.uninstallEventHandlers();
-        this.set('elementSelectionEnabled', false);
+        this.set('mode', 'none');
         this.set('partialSelectionEnabled', false);
         this.set('dataSource', null);
         this.set('listener', null);
@@ -268,32 +266,25 @@ export default Ember.Component.extend({
         );
     },
 
-    _elementSelectionEnabled: null,
-
-    elementSelectionEnabled: function(key, selectionEnabled) {
-        if (arguments.length > 1) {
-            if (selectionEnabled) {
-                if (!this.get('_elementSelectionEnabled')) {
-                    this.set('_elementSelectionEnabled', true);
-                    this.showHoveredInfo();
-                    this.installEventHandlersForSelecting();
-                }
-            } else {
-                this.set('_elementSelectionEnabled', false);
-                this.uninstallEventHandlers();
-                this.hideHoveredInfo();
-            }
-        } else {
-            return this.get('_elementSelectionEnabled');
+    _updateEventHandlers: function() {
+        var mode = this.get('mode');
+        if (mode === 'select') {
+            this.showHoveredInfo();
+            this.installEventHandlersForSelecting();
+        } else if (mode === 'browse'){
+            this.hideHoveredInfo();
+            this.installEventHandlersForBrowsing();
+        } else { // none
+            this.hideHoveredInfo();
+            this.uninstallEventHandlers();
         }
-    }.property('_elementSelectionEnabled'),
+    }.observes('mode'),
 
     partialSelectionEnabled: false,
 
     installEventHandlersForBrowsing: function() {
         this.uninstallEventHandlers();
         this.getIframe().on('click.portia', this.clickHandlerBrowse.bind(this));
-
     },
 
     installEventHandlersForSelecting: function() {
@@ -374,16 +365,18 @@ export default Ember.Component.extend({
         if (jqElem.prop('id')) {
             attributes.unshift({name: 'id', value: jqElem.prop('id')});
         }
-        var attributesHtml = '';
+        var $attributes = $('#hovered-element-info .attributes').empty();
         attributes.forEach(function(attribute) {
-            var value = attribute.value.trim().substring(0, 50);
-            attributesHtml += '<div class="attribute" style="margin:2px 0px 2px 0px">' +
-                                '<span>' + attribute.name + ": </span>" +
-                                '<span style="color:#AAA">' + value + '</span>' +
-                              '</div>';
+            var value = (attribute.value || "").trim().substring(0, 50);
+            $attributes.append(
+                $('<div class="attribute" style="margin:2px 0px 2px 0px"></div>').append(
+                    $('<span/>').text(attribute.name + ': ')
+                ).append(
+                    $('<span style="color:#AAA"></span>').text(value)
+                )
+            );
         });
-        Ember.$('#hovered-element-info .attributes').html(attributesHtml);
-        Ember.$('#hovered-element-info .path').html(path);
+        $('#hovered-element-info .path').html(path);
     },
 
     sendElementHoveredEvent: function(element, delay, mouseX, mouseY) {

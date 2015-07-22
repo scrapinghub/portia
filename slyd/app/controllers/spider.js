@@ -4,6 +4,7 @@ import { ElementSprite } from '../utils/canvas';
 import SpriteStore from '../utils/sprite-store';
 import ExtractedItem from '../models/extracted-item';
 import Template from '../models/template';
+import utils from '../utils/utils';
 
 /* global URI */
 
@@ -58,9 +59,7 @@ export default BaseController.extend({
         return this.get('model.start_urls').length;
     }.property('model.start_urls.[]'),
 
-    displayEditPatterns: function() {
-        return this.get('links_to_follow') === 'patterns';
-    }.property('links_to_follow'),
+    displayEditPatterns: Ember.computed.equal('links_to_follow', 'patterns'),
 
     displayNofollow: function() {
         return this.get('links_to_follow') !== 'none';
@@ -83,17 +82,13 @@ export default BaseController.extend({
 
     showItems: true,
 
-    addTemplateDisabled: function() {
-        return !this.get('loadedPageFp');
-    }.property('loadedPageFp'),
+    addTemplateDisabled: Ember.computed.not('loadedPageFp'),
 
     browseBackDisabled: function() {
         return this.get('browseHistory').length <= 1;
     }.property('browseHistory.@each'),
 
-    reloadDisabled: function() {
-        return !this.get('loadedPageFp');
-    }.property('loadedPageFp'),
+    reloadDisabled: Ember.computed.not('loadedPageFp'),
 
     showItemsDisabled: function() {
         var loadedPageFp = this.get('loadedPageFp');
@@ -279,7 +274,7 @@ export default BaseController.extend({
         this.set('loadedPageFp', null);
         var documentView = this.get('documentView');
         documentView.showLoading();
-        var fetchId = this.guid();
+        var fetchId = utils.guid();
         this.get('pendingFetches').pushObject(fetchId);
         this.set('documentView.sprites', new SpriteStore());
         this.set('documentView.listener', this);
@@ -313,7 +308,7 @@ export default BaseController.extend({
             template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
                                        .substring(0, 48).trim().replace(/\s+/g, '_');
         if (!template_name || ('' + template_name).length < 1) {
-            template_name = this.shortGuid();
+            template_name = utils.shortGuid();
         }
         var template = Template.create(
             { name: template_name,
@@ -345,17 +340,12 @@ export default BaseController.extend({
             urls = urls.match(/[^\s,]+/g);
         }
         var modelUrls = this.get('model.start_urls');
-        urls.forEach(function(url) {
-            var parsed = URI.parse(url);
-            if (Ember.$.inArray(url, modelUrls) > 0) {
-                return;
+        urls.forEach((url) => {
+            url = utils.cleanUrl(url);
+            if (url && Ember.$.inArray(url, modelUrls) < 0) {
+                modelUrls.pushObject(url);
             }
-            if (!parsed.protocol) {
-                parsed.protocol = 'http';
-                url = URI.build(parsed);
-            }
-            modelUrls.pushObject(url);
-        }.bind(this));
+        });
     },
 
     addExcludePattern: function(pattern, index) {
@@ -409,7 +399,7 @@ export default BaseController.extend({
 
     testSpider: function(urls) {
         if (this.get('testing') && urls.length) {
-            var fetchId = this.guid();
+            var fetchId = utils.guid();
             this.get('pendingFetches').pushObject(fetchId);
             this.get('documentView').fetchDocument(urls[0], this.get('model.name')).then(
                 function(data) {
@@ -511,10 +501,10 @@ export default BaseController.extend({
         },
 
         navigate: function(url) {
-            if (url.indexOf('http') !== 0) {
-                url = 'http://' + url;
+            url = utils.cleanUrl(url);
+            if(url) {
+                this.fetchPage(url);
             }
-            this.fetchPage(url);
         },
 
         addStartUrls: function(urls) {
@@ -588,14 +578,13 @@ export default BaseController.extend({
             if (newName.trim() === oldName.trim()) {
                 return;
             }
-            this.set('spiderName', oldName);
             this.set('model.name', newName);
             this.get('ws').rename('spider', oldName, newName).then(
                 function() {
                     this.replaceRoute('spider', newName);
                 }.bind(this),
                 function(err) {
-                    this.set('model.name', this.get('spiderName'));
+                    this.set('model.name', oldName);
                     this.showErrorNotification(err.toString());
                 }.bind(this)
             );
@@ -624,7 +613,7 @@ export default BaseController.extend({
                 if (this.get('loginUrl') && this.get('loginUser') && this.get('loginPassword')) {
                     this.set('model.init_requests', [{
                         "type": "login",
-                        "loginurl": this.get('loginUrl'),
+                        "loginurl": utils.cleanUrl(this.get('loginUrl')),
                         "username": this.get('loginUser'),
                         "password": this.get('loginPassword')
                     }]);
@@ -667,7 +656,6 @@ export default BaseController.extend({
     willEnter: function() {
         this.set('loadedPageFp', null);
         this.get('extractedItems').setObjects([]);
-        this.set('spiderName', this.get('model.name'));
         this.get('documentView').config({ mode: 'browse',
                                           listener: this,
                                           dataSource: this });

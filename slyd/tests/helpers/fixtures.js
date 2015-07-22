@@ -40,7 +40,7 @@ fixtures['/projects/11/spec/spiders/spider1'] = {
     "links_to_follow": "patterns",
     "respect_nofollow": true,
     "start_urls": [
-        "http://portiatest.com"
+        "http://portiatest.com/"
     ],
     "template_names": [
         "Template1"

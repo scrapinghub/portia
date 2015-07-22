@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import config from '../config/environment';
-import ApplicationUtils from '../mixins/application-utils';
+import utils from 'portia-web/utils/utils';
 
 /* global URI */
 
@@ -23,7 +23,7 @@ var defaultUrl = function() {
     return URI.build(uri);
 };
 
-export default Ember.Object.extend(ApplicationUtils, {
+export default Ember.Object.extend({
     init: function(options) {
         options = options || {};
         this.set('commands', options.commands || {});
@@ -209,7 +209,7 @@ export default Ember.Object.extend(ApplicationUtils, {
             spider: this.get('spider'),
             project: this.get('project'),
             type: type,
-            id: this.shortGuid()
+            id: utils.shortGuid()
         };
     }
 });

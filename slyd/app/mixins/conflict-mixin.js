@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import utils from 'portia-web/utils/utils';
 
 var CHOICES = new Set(['my_val', 'base_val', 'other_val']);
 
@@ -115,7 +116,7 @@ export default Ember.Mixin.create({
 
     _isObject: function(obj) {
         obj = obj || this.get('json');
-        return this.toType(obj) === 'object';
+        return utils.toType(obj) === 'object';
     },
 
     _isArray: function(obj) {

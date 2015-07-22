@@ -3,9 +3,8 @@ import ajax from 'ic-ajax';
 import config from '../config/environment';
 import SlydApi from '../utils/slyd-api';
 import Timer from '../utils/timer';
-import ApplicationUtils from '../mixins/application-utils';
+import utils from '../utils/utils';
 
-var UUID = Ember.Object.extend(ApplicationUtils, {});
 
 export function initialize(container, application) {
     application.deferReadiness();
@@ -24,7 +23,7 @@ export function initialize(container, application) {
                                { instantiate: false });
         var api = new SlydApi();
         api.set('username', settings.username);
-        api.set('sessionid', new UUID().shortGuid());
+        api.set('sessionid', utils.shortGuid());
         api.set('serverCapabilities', container.lookup('api:capabilities'));
         api.set('timer', new Timer());
         container.register('api:slyd', api, { instantiate: false });
