@@ -273,7 +273,7 @@ export default WebDocument.extend({
 
         // Filter actions we are not interested in
         if (!pageActions || (type !== 'click' && type !== 'input' && type !== 'change')) {
-            return null; // We don't record that king of actions
+            return null; // We don't record that kind of actions
         }
         var target = nativeEvent.target;
         if ((type === 'click' && $(target).is('option,select,input:text,body,textarea,html')) || // Ignore click events in some elements

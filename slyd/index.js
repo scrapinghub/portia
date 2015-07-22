@@ -74,21 +74,9 @@ module.exports = {
             footer: '})();'
         });
 
-        var slybotTree = concat(relativeDir + '/splash_utils', {
-            inputFiles: [
-                '../node_modules/async-wait/waitAsync.js',
-                '../splash_utils/perform_actions.js'
-            ],
-            outputFile: '/page_actions_combined.js',
-            wrapInFunction: false,
-            header: '(function(){',
-            footer: '})();'
-        });
-
         return mergeTrees([
             funnel(tree, { destDir: '/' }),
             splashTree,
-            slybotTree,
         ]);
     },
     treeForStyles: function(tree) {

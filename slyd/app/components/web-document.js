@@ -282,7 +282,6 @@ export default Ember.Component.extend({
         this.unblockInteractions('loading');
     },
 
-
     /**
      * Only works in "select" mode
      */

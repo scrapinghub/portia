@@ -1,5 +1,6 @@
 import json
 import re
+import os
 
 LUA_SOURCE = """
 function main(splash)
@@ -10,7 +11,14 @@ function main(splash)
 end
 """
 
-JS_LIB = open('../../slyd/dist/page_actions_combined.js', 'r').read()
+dir_name = os.path.dirname(__file__)
+JS_LIB = (
+    "(function(){" +
+    open(os.path.join(dir_name, 'waitAsync.js'), 'r').read() +
+    open(os.path.join(dir_name, 'perform_actions.js'), 'r').read() +
+    "})();"
+)
+
 JS_SOURCE = """
 function main(splash) {
     var events = (%s);
@@ -49,4 +57,6 @@ class PageActionsMiddleware(object):
                 "lua_source": LUA_SOURCE,
                 "slybot_actions_source": JS_LIB + (JS_SOURCE % json.dumps(events)),
             })
+
+__all__ = ['PageActionsMiddleware']
 
