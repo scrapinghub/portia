@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import re
 
 from itertools import groupby
@@ -97,7 +99,7 @@ class Annotations(object):
         """This method is also called from UI webservice to extract items"""
         items = []
         link_regions = []
-        for item_cls_name, info in self.itemcls_info.iteritems():
+        for item_cls_name, info in self.itemcls_info.items():
             item_descriptor = info['descriptor']
             extractor = info['extractor']
             extracted, _link_regions = self._do_extract_items_from(

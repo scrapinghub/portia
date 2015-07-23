@@ -1,6 +1,7 @@
 """
 html page utils
 """
+from __future__ import absolute_import
 from uuid import uuid4
 
 from scrapely.htmlpage import HtmlPage, HtmlTag, HtmlTagType
@@ -52,7 +53,7 @@ def serialize_tag(tag):
     out += tag.tag
 
     attributes = []
-    for key, val in tag.attributes.iteritems():
+    for key, val in tag.attributes.items():
         aout = key
         if val is not None:
             aout += "=" + _quotify(val)

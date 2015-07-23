@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 SPIDER_MANAGER_CLASS = 'slybot.spidermanager.SlybotSpiderManager'
 EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
 ITEM_PIPELINES = {'slybot.dupefilter.DupeFilterPipeline': 1}
@@ -18,6 +19,6 @@ FEED_EXPORTERS = {
 CSV_EXPORT_FIELDS = None
 
 try:
-    from local_slybot_settings import *
+    from .local_slybot_settings import *
 except ImportError:
     pass

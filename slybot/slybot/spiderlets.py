@@ -2,6 +2,7 @@
 Spider middleware for AS for completing the work made by AS with a "spiderlet" code
 
 """
+from __future__ import absolute_import
 import pkgutil, inspect
 
 from scrapy.xlib.pydispatch import dispatcher
@@ -34,7 +35,7 @@ def list_spiderlets(spiderlets_module_path):
     seen_classes = set()
     for _, mname, _ in pkgutil.iter_modules(spiderlets_module.__path__):
         module = __import__(".".join([spiderlets_module_path, mname]), {}, {}, [''])
-        for cls in [c for c in vars(module).itervalues() if inspect.isclass(c)]:
+        for cls in [c for c in vars(module).values() if inspect.isclass(c)]:
             if cls in seen_classes:
                 continue
             seen_classes.add(cls)

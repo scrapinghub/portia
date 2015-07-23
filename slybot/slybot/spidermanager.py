@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import tempfile
 import shutil
 import atexit
@@ -60,7 +61,7 @@ class SlybotSpiderManager(object):
                                **args)
 
     def list(self):
-        return self._specs["spiders"].keys()
+        return list(self._specs["spiders"].keys())
 
     def find_by_request(self, request):
         """Placeholder to meet SpiderManager interface"""

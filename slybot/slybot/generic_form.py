@@ -69,4 +69,4 @@ class GenericForm:
             form_values = dict(_get_inputs(form, None, False, None, None))
             for name, option in params:
                 form_values[name] = option
-            yield form_values.items(), form.action or form.base_url, form.method
+            yield list(form_values.items()), form.action or form.base_url, form.method

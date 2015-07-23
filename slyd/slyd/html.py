@@ -4,6 +4,7 @@
     This module removes all existing JavaScript in an HTML document.
 
 """
+from __future__ import absolute_import
 import re
 
 from urlparse import urljoin

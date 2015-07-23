@@ -3,6 +3,7 @@ The module is used by the Twisted plugin system
 (twisted.plugins.slyd_plugin) to register twistd command to manage
 slyd server. The command can be used with 'twistd slyd'.
 """
+from __future__ import absolute_import
 from os import listdir
 from os.path import join, dirname, isfile
 from twisted.python import usage

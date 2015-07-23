@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json, re, shutil, errno, os
 
 import slyd.errors

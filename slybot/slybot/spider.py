@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 import re
 
@@ -10,6 +11,7 @@ from w3lib.http import basic_auth_header
 
 from scrapy import log
 from scrapy.http import Request, HtmlResponse, FormRequest
+import six
 try:
     from scrapy.spider import Spider
 except ImportError:
@@ -35,7 +37,7 @@ class IblSpider(Spider):
         super(IblSpider, self).__init__(name, **kw)
         spec = deepcopy(spec)
         for key, val in kw.items():
-            if isinstance(val, basestring) and key in STRING_KEYS:
+            if isinstance(val, six.string_types) and key in STRING_KEYS:
                 val = val.splitlines()
             spec[key] = val
 
@@ -142,7 +144,7 @@ class IblSpider(Spider):
                 yield FormRequest(url, method=method, formdata=args,
                                   callback=self.after_form_page,
                                   dont_filter=True)
-        except Exception, e:
+        except Exception as e:
             self.log(str(e), log.WARNING)
         for req in self._start_requests:
             yield req
