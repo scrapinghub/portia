@@ -19,13 +19,6 @@ from .utils import serialize_tag, add_tagids
 #     Doesn't deal with JS hidden in CSS
 #     Doesn't deal with meta redirect javascript URIs
 
-INTRINSIC_EVENT_ATTRIBUTES = ("onload", "onunload", "onclick", "ondblclick",
-                              "onmousedown", "onmouseup", "onmouseover",
-                              "onmousemove", "onmouseout", "onfocus",
-                              "onblur", "onkeypress", "onkeydown",
-                              "onkeyup", "onsubmit", "onreset", "onselect",
-                              "onchange", "onerror", "onbeforeunload")
-
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
@@ -83,7 +76,7 @@ def descriptify(doc, base=None, proxy=None):
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events
-                    if key in INTRINSIC_EVENT_ATTRIBUTES:
+                    if key.startswith('on'):
                         element.attributes[key] = ""
                     elif base and proxy and key == "style" and val is not None:
                         element.attributes[key] = process_css(val, -1, base)
