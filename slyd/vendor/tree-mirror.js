@@ -214,7 +214,10 @@ var TreeMirrorClient = (function () {
         } else if (isUrlAttribute(tagName, attr)){
             return __portiaApi.wrapUrl(value, node.baseURI);
         } else if (tagName === 'A' && attr === 'href') {
-            return node.href;
+            value = node.href;
+            if(/^\s*javascript:/i.test(value)){
+                value = '#';
+            }
         }
         return value;
     };
