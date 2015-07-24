@@ -15,10 +15,6 @@ from slybot.baseurl import insert_base_url
 from .splash.css_utils import process_css, wrap_url
 from .utils import serialize_tag, add_tagids
 
-### Known weaknesses
-#     Doesn't deal with JS hidden in CSS
-#     Doesn't deal with meta redirect javascript URIs
-
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
@@ -79,7 +75,7 @@ def descriptify(doc, base=None, proxy=None):
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events
-                    if key.startswith('on'):
+                    if key.startswith('on') or key == "http-equiv":
                         element.attributes[key] = ""
                     elif base and proxy and key == "style" and val is not None:
                         element.attributes[key] = process_css(val, -1, base)
