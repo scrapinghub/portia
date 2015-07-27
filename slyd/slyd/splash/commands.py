@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import hashlib
 import json
 import re
@@ -48,7 +49,7 @@ def interact_page(data, socket):
     try:
         socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
     except JsError as e:
-        print e
+        print(e)
 
 
 def resolve(data, socket):
@@ -172,10 +173,10 @@ class ProjectData(ProjectModifier):
         except (KeyError, IndexError) as ex:
             raise NotFound('"%s.json" could not be found' % '/'.join(path))
         except ValidationError as ex:
-            print('Not Valid: %s' % ex)
+            print(('Not Valid: %s' % ex))
             raise BadRequest(str(ex))
         except BaseWSError as ex:
-            print('Other: %s' % ex)
+            print(('Other: %s' % ex))
             raise ex
         except Exception as ex:
             # XXX: Catch any other errors and log them leaving Websocket open

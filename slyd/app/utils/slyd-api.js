@@ -732,6 +732,7 @@ export var SlydApi = Ember.Object.extend({
                     err.data = Ember.$.parseJSON(reason.jqXHR.responseText);
                 } catch(e) {
                     err.data = reason.jqXHR.responseText;
+                    utils.logError(e, {extra: {invalidJSON: err.data}});
                 }
             }
             throw err;

@@ -1,5 +1,7 @@
+from __future__ import absolute_import
 import os
 import json
+import six
 
 
 class CopyError(Exception):
@@ -82,7 +84,7 @@ class SpiderCopier(object):
         Handle renamed items during copy.
         """
         updated_templates = {}
-        for file_path, template in templates.iteritems():
+        for file_path, template in templates.items():
             scrapes = template['scrapes']
             if scrapes in renamed_items:
                 template['scrapes'] = renamed_items[scrapes]
@@ -132,13 +134,13 @@ class SpiderCopier(object):
                          if 'scrapes' in t)
         for item in items:
             copy_items.add(item)
-        for name, item in source_items.iteritems():
+        for name, item in source_items.items():
             if name not in copy_items:
                 continue
             if name in dest_items:
                 new_name, item = self._merge_items(name, item,
                                                    dest_items[name],
-                                                   dest_items.keys())
+                                                   list(dest_items.keys()))
                 if new_name != name:
                     renamed_items[name] = new_name
                     name = new_name
@@ -170,7 +172,7 @@ class SpiderCopier(object):
         """
         source_extractors = self.read_file(self.source, 'extractors.json')
         dest_extractors = self.read_file(self.destination, 'extractors.json')
-        for spider in templates.itervalues():
+        for spider in templates.values():
             for extractor in spider.get('extractors', []):
                 if extractor not in dest_extractors:
                     dest_extractors[extractor] = source_extractors[extractor]
@@ -192,7 +194,7 @@ class SpiderCopier(object):
     def _save_data(self, data):
         files_data = {}
         for path in data.keys():
-            if isinstance(path, unicode):
+            if isinstance(path, six.text_type):
                 path = path.encode('utf-8')
             if path.endswith('.json'):
                 files_data[path] = json.dumps(data.pop(path),
@@ -200,7 +202,7 @@ class SpiderCopier(object):
             else:
                 sub_directories = data.pop(path)
                 for path in sub_directories.keys():
-                    if isinstance(path, unicode):
+                    if isinstance(path, six.text_type):
                         path = path.encode('utf-8')
                     files_data[path] = json.dumps(sub_directories.pop(path),
                                                   sort_keys=True, indent=4)
@@ -237,7 +239,7 @@ class FileSystemSpiderCopier(SpiderCopier):
         return file_paths
 
     def save_files(self, location, files):
-        for filename, data in files.iteritems():
+        for filename, data in files.items():
             file_path = os.path.join(self.base_dir, location, filename)
             with open(file_path, 'w') as f:
                 f.write(data)

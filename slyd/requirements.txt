@@ -3,6 +3,7 @@ twisted==15.2.1
 service_identity==14.0.0
 requests==2.7.0
 autobahn==0.10.4
+six==1.5.2
 splash==1.6
 
 # Dulwich's MySQL backend

@@ -1,4 +1,3 @@
-from os.path import join
 from scrapy.utils.misc import load_object
 
 

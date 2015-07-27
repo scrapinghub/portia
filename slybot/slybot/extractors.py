@@ -19,7 +19,7 @@ def create_regex_extractor(pattern):
     def _extractor(txt):
         m = ereg.search(txt)
         if m:
-            return htmlregion(u"".join(filter(None, m.groups() or m.group())))
+            return htmlregion(u"".join([g for g in m.groups() or m.group() if g]))
 
     _extractor.__name__ = "Regex: %s" % pattern.encode("utf-8")
     return _extractor

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json, re, shutil, errno, os
 from os.path import join
 from twisted.internet.defer import Deferred

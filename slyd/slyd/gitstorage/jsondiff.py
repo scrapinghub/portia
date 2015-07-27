@@ -178,7 +178,7 @@ def merge_jsons(base, mine, other):
     def build_merge_dict(base, mine, other):
         my_diff = JsonDiff(base, mine)
         other_diff = JsonDiff(base, other)
-        all_fields = set(base.keys() + mine.keys() + other.keys())
+        all_fields = set(base.keys()).union(mine.keys()).union(other.keys())
         merge_dict = {}
         for k in all_fields:
             base_val, my_val, other_val = (
@@ -204,7 +204,7 @@ def merge_jsons(base, mine, other):
     def resolve_json(merge_dict):
         out_json = {}
         had_conflict = False
-        for key, diff in merge_dict.iteritems():
+        for key, diff in merge_dict.items():
             if isinstance(diff, dict):
                 out_json[key], rconflict = resolve_json(diff)
                 had_conflict = had_conflict or rconflict

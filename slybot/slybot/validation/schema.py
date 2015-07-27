@@ -1,4 +1,5 @@
 """Simple validation of specifications passed to slybot"""
+from __future__ import absolute_import
 from os.path import dirname, join
 import json
 import rfc3987
@@ -9,6 +10,7 @@ from urllib2 import unquote
 
 from jsonschema import (Draft3Validator, RefResolver, FormatChecker,
                         ValidationError)
+import six
 
 
 _PATH = dirname(__file__)
@@ -33,7 +35,7 @@ def get_schema_validator(schema):
 
     @FormatChecker.cls_checks('url', (ValueError,))
     def is_valid_uri(instance):
-        if not isinstance(instance, basestring):
+        if not isinstance(instance, six.string_types):
             return True
         uri = urlparse(instance)
         query = urlencode(parse_qsl(unquote(uri.query.encode('utf-8'))))

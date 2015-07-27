@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 
 from urlparse import urlparse
@@ -25,6 +26,8 @@ from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
                        delete_project_data)
 from .css_utils import process_css, wrap_url
+import six
+text = six.text_type # unicode in py2, str in py3
 
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
 _DEFAULT_VIEWPORT = '1240x680'
@@ -108,19 +111,17 @@ class PortiaJSApi(QObject):
         self.element = None
         return element
 
-    @pyqtSlot(str, str, result=str)
+    @pyqtSlot('QString', 'QString', result='QString')
     def processCss(self, css, baseuri):
-        return process_css(unicode(css), self.protocol.user.tabid,
-                           unicode(baseuri))
+        return process_css(text(css), self.protocol.user.tabid, text(baseuri))
 
-    @pyqtSlot(str, str, result=str)
+    @pyqtSlot('QString', 'QString', result='QString')
     def wrapUrl(self, url, baseuri):
-        return wrap_url(unicode(url), self.protocol.user.tabid,
-                        unicode(baseuri))
+        return wrap_url(text(url), self.protocol.user.tabid, text(baseuri))
 
-    @pyqtSlot(str)
+    @pyqtSlot('QString')
     def sendMessage(self, message):
-        message = unicode(message)
+        message = text(message)
         try:
             command, data = json.loads(message)
         except ValueError:  # XXX: Possibly null terminated string
