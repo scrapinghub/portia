@@ -6,6 +6,7 @@
 """
 from __future__ import absolute_import
 import re
+import six
 
 from urlparse import urljoin
 
@@ -31,9 +32,9 @@ except ImportError:
     def _replace_entity(match):
         entity = match.group(1)
         if entity[0].lower() == 'x':
-            return unichr(int(entity[1:], 16))
+            return six.unichr(int(entity[1:], 16))
         else:
-            return unichr(int(entity, 10))
+            return six.unichr(int(entity, 10))
 
     def unscape(mystr):
         """replaces all numeric html entities by its unicode equivalent.
