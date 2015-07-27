@@ -18,23 +18,27 @@ from .utils import serialize_tag, add_tagids
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
-# https://html.spec.whatwg.org/multipage/syntax.html#character-references
-# http://stackoverflow.com/questions/18689230/why-do-html-entity-names-with-dec-255-not-require-semicolon
-_ENTITY_RE = re.compile("&#(\d+[^\d]|x[a-f\d]+[^a-f\d])", re.I)
+_ALLOWED_CHARS_RE = re.compile('[^a-z:0-9;,"\'\\/?&%#]', re.IGNORECASE)
+def _contains_js(url):
+    return _ALLOWED_CHARS_RE.sub('', url).lower().startswith('javascript:')
 
-def _replace_entity(match):
-    entity = match.group(1)
-    if entity[0].lower() == 'x':
-        return unichr(int(entity[1:-1], 16))
-    else:
-        return unichr(int(entity[0:-1], 10))
+try:
+    from html import unescape
+except ImportError:
+    # https://html.spec.whatwg.org/multipage/syntax.html#character-references
+    # http://stackoverflow.com/questions/18689230/why-do-html-entity-names-with-dec-255-not-require-semicolon
+    _ENTITY_RE = re.compile("&#(\d+|x[a-f\d]+);?", re.I)
+    def _replace_entity(match):
+        entity = match.group(1)
+        if entity[0].lower() == 'x':
+            return unichr(int(entity[1:], 16))
+        else:
+            return unichr(int(entity, 10))
 
-def _deentitize_unicode(mystr):
-    """replaces all entities in the form &#\d+; by its
-    unicode equivalent.
-    """
-    return _ENTITY_RE.sub(_replace_entity, mystr)
-
+    def unscape(mystr):
+        """replaces all numeric html entities by its unicode equivalent.
+        """
+        return _ENTITY_RE.sub(_replace_entity, mystr)
 
 def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     """Convert the given html document for the annotation UI
@@ -81,8 +85,8 @@ def descriptify(doc, base=None, proxy=None):
                         element.attributes[key] = process_css(val, -1, base)
                     # Rewrite javascript URIs
                     elif key in URI_ATTRIBUTES and val is not None:
-                            if "javascript:" in _deentitize_unicode(val).lower():
-                                element.attributes[key] = "about:blank"
+                            if _contains_js(unscape(val)):
+                                element.attributes[key] = "#"
                             elif base and proxy and not (element.tag == "a" and key == 'href'):
                                 element.attributes[key] = wrap_url(val, -1,
                                                                    base)
