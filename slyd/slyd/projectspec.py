@@ -85,8 +85,10 @@ class ProjectSpec(object):
                           '"%s", already exists for this project.' % to_name)
         os.rename(self._rfilename('spiders', from_name),
                   self._rfilename('spiders', to_name))
-        os.rename(self._rdirname('spiders', from_name),
-                  self._rdirname('spiders', to_name))
+
+        dirname = self._rdirname('spiders', from_name)
+        if os.path.isdir(dirname):
+            os.rename(dirname, self._rdirname('spiders', to_name))
 
     def remove_spider(self, name):
         os.remove(self._rfilename('spiders', name))
@@ -122,7 +124,8 @@ class ProjectSpec(object):
         return open(self._rfilename(*resources), mode)
 
     def resource(self, *resources):
-        return json.load(self._rfile(resources))
+        with self._rfile(resources) as f:
+            return json.load(f)
 
     def writejson(self, outf, *resources):
         """Write json for the resource specified
@@ -145,8 +148,8 @@ class ProjectSpec(object):
             os.makedirs(self._rdirname(*resources))
         except OSError:
             pass
-        ouf = self._rfile(*resources, mode='wb')
-        json.dump(obj, ouf, sort_keys=True, indent=4)
+        with self._rfile(*resources, mode='wb') as ouf:
+            json.dump(obj, ouf, sort_keys=True, indent=4)
 
     def json(self, out):
         """Write spec as json to the file-like object

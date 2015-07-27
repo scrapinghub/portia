@@ -6,7 +6,6 @@ from distutils.dir_util import copy_tree
 from twisted.trial import unittest
 from twisted.internet.defer import inlineCallbacks
 from slyd.projectspec import create_project_resource
-from slyd.projectspec import convert_template
 from .utils import TestSite, create_spec_manager
 from .settings import SPEC_DATA_DIR
 import unittest as pyunittest
@@ -69,7 +68,6 @@ class CrawlerSpecTest(unittest.TestCase):
         result = yield self.specsite.post('spiders/testpost', data='{}')
         self.assertEqual(result.responseCode, 400)
 
-    @pyunittest.skip('Broken') # TODO
     @inlineCallbacks
     def test_commands(self):
         self.post_command('spiders', 'unknown', expect=400)
@@ -88,12 +86,17 @@ class CrawlerSpecTest(unittest.TestCase):
         self.assertEqual(result.value(), '{}\n')
         self._get_check_resource('spiders/c2')
         yield self.specsite.post('spiders/c3', data=self.spider)
-        # overwrites
-        self.post_command('spiders', 'mv', 'c2', 'c3')
-        result = yield self.specsite.get('spiders/c2')
-        self.assertEqual(result.value(), '{}\n')
+
+        # doesn't overwrite
+        result = self.post_command('spiders', 'mv', 'c2', 'c3')
+        self.failureResultOf(result, IOError)
+        self._get_check_resource('spiders/c2')
+
         self.post_command('spiders', 'rm', 'c3')
         result = yield self.specsite.get('spiders/c3')
+        self.assertEqual(result.value(), '{}\n')
+        self.post_command('spiders', 'rm', 'c2')
+        result = yield self.specsite.get('spiders/c2')
         self.assertEqual(result.value(), '{}\n')
 
     def tearDown(self):
