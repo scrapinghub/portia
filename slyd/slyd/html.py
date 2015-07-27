@@ -6,6 +6,7 @@
 """
 from __future__ import absolute_import
 import re
+import six
 
 from urlparse import urljoin
 
@@ -15,34 +16,30 @@ from slybot.baseurl import insert_base_url
 from .splash.css_utils import process_css, wrap_url
 from .utils import serialize_tag, add_tagids
 
-### Known weaknesses
-#     Doesn't deal with JS hidden in CSS
-#     Doesn't deal with meta redirect javascript URIs
-
-INTRINSIC_EVENT_ATTRIBUTES = ("onload", "onunload", "onclick", "ondblclick",
-                              "onmousedown", "onmouseup", "onmouseover",
-                              "onmousemove", "onmouseout", "onfocus",
-                              "onblur", "onkeypress", "onkeydown",
-                              "onkeyup", "onsubmit", "onreset", "onselect",
-                              "onchange", "onerror", "onbeforeunload")
-
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
-AS_SCRIPT_REGION_BEGIN = "<!-- begin region added by slyd-->"
-AS_SCRIPT_REGION_END = "<!-- end region added by slyd-->"
+_ALLOWED_CHARS_RE = re.compile('[^!-~]') # [!-~] = ascii printable characters
+def _contains_js(url):
+    return _ALLOWED_CHARS_RE.sub('', url).lower().startswith('javascript:')
 
-_AS_COMMENT_BEGIN = "<!-- begin_ascomment:"
-_AS_COMMENT_END = ":end_ascomment -->"
-_ENTITY_RE = re.compile("&#(\d+);")
+try:
+    from html import unescape
+except ImportError:
+    # https://html.spec.whatwg.org/multipage/syntax.html#character-references
+    # http://stackoverflow.com/questions/18689230/why-do-html-entity-names-with-dec-255-not-require-semicolon
+    _ENTITY_RE = re.compile("&#(\d+|x[a-f\d]+);?", re.I)
+    def _replace_entity(match):
+        entity = match.group(1)
+        if entity[0].lower() == 'x':
+            return six.unichr(int(entity[1:], 16))
+        else:
+            return six.unichr(int(entity, 10))
 
-
-def _deentitize_unicode(mystr):
-    """replaces all entities in the form &#\d+; by its
-    unicode equivalent.
-    """
-    return _ENTITY_RE.sub(lambda m: unichr(int(m.groups()[0])), mystr)
-
+    def unscape(mystr):
+        """replaces all numeric html entities by its unicode equivalent.
+        """
+        return _ENTITY_RE.sub(_replace_entity, mystr)
 
 def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     """Convert the given html document for the annotation UI
@@ -83,14 +80,14 @@ def descriptify(doc, base=None, proxy=None):
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events
-                    if key in INTRINSIC_EVENT_ATTRIBUTES:
+                    if key.startswith('on') or key == "http-equiv":
                         element.attributes[key] = ""
                     elif base and proxy and key == "style" and val is not None:
                         element.attributes[key] = process_css(val, -1, base)
                     # Rewrite javascript URIs
                     elif key in URI_ATTRIBUTES and val is not None:
-                            if "javascript:" in _deentitize_unicode(val):
-                                element.attributes[key] = "about:blank"
+                            if _contains_js(unscape(val)):
+                                element.attributes[key] = "#"
                             elif base and proxy and not (element.tag == "a" and key == 'href'):
                                 element.attributes[key] = wrap_url(val, -1,
                                                                    base)
