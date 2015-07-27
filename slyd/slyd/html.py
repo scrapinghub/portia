@@ -19,7 +19,7 @@ from .utils import serialize_tag, add_tagids
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
-_ALLOWED_CHARS_RE = re.compile('[^a-z:0-9;,"\'\\/?&%#]', re.IGNORECASE)
+_ALLOWED_CHARS_RE = re.compile('[^!-~]') # [!-~] = ascii printable characters
 def _contains_js(url):
     return _ALLOWED_CHARS_RE.sub('', url).lower().startswith('javascript:')
 
