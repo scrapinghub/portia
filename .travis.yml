@@ -1,6 +1,10 @@
 language: python
 python: 2.7
 sudo: false
+addons:
+  apt:
+    packages:
+    - python-qt4
 env:
 - WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
 cache:
@@ -25,7 +29,7 @@ script:
 - nosetests --with-doctest
 - cd ../slyd
 - npm test
-- nosetests --with-doctest
+- PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/dist-packages/ nosetests --with-doctest
 - cd ../
 before_deploy: cd ./slybot
 deploy:

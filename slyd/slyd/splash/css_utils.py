@@ -34,7 +34,7 @@ def process_css(css_source, tabid, base_uri):
     Wraps urls in css source.
 
     >>> url = 'http://scrapinghub.com/style.css'
-    >>> process_css('@import "{}"'.format(url), url) # doctest: +ELLIPSIS
+    >>> process_css('@import "{}"'.format(url), 0, url) # doctest: +ELLIPSIS
     '@import "/proxy?..."'
     """
     def _absolutize_css_import(match):
