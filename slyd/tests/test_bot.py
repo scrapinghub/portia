@@ -6,14 +6,14 @@ from twisted.web.server import Site
 from twisted.web.static import File
 from twisted.internet import reactor
 from slyd.bot import create_bot_resource
-from .utils import TestSite, test_spec_manager
+from .utils import TestSite, create_spec_manager
 from .settings import RESOURCE_DIR
 
 
 class BotTest(unittest.TestCase):
     def setUp(self):
         # configure bot resource
-        sm = test_spec_manager()
+        sm = create_spec_manager()
         self.bot_resource = create_bot_resource(sm)
         self.botsite = TestSite(self.bot_resource)
 
@@ -47,6 +47,9 @@ class BotTest(unittest.TestCase):
 
         # parse fetched data
         test_url = "http://localhost:8997/pin1.html"
+        result = yield self._fetch(test_url)
+        self.assertEqual(result.responseCode, 200)
+
         result = yield self._fetch(test_url, spider='pinterest.com')
         self.assertEqual(result.responseCode, 200)
         value = json.loads(result.value())

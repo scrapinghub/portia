@@ -23,7 +23,9 @@ script:
 - nosetests --with-doctest
 - cd ../slyd
 - npm test
-- cd ../
+- cd slyd
+- PYTHONPATH=../slybot nosetests --with-doctest
+- cd ../../
 before_deploy: cd ./slybot
 deploy:
   provider: pypi

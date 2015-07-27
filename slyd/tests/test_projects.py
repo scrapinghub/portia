@@ -1,14 +1,26 @@
+from __future__ import absolute_import
 import json
 import unittest
 from tempfile import mkdtemp
 from os.path import join, exists
 from shutil import rmtree
-from scrapy.tests.mockserver import Status
 from twisted.internet.defer import inlineCallbacks
 from twisted.web.resource import NoResource, Resource
-from .utils import TestSite, test_projects_resource
+from .utils import TestSite, create_projects_resource
 from .settings import DATA_DIR
 
+def getarg(request, name, default=None, type=str):
+    if name in request.args:
+        return type(request.args[name][0])
+    else:
+        return default
+
+class Status(Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        n = getarg(request, "n", 200, type=int)
+        request.setResponseCode(n)
+        return ""
 
 class ProjectsTest(unittest.TestCase):
 
@@ -16,7 +28,7 @@ class ProjectsTest(unittest.TestCase):
         self.temp_projects_dir = mkdtemp(dir=DATA_DIR,
                                          prefix='test-run-')
         root = Resource()
-        projects = test_projects_resource(self.temp_projects_dir)
+        projects = create_projects_resource(self.temp_projects_dir)
         root.putChild('projects', projects)
         projects.putChild('status', Status())
         self.projectssite = TestSite(root, None)
