@@ -23,7 +23,8 @@ class CrawlerSpecTest(unittest.TestCase):
             "start_urls": [
                 "http://www.mhvillage.com/"
             ],
-            "templates": []
+            "templates": [],
+            "id": "44444-4444"
         }
     """
 
