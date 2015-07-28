@@ -1,7 +1,7 @@
 import difflib
 
 from collections import namedtuple
-from itertools import izip_longest
+from six.moves import zip_longest
 
 _BLANK = object()
 
@@ -18,7 +18,7 @@ class Conflict(object):
         o = other[0] if other else _BLANK
         b = base[0] if base else _BLANK
         conflict = cls(m, o, b)
-        for m, o, b in izip_longest(mine[1:], other[1:], base[1:],
+        for m, o, b in zip_longest(mine[1:], other[1:], base[1:],
                                     fillvalue=_BLANK):
             conflict.update(m, o, b)
         return conflict
@@ -102,7 +102,7 @@ def merge_lists(base, mine, other):
         return other
     result = []
     last_conflict = False
-    for i, (m, o, b) in enumerate(izip_longest(mine, other, base,
+    for i, (m, o, b) in enumerate(zip_longest(mine, other, base,
                                                fillvalue=_BLANK)):
         if m == o and _BLANK not in (m, o):
             result.append(m)

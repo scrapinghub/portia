@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import json
 
-from urlparse import urlparse
+from six.moves.urllib_parse import urlparse
 
 from autobahn.twisted.resource import WebSocketResource
 from autobahn.twisted.websocket import (WebSocketServerFactory,

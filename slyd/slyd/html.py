@@ -8,7 +8,7 @@ from __future__ import absolute_import
 import re
 import six
 
-from urlparse import urljoin
+from six.moves.urllib_parse import urljoin
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response

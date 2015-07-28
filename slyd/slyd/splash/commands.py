@@ -3,7 +3,7 @@ import hashlib
 import json
 import re
 import socket as _socket
-import urlparse
+import six.moves.urllib_parse as urlparse
 import traceback
 
 import slyd.splash.utils
