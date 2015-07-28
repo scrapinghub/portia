@@ -1,6 +1,19 @@
 from twisted.web.server import Site
 from twisted.web.resource import Resource
+from twisted.internet import reactor
 
+def getarg(request, name, default=None, type=str):
+    if name in request.args:
+        return type(request.args[name][0])
+    else:
+        return default
+
+class Status(Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        n = getarg(request, "n", 200, type=int)
+        request.setResponseCode(n)
+        return ""
 
 class Root(Resource):
 

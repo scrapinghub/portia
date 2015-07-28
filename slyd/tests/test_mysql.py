@@ -10,6 +10,7 @@ def j(json):
     return dumps(json, sort_keys=True, indent=4)
 
 
+@unittest.skip("No DB in CI, hardcoded connection credentials") # TODO
 class RepomanTest(unittest.TestCase):
 
     def setUp(self):
@@ -18,6 +19,7 @@ class RepomanTest(unittest.TestCase):
             user='portia',
             password='portia',
             database='portia')
+
 
     def tearDown(self):
         self._connection.close()
