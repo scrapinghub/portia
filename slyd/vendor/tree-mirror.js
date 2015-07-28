@@ -216,7 +216,7 @@ var TreeMirrorClient = (function () {
         } else if (tagName === 'A' && attr === 'href') {
             value = node.href;
             if(/^\s*javascript:/i.test(value)){
-                value = '#';
+                return null;
             }
         }
         return value;
@@ -258,8 +258,11 @@ var TreeMirrorClient = (function () {
                 data.tagName = elm.tagName;
                 data.attributes = {};
                 for (var i = 0; i < elm.attributes.length; i++) {
-                    var attr = elm.attributes[i];
-                    data.attributes[attr.name] = this.getAttribute(node, attr.name);
+                    var attr = elm.attributes[i],
+                        attrValue = this.getAttribute(node, attr.name);
+                    if (attrValue !== null && attrValue !== undefined) {
+                        data.attributes[attr.name] = attrValue;
+                    }
                 }
 
                 if (recursive && elm.childNodes.length) {
