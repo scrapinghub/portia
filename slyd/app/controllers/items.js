@@ -1,7 +1,7 @@
 import BaseController from './base-controller';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
-import utils from 'portia-web/utils/utils';
+import utils from '../utils/utils';
 
 export default BaseController.extend({
 

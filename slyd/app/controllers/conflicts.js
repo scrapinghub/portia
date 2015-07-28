@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import BaseController from './base-controller';
 import ConflictMixin from '../mixins/conflict-mixin';
-import utils from 'portia-web/utils/utils';
+import utils from '../utils/utils';
 
 export default BaseController.extend(ConflictMixin, {
     needs: ['application'],

@@ -6,7 +6,7 @@ import Item from '../models/item';
 import ItemField from '../models/item-field';
 import Extractor from '../models/extractor';
 import config from '../config/environment';
-import utils from 'portia-web/utils/utils';
+import utils from '../utils/utils';
 
 /**
     A Proxy to the slyd backend API.

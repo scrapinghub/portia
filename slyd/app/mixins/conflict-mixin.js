@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import utils from 'portia-web/utils/utils';
+import utils from '../utils/utils';
 
 var CHOICES = new Set(['my_val', 'base_val', 'other_val']);
 

@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import config from '../config/environment';
-import utils from 'portia-web/utils/utils';
+import utils from '../utils/utils';
 
 /* global URI */
 

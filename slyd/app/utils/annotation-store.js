@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import Annotation from '../models/annotation';
-import utils from 'portia-web/utils/utils';
+import utils from '../utils/utils';
 
 export default Ember.Object.extend({
 
