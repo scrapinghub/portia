@@ -2,8 +2,6 @@ import Ember from 'ember';
 import config from '../config/environment';
 import utils from 'portia-web/utils/utils';
 
-/* global URI */
-
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
 const DEFAULT_MAX_RECONNECT_TIMEOUT = 60000;
 const DEFAULT_COMMANDS = Object.freeze({

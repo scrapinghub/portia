@@ -3,8 +3,6 @@ import BaseController from './base-controller';
 import Spider from '../models/spider';
 import utils from '../utils/utils';
 
-/* global URI */
-
 export default BaseController.extend({
     fixedToolbox: true,
     breadCrumb: null,

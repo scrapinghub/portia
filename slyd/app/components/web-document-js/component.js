@@ -1,5 +1,3 @@
-/*global $:false */
-/*global TreeMirror:false */
 import Ember from 'ember';
 
 import WebDocument from '../web-document';

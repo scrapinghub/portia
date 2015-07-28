@@ -1,5 +1,7 @@
 import Ember from 'ember';
 
+/* jshint boss:true */
+
 export default Ember.Component.extend(Ember.Evented, {
     layoutName: 'components/bs-modal',
     classNames: ['modal'],
