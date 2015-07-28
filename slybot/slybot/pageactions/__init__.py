@@ -33,14 +33,15 @@ function main(splash) {
 """
 
 def filter_for_url(url):
-    def filter(page_action):
+    def _filter(page_action):
         accept = page_action.get('accept')
         reject = page_action.get('reject')
-        if reject and re.match(reject, url):
+        if reject and re.search(reject, url):
             return False
-        if accept and not re.match(accept, url):
+        if accept and not re.search(accept, url):
             return False
         return True
+    return _filter
 
 class PageActionsMiddleware(object):
     def process_request(self, request, spider):
