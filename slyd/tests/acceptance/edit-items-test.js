@@ -67,8 +67,7 @@ acceptanceTest('Edit Items', function(app, assert) {
     return click(save);
   }).then(function(){
       var fields = Ember.copy(fixtures['/projects/11/spec/items'].default.fields, true);
-      fields.foobar = fields.optional;
-      delete fields.optional;
+      fields["2"].display_name = "foobar";
       deepEqual(ws.lastMessage.items.default.fields, fields);
       return reset();
   })
@@ -77,8 +76,8 @@ acceptanceTest('Edit Items', function(app, assert) {
   .then(() => click(save))
   .then(function(){
       var fields = Ember.copy(fixtures['/projects/11/spec/items'].default.fields, true);
-      delete fields.optional;
-      delete fields.price;
+      delete fields["2"];
+      delete fields["5"];
       deepEqual(ws.lastMessage.items.default.fields, fields);
   });
 });

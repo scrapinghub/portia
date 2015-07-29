@@ -383,8 +383,9 @@ export default Ember.Component.extend(GuessTypes, {
     itemFields: function() {
         var fields = this.get('item.fields') || [];
         var options = fields.map(function(field) {
-            var name = field.get('name');
-            return { value: name, label: name };
+            var name = field.get('name'),
+                displayName = field.getWithDefault('display_name', name);
+            return { value: name, label: displayName };
         });
         options.pushObject({ value: '#sticky', label: '-just required-' });
         options.pushObject({ value: '#create', label: '-create new-' });
@@ -503,7 +504,10 @@ export default Ember.Component.extend(GuessTypes, {
         }
         for (var key in annotations) {
             if (annotations[key]) {
-                text.push(key + ' > ' + annotations[key]);
+                var nameMap = this.get('fieldNameDisplayNameMap'),
+                    fieldName = nameMap[annotations[key]],
+                    displayName = nameMap[fieldName] || fieldName;
+                text.push(key + ' > ' + displayName);
             }
         }
         if (text.length < 1) {
@@ -586,6 +590,14 @@ export default Ember.Component.extend(GuessTypes, {
 
     fieldNameIdMap: function() {
         return this._makeFieldMap('name', 'id');
+    }.property('item.fields.@each'),
+
+    fieldNameDisplayNameMap: function() {
+        return this._makeFieldMap('name', 'display_name');
+    }.property('item.fields.@each'),
+
+    fieldDisplayNameNameMap: function() {
+        return this._makeFieldMap('display_name', 'name');
     }.property('item.fields.@each'),
 
     _makeFieldMap: function(from, to) {
@@ -861,7 +873,7 @@ export default Ember.Component.extend(GuessTypes, {
             this.set('guessedType', null);
             this.set('defaultName', null);
             this.sendAction('createField', this.get('item'), fieldName, fieldType);
-            this.setAttr(attrIndex, fieldName, 'field');
+            this.setAttr(attrIndex, this.get('fieldDisplayNameNameMap')[fieldName], 'field');
             this.setState(false, false, true);
         }
     },

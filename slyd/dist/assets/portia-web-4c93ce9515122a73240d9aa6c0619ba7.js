@@ -423,8 +423,9 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
         itemFields: (function () {
             var fields = this.get('item.fields') || [];
             var options = fields.map(function (field) {
-                var name = field.get('name');
-                return { value: name, label: name };
+                var name = field.get('name'),
+                    displayName = field.getWithDefault('display_name', name);
+                return { value: name, label: displayName };
             });
             options.pushObject({ value: '#sticky', label: '-just required-' });
             options.pushObject({ value: '#create', label: '-create new-' });
@@ -542,7 +543,10 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             }
             for (var key in annotations) {
                 if (annotations[key]) {
-                    text.push(key + ' > ' + annotations[key]);
+                    var nameMap = this.get('fieldNameDisplayNameMap'),
+                        fieldName = nameMap[annotations[key]],
+                        displayName = nameMap[fieldName] || fieldName;
+                    text.push(key + ' > ' + displayName);
                 }
             }
             if (text.length < 1) {
@@ -624,6 +628,10 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
 
         fieldNameIdMap: (function () {
             return this._makeFieldMap('name', 'id');
+        }).property('item.fields.@each'),
+
+        fieldNameDisplayNameMap: (function () {
+            return this._makeFieldMap('name', 'display_name');
         }).property('item.fields.@each'),
 
         _makeFieldMap: function _makeFieldMap(from, to) {
@@ -2975,6 +2983,10 @@ define('portia-web/components/edit-item', ['exports', 'ember', 'portia-web/mixin
                 if (this.get('items').findBy('display_name', input.text)) {
                     input.setInvalid('There is already a item with that name.');
                 }
+            },
+
+            renameField: function renameField(name, index) {
+                this.get('item.fields.' + index).set('display_name', name);
             }
         }
     });
@@ -5300,7 +5312,7 @@ define('portia-web/controllers/conflicts/index', ['exports', 'portia-web/control
     });
 
 });
-define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-controller', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/utils/utils'], function (exports, BaseController, Item, ItemField, utils) {
+define('portia-web/controllers/items', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/utils/utils'], function (exports, Ember, BaseController, Item, ItemField, utils) {
 
     'use strict';
 
@@ -5312,11 +5324,18 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
 
         addItem: function addItem() {
             var newItem = Item['default'].create({
-                name: utils['default'].shortGuid('_'),
+                name: this._uniqueId(this.model),
                 display_name: 'New Item'
             });
             this.addField(newItem);
             this.model.pushObject(newItem);
+            Ember['default'].run.next(function () {
+                var items = Ember['default'].$('#toolbox .scrolling-container'),
+                    newItem = items.children().last().get(0);
+                if (newItem.scrollIntoView) {
+                    newItem.scrollIntoView();
+                }
+            });
         },
 
         addField: function addField(owner, name, type) {
@@ -5324,12 +5343,24 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
                 this.showErrorNotification('No Item selected for extraction');
                 return;
             }
-            var newField = ItemField['default'].create({ name: name || 'new_field',
+            owner.set('fields', owner.fields || []);
+            var newField = ItemField['default'].create({ name: this._uniqueId(owner.fields),
+                display_name: name || 'new_field',
                 type: type || 'text',
                 required: false,
                 vary: false });
-            owner.set('fields', owner.fields || []);
             owner.fields.pushObject(newField);
+        },
+
+        _uniqueId: function _uniqueId(objects, key) {
+            var id = utils['default'].shortGuid('_');
+            if (!key) {
+                key = 'name';
+            }
+            while (objects.findBy(key, id)) {
+                id = utils['default'].shortGuid('_');
+            }
+            return id;
         },
 
         saveChanges: function saveChanges() {
@@ -8453,9 +8484,14 @@ define('portia-web/models/extracted-item', ['exports', 'ember', 'portia-web/mode
             var fields = [],
                 item = this.get('extracted');
             Object.keys(item).forEach((function (key) {
-                var fieldDefinition = this.get('definition.fields').findBy('name', key);
+                var fieldDefinition = this.get('definition.fields').findBy('display_name', key);
+                if (!fieldDefinition) {
+                    fieldDefinition = this.get('definition.fields').findBy('name', key);
+                }
                 if (fieldDefinition) {
-                    fields.pushObject(ExtractedField['default'].create({ name: key, type: fieldDefinition.get('type'), value: item[key] }));
+                    fields.pushObject(ExtractedField['default'].create({ name: fieldDefinition.getWithDefault('display_name', fieldDefinition.get('name')),
+                        type: fieldDefinition.get('type'),
+                        value: item[key] }));
                 }
             }).bind(this));
             return fields;
@@ -8524,14 +8560,22 @@ define('portia-web/models/item-field', ['exports', 'portia-web/models/simple-mod
     'use strict';
 
     exports['default'] = SimpleModel['default'].extend({
-        serializedProperties: ['name', 'type', 'required', 'vary'],
+        serializedProperties: ['name', 'type', 'required', 'vary', 'display_name'],
         type: 'text',
         required: false,
-        vary: false
+        vary: false,
+
+        _create_display_name: (function () {
+            this.set('display_name', this.get('fieldName'));
+        }).on('init'),
+
+        fieldName: (function () {
+            return this.getWithDefault('display_name', this.get('name'));
+        }).property('name', 'display_name')
     });
 
 });
-define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', 'portia-web/models/item-field'], function (exports, SimpleModel, ItemField) {
+define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', 'portia-web/models/item-field', 'portia-web/utils/utils'], function (exports, SimpleModel, ItemField, utils) {
 
     'use strict';
 
@@ -8551,7 +8595,8 @@ define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', '
         },
 
         addField: function addField(name, type) {
-            var newField = ItemField['default'].create({ name: name || 'new_field',
+            var newField = ItemField['default'].create({ name: utils['default'].shortGuid(),
+                display_name: name || 'new_field',
                 type: type || 'text',
                 required: false,
                 vary: false });
@@ -11417,7 +11462,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
                 fragment = this.build(dom);
               }
               var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
-              content(env, morph0, context, "field.name");
+              content(env, morph0, context, "field.fieldName");
               return fragment;
             }
           };
@@ -11534,7 +11579,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
             var morph4 = dom.createMorphAt(dom.childAt(element0, [9]),1,1);
             set(env, context, "field", blockArguments[0]);
             set(env, context, "index", blockArguments[1]);
-            block(env, morph0, context, "inline-editable-text-field", [], {"validate": "validateFieldName", "text": get(env, context, "field.name"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
+            block(env, morph0, context, "inline-editable-text-field", [], {"validate": "validateFieldName", "text": get(env, context, "field.fieldName"), "validation": "^[a-zA-Z0-9_-]+$", "action": "renameField", "name": get(env, context, "index")}, child0, null);
             inline(env, morph1, context, "item-select", [], {"options": get(env, context, "extractionTypes"), "value": get(env, context, "field.type")});
             inline(env, morph2, context, "check-box", [], {"checked": get(env, context, "field.required")});
             inline(env, morph3, context, "check-box", [], {"checked": get(env, context, "field.vary")});
@@ -23542,7 +23587,7 @@ define('portia-web/utils/validate-field-name', ['exports'], function (exports) {
             return 'Field can\'t start with underscores';
         } else if (name === 'url') {
             return 'Naming a field "url" is not allowed as there is already a field with this name';
-        } else if (fields.findBy('name', name)) {
+        } else if (fields.findBy('display_name', name)) {
             return 'There is already a field with that name.';
         }
         return null; // No error

@@ -26,10 +26,11 @@
                 "vary": false, 
                 "type": "text"
             },
-            "price": {
+            "aaaa_aaaa": {
                 "required": false, 
                 "vary": false, 
-                "type": "price"
+                "type": "price",
+                "display_name": "price"
             },
             "lifecycle": {
                 "required": false, 

@@ -52,35 +52,41 @@ fixtures['/projects/11/spec/items'] = {
     "default": {
         "display_name": "default_item",
         "fields": {
-            "required": {
+            "1": {
                 "required": true,
                 "type": "text",
-                "vary": false
+                "vary": false,
+                "display_name": "required"
             },
-            "optional": {
+            "2": {
                 "required": false,
                 "type": "text",
-                "vary": false
+                "vary": false,
+                "display_name": "optional"
             },
-            "image": {
+            "3": {
                 "required": false,
                 "type": "image",
-                "vary": false
+                "vary": false,
+                "display_name": "image"
             },
-            "text": {
+            "4": {
                 "required": false,
                 "type": "text",
-                "vary": false
+                "vary": false,
+                "display_name": "text"
             },
-            "price": {
+            "5": {
                 "required": true,
                 "type": "price",
-                "vary": false
+                "vary": false,
+                "display_name": "price"
             },
-            "safe_html": {
+            "6": {
                 "required": true,
                 "type": "safe html",
-                "vary": false
+                "vary": false,
+                "display_name": "safe_html"
             }
         }
     }

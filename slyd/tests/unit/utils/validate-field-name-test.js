@@ -5,7 +5,7 @@ module('Unit | Utility | validate field name');
 
 // Replace this with your real tests.
 test('it works', function(assert) {
-  var fields = [{name: 'unique'}, {name: 'not_unique'}];
+  var fields = [{name: '1', display_name: 'unique'}, {name: '2', display_name: 'not_unique'}];
   assert.ok(validateFieldName('_template'));
   assert.ok(validateFieldName('_new_meta_field'));
   assert.ok(validateFieldName('url'));
