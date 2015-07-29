@@ -33,6 +33,10 @@ export default Ember.Component.extend(NotificationHandler, {
             if (this.get('items').findBy('display_name', input.text)) {
                 input.setInvalid('There is already a item with that name.');
             }
+        },
+
+        renameField: function(name, index) {
+            this.get('item.fields.'+index).set('display_name', name);
         }
     }
 });

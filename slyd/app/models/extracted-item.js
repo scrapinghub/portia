@@ -13,10 +13,15 @@ export default Ember.Object.extend({
         var fields = [],
             item = this.get('extracted');
         Object.keys(item).forEach(function(key) {
-            var fieldDefinition = this.get('definition.fields').findBy('name', key);
+            var fieldDefinition = this.get('definition.fields').findBy('display_name', key);
+            if (!fieldDefinition) {
+                fieldDefinition = this.get('definition.fields').findBy('name', key);
+            }
             if (fieldDefinition) {
                 fields.pushObject(ExtractedField.create(
-                    { name: key, type: fieldDefinition.get('type'), value: item[key] }));
+                    { name: fieldDefinition.getWithDefault('display_name', fieldDefinition.get('name')),
+                      type: fieldDefinition.get('type'),
+                      value: item[key] }));
             }
         }.bind(this));
         return fields;

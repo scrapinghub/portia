@@ -1,3 +1,4 @@
+import Ember from 'ember';
 import BaseController from './base-controller';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
@@ -11,11 +12,18 @@ export default BaseController.extend({
 
     addItem: function() {
         var newItem = Item.create({
-            name: utils.shortGuid('_'),
+            name: this._uniqueId(this.model),
             display_name: 'New Item'
         });
         this.addField(newItem);
         this.model.pushObject(newItem);
+        Ember.run.next(function() {
+            var items = Ember.$('#toolbox .scrolling-container'),
+                newItem = items.children().last().get(0);
+            if (newItem.scrollIntoView) {
+                newItem.scrollIntoView();
+            }
+        });
     },
 
     addField: function(owner, name, type) {
@@ -23,12 +31,24 @@ export default BaseController.extend({
             this.showErrorNotification('No Item selected for extraction');
             return;
         }
-        var newField = ItemField.create({ name: name || 'new_field',
+        owner.set('fields', owner.fields || []);
+        var newField = ItemField.create({ name: this._uniqueId(owner.fields),
+                                          display_name: name || 'new_field',
                                           type: type || 'text',
                                           required: false,
                                           vary: false });
-        owner.set('fields', owner.fields || []);
         owner.fields.pushObject(newField);
+    },
+
+    _uniqueId: function(objects, key) {
+        var id = utils.shortGuid('_');
+        if (!key) {
+            key = 'name';
+        }
+        while (objects.findBy(key, id)) {
+            id = utils.shortGuid('_');
+        }
+        return id;
     },
 
     saveChanges: function() {

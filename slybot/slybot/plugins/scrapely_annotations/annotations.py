@@ -32,6 +32,8 @@ def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
                 if field_descriptor:
                     value = [field_descriptor.adapt(x, htmlpage)
                              for x in value]
+                    if field_descriptor.name != field_descriptor.description:
+                        key = field_descriptor.description
                 processed_attributes.append((key, value))
         processed_data.append(processed_attributes)
     return [dict(p) for p in processed_data]

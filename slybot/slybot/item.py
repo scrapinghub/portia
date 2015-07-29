@@ -18,9 +18,10 @@ class SlybotItem(DictItem):
             fields = defaultdict(dict)
             version_fields = []
             for _name, _meta in schema['fields'].items():
-                fields[_name] = Field(_meta)
+                name = _meta.get('display_name', _name)
+                fields[name] = Field(_meta)
                 if not _meta.get("vary", False):
-                    version_fields.append(_name)
+                    version_fields.append(name)
             version_fields = sorted(version_fields)
         return IblItem
 
@@ -30,9 +31,11 @@ def create_slybot_item_descriptor(schema):
     descriptors = []
     for pname, pdict in schema['fields'].items():
         required = pdict['required']
+        pdisplay_name = pdict.get('display_name', pname)
         pclass = field_type_manager.type_processor_class(pdict['type'])
         processor = pclass()
-        descriptor = SlybotFieldDescriptor(pname, pname, processor, required)
+        descriptor = SlybotFieldDescriptor(pname, pdisplay_name, processor,
+                                           required)
         descriptors.append(descriptor)
     return ItemDescriptor("", "", descriptors)
 
