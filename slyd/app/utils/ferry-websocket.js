@@ -2,6 +2,7 @@ import Ember from 'ember';
 import config from '../config/environment';
 import utils from 'portia-web/utils/utils';
 
+const APPLICATION_UNLOADING_CODE = 4001;
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
 const DEFAULT_MAX_RECONNECT_TIMEOUT = 60000;
 const DEFAULT_COMMANDS = Object.freeze({
@@ -22,6 +23,7 @@ var defaultUrl = function() {
 };
 
 export default Ember.Object.extend({
+
     init: function(options) {
         options = options || {};
         this.set('commands', options.commands || {});
@@ -38,6 +40,12 @@ export default Ember.Object.extend({
         this.set('nextConnect', null);
         this.set('deferreds', {});
         this.heartbeat = null;
+
+        window.addEventListener('beforeunload', () => {
+            if(this.get('opened')) {
+                this.close(APPLICATION_UNLOADING_CODE);
+            }
+        });
     },
 
     connect: function() {
@@ -62,7 +70,7 @@ export default Ember.Object.extend({
             this.set('connecting', false);
             this.notifyPropertyChange('connecting');
         }
-        ws.onclose = function() {
+        ws.onclose = function(e) {
             this.get('cleanup')();
             if (this.heartbeat) {
                 clearInterval(this.heartbeat);
@@ -70,12 +78,14 @@ export default Ember.Object.extend({
             this.set('closed', true);
             this.notifyPropertyChange('closed');
             Ember.Logger.log('<Closed Websocket>');
-            var next = Ember.run.later(this, function() {
-                if (this.get('ws').readyState === WebSocket.CLOSED) {
-                    this._createWebsocket();
-                }
-            }.bind(this), this._connectTimeout());
-            this.set('nextConnect', next);
+            if(e.code !== APPLICATION_UNLOADING_CODE) {
+                var next = Ember.run.later(this, function() {
+                    if (this.get('ws').readyState === WebSocket.CLOSED) {
+                        this._createWebsocket();
+                    }
+                }.bind(this), this._connectTimeout());
+                this.set('nextConnect', next);
+            }
         }.bind(this);
         ws.onmessage = function(e) {
             var data;
@@ -148,7 +158,7 @@ export default Ember.Object.extend({
     close:function(code, reason) {
         code = code || 1000;
         reason = reason || 'application called close';
-        return this.get('ws').close();
+        return this.get('ws').close(code, reason);
     },
 
     send: function(data) {
@@ -198,7 +208,11 @@ export default Ember.Object.extend({
     _sendPromise: function(data) {
         var deferred = new Ember.RSVP.defer();
         this.set('deferreds.' + data._meta.id, deferred);
-        this.send(data);
+        if(this.get('open')) {
+            this.send(data);
+        } else {
+            deferred.reject('Websocket is closed');
+        }
         return deferred.promise;
     },
 
