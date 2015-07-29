@@ -65,29 +65,29 @@ class JSONDiffTest(unittest.TestCase):
                              other_op='ADDED')._asdict()
         self.assertEqual(({'a': {'__CONFLICT': conflict}}, True),
                          merge_jsons(base, mine, other))
-        base = {'a': {}}
-        mine = {'a': {'b': 1}}
-        other = {'a': {'b': 2, 'c': 3}}
+        base = {}
+        mine = {'b': 1}
+        other = {'b': 2, 'c': 3}
         conflict = FieldDiff(base_val=None,
                              my_val=1,
                              my_op='ADDED',
                              other_val=2,
                              other_op='ADDED')._asdict()
         self.assertEqual(
-            ({'a': {'b': {'__CONFLICT': conflict}, 'c': 3}}, True),
+            ({'b': {'__CONFLICT': conflict}, 'c': 3}, True),
             merge_jsons(base, mine, other))
 
     def test_merge_modify_delete_conflict(self):
-        base = {'a': {'b': 1}}
-        mine = {'a': {'b': 2}}
-        other = {'a': {}}
+        base = {'b': 1}
+        mine = {'b': 2}
+        other = {}
         conflict = FieldDiff(base_val=1,
                              my_val=2,
                              my_op='CHANGED',
                              other_val=None,
                              other_op='REMOVED')._asdict()
         self.assertEqual(
-            ({'a': {'b': {'__CONFLICT': conflict}}}, True),
+            ({'b': {'__CONFLICT': conflict}}, True),
             merge_jsons(base, mine, other))
         # exchange mine and other
         conflict = FieldDiff(base_val=1,
@@ -95,25 +95,17 @@ class JSONDiffTest(unittest.TestCase):
                              my_op='REMOVED',
                              other_val=2,
                              other_op='CHANGED')._asdict()
-        self.assertEqual(({'a': {'b': {'__CONFLICT': conflict}}}, True),
+        self.assertEqual(({'b': {'__CONFLICT': conflict}}, True),
                          merge_jsons(base, other, mine))
 
     def test_merge_modify_modify_conflict(self):
-        base = {'a': {'b': 1}}
-        mine = {'a': {'b': 2}}
-        other = {'a': {'b': 3}}
+        base = {'b': 1}
+        mine = {'b': 2}
+        other = {'b': 3}
         conflict = FieldDiff(base_val=1,
                              my_val=2,
                              my_op='CHANGED',
                              other_val=3,
                              other_op='CHANGED')._asdict()
-        self.assertEqual(({'a': {'b': {'__CONFLICT': conflict}}}, True),
-                         merge_jsons(base, mine, other))
-        other['a'] = 1
-        conflict = FieldDiff(base_val={'b': 1},
-                             my_val={'b': 2},
-                             my_op='CHANGED',
-                             other_val=1,
-                             other_op='CHANGED')._asdict()
-        self.assertEqual(({'a': {'__CONFLICT': conflict}}, True),
+        self.assertEqual(({'b': {'__CONFLICT': conflict}}, True),
                          merge_jsons(base, mine, other))

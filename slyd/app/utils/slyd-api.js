@@ -1,19 +1,23 @@
 import Ember from 'ember';
 import ajax from 'ic-ajax';
-import ApplicationUtils from '../mixins/application-utils';
 import Spider from '../models/spider';
 import Template from '../models/template';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
 import Extractor from '../models/extractor';
 import config from '../config/environment';
+import utils from '../utils/utils';
 
 /**
     A Proxy to the slyd backend API.
 */
-export var SlydApi = Ember.Object.extend(ApplicationUtils, {
+export var SlydApi = Ember.Object.extend({
     getApiUrl: function() {
         return (config.SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
+    },
+
+    getRootUrl: function() {
+        return config.SLYD_URL || window.location.protocol + '//' + window.location.host;
     },
     /**
     @public
@@ -168,7 +172,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
                 // Assign a name to templates. This is needed as Autoscraping templates
                 // are not named.
                 if (Ember.isEmpty(template['name'])) {
-                    template['name'] = this.shortGuid();
+                    template['name'] = utils.shortGuid();
                 }
                 return Template.create(template);
             });
@@ -403,6 +407,7 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
         return this.makeAjaxCall(hash).then(function(items) {
             items = this.dictToList(items, Item);
             items.forEach(function(item) {
+                item.display_name = item.display_name || item.name;
                 if (item.fields) {
                     item.fields = this.dictToList(item.fields, ItemField);
                 }
@@ -723,7 +728,12 @@ export var SlydApi = Ember.Object.extend(ApplicationUtils, {
             err.status = reason.jqXHR.status;
             err.reason = reason;
             if (reason.jqXHR.getResponseHeader('Content-Type') === 'application/json') {
-                err.data = Ember.$.parseJSON(reason.jqXHR.responseText);
+                try{
+                    err.data = Ember.$.parseJSON(reason.jqXHR.responseText);
+                } catch(e) {
+                    err.data = reason.jqXHR.responseText;
+                    utils.logError(e, {extra: {invalidJSON: err.data}});
+                }
             }
             throw err;
         });

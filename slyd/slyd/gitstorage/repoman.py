@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from time import time
 from collections import defaultdict
 from json import dumps, loads
@@ -7,7 +8,6 @@ from scrapy.utils.misc import load_object
 
 from dulwich.objects import Blob, Tree, Commit, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
-from dulwich.errors import NotGitRepository
 from dulwich.mysqlconnection import retry_operation
 
 from .jsondiff import merge_jsons
@@ -20,7 +20,7 @@ CHANGE_RENAME = 'rename'
 CHANGE_COPY = 'copy'
 CHANGE_UNCHANGED = 'unchanged'
 
-FILE_MODE = 0100644
+FILE_MODE = 0o100644
 
 sentinel = object()
 
@@ -395,7 +395,7 @@ class Repoman(object):
             changes_by_path[path].append(change)
         had_conflict = False
 
-        for path, changes in changes_by_path.iteritems():
+        for path, changes in changes_by_path.items():
             if len(changes) == 2:
                 my_changes, other_changes = changes
                 if my_changes.type == CHANGE_DELETE:
@@ -458,7 +458,7 @@ class Repoman(object):
     def _save_files(self, parent_commit, files, commit_message):
         tree = self._get_tree(parent_commit)
         blobs = []
-        for file_path, contents in files.iteritems():
+        for file_path, contents in files.items():
             blob = Blob.from_string(contents)
             tree.add(file_path, FILE_MODE, blob.id)
             blobs.append(blob)

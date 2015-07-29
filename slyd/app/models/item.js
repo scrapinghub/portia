@@ -1,9 +1,10 @@
 import SimpleModel from './simple-model';
 import ItemField from './item-field';
+import utils from '../utils/utils';
 
 export default SimpleModel.extend({
     serializedRelations: ['fields'],
-    serializedProperties: ['name'],
+    serializedProperties: ['name', 'display_name'],
     fields: null,
 
     validateName: function(name) {
@@ -19,7 +20,8 @@ export default SimpleModel.extend({
     },
 
     addField: function(name, type) {
-        var newField = ItemField.create({ name: name || 'new_field',
+        var newField = ItemField.create({ name: utils.shortGuid(),
+                                          display_name: name || 'new_field',
                                           type: type || 'text',
                                           required: false,
                                           vary: false });

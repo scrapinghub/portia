@@ -24,6 +24,8 @@ export default Ember.Component.extend({
 
     buildOptions: function() {
         var selectedValue = this.get('value'),
+            labelProperty = this.getWithDefault('labelProperty', 'name'),
+            valueProperty = this.getWithDefault('valueProperty', 'name'),
             defaultValue = [];
         if (!selectedValue) {
             defaultValue = [{value:'', label: '', selected: true}];
@@ -33,18 +35,24 @@ export default Ember.Component.extend({
         var seenSelected = false,
             arr = defaultValue.concat(this.get('options').map(function(opt) {
                 if (typeof(opt) === 'string') {
-                    opt = {value: opt};
+                    opt = { value: opt };
                 } else if (opt instanceof Ember.Object) {
-                    opt = {value: opt.get('name')};
+                    opt = {
+                        value: opt.get(valueProperty),
+                        label: opt.get(labelProperty),
+                    };
+                } else {
+                    opt = {
+                        value: opt[valueProperty] || opt.value,
+                        label: opt[labelProperty] || opt.label,
+                    };
                 }
                 if (opt.value === selectedValue) {
                     seenSelected = true;
                 }
-                return {
-                    value: opt.value,
-                    label: opt.label || opt.value,
-                    selected: opt.value === selectedValue
-                };
+                opt.label = opt.label || opt.value;
+                opt.selected = opt.value === selectedValue;
+                return opt;
             }));
         if (!seenSelected && selectedValue && this.get('addSelected')) {
             arr.push({

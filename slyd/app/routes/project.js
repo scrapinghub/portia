@@ -4,6 +4,7 @@ export default BaseRoute.extend({
     beforeModel: function(s) {
         if (s.params.project.project_id) {
             this.set('slyd.project', s.params.project.project_id);
+            this.set('ws.project', s.params.project.project_id);
             return this.get('slyd').editProject(s.params.project.project_id, 'master');
         }
     },

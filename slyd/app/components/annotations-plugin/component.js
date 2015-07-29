@@ -1,5 +1,8 @@
 import Ember from 'ember';
 import GuessTypes from '../../mixins/guess-types';
+import validateFieldName from '../../utils/validate-field-name';
+import NotificationManager from '../../utils/notification-manager';
+import utils from '../../utils/utils';
 
 // TODO: Add ids to name fields. Allow for names to be changed later.
 
@@ -40,7 +43,7 @@ export default Ember.Component.extend(GuessTypes, {
         delete: function() {
             this.get('alldata').removeObject(this.get('data'));
             this.get('sprites').removeSprite(this.get('mappedDOMElement'));
-            if (this.get('mappedDOMElement').tagName === 'INS') {
+            if (this.get('mappedDOMElement') && this.get('mappedDOMElement').tagName === 'INS') {
                 this.get('mappedElement').removePartialAnnotation();
             }
             var id = this.get('data.id'),
@@ -159,12 +162,13 @@ export default Ember.Component.extend(GuessTypes, {
                 ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
             this.get('alldata').removeObject(ignoreData);
             this.get('pluginState.ignores').removeObject(ignore);
+            this.get('sprites').removeIgnore(ignore.get('element').get(0));
             this.updateData('pluginState');
         },
 
         ignoreBeneath: function(_, value, index) {
             var ignore = this.get('pluginState.ignores').objectAt(index),
-                ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
+                ignoreData = this.get('alldata').findBy('tagid', ignore.get('tagid'));
             ignore.set('ignoreBeneath', value);
             ignoreData['ignore_beneath'] = value;
             this.updateData('pluginState');
@@ -206,19 +210,19 @@ export default Ember.Component.extend(GuessTypes, {
                     ignored = ignoreData;
                 } else {
                     ignored = {
-                        id: this.s4() + '-' + this.s4() + '-' + this.s4(),
+                        id: utils.shortGuid(),
                         tagid: tagid,
                         ignore: true,
                         ignore_beneath: false
                     };
                     this.get('alldata').pushObject(ignored);
                 }
-                this.get('pluginState.ignores').pushObject({
+                this.get('pluginState.ignores').pushObject(Ember.Object.create({
                     id: ignored.id,
                     tagid: tagid,
                     element: jqElem,
                     ignoreBeneath: ignored.ignore_beneath
-                });
+                }));
                 this.updateData('pluginState');
 
                 this.get('document.view').config({
@@ -243,17 +247,13 @@ export default Ember.Component.extend(GuessTypes, {
     //
     //*******************************************************************\\
 
-    s4: function() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    },
-
     createAnnotationData: function(generatedData) {
         var element = this.get('mappedElement'),
             data = {
                 annotations: {},
                 required: [],
                 variant: 0,
-                id: this.s4() + '-' + this.s4() + '-' + this.s4(),
+                id: utils.shortGuid(),
                 tagid: element.data('tagid')
             };
         if (element.prop('tagName') === 'INS') {
@@ -383,8 +383,9 @@ export default Ember.Component.extend(GuessTypes, {
     itemFields: function() {
         var fields = this.get('item.fields') || [];
         var options = fields.map(function(field) {
-            var name = field.get('name');
-            return { value: name, label: name };
+            var name = field.get('name'),
+                displayName = field.getWithDefault('display_name', name);
+            return { value: name, label: displayName };
         });
         options.pushObject({ value: '#sticky', label: '-just required-' });
         options.pushObject({ value: '#create', label: '-create new-' });
@@ -503,7 +504,10 @@ export default Ember.Component.extend(GuessTypes, {
         }
         for (var key in annotations) {
             if (annotations[key]) {
-                text.push(key + ' > ' + annotations[key]);
+                var nameMap = this.get('fieldNameDisplayNameMap'),
+                    fieldName = nameMap[annotations[key]],
+                    displayName = nameMap[fieldName] || fieldName;
+                text.push(key + ' > ' + displayName);
             }
         }
         if (text.length < 1) {
@@ -588,6 +592,14 @@ export default Ember.Component.extend(GuessTypes, {
         return this._makeFieldMap('name', 'id');
     }.property('item.fields.@each'),
 
+    fieldNameDisplayNameMap: function() {
+        return this._makeFieldMap('name', 'display_name');
+    }.property('item.fields.@each'),
+
+    fieldDisplayNameNameMap: function() {
+        return this._makeFieldMap('display_name', 'name');
+    }.property('item.fields.@each'),
+
     _makeFieldMap: function(from, to) {
         var fields = this.get('item.fields') || [],
             map = {};
@@ -652,28 +664,34 @@ export default Ember.Component.extend(GuessTypes, {
     },
 
     mapToElement: function() {
-        if (!this.get('mappedElement') && this.get('data')) {
+        if (!this.get('mappedDOMElement') && this.get('data')) {
             var data = this.get('data'),
                 id = data.id,
                 generated = data.generated,
                 insertAfter = data.insert_after,
+                iframe = this.getIframe(),
                 tagid = data.tagid;
             if (generated) {
-                var elem = this.get('document.iframe').find('[data-genid=' + id + ']');
+                var elem = iframe.find('[data-genid=' + id + ']');
                 if (elem.length < 1) {
                     if (insertAfter) {
-                        elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').parent().find('ins');
+                        elem = iframe.find('[data-tagid=' + tagid + ']').parent().find('ins');
                     } else {
-                        elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').siblings('ins');
+                        elem = iframe.find('[data-tagid=' + tagid + ']').siblings('ins');
                     }
                 }
                 this.set('mappedElement', elem);
             } else {
-                this.set('mappedElement', this.get('document.iframe').find('[data-tagid=' + tagid + ']'));
+                this.set('mappedElement', iframe.find('[data-tagid=' + tagid + ']'));
             }
             this.set('mappedDOMElement', this.get('mappedElement').get(0));
         }
-        this.notifyPropertyChange('sprite');
+        this.updateSprite();
+        this.updateIgnore();
+    },
+
+    getIframe: function() {
+        return this.get('document.view').getIframe();
     },
 
     mapToNewElement: function(elem) {
@@ -842,6 +860,11 @@ export default Ember.Component.extend(GuessTypes, {
         var fieldName = this.get('newFieldName'),
             fieldType = this.get('newFieldType'),
             attrIndex = this.get('createNewIndex');
+
+        var error = validateFieldName(fieldName, this.getWithDefault('item.fields', []));
+        if(error) {
+            return NotificationManager.showWarningNotification('Validation Error', error);
+        }
         if (fieldName && fieldName.length > 0 && fieldType) {
             this.set('newFieldType', null);
             this.set('newFieldName', null);
@@ -850,7 +873,7 @@ export default Ember.Component.extend(GuessTypes, {
             this.set('guessedType', null);
             this.set('defaultName', null);
             this.sendAction('createField', this.get('item'), fieldName, fieldType);
-            this.setAttr(attrIndex, fieldName, 'field');
+            this.setAttr(attrIndex, this.get('fieldDisplayNameNameMap')[fieldName], 'field');
             this.setState(false, false, true);
         }
     },
@@ -942,7 +965,11 @@ export default Ember.Component.extend(GuessTypes, {
     },
 
     afterRenderEvent: function() {
-        this.notifyPropertyChange('sprite');
-    }
+        Ember.run.next(this, function() {
+            this.mapToElement();
+            this.notifyPropertyChange('sprite');
+            this.notifyPropertyChange('data.tagid');
+        });
+    }.observes('document.iframe')
 
 });

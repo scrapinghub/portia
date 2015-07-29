@@ -3,11 +3,11 @@ The module is used by the Twisted plugin system
 (twisted.plugins.slyd_plugin) to register twistd command to manage
 slyd server. The command can be used with 'twistd slyd'.
 """
+from __future__ import absolute_import
 from os import listdir
 from os.path import join, dirname, isfile
 from twisted.python import usage
 from twisted.web.resource import Resource
-from twisted.application.internet import TCPServer
 from twisted.web.static import File
 from .resource import SlydJsonObjectResource
 from .server import Site, debugLogFormatter
@@ -39,13 +39,16 @@ class Capabilities(SlydJsonObjectResource):
 
 
 def create_root(config, settings_module):
-    from scrapy import log
     from scrapy.settings import Settings
     from .specmanager import SpecManager
     from .authmanager import AuthManager
     from .projectspec import create_project_resource
     from slyd.bot import create_bot_resource
     from slyd.projects import create_projects_manager_resource
+
+    from slyd.splash.ferry import (FerryServerProtocol, FerryServerFactory,
+                                   create_ferry_resource)
+    from slyd.splash.proxy import ProxyResource
 
     root = Resource()
     static = Resource()
@@ -79,12 +82,23 @@ def create_root(config, settings_module):
     spec = create_project_resource(spec_manager)
     projects.putChild('spec', spec)
 
+    # add websockets for communicating with splash
+    factory = FerryServerFactory("ws://127.0.0.1:%s" % config['port'],
+                                 debug=False)
+    factory.protocol = FerryServerProtocol
+    factory.setProtocolOptions(allowHixie76=True)
+    websocket = create_ferry_resource(spec_manager, factory)
+    root.putChild("ws", websocket)
+
+    root.putChild('proxy', ProxyResource())
+
     auth_manager = AuthManager(settings)
     return auth_manager.protectResource(root)
 
 
-def makeService(config):
-    import slyd.settings
-    root = create_root(config, slyd.settings)
+def makeService(config, settings_module=None):
+    if settings_module is None:
+        import slyd.settings as settings_module
+    root = create_root(config, settings_module)
     site = Site(root, logFormatter=debugLogFormatter)
-    return TCPServer(config['port'], site)
+    return site

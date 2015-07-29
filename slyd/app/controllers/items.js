@@ -1,6 +1,8 @@
+import Ember from 'ember';
 import BaseController from './base-controller';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
+import utils from '../utils/utils';
 
 export default BaseController.extend({
 
@@ -9,9 +11,19 @@ export default BaseController.extend({
     documentView: null,
 
     addItem: function() {
-        var newItem = Item.create({ name: this.shortGuid('_') });
+        var newItem = Item.create({
+            name: this._uniqueId(this.model),
+            display_name: 'New Item'
+        });
         this.addField(newItem);
         this.model.pushObject(newItem);
+        Ember.run.next(function() {
+            var items = Ember.$('#toolbox .scrolling-container'),
+                newItem = items.children().last().get(0);
+            if (newItem.scrollIntoView) {
+                newItem.scrollIntoView();
+            }
+        });
     },
 
     addField: function(owner, name, type) {
@@ -19,12 +31,24 @@ export default BaseController.extend({
             this.showErrorNotification('No Item selected for extraction');
             return;
         }
-        var newField = ItemField.create({ name: name || 'new_field',
+        owner.set('fields', owner.fields || []);
+        var newField = ItemField.create({ name: this._uniqueId(owner.fields),
+                                          display_name: name || 'new_field',
                                           type: type || 'text',
                                           required: false,
                                           vary: false });
-        owner.set('fields', owner.fields || []);
         owner.fields.pushObject(newField);
+    },
+
+    _uniqueId: function(objects, key) {
+        var id = utils.shortGuid('_');
+        if (!key) {
+            key = 'name';
+        }
+        while (objects.findBy(key, id)) {
+            id = utils.shortGuid('_');
+        }
+        return id;
     },
 
     saveChanges: function() {
@@ -37,8 +61,24 @@ export default BaseController.extend({
             }
         }.bind(this));
         if (valid) {
-            this.get('slyd').saveItems(this.model).then(function() {
-                this.set('project_models.items', this.model);
+            var items = this.get('model'),
+                slyd = this.get('slyd');
+            items = items.map(function(item) {
+                item = item.serialize();
+                if (item.fields) {
+                    item.fields = slyd.listToDict(item.fields);
+                }
+                return item;
+            });
+            items = slyd.listToDict(items);
+            this.get('ws').save('items', items).then(function(data) {
+                items = slyd.dictToList(data.saved.items, Item);
+                items.forEach(function(item) {
+                    if (item.fields) {
+                        item.fields = slyd.dictToList(item.fields, ItemField);
+                    }
+                });
+                this.set('project_models.items', items);
                 this.transitionToRoute(this.getParentRoute());
             }.bind(this));
         }

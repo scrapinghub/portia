@@ -22,7 +22,10 @@ test('it renders', function() {
       close: "hideFloatingAnnotationWidget",
       edit: "editAnnotation",
       document: {
-        iframe: $()
+        iframe: $(),
+        view: {
+          getIframe: function() {return $();}
+        }
       },
       pluginState: {},
       sprites: new SpriteStore(),

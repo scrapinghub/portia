@@ -49,4 +49,4 @@ class FieldTypeManager(object):
 
     def all_processor_classes(self):
         """Retrieve all processor classes registered"""
-        return self._TYPEMAP.values()
+        return list(self._TYPEMAP.values())

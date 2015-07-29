@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import BaseController from './base-controller';
 import ConflictMixin from '../mixins/conflict-mixin';
+import utils from '../utils/utils';
 
 export default BaseController.extend(ConflictMixin, {
     needs: ['application'],
@@ -18,7 +19,7 @@ export default BaseController.extend(ConflictMixin, {
     }.property('currentFileName'),
 
     getConflictedKeyPaths: function(content, parentPath) {
-        if (this.toType(content) === 'object') {
+        if (utils.toType(content) === 'object') {
             if ('__CONFLICT' in content) {
                 return [parentPath];
             } else {
@@ -32,7 +33,7 @@ export default BaseController.extend(ConflictMixin, {
         } else if (this._isArray(content)) {
             var result = [], idx = -1;
             for (var v of content) {
-                if (this.toType(v) === 'object' && '__CONFLICT' in v) {
+                if (utils.toType(v) === 'object' && '__CONFLICT' in v) {
                     idx += 1;
                     result.push(parentPath + '.' + idx);
                 }
@@ -76,7 +77,7 @@ export default BaseController.extend(ConflictMixin, {
                 }
                 content = result;
             }
-        } else if (this.toType(content) === 'object') {
+        } else if (utils.toType(content) === 'object') {
             if ('__CONFLICT' in content) {
                 if (parentPath in this.get('conflictedKeyPaths')) {
                     var option = this.get('conflictedKeyPaths.'+parentPath)['accepted'];

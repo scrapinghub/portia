@@ -6,3 +6,4 @@ lxml==3.4.1
 rfc3987==1.3.4
 dateparser==0.2
 jsonschema==2.4.0
+six==1.5.2

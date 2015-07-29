@@ -2,13 +2,13 @@
 
 /* jshint ignore:end */
 
-define('portia-web/app', ['exports', 'ember', 'ember/resolver', 'ember/load-initializers', 'portia-web/mixins/application-utils', 'portia-web/config/environment'], function (exports, Ember, Resolver, loadInitializers, ApplicationUtils, config) {
+define('portia-web/app', ['exports', 'ember', 'ember/resolver', 'ember/load-initializers', 'portia-web/config/environment'], function (exports, Ember, Resolver, loadInitializers, config) {
 
   'use strict';
 
   Ember['default'].MODEL_FACTORY_INJECTIONS = true;
 
-  var App = Ember['default'].Application.extend(ApplicationUtils['default'], {
+  var App = Ember['default'].Application.extend({
     modulePrefix: config['default'].modulePrefix,
     podModulePrefix: config['default'].podModulePrefix,
     Resolver: Resolver['default'],
@@ -44,7 +44,7 @@ define('portia-web/components/accordion-item', ['exports', 'ember', 'ember-idx-a
     });
 
 });
-define('portia-web/components/annotations-plugin/component', ['exports', 'ember', 'portia-web/mixins/guess-types'], function (exports, Ember, GuessTypes) {
+define('portia-web/components/annotations-plugin/component', ['exports', 'ember', 'portia-web/mixins/guess-types', 'portia-web/utils/validate-field-name', 'portia-web/utils/notification-manager', 'portia-web/utils/utils'], function (exports, Ember, GuessTypes, validateFieldName, NotificationManager, utils) {
 
     'use strict';
 
@@ -85,7 +85,7 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             'delete': function _delete() {
                 this.get('alldata').removeObject(this.get('data'));
                 this.get('sprites').removeSprite(this.get('mappedDOMElement'));
-                if (this.get('mappedDOMElement').tagName === 'INS') {
+                if (this.get('mappedDOMElement') && this.get('mappedDOMElement').tagName === 'INS') {
                     this.get('mappedElement').removePartialAnnotation();
                 }
                 var id = this.get('data.id'),
@@ -204,12 +204,13 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                     ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
                 this.get('alldata').removeObject(ignoreData);
                 this.get('pluginState.ignores').removeObject(ignore);
+                this.get('sprites').removeIgnore(ignore.get('element').get(0));
                 this.updateData('pluginState');
             },
 
             ignoreBeneath: function ignoreBeneath(_, value, index) {
                 var ignore = this.get('pluginState.ignores').objectAt(index),
-                    ignoreData = this.get('alldata').findBy('tagid', ignore.tagid);
+                    ignoreData = this.get('alldata').findBy('tagid', ignore.get('tagid'));
                 ignore.set('ignoreBeneath', value);
                 ignoreData['ignore_beneath'] = value;
                 this.updateData('pluginState');
@@ -251,19 +252,19 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                         ignored = ignoreData;
                     } else {
                         ignored = {
-                            id: this.s4() + '-' + this.s4() + '-' + this.s4(),
+                            id: utils['default'].shortGuid(),
                             tagid: tagid,
                             ignore: true,
                             ignore_beneath: false
                         };
                         this.get('alldata').pushObject(ignored);
                     }
-                    this.get('pluginState.ignores').pushObject({
+                    this.get('pluginState.ignores').pushObject(Ember['default'].Object.create({
                         id: ignored.id,
                         tagid: tagid,
                         element: jqElem,
                         ignoreBeneath: ignored.ignore_beneath
-                    });
+                    }));
                     this.updateData('pluginState');
 
                     this.get('document.view').config({
@@ -288,17 +289,13 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
         //
         //*******************************************************************\\
 
-        s4: function s4() {
-            return Math.floor((1 + Math.random()) * 65536).toString(16).substring(1);
-        },
-
         createAnnotationData: function createAnnotationData(generatedData) {
             var element = this.get('mappedElement'),
                 data = {
                 annotations: {},
                 required: [],
                 variant: 0,
-                id: this.s4() + '-' + this.s4() + '-' + this.s4(),
+                id: utils['default'].shortGuid(),
                 tagid: element.data('tagid')
             };
             if (element.prop('tagName') === 'INS') {
@@ -426,8 +423,9 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
         itemFields: (function () {
             var fields = this.get('item.fields') || [];
             var options = fields.map(function (field) {
-                var name = field.get('name');
-                return { value: name, label: name };
+                var name = field.get('name'),
+                    displayName = field.getWithDefault('display_name', name);
+                return { value: name, label: displayName };
             });
             options.pushObject({ value: '#sticky', label: '-just required-' });
             options.pushObject({ value: '#create', label: '-create new-' });
@@ -545,7 +543,10 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             }
             for (var key in annotations) {
                 if (annotations[key]) {
-                    text.push(key + ' > ' + annotations[key]);
+                    var nameMap = this.get('fieldNameDisplayNameMap'),
+                        fieldName = nameMap[annotations[key]],
+                        displayName = nameMap[fieldName] || fieldName;
+                    text.push(key + ' > ' + displayName);
                 }
             }
             if (text.length < 1) {
@@ -629,6 +630,10 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             return this._makeFieldMap('name', 'id');
         }).property('item.fields.@each'),
 
+        fieldNameDisplayNameMap: (function () {
+            return this._makeFieldMap('name', 'display_name');
+        }).property('item.fields.@each'),
+
         _makeFieldMap: function _makeFieldMap(from, to) {
             var fields = this.get('item.fields') || [],
                 map = {};
@@ -693,28 +698,34 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
         },
 
         mapToElement: function mapToElement() {
-            if (!this.get('mappedElement') && this.get('data')) {
+            if (!this.get('mappedDOMElement') && this.get('data')) {
                 var data = this.get('data'),
                     id = data.id,
                     generated = data.generated,
                     insertAfter = data.insert_after,
+                    iframe = this.getIframe(),
                     tagid = data.tagid;
                 if (generated) {
-                    var elem = this.get('document.iframe').find('[data-genid=' + id + ']');
+                    var elem = iframe.find('[data-genid=' + id + ']');
                     if (elem.length < 1) {
                         if (insertAfter) {
-                            elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').parent().find('ins');
+                            elem = iframe.find('[data-tagid=' + tagid + ']').parent().find('ins');
                         } else {
-                            elem = this.get('document.iframe').find('[data-tagid=' + tagid + ']').siblings('ins');
+                            elem = iframe.find('[data-tagid=' + tagid + ']').siblings('ins');
                         }
                     }
                     this.set('mappedElement', elem);
                 } else {
-                    this.set('mappedElement', this.get('document.iframe').find('[data-tagid=' + tagid + ']'));
+                    this.set('mappedElement', iframe.find('[data-tagid=' + tagid + ']'));
                 }
                 this.set('mappedDOMElement', this.get('mappedElement').get(0));
             }
-            this.notifyPropertyChange('sprite');
+            this.updateSprite();
+            this.updateIgnore();
+        },
+
+        getIframe: function getIframe() {
+            return this.get('document.view').getIframe();
         },
 
         mapToNewElement: function mapToNewElement(elem) {
@@ -882,6 +893,11 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             var fieldName = this.get('newFieldName'),
                 fieldType = this.get('newFieldType'),
                 attrIndex = this.get('createNewIndex');
+
+            var error = validateFieldName['default'](fieldName, this.getWithDefault('item.fields', []));
+            if (error) {
+                return NotificationManager['default'].showWarningNotification('Validation Error', error);
+            }
             if (fieldName && fieldName.length > 0 && fieldType) {
                 this.set('newFieldType', null);
                 this.set('newFieldName', null);
@@ -980,9 +996,13 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
             Ember['default'].run.scheduleOnce('afterRender', this, this.afterRenderEvent);
         },
 
-        afterRenderEvent: function afterRenderEvent() {
-            this.notifyPropertyChange('sprite');
-        }
+        afterRenderEvent: (function () {
+            Ember['default'].run.next(this, function () {
+                this.mapToElement();
+                this.notifyPropertyChange('sprite');
+                this.notifyPropertyChange('data.tagid');
+            });
+        }).observes('document.iframe')
 
     });
 
@@ -2293,6 +2313,21 @@ define('portia-web/components/bs-label', ['exports', 'ember'], function (exports
     });
 
 });
+define('portia-web/components/bs-message', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Component.extend({
+        tagName: 'div',
+        classNames: 'bs-message',
+        classNameBindings: ['bgType'],
+
+        bgType: (function () {
+            return 'bg-' + (this.get('background') || 'default');
+        }).property('type')
+    });
+
+});
 define('portia-web/components/bs-modal', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -2470,7 +2505,7 @@ define('portia-web/components/bs-notifications', ['exports', 'ember', 'portia-we
             fadeOut: function fadeOut() {
                 var _this = this;
                 clearTimeout(this.get('timeoutId'));
-                return this.$().animate({ opacity: 0 }, this.get('fadeOutTime'), function () {
+                return this.$().stop().animate({ opacity: 0 }, this.get('fadeOutTime'), function () {
                     _this.$().slideUp(_this.get('fadeOutTime'), function () {
                         _this.get('parentView.content').removeObject(_this.get('content'));
                     });
@@ -2545,7 +2580,7 @@ define('portia-web/components/collapsible-text', ['exports', 'ember', 'portia-we
     'use strict';
 
     exports['default'] = Ember['default'].Component.extend(Popover['default'], {
-        fullText: null,
+        fullText: '',
         tagName: 'span',
         collapsed: true,
         trimTo: 400,
@@ -2915,45 +2950,43 @@ define('portia-web/components/dummy-component', ['exports', 'ember'], function (
 	exports['default'] = Ember['default'].Component.extend({});
 
 });
-define('portia-web/components/edit-item', ['exports', 'ember', 'portia-web/mixins/notification-handler'], function (exports, Ember, NotificationHandler) {
+define('portia-web/components/edit-item', ['exports', 'ember', 'portia-web/mixins/notification-handler', 'portia-web/utils/validate-field-name'], function (exports, Ember, NotificationHandler, _validateFieldName) {
 
     'use strict';
 
     exports['default'] = Ember['default'].Component.extend(NotificationHandler['default'], {
         item: null,
-        itemFields: null,
+        items: null,
         extractionTypes: [],
-
-        updateFields: (function () {
-            this.set('itemFields', (this.getWithDefault('item.fields', []) || []).copy());
-        }).on('init'),
 
         actions: {
             addField: function addField() {
                 this.sendAction('addField', this.get('item'));
-                this.updateFields();
             },
 
             deleteField: function deleteField(field) {
                 this.sendAction('deleteField', this.get('item'), field);
-                this.updateFields();
             },
 
             'delete': function _delete() {
                 this.sendAction('delete', this.get('item'));
             },
 
-            editField: function editField(text, index) {
-                if (text == 'url') {
-                    var field = this.get('item.fields').get(index);
-                    if (field) {
-                        field.set('name', this.get('itemFields').get(index).name);
-                        this.get('item.fields').replace(index, 1, [field]);
-                    }
-                    this.showErrorNotification('Naming a field "url" is not allowed as there is already a field with this name');
-                    return;
+            validateFieldName: function validateFieldName(input) {
+                var error = _validateFieldName['default'](input.text, this.get('item.fields'));
+                if (error) {
+                    input.setInvalid(error);
                 }
-                this.updateFields();
+            },
+
+            validateItemName: function validateItemName(input) {
+                if (this.get('items').findBy('display_name', input.text)) {
+                    input.setInvalid('There is already a item with that name.');
+                }
+            },
+
+            renameField: function renameField(name, index) {
+                this.get('item.fields.' + index).set('display_name', name);
             }
         }
     });
@@ -3036,9 +3069,7 @@ define('portia-web/components/extracted-item', ['exports', 'ember'], function (e
     exports['default'] = Ember['default'].Component.extend({
         extractedItem: null,
 
-        fields: (function () {
-            return this.get('extractedItem.fields');
-        }).property('extractedItem'),
+        fields: Ember['default'].computed.reads('extractedItem.fields'),
 
         textFields: (function () {
             return this.get('fields').filter(function (field) {
@@ -3052,17 +3083,11 @@ define('portia-web/components/extracted-item', ['exports', 'ember'], function (e
             });
         }).property('fields'),
 
-        variants: (function () {
-            return this.get('extractedItem.variants');
-        }).property('extractedItem'),
+        variants: Ember['default'].computed.reads('extractedItem.variants'),
 
-        matchedTemplate: (function () {
-            return this.get('extractedItem.matchedTemplate');
-        }).property('extractedItem'),
+        matchedTemplate: Ember['default'].computed.reads('extractedItem.matchedTemplate'),
 
-        url: (function () {
-            return this.get('extractedItem.url');
-        }).property('extractedItem'),
+        url: Ember['default'].computed.reads('extractedItem.url'),
 
         actions: {
             fetchPage: function fetchPage() {
@@ -3162,6 +3187,7 @@ define('portia-web/components/inline-editable-text-field', ['exports', 'ember', 
     exports['default'] = Ember['default'].Component.extend(NotificationHandler['default'], {
         tagName: 'div',
         classNames: 'class',
+        classNameBindings: ['editing::not-editing'],
         editing: false,
         validation: '.*',
         text: '',
@@ -3186,13 +3212,25 @@ define('portia-web/components/inline-editable-text-field', ['exports', 'ember', 
                     return;
                 }
                 if (text !== this.get('text')) {
+                    var error = null;
+                    this.sendAction('validate', {
+                        text: text,
+                        setInvalid: function setInvalid(err) {
+                            return error = err;
+                        }
+                    });
+
                     var re = new RegExp(this.get('validation'), 'g');
-                    if (re.test(text)) {
+                    if (!error && !re.test(text)) {
+                        error = '"' + text + '" is not a valid name. Names must match "' + this.get('validation') + '".';
+                    }
+
+                    if (error) {
+                        this.set('editing', true);
+                        this.showWarningNotification('Validation Error', error);
+                    } else {
                         this.set('text', text);
                         this.sendAction('action', this.get('text'), this.get('name'));
-                    } else {
-                        this.showWarningNotification('Validation Error', '"' + text + '" is not a valid name. Names must match "' + this.get('validation') + '".');
-                        this.set('editing', true);
                     }
                 }
             }
@@ -3247,6 +3285,8 @@ define('portia-web/components/item-select', ['exports', 'ember'], function (expo
 
         buildOptions: function buildOptions() {
             var selectedValue = this.get('value'),
+                labelProperty = this.getWithDefault('labelProperty', 'name'),
+                valueProperty = this.getWithDefault('valueProperty', 'name'),
                 defaultValue = [];
             if (!selectedValue) {
                 defaultValue = [{ value: '', label: '', selected: true }];
@@ -3258,16 +3298,22 @@ define('portia-web/components/item-select', ['exports', 'ember'], function (expo
                 if (typeof opt === 'string') {
                     opt = { value: opt };
                 } else if (opt instanceof Ember['default'].Object) {
-                    opt = { value: opt.get('name') };
+                    opt = {
+                        value: opt.get(valueProperty),
+                        label: opt.get(labelProperty)
+                    };
+                } else {
+                    opt = {
+                        value: opt[valueProperty] || opt.value,
+                        label: opt[labelProperty] || opt.label
+                    };
                 }
                 if (opt.value === selectedValue) {
                     seenSelected = true;
                 }
-                return {
-                    value: opt.value,
-                    label: opt.label || opt.value,
-                    selected: opt.value === selectedValue
-                };
+                opt.label = opt.label || opt.value;
+                opt.selected = opt.value === selectedValue;
+                return opt;
             }));
             if (!seenSelected && selectedValue && this.get('addSelected')) {
                 arr.push({
@@ -3347,68 +3393,146 @@ define('portia-web/components/j-breadcrumbs', ['exports', 'ember'], function (ex
     });
 
 });
-define('portia-web/components/json-file-compare', ['exports', 'ember'], function (exports, Ember) {
+define('portia-web/components/json-file-compare', ['exports', 'ember', 'portia-web/mixins/conflict-mixin'], function (exports, Ember, ConflictMixin) {
 
     'use strict';
 
-    exports['default'] = Ember['default'].Component.extend({
+    exports['default'] = Ember['default'].Component.extend(ConflictMixin['default'], {
         tagName: 'span',
         json: null,
         path: '',
 
-        selectedOption: (function () {
-            return this.get('controller.conflictedKeyPaths')[this.get('path')];
-        }).property('controller.conflictedKeyPaths'),
-
         v: function v(json) {
+            var toString = function toString(v) {
+                return JSON.stringify(v).trim().substring(0, 500).replace(/^"|"$/g, '');
+            };
             if (json) {
-                return JSON.stringify(json).trim().substring(0, 500);
+                if (Array.isArray(json)) {
+                    return json.map(function (v) {
+                        return toString(v);
+                    }).join(', ');
+                } else {
+                    return toString(json);
+                }
             } else {
                 return '';
             }
         },
 
-        toType: function toType(obj) {
-            return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-        },
-
         isObject: (function () {
-            return this.toType(this.get('json')) === 'object';
+            return this._isObject();
+        }).property('json'),
+
+        isArray: (function () {
+            return this._isArray();
         }).property('json'),
 
         isConflict: (function () {
-            return this.get('isObject') && '__CONFLICT' in this.get('json');
+            return this._isConflict();
         }).property('json'),
 
         conflictValues: (function () {
-            return [{ key: 'base_val', value: this.v(this.get('json.__CONFLICT.base_val')), label: 'Original' }, { key: 'my_val', value: this.v(this.get('json.__CONFLICT.my_val')), label: 'Your change' }, { key: 'other_val', value: this.v(this.get('json.__CONFLICT.other_val')), label: 'Other change' }];
-        }).property('json'),
+            var obj = Ember['default'].Object.create().setProperties(this.get('json')),
+                accepted = this.get('conflictedKeyPaths.' + this.get('path') + '.accepted'),
+                rejected = this.get('conflictedKeyPaths.' + this.get('path') + '.rejected'),
+                values = [{ key: 'base_val', value: this.v(obj.get('__CONFLICT.base_val')), label: 'Original' }, { key: 'my_val', value: this.v(obj.get('__CONFLICT.my_val')), label: 'Your change' }, { key: 'other_val', value: this.v(obj.get('__CONFLICT.other_val')), label: 'Other change' }];
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = values[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var v = _step.value;
+
+                    v.accepted = accepted.has(v.key);
+                    v.rejected = rejected.has(v.key);
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator['return']) {
+                        _iterator['return']();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            return values;
+        }).property('json', 'refresh'),
 
         resolved: (function () {
-            return !!this.get('selectedOption');
-        }).property('selectedOption'),
+            return this.get('conflictedKeyPaths.' + this.get('path') + '.resolved');
+        }).property('refresh'),
 
-        resolvedValue: (function () {
-            return this.v(this.get('json.__CONFLICT.' + this.get('selectedOption')));
-        }).property('selectedOption'),
+        resolvedRepr: (function () {
+            return this.v(this.resolvedValue());
+        }).property('resolved'),
 
         value: (function () {
             return this.v(this.get('json'));
         }).property('json'),
 
         entries: (function () {
-            if (this.get('json')) {
-                return Object.keys(this.get('json')).sort().map((function (key) {
+            var _this = this;
+
+            var json = this.get('json');
+            if (json) {
+                if (this._isArray()) {
+                    var idx = -1;
+                    return json.map(function (data) {
+                        if (_this._isObject(data) && '__CONFLICT' in data) {
+                            idx += 1;
+                            var a = {
+                                conflict: true,
+                                key: idx,
+                                path: _this.get('path') + '.' + idx,
+                                json: data
+                            };
+                            return a;
+                        } else {
+                            return {
+                                value: data
+                            };
+                        }
+                    });
+                }
+                return Object.keys(json).sort().map((function (key) {
                     return {
                         path: this.get('path') ? this.get('path') + '.' + key : key,
                         key: key,
-                        json: this.get('json')[key]
+                        json: json[key]
                     };
                 }).bind(this));
             } else {
                 return null;
             }
-        }).property('json')
+        }).property('json'),
+
+        actions: {
+            conflictOptionSelected: function conflictOptionSelected(path, option) {
+                if (option) {
+                    this._conflictOptionSelected(path, option);
+                } else {
+                    this._resetPath(path);
+                }
+                this.notifyPropertyChange('refresh');
+            },
+
+            conflictOptionRejected: function conflictOptionRejected(path, option) {
+                this._conflictOptionRejected(path, option);
+                this.notifyPropertyChange('refresh');
+            },
+
+            conflictOptionUpdated: function conflictOptionUpdated(path, accepted, rejected) {
+                this._conflictOptionUpdated(path, accepted, rejected);
+                this.notifyPropertyChange('refresh');
+            }
+        }
     });
 
 });
@@ -3431,16 +3555,11 @@ define('portia-web/components/pin-toolbox-button', ['exports', 'ember', 'portia-
 
         classNameBindings: ['pinned'],
 
-        disabled: (function () {
-            return this.get('toolbox.fixed');
-        }).property('toolbox.fixed'),
-
-        pinned: (function () {
-            return this.get('disabled') || this.get('toolbox.pinned');
-        }).property('toolbox.fixed', 'toolbox.pinned'),
+        disabled: Ember['default'].computed.reads('toolbox.fixed'),
+        pinned: Ember['default'].computed.or('toolbox.fixed', 'toolbox.pinned'),
 
         click: function click() {
-            this.set('toolbox.pinned', !this.get('toolbox.pinned'));
+            this.toggleProperty('toolbox.pinned');
             if (window.localStorage) {
                 localStorage.portia_toolbox_pinned = this.get('toolbox.pinned') ? 'true' : '';
             }
@@ -3448,11 +3567,12 @@ define('portia-web/components/pin-toolbox-button', ['exports', 'ember', 'portia-
     });
 
 });
-define('portia-web/components/regex-text-field-with-button/component', ['exports', 'ember', 'portia-web/components/text-field-with-button', 'portia-web/mixins/notification-handler'], function (exports, Ember, TextFieldWithButton, NotificationHandler) {
+define('portia-web/components/regex-text-field-with-button/component', ['exports', 'portia-web/components/text-field-with-button', 'portia-web/mixins/notification-handler'], function (exports, TextFieldWithButton, NotificationHandler) {
 
     'use strict';
 
     exports['default'] = TextFieldWithButton['default'].extend(NotificationHandler['default'], {
+        classNames: ['regex-textfield'],
         actions: {
             sendText: function sendText(text) {
                 if (arguments.length > 0 && typeof text === 'string') {
@@ -3535,162 +3655,6 @@ define('portia-web/components/regex-text-field-with-button/template', ['exports'
         var morph1 = dom.createMorphAt(dom.childAt(fragment, [2]),1,1);
         inline(env, morph0, context, "text-field", [], {"clear": get(env, context, "clear"), "width": "110%", "placeholder": get(env, context, "placeholder"), "action": "sendText", "update": "updateText"});
         inline(env, morph1, context, "bs-button", [], {"clicked": "sendText", "icon": "fa fa-icon fa-plus", "disabled": get(env, context, "disabled"), "type": "primary", "size": "xs"});
-        return fragment;
-      }
-    };
-  }()));
-
-});
-define('portia-web/components/scrapinghub-branding/component', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Component.extend({
-        data: {},
-        project: null,
-
-        url: (function () {
-            if (this.get('project')) {
-                return [this.get('data.url'), 'p', this.get('project')].join('/');
-            }
-            return this.get('data.url');
-        }).property('data.url', 'project')
-    });
-
-});
-define('portia-web/components/scrapinghub-branding/template', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("a");
-        dom.setAttribute(el1,"style","position:absolute;top:4px;right:4px;");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("img");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, concat = hooks.concat, attribute = hooks.attribute;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var element0 = dom.childAt(fragment, [0]);
-        var element1 = dom.childAt(element0, [1]);
-        var attrMorph0 = dom.createAttrMorph(element0, 'href');
-        var attrMorph1 = dom.createAttrMorph(element1, 'src');
-        attribute(env, attrMorph0, element0, "href", concat(env, [get(env, context, "url")]));
-        attribute(env, attrMorph1, element1, "src", concat(env, [get(env, context, "data.logo_url")]));
-        return fragment;
-      }
-    };
-  }()));
-
-});
-define('portia-web/components/scrapinghub-help/component', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Component.extend({
-        init: function init() {
-            var username = this.get('slyd.username'),
-                appId = this.get('data.app_id');
-            if (!username || !appId) {
-                return;
-            }
-            window.intercomSettings = {
-                app_id: appId,
-                user_id: username
-            };
-            var w = window;
-            var d = document;
-            var i = function i() {
-                i.c(arguments);
-            };
-            i.q = [];
-            i.c = function (args) {
-                i.q.push(args);
-            };
-            w.Intercom = i;
-            var s = d.createElement('script');
-            s.type = 'text/javascript';
-            s.async = true;
-            s.src = 'https://widget.intercom.io/widget/' + appId;
-            var x = d.getElementsByTagName('script')[0];
-            x.parentNode.insertBefore(s, x);
-        }
-    });
-
-});
-define('portia-web/components/scrapinghub-help/template', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, content = hooks.content;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
-        dom.insertBoundary(fragment, 0);
-        content(env, morph0, context, "yield");
         return fragment;
       }
     };
@@ -3927,17 +3891,8 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
             this.set('documentView', this.get('document.view'));
         }).property('document.view'),
 
-        handlerInfos: (function () {
-            return this.get('router').router.currentHandlerInfos;
-        }).property('applicationController.currentPath'),
-
-        pathNames: Ember['default'].computed.mapBy('handlerInfos', 'name'),
-        controllers: Ember['default'].computed.mapBy('handlerInfos', 'handler.controller'),
-
-        fixed: (function () {
-            var activeController = this.get('controllers').get('lastObject');
-            return activeController.getWithDefault('fixedToolbox', false) || this.get('control.fixed');
-        }).property('controllers.@each.fixedToolbox', 'control.fixed'),
+        fixed: Ember['default'].computed.reads('control.fixed'),
+        pinned: Ember['default'].computed.reads('control.pinned'),
 
         setBlocked: (function () {
             if (this.get('documentView')) {
@@ -3946,7 +3901,7 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
         }).observes('fixed'),
 
         setToolboxNow: function setToolboxNow(show) {
-            if (!show && this.get('control.fixed')) {
+            if (!show && this.get('fixed')) {
                 return;
             }
             Ember['default'].$('#toolbox').css('margin-right', show ? 0 : -365);
@@ -3976,7 +3931,7 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
         },
 
         mouseLeave: function mouseLeave(e) {
-            if (!this.get('fixed') && !this.get('control.pinned')) {
+            if (!this.get('fixed') && !this.get('pinned')) {
                 if (e.target.tagName.toLowerCase() !== 'select') {
                     this.hideToolbox();
                 }
@@ -3984,13 +3939,12 @@ define('portia-web/components/tool-box', ['exports', 'ember'], function (exports
         },
 
         changeState: (function () {
-            if (this.get('control.expand') || this.get('control.pinned') || this.get('fixed')) {
+            if (this.get('pinned') || this.get('fixed')) {
                 this.showToolbox();
-                this.get('control').set('expand', false);
             } else {
                 this.hideToolbox();
             }
-        }).observes('fixed', 'control.fixed'),
+        }).observes('fixed', 'pinned'),
 
         didInsertElement: function didInsertElement() {
             this._super();
@@ -4005,9 +3959,574 @@ define('portia-web/components/top-bar', ['exports', 'ember'], function (exports,
 	exports['default'] = Ember['default'].Component.extend({});
 
 });
-define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/utils/canvas', 'portia-web/utils/annotation-store'], function (exports, Ember, utils__canvas, AnnotationStore) {
+define('portia-web/components/web-document-js/component', ['exports', 'ember', 'portia-web/components/web-document', 'portia-web/utils/interaction-event', 'portia-web/utils/utils'], function (exports, Ember, WebDocument, interactionEvent, utils) {
 
     'use strict';
+
+    var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+    /*global $:false */
+    /*global TreeMirror:false */
+    function paintCanvasMessage(canvas) {
+        var ctx = canvas.getContext('2d');
+
+        var pattern = document.createElement('canvas');
+        pattern.width = 20;
+        pattern.height = 20;
+        var pctx = pattern.getContext('2d');
+        pctx.fillStyle = '#ccc';
+        pctx.fillRect(0, 0, 10, 10);
+        pctx.fillRect(10, 10, 10, 10);
+        pattern = ctx.createPattern(pattern, 'repeat');
+
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = '16px sans-serif';
+        ctx.fillStyle = 'black';
+        ctx.fillText('Displaying the content of the canvas is not supported', 10, canvas.height / 2);
+    }
+    function treeMirrorDelegate() {
+        return {
+            createElement: function createElement(tagName) {
+                var node = null;
+                if (tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
+                    node = document.createElement('NOSCRIPT');
+                } else if (tagName === 'FORM') {
+                    node = document.createElement(tagName);
+                    $(node).on('submit', function () {
+                        return false;
+                    });
+                } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
+                    node = document.createElement(tagName);
+                    node.setAttribute('src', '/static/frames-not-supported.html');
+                } else if (tagName === 'CANVAS') {
+                    node = document.createElement(tagName);
+                    paintCanvasMessage(node);
+                }
+                return node;
+            },
+            setAttribute: function setAttribute(node, attrName, value) {
+                if (/^on/.test(attrName) || (node.tagName === 'FRAME' || node.tagName === 'IFRAME') && (attrName === 'src' || attrName === 'srcdoc') // Frames not supported
+                ) {
+                    return true;
+                }
+
+                try {
+                    node.setAttribute(attrName, value);
+                } catch (e) {
+                    console.log(e, attrName, value);
+                }
+
+                if (node.tagName === 'CANVAS' && (attrName === 'width' || attrName === 'height')) {
+                    paintCanvasMessage(node);
+                }
+
+                return true;
+            }
+        };
+    }
+
+    exports['default'] = WebDocument['default'].extend({
+        ws_deferreds: {},
+        connect: (function () {
+            var _this = this;
+
+            var ws = this.get('ws');
+
+            ws.addCommand('loadStarted', (function () {
+                this.showLoading(true);
+            }).bind(this));
+
+            ws.addCommand('metadata', (function (data) {
+                if (data.id && this.get('ws_deferreds.' + data.id)) {
+                    var deferred = this.get('ws_deferreds.' + data.id);
+                    this.set('ws_deferreds.' + data.id, undefined);
+                    if (data.error) {
+                        deferred.reject(data);
+                    } else {
+                        deferred.resolve(data);
+                    }
+                }
+                this[data.loading ? 'showLoading' : 'hideLoading']();
+
+                var listener = this.get('listener');
+                if (listener && listener.updateExtractedItems) {
+                    listener.updateExtractedItems(data.items || []);
+                    listener.set('followedLinks', data.links || []);
+                    var pageMap = listener.get('pageMap');
+                    // Handle page change in browser tab on the server caused by event
+                    if (!pageMap[data.fp] || data.fp !== listener.get('loadedPageFp')) {
+                        pageMap[data.fp] = data;
+                        this.installEventHandlersForBrowsing();
+                        this.hideLoading();
+                        listener.get('browseHistory').pushObject(data.fp);
+                        Ember['default'].run.later(this, function () {
+                            var doc = this.getIframeNode().contentWindow.document;
+                            doc.onscroll = this.redrawNow.bind(this);
+                        }, 500);
+                    }
+                    listener.set('loadedPageFp', data.fp);
+                }
+                this.set('loadedPageFp', data.fp);
+                this.set('followedLinks', data.links);
+                this.set('currentUrl', data.url);
+                Ember['default'].run.next(this, function () {
+                    this.redrawNow();
+                });
+            }).bind(this));
+
+            ws.addCommand('mutation', (function (data) {
+                data = data._data;
+                var action = data[0];
+                var args = data.slice(1);
+                if (action === 'initialize') {
+                    this.iframePromise = this.clearIframe().then((function () {
+                        var doc = this.getIframeNode().contentWindow.document;
+                        this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
+                    }).bind(this));
+                }
+                this.iframePromise.then((function () {
+                    this.treeMirror[action].apply(this.treeMirror, args);
+                }).bind(this));
+            }).bind(this));
+
+            ws.addCommand('cookies', function (msg) {
+                return _this.saveCookies(msg._data);
+            });
+        }).on('init'),
+
+        connectionStatusType: 'warning',
+        connectionStatusMessage: '',
+        reconnectInteractions: null,
+        _reconnectClock: function _reconnectClock() {
+            if (Number(this.get('connectionStatusTime')) >= 2) {
+                this.decrementProperty('connectionStatusTime');
+                this.set('connectionStatusMessage', 'Reconnecting to server in ' + this.get('connectionStatusTime') + ' seconds.');
+                this.set('connectionAction', true);
+            } else {
+                this.set('connectionStatusMessage', 'Reconnecting...');
+                this.set('connectionAction', null);
+            }
+        },
+
+        connectionLost: (function () {
+            if (this.get('ws.closed')) {
+                Ember['default'].run.later(this, function () {
+                    this.set('showConnectionLost', true);
+                }, 500);
+                if (this.get('reconnectInteractions') === null) {
+                    var reconnect = this.get('canvas._interactionsBlocked');
+                    this.setInteractionsBlocked(true);
+                    this.set('reconnectInteractions', reconnect);
+                }this.set('connectionStatusTime', this.get('ws.reconnectTimeout') / 1000);
+                this.addObserver('clock.second', this, this._reconnectClock);
+            } else {
+                this.removeObserver('clock.second', this, this._reconnectClock);
+            }
+        }).observes('ws.closed'),
+
+        connectionReEstablished: (function () {
+            if (this.get('ws.opened')) {
+                if (this.get('reconnectInteractions') !== null) {
+                    var reconnect = this.get('reconnectInteractions');
+                    this.set('reconnectInteractions', null);
+                    this.setInteractionsBlocked(reconnect);
+                    var listener = this.get('listener');
+                    if (listener && listener.reload && listener.get('loadedPageFp')) {
+                        listener.reload();
+                    }
+                }
+                this.set('connectionStatusMessage', null);
+                this.set('connectionAction', null);
+                this.set('showConnectionLost', false);
+            }
+        }).observes('ws.opened'),
+
+        connectionConnecting: (function () {
+            if (this.get('ws.connecting')) {
+                this.set('connectionStatusMessage', 'Reconnecting...');
+                this.set('connectionAction', null);
+            }
+        }).observes('ws.connecting'),
+
+        fetchDocument: function fetchDocument(url, spider, fp, command) {
+            var unique_id = utils['default'].shortGuid(),
+                deferred = new Ember['default'].RSVP.defer(),
+                ifWindow = this.getIframeNode().contentWindow;
+            this.set('ws_deferreds.' + unique_id, deferred);
+            this.get('ws').send({
+                _meta: {
+                    spider: spider,
+                    project: this.get('slyd.project'),
+                    id: unique_id,
+                    viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight,
+                    user_agent: navigator.userAgent,
+                    cookies: this.cookies
+                },
+                _command: command || 'load',
+                url: url
+            });
+            return deferred.promise;
+        },
+
+        setInteractionsBlocked: function setInteractionsBlocked(blocked) {
+            if (this.get('reconnectInteractions') !== null) {
+                this.set('reconnectInteractions', blocked);
+                return;
+            }
+            if (this.get('canvas.interactionsBlocked') !== blocked) {
+                this.set('canvas.interactionsBlocked', blocked);
+            }
+        },
+
+        setIframeContent: function setIframeContent(doc) {
+            if (typeof doc !== 'string') {
+                return;
+            }
+            var iframe = Ember['default'].$('#' + this.get('iframeId'));
+            iframe.attr('srcdoc', doc);
+            // Wait until iframe has fully loaded before setting iframe to the current iframe
+            iframe.load((function () {
+                this.set('document.iframe', iframe);
+            }).bind(this));
+        },
+
+        clearIframe: function clearIframe() {
+            var defer = new Ember['default'].RSVP.defer();
+            var iframe = this.getIframeNode();
+            var id = utils['default'].shortGuid();
+            // Using a empty static page because using srcdoc or an data:uri gives
+            // permission problems and/or broken baseURI behaviour in different browsers.
+            iframe.setAttribute('src', '/static/empty-frame.html?' + id);
+            iframe.removeAttribute('srcdoc');
+            // Using a message to workaround onload bug on some browsers (cough IE cough).
+            var $win = $(window).bind('message', function onMessage(e) {
+                if (e.originalEvent.data.frameReady === id) {
+                    $win.unbind('message', onMessage);
+                    defer.resolve();
+                }
+            });
+            return defer.promise;
+        },
+
+        frameEventListeners: [],
+        addFrameEventListener: function addFrameEventListener(event, fn) {
+            var useCapture = arguments[2] === undefined ? false : arguments[2];
+
+            this.frameEventListeners.push([event, fn, useCapture]);
+            this.getIframe()[0].addEventListener(event, fn, useCapture);
+        },
+
+        installEventHandlersForBrowsing: function installEventHandlersForBrowsing() {
+            var _this2 = this;
+
+            this._super();
+            var iframe = this.getIframe();
+            iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' + 'mousedown.portia mouseup.portia', this.postEvent.bind(this));
+            this.addFrameEventListener('scroll', function (e) {
+                return Ember['default'].run.throttle(_this2, _this2.postEvent, e, 200);
+            }, true);
+            this.addFrameEventListener('focus', this.postEvent.bind(this), true);
+            this.addFrameEventListener('blur', this.postEvent.bind(this), true);
+            this.addFrameEventListener('change', this.postEvent.bind(this), true);
+        },
+
+        uninstallEventHandlers: function uninstallEventHandlers() {
+            var frameDoc = this.getIframe()[0];
+            this.frameEventListeners.forEach(function (_ref) {
+                var _ref2 = _slicedToArray(_ref, 3);
+
+                var event = _ref2[0];
+                var fn = _ref2[1];
+                var useCapture = _ref2[2];
+
+                frameDoc.removeEventListener(event, fn, useCapture);
+            });
+            this.frameEventListeners = [];
+            this._super();
+        },
+
+        clickHandlerBrowse: function clickHandlerBrowse(evt) {
+            if (evt.which > 1 || evt.ctrlKey) {
+                // Ignore right/middle click or Ctrl+click
+                return;
+            }
+            this.postEvent(evt);
+            if (evt.target.tagName !== 'INPUT') {
+                return this._super(evt);
+            }
+        },
+
+        postEvent: function postEvent(evt) {
+            this.get('ws').send({
+                _meta: {
+                    spider: this.get('slyd.spider'),
+                    project: this.get('slyd.project')
+                },
+                _command: 'interact',
+                interaction: interactionEvent['default'](evt)
+            });
+        },
+
+        bindResizeEvent: (function () {
+            Ember['default'].$(window).on('resize', Ember['default'].run.bind(this, this.handleResize));
+        }).on('init'),
+
+        handleResize: function handleResize() {
+            var iframe_window = this.getIframeNode().contentWindow;
+            this.get('ws').send({
+                _command: 'resize',
+                size: iframe_window.innerWidth + 'x' + iframe_window.innerHeight
+            });
+        },
+
+        saveCookies: function saveCookies(cookies) {
+            this.cookies = cookies;
+            if (window.sessionStorage) {
+                window.sessionStorage.portia_cookies = JSON.stringify(cookies);
+            }
+        },
+        loadCookies: (function () {
+            if (window.sessionStorage && sessionStorage.portia_cookies) {
+                this.cookies = JSON.parse(sessionStorage.portia_cookies);
+            }
+        }).on('init'),
+
+        actions: {
+            reconnectWebsocket: function reconnectWebsocket() {
+                this.get('ws').connect();
+            }
+        }
+    });
+    // Disallow JS attributes
+
+});
+define('portia-web/components/web-document-js/template', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      var child0 = (function() {
+        var child0 = (function() {
+          return {
+            isHTMLBars: true,
+            revision: "Ember@1.11.3",
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("a");
+              dom.setAttribute(el1,"href","#");
+              var el2 = dom.createTextNode("Try Again");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode(".\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, element = hooks.element;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var element0 = dom.childAt(fragment, [1]);
+              element(env, element0, context, "action", ["reconnectWebsocket"], {"on": "click"});
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          revision: "Ember@1.11.3",
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("            ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, content = hooks.content, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+            var morph1 = dom.createMorphAt(fragment,3,3,contextualElement);
+            dom.insertBoundary(fragment, null);
+            content(env, morph0, context, "connectionStatusMessage");
+            block(env, morph1, context, "if", [get(env, context, "connectionAction")], {}, child0, null);
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        revision: "Ember@1.11.3",
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, null);
+          dom.insertBoundary(fragment, 0);
+          block(env, morph0, context, "bs-message", [], {"background": get(env, context, "connectionStatusType")}, child0, null);
+          return fragment;
+        }
+      };
+    }());
+    return {
+      isHTMLBars: true,
+      revision: "Ember@1.11.3",
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("div");
+        dom.setAttribute(el1,"id","scraped-doc");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("iframe");
+        dom.setAttribute(el2,"id","scraped-doc-iframe");
+        dom.setAttribute(el2,"src","/static/start.html");
+        dom.setAttribute(el2,"class","adjust-height");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("canvas");
+        dom.setAttribute(el2,"id","infocanvas");
+        dom.setAttribute(el2,"class","doc-canvas adjust-height");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"id","loader-container");
+        dom.setAttribute(el2,"class","adjust-height");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"style","position:absolute;z-index:20;width:100%;pointer-events:none");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"id","hovered-element-info");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, get = hooks.get, block = hooks.block;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),9,9);
+        block(env, morph0, context, "if", [get(env, context, "showConnectionLost")], {}, child0, null);
+        return fragment;
+      }
+    };
+  }()));
+
+});
+define('portia-web/components/web-document', ['exports', 'ember', 'ic-ajax', 'portia-web/utils/canvas', 'portia-web/utils/annotation-store'], function (exports, Ember, ajax, utils__canvas, AnnotationStore) {
+
+    'use strict';
+
+    /* jshint scripturl:true */
+    var $ = Ember['default'].$;
+
+    /* global CanvasLoader */
 
     exports['default'] = Ember['default'].Component.extend({
         _register: (function () {
@@ -4026,6 +4545,8 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
 
         listener: null,
 
+        mode: 'none', // How it responds to input events, modes are 'none', 'browse' and 'select'
+
         canvas: null,
 
         ignoredElementTags: ['html', 'body'],
@@ -4040,7 +4561,8 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
 
         annotationStore: null,
 
-        spiderPage: '<!DOCTYPE html>' + '<html>' + '<head>' + '<meta http-equiv="Content-type" content="text/html;charset=UTF-8">' + '<style>' + 'html {' + 'width:100%;' + 'height:100%;' + 'background:url(/static/portia-e34bb3dedb663765a8a50c116b0e0107.png) center center no-repeat;' + '}' + '</style>' + '</head>' + '<body></body>' + '</html>',
+        spiderPage: null,
+        spiderPageShown: true,
 
         redrawSprites: (function () {
             this.redrawNow();
@@ -4052,20 +4574,16 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
             The options dictionary may contain:
              datasource: the datasource that will be attached.
             listener: the event listener will be attached.
-            mode: a string. Possible values are 'select' and 'browse'.
+            mode: a string. Possible values are 'select', 'browse' and 'none'.
             partialSelects: boolean. Whether to allow partial selections. It only
                 has effect for the 'select' mode.
         */
         config: function config(options) {
             this.set('dataSource', options.dataSource);
             this.set('listener', options.listener);
+            this.set('mode', options.mode);
             if (options.mode === 'select') {
-                this.set('elementSelectionEnabled', true);
                 this.set('partialSelectionEnabled', options.partialSelects);
-            } else if (options.mode === 'browse') {
-                this.set('elementSelectionEnabled', false);
-                this.hideHoveredInfo();
-                this.installEventHandlersForBrowsing();
             }
         },
 
@@ -4074,8 +4592,7 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
             it also unbinds all event handlers.
         */
         reset: function reset() {
-            this.uninstallEventHandlers();
-            this.set('elementSelectionEnabled', false);
+            this.set('mode', 'none');
             this.set('partialSelectionEnabled', false);
             this.set('dataSource', null);
             this.set('listener', null);
@@ -4092,6 +4609,13 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         */
         getIframe: function getIframe() {
             return Ember['default'].$('#' + this.get('iframeId')).contents();
+        },
+
+        /**
+            Returns the document iFrame node.
+        */
+        getIframeNode: function getIframeNode() {
+            return Ember['default'].$('#' + this.get('iframeId'))[0];
         },
 
         /**
@@ -4140,18 +4664,19 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
             Ember['default'].run.schedule('afterRender', this, function () {
                 this.set('loadingDoc', true);
                 this.setIframeContent(documentContents);
+                this.spiderPageShown = false;
                 // We need to disable all interactions with the document we are loading
                 // until we trigger the callback.
                 this.setInteractionsBlocked(true);
                 Ember['default'].run.later(this, function () {
-                    var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
+                    var doc = this.getIframeNode().contentWindow.document;
                     doc.onscroll = this.redrawNow.bind(this);
                     this.setInteractionsBlocked(false);
                     if (readyCallback) {
                         readyCallback(this.getIframe());
                     }
                     this.set('loadingDoc', false);
-                }, 1000);
+                }, 800);
             });
         },
 
@@ -4176,7 +4701,7 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
                 loader.setShape('spiral');
                 loader.setDiameter(90);
                 loader.setRange(0.9);
-                loader.setSpeed(1);
+                loader.setSpeed(1.0);
                 loader.setFPS(60);
                 var loaderObj = document.getElementById('canvasLoader');
                 loaderObj.style.position = 'absolute';
@@ -4206,7 +4731,12 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         showSpider: function showSpider() {
             Ember['default'].run.schedule('afterRender', this, function () {
                 if (!Ember['default'].testing) {
-                    this.setIframeContent(this.spiderPage, true);
+                    if (this.spiderPage) {
+                        this.getIframe().find('html').html(this.spiderPage);
+                    } else {
+                        Ember['default'].run.throttle(this, this.reloadIframeContent, 500);
+                    }
+                    this.spiderPageShown = true;
                 }
             });
         },
@@ -4247,57 +4777,61 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         scrollToElement: function scrollToElement(element) {
             var rect = Ember['default'].$(element).boundingBox();
             this.updateHoveredInfo(element);
-            Ember['default'].$('#' + this.get('iframeId')).get(0).contentWindow.scrollTo(Math.max(0, parseInt(rect.left - 100)), Math.max(0, parseInt(rect.top - 100)));
+            this.getIframeNode().contentWindow.scrollTo(Math.max(0, parseInt(rect.left - 100)), Math.max(0, parseInt(rect.top - 100)));
         },
 
-        _elementSelectionEnabled: null,
-
-        elementSelectionEnabled: (function (key, selectionEnabled) {
-            if (arguments.length > 1) {
-                if (selectionEnabled) {
-                    if (!this.get('_elementSelectionEnabled')) {
-                        this.set('_elementSelectionEnabled', true);
-                        this.showHoveredInfo();
-                        this.installEventHandlersForSelecting();
-                    }
-                } else {
-                    this.set('_elementSelectionEnabled', false);
-                    this.uninstallEventHandlers();
-                    this.hideHoveredInfo();
-                }
+        _updateEventHandlers: (function () {
+            var mode = this.get('mode');
+            if (mode === 'select') {
+                this.showHoveredInfo();
+                this.installEventHandlersForSelecting();
+            } else if (mode === 'browse') {
+                this.hideHoveredInfo();
+                this.installEventHandlersForBrowsing();
             } else {
-                return this.get('_elementSelectionEnabled');
+                // none
+                this.hideHoveredInfo();
+                this.uninstallEventHandlers();
             }
-        }).property('_elementSelectionEnabled'),
+        }).observes('mode'),
 
         partialSelectionEnabled: false,
 
         installEventHandlersForBrowsing: function installEventHandlersForBrowsing() {
             this.uninstallEventHandlers();
-            this.getIframe().bind('click', this.clickHandlerBrowse.bind(this));
+            this.getIframe().on('click.portia', this.clickHandlerBrowse.bind(this));
         },
 
         installEventHandlersForSelecting: function installEventHandlersForSelecting() {
             this.uninstallEventHandlers();
-            this.getIframe().bind('click', this.clickHandler.bind(this));
-            this.getIframe().bind('mouseover', this.mouseOverHandler.bind(this));
-            this.getIframe().bind('mouseout', this.mouseOutHandler.bind(this));
-            this.getIframe().bind('mousedown', this.mouseDownHandler.bind(this));
-            this.getIframe().bind('mouseup', this.mouseUpHandler.bind(this));
-            this.getIframe().bind('hover', function (event) {
+            var iframe = this.getIframe();
+            iframe.on('click.portia', this.clickHandler.bind(this));
+            iframe.on('mouseover.portia', this.mouseOverHandler.bind(this));
+            iframe.on('mouseout.portia', this.mouseOutHandler.bind(this));
+            iframe.on('mousedown.portia', this.mouseDownHandler.bind(this));
+            iframe.on('mouseup.portia', this.mouseUpHandler.bind(this));
+            iframe.on('hover.portia', function (event) {
                 event.preventDefault();
             });
             this.redrawNow();
         },
 
         uninstallEventHandlers: function uninstallEventHandlers() {
-            this.getIframe().unbind('click');
-            this.getIframe().unbind('mouseover');
-            this.getIframe().unbind('mouseout');
-            this.getIframe().unbind('mousedown');
-            this.getIframe().unbind('mouseup');
-            this.getIframe().unbind('hover');
+            this.getIframe().off('.portia');
             this.set('hoveredSprite', null);
+        },
+
+        reloadIframeContent: function reloadIframeContent() {
+            var iframe = Ember['default'].$(this.getIframeNode());
+            ajax['default']({ url: iframe.attr('src') }).then((function (data) {
+                this.spiderPage = data || null;
+                this.showSpider();
+            }).bind(this));
+        },
+
+        getIframeContent: function getIframeContent() {
+            var iframe = this.getIframe().get(0);
+            return iframe.documentElement && iframe.documentElement.outerHTML;
         },
 
         setIframeContent: function setIframeContent(contents) {
@@ -4344,13 +4878,12 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
             if (jqElem.prop('id')) {
                 attributes.unshift({ name: 'id', value: jqElem.prop('id') });
             }
-            var attributesHtml = '';
+            var $attributes = $('#hovered-element-info .attributes').empty();
             attributes.forEach(function (attribute) {
-                var value = attribute.value.trim().substring(0, 50);
-                attributesHtml += '<div class="attribute" style="margin:2px 0px 2px 0px">' + '<span>' + attribute.name + ': </span>' + '<span style="color:#AAA">' + value + '</span>' + '</div>';
+                var value = (attribute.value || '').trim().substring(0, 50);
+                $attributes.append($('<div class="attribute" style="margin:2px 0px 2px 0px"></div>').append($('<span/>').text(attribute.name + ': ')).append($('<span style="color:#AAA"></span>').text(value)));
             });
-            Ember['default'].$('#hovered-element-info .attributes').html(attributesHtml);
-            Ember['default'].$('#hovered-element-info .path').html(path);
+            $('#hovered-element-info .path').html(path);
         },
 
         sendElementHoveredEvent: function sendElementHoveredEvent(element, delay, mouseX, mouseY) {
@@ -4391,11 +4924,17 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         },
 
         clickHandlerBrowse: function clickHandlerBrowse(event) {
+            if (event.which > 1 || event.ctrlKey) {
+                // Ignore right/middle click or Ctrl+click
+                return;
+            }
             event.preventDefault();
             var linkingElement = Ember['default'].$(event.target).closest('[href]');
             if (linkingElement.length) {
-                var href = Ember['default'].$(linkingElement).get(0).href;
-                this.sendDocumentEvent('linkClicked', href);
+                var href = linkingElement.get(0).href;
+                if (href && href.toLowerCase().indexOf('javascript:') !== 0) {
+                    this.sendDocumentEvent('linkClicked', href);
+                }
             }
         },
 
@@ -4530,11 +5069,11 @@ define('portia-web/controllers/application', ['exports', 'portia-web/controllers
 	exports['default'] = BaseController['default'].extend({});
 
 });
-define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-web/mixins/application-utils', 'portia-web/mixins/controller-utils', 'portia-web/mixins/modal-handler', 'portia-web/mixins/notification-handler', 'portia-web/mixins/size-listener', 'portia-web/mixins/toolbox-state-mixin', 'portia-web/mixins/app-visibility'], function (exports, Ember, ApplicationUtils, ControllerUtils, ModalHandler, NotificationHandler, SizeListener, ToolboxStateMixin, AppVisibility) {
+define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-web/mixins/controller-utils', 'portia-web/mixins/modal-handler', 'portia-web/mixins/notification-handler', 'portia-web/mixins/size-listener'], function (exports, Ember, ControllerUtils, ModalHandler, NotificationHandler, SizeListener) {
 
     'use strict';
 
-    exports['default'] = Ember['default'].Controller.extend(ApplicationUtils['default'], SizeListener['default'], ModalHandler['default'], NotificationHandler['default'], ControllerUtils['default'], ToolboxStateMixin['default'], AppVisibility['default'], {
+    exports['default'] = Ember['default'].Controller.extend(SizeListener['default'], ModalHandler['default'], NotificationHandler['default'], ControllerUtils['default'], {
         documentView: null,
         breadCrumb: null,
         breadCrumbs: null,
@@ -4550,9 +5089,7 @@ define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-we
             this.set('documentView', this.get('document.view'));
         }).on('init'),
 
-        annotationsStore: (function () {
-            return this.get('document.store');
-        }).property('document.store'),
+        annotationsStore: Ember['default'].computed.reads('document.store'),
 
         actions: {
             updateField: function updateField(value, field) {
@@ -4564,11 +5101,11 @@ define('portia-web/controllers/base-controller', ['exports', 'ember', 'portia-we
     });
 
 });
-define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/controllers/base-controller'], function (exports, Ember, BaseController) {
+define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/mixins/conflict-mixin', 'portia-web/utils/utils'], function (exports, Ember, BaseController, ConflictMixin, utils) {
 
     'use strict';
 
-    exports['default'] = BaseController['default'].extend({
+    exports['default'] = BaseController['default'].extend(ConflictMixin['default'], {
         needs: ['application'],
 
         currentFileName: null,
@@ -4583,12 +5120,8 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
             return this.get('model')[this.get('currentFileName')];
         }).property('currentFileName'),
 
-        toType: function toType(obj) {
-            return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-        },
-
         getConflictedKeyPaths: function getConflictedKeyPaths(content, parentPath) {
-            if (this.toType(content) === 'object') {
+            if (utils['default'].toType(content) === 'object') {
                 if ('__CONFLICT' in content) {
                     return [parentPath];
                 } else {
@@ -4599,6 +5132,38 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
                     }).bind(this));
                     return conflicted;
                 }
+            } else if (this._isArray(content)) {
+                var result = [],
+                    idx = -1;
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = content[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var v = _step.value;
+
+                        if (utils['default'].toType(v) === 'object' && '__CONFLICT' in v) {
+                            idx += 1;
+                            result.push(parentPath + '.' + idx);
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator['return']) {
+                            _iterator['return']();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+
+                return result;
             }
             return [];
         },
@@ -4607,7 +5172,13 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
             var conflict = false;
             if (this.get('conflictedKeyPaths')) {
                 conflict = Object.keys(this.get('conflictedKeyPaths')).any(function (key) {
-                    return !this.get('conflictedKeyPaths')[key];
+                    var conflictObj = this.get('conflictedKeyPaths.' + key);
+                    if (this._isArray(conflictObj)) {
+                        return conflictObj.any(function (key) {
+                            return !key.resolved;
+                        });
+                    }
+                    return !conflictObj.resolved;
                 }, this);
             }
             return conflict;
@@ -4618,11 +5189,48 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
         }).property('hasUnresolvedConflict', 'currentFileName'),
 
         resolveContent: function resolveContent(content, parentPath) {
-            if (this.toType(content) === 'object') {
+            if (Array.isArray(content)) {
+                if (this.get('conflictedKeyPaths')[parentPath]) {
+                    var result = [],
+                        idx = 0;
+                    var _iteratorNormalCompletion2 = true;
+                    var _didIteratorError2 = false;
+                    var _iteratorError2 = undefined;
+
+                    try {
+                        for (var _iterator2 = content[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                            var item = _step2.value;
+
+                            if (this._isObject(item) && item['__CONFLICT']) {
+                                var resolved = this.resolvedValue(item, [parentPath, idx].join('.'));
+                                Array.prototype.push.apply(result, resolved);
+                                idx += 1;
+                            } else {
+                                result.push(item);
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError2 = true;
+                        _iteratorError2 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+                                _iterator2['return']();
+                            }
+                        } finally {
+                            if (_didIteratorError2) {
+                                throw _iteratorError2;
+                            }
+                        }
+                    }
+
+                    content = result;
+                }
+            } else if (utils['default'].toType(content) === 'object') {
                 if ('__CONFLICT' in content) {
                     if (parentPath in this.get('conflictedKeyPaths')) {
-                        var option = this.get('conflictedKeyPaths')[parentPath];
-                        content = content['__CONFLICT'][option];
+                        var option = this.get('conflictedKeyPaths.' + parentPath)['accepted'];
+                        content = content['__CONFLICT'][option.keys().next().value];
                     }
                 } else {
                     Object.keys(content).forEach((function (key) {
@@ -4638,7 +5246,15 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
             this.set('currentFileName', fileName);
             var conflictedPaths = this.getConflictedKeyPaths(this.get('currentFileContents'));
             conflictedPaths.forEach(function (path) {
-                this.get('conflictedKeyPaths')[path] = '';
+                var splitPath = path.split('.');
+                if (splitPath.slice(-1)[0].match(/[0-9]+/)) {
+                    var parent = splitPath.slice(0, -1).join('.');
+                    if (!this.get('conflictedKeyPaths.' + parent)) {
+                        this.set('conflictedKeyPaths.' + parent, []);
+                    }
+                }
+                this.set('conflictedKeyPaths.' + path, Ember['default'].Object.create({
+                    'accepted': new Set(), 'rejected': new Set(), 'resolved': false }));
             }, this);
             this.notifyPropertyChange('conflictedKeyPaths');
         },
@@ -4646,11 +5262,12 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
         actions: {
 
             displayConflictedFile: function displayConflictedFile(fileName) {
+                this.get('document.view').setInteractionsBlocked(false);
+                this.get('document.view').setIframeContent('<html></html>');
                 this.displayConflictedFile(fileName);
             },
-
-            conflictOptionSelected: function conflictOptionSelected(path, option) {
-                this.get('conflictedKeyPaths')[path] = option;
+            conflictOptionUpdated: function conflictOptionUpdated(path, accepted, rejected) {
+                this._conflictOptionUpdated(path, accepted, rejected);
                 this.notifyPropertyChange('conflictedKeyPaths');
             },
 
@@ -4677,6 +5294,8 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
 
         willEnter: function willEnter() {
             this.set('model', this.get('model') || {});
+            this.get('document.view').setInteractionsBlocked(false);
+            this.get('document.view').showSpider();
             if (!Ember['default'].isEmpty(this.get('conflictedFileNames'))) {
                 this.displayConflictedFile(this.get('conflictedFileNames')[0]);
             }
@@ -4693,7 +5312,7 @@ define('portia-web/controllers/conflicts/index', ['exports', 'portia-web/control
     });
 
 });
-define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-controller', 'portia-web/models/item', 'portia-web/models/item-field'], function (exports, BaseController, Item, ItemField) {
+define('portia-web/controllers/items', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/utils/utils'], function (exports, Ember, BaseController, Item, ItemField, utils) {
 
     'use strict';
 
@@ -4704,9 +5323,19 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
         documentView: null,
 
         addItem: function addItem() {
-            var newItem = Item['default'].create({ name: this.shortGuid('_') });
+            var newItem = Item['default'].create({
+                name: this._uniqueId(this.model),
+                display_name: 'New Item'
+            });
             this.addField(newItem);
             this.model.pushObject(newItem);
+            Ember['default'].run.next(function () {
+                var items = Ember['default'].$('#toolbox .scrolling-container'),
+                    newItem = items.children().last().get(0);
+                if (newItem.scrollIntoView) {
+                    newItem.scrollIntoView();
+                }
+            });
         },
 
         addField: function addField(owner, name, type) {
@@ -4714,12 +5343,24 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
                 this.showErrorNotification('No Item selected for extraction');
                 return;
             }
-            var newField = ItemField['default'].create({ name: name || 'new_field',
+            owner.set('fields', owner.fields || []);
+            var newField = ItemField['default'].create({ name: this._uniqueId(owner.fields),
+                display_name: name || 'new_field',
                 type: type || 'text',
                 required: false,
                 vary: false });
-            owner.set('fields', owner.fields || []);
             owner.fields.pushObject(newField);
+        },
+
+        _uniqueId: function _uniqueId(objects, key) {
+            var id = utils['default'].shortGuid('_');
+            if (!key) {
+                key = 'name';
+            }
+            while (objects.findBy(key, id)) {
+                id = utils['default'].shortGuid('_');
+            }
+            return id;
         },
 
         saveChanges: function saveChanges() {
@@ -4731,8 +5372,24 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
                 }
             }).bind(this));
             if (valid) {
-                this.get('slyd').saveItems(this.model).then((function () {
-                    this.set('project_models.items', this.model);
+                var items = this.get('model'),
+                    slyd = this.get('slyd');
+                items = items.map(function (item) {
+                    item = item.serialize();
+                    if (item.fields) {
+                        item.fields = slyd.listToDict(item.fields);
+                    }
+                    return item;
+                });
+                items = slyd.listToDict(items);
+                this.get('ws').save('items', items).then((function (data) {
+                    items = slyd.dictToList(data.saved.items, Item['default']);
+                    items.forEach(function (item) {
+                        if (item.fields) {
+                            item.fields = slyd.dictToList(item.fields, ItemField['default']);
+                        }
+                    });
+                    this.set('project_models.items', items);
                     this.transitionToRoute(this.getParentRoute());
                 }).bind(this));
             }
@@ -4777,7 +5434,7 @@ define('portia-web/controllers/items', ['exports', 'portia-web/controllers/base-
     });
 
 });
-define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/spider'], function (exports, Ember, BaseController, Spider) {
+define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/spider', 'portia-web/utils/utils'], function (exports, Ember, BaseController, Spider, utils) {
 
     'use strict';
 
@@ -4888,17 +5545,21 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
         }).property('hasChanges', 'isDeploying', 'isPublishing'),
 
         addSpider: function addSpider(siteUrl) {
-            if (this.get('addingNewSpider')) {
+            siteUrl = utils['default'].cleanUrl(siteUrl);
+            if (!siteUrl || this.get('addingNewSpider')) {
                 return;
             }
             this.set('addingNewSpider', true);
-            if (siteUrl.indexOf('http') !== 0) {
-                siteUrl = 'http://' + siteUrl;
-            }
+
             var documentView = this.get('documentView');
             documentView.showLoading();
             this.set('slyd.spider', null);
-            this.get('slyd').fetchDocument(siteUrl).then((function (data) {
+            this.set('ws.spider', null);
+            this.get('ws')._sendPromise({
+                _command: 'resolve',
+                _meta: { id: utils['default'].shortGuid() },
+                url: siteUrl
+            }).then((function (data) {
                 if (data.error) {
                     documentView.hideLoading();
                     this.showErrorNotification('Failed to create spider', data.error);
@@ -4911,22 +5572,25 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
                 }
                 var baseName = URI.parse(siteUrl).hostname.replace(/^www[0-9]?\./, '');
                 var newSpiderName = this.getUnusedName(baseName, names);
-                var spider = Spider['default'].create({ 'id': this.shortGuid(),
-                    'name': newSpiderName,
+                var spider = Spider['default'].create({ 'name': newSpiderName,
                     'start_urls': [siteUrl],
                     'follow_patterns': [],
                     'exclude_patterns': [],
+                    'js_enabled': true,
                     'init_requests': [],
                     'templates': [],
                     'template_names': [],
                     'plugins': {}
                 });
-                this.get('slyd').saveSpider(spider).then((function () {
+                this.set('ws.spider', newSpiderName);
+                this.get('ws').save('spider', spider).then((function () {
                     documentView.hideLoading();
                     this.set('slyd.spider', newSpiderName);
+                    this.set('ws.spider', newSpiderName);
                     this.editSpider(newSpiderName, siteUrl);
                 }).bind(this), (function (err) {
                     documentView.hideLoading();
+                    this.set('ws.spider', this.get('slyd.spider'));
                     throw err; // re-throw for the notification
                 }).bind(this));
             }).bind(this), function (err) {
@@ -4976,7 +5640,9 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             deleteSpider: function deleteSpider(spider) {
                 var spiderName = spider;
                 this.showConfirm('Delete ' + spiderName, 'Are you sure you want to delete spider ' + spiderName + '?', (function () {
-                    this.get('slyd').deleteSpider(spiderName).then((function () {
+                    this.set('ws.spider', spiderName);
+                    this.get('ws')['delete']('spider', spiderName).then((function () {
+                        this.set('ws.spider', null);
                         this.get('model').removeObject(spiderName);
                         this.set('refreshSpiders', !this.get('refreshSpiders'));
                         this.get('changedFiles').addObject('spiders/' + spiderName + '.json');
@@ -4987,9 +5653,11 @@ define('portia-web/controllers/project', ['exports', 'ember', 'portia-web/contro
             rename: function rename(newName, oldName) {
                 this.get('slyd').renameProject(oldName, newName).then((function () {
                     this.set('slyd.project', newName);
+                    this.set('ws.project', newName);
                     this.replaceRoute('project', newName);
                 }).bind(this), (function (err) {
                     this.set('slyd.project', oldName);
+                    this.set('ws.project', oldName);
                     throw err;
                 }).bind(this));
             },
@@ -5099,6 +5767,7 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
         openProject: function openProject(projectName, revision) {
             this.get('slyd').editProject(projectName, revision).then((function () {
                 this.set('slyd.project', projectName);
+                this.set('ws.project', projectName);
                 this.transitionToRoute('project', { id: projectName });
             }).bind(this));
         },
@@ -5145,6 +5814,7 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
                 this.get('slyd').createProject(newProjectName).then((function () {
                     this.get('slyd').editProject(newProjectName).then((function () {
                         this.set('slyd.project', newProjectName);
+                        this.set('ws.project', newProjectName);
                         // Initialize items spec.
                         var itemsPromise = this.get('slyd').saveItems([Item['default'].create({ name: 'default', fields: []
                         })]);
@@ -5175,8 +5845,9 @@ define('portia-web/controllers/projects', ['exports', 'ember', 'portia-web/contr
 
         willEnter: function willEnter() {
             this.set('breadCrumb', 'home');
-            if (this.get('controllers.application.currentRouteName').split('.')[1] === 'index') {
+            if (this.getWithDefault('controllers.application.currentRouteName', '').split('.')[1] === 'index') {
                 this.set('slyd.project', null);
+                this.set('ws.project', null);
             }
             this.get('documentView').reset();
             this.get('documentView').showSpider();
@@ -5193,7 +5864,7 @@ define('portia-web/controllers/projects/index', ['exports', 'portia-web/controll
     });
 
 });
-define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/utils/canvas', 'portia-web/utils/sprite-store', 'portia-web/models/extracted-item', 'portia-web/models/template'], function (exports, Ember, BaseController, canvas, SpriteStore, ExtractedItem, Template) {
+define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/utils/canvas', 'portia-web/utils/sprite-store', 'portia-web/models/extracted-item', 'portia-web/models/template', 'portia-web/utils/utils'], function (exports, Ember, BaseController, canvas, SpriteStore, ExtractedItem, Template, utils) {
 
     'use strict';
 
@@ -5231,25 +5902,20 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
         followPatternOptions: [{ value: 'all', label: 'Follow all in-domain links' }, { value: 'none', label: 'Don\'t follow links' }, { value: 'patterns', label: 'Configure follow and exclude patterns' }],
 
         hasStartUrls: (function () {
-            return this.get('model.start_urls').length < 1 && this.get('editAllStartUrlsAction') === 'editAllStartUrls';
+            return this.get('startUrlCount') < 1 && this.get('editAllStartUrlsAction') === 'editAllStartUrls';
         }).property('model.start_urls.@each'),
 
         _breadCrumb: (function () {
             this.set('slyd.spider', this.get('model.name'));
+            this.set('ws.spider', this.get('model.name'));
             this.set('breadCrumb', this.get('model.name'));
         }).observes('model.name'),
 
         startUrlCount: (function () {
-            if (!Ember['default'].isEmpty(this.get('model.start_urls'))) {
-                return this.get('model.start_urls').length;
-            } else {
-                return 0;
-            }
+            return this.get('model.start_urls').length;
         }).property('model.start_urls.[]'),
 
-        displayEditPatterns: (function () {
-            return this.get('links_to_follow') === 'patterns';
-        }).property('links_to_follow'),
+        displayEditPatterns: Ember['default'].computed.equal('links_to_follow', 'patterns'),
 
         displayNofollow: (function () {
             return this.get('links_to_follow') !== 'none';
@@ -5272,17 +5938,13 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
 
         showItems: true,
 
-        addTemplateDisabled: (function () {
-            return !this.get('loadedPageFp');
-        }).property('loadedPageFp'),
+        addTemplateDisabled: Ember['default'].computed.not('loadedPageFp'),
 
         browseBackDisabled: (function () {
             return this.get('browseHistory').length <= 1;
         }).property('browseHistory.@each'),
 
-        reloadDisabled: (function () {
-            return !this.get('loadedPageFp');
-        }).property('loadedPageFp'),
+        reloadDisabled: Ember['default'].computed.not('loadedPageFp'),
 
         showItemsDisabled: (function () {
             var loadedPageFp = this.get('loadedPageFp');
@@ -5361,33 +6023,39 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (!this.get('loadedPageFp') || !this.get('showLinks')) {
                 return [];
             }
-            var followedLinks = this.get('followedLinks'),
+            var followedLinks = this.getWithDefault('followedLinks', {}),
                 allLinks = Ember['default'].$(Ember['default'].$('#scraped-doc-iframe').contents().get(0).links),
-                sprites = [];
+                sprites = [],
+                colors = {
+                'raw': 'rgba(45,136,45,0.3)',
+                'js': 'rgba(34,102,102,0.3)'
+            };
             allLinks.each((function (i, link) {
                 var uri = URI(link.href),
-                    followed = followedLinks.indexOf(uri.fragment('').toString()) >= 0 && this._allowedDomain(uri.hostname());
+                    followed = followedLinks[uri.fragment('').toString()] && this._allowedDomain(uri.hostname());
                 sprites.pushObject(canvas.ElementSprite.create({
                     element: link,
                     hasShadow: false,
-                    fillColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)',
-                    strokeColor: followed ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.3)' }));
+                    fillColor: followed ? colors[followedLinks[link.href]] : 'rgba(255,57,57,0.3)',
+                    strokeColor: 'rgba(164,164,164,0.1)' }));
             }).bind(this));
             this.set('spriteStore.sprites', sprites);
         }).observes('followedLinks', 'showLinks', 'spiderDomains'),
 
         _allowedDomain: function _allowedDomain(hostname) {
             var split_host = hostname.split('.');
-            for (var i = 1; i < split_host.length; i++) {
-                if (this.get('spiderDomains').has(split_host.slice(-i - 2).slice().join('.'))) {
+            for (var i = 0; i < split_host.length; i++) {
+                if (this.get('spiderDomains').has(split_host.slice(-i - 2).join('.'))) {
                     return true;
                 }
             }
             return false;
         },
 
+        isFetching: Ember['default'].computed.notEmpty('pendingFetches'),
+
         currentUrl: (function () {
-            if (!Ember['default'].isEmpty(this.get('pendingFetches'))) {
+            if (this.get('isFetching')) {
                 return 'Fetching page...';
             } else if (this.get('loadedPageFp')) {
                 return this.get('pageMap')[this.get('loadedPageFp')].url;
@@ -5429,16 +6097,14 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (!skipHistory) {
                 this.get('browseHistory').pushObject(data.fp);
             }
-            this.get('documentView').displayDocument(data.page, (function () {
+            this.get('documentView').displayDocument(data, (function () {
                 this.get('documentView').reset();
                 this.get('documentView').config({ mode: 'browse',
                     listener: this,
                     dataSource: this });
                 this.set('documentView.sprites', this.get('spriteStore'));
                 this.set('loadedPageFp', data.fp);
-                this.set('followedLinks', data.links);
                 this.get('pageMap')[data.fp] = data;
-                this.updateExtractedItems(data.items || []);
                 Ember['default'].run.later((function () {
                     this.get('documentView').redrawNow();
                 }).bind(this), 100);
@@ -5452,10 +6118,11 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.set('loadedPageFp', null);
             var documentView = this.get('documentView');
             documentView.showLoading();
-            var fetchId = this.guid();
+            var fetchId = utils['default'].guid();
             this.get('pendingFetches').pushObject(fetchId);
             this.set('documentView.sprites', new SpriteStore['default']());
-            this.get('slyd').fetchDocument(url, this.get('model.name'), parentFp, baseurl).then((function (data) {
+            this.set('documentView.listener', this);
+            this.get('documentView').fetchDocument(url, this.get('model.name'), parentFp).then((function (data) {
                 if (this.get('pendingFetches').indexOf(fetchId) === -1) {
                     // This fetch has been cancelled.
                     return;
@@ -5477,30 +6144,16 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             }).bind(this));
         },
 
-        displayPage: function displayPage(fp) {
-            this.set('loadedPageFp', null);
-            var documentView = this.get('documentView');
-            documentView.displayDocument(this.get('pageMap')[fp].page, (function () {
-                this.get('documentView').reset();
-                this.get('documentView').config({ mode: 'browse',
-                    listener: this,
-                    dataSource: this });
-                this.set('loadedPageFp', fp);
-            }).bind(this));
-        },
-
         addTemplate: function addTemplate() {
             var page = this.get('pageMap')[this.get('loadedPageFp')],
                 iframeTitle = this.get('documentView').getIframe().get(0).title,
                 template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '').substring(0, 48).trim().replace(/\s+/g, '_');
             if (!template_name || ('' + template_name).length < 1) {
-                this.shortGuid();
+                template_name = utils['default'].shortGuid();
             }
             var template = Template['default'].create({ name: template_name,
                 extractors: {},
                 annotations: {},
-                annotated_body: page.page,
-                original_body: page.original,
                 page_id: page.fp,
                 _new: true,
                 url: page.url }),
@@ -5508,9 +6161,13 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             if (!itemDefs.findBy('name', 'default') && !Ember['default'].isEmpty(itemDefs)) {
                 // The default item doesn't exist but we have at least one item def.
                 template.set('scrapes', itemDefs[0].get('name'));
+            } else {
+                template.set('scrapes', 'default');
             }
             this.get('model.template_names').pushObject(template_name);
-            this.get('slyd').saveTemplate(this.get('name'), template).then((function () {
+            var serialized = template.serialize();
+            serialized._new = true;
+            this.get('ws').save('template', serialized).then((function () {
                 this.set('saving', false);
                 this.saveSpider().then((function () {
                     this.editTemplate(template_name);
@@ -5523,17 +6180,12 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 urls = urls.match(/[^\s,]+/g);
             }
             var modelUrls = this.get('model.start_urls');
-            urls.forEach((function (url) {
-                var parsed = URI.parse(url);
-                if (Ember['default'].$.inArray(url, modelUrls) > 0) {
-                    return;
+            urls.forEach(function (url) {
+                url = utils['default'].cleanUrl(url);
+                if (url && Ember['default'].$.inArray(url, modelUrls) < 0) {
+                    modelUrls.pushObject(url);
                 }
-                if (!parsed.protocol) {
-                    parsed.protocol = 'http';
-                    url = URI.build(parsed);
-                }
-                modelUrls.pushObject(url);
-            }).bind(this));
+            });
         },
 
         addExcludePattern: function addExcludePattern(pattern, index) {
@@ -5562,14 +6214,6 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.get('model.follow_patterns').removeObject(pattern);
         },
 
-        autoFetch: (function () {
-            if (this.get('loadedPageFp') && this.get('showLinks')) {
-                this.saveSpider().then((function () {
-                    this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
-                }).bind(this));
-            }
-        }).observes('model.follow_patterns.@each', 'model.exclude_patterns.@each', 'links_to_follow'),
-
         attachAutoSave: (function () {
             this.get('model').addObserver('dirty', (function () {
                 Ember['default'].run.once(this, 'saveSpider');
@@ -5581,11 +6225,10 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 return;
             }
             this.set('saving', true);
-            return this.get('slyd').saveSpider(this.get('model')).then((function () {
+            return this.get('ws').save('spider', this.get('model')).then((function () {
                 this.set('saving', false);
-            }).bind(this), (function (err) {
+            }).bind(this), (function () {
                 this.set('saving', false);
-                throw err;
             }).bind(this));
         },
 
@@ -5596,9 +6239,9 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
 
         testSpider: function testSpider(urls) {
             if (this.get('testing') && urls.length) {
-                var fetchId = this.guid();
+                var fetchId = utils['default'].guid();
                 this.get('pendingFetches').pushObject(fetchId);
-                this.get('slyd').fetchDocument(urls[0], this.get('model.name')).then((function (data) {
+                this.get('documentView').fetchDocument(urls[0], this.get('model.name')).then((function (data) {
                     if (this.get('pendingFetches').indexOf(fetchId) !== -1) {
                         this.get('pendingFetches').removeObject(fetchId);
                         if (!Ember['default'].isEmpty(data.items)) {
@@ -5625,6 +6268,10 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 }
                 this.set('testing', false);
             }
+        },
+
+        reload: function reload() {
+            this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
         },
 
         actions: {
@@ -5665,7 +6312,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
 
             deleteTemplate: function deleteTemplate(templateName) {
                 this.get('model.template_names').removeObject(templateName);
-                this.get('slyd').deleteTemplate(this.get('name'), templateName);
+                this.get('ws')['delete']('template', templateName);
             },
 
             viewTemplate: function viewTemplate(templateName) {
@@ -5679,14 +6326,21 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             },
 
             reload: function reload() {
-                this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
+                this.reload();
             },
 
             browseBack: function browseBack() {
                 var history = this.get('browseHistory');
                 history.removeAt(history.length - 1);
                 var lastPageFp = history.get('lastObject');
-                this.displayPage(lastPageFp);
+                this.fetchPage(this.get('pageMap')[lastPageFp].url, history.length > 1 ? history.get(history.length - 1) : null);
+            },
+
+            navigate: function navigate(url) {
+                url = utils['default'].cleanUrl(url);
+                if (url) {
+                    this.fetchPage(url);
+                }
             },
 
             addStartUrls: function addStartUrls(urls) {
@@ -5727,6 +6381,30 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 this.addFollowPattern(newVal, index);
             },
 
+            addJSEnablePattern: function addJSEnablePattern(text) {
+                this.addJSPattern(text, 'enable');
+            },
+
+            editJSEnablePattern: function editJSEnablePattern(newVal, index) {
+                this.editJSPattern(newVal, index, 'enable');
+            },
+
+            deleteJSEnablePattern: function deleteJSEnablePattern(text) {
+                this.deleteJSPattern(text, 'enable');
+            },
+
+            addJSDisablePattern: function addJSDisablePattern(text) {
+                this.addJSPattern(text, 'disable');
+            },
+
+            editJSDisablePattern: function editJSDisablePattern(newVal, index) {
+                this.editJSPattern(newVal, index, 'disable');
+            },
+
+            deleteJSDisablePattern: function deleteJSDisablePattern(text) {
+                this.deleteJSPattern(text, 'disable');
+            },
+
             toggleShowItems: function toggleShowItems() {
                 this.set('showItems', !this.get('showItems'));
             },
@@ -5736,13 +6414,12 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                 if (newName.trim() === oldName.trim()) {
                     return;
                 }
-                this.set('spiderName', oldName);
                 this.set('model.name', newName);
-                this.get('slyd').renameSpider(oldName, newName).then((function () {
+                this.get('ws').rename('spider', oldName, newName).then((function () {
                     this.replaceRoute('spider', newName);
                 }).bind(this), (function (err) {
-                    this.set('model.name', this.get('spiderName'));
-                    throw err;
+                    this.set('model.name', oldName);
+                    this.showErrorNotification(err.toString());
                 }).bind(this));
             },
 
@@ -5769,7 +6446,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
                     if (this.get('loginUrl') && this.get('loginUser') && this.get('loginPassword')) {
                         this.set('model.init_requests', [{
                             'type': 'login',
-                            'loginurl': this.get('loginUrl'),
+                            'loginurl': utils['default'].cleanUrl(this.get('loginUrl')),
                             'username': this.get('loginUser'),
                             'password': this.get('loginPassword')
                         }]);
@@ -5786,14 +6463,37 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             }
         },
 
+        addJSPattern: function addJSPattern(text, type) {
+            if (!this.get('model.js_' + type + '_patterns')) {
+                this.set('model.js_' + type + '_patterns', [text]);
+            } else {
+                this.get('model.js_' + type + '_patterns').pushObject(text);
+            }
+            this.notifyPropertyChange('model.js_' + type + '_patterns');
+            this.notifyPropertyChange('links_to_follow');
+        },
+
+        editJSPattern: function editJSPattern(val, index, type) {
+            this.deleteJSPattern(this.get('model.js_' + type + '_patterns').objectAt(index), type);
+            this.get('model.js_' + type + '_patterns').insertAt(index, val);
+            this.notifyPropertyChange('model.js_' + type + '_patterns');
+            this.notifyPropertyChange('links_to_follow');
+        },
+
+        deleteJSPattern: function deleteJSPattern(text, type) {
+            this.get('model.js_' + type + '_patterns').removeObject(text);
+            this.notifyPropertyChange('model.js_' + type + '_patterns');
+            this.notifyPropertyChange('links_to_follow');
+        },
+
         willEnter: function willEnter() {
             this.set('loadedPageFp', null);
             this.get('extractedItems').setObjects([]);
             this.get('documentView').config({ mode: 'browse',
                 listener: this,
                 dataSource: this });
+            this.set('documentView.listener', this);
             this.get('documentView').showSpider();
-            this.set('spiderName', this.get('model.name'));
             this.set('documentView.sprites', new SpriteStore['default']());
             if (this.get('autoloadTemplate')) {
                 Ember['default'].run.next(this, function () {
@@ -5810,6 +6510,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             this.get('documentView').redrawNow();
             this.get('pendingFetches').setObjects([]);
             this.get('documentView').hideLoading();
+            this.get('documentView.ws').send({ '_command': 'close_tab' });
         }
     });
 
@@ -5866,7 +6567,7 @@ define('portia-web/controllers/template-items', ['exports', 'portia-web/controll
 	exports['default'] = Items['default'];
 
 });
-define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/extractor', 'portia-web/models/mapped-field-data', 'portia-web/utils/sprite-store'], function (exports, Ember, BaseController, Extractor, MappedFieldData, SpriteStore) {
+define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/extractor', 'portia-web/models/mapped-field-data', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/utils/sprite-store', 'portia-web/utils/utils'], function (exports, Ember, BaseController, Extractor, MappedFieldData, Item, ItemField, SpriteStore, utils) {
 
     'use strict';
 
@@ -5941,13 +6642,14 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
         scrapedItem: (function () {
             if (!Ember['default'].isEmpty(this.get('items'))) {
                 var item = this.get('items').findBy('name', this.get('model.scrapes'));
-                if (!item.fields) {
-                    item.fields = [];
+                if (item) {
+                    if (!item.fields) {
+                        item.fields = [];
+                    }
+                    return item;
                 }
-                return item;
-            } else {
-                return null;
             }
+            return null;
         }).property('model.scrapes', 'items.@each'),
 
         displayExtractors: (function () {
@@ -5978,7 +6680,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             if (missingFields.length > 0) {
                 this.showWarningNotification('Required Fields Missing', 'You are unable to save this template as the following required fields are missing: "' + missingFields.join('", "') + '".');
             } else {
-                return this.get('slyd').saveTemplate(this.get('controllers.spider.name'), this.get('model'));
+                return this.get('ws').save('template', this.get('model'));
             }
         },
 
@@ -6011,7 +6713,9 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             this.get('extractors').forEach(function (extractor) {
                 delete extractor['dragging'];
             });
-            this.get('slyd').saveExtractors(this.get('extractors'));
+            this.get('ws').save('extractors', this.get('extractors').map(function (extractor) {
+                return extractor.serialize();
+            }));
         },
 
         validateExtractors: function validateExtractors() {
@@ -6124,7 +6828,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
         createExtractor: function createExtractor(extractorType, extractorDefinition) {
             var extractor = Extractor['default'].create({
-                name: this.shortGuid()
+                name: utils['default'].shortGuid()
             });
             if (extractorType === 'regular_expression') {
                 try {
@@ -6153,7 +6857,26 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
             createField: function createField(item, fieldName, fieldType) {
                 item.addField(fieldName, fieldType);
-                this.get('slyd').saveItems(this.get('items').toArray());
+                var items = this.get('items').toArray(),
+                    slyd = this.get('slyd');
+                items = items.map(function (item) {
+                    item = item.serialize();
+                    if (item.fields) {
+                        item.fields = slyd.listToDict(item.fields);
+                    }
+                    return item;
+                });
+                items = slyd.listToDict(items);
+                this.get('ws').save('items', items).then((function (data) {
+
+                    items = slyd.dictToList(data.saved.items, Item['default']);
+                    items.forEach(function (item) {
+                        if (item.fields) {
+                            item.fields = slyd.dictToList(item.fields, ItemField['default']);
+                        }
+                    });
+                    this.set('project_models.items', items);
+                }).bind(this));
             },
 
             rename: function rename(newName) {
@@ -6170,8 +6893,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                 saveFuture.then((function () {
                     var templateNames = this.get('controllers.spider.model.template_names');
                     newName = this.getUnusedName(newName, templateNames);
-                    var spiderName = this.get('controllers.spider.model.name');
-                    this.get('slyd').renameTemplate(spiderName, oldName, newName).then((function () {
+                    this.get('ws').rename('template', oldName, newName).then((function () {
                         templateNames.removeObject(oldName);
                         templateNames.addObject(newName);
                         this.replaceRoute('template', newName);
@@ -6314,7 +7036,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
         },
 
         setDocument: (function () {
-            if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
+            if (!this.get('model') || !this.get('model.annotated_body') || !this.get('loadDocument')) {
                 return;
             }
             this.get('documentView').displayDocument(this.get('model.annotated_body'), (function () {
@@ -6332,6 +7054,34 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
             }).bind(this));
         }).observes('model', 'model.annotated_body'),
 
+        /**
+         * This will make sure the template scrapes a valid item and if not it will create one.
+         */
+        ensureItem: (function () {
+            if (this.get('model') && !this.get('items').findBy('name', this.get('model.scrapes'))) {
+                // Template has an item that doesn't exist, create a new one
+                var fields = new Set();
+                Object.values(this.get('model.plugins')).forEach(function (plugin) {
+                    plugin.extracts.forEach(function (extract) {
+                        Object.values(extract.annotations).forEach(function (fieldName) {
+                            fields.add(fieldName);
+                        });
+                    });
+                });
+                var item = Item['default'].create({
+                    name: this.get('model.scrapes'),
+                    display_name: this.get('model.name'),
+                    fields: []
+                });
+                fields.forEach(function (fieldName) {
+                    return item.addField(fieldName);
+                });
+                this.get('items').pushObject(item);
+                this.showWarningNotification('Missing item', 'This template didn\'t have a valid item assigned so a new one was created.');
+                this.get('slyd').saveItems(this.get('items').toArray());
+            }
+        }).observes('model.scrapes', 'items.@each'),
+
         willEnter: function willEnter() {
             var plugins = {};
             this.get('capabilities.plugins').forEach(function (plugin) {
@@ -6344,7 +7094,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
 
         willLeave: function willLeave() {
             this.hideFloatingAnnotationWidget();
-            this.get('documentView').hideHoveredInfo();
+            this.get('documentView').reset();
             this.set('activeExtractionTool', { extracts: [],
                 component: 'dummy-component',
                 pluginState: {} });
@@ -6358,7 +7108,8 @@ define('portia-web/controllers/template/index', ['exports', 'portia-web/controll
 
     exports['default'] = TemplateController['default'].extend({
         breadCrumb: null,
-        _breadCrumb: null
+        _breadCrumb: null,
+        loadDocument: true
     });
 
 });
@@ -6369,6 +7120,9 @@ define('portia-web/helpers/trim', ['exports', 'ember'], function (exports, Ember
   exports.trim = trim;
 
   function trim(input, length) {
+    if (!input) {
+      return '';
+    }
     return input.substring(0, length || 45);
   }
 
@@ -6447,17 +7201,27 @@ define('portia-web/initializers/add-prototypes', ['exports', 'ember', 'portia-we
             if (!element) {
                 return [];
             }
+            var mappedAttributes = {};
+            for (var i = 0; i < element.attributes.length; i++) {
+                var attrib = element.attributes[i];
+                if (attrib.name.startsWith('_portia_')) {
+                    var originalName = attrib.name.slice(8);
+                    if (!mappedAttributes[originalName]) {
+                        mappedAttributes[originalName] = attrib.value;
+                    }
+                }
+            }
             Ember['default'].$(element.attributes).each(function () {
-                if (Ember['default'].$.inArray(this.nodeName, Ember['default'].$.fn.getAttributeList.ignoredAttributes) === -1 && this.value) {
+                if (!this.nodeName.startsWith('_portia_') && Ember['default'].$.inArray(this.nodeName, Ember['default'].$.fn.getAttributeList.ignoredAttributes) === -1 && this.value) {
                     attributeList.push(Attribute['default'].create({
                         name: this.nodeName,
-                        value: this.value }));
+                        value: mappedAttributes[this.nodeName] || this.value }));
                 }
             });
             return attributeList;
         };
 
-        Ember['default'].$.fn.getAttributeList.ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding', 'cellspacing', 'border', 'bgcolor', 'color', 'colspan', 'data-scrapy-annotate', 'data-tagid', 'data-genid'];
+        Ember['default'].$.fn.getAttributeList.ignoredAttributes = ['id', 'class', 'width', 'style', 'height', 'cellpadding', 'cellspacing', 'border', 'bgcolor', 'color', 'colspan', 'data-scrapy-annotate', 'data-tagid', 'data-genid', 'data-parentid'];
 
         Ember['default'].$.fn.boundingBox = function () {
             if (!this || !this.offset()) {
@@ -6552,6 +7316,20 @@ define('portia-web/initializers/bread-crumbs', ['exports'], function (exports) {
     initialize: function initialize(container, app) {
       app.inject("component:bread-crumbs", "router", "router:main");
       app.inject("component:bread-crumbs", "applicationController", "controller:application");
+    }
+  };
+
+});
+define('portia-web/initializers/clock', ['exports', 'portia-web/services/clock'], function (exports, Clock) {
+
+  'use strict';
+
+  exports['default'] = {
+    name: 'clock',
+    initialize: function initialize(container, app) {
+      app.register('clock:main', Clock['default']);
+      app.inject('controller', 'clock', 'clock:main');
+      app.inject('component', 'clock', 'clock:main');
     }
   };
 
@@ -6730,13 +7508,12 @@ define('portia-web/initializers/project-models', ['exports', 'ember'], function 
     };
 
 });
-define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', 'portia-web/config/environment', 'portia-web/utils/slyd-api', 'portia-web/utils/timer', 'portia-web/mixins/application-utils'], function (exports, Ember, ajax, config, SlydApi, Timer, ApplicationUtils) {
+define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', 'portia-web/config/environment', 'portia-web/utils/slyd-api', 'portia-web/utils/timer', 'portia-web/utils/utils'], function (exports, Ember, ajax, config, SlydApi, Timer, utils) {
 
     'use strict';
 
     exports.initialize = initialize;
 
-    var UUID = Ember['default'].Object.extend(ApplicationUtils['default'], {});
     function initialize(container, application) {
         application.deferReadiness();
         var hash = {};
@@ -6744,15 +7521,12 @@ define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', '
         hash.url = (config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host) + '/server_capabilities';
         ajax['default'](hash).then((function (settings) {
             this.set('serverCapabilities', settings['capabilities']);
-            this.set('serverCustomization', Ember['default'].Object.create());
-            for (var key in settings['custom']) {
-                this.set('serverCustomization.' + key, Ember['default'].Object.create().setProperties(settings['custom'][key]));
-            }
+            this.set('serverCustomization', settings['custom']);
             container.register('api:capabilities', Ember['default'].Object.create().setProperties(application.get('serverCapabilities')), { instantiate: false });
             container.register('app:custom', Ember['default'].Object.create().setProperties(application.get('serverCustomization')), { instantiate: false });
             var api = new SlydApi['default']();
             api.set('username', settings.username);
-            api.set('sessionid', new UUID().shortGuid());
+            api.set('sessionid', utils['default'].shortGuid());
             api.set('serverCapabilities', container.lookup('api:capabilities'));
             api.set('timer', new Timer['default']());
             container.register('api:slyd', api, { instantiate: false });
@@ -6761,6 +7535,7 @@ define('portia-web/initializers/register-api', ['exports', 'ember', 'ic-ajax', '
             application.inject('controller', 'slyd', 'api:slyd');
             application.inject('component', 'slyd', 'api:slyd');
             application.inject('controller', 'customizations', 'app:custom');
+            application.inject('component', 'customizations', 'app:custom');
             application.inject('controller', 'capabilities', 'api:capabilities');
             application.inject('route', 'capabilities', 'api:capabilities');
             this.advanceReadiness();
@@ -6805,6 +7580,7 @@ define('portia-web/initializers/register-page-interaction', ['exports', 'ember']
       iframe: null }), { instantiate: false });
     application.inject('controller', 'document', 'document:obj');
     application.inject('component:web-document', 'document', 'document:obj');
+    application.inject('component:web-document-js', 'document', 'document:obj');
     application.inject('component:tool-box', 'document', 'document:obj');
     application.inject('component:annotation-widget', 'document', 'document:obj');
     application.inject('model', 'document', 'document:obj');
@@ -6816,6 +7592,34 @@ define('portia-web/initializers/register-page-interaction', ['exports', 'ember']
   };
 
 });
+define('portia-web/initializers/register-websocket', ['exports', 'portia-web/utils/ferry-websocket'], function (exports, FerryWebsocket) {
+
+    'use strict';
+
+    exports.initialize = initialize;
+
+    function initialize(container, application) {
+        application.deferReadiness();
+        var websocket = new FerryWebsocket['default']();
+        websocket.connect().then(function () {
+            container.register('websocket:slyd', websocket, { instantiate: false });
+            application.inject('route', 'ws', 'websocket:slyd');
+            application.inject('adapter', 'ws', 'websocket:slyd');
+            application.inject('controller', 'ws', 'websocket:slyd');
+            application.inject('component', 'ws', 'websocket:slyd');
+            window.addEventListener('beforeunload', function () {
+                websocket.close();
+            });
+            application.advanceReadiness();
+        });
+    }
+
+    exports['default'] = {
+        name: 'register-websocket',
+        initialize: initialize
+    };
+
+});
 define('portia-web/initializers/toolbox', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -6825,7 +7629,6 @@ define('portia-web/initializers/toolbox', ['exports', 'ember'], function (export
     function initialize(container, application) {
         container.register('toolbox:state', Ember['default'].Object.create({
             fixed: false,
-            expand: false,
             pinned: !!(window.localStorage && localStorage.portia_toolbox_pinned)
         }), { instantiate: false });
         application.inject('route', 'toolbox', 'toolbox:state');
@@ -6840,66 +7643,179 @@ define('portia-web/initializers/toolbox', ['exports', 'ember'], function (export
     };
 
 });
-define('portia-web/mixins/app-visibility', ['exports', 'ember'], function (exports, Ember) {
+define('portia-web/mixins/conflict-mixin', ['exports', 'ember', 'portia-web/utils/utils'], function (exports, Ember, utils) {
 
     'use strict';
 
+    var CHOICES = new Set(['my_val', 'base_val', 'other_val']);
+
     exports['default'] = Ember['default'].Mixin.create({
-        init: function init() {
-            var hidden, visibilityChange;
-            if (typeof document.hidden !== "undefined") {
-                hidden = "hidden";
-                visibilityChange = "visibilitychange";
-            } else if (typeof document.mozHidden !== "undefined") {
-                hidden = "mozHidden";
-                visibilityChange = "mozvisibilitychange";
-            } else if (typeof document.msHidden !== "undefined") {
-                hidden = "msHidden";
-                visibilityChange = "msvisibilitychange";
-            } else if (typeof document.webkitHidden !== "undefined") {
-                hidden = "webkitHidden";
-                visibilityChange = "webkitvisibilitychange";
+        _resetPath: function _resetPath(path) {
+            this.set('conflictedKeyPaths.' + path + '.accepted', new Set());
+            this.set('conflictedKeyPaths.' + path + '.rejected', new Set());
+            this._updateResolved(path);
+            this._updatePath(path);
+        },
+
+        _conflictOptionUpdated: function _conflictOptionUpdated(path, accepted, rejected) {
+            this.set('conflictedKeyPaths.' + path + '.accepted', accepted);
+            this.set('conflictedKeyPaths.' + path + '.rejected', rejected);
+            this._updateResolved(path);
+            this._updatePath(path);
+        },
+
+        _conflictOptionSelected: function _conflictOptionSelected(path, option) {
+            if (!option) {
+                return;
             }
-            // Handle user changing tab
-            document.addEventListener(visibilityChange, (function () {
-                if (document[hidden]) {
-                    this.get("slyd.timer").pause();
-                } else {
-                    this.get("slyd.timer").resume();
+            if (this.get('multi')) {
+                this.get('conflictedKeyPaths.' + path + '.accepted').add(option);
+                this.get('conflictedKeyPaths.' + path + '.rejected')['delete'](option);
+            } else {
+                this.set('conflictedKeyPaths.' + path + '.accepted', new Set([option]));
+                var rejected = [];
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = CHOICES[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var opt = _step.value;
+
+                        if (opt !== option) {
+                            rejected.push(opt);
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator['return']) {
+                            _iterator['return']();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
                 }
-            }).bind(this), false);
-            // Handle user putting browser into background
-            window.addEventListener("blur", (function () {
-                this.get("slyd.timer").pause();
-            }).bind(this));
-            window.addEventListener("focus", (function () {
-                this.get("slyd.timer").resume();
-            }).bind(this));
-        }
-    });
 
-});
-define('portia-web/mixins/application-utils', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Mixin.create({
-        s4: function s4() {
-            return Math.floor((1 + Math.random()) * 65536).toString(16).substring(1);
+                this.set('conflictedKeyPaths.' + path + '.rejected', new Set(rejected));
+            }
+            this._updateResolved(path);
+            this._updatePath(path);
         },
 
-        guid: function guid() {
-            return this.s4() + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + this.s4() + this.s4();
+        _conflictOptionRejected: function _conflictOptionRejected(path, option) {
+            if (!option) {
+                return;
+            }
+            this.get('conflictedKeyPaths.' + path + '.rejected').add(option);
+            this.get('conflictedKeyPaths.' + path + '.accepted')['delete'](option);
+            this._updateResolved(path);
+            this._updatePath(path);
         },
 
-        shortGuid: function shortGuid(separator) {
-            separator = typeof separator !== 'undefined' ? separator : '-';
-            return this.s4() + separator + this.s4() + separator + this.s4();
+        _updatePath: function _updatePath(path) {
+            try {
+                this.sendAction('conflictOptionUpdated', path, this.get('conflictedKeyPaths.' + path + '.accepted'), this.get('conflictedKeyPaths.' + path + '.rejected'));
+            } catch (e) {
+                if (!(e instanceof TypeError)) {
+                    throw e;
+                }
+            }
+            this.notifyPropertyChange('conflictedKeyPaths');
+        },
+
+        _updateResolved: function _updateResolved(path) {
+            var accepted = this.get('conflictedKeyPaths.' + path + '.accepted'),
+                rejected = this.get('conflictedKeyPaths.' + path + '.rejected'),
+                resolved = accepted.size + rejected.size === 3;
+            this.set('conflictedKeyPaths.' + path + '.resolved', resolved);
+        },
+
+        resolvedValue: function resolvedValue(obj, path) {
+            obj = obj || this.get('json');
+            path = path || this.get('path');
+            var accepted = this.get('conflictedKeyPaths.' + path + '.accepted'),
+                result = [];
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = accepted[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var opt = _step2.value;
+
+                    var conflict = obj['__CONFLICT'],
+                        value = conflict[opt];
+                    if (value === null) {
+                        value = new result.constructor();
+                    }
+                    if (this._isArray(value)) {
+                        if (!this._isArray(result)) {
+                            result = [result];
+                        }
+                        Array.prototype.push.apply(result, value);
+                    } else {
+                        if (this._isArray(result)) {
+                            result.push(value);
+                        } else {
+                            result += value;
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+                        _iterator2['return']();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            if (this._isArray(result)) {
+                return Array.from(new Set(result));
+            }
+            return result;
+            // Get selected options and combine them if they are arrays. Concat if strings.
+        },
+
+        value: function value(obj, option) {
+            obj = obj || this.get('json');
+            if (this._isConflict(obj)) {
+                return obj.get('__CONFLICT.' + option);
+            } else {
+                return obj;
+            }
         },
 
         toType: function toType(obj) {
             return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+        },
+
+        _isObject: function _isObject(obj) {
+            obj = obj || this.get('json');
+            return utils['default'].toType(obj) === 'object';
+        },
+
+        _isArray: function _isArray(obj) {
+            obj = obj || this.get('json');
+            return Array.isArray(obj);
+        },
+
+        _isConflict: function _isConflict(obj) {
+            obj = obj || this.get('json');
+            return this.get('isObject') && '__CONFLICT' in obj;
         }
+
     });
 
 });
@@ -7062,8 +7978,11 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
                 if (attributes.itemprop) {
                     property = attributes.itemprop.value;
                 }
-                if (guess || !FIELD_TYPE[type]) {
-                    return this.guessType(extractedData, property, classes);
+                if (guess || !FIELD_TYPE[type] || type === "text") {
+                    var guessed = this.guessType(extractedData, property, classes);
+                    if (guessed) {
+                        return guessed;
+                    }
                 }
                 return FIELD_TYPE[type];
             }
@@ -7121,8 +8040,8 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
         },
 
         guessType: function guessType(data, property, classes) {
-            var classes = Array.prototype.slice.call(classes, 0),
-                key;
+            var key;
+            classes = Array.prototype.slice.call(classes, 0);
             if (property) {
                 for (key in VOCAB_FIELD_PROPERTY) {
                     if (VOCAB_FIELD_PROPERTY[key].has(property)) {
@@ -7135,7 +8054,7 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
                 classes = classes.filter(function (c) {
                     return prefixes.has(c.split("-")[0]);
                 });
-                if (classes.length) {
+                if (classes.length > 0) {
                     for (key in VOCAB_FIELD_CLASS) {
                         for (var i = 0; i < classes.length; i++) {
                             property = classes[i];
@@ -7156,7 +8075,7 @@ define('portia-web/mixins/guess-types', ['exports', 'ember'], function (exports,
             }
             var prices = data.match(/\d+(?:(?:,\d{3})+)?(?:.\d+)?/);
             if (prices !== null && prices.length && prices[0].length / data.length > 0.05) {
-                return "prices";
+                return "price";
             }
             var numbers = data.match(/\d+(?:\.\d+)?/);
             if (numbers !== null && numbers.length && numbers[0].length / data.length > 0.05) {
@@ -7232,31 +8151,10 @@ define('portia-web/mixins/notification-handler', ['exports', 'ember', 'portia-we
     'use strict';
 
     exports['default'] = Ember['default'].Mixin.create({
-        showNotification: function showNotification(title, message, type) {
-            if (title && !message) {
-                message = title;
-                title = null;
-            }
-            if (message) {
-                NotificationManager['default'].add({
-                    title: title,
-                    message: message,
-                    type: type || 'info'
-                });
-            }
-        },
-
-        showSuccessNotification: function showSuccessNotification(title, message) {
-            this.showNotification(title, message, 'success');
-        },
-
-        showWarningNotification: function showWarningNotification(title, message) {
-            this.showNotification(title, message, 'warning');
-        },
-
-        showErrorNotification: function showErrorNotification(title, message) {
-            this.showNotification(title, message, 'danger');
-        }
+        showNotification: NotificationManager['default'].showNotification.bind(NotificationManager['default']),
+        showSuccessNotification: NotificationManager['default'].showSuccessNotification.bind(NotificationManager['default']),
+        showWarningNotification: NotificationManager['default'].showWarningNotification.bind(NotificationManager['default']),
+        showErrorNotification: NotificationManager['default'].showErrorNotification.bind(NotificationManager['default'])
     });
 
 });
@@ -7331,17 +8229,6 @@ define('portia-web/mixins/size-listener', ['exports', 'ember'], function (export
 
         openAccordion: function openAccordion(accordionNumber) {
             Ember['default'].$('.accordion').accordion('option', 'active', accordionNumber);
-        }
-    });
-
-});
-define('portia-web/mixins/toolbox-state-mixin', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Mixin.create({
-        willEnter: function willEnter() {
-            this.set('toolbox.fixed', this.get('fixedToolbox') || false);
         }
     });
 
@@ -7591,17 +8478,20 @@ define('portia-web/models/extracted-item', ['exports', 'ember', 'portia-web/mode
         extracted: null,
         matchedTemplate: null,
 
-        url: (function () {
-            return this.get('extracted.url');
-        }).property('extracted'),
+        url: Ember['default'].computed.reads('extracted.url'),
 
         fields: (function () {
             var fields = [],
                 item = this.get('extracted');
             Object.keys(item).forEach((function (key) {
-                var fieldDefinition = this.get('definition.fields').findBy('name', key);
+                var fieldDefinition = this.get('definition.fields').findBy('display_name', key);
+                if (!fieldDefinition) {
+                    fieldDefinition = this.get('definition.fields').findBy('name', key);
+                }
                 if (fieldDefinition) {
-                    fields.pushObject(ExtractedField['default'].create({ name: key, type: fieldDefinition.get('type'), value: item[key] }));
+                    fields.pushObject(ExtractedField['default'].create({ name: fieldDefinition.getWithDefault('display_name', fieldDefinition.get('name')),
+                        type: fieldDefinition.get('type'),
+                        value: item[key] }));
                 }
             }).bind(this));
             return fields;
@@ -7670,20 +8560,28 @@ define('portia-web/models/item-field', ['exports', 'portia-web/models/simple-mod
     'use strict';
 
     exports['default'] = SimpleModel['default'].extend({
-        serializedProperties: ['name', 'type', 'required', 'vary'],
+        serializedProperties: ['name', 'type', 'required', 'vary', 'display_name'],
         type: 'text',
         required: false,
-        vary: false
+        vary: false,
+
+        _create_display_name: (function () {
+            this.set('display_name', this.get('fieldName'));
+        }).on('init'),
+
+        fieldName: (function () {
+            return this.getWithDefault('display_name', this.get('name'));
+        }).property('name', 'display_name')
     });
 
 });
-define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', 'portia-web/models/item-field'], function (exports, SimpleModel, ItemField) {
+define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', 'portia-web/models/item-field', 'portia-web/utils/utils'], function (exports, SimpleModel, ItemField, utils) {
 
     'use strict';
 
     exports['default'] = SimpleModel['default'].extend({
         serializedRelations: ['fields'],
-        serializedProperties: ['name'],
+        serializedProperties: ['name', 'display_name'],
         fields: null,
 
         validateName: function validateName(name) {
@@ -7697,7 +8595,8 @@ define('portia-web/models/item', ['exports', 'portia-web/models/simple-model', '
         },
 
         addField: function addField(name, type) {
-            var newField = ItemField['default'].create({ name: name || 'new_field',
+            var newField = ItemField['default'].create({ name: utils['default'].shortGuid(),
+                display_name: name || 'new_field',
                 type: type || 'text',
                 required: false,
                 vary: false });
@@ -7755,8 +8654,10 @@ define('portia-web/models/spider', ['exports', 'ember', 'portia-web/models/simpl
 
     'use strict';
 
+    var ARRAY_PROPERTIES = ['start_urls', 'follow_patterns', 'exclude_patterns', 'js_enable_patterns', 'js_disable_patterns', 'allowed_domains', 'templates', 'template_names'];
+
     exports['default'] = SimpleModel['default'].extend({
-        serializedProperties: ['start_urls', 'start_urls', 'links_to_follow', 'follow_patterns', 'exclude_patterns', 'respect_nofollow', 'init_requests', 'template_names'],
+        serializedProperties: ['start_urls', 'start_urls', 'links_to_follow', 'follow_patterns', 'js_enabled', 'js_enable_patterns', 'js_disable_patterns', 'exclude_patterns', 'respect_nofollow', 'init_requests', 'template_names'],
         serializedRelations: ['templates'],
         start_urls: null,
         links_to_follow: 'patterns',
@@ -7768,15 +8669,20 @@ define('portia-web/models/spider', ['exports', 'ember', 'portia-web/models/simpl
         init_requests: null,
 
         init: function init() {
-            if (this.get('init_requests') === null) {
-                this.set('init_requests', []);
-            }
+            var _this = this;
 
-            this.get('serializedProperties').forEach((function (prop) {
-                this.addObserver(prop + '.[]', (function () {
-                    this.notifyPropertyChange('dirty');
-                }).bind(this));
-            }).bind(this));
+            ARRAY_PROPERTIES.forEach(function (prop) {
+                if (!_this.get(prop)) {
+                    _this.set(prop, []);
+                }
+            });
+
+            var markDirty = function markDirty() {
+                return _this.notifyPropertyChange('dirty');
+            };
+            this.serializedProperties.forEach(function (prop) {
+                _this.addObserver(prop + '.[]', markDirty);
+            });
         },
 
         performLogin: (function (key, performLogin) {
@@ -7876,8 +8782,10 @@ define('portia-web/routes/base-route', ['exports', 'ember'], function (exports, 
 
     exports['default'] = Ember['default'].Route.extend({
         activate: function activate() {
-            this.set('toolbox.fixed', this.getWithDefault('fixedToolbox', true));
+
             var controller = this.controller || this.controllerFor(this.getControllerName());
+            var fixed = controller.getWithDefault('fixedToolbox', this.getWithDefault('fixedToolbox', true));
+            this.set('toolbox.fixed', fixed);
             if (controller.willEnter) {
                 controller.willEnter();
             }
@@ -7983,6 +8891,7 @@ define('portia-web/routes/project', ['exports', 'portia-web/routes/base-route'],
         beforeModel: function beforeModel(s) {
             if (s.params.project.project_id) {
                 this.set('slyd.project', s.params.project.project_id);
+                this.set('ws.project', s.params.project.project_id);
                 return this.get('slyd').editProject(s.params.project.project_id, 'master');
             }
         },
@@ -8007,15 +8916,7 @@ define('portia-web/routes/project/index', ['exports', 'portia-web/routes/base-ro
         afterModel: function afterModel() {
             if (this.get('capabilities.version_control')) {
                 var controller = this.controllerFor('project.index');
-                return this.get('slyd').conflictedFiles(this.get('slyd.project')).then((function (conflictedFiles) {
-                    if (Object.keys(conflictedFiles).length !== 0) {
-                        // If there are conflicted files, redirect the user to
-                        // automated concept resolution.
-                        this.transitionTo('conflicts');
-                    }
-                }).bind(this)).then((function () {
-                    return this.get('slyd').changedFiles(this.get('slyd.project'));
-                }).bind(this)).then(function (changes) {
+                return this.get('slyd').changedFiles(this.get('slyd.project')).then(function (changes) {
                     controller.set('changedFiles', changes);
                 });
             }
@@ -8203,82 +9104,62 @@ define('portia-web/routes/template/index', ['exports', 'portia-web/routes/base-r
     });
 
 });
-define('portia-web/templates/annotated-document-view', ['exports'], function (exports) {
+define('portia-web/services/clock', ['exports', 'ember'], function (exports, Ember) {
 
   'use strict';
 
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("div");
-        dom.setAttribute(el1,"id","scraped-doc");
-        var el2 = dom.createTextNode("\n	");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("iframe");
-        dom.setAttribute(el2,"id","scraped-doc-iframe");
-        dom.setAttribute(el2,"src","start.html");
-        dom.setAttribute(el2,"class","adjust-height");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n	");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("canvas");
-        dom.setAttribute(el2,"id","infocanvas");
-        dom.setAttribute(el2,"class","doc-canvas adjust-height");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n	");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("div");
-        dom.setAttribute(el2,"id","loader-container");
-        dom.setAttribute(el2,"class","adjust-height");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n	");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("div");
-        dom.setAttribute(el2,"style","position:absolute;z-index:20;width:100%;pointer-events:none");
-        var el3 = dom.createTextNode("\n		");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("div");
-        dom.setAttribute(el3,"id","hovered-element-info");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n	");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
+  exports['default'] = Ember['default'].Object.extend({
+    intervalTime: 1000,
+    second: 0,
+    minute: 0,
+    five: 0,
+    quarter: 0,
+    hour: 0,
+    init: function init() {
+      var self = this,
+          interval = window.setInterval(function () {
+        self.tick.call(self);
+      }, this.get('intervalTime'));
+      this.set('interval', interval);
+    },
+    reset: function reset() {
+      this.willDestroy();
+      this.init();
+      this.setProperties({ second: 0, minute: 0, five: 0, quarter: 0, hour: 0 });
+    },
+    intervalChange: (function () {
+      if (Ember['default'].testing) {
+        return this.reset();
+      }
+      throw Error('The clock interval cannot be changed except during testing');
+    }).observes('intervalTime'),
+    tick: function tick() {
+      Ember['default'].run(this, function () {
+        var second = this.incrementProperty('second');
+
+        if (second && second % 60 === 0) {
+          var minute = this.incrementProperty('minute');
+
+          if (minute !== 0) {
+            if (minute % 5 === 0) {
+              this.incrementProperty('five');
+            }
+
+            if (minute % 15 === 0) {
+              this.incrementProperty('quarter');
+            }
+
+            if (minute % 60 === 0) {
+              this.incrementProperty('hour');
             }
           }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
         }
-        return fragment;
-      }
-    };
-  }()));
+      });
+    },
+    willDestroy: function willDestroy() {
+      window.clearInterval(this.get('interval'));
+    }
+  });
 
 });
 define('portia-web/templates/application', ['exports'], function (exports) {
@@ -8400,15 +9281,11 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
         return el0;
       },
       render: function render(context, env, contextualElement) {
         var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block, inline = hooks.inline, content = hooks.content;
+        var hooks = env.hooks, block = hooks.block, inline = hooks.inline, content = hooks.content;
         dom.detectNamespace(contextualElement);
         var fragment;
         if (env.useFragmentCache && dom.canClone) {
@@ -8432,15 +9309,13 @@ define('portia-web/templates/application', ['exports'], function (exports) {
         var morph3 = dom.createMorphAt(fragment,5,5,contextualElement);
         var morph4 = dom.createMorphAt(fragment,7,7,contextualElement);
         var morph5 = dom.createMorphAt(fragment,8,8,contextualElement);
-        var morph6 = dom.createMorphAt(fragment,10,10,contextualElement);
         dom.insertBoundary(fragment, 0);
-        block(env, morph0, context, "top-bar", [], {"branding": get(env, context, "customizations.branding"), "project": get(env, context, "slyd.project")}, child0, null);
+        block(env, morph0, context, "top-bar", [], {}, child0, null);
         inline(env, morph1, context, "outlet", ["conflictResolver"], {});
         inline(env, morph2, context, "outlet", ["modal"], {});
-        content(env, morph3, context, "web-document");
+        content(env, morph3, context, "web-document-js");
         block(env, morph4, context, "tool-box", [], {}, child1, null);
         content(env, morph5, context, "bs-notifications");
-        inline(env, morph6, context, "component", [get(env, context, "customizations.help.component")], {"data": get(env, context, "customizations.help.data")});
         return fragment;
       }
     };
@@ -9471,6 +10346,53 @@ define('portia-web/templates/components/bs-label', ['exports'], function (export
   }()));
 
 });
+define('portia-web/templates/components/bs-message', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      isHTMLBars: true,
+      revision: "Ember@1.11.3",
+      blockParams: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      build: function build(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      render: function render(context, env, contextualElement) {
+        var dom = env.dom;
+        var hooks = env.hooks, content = hooks.content;
+        dom.detectNamespace(contextualElement);
+        var fragment;
+        if (env.useFragmentCache && dom.canClone) {
+          if (this.cachedFragment === null) {
+            fragment = this.build(dom);
+            if (this.hasRendered) {
+              this.cachedFragment = fragment;
+            } else {
+              this.hasRendered = true;
+            }
+          }
+          if (this.cachedFragment) {
+            fragment = dom.cloneNode(this.cachedFragment, true);
+          }
+        } else {
+          fragment = this.build(dom);
+        }
+        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+        dom.insertBoundary(fragment, null);
+        dom.insertBoundary(fragment, 0);
+        content(env, morph0, context, "yield");
+        return fragment;
+      }
+    };
+  }()));
+
+});
 define('portia-web/templates/components/bs-modal', ['exports'], function (exports) {
 
   'use strict';
@@ -10492,7 +11414,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
             fragment = this.build(dom);
           }
           var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          content(env, morph0, context, "item.name");
+          content(env, morph0, context, "item.display_name");
           return fragment;
         }
       };
@@ -10540,7 +11462,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
                 fragment = this.build(dom);
               }
               var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
-              content(env, morph0, context, "field.name");
+              content(env, morph0, context, "field.fieldName");
               return fragment;
             }
           };
@@ -10657,7 +11579,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
             var morph4 = dom.createMorphAt(dom.childAt(element0, [9]),1,1);
             set(env, context, "field", blockArguments[0]);
             set(env, context, "index", blockArguments[1]);
-            block(env, morph0, context, "inline-editable-text-field", [], {"action": "editField", "text": get(env, context, "field.name"), "name": get(env, context, "index"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
+            block(env, morph0, context, "inline-editable-text-field", [], {"validate": "validateFieldName", "text": get(env, context, "field.fieldName"), "validation": "^[a-zA-Z0-9_-]+$", "action": "renameField", "name": get(env, context, "index")}, child0, null);
             inline(env, morph1, context, "item-select", [], {"options": get(env, context, "extractionTypes"), "value": get(env, context, "field.type")});
             inline(env, morph2, context, "check-box", [], {"checked": get(env, context, "field.required")});
             inline(env, morph3, context, "check-box", [], {"checked": get(env, context, "field.vary")});
@@ -10929,6 +11851,8 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
         return el0;
       },
       render: function render(context, env, contextualElement) {
@@ -10958,7 +11882,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
         var morph1 = dom.createMorphAt(dom.childAt(element2, [3]),1,1);
         var morph2 = dom.createMorphAt(element3,1,1);
         var morph3 = dom.createMorphAt(dom.childAt(element3, [3]),1,1);
-        block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "item.name"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
+        block(env, morph0, context, "inline-editable-text-field", [], {"validate": "validateItemName", "text": get(env, context, "item.display_name"), "validation": "^[a-zA-Z0-9_-]+$"}, child0, null);
         inline(env, morph1, context, "bs-button", [], {"clicked": "delete", "icon": "fa fa-icon fa-trash", "type": "danger", "size": "xs"});
         block(env, morph2, context, "if", [get(env, context, "item.fields")], {}, child1, child2);
         block(env, morph3, context, "bs-button", [], {"clicked": "addField", "icon": "fa fa-icon fa-plus", "type": "primary", "size": "sm"}, child3, null);
@@ -11733,7 +12657,7 @@ define('portia-web/templates/components/inline-editable-text-field', ['exports']
             fragment = this.build(dom);
           }
           var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          inline(env, morph0, context, "text-field", [], {"value": get(env, context, "text"), "width": "100%", "saveOnExit": true, "action": "update"});
+          inline(env, morph0, context, "text-field", [], {"value": get(env, context, "text"), "width": "100%", "placeholder": get(env, context, "placeholder"), "saveOnExit": true, "action": "update"});
           return fragment;
         }
       };
@@ -12137,6 +13061,49 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
     var child0 = (function() {
       var child0 = (function() {
         var child0 = (function() {
+          var child0 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 0,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("                ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createComment("");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement) {
+                var dom = env.dom;
+                var hooks = env.hooks, get = hooks.get, inline = hooks.inline;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+                inline(env, morph0, context, "json-file-compare", [], {"json": get(env, context, "entry.json"), "path": get(env, context, "entry.path"), "conflictedKeyPaths": get(env, context, "conflictedKeyPaths"), "conflictOptionSelected": "conflictOptionSelected", "conflictOptionRejected": "conflictOptionRejected", "conflictOptionUpdated": "conflictOptionUpdated", "multi": true});
+                return fragment;
+              }
+            };
+          }());
           return {
             isHTMLBars: true,
             revision: "Ember@1.11.3",
@@ -12145,41 +13112,13 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
             hasRendered: false,
             build: function build(dom) {
               var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("            ");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("span");
-              dom.setAttribute(el1,"style","color:green;font-weight:bold");
-              var el2 = dom.createTextNode("RESOLVED TO ");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createComment("");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n            ");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("div");
-              dom.setAttribute(el1,"style","margin:5px 0px 0px 40px;background:#AEA;");
-              dom.setAttribute(el1,"class","conflict-option");
-              var el2 = dom.createTextNode("\n                ");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createElement("span");
-              dom.setAttribute(el2,"style","font-weight:bold;color:green;margin:5px");
-              var el3 = dom.createTextNode(" [CHANGE SELECTION] ");
-              dom.appendChild(el2, el3);
-              dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode("\n                ");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createComment("");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode(",\n            ");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
+              var el1 = dom.createComment("");
               dom.appendChild(el0, el1);
               return el0;
             },
             render: function render(context, env, contextualElement) {
               var dom = env.dom;
-              var hooks = env.hooks, content = hooks.content, get = hooks.get, element = hooks.element;
+              var hooks = env.hooks, get = hooks.get, block = hooks.block;
               dom.detectNamespace(contextualElement);
               var fragment;
               if (env.useFragmentCache && dom.canClone) {
@@ -12197,17 +13136,150 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
               } else {
                 fragment = this.build(dom);
               }
-              var element2 = dom.childAt(fragment, [3]);
-              var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
-              var morph1 = dom.createMorphAt(element2,3,3);
-              content(env, morph0, context, "selectedOption");
-              element(env, element2, context, "action", ["conflictOptionSelected", get(env, context, "path"), get(env, context, "null")], {});
-              content(env, morph1, context, "resolvedValue");
+              var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+              dom.insertBoundary(fragment, null);
+              dom.insertBoundary(fragment, 0);
+              block(env, morph0, context, "each", [get(env, context, "entries")], {"keyword": "entry"}, child0, null);
               return fragment;
             }
           };
         }());
         var child1 = (function() {
+          return {
+            isHTMLBars: true,
+            revision: "Ember@1.11.3",
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("            ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("span");
+              var el2 = dom.createComment("");
+              dom.appendChild(el1, el2);
+              var el2 = dom.createTextNode(",");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, content = hooks.content;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
+              content(env, morph0, context, "entry.value");
+              return fragment;
+            }
+          };
+        }());
+        return {
+          isHTMLBars: true,
+          revision: "Ember@1.11.3",
+          blockParams: 2,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("    ");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement, blockArguments) {
+            var dom = env.dom;
+            var hooks = env.hooks, set = hooks.set, get = hooks.get, block = hooks.block;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+            set(env, context, "entry", blockArguments[0]);
+            set(env, context, "index", blockArguments[1]);
+            block(env, morph0, context, "if", [get(env, context, "entry.conflict")], {}, child0, child1);
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        revision: "Ember@1.11.3",
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("    [");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("]\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+          block(env, morph0, context, "each", [get(env, context, "entries")], {}, child0, null);
+          return fragment;
+        }
+      };
+    }());
+    var child1 = (function() {
+      var child0 = (function() {
+        var child0 = (function() {
           var child0 = (function() {
             return {
               isHTMLBars: true,
@@ -12217,31 +13289,30 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
               hasRendered: false,
               build: function build(dom) {
                 var el0 = dom.createDocumentFragment();
-                var el1 = dom.createTextNode("                    ");
+                var el1 = dom.createTextNode("            ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("span");
+                dom.setAttribute(el1,"style","color:#2d882d;font-weight:bold");
+                var el2 = dom.createTextNode("RESOLVED");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n            ");
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("div");
+                dom.setAttribute(el1,"style","margin:5px 0px 0px 40px;background:#AEA;");
                 dom.setAttribute(el1,"class","conflict-option");
-                var el2 = dom.createTextNode("\n                        ");
+                var el2 = dom.createTextNode("\n                ");
                 dom.appendChild(el1, el2);
-                var el2 = dom.createElement("div");
-                dom.setAttribute(el2,"style","color:white");
-                var el3 = dom.createComment("");
-                dom.appendChild(el2, el3);
-                var el3 = dom.createTextNode(":");
+                var el2 = dom.createElement("span");
+                dom.setAttribute(el2,"style","font-weight:bold;color:#2d882d;margin:5px");
+                var el3 = dom.createTextNode(" [CHANGE SELECTION] ");
                 dom.appendChild(el2, el3);
                 dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode("\n                        ");
+                var el2 = dom.createTextNode("\n                ");
                 dom.appendChild(el1, el2);
-                var el2 = dom.createElement("div");
-                dom.setAttribute(el2,"style","word-break:break-word");
-                var el3 = dom.createTextNode("\n                            ");
-                dom.appendChild(el2, el3);
-                var el3 = dom.createComment("");
-                dom.appendChild(el2, el3);
-                var el3 = dom.createTextNode("\n                        ");
-                dom.appendChild(el2, el3);
+                var el2 = dom.createComment("");
                 dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode("\n                    ");
+                var el2 = dom.createTextNode(",\n            ");
                 dom.appendChild(el1, el2);
                 dom.appendChild(el0, el1);
                 var el1 = dom.createTextNode("\n");
@@ -12268,12 +13339,281 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
                 } else {
                   fragment = this.build(dom);
                 }
-                var element1 = dom.childAt(fragment, [1]);
-                var morph0 = dom.createMorphAt(dom.childAt(element1, [1]),0,0);
-                var morph1 = dom.createMorphAt(dom.childAt(element1, [3]),1,1);
-                element(env, element1, context, "action", ["conflictOptionSelected", get(env, context, "path"), get(env, context, "this.key")], {});
-                content(env, morph0, context, "value.label");
-                content(env, morph1, context, "value.value");
+                var element5 = dom.childAt(fragment, [3]);
+                var morph0 = dom.createMorphAt(element5,3,3);
+                element(env, element5, context, "action", ["conflictOptionSelected", get(env, context, "path"), get(env, context, "null")], {});
+                content(env, morph0, context, "resolvedRepr");
+                return fragment;
+              }
+            };
+          }());
+          var child1 = (function() {
+            var child0 = (function() {
+              var child0 = (function() {
+                return {
+                  isHTMLBars: true,
+                  revision: "Ember@1.11.3",
+                  blockParams: 0,
+                  cachedFragment: null,
+                  hasRendered: false,
+                  build: function build(dom) {
+                    var el0 = dom.createDocumentFragment();
+                    var el1 = dom.createTextNode("                            ");
+                    dom.appendChild(el0, el1);
+                    var el1 = dom.createElement("span");
+                    dom.setAttribute(el1,"class","fa fa-icon fa-check green-label");
+                    dom.appendChild(el0, el1);
+                    var el1 = dom.createTextNode("\n");
+                    dom.appendChild(el0, el1);
+                    return el0;
+                  },
+                  render: function render(context, env, contextualElement) {
+                    var dom = env.dom;
+                    var hooks = env.hooks, get = hooks.get, element = hooks.element;
+                    dom.detectNamespace(contextualElement);
+                    var fragment;
+                    if (env.useFragmentCache && dom.canClone) {
+                      if (this.cachedFragment === null) {
+                        fragment = this.build(dom);
+                        if (this.hasRendered) {
+                          this.cachedFragment = fragment;
+                        } else {
+                          this.hasRendered = true;
+                        }
+                      }
+                      if (this.cachedFragment) {
+                        fragment = dom.cloneNode(this.cachedFragment, true);
+                      }
+                    } else {
+                      fragment = this.build(dom);
+                    }
+                    var element2 = dom.childAt(fragment, [1]);
+                    element(env, element2, context, "action", ["conflictOptionSelected", get(env, context, "path"), get(env, context, "value.key")], {});
+                    return fragment;
+                  }
+                };
+              }());
+              var child1 = (function() {
+                var child0 = (function() {
+                  return {
+                    isHTMLBars: true,
+                    revision: "Ember@1.11.3",
+                    blockParams: 0,
+                    cachedFragment: null,
+                    hasRendered: false,
+                    build: function build(dom) {
+                      var el0 = dom.createDocumentFragment();
+                      var el1 = dom.createTextNode("                                    ");
+                      dom.appendChild(el0, el1);
+                      var el1 = dom.createElement("span");
+                      dom.setAttribute(el1,"class","fa fa-icon fa-times red-label");
+                      dom.appendChild(el0, el1);
+                      var el1 = dom.createTextNode("\n");
+                      dom.appendChild(el0, el1);
+                      return el0;
+                    },
+                    render: function render(context, env, contextualElement) {
+                      var dom = env.dom;
+                      var hooks = env.hooks, get = hooks.get, element = hooks.element;
+                      dom.detectNamespace(contextualElement);
+                      var fragment;
+                      if (env.useFragmentCache && dom.canClone) {
+                        if (this.cachedFragment === null) {
+                          fragment = this.build(dom);
+                          if (this.hasRendered) {
+                            this.cachedFragment = fragment;
+                          } else {
+                            this.hasRendered = true;
+                          }
+                        }
+                        if (this.cachedFragment) {
+                          fragment = dom.cloneNode(this.cachedFragment, true);
+                        }
+                      } else {
+                        fragment = this.build(dom);
+                      }
+                      var element1 = dom.childAt(fragment, [1]);
+                      element(env, element1, context, "action", ["conflictOptionRejected", get(env, context, "path"), get(env, context, "value.key")], {});
+                      return fragment;
+                    }
+                  };
+                }());
+                return {
+                  isHTMLBars: true,
+                  revision: "Ember@1.11.3",
+                  blockParams: 0,
+                  cachedFragment: null,
+                  hasRendered: false,
+                  build: function build(dom) {
+                    var el0 = dom.createDocumentFragment();
+                    var el1 = dom.createComment("");
+                    dom.appendChild(el0, el1);
+                    return el0;
+                  },
+                  render: function render(context, env, contextualElement) {
+                    var dom = env.dom;
+                    var hooks = env.hooks, get = hooks.get, block = hooks.block;
+                    dom.detectNamespace(contextualElement);
+                    var fragment;
+                    if (env.useFragmentCache && dom.canClone) {
+                      if (this.cachedFragment === null) {
+                        fragment = this.build(dom);
+                        if (this.hasRendered) {
+                          this.cachedFragment = fragment;
+                        } else {
+                          this.hasRendered = true;
+                        }
+                      }
+                      if (this.cachedFragment) {
+                        fragment = dom.cloneNode(this.cachedFragment, true);
+                      }
+                    } else {
+                      fragment = this.build(dom);
+                    }
+                    var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+                    dom.insertBoundary(fragment, null);
+                    dom.insertBoundary(fragment, 0);
+                    block(env, morph0, context, "unless", [get(env, context, "value.rejected")], {}, child0, null);
+                    return fragment;
+                  }
+                };
+              }());
+              return {
+                isHTMLBars: true,
+                revision: "Ember@1.11.3",
+                blockParams: 0,
+                cachedFragment: null,
+                hasRendered: false,
+                build: function build(dom) {
+                  var el0 = dom.createDocumentFragment();
+                  var el1 = dom.createTextNode("                    ");
+                  dom.appendChild(el0, el1);
+                  var el1 = dom.createElement("div");
+                  var el2 = dom.createTextNode("\n                        ");
+                  dom.appendChild(el1, el2);
+                  var el2 = dom.createElement("span");
+                  dom.setAttribute(el2,"style","font-weight:bold");
+                  var el3 = dom.createTextNode("\n                            ");
+                  dom.appendChild(el2, el3);
+                  var el3 = dom.createComment("");
+                  dom.appendChild(el2, el3);
+                  var el3 = dom.createTextNode(":\n");
+                  dom.appendChild(el2, el3);
+                  var el3 = dom.createComment("");
+                  dom.appendChild(el2, el3);
+                  var el3 = dom.createComment("");
+                  dom.appendChild(el2, el3);
+                  var el3 = dom.createTextNode("                        ");
+                  dom.appendChild(el2, el3);
+                  dom.appendChild(el1, el2);
+                  var el2 = dom.createTextNode("\n                        ");
+                  dom.appendChild(el1, el2);
+                  var el2 = dom.createElement("span");
+                  dom.setAttribute(el2,"style","word-break:break-word");
+                  var el3 = dom.createTextNode("\n                            ");
+                  dom.appendChild(el2, el3);
+                  var el3 = dom.createComment("");
+                  dom.appendChild(el2, el3);
+                  var el3 = dom.createTextNode("\n                        ");
+                  dom.appendChild(el2, el3);
+                  dom.appendChild(el1, el2);
+                  var el2 = dom.createTextNode("\n                    ");
+                  dom.appendChild(el1, el2);
+                  dom.appendChild(el0, el1);
+                  var el1 = dom.createTextNode("\n");
+                  dom.appendChild(el0, el1);
+                  return el0;
+                },
+                render: function render(context, env, contextualElement) {
+                  var dom = env.dom;
+                  var hooks = env.hooks, get = hooks.get, concat = hooks.concat, attribute = hooks.attribute, subexpr = hooks.subexpr, content = hooks.content, block = hooks.block;
+                  dom.detectNamespace(contextualElement);
+                  var fragment;
+                  if (env.useFragmentCache && dom.canClone) {
+                    if (this.cachedFragment === null) {
+                      fragment = this.build(dom);
+                      if (this.hasRendered) {
+                        this.cachedFragment = fragment;
+                      } else {
+                        this.hasRendered = true;
+                      }
+                    }
+                    if (this.cachedFragment) {
+                      fragment = dom.cloneNode(this.cachedFragment, true);
+                    }
+                  } else {
+                    fragment = this.build(dom);
+                  }
+                  var element3 = dom.childAt(fragment, [1]);
+                  var element4 = dom.childAt(element3, [1]);
+                  var attrMorph0 = dom.createAttrMorph(element3, 'class');
+                  var morph0 = dom.createMorphAt(element4,1,1);
+                  var morph1 = dom.createMorphAt(element4,3,3);
+                  var morph2 = dom.createMorphAt(element4,4,4);
+                  var attrMorph1 = dom.createAttrMorph(element4, 'class');
+                  var morph3 = dom.createMorphAt(dom.childAt(element3, [3]),1,1);
+                  attribute(env, attrMorph0, element3, "class", concat(env, ["conflict-option ", get(env, context, "value.state")]));
+                  attribute(env, attrMorph1, element4, "class", concat(env, [subexpr(env, context, "if", [get(env, context, "value.accepted"), "green-label", ""], {})]));
+                  content(env, morph0, context, "value.label");
+                  block(env, morph1, context, "unless", [get(env, context, "value.accepted")], {}, child0, null);
+                  block(env, morph2, context, "if", [get(env, context, "multi")], {}, child1, null);
+                  content(env, morph3, context, "value.value");
+                  return fragment;
+                }
+              };
+            }());
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 0,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("            ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("span");
+                dom.setAttribute(el1,"style","color:#ff3939;font-weight:bold");
+                var el2 = dom.createTextNode("CONFLICT");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n            ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("div");
+                dom.setAttribute(el1,"style","margin-left:40px;");
+                var el2 = dom.createTextNode("\n");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createComment("");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createTextNode("            ");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement) {
+                var dom = env.dom;
+                var hooks = env.hooks, get = hooks.get, block = hooks.block;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
+                block(env, morph0, context, "each", [get(env, context, "conflictValues")], {"keyword": "value"}, child0, null);
                 return fragment;
               }
             };
@@ -12286,22 +13626,115 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
             hasRendered: false,
             build: function build(dom) {
               var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("            ");
+              var el1 = dom.createComment("");
               dom.appendChild(el0, el1);
-              var el1 = dom.createElement("span");
-              dom.setAttribute(el1,"style","color:red;font-weight:bold");
-              var el2 = dom.createTextNode("CONFLICTED VALUE");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n            ");
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, get = hooks.get, block = hooks.block;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+              dom.insertBoundary(fragment, null);
+              dom.insertBoundary(fragment, 0);
+              block(env, morph0, context, "if", [get(env, context, "resolved")], {}, child0, child1);
+              return fragment;
+            }
+          };
+        }());
+        var child1 = (function() {
+          var child0 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 0,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("                ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("div");
+                dom.setAttribute(el1,"style","margin:5px 5px 0px 20px;");
+                var el2 = dom.createTextNode("\n                    ");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createElement("span");
+                dom.setAttribute(el2,"style","font-weight:bold");
+                var el3 = dom.createComment("");
+                dom.appendChild(el2, el3);
+                var el3 = dom.createTextNode(":");
+                dom.appendChild(el2, el3);
+                dom.appendChild(el1, el2);
+                var el2 = dom.createComment("");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createTextNode("\n                ");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement) {
+                var dom = env.dom;
+                var hooks = env.hooks, content = hooks.content, get = hooks.get, inline = hooks.inline;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                var element0 = dom.childAt(fragment, [1]);
+                var morph0 = dom.createMorphAt(dom.childAt(element0, [1]),0,0);
+                var morph1 = dom.createMorphAt(element0,2,2);
+                content(env, morph0, context, "entry.key");
+                inline(env, morph1, context, "json-file-compare", [], {"json": get(env, context, "entry.json"), "path": get(env, context, "entry.path"), "conflictedKeyPaths": get(env, context, "conflictedKeyPaths"), "conflictOptionRejected": "conflictOptionRejected", "conflictOptionUpdated": "conflictOptionUpdated"});
+                return fragment;
+              }
+            };
+          }());
+          return {
+            isHTMLBars: true,
+            revision: "Ember@1.11.3",
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("        ");
               dom.appendChild(el0, el1);
               var el1 = dom.createElement("div");
-              dom.setAttribute(el1,"style","margin-left:40px;");
               var el2 = dom.createTextNode("\n");
               dom.appendChild(el1, el2);
               var el2 = dom.createComment("");
               dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode("            ");
+              var el2 = dom.createTextNode("        ");
               dom.appendChild(el1, el2);
               dom.appendChild(el0, el1);
               var el1 = dom.createTextNode("\n");
@@ -12328,8 +13761,8 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
               } else {
                 fragment = this.build(dom);
               }
-              var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
-              block(env, morph0, context, "each", [get(env, context, "conflictValues")], {"keyword": "value"}, child0, null);
+              var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
+              block(env, morph0, context, "each", [get(env, context, "entries")], {"keyword": "entry"}, child0, null);
               return fragment;
             }
           };
@@ -12369,72 +13802,12 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
             var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
             dom.insertBoundary(fragment, null);
             dom.insertBoundary(fragment, 0);
-            block(env, morph0, context, "if", [get(env, context, "resolved")], {}, child0, child1);
+            block(env, morph0, context, "if", [get(env, context, "isConflict")], {}, child0, child1);
             return fragment;
           }
         };
       }());
       var child1 = (function() {
-        var child0 = (function() {
-          return {
-            isHTMLBars: true,
-            revision: "Ember@1.11.3",
-            blockParams: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            build: function build(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("                ");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("div");
-              dom.setAttribute(el1,"style","margin:5px 5px 0px 20px;");
-              var el2 = dom.createTextNode("\n                    ");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createElement("span");
-              dom.setAttribute(el2,"style","font-weight:bold");
-              var el3 = dom.createComment("");
-              dom.appendChild(el2, el3);
-              var el3 = dom.createTextNode(":");
-              dom.appendChild(el2, el3);
-              dom.appendChild(el1, el2);
-              var el2 = dom.createComment("");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode("\n                ");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            render: function render(context, env, contextualElement) {
-              var dom = env.dom;
-              var hooks = env.hooks, content = hooks.content, get = hooks.get, inline = hooks.inline;
-              dom.detectNamespace(contextualElement);
-              var fragment;
-              if (env.useFragmentCache && dom.canClone) {
-                if (this.cachedFragment === null) {
-                  fragment = this.build(dom);
-                  if (this.hasRendered) {
-                    this.cachedFragment = fragment;
-                  } else {
-                    this.hasRendered = true;
-                  }
-                }
-                if (this.cachedFragment) {
-                  fragment = dom.cloneNode(this.cachedFragment, true);
-                }
-              } else {
-                fragment = this.build(dom);
-              }
-              var element0 = dom.childAt(fragment, [1]);
-              var morph0 = dom.createMorphAt(dom.childAt(element0, [1]),0,0);
-              var morph1 = dom.createMorphAt(element0,2,2);
-              content(env, morph0, context, "entry.key");
-              inline(env, morph1, context, "json-file-compare", [], {"json": get(env, context, "entry.json"), "path": get(env, context, "entry.path")});
-              return fragment;
-            }
-          };
-        }());
         return {
           isHTMLBars: true,
           revision: "Ember@1.11.3",
@@ -12443,15 +13816,9 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           hasRendered: false,
           build: function build(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("        ");
+            var el1 = dom.createTextNode("    ");
             dom.appendChild(el0, el1);
-            var el1 = dom.createElement("div");
-            var el2 = dom.createTextNode("{\n");
-            dom.appendChild(el1, el2);
-            var el2 = dom.createComment("");
-            dom.appendChild(el1, el2);
-            var el2 = dom.createTextNode("        },");
-            dom.appendChild(el1, el2);
+            var el1 = dom.createComment("");
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n");
             dom.appendChild(el0, el1);
@@ -12459,7 +13826,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           },
           render: function render(context, env, contextualElement) {
             var dom = env.dom;
-            var hooks = env.hooks, get = hooks.get, block = hooks.block;
+            var hooks = env.hooks, content = hooks.content;
             dom.detectNamespace(contextualElement);
             var fragment;
             if (env.useFragmentCache && dom.canClone) {
@@ -12477,8 +13844,8 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
             } else {
               fragment = this.build(dom);
             }
-            var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
-            block(env, morph0, context, "each", [get(env, context, "entries")], {"keyword": "entry"}, child0, null);
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+            content(env, morph0, context, "value");
             return fragment;
           }
         };
@@ -12518,50 +13885,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
           dom.insertBoundary(fragment, null);
           dom.insertBoundary(fragment, 0);
-          block(env, morph0, context, "if", [get(env, context, "isConflict")], {}, child0, child1);
-          return fragment;
-        }
-      };
-    }());
-    var child1 = (function() {
-      return {
-        isHTMLBars: true,
-        revision: "Ember@1.11.3",
-        blockParams: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        build: function build(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("    ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode(",\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          content(env, morph0, context, "value");
+          block(env, morph0, context, "if", [get(env, context, "isObject")], {}, child0, child1);
           return fragment;
         }
       };
@@ -12601,7 +13925,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
         var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
         dom.insertBoundary(fragment, null);
         dom.insertBoundary(fragment, 0);
-        block(env, morph0, context, "if", [get(env, context, "isObject")], {}, child0, child1);
+        block(env, morph0, context, "if", [get(env, context, "isArray")], {}, child0, child1);
         return fragment;
       }
     };
@@ -12742,58 +14066,6 @@ define('portia-web/templates/components/pin-toolbox-button', ['exports'], functi
         dom.insertBoundary(fragment, 0);
         block(env, morph0, context, "if", [get(env, context, "icon")], {}, child0, null);
         content(env, morph1, context, "yield");
-        return fragment;
-      }
-    };
-  }()));
-
-});
-define('portia-web/templates/components/portia-branding', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createElement("span");
-        dom.setAttribute(el1,"class","pull-right label-align");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, inline = hooks.inline;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(dom.childAt(fragment, [0]),1,1);
-        inline(env, morph0, context, "bs-label", [], {"type": "danger", "content": "Beta"});
         return fragment;
       }
     };
@@ -13227,16 +14499,25 @@ define('portia-web/templates/components/top-bar', ['exports'], function (exports
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
+        var el2 = dom.createElement("span");
+        dom.setAttribute(el2,"class","pull-right label-align");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         return el0;
       },
       render: function render(context, env, contextualElement) {
         var dom = env.dom;
-        var hooks = env.hooks, content = hooks.content, get = hooks.get, inline = hooks.inline;
+        var hooks = env.hooks, content = hooks.content, inline = hooks.inline;
         dom.detectNamespace(contextualElement);
         var fragment;
         if (env.useFragmentCache && dom.canClone) {
@@ -13257,10 +14538,10 @@ define('portia-web/templates/components/top-bar', ['exports'], function (exports
         var element0 = dom.childAt(fragment, [0]);
         var morph0 = dom.createMorphAt(dom.childAt(element0, [1]),1,1);
         var morph1 = dom.createMorphAt(element0,3,3);
-        var morph2 = dom.createMorphAt(element0,5,5);
+        var morph2 = dom.createMorphAt(dom.childAt(element0, [5]),1,1);
         content(env, morph0, context, "bread-crumbs");
         content(env, morph1, context, "yield");
-        inline(env, morph2, context, "component", [get(env, context, "branding.component")], {"project": get(env, context, "project"), "data": get(env, context, "branding.data")});
+        inline(env, morph2, context, "bs-label", [], {"type": "danger", "content": "Beta"});
         return fragment;
       }
     };
@@ -13622,7 +14903,7 @@ define('portia-web/templates/conflicts/resolver', ['exports'], function (exports
           fragment = this.build(dom);
         }
         var morph0 = dom.createMorphAt(dom.childAt(fragment, [0, 1, 1]),1,1);
-        inline(env, morph0, context, "json-file-compare", [], {"json": get(env, context, "controller.currentFileContents")});
+        inline(env, morph0, context, "json-file-compare", [], {"json": get(env, context, "controller.currentFileContents"), "conflictedKeyPaths": get(env, context, "controller.conflictedKeyPaths"), "conflictOptionSelected": "conflictOptionSelected", "conflictOptionRejected": "conflictOptionRejected", "conflictOptionUpdated": "conflictOptionUpdated"});
         return fragment;
       }
     };
@@ -13782,7 +15063,7 @@ define('portia-web/templates/conflicts/toolbox', ['exports'], function (exports)
           fragment = this.build(dom);
         }
         var morph0 = dom.createMorphAt(dom.childAt(fragment, [0, 3]),1,1);
-        block(env, morph0, context, "each", [get(env, context, "controller.conflictedFileNames")], {"keyword": "name"}, child0, null);
+        block(env, morph0, context, "each", [get(env, context, "conflictedFileNames")], {"keyword": "name"}, child0, null);
         return fragment;
       }
     };
@@ -14523,7 +15804,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
             fragment = this.build(dom);
           }
           var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          inline(env, morph0, context, "edit-item", [], {"item": get(env, context, "item"), "extractionTypes": get(env, context, "extractionTypes"), "addField": "addField", "deleteField": "deleteField", "delete": "deleteItem"});
+          inline(env, morph0, context, "edit-item", [], {"item": get(env, context, "item"), "items": get(env, context, "model"), "extractionTypes": get(env, context, "extractionTypes"), "addField": "addField", "deleteField": "deleteField", "delete": "deleteItem"});
           return fragment;
         }
       };
@@ -14765,485 +16046,6 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
         block(env, morph1, context, "bs-button", [], {"clicked": "addItem", "icon": "fa fa-icon fa-plus", "type": "primary", "size": "sm"}, child2, null);
         block(env, morph2, context, "bs-button", [], {"clicked": "saveChanges", "size": "sm", "icon": "fa fa-icon fa-save", "type": "primary"}, child3, null);
         block(env, morph3, context, "bs-button", [], {"clicked": "undoChanges", "size": "sm", "icon": "fa fa-icon fa-reply", "type": "danger"}, child4, null);
-        return fragment;
-      }
-    };
-  }()));
-
-});
-define('portia-web/templates/json-view', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    var child0 = (function() {
-      var child0 = (function() {
-        var child0 = (function() {
-          return {
-            isHTMLBars: true,
-            revision: "Ember@1.11.3",
-            blockParams: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            build: function build(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("			");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("span");
-              dom.setAttribute(el1,"style","color:green;font-weight:bold");
-              var el2 = dom.createTextNode("RESOLVED TO ");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createComment("");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n			");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("div");
-              dom.setAttribute(el1,"style","margin:5px 0px 0px 40px;background:#AEA;");
-              dom.setAttribute(el1,"class","conflict-option");
-              var el2 = dom.createTextNode("\n				");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createElement("span");
-              dom.setAttribute(el2,"style","font-weight:bold;color:green;margin:5px");
-              var el3 = dom.createTextNode(" [CHANGE SELECTION] ");
-              dom.appendChild(el2, el3);
-              dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode("\n				");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createComment("");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode(",\n			");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            render: function render(context, env, contextualElement) {
-              var dom = env.dom;
-              var hooks = env.hooks, content = hooks.content, get = hooks.get, element = hooks.element;
-              dom.detectNamespace(contextualElement);
-              var fragment;
-              if (env.useFragmentCache && dom.canClone) {
-                if (this.cachedFragment === null) {
-                  fragment = this.build(dom);
-                  if (this.hasRendered) {
-                    this.cachedFragment = fragment;
-                  } else {
-                    this.hasRendered = true;
-                  }
-                }
-                if (this.cachedFragment) {
-                  fragment = dom.cloneNode(this.cachedFragment, true);
-                }
-              } else {
-                fragment = this.build(dom);
-              }
-              var element2 = dom.childAt(fragment, [3]);
-              var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
-              var morph1 = dom.createMorphAt(element2,3,3);
-              content(env, morph0, context, "view.selectedOption");
-              element(env, element2, context, "action", ["conflictOptionSelected", get(env, context, "view.path"), get(env, context, "null")], {});
-              content(env, morph1, context, "view.resolvedValue");
-              return fragment;
-            }
-          };
-        }());
-        var child1 = (function() {
-          var child0 = (function() {
-            return {
-              isHTMLBars: true,
-              revision: "Ember@1.11.3",
-              blockParams: 0,
-              cachedFragment: null,
-              hasRendered: false,
-              build: function build(dom) {
-                var el0 = dom.createDocumentFragment();
-                var el1 = dom.createTextNode("					");
-                dom.appendChild(el0, el1);
-                var el1 = dom.createElement("div");
-                dom.setAttribute(el1,"class","conflict-option");
-                var el2 = dom.createTextNode("\n						");
-                dom.appendChild(el1, el2);
-                var el2 = dom.createElement("div");
-                dom.setAttribute(el2,"style","color:white");
-                var el3 = dom.createComment("");
-                dom.appendChild(el2, el3);
-                var el3 = dom.createTextNode(":");
-                dom.appendChild(el2, el3);
-                dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode("\n						");
-                dom.appendChild(el1, el2);
-                var el2 = dom.createElement("div");
-                dom.setAttribute(el2,"style","word-break:break-word");
-                var el3 = dom.createTextNode("\n							");
-                dom.appendChild(el2, el3);
-                var el3 = dom.createComment("");
-                dom.appendChild(el2, el3);
-                var el3 = dom.createTextNode("\n						");
-                dom.appendChild(el2, el3);
-                dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode("\n					");
-                dom.appendChild(el1, el2);
-                dom.appendChild(el0, el1);
-                var el1 = dom.createTextNode("\n");
-                dom.appendChild(el0, el1);
-                return el0;
-              },
-              render: function render(context, env, contextualElement) {
-                var dom = env.dom;
-                var hooks = env.hooks, get = hooks.get, element = hooks.element, content = hooks.content;
-                dom.detectNamespace(contextualElement);
-                var fragment;
-                if (env.useFragmentCache && dom.canClone) {
-                  if (this.cachedFragment === null) {
-                    fragment = this.build(dom);
-                    if (this.hasRendered) {
-                      this.cachedFragment = fragment;
-                    } else {
-                      this.hasRendered = true;
-                    }
-                  }
-                  if (this.cachedFragment) {
-                    fragment = dom.cloneNode(this.cachedFragment, true);
-                  }
-                } else {
-                  fragment = this.build(dom);
-                }
-                var element1 = dom.childAt(fragment, [1]);
-                var morph0 = dom.createMorphAt(dom.childAt(element1, [1]),0,0);
-                var morph1 = dom.createMorphAt(dom.childAt(element1, [3]),1,1);
-                element(env, element1, context, "action", ["conflictOptionSelected", get(env, context, "view.path"), get(env, context, "this.key")], {});
-                content(env, morph0, context, "value.label");
-                content(env, morph1, context, "value.value");
-                return fragment;
-              }
-            };
-          }());
-          return {
-            isHTMLBars: true,
-            revision: "Ember@1.11.3",
-            blockParams: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            build: function build(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("			");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("span");
-              dom.setAttribute(el1,"style","color:red;font-weight:bold");
-              var el2 = dom.createTextNode("CONFLICTED VALUE");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n			");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("div");
-              dom.setAttribute(el1,"style","margin-left:40px;");
-              var el2 = dom.createTextNode("\n");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createComment("");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode("			");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            render: function render(context, env, contextualElement) {
-              var dom = env.dom;
-              var hooks = env.hooks, get = hooks.get, block = hooks.block;
-              dom.detectNamespace(contextualElement);
-              var fragment;
-              if (env.useFragmentCache && dom.canClone) {
-                if (this.cachedFragment === null) {
-                  fragment = this.build(dom);
-                  if (this.hasRendered) {
-                    this.cachedFragment = fragment;
-                  } else {
-                    this.hasRendered = true;
-                  }
-                }
-                if (this.cachedFragment) {
-                  fragment = dom.cloneNode(this.cachedFragment, true);
-                }
-              } else {
-                fragment = this.build(dom);
-              }
-              var morph0 = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
-              block(env, morph0, context, "each", [get(env, context, "view.conflictValues")], {"keyword": "value"}, child0, null);
-              return fragment;
-            }
-          };
-        }());
-        return {
-          isHTMLBars: true,
-          revision: "Ember@1.11.3",
-          blockParams: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          build: function build(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createComment("");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, get = hooks.get, block = hooks.block;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
-            dom.insertBoundary(fragment, null);
-            dom.insertBoundary(fragment, 0);
-            block(env, morph0, context, "if", [get(env, context, "view.resolved")], {}, child0, child1);
-            return fragment;
-          }
-        };
-      }());
-      var child1 = (function() {
-        var child0 = (function() {
-          return {
-            isHTMLBars: true,
-            revision: "Ember@1.11.3",
-            blockParams: 0,
-            cachedFragment: null,
-            hasRendered: false,
-            build: function build(dom) {
-              var el0 = dom.createDocumentFragment();
-              var el1 = dom.createTextNode("				");
-              dom.appendChild(el0, el1);
-              var el1 = dom.createElement("div");
-              dom.setAttribute(el1,"style","margin:5px 5px 0px 20px;");
-              var el2 = dom.createTextNode("\n					");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createElement("span");
-              dom.setAttribute(el2,"style","font-weight:bold");
-              var el3 = dom.createComment("");
-              dom.appendChild(el2, el3);
-              var el3 = dom.createTextNode(":");
-              dom.appendChild(el2, el3);
-              dom.appendChild(el1, el2);
-              var el2 = dom.createComment("");
-              dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode("\n				");
-              dom.appendChild(el1, el2);
-              dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode("\n");
-              dom.appendChild(el0, el1);
-              return el0;
-            },
-            render: function render(context, env, contextualElement) {
-              var dom = env.dom;
-              var hooks = env.hooks, content = hooks.content, get = hooks.get, inline = hooks.inline;
-              dom.detectNamespace(contextualElement);
-              var fragment;
-              if (env.useFragmentCache && dom.canClone) {
-                if (this.cachedFragment === null) {
-                  fragment = this.build(dom);
-                  if (this.hasRendered) {
-                    this.cachedFragment = fragment;
-                  } else {
-                    this.hasRendered = true;
-                  }
-                }
-                if (this.cachedFragment) {
-                  fragment = dom.cloneNode(this.cachedFragment, true);
-                }
-              } else {
-                fragment = this.build(dom);
-              }
-              var element0 = dom.childAt(fragment, [1]);
-              var morph0 = dom.createMorphAt(dom.childAt(element0, [1]),0,0);
-              var morph1 = dom.createMorphAt(element0,2,2);
-              content(env, morph0, context, "entry.key");
-              inline(env, morph1, context, "view", ["json-view"], {"json": get(env, context, "entry.json"), "path": get(env, context, "entry.path")});
-              return fragment;
-            }
-          };
-        }());
-        return {
-          isHTMLBars: true,
-          revision: "Ember@1.11.3",
-          blockParams: 0,
-          cachedFragment: null,
-          hasRendered: false,
-          build: function build(dom) {
-            var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("		");
-            dom.appendChild(el0, el1);
-            var el1 = dom.createElement("div");
-            var el2 = dom.createTextNode("{\n");
-            dom.appendChild(el1, el2);
-            var el2 = dom.createComment("");
-            dom.appendChild(el1, el2);
-            var el2 = dom.createTextNode("		},");
-            dom.appendChild(el1, el2);
-            dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\n");
-            dom.appendChild(el0, el1);
-            return el0;
-          },
-          render: function render(context, env, contextualElement) {
-            var dom = env.dom;
-            var hooks = env.hooks, get = hooks.get, block = hooks.block;
-            dom.detectNamespace(contextualElement);
-            var fragment;
-            if (env.useFragmentCache && dom.canClone) {
-              if (this.cachedFragment === null) {
-                fragment = this.build(dom);
-                if (this.hasRendered) {
-                  this.cachedFragment = fragment;
-                } else {
-                  this.hasRendered = true;
-                }
-              }
-              if (this.cachedFragment) {
-                fragment = dom.cloneNode(this.cachedFragment, true);
-              }
-            } else {
-              fragment = this.build(dom);
-            }
-            var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
-            block(env, morph0, context, "each", [get(env, context, "view.entries")], {"keyword": "entry"}, child0, null);
-            return fragment;
-          }
-        };
-      }());
-      return {
-        isHTMLBars: true,
-        revision: "Ember@1.11.3",
-        blockParams: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        build: function build(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, get = hooks.get, block = hooks.block;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
-          dom.insertBoundary(fragment, null);
-          dom.insertBoundary(fragment, 0);
-          block(env, morph0, context, "if", [get(env, context, "view.isConflict")], {}, child0, child1);
-          return fragment;
-        }
-      };
-    }());
-    var child1 = (function() {
-      return {
-        isHTMLBars: true,
-        revision: "Ember@1.11.3",
-        blockParams: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        build: function build(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("	");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode(",\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        render: function render(context, env, contextualElement) {
-          var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
-          dom.detectNamespace(contextualElement);
-          var fragment;
-          if (env.useFragmentCache && dom.canClone) {
-            if (this.cachedFragment === null) {
-              fragment = this.build(dom);
-              if (this.hasRendered) {
-                this.cachedFragment = fragment;
-              } else {
-                this.hasRendered = true;
-              }
-            }
-            if (this.cachedFragment) {
-              fragment = dom.cloneNode(this.cachedFragment, true);
-            }
-          } else {
-            fragment = this.build(dom);
-          }
-          var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          content(env, morph0, context, "view.value");
-          return fragment;
-        }
-      };
-    }());
-    return {
-      isHTMLBars: true,
-      revision: "Ember@1.11.3",
-      blockParams: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      build: function build(dom) {
-        var el0 = dom.createDocumentFragment();
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        return el0;
-      },
-      render: function render(context, env, contextualElement) {
-        var dom = env.dom;
-        var hooks = env.hooks, get = hooks.get, block = hooks.block;
-        dom.detectNamespace(contextualElement);
-        var fragment;
-        if (env.useFragmentCache && dom.canClone) {
-          if (this.cachedFragment === null) {
-            fragment = this.build(dom);
-            if (this.hasRendered) {
-              this.cachedFragment = fragment;
-            } else {
-              this.hasRendered = true;
-            }
-          }
-          if (this.cachedFragment) {
-            fragment = dom.cloneNode(this.cachedFragment, true);
-          }
-        } else {
-          fragment = this.build(dom);
-        }
-        var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
-        dom.insertBoundary(fragment, null);
-        dom.insertBoundary(fragment, 0);
-        block(env, morph0, context, "if", [get(env, context, "view.isObject")], {}, child0, child1);
         return fragment;
       }
     };
@@ -17124,11 +17926,11 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
               } else {
                 fragment = this.build(dom);
               }
-              var element8 = dom.childAt(fragment, [1]);
-              var element9 = dom.childAt(element8, [3]);
-              var morph0 = dom.createMorphAt(dom.childAt(element8, [1]),1,1);
-              var morph1 = dom.createMorphAt(element9,1,1);
-              var morph2 = dom.createMorphAt(element9,3,3);
+              var element11 = dom.childAt(fragment, [1]);
+              var element12 = dom.childAt(element11, [3]);
+              var morph0 = dom.createMorphAt(dom.childAt(element11, [1]),1,1);
+              var morph1 = dom.createMorphAt(element12,1,1);
+              var morph2 = dom.createMorphAt(element12,3,3);
               block(env, morph0, context, "bs-button", [], {"clicked": "fetchPage", "clickedParam": get(env, context, "url"), "type": "light", "title": get(env, context, "url"), "popoverPlacement": "left"}, child0, null);
               inline(env, morph1, context, "copy-clipboard", [], {"text": get(env, context, "url")});
               inline(env, morph2, context, "bs-button", [], {"clicked": "deleteStartUrl", "clickedParam": get(env, context, "url"), "icon": "fa fa-icon fa-trash", "type": "danger", "size": "xs"});
@@ -17245,11 +18047,11 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
               } else {
                 fragment = this.build(dom);
               }
-              var element7 = dom.childAt(fragment, [1]);
-              var morph0 = dom.createMorphAt(element7,3,3);
-              var morph1 = dom.createMorphAt(element7,7,7);
-              var morph2 = dom.createMorphAt(element7,11,11);
-              element(env, element7, context, "bind-attr", [], {"style": "ex_tiny_box_style"});
+              var element10 = dom.childAt(fragment, [1]);
+              var morph0 = dom.createMorphAt(element10,3,3);
+              var morph1 = dom.createMorphAt(element10,7,7);
+              var morph2 = dom.createMorphAt(element10,11,11);
+              element(env, element10, context, "bind-attr", [], {"style": "ex_tiny_box_style"});
               inline(env, morph0, context, "text-field", [], {"value": get(env, context, "loginUrl"), "name": "loginUrl", "width": "94%", "placeholder": "Login URL", "action": "updateLoginInfo", "update": "addInitRequest"});
               inline(env, morph1, context, "text-field", [], {"value": get(env, context, "loginUser"), "name": "loginUser", "width": "94%", "placeholder": "Login user", "action": "updateLoginInfo", "update": "addInitRequest"});
               inline(env, morph2, context, "text-field", [], {"value": get(env, context, "loginPassword"), "name": "loginPassword", "width": "94%", "placeholder": "Login password", "action": "updateLoginInfo", "update": "addInitRequest"});
@@ -17364,20 +18166,20 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             } else {
               fragment = this.build(dom);
             }
-            var element10 = dom.childAt(fragment, [1, 3]);
-            var element11 = dom.childAt(fragment, [3]);
-            var element12 = dom.childAt(fragment, [7]);
-            var morph0 = dom.createMorphAt(element10,1,1);
-            var morph1 = dom.createMorphAt(element10,3,3);
-            var morph2 = dom.createMorphAt(element11,1,1);
+            var element13 = dom.childAt(fragment, [1, 3]);
+            var element14 = dom.childAt(fragment, [3]);
+            var element15 = dom.childAt(fragment, [7]);
+            var morph0 = dom.createMorphAt(element13,1,1);
+            var morph1 = dom.createMorphAt(element13,3,3);
+            var morph2 = dom.createMorphAt(element14,1,1);
             var morph3 = dom.createMorphAt(fragment,5,5,contextualElement);
-            var morph4 = dom.createMorphAt(element12,3,3);
-            var morph5 = dom.createMorphAt(element12,5,5);
+            var morph4 = dom.createMorphAt(element15,3,3);
+            var morph5 = dom.createMorphAt(element15,5,5);
             var morph6 = dom.createMorphAt(fragment,9,9,contextualElement);
             dom.insertBoundary(fragment, null);
             inline(env, morph0, context, "bs-badge", [], {"class": "pull-right btn-primary", "content": get(env, context, "startUrlCount")});
             block(env, morph1, context, "bs-button", [], {"type": get(env, context, "editAllStartUrlsType"), "clicked": get(env, context, "editAllStartUrlsAction"), "size": "xs", "disabled": get(env, context, "hasStartUrls"), "class": "pull-right"}, child0, null);
-            element(env, element11, context, "bind-attr", [], {"style": "tiny_box_style"});
+            element(env, element14, context, "bind-attr", [], {"style": "tiny_box_style"});
             block(env, morph2, context, "each", [get(env, context, "model.start_urls")], {"keyword": "url"}, child1, child2);
             inline(env, morph3, context, "text-area-with-button", [], {"placeholder": "Enter one or multiple start page urls here", "action": get(env, context, "startUrlsAction"), "reset": true, "value": get(env, context, "startUrls")});
             inline(env, morph4, context, "check-box", [], {"checked": get(env, context, "model.performLogin"), "name": "performLoginCheck"});
@@ -17645,7 +18447,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
               var el1 = dom.createTextNode("                ");
               dom.appendChild(el0, el1);
               var el1 = dom.createElement("h4");
-              var el2 = dom.createTextNode("Follow links that match this patterns");
+              var el2 = dom.createTextNode("Follow links that match these patterns");
               dom.appendChild(el1, el2);
               dom.appendChild(el0, el1);
               var el1 = dom.createTextNode("\n                ");
@@ -17680,7 +18482,313 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
               var el1 = dom.createTextNode("\n\n                ");
               dom.appendChild(el0, el1);
               var el1 = dom.createElement("h4");
-              var el2 = dom.createTextNode("Exclude links that match this patterns");
+              var el2 = dom.createTextNode("Exclude links that match these patterns");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createComment("");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("div");
+              dom.setAttribute(el1,"class","scrolling-container");
+              var el2 = dom.createTextNode("\n");
+              dom.appendChild(el1, el2);
+              var el2 = dom.createComment("");
+              dom.appendChild(el1, el2);
+              var el2 = dom.createTextNode("                ");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("div");
+              dom.setAttribute(el1,"style","margin-top:10px");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createComment("");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, inline = hooks.inline, element = hooks.element, get = hooks.get, block = hooks.block;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var element5 = dom.childAt(fragment, [5]);
+              var element6 = dom.childAt(fragment, [17]);
+              var morph0 = dom.createMorphAt(fragment,3,3,contextualElement);
+              var morph1 = dom.createMorphAt(element5,1,1);
+              var morph2 = dom.createMorphAt(fragment,9,9,contextualElement);
+              var morph3 = dom.createMorphAt(fragment,15,15,contextualElement);
+              var morph4 = dom.createMorphAt(element6,1,1);
+              var morph5 = dom.createMorphAt(fragment,21,21,contextualElement);
+              inline(env, morph0, context, "inline-help", [], {"message": "follow_links"});
+              element(env, element5, context, "bind-attr", [], {"style": "ex_tiny_box_style"});
+              block(env, morph1, context, "each", [get(env, context, "model.follow_patterns")], {}, child0, child1);
+              inline(env, morph2, context, "regex-text-field-with-button", [], {"action": "addFollowPattern", "placeholder": "New follow pattern", "reset": true});
+              inline(env, morph3, context, "inline-help", [], {"message": "exclude_links"});
+              element(env, element6, context, "bind-attr", [], {"style": "ex_tiny_box_style"});
+              block(env, morph4, context, "each", [get(env, context, "model.exclude_patterns")], {}, child2, child3);
+              inline(env, morph5, context, "regex-text-field-with-button", [], {"action": "addExcludePattern", "placeholder": "New exclude pattern", "reset": true});
+              return fragment;
+            }
+          };
+        }());
+        var child2 = (function() {
+          var child0 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 2,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("                        ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createComment("");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement, blockArguments) {
+                var dom = env.dom;
+                var hooks = env.hooks, set = hooks.set, get = hooks.get, inline = hooks.inline;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+                set(env, context, "pattern", blockArguments[0]);
+                set(env, context, "index", blockArguments[1]);
+                inline(env, morph0, context, "display-button-edit-delete", [], {"save": "editJSEnablePattern", "delete": "deleteJSEnablePattern", "text": get(env, context, "pattern"), "name": get(env, context, "index")});
+                return fragment;
+              }
+            };
+          }());
+          var child1 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 0,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("                        ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("div");
+                dom.setAttribute(el1,"class","col-xs-12");
+                var el2 = dom.createTextNode("\n                            ");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createElement("h5");
+                var el3 = dom.createTextNode("No JS enabled patterns defined yet.");
+                dom.appendChild(el2, el3);
+                dom.appendChild(el1, el2);
+                var el2 = dom.createTextNode("\n                        ");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement) {
+                var dom = env.dom;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                return fragment;
+              }
+            };
+          }());
+          var child2 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 2,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("                        ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createComment("");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement, blockArguments) {
+                var dom = env.dom;
+                var hooks = env.hooks, set = hooks.set, get = hooks.get, inline = hooks.inline;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+                set(env, context, "pattern", blockArguments[0]);
+                set(env, context, "index", blockArguments[1]);
+                inline(env, morph0, context, "display-button-edit-delete", [], {"save": "editJSDisablePattern", "delete": "deleteJSDisablePattern", "text": get(env, context, "pattern"), "name": get(env, context, "index")});
+                return fragment;
+              }
+            };
+          }());
+          var child3 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 0,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("                        ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("div");
+                dom.setAttribute(el1,"class","col-xs-12");
+                var el2 = dom.createTextNode("\n                            ");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createElement("h5");
+                var el3 = dom.createTextNode("No JS disabled patterns defined yet.");
+                dom.appendChild(el2, el3);
+                dom.appendChild(el1, el2);
+                var el2 = dom.createTextNode("\n                        ");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement) {
+                var dom = env.dom;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                return fragment;
+              }
+            };
+          }());
+          return {
+            isHTMLBars: true,
+            revision: "Ember@1.11.3",
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createTextNode("                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("h4");
+              var el2 = dom.createTextNode("Enable JS for links that match these patterns");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createComment("");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("div");
+              dom.setAttribute(el1,"class","scrolling-container");
+              var el2 = dom.createTextNode("\n");
+              dom.appendChild(el1, el2);
+              var el2 = dom.createComment("");
+              dom.appendChild(el1, el2);
+              var el2 = dom.createTextNode("                ");
+              dom.appendChild(el1, el2);
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("div");
+              dom.setAttribute(el1,"style","margin-top:10px");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createComment("");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("div");
+              dom.setAttribute(el1,"style","margin-top:10px");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createTextNode("\n\n                ");
+              dom.appendChild(el0, el1);
+              var el1 = dom.createElement("h4");
+              var el2 = dom.createTextNode("Disable JS for links that match these patterns");
               dom.appendChild(el1, el2);
               dom.appendChild(el0, el1);
               var el1 = dom.createTextNode("\n                ");
@@ -17739,14 +18847,14 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
               var morph3 = dom.createMorphAt(fragment,15,15,contextualElement);
               var morph4 = dom.createMorphAt(element4,1,1);
               var morph5 = dom.createMorphAt(fragment,21,21,contextualElement);
-              inline(env, morph0, context, "inline-help", [], {"message": "follow_links"});
+              inline(env, morph0, context, "inline-help", [], {"message": "enable_js_for_links"});
               element(env, element3, context, "bind-attr", [], {"style": "ex_tiny_box_style"});
-              block(env, morph1, context, "each", [get(env, context, "model.follow_patterns")], {}, child0, child1);
-              inline(env, morph2, context, "regex-text-field-with-button", [], {"action": "addFollowPattern", "placeholder": "New follow pattern", "reset": true});
-              inline(env, morph3, context, "inline-help", [], {"message": "exclude_links"});
+              block(env, morph1, context, "each", [get(env, context, "model.js_enable_patterns")], {}, child0, child1);
+              inline(env, morph2, context, "regex-text-field-with-button", [], {"action": "addJSEnablePattern", "placeholder": "New JS enabled pattern", "reset": true});
+              inline(env, morph3, context, "inline-help", [], {"message": "disable_js_for_links"});
               element(env, element4, context, "bind-attr", [], {"style": "ex_tiny_box_style"});
-              block(env, morph4, context, "each", [get(env, context, "model.exclude_patterns")], {}, child2, child3);
-              inline(env, morph5, context, "regex-text-field-with-button", [], {"action": "addExcludePattern", "placeholder": "New exclude pattern", "reset": true});
+              block(env, morph4, context, "each", [get(env, context, "model.js_disable_patterns")], {}, child2, child3);
+              inline(env, morph5, context, "regex-text-field-with-button", [], {"action": "addJSDisablePattern", "placeholder": "New JS disabled pattern", "reset": true});
               return fragment;
             }
           };
@@ -17793,6 +18901,88 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             dom.appendChild(el1, el2);
             var el2 = dom.createComment("");
             dom.appendChild(el1, el2);
+            var el2 = dom.createTextNode("\n            ");
+            dom.appendChild(el1, el2);
+            var el2 = dom.createElement("ul");
+            dom.setAttribute(el2,"class","list-group small-group");
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("h4");
+            var el5 = dom.createTextNode("Key:");
+            dom.appendChild(el4, el5);
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("span");
+            dom.setAttribute(el4,"class","fa fa-square will-follow");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                    Followed\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("span");
+            dom.setAttribute(el4,"class","fa fa-square maybe-follow");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                    Followed when Javascript is enabled\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("li");
+            dom.setAttribute(el3,"class","list-group-item");
+            var el4 = dom.createTextNode("\n                    ");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createElement("span");
+            dom.setAttribute(el4,"class","fa fa-square will-not-follow");
+            dom.appendChild(el3, el4);
+            var el4 = dom.createTextNode("\n                    Not Followed\n                ");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n            ");
+            dom.appendChild(el2, el3);
+            dom.appendChild(el1, el2);
+            var el2 = dom.createTextNode("\n\n");
+            dom.appendChild(el1, el2);
+            var el2 = dom.createComment("");
+            dom.appendChild(el1, el2);
+            var el2 = dom.createTextNode("\n            ");
+            dom.appendChild(el1, el2);
+            var el2 = dom.createElement("div");
+            dom.setAttribute(el2,"style","margin-top:10px;margin-bottom:10px");
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createComment("");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createElement("span");
+            dom.setAttribute(el3,"class","important-label");
+            var el4 = dom.createTextNode("Enable JS");
+            dom.appendChild(el3, el4);
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n                ");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createComment("");
+            dom.appendChild(el2, el3);
+            var el3 = dom.createTextNode("\n            ");
+            dom.appendChild(el2, el3);
+            dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n");
             dom.appendChild(el1, el2);
             var el2 = dom.createComment("");
@@ -17824,19 +19014,26 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             } else {
               fragment = this.build(dom);
             }
-            var element5 = dom.childAt(fragment, [1]);
-            var element6 = dom.childAt(element5, [3]);
-            var morph0 = dom.createMorphAt(element5,1,1);
-            var morph1 = dom.createMorphAt(element6,1,1);
-            var morph2 = dom.createMorphAt(element6,5,5);
-            var morph3 = dom.createMorphAt(element5,5,5);
-            var morph4 = dom.createMorphAt(element5,7,7);
-            element(env, element5, context, "bind-attr", [], {"style": "mid_box_style"});
+            var element7 = dom.childAt(fragment, [1]);
+            var element8 = dom.childAt(element7, [3]);
+            var element9 = dom.childAt(element7, [11]);
+            var morph0 = dom.createMorphAt(element7,1,1);
+            var morph1 = dom.createMorphAt(element8,1,1);
+            var morph2 = dom.createMorphAt(element8,5,5);
+            var morph3 = dom.createMorphAt(element7,5,5);
+            var morph4 = dom.createMorphAt(element7,9,9);
+            var morph5 = dom.createMorphAt(element9,1,1);
+            var morph6 = dom.createMorphAt(element9,5,5);
+            var morph7 = dom.createMorphAt(element7,13,13);
+            element(env, element7, context, "bind-attr", [], {"style": "mid_box_style"});
             inline(env, morph0, context, "item-select", [], {"options": get(env, context, "followPatternOptions"), "value": get(env, context, "controller.links_to_follow")});
             inline(env, morph1, context, "check-box", [], {"checked": get(env, context, "showLinks"), "name": "showLinks"});
             inline(env, morph2, context, "inline-help", [], {"message": "overlay_blocked_links"});
             block(env, morph3, context, "if", [get(env, context, "displayNofollow")], {}, child0, null);
             block(env, morph4, context, "if", [get(env, context, "displayEditPatterns")], {}, child1, null);
+            inline(env, morph5, context, "check-box", [], {"checked": get(env, context, "model.js_enabled"), "name": "enableJS"});
+            inline(env, morph6, context, "inline-help", [], {"message": "enable_js"});
+            block(env, morph7, context, "if", [get(env, context, "model.js_enabled")], {}, child2, null);
             return fragment;
           }
         };
@@ -18223,6 +19420,49 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
 
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          revision: "Ember@1.11.3",
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("				");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, content = hooks.content;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+            content(env, morph0, context, "controller.currentUrl");
+            return fragment;
+          }
+        };
+      }());
       return {
         isHTMLBars: true,
         revision: "Ember@1.11.3",
@@ -18231,17 +19471,13 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         hasRendered: false,
         build: function build(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("			");
-          dom.appendChild(el0, el1);
           var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
           dom.appendChild(el0, el1);
           return el0;
         },
         render: function render(context, env, contextualElement) {
           var dom = env.dom;
-          var hooks = env.hooks, content = hooks.content;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
           dom.detectNamespace(contextualElement);
           var fragment;
           if (env.useFragmentCache && dom.canClone) {
@@ -18259,13 +19495,99 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
           } else {
             fragment = this.build(dom);
           }
-          var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          content(env, morph0, context, "controller.currentUrl");
+          var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, null);
+          dom.insertBoundary(fragment, 0);
+          block(env, morph0, context, "label-with-tooltip", [], {"title": get(env, context, "controller.currentUrl")}, child0, null);
           return fragment;
         }
       };
     }());
     var child1 = (function() {
+      var child0 = (function() {
+        return {
+          isHTMLBars: true,
+          revision: "Ember@1.11.3",
+          blockParams: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          build: function build(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("				");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          render: function render(context, env, contextualElement) {
+            var dom = env.dom;
+            var hooks = env.hooks, content = hooks.content;
+            dom.detectNamespace(contextualElement);
+            var fragment;
+            if (env.useFragmentCache && dom.canClone) {
+              if (this.cachedFragment === null) {
+                fragment = this.build(dom);
+                if (this.hasRendered) {
+                  this.cachedFragment = fragment;
+                } else {
+                  this.hasRendered = true;
+                }
+              }
+              if (this.cachedFragment) {
+                fragment = dom.cloneNode(this.cachedFragment, true);
+              }
+            } else {
+              fragment = this.build(dom);
+            }
+            var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
+            content(env, morph0, context, "controller.currentUrl");
+            return fragment;
+          }
+        };
+      }());
+      return {
+        isHTMLBars: true,
+        revision: "Ember@1.11.3",
+        blockParams: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        build: function build(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        render: function render(context, env, contextualElement) {
+          var dom = env.dom;
+          var hooks = env.hooks, get = hooks.get, block = hooks.block;
+          dom.detectNamespace(contextualElement);
+          var fragment;
+          if (env.useFragmentCache && dom.canClone) {
+            if (this.cachedFragment === null) {
+              fragment = this.build(dom);
+              if (this.hasRendered) {
+                this.cachedFragment = fragment;
+              } else {
+                this.hasRendered = true;
+              }
+            }
+            if (this.cachedFragment) {
+              fragment = dom.cloneNode(this.cachedFragment, true);
+            }
+          } else {
+            fragment = this.build(dom);
+          }
+          var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, null);
+          dom.insertBoundary(fragment, 0);
+          block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "documentView.currentUrl"), "placeholder": "http://", "validation": "^(https?://)?[^\\s\\/]+\\.[^\\s]*$", "action": "navigate"}, child0, null);
+          return fragment;
+        }
+      };
+    }());
+    var child2 = (function() {
       var child0 = (function() {
         return {
           isHTMLBars: true,
@@ -18342,7 +19664,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         }
       };
     }());
-    var child2 = (function() {
+    var child3 = (function() {
       var child0 = (function() {
         return {
           isHTMLBars: true,
@@ -18426,7 +19748,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         }
       };
     }());
-    var child3 = (function() {
+    var child4 = (function() {
       return {
         isHTMLBars: true,
         revision: "Ember@1.11.3",
@@ -18469,7 +19791,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         }
       };
     }());
-    var child4 = (function() {
+    var child5 = (function() {
       return {
         isHTMLBars: true,
         revision: "Ember@1.11.3",
@@ -18512,7 +19834,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         }
       };
     }());
-    var child5 = (function() {
+    var child6 = (function() {
       var child0 = (function() {
         var child0 = (function() {
           return {
@@ -18800,12 +20122,12 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         dom.insertBoundary(fragment, null);
         inline(env, morph0, context, "bs-button", [], {"clicked": "browseBack", "icon": "fa fa-icon fa-arrow-left", "size": "sm", "disabled": get(env, context, "browseBackDisabled")});
         inline(env, morph1, context, "bs-button", [], {"clicked": "reload", "icon": "fa fa-icon fa-refresh", "size": "sm", "disabled": get(env, context, "reloadDisabled")});
-        block(env, morph2, context, "label-with-tooltip", [], {"title": get(env, context, "controller.currentUrl")}, child0, null);
-        block(env, morph3, context, "unless", [get(env, context, "addTemplateDisabled")], {}, child1, null);
-        block(env, morph4, context, "unless", [get(env, context, "showItemsDisabled")], {}, child2, null);
-        block(env, morph5, context, "if", [get(env, context, "showNoItemsExtracted")], {}, child3, null);
-        block(env, morph6, context, "if", [get(env, context, "saving")], {}, child4, null);
-        block(env, morph7, context, "if", [get(env, context, "showItems")], {}, child5, null);
+        block(env, morph2, context, "if", [get(env, context, "isFetching")], {}, child0, child1);
+        block(env, morph3, context, "unless", [get(env, context, "addTemplateDisabled")], {}, child2, null);
+        block(env, morph4, context, "unless", [get(env, context, "showItemsDisabled")], {}, child3, null);
+        block(env, morph5, context, "if", [get(env, context, "showNoItemsExtracted")], {}, child4, null);
+        block(env, morph6, context, "if", [get(env, context, "saving")], {}, child5, null);
+        block(env, morph7, context, "if", [get(env, context, "showItems")], {}, child6, null);
         return fragment;
       }
     };
@@ -19321,7 +20643,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             var morph0 = dom.createMorphAt(fragment,3,3,contextualElement);
             var morph1 = dom.createMorphAt(fragment,5,5,contextualElement);
             var morph2 = dom.createMorphAt(dom.childAt(fragment, [7]),1,1);
-            inline(env, morph0, context, "item-select", [], {"options": get(env, context, "items"), "value": get(env, context, "controller.scrapedItem.id"), "changed": "updateScraped"});
+            inline(env, morph0, context, "item-select", [], {"options": get(env, context, "items"), "labelProperty": "display_name", "value": get(env, context, "controller.scrapedItem.id"), "changed": "updateScraped"});
             inline(env, morph1, context, "inline-help", [], {"message": "select_item"});
             block(env, morph2, context, "bs-button", [], {"clicked": "editItems", "type": "primary", "size": "sm"}, child0, null);
             return fragment;
@@ -20570,15 +21892,13 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
   }()));
 
 });
-define('portia-web/utils/annotation-store', ['exports', 'ember', 'portia-web/mixins/application-utils', 'portia-web/models/annotation'], function (exports, Ember, ApplicationUtils, Annotation) {
+define('portia-web/utils/annotation-store', ['exports', 'ember', 'portia-web/models/annotation', 'portia-web/utils/utils'], function (exports, Ember, Annotation, utils) {
 
     'use strict';
 
-    exports['default'] = Ember['default'].Object.extend(ApplicationUtils['default'], {
+    exports['default'] = Ember['default'].Object.extend({
 
-        iframe: (function () {
-            return this.get('document.iframe');
-        }).property('document.iframe'),
+        iframe: Ember['default'].computed.reads('document.iframe'),
 
         findAll: function findAll() {
             var annotatedElements = this.get('iframe').findAnnotatedElements();
@@ -20589,7 +21909,7 @@ define('portia-web/utils/annotation-store', ['exports', 'ember', 'portia-web/mix
                 if (!annotationJSON['id']) {
                     // This looks like an old Austoscraping project annotation as it doesn't have
                     // an assigned id. Create one for it.
-                    annotationJSON['id'] = this.shortGuid();
+                    annotationJSON['id'] = utils['default'].shortGuid();
                     jqElem.attr('data-scrapy-annotate', JSON.stringify(annotationJSON));
                 }
                 annotationJSON['tagid'] = jqElem.data('tagid');
@@ -20798,7 +22118,7 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
                 context.fillRect(rect.left, rect.top - 18, textWidth + 11, 18);
                 context.fillRect(rect.left, rect.top - 1, rect.width, 2);
                 context.fillStyle = this.get('textColor');
-                context.globalAlpha = 1;
+                context.globalAlpha = 1.0;
                 context.fillText(this.get('text'), rect.left + 6, rect.top - 4);
             }
             context.restore();
@@ -20813,13 +22133,9 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
         textColor: 'white',
         _zPosition: 0,
 
-        text: (function () {
-            return this.get('annotation.name');
-        }).property('annotation.name'),
+        text: Ember['default'].computed.reads('annotation.name'),
 
-        highlighted: (function () {
-            return this.get('annotation.highlighted');
-        }).property('annotation.highlighted'),
+        highlighted: Ember['default'].computed.reads('annotation.highlighted'),
 
         getBoundingBox: function getBoundingBox() {
             if (this.get('annotation.element')) {
@@ -20848,17 +22164,11 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
         textColor: 'rgba(255,150,150,1)',
         blend: 'destination-out',
 
-        ignoreBeneath: (function () {
-            return this.get('ignore.ignoreBeneath');
-        }).property('ignore.ignoreBeneath'),
+        ignoreBeneath: Ember['default'].computed.reads('ignore.ignoreBeneath'),
 
-        text: (function () {
-            return this.get('ignore.name');
-        }).property('ignore.name'),
+        text: Ember['default'].computed.reads('ignore.name'),
 
-        highlighted: (function () {
-            return this.get('ignore.highlighted');
-        }).property('ignore.highlighted'),
+        highlighted: Ember['default'].computed.reads('ignore.highlighted'),
 
         draw: function draw(context) {
             var element = Ember['default'].$(this.get('ignore.element'));
@@ -20894,6 +22204,318 @@ define('portia-web/utils/canvas', ['exports', 'ember'], function (exports, Ember
     exports.ElementSprite = ElementSprite;
 
 });
+define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/config/environment', 'portia-web/utils/utils'], function (exports, Ember, config, utils) {
+
+    'use strict';
+
+    var DEFAULT_RECONNECT_TIMEOUT = 5000;
+    var DEFAULT_MAX_RECONNECT_TIMEOUT = 60000;
+    var DEFAULT_COMMANDS = Object.freeze({
+        heartbeat: function heartbeat() {},
+        saveChanges: function saveChanges() {},
+        'delete': function _delete() {},
+        rename: function rename() {},
+        resolve: function resolve() {}
+    });
+
+    var defaultUrl = function defaultUrl() {
+        var uri = URI.parse(config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host);
+        if (!/wss?/.test(uri.protocol)) {
+            uri.protocol = uri.protocol === 'https' ? 'wss' : 'ws';
+        }
+        uri.path = '/ws';
+        return URI.build(uri);
+    };
+
+    exports['default'] = Ember['default'].Object.extend({
+        init: function init(options) {
+            options = options || {};
+            this.set('commands', options.commands || {});
+            this.set('url', options.url || defaultUrl());
+            this.set('cleanup', options.cleanup || function () {});
+            this.set('init', options.init || function () {});
+            this.set('protocols', options.protocols);
+            this.set('commands', this._buildCommands(options.commands || {}));
+            this.set('ws', null);
+            this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
+            this.set('closed', true);
+            this.set('opened', Ember['default'].computed.not('closed'));
+            this.set('connecting', false);
+            this.set('nextConnect', null);
+            this.set('deferreds', {});
+            this.heartbeat = null;
+        },
+
+        connect: function connect() {
+            return this._createWebsocket();
+        },
+
+        _createWebsocket: function _createWebsocket() {
+            var ws,
+                deferred = new Ember['default'].RSVP.defer();
+            if (this.get('nextConnect')) {
+                Ember['default'].run.cancel(this.get('nextConnect'));
+                this.set('nextConnect', null);
+            }
+            try {
+                this.set('connecting', true);
+                this.notifyPropertyChange('connecting');
+                ws = new WebSocket(this.get('url'));
+            } catch (err) {
+                Ember['default'].Logger.log('Error connecting to server: ' + err);
+                deferred.reject(err);
+                return deferred.promise;
+            } finally {
+                this.set('connecting', false);
+                this.notifyPropertyChange('connecting');
+            }
+            ws.onclose = (function () {
+                this.get('cleanup')();
+                if (this.heartbeat) {
+                    clearInterval(this.heartbeat);
+                }
+                this.set('closed', true);
+                this.notifyPropertyChange('closed');
+                Ember['default'].Logger.log('<Closed Websocket>');
+                var next = Ember['default'].run.later(this, (function () {
+                    if (this.get('ws').readyState === WebSocket.CLOSED) {
+                        this._createWebsocket();
+                    }
+                }).bind(this), this._connectTimeout());
+                this.set('nextConnect', next);
+            }).bind(this);
+            ws.onmessage = (function (e) {
+                var data;
+                try {
+                    data = JSON.parse(e.data);
+                } catch (err) {
+                    Ember['default'].Logger.warn('Error parsing data returned by server: ' + err + '\n' + data);
+                    return;
+                }
+                var command = data._command;
+                if (!command) {
+                    Ember['default'].Logger.warn('Received response with no command: ' + e.data);
+                    return;
+                }
+                var deferred = data.id;
+                if (deferred in this.get('deferreds')) {
+                    deferred = this.get('deferreds.' + deferred);
+                    delete this.get('deferreds')[data.id];
+                    if (data.error) {
+                        var err = new Error(data.reason);
+                        err.reason = { jqXHR: { responseText: data.reason } };
+                        deferred.reject(err);
+                        throw err;
+                    } else {
+                        deferred.resolve(data);
+                    }
+                }
+                if (command in this.get('commands')) {
+                    this.get('commands')[command](data);
+                } else {
+                    Ember['default'].Logger.warn('Received unknown command: ' + command);
+                }
+            }).bind(this);
+            ws.onopen = (function () {
+                Ember['default'].Logger.log('<Opened Websocket>');
+                this.set('closed', false);
+                this.notifyPropertyChange('opened');
+                this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
+                this.heartbeat = setInterval((function () {
+                    this.send({ _command: 'heartbeat' });
+                }).bind(this), 20000);
+                deferred.resolve(this);
+            }).bind(this);
+            this.set('ws', ws);
+            return deferred.promise;
+        },
+
+        _connectTimeout: function _connectTimeout() {
+            var timeout = Math.max(this.get('reconnectTimeout'), DEFAULT_RECONNECT_TIMEOUT);
+            this.set('reconnectTimeout', Math.min(timeout * 2, DEFAULT_MAX_RECONNECT_TIMEOUT));
+            return this.get('reconnectTimeout');
+        },
+
+        _buildCommands: function _buildCommands(commands) {
+            var key,
+                result = {};
+            for (key in DEFAULT_COMMANDS) {
+                result[key] = DEFAULT_COMMANDS[key];
+            }
+            for (key in commands) {
+                result[key] = commands[key];
+            }
+            return result;
+        },
+
+        addCommand: function addCommand(command, func) {
+            this.get('commands')[command] = func;
+        },
+
+        close: function close(code, reason) {
+            code = code || 1000;
+            reason = reason || 'application called close';
+            return this.get('ws').close();
+        },
+
+        send: function send(data) {
+            if (!this.get('closed') && data) {
+                if (typeof data !== 'string') {
+                    try {
+                        data = JSON.stringify(data);
+                    } catch (err) {
+                        Ember['default'].Logger.warn('Error sending data to server: ' + err);
+                        return;
+                    }
+                }
+                return this.get('ws').send(data);
+            }
+        },
+
+        save: function save(type, obj) {
+            var data = {
+                _meta: this._metadata(type),
+                _command: 'saveChanges'
+            };
+            if (obj.serialize) {
+                data[type] = obj.serialize();
+            } else {
+                data[type] = obj;
+            }
+            return this._sendPromise(data);
+        },
+
+        'delete': function _delete(type, name) {
+            return this._sendPromise({
+                _meta: this._metadata(type),
+                _command: 'delete',
+                name: name
+            });
+        },
+
+        rename: function rename(type, from, to) {
+            return this._sendPromise({
+                _meta: this._metadata(type),
+                _command: 'rename',
+                old: from,
+                'new': to
+            });
+        },
+
+        _sendPromise: function _sendPromise(data) {
+            var deferred = new Ember['default'].RSVP.defer();
+            this.set('deferreds.' + data._meta.id, deferred);
+            this.send(data);
+            return deferred.promise;
+        },
+
+        _metadata: function _metadata(type) {
+            return {
+                spider: this.get('spider'),
+                project: this.get('project'),
+                type: type,
+                id: utils['default'].shortGuid()
+            };
+        }
+    });
+
+});
+define('portia-web/utils/interaction-event', ['exports'], function (exports) {
+
+    'use strict';
+
+    function getEventCategory(evt) {
+        switch (evt.constructor.name) {
+            case 'MouseEvent':
+                return 'mouse';
+            case 'KeyboardEvent':
+                return 'keyboard';
+            case 'UIEvent':
+                return 'scroll';
+            case 'FocusEvent':
+                return 'focus';
+            case 'Event':case 'InputEvent':
+                return 'simple';
+            default:
+                return 'unknown';
+        }
+    }
+
+    var interactionEvent = function interactionEvent(evt) {
+        var target = evt.target;
+        var doc = target.ownerDocument;
+
+        if (target.nodeType === Node.DOCUMENT_NODE) {
+            doc = target;
+            target = doc.documentElement;
+        }
+
+        var data = {
+            category: getEventCategory(evt.originalEvent || evt),
+            type: evt.type,
+            target: target.nodeid,
+            propsBefore: {},
+            propsAfter: {}
+        };
+
+        if (data.category === 'mouse') {
+            // Send coordinates as a offset of the element instead of the document
+            var clientRect = target.getBoundingClientRect();
+            data.targetX = evt.clientX - clientRect.left;
+            data.targetY = evt.clientY - clientRect.top;
+            data.relatedTarget = evt.relatedTarget && evt.relatedTarget.nodeid;
+        } else if (data.type === 'scroll') {
+            var scrollTarget = target;
+            // Scroll events in the body are dispatched in the document, reverse
+            if (scrollTarget === doc.documentElement && !(target.scrollTopMax || target.scrollLeftMax)) {
+                scrollTarget = doc.body;
+            }
+            if (scrollTarget) {
+                data.scrollTop = scrollTarget.scrollTop;
+                data.scrollLeft = scrollTarget.scrollLeft;
+            } else {
+                data.scrollTop = 0;
+                data.scrollLeft = 0;
+            }
+        }
+
+        ATTRIBUTE_WHITELIST.forEach(function (attr) {
+            if (attr in evt) {
+                data[attr] = evt[attr];
+            }
+        });
+        function copyProperties(update_props, obj) {
+            if (evt.type in update_props) {
+                update_props[evt.type].forEach(function (propName) {
+                    if (propName in target) {
+                        obj[propName] = target[propName];
+                    }
+                });
+            }
+        }
+        copyProperties(UPDATE_PROPS_BEFORE, data.propsBefore);
+        copyProperties(UPDATE_PROPS_AFTER, data.propsAfter);
+        return data;
+    };
+
+    var ATTRIBUTE_WHITELIST = ['altKey', 'bubbles', 'button', 'buttons', 'cancelable', 'code', 'ctrlKey', 'deltaX', 'deltaY', 'deltaZ', 'deltaMode', 'detail', 'isComposing', 'isTrusted', 'key', 'keyCode', 'location', 'metaKey', 'relatedTargetId', 'shiftKey', 'type'];
+
+    // When this events are fired, update the specified properties in the server
+    // to the ones in the client before sending the event
+    var UPDATE_PROPS_BEFORE = {
+        'change': ['selectedIndex'], // selects
+        'input': ['value'], // text input, textareas
+        'keyup': ['value'], // text input, textareas
+        'click': ['checked'] // input type radio or check
+    };
+    var UPDATE_PROPS_AFTER = {
+        'keydown': ['value'], // text input, textareas
+        'keypress': ['value'] // text input, textareas
+    };
+
+    exports['default'] = interactionEvent;
+
+});
 define('portia-web/utils/messages', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -20913,7 +22535,9 @@ define('portia-web/utils/messages', ['exports', 'ember'], function (exports, Emb
         selected_region_children: 'Refine your selection by navigating its children.',
         sticky_fields: 'Required attributes are not extracted, but they must be present for a page to match the sample.',
         annotation_widget: 'Select the attribute you want to extract and an item field to map it. <br/><br/>Choose <b>-just required-</b> to indicate that the sample must match a particular feature without generating any extracted data. <br/><br/> You can create new fields by clicking the <b>+ field button</b> or by seleting the <b>-create new-</b> option from the <b>field</b> combobox.',
-
+        enable_js: 'Some sites may need JavaScript enabled for data to be extracted.<br>Enable this option to allow JavaScript to run on pages while crawling.<br>If you are unsure if you require JavaScript try creating a sample without enabling this option. If the data you want is visible you may not need to enable this option.',
+        enable_js_for_links: 'JavaScript will be run on pages matching the patterns below before data and links are extracted.',
+        disable_js_for_links: 'Only raw HTML will be fetched for pages matching the patterns below.',
         // Other messages.
         confirm_change_selection: 'If you select a different region you will lose all current attribute mappings and ignored subregions, proceed anyway?',
         no_items_extracted: 'No items were extracted',
@@ -20921,7 +22545,7 @@ define('portia-web/utils/messages', ['exports', 'ember'], function (exports, Emb
         publish_ok_schedule: 'The project was successfully published. Do you want to be redirected to the schedule page?',
         deploy_ok: 'The project was successfully deployed.',
         deploy_ok_schedule: 'The project was successfully deployed. Do you want to be redirected to the schedule page?',
-        publish_conflict: 'There was a conflict that could not be automatically resolved. You will have to resolve the conflict manually.',
+        publish_conflict: 'Another user has made changes to this project which conflict with your changes. You will need to manually resolve these conflicts',
         conflicts_solved: 'You have resolved all conflicts, your changes have been published.'
     });
 
@@ -20958,7 +22582,8 @@ define('portia-web/utils/modal-manager', ['exports', 'ember'], function (exports
         templateName: 'components/bs-modal'
       });
       this.add(name, modalComponent);
-      return modalComponent.appendTo(Ember['default'].$('body'));
+      var rootElement = controller.container.lookup('application:main').rootElement;
+      return modalComponent.appendTo(rootElement);
     }
   });
 
@@ -20979,19 +22604,49 @@ define('portia-web/utils/notification-manager', ['exports', 'ember'], function (
             */
             var notification = Ember['default'].Object.create(options);
             return this.get('content').pushObject(notification);
+        },
+
+        showNotification: function showNotification(title, message, type) {
+            if (title && !message) {
+                message = title;
+                title = null;
+            }
+            if (message) {
+                this.add({
+                    title: title,
+                    message: message,
+                    type: type || 'info'
+                });
+            }
+        },
+
+        showSuccessNotification: function showSuccessNotification(title, message) {
+            this.showNotification(title, message, 'success');
+        },
+
+        showWarningNotification: function showWarningNotification(title, message) {
+            this.showNotification(title, message, 'warning');
+        },
+
+        showErrorNotification: function showErrorNotification(title, message) {
+            this.showNotification(title, message, 'danger');
         }
     });
 
     exports['default'] = NotificationManager;
 
 });
-define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/mixins/application-utils', 'portia-web/models/spider', 'portia-web/models/template', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/models/extractor', 'portia-web/config/environment'], function (exports, Ember, ajax, ApplicationUtils, Spider, Template, Item, ItemField, Extractor, config) {
+define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/models/spider', 'portia-web/models/template', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/models/extractor', 'portia-web/config/environment', 'portia-web/utils/utils'], function (exports, Ember, ajax, Spider, Template, Item, ItemField, Extractor, config, utils) {
 
     'use strict';
 
-    var SlydApi = Ember['default'].Object.extend(ApplicationUtils['default'], {
+    var SlydApi = Ember['default'].Object.extend({
         getApiUrl: function getApiUrl() {
             return (config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host) + '/projects';
+        },
+
+        getRootUrl: function getRootUrl() {
+            return config['default'].SLYD_URL || window.location.protocol + '//' + window.location.host;
         },
         /**
         @public
@@ -21131,7 +22786,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
                     // Assign a name to templates. This is needed as Autoscraping templates
                     // are not named.
                     if (Ember['default'].isEmpty(template['name'])) {
-                        template['name'] = this.shortGuid();
+                        template['name'] = utils['default'].shortGuid();
                     }
                     return Template['default'].create(template);
                 });
@@ -21343,6 +22998,7 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             return this.makeAjaxCall(hash).then((function (items) {
                 items = this.dictToList(items, Item['default']);
                 items.forEach((function (item) {
+                    item.display_name = item.display_name || item.name;
                     if (item.fields) {
                         item.fields = this.dictToList(item.fields, ItemField['default']);
                     }
@@ -21519,13 +23175,18 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
         saveFile: function saveFile(projectName, fileName, contents) {
             var hash = {};
             hash.type = 'POST';
-            hash.url = this.getApiUrl();
-            hash.data = { cmd: 'save', args: [projectName, fileName, contents] };
+            hash.url = this._getUrlFromPath(fileName);
+            hash.data = contents;
             hash.dataType = 'text';
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to save file';
                 throw err;
             });
+        },
+
+        _getUrlFromPath: function _getUrlFromPath(path) {
+            path = path.slice(0, -5);
+            return this.get('projectSpecUrl') + path;
         },
 
         /**
@@ -21641,7 +23302,12 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
                 err.status = reason.jqXHR.status;
                 err.reason = reason;
                 if (reason.jqXHR.getResponseHeader('Content-Type') === 'application/json') {
-                    err.data = Ember['default'].$.parseJSON(reason.jqXHR.responseText);
+                    try {
+                        err.data = Ember['default'].$.parseJSON(reason.jqXHR.responseText);
+                    } catch (e) {
+                        err.data = reason.jqXHR.responseText;
+                        utils['default'].logError(e, { extra: { invalidJSON: err.data } });
+                    }
                 }
                 throw err;
             });
@@ -21789,32 +23455,143 @@ define('portia-web/utils/timer', ['exports', 'ember'], function (exports, Ember)
 
     exports['default'] = Ember['default'].Object.extend({
         init: function init() {
-            this.set('_startTime', new Date());
+            var hidden, visibilityChange;
+            if (typeof document.hidden !== "undefined") {
+                hidden = "hidden";
+                visibilityChange = "visibilitychange";
+            } else if (typeof document.mozHidden !== "undefined") {
+                hidden = "mozHidden";
+                visibilityChange = "mozvisibilitychange";
+            } else if (typeof document.msHidden !== "undefined") {
+                hidden = "msHidden";
+                visibilityChange = "msvisibilitychange";
+            } else if (typeof document.webkitHidden !== "undefined") {
+                hidden = "webkitHidden";
+                visibilityChange = "webkitvisibilitychange";
+            }
+            // Handle user changing tab
+            document.addEventListener(visibilityChange, (function () {
+                if (document[hidden]) {
+                    this.pause();
+                } else {
+                    this.resume();
+                }
+            }).bind(this), false);
+            // Handle user putting browser into background
+            window.addEventListener("blur", this.pause.bind(this));
+            window.addEventListener("focus", this.resume.bind(this));
+
+            this.set("_startTime", new Date());
         },
 
         totalTime: function totalTime() {
-            return parseInt((new Date() - this.get('_startTime') - this.getWithDefault('_pausedTime', 0)) / 1000);
+            return parseInt((new Date() - this.get("_startTime") - this.getWithDefault("_pausedTime", 0)) / 1000);
         },
 
         pause: function pause() {
-            if (this.get('paused')) {
+            if (this.get("paused")) {
                 // Avoid overwriting pause if called twice without resume
                 return;
             }
-            this.set('paused', new Date());
+            this.set("paused", new Date());
         },
 
         resume: function resume() {
-            if (!this.get('paused')) {
+            if (!this.get("paused")) {
                 return;
             }
-            var paused = this.getWithDefault('_pausedTime', 0),
-                pausedAt = this.get('paused');
+            var paused = this.getWithDefault("_pausedTime", 0),
+                pausedAt = this.get("paused");
             paused = paused + (new Date() - pausedAt);
-            this.set('_pausedTime', paused);
-            this.set('paused', null);
+            this.set("_pausedTime", paused);
+            this.set("paused", null);
         }
     });
+
+});
+define('portia-web/utils/utils', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports.cleanUrl = cleanUrl;
+    exports.guid = guid;
+    exports.shortGuid = shortGuid;
+    exports.toType = toType;
+    exports.captureMessage = captureMessage;
+    exports.logError = logError;
+
+    function cleanUrl(url) {
+        if (typeof url !== 'string') {
+            return null;
+        }
+        url = url.trim();
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'http://' + url;
+        }
+        try {
+            url = new URI(url).normalize();
+        } catch (e) {
+            return null;
+        }
+        if (!url.host()) {
+            return null;
+        }
+        return url.toString();
+    }
+
+    /**
+     * Four random hex characters
+     */
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+    function guid() {
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
+    function shortGuid(separator) {
+        separator = typeof separator !== 'undefined' ? separator : '-';
+        return s4() + separator + s4() + separator + s4();
+    }
+
+    function toType(obj) {
+        return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
+    }
+
+    function captureMessage(msg, params) {
+        Ember['default'].Logger.log(msg);
+        if (window.Raven) {
+            Raven.captureMessage(msg, params);
+        }
+    }
+
+    function logError(err, params) {
+        Ember['default'].Logger.error(err);
+        if (window.Raven) {
+            Raven.captureException(err, params);
+        }
+    }
+
+});
+define('portia-web/utils/validate-field-name', ['exports'], function (exports) {
+
+    'use strict';
+
+    exports['default'] = validateFieldName;
+
+    function validateFieldName(name, fields) {
+        // Ensuring that field names don't start with underscores prevents
+        // overwriting _item, _template and any future "protected" property
+        // we might add to extracted items.
+        if (/^_/.test(name)) {
+            return 'Field can\'t start with underscores';
+        } else if (name === 'url') {
+            return 'Naming a field "url" is not allowed as there is already a field with this name';
+        } else if (fields.findBy('display_name', name)) {
+            return 'There is already a field with that name.';
+        }
+        return null; // No error
+    }
 
 });
 /* jshint ignore:start */

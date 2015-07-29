@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import re
 
 from itertools import groupby
@@ -30,6 +32,8 @@ def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
                 if field_descriptor:
                     value = [field_descriptor.adapt(x, htmlpage)
                              for x in value]
+                    if field_descriptor.name != field_descriptor.description:
+                        key = field_descriptor.description
                 processed_attributes.append((key, value))
         processed_data.append(processed_attributes)
     return [dict(p) for p in processed_data]
@@ -85,7 +89,7 @@ class Annotations(object):
 
         self.build_url_filter(spec)
 
-    def handle_html(self, response):
+    def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
         items, link_regions = self.extract_items(htmlpage)
         for item in items:
@@ -97,7 +101,7 @@ class Annotations(object):
         """This method is also called from UI webservice to extract items"""
         items = []
         link_regions = []
-        for item_cls_name, info in self.itemcls_info.iteritems():
+        for item_cls_name, info in self.itemcls_info.items():
             item_descriptor = info['descriptor']
             extractor = info['extractor']
             extracted, _link_regions = self._do_extract_items_from(

@@ -2,7 +2,10 @@ import Ember from 'ember';
 import BaseController from './base-controller';
 import Extractor from '../models/extractor';
 import MappedFieldData from '../models/mapped-field-data';
+import Item from '../models/item';
+import ItemField from '../models/item-field';
 import SpriteStore from '../utils/sprite-store';
+import utils from '../utils/utils';
 
 export default BaseController.extend({
 
@@ -76,13 +79,14 @@ export default BaseController.extend({
     scrapedItem: function() {
         if (!Ember.isEmpty(this.get('items'))) {
             var item = this.get('items').findBy('name', this.get('model.scrapes'));
-            if (!item.fields) {
-                item.fields = [];
+            if(item) {
+                if (!item.fields) {
+                    item.fields = [];
+                }
+                return item;
             }
-            return item;
-        } else {
-            return null;
         }
+        return null;
     }.property('model.scrapes', 'items.@each'),
 
     displayExtractors: function() {
@@ -116,8 +120,7 @@ export default BaseController.extend({
                 'You are unable to save this template as the following required fields are missing: "' +
                 missingFields.join('", "') + '".');
         } else {
-            return this.get('slyd').saveTemplate(
-                this.get('controllers.spider.name'), this.get('model'));
+            return this.get('ws').save('template', this.get('model'));
         }
     },
 
@@ -150,7 +153,9 @@ export default BaseController.extend({
         this.get('extractors').forEach(function(extractor) {
             delete extractor['dragging'];
         });
-        this.get('slyd').saveExtractors(this.get('extractors'));
+        this.get('ws').save('extractors', this.get('extractors').map(function(extractor) {
+            return extractor.serialize();
+        }));
     },
 
     validateExtractors: function() {
@@ -265,7 +270,7 @@ export default BaseController.extend({
 
     createExtractor: function(extractorType, extractorDefinition) {
         var extractor = Extractor.create({
-            name: this.shortGuid(),
+            name: utils.shortGuid(),
         });
         if (extractorType === 'regular_expression') {
             try {
@@ -294,7 +299,26 @@ export default BaseController.extend({
 
         createField: function(item, fieldName, fieldType) {
             item.addField(fieldName, fieldType);
-            this.get('slyd').saveItems(this.get('items').toArray());
+            var items = this.get('items').toArray(),
+                slyd = this.get('slyd');
+            items = items.map(function(item) {
+                item = item.serialize();
+                if (item.fields) {
+                    item.fields = slyd.listToDict(item.fields);
+                }
+                return item;
+            });
+            items = slyd.listToDict(items);
+            this.get('ws').save('items', items).then(function(data) {
+
+                items = slyd.dictToList(data.saved.items, Item);
+                items.forEach(function(item) {
+                    if (item.fields) {
+                        item.fields = slyd.dictToList(item.fields, ItemField);
+                    }
+                });
+                this.set('project_models.items', items);
+            }.bind(this));
         },
 
         rename: function(newName) {
@@ -311,8 +335,7 @@ export default BaseController.extend({
             saveFuture.then(function() {
                 var templateNames = this.get('controllers.spider.model.template_names');
                 newName = this.getUnusedName(newName, templateNames);
-                var spiderName = this.get('controllers.spider.model.name');
-                this.get('slyd').renameTemplate(spiderName, oldName, newName).then(
+                this.get('ws').rename('template', oldName, newName).then(
                     function() {
                         templateNames.removeObject(oldName);
                         templateNames.addObject(newName);
@@ -460,7 +483,7 @@ export default BaseController.extend({
     },
 
     setDocument: function() {
-        if (!this.get('model') || !this.get('model.annotated_body') || this.toString().indexOf('template/index') < 0) {
+        if (!this.get('model') || !this.get('model.annotated_body') || !this.get('loadDocument')) {
             return;
         }
         this.get('documentView').displayDocument(this.get('model.annotated_body'),
@@ -480,6 +503,33 @@ export default BaseController.extend({
         }.bind(this));
     }.observes('model', 'model.annotated_body'),
 
+    /**
+     * This will make sure the template scrapes a valid item and if not it will create one.
+     */
+    ensureItem: function() {
+        if (this.get('model') &&  !this.get('items').findBy('name', this.get('model.scrapes'))) {
+            // Template has an item that doesn't exist, create a new one
+            var fields = new Set();
+            Object.values(this.get('model.plugins')).forEach((plugin) => {
+                plugin.extracts.forEach((extract) => {
+                    Object.values(extract.annotations).forEach((fieldName) => {
+                        fields.add(fieldName);
+                    });
+                });
+            });
+            var item = Item.create({
+                name: this.get('model.scrapes'),
+                display_name: this.get('model.name'),
+                fields: []
+            });
+            fields.forEach((fieldName) => item.addField(fieldName));
+            this.get('items').pushObject(item);
+            this.showWarningNotification('Missing item',
+                "This template didn't have a valid item assigned so a new one was created.");
+            this.get('slyd').saveItems(this.get('items').toArray());
+        }
+    }.observes('model.scrapes', 'items.@each'),
+
     willEnter: function() {
         var plugins = {};
         this.get('capabilities.plugins').forEach(function(plugin) {
@@ -492,7 +542,7 @@ export default BaseController.extend({
 
     willLeave: function() {
         this.hideFloatingAnnotationWidget();
-        this.get('documentView').hideHoveredInfo();
+        this.get('documentView').reset();
         this.set('activeExtractionTool', {extracts: [],
                                           component: 'dummy-component',
                                           pluginState: {}});

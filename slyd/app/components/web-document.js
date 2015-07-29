@@ -1,6 +1,9 @@
+/* jshint scripturl:true */
 import Ember from 'ember';
+import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
+var $ = Ember.$;
 
 /* global CanvasLoader */
 
@@ -20,6 +23,8 @@ export default Ember.Component.extend({
     sprites: [],
 
     listener: null,
+
+    mode: "none", // How it responds to input events, modes are 'none', 'browse' and 'select'
 
     canvas: null,
 
@@ -49,20 +54,16 @@ export default Ember.Component.extend({
 
         datasource: the datasource that will be attached.
         listener: the event listener will be attached.
-        mode: a string. Possible values are 'select' and 'browse'.
+        mode: a string. Possible values are 'select', 'browse' and 'none'.
         partialSelects: boolean. Whether to allow partial selections. It only
             has effect for the 'select' mode.
     */
     config: function(options) {
         this.set('dataSource', options.dataSource);
         this.set('listener', options.listener);
+        this.set('mode', options.mode);
         if (options.mode === 'select') {
-            this.set('elementSelectionEnabled', true);
             this.set('partialSelectionEnabled', options.partialSelects);
-        } else if (options.mode === 'browse') {
-            this.set('elementSelectionEnabled', false);
-            this.hideHoveredInfo();
-            this.installEventHandlersForBrowsing();
         }
     },
 
@@ -71,8 +72,7 @@ export default Ember.Component.extend({
         it also unbinds all event handlers.
     */
     reset: function() {
-        this.uninstallEventHandlers();
-        this.set('elementSelectionEnabled', false);
+        this.set('mode', 'none');
         this.set('partialSelectionEnabled', false);
         this.set('dataSource', null);
         this.set('listener', null);
@@ -89,6 +89,13 @@ export default Ember.Component.extend({
     */
     getIframe: function() {
         return Ember.$('#' + this.get('iframeId')).contents();
+    },
+
+    /**
+        Returns the document iFrame node.
+    */
+    getIframeNode: function() {
+        return Ember.$('#' + this.get('iframeId'))[0];
     },
 
     /**
@@ -145,14 +152,14 @@ export default Ember.Component.extend({
             // until we trigger the callback.
             this.setInteractionsBlocked(true);
             Ember.run.later(this, function() {
-                var doc = document.getElementById(this.get('iframeId')).contentWindow.document;
+                var doc = this.getIframeNode().contentWindow.document;
                 doc.onscroll = this.redrawNow.bind(this);
                 this.setInteractionsBlocked(false);
                 if (readyCallback) {
                     readyCallback(this.getIframe());
                 }
                 this.set('loadingDoc', false);
-            }, 1000);
+            }, 800);
         });
     },
 
@@ -206,11 +213,11 @@ export default Ember.Component.extend({
     */
     showSpider: function() {
         Ember.run.schedule('afterRender', this, function() {
-            if (!Ember.testing && !this.spiderPageShown) {
+            if (!Ember.testing) {
                 if (this.spiderPage) {
-                    this.setIframeContent(this.spiderPage);
+                    this.getIframe().find('html').html(this.spiderPage);
                 } else  {
-                    this.reloadIframeContent();
+                    Ember.run.throttle(this, this.reloadIframeContent, 500);
                 }
                 this.spiderPageShown = true;
             }
@@ -253,64 +260,56 @@ export default Ember.Component.extend({
     scrollToElement: function(element) {
         var rect = Ember.$(element).boundingBox();
         this.updateHoveredInfo(element);
-        Ember.$('#' + this.get('iframeId')).get(0).contentWindow.scrollTo(
+        this.getIframeNode().contentWindow.scrollTo(
             Math.max(0, parseInt(rect.left - 100)),
             Math.max(0, parseInt(rect.top - 100))
         );
     },
 
-    _elementSelectionEnabled: null,
-
-    elementSelectionEnabled: function(key, selectionEnabled) {
-        if (arguments.length > 1) {
-            if (selectionEnabled) {
-                if (!this.get('_elementSelectionEnabled')) {
-                    this.set('_elementSelectionEnabled', true);
-                    this.showHoveredInfo();
-                    this.installEventHandlersForSelecting();
-                }
-            } else {
-                this.set('_elementSelectionEnabled', false);
-                this.uninstallEventHandlers();
-                this.hideHoveredInfo();
-            }
-        } else {
-            return this.get('_elementSelectionEnabled');
+    _updateEventHandlers: function() {
+        var mode = this.get('mode');
+        if (mode === 'select') {
+            this.showHoveredInfo();
+            this.installEventHandlersForSelecting();
+        } else if (mode === 'browse'){
+            this.hideHoveredInfo();
+            this.installEventHandlersForBrowsing();
+        } else { // none
+            this.hideHoveredInfo();
+            this.uninstallEventHandlers();
         }
-    }.property('_elementSelectionEnabled'),
+    }.observes('mode'),
 
     partialSelectionEnabled: false,
 
     installEventHandlersForBrowsing: function() {
         this.uninstallEventHandlers();
-        this.getIframe().bind('click', this.clickHandlerBrowse.bind(this));
+        this.getIframe().on('click.portia', this.clickHandlerBrowse.bind(this));
     },
 
     installEventHandlersForSelecting: function() {
         this.uninstallEventHandlers();
-        this.getIframe().bind('click', this.clickHandler.bind(this));
-        this.getIframe().bind('mouseover', this.mouseOverHandler.bind(this));
-        this.getIframe().bind('mouseout', this.mouseOutHandler.bind(this));
-        this.getIframe().bind('mousedown', this.mouseDownHandler.bind(this));
-        this.getIframe().bind('mouseup', this.mouseUpHandler.bind(this));
-        this.getIframe().bind('hover', function(event) {event.preventDefault();});
+        var iframe = this.getIframe();
+        iframe.on('click.portia', this.clickHandler.bind(this));
+        iframe.on('mouseover.portia', this.mouseOverHandler.bind(this));
+        iframe.on('mouseout.portia', this.mouseOutHandler.bind(this));
+        iframe.on('mousedown.portia', this.mouseDownHandler.bind(this));
+        iframe.on('mouseup.portia', this.mouseUpHandler.bind(this));
+        iframe.on('hover.portia', function(event) {event.preventDefault();});
         this.redrawNow();
     },
 
     uninstallEventHandlers: function() {
-        this.getIframe().unbind('click');
-        this.getIframe().unbind('mouseover');
-        this.getIframe().unbind('mouseout');
-        this.getIframe().unbind('mousedown');
-        this.getIframe().unbind('mouseup');
-        this.getIframe().unbind('hover');
+        this.getIframe().off('.portia');
         this.set('hoveredSprite', null);
     },
 
     reloadIframeContent: function() {
-        return Ember.$('#' + this.get('iframeId')).attr('src',
-            Ember.$('#' + this.get('iframeId')).attr('src')
-        );
+        var iframe = Ember.$(this.getIframeNode());
+        ajax({url: iframe.attr('src')}).then(function(data) {
+            this.spiderPage = data || null;
+            this.showSpider();
+        }.bind(this));
     },
 
     getIframeContent: function() {
@@ -319,10 +318,6 @@ export default Ember.Component.extend({
     },
 
     setIframeContent: function(contents) {
-        if (this.spiderPageShown && !this.spiderPage) {
-            this.spiderPage = this.getIframeContent() || null;
-        }
-
         var iframe = this.getIframe();
         iframe.find('html').html(contents);
         this.set('document.iframe', iframe);
@@ -370,16 +365,18 @@ export default Ember.Component.extend({
         if (jqElem.prop('id')) {
             attributes.unshift({name: 'id', value: jqElem.prop('id')});
         }
-        var attributesHtml = '';
+        var $attributes = $('#hovered-element-info .attributes').empty();
         attributes.forEach(function(attribute) {
-            var value = attribute.value.trim().substring(0, 50);
-            attributesHtml += '<div class="attribute" style="margin:2px 0px 2px 0px">' +
-                                '<span>' + attribute.name + ": </span>" +
-                                '<span style="color:#AAA">' + value + '</span>' +
-                              '</div>';
+            var value = (attribute.value || "").trim().substring(0, 50);
+            $attributes.append(
+                $('<div class="attribute" style="margin:2px 0px 2px 0px"></div>').append(
+                    $('<span/>').text(attribute.name + ': ')
+                ).append(
+                    $('<span style="color:#AAA"></span>').text(value)
+                )
+            );
         });
-        Ember.$('#hovered-element-info .attributes').html(attributesHtml);
-        Ember.$('#hovered-element-info .path').html(path);
+        $('#hovered-element-info .path').html(path);
     },
 
     sendElementHoveredEvent: function(element, delay, mouseX, mouseY) {
@@ -422,11 +419,16 @@ export default Ember.Component.extend({
     },
 
     clickHandlerBrowse: function(event) {
+        if(event.which > 1 || event.ctrlKey) { // Ignore right/middle click or Ctrl+click
+            return;
+        }
         event.preventDefault();
         var linkingElement = Ember.$(event.target).closest('[href]');
         if (linkingElement.length) {
-            var href = Ember.$(linkingElement).get(0).href;
-            this.sendDocumentEvent('linkClicked', href);
+            var href = linkingElement.get(0).href;
+            if (href && href.toLowerCase().indexOf('javascript:') !== 0) {
+                this.sendDocumentEvent('linkClicked', href);
+            }
         }
     },
 

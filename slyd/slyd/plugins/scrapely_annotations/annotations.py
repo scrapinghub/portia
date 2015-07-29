@@ -188,7 +188,7 @@ def _get_inner_nodes(target, open_tags=1, insert_after=False,
                      stop_on_next=False):
     nodes = []
     while open_tags > -0:
-        elem = target.next()
+        elem = next(target)
         if isinstance(elem, HtmlTag):
             if elem.tag_type == OPEN_TAG:
                 open_tags += 1
@@ -223,7 +223,7 @@ def apply_annotations(annotations, target_page):
     target = parse_html(numbered_html)
     output, tag_stack = [], []
 
-    element = target.next()
+    element = next(target)
     last_id = 0
     # XXX: A dummy element is added to the end so if the last annotation is
     #      generated it will be added to the output
@@ -241,7 +241,7 @@ def apply_annotations(annotations, target_page):
             while True:
                 while not isinstance(element, HtmlTag):
                     output.append(numbered_html[element.start:element.end])
-                    element = target.next()
+                    element = next(target)
                 if element.tag_type in {OPEN_TAG, UNPAIRED_TAG}:
                     last_id = element.attributes.get(TAGID)
                     tag_stack.append(last_id)
@@ -257,7 +257,7 @@ def apply_annotations(annotations, target_page):
                         # Skip all nodes up to the next HtmlTag as these
                         # have already been added
                         while True:
-                            element = target.next()
+                            element = next(target)
                             try:
                                 last_id = element.attributes.get(TAGID,
                                                                  last_id)
@@ -270,7 +270,7 @@ def apply_annotations(annotations, target_page):
                     if '__added' not in element.attributes:
                         output.append(numbered_html[element.start:element.end])
                         element.attributes['__added'] = True
-                    element = target.next()
+                    element = next(target)
                 else:
                     break
 
@@ -308,7 +308,7 @@ def apply_annotations(annotations, target_page):
             # If an <ins> tag has been inserted we need to move forward
             if next_text_section:
                 while True:
-                    elem = target.next()
+                    elem = next(target)
                     if (isinstance(elem, HtmlDataFragment) and
                             elem.is_text_content):
                         break
