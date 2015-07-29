@@ -38,7 +38,7 @@ WebSocket.prototype = {
         }
     },
     url: '',
-    readyState: 1,
+    readyState: originalWs.OPEN,
     OPEN: originalWs.OPEN,
     CLOSED: originalWs.CLOSED,
     CONNECTING: originalWs.CONNECTING,
@@ -53,7 +53,7 @@ WebSocket.prototype = {
     get onmessage() {},
     set onopen(fn) {
         this.readyState = this.OPEN;
-        setTimeout(fn, 0);
+        fn();
     },
     get onopen() {},
     set onclose(fn) {
