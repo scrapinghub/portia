@@ -73,9 +73,11 @@ def metadata(socket, extra={}):
         'loaded': socket.tab.loaded
     }
     if socket.tab.loaded:
+        # Workarround for https://github.com/scrapinghub/splash/issues/259
+        url = socket.tab.evaljs('location.href')
         res.update(
-            url=socket.tab.url,
-            fp=hashlib.sha1(socket.tab.url).hexdigest(),
+            url=url,
+            fp=hashlib.sha1(url).hexdigest(),
             response={
                 'headers': {},  # TODO: Get headers
                 'status': socket.tab.last_http_status()

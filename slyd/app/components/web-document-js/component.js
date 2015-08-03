@@ -120,6 +120,7 @@ export default WebDocument.extend({
             var args = data.slice(1);
             if(action === 'initialize') {
                 this.iframePromise = this.clearIframe().then(function(){
+                    this._updateEventHandlers();
                     var doc = this.getIframeNode().contentWindow.document;
                     this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
                 }.bind(this));
@@ -253,10 +254,10 @@ export default WebDocument.extend({
     },
 
     installEventHandlersForBrowsing: function() {
-        this._super();
         var iframe = this.getIframe();
         iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
                   'mousedown.portia mouseup.portia', this.postEvent.bind(this));
+        iframe.on('click.portia', this.clickHandlerBrowse.bind(this));
         this.addFrameEventListener("scroll", e => Ember.run.throttle(this, this.postEvent, e, 200), true);
         this.addFrameEventListener('focus', this.postEvent.bind(this), true);
         this.addFrameEventListener('blur', this.postEvent.bind(this), true);
@@ -273,12 +274,11 @@ export default WebDocument.extend({
     },
 
     clickHandlerBrowse: function(evt) {
-        if(evt.which > 1 || evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
-            return;
-        }
-        this.postEvent(evt);
-        if(evt.target.tagName !== 'INPUT') {
-            return this._super(evt);
+        if(evt.which <= 1 && !evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
+            if(evt.target.tagName !== 'INPUT') {
+                evt.preventDefault();
+            }
+            this.postEvent(evt);
         }
     },
 

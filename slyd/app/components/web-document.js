@@ -282,10 +282,7 @@ export default Ember.Component.extend({
 
     partialSelectionEnabled: false,
 
-    installEventHandlersForBrowsing: function() {
-        this.uninstallEventHandlers();
-        this.getIframe().on('click.portia', this.clickHandlerBrowse.bind(this));
-    },
+    installEventHandlersForBrowsing: $.noop,
 
     installEventHandlersForSelecting: function() {
         this.uninstallEventHandlers();
@@ -416,20 +413,6 @@ export default Ember.Component.extend({
 
     clickHandler: function(event) {
         event.preventDefault();
-    },
-
-    clickHandlerBrowse: function(event) {
-        if(event.which > 1 || event.ctrlKey) { // Ignore right/middle click or Ctrl+click
-            return;
-        }
-        event.preventDefault();
-        var linkingElement = Ember.$(event.target).closest('[href]');
-        if (linkingElement.length) {
-            var href = linkingElement.get(0).href;
-            if (href && href.toLowerCase().indexOf('javascript:') !== 0) {
-                this.sendDocumentEvent('linkClicked', href);
-            }
-        }
     },
 
     mouseDownHandler: function(event) {
