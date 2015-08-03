@@ -1,12 +1,12 @@
 <div class="nav-container button-align">
-	<span style="float:left">
+	<div style="float:left">
 		{{bs-button clicked="browseBack" icon="fa fa-icon fa-arrow-left" size="sm" disabled=browseBackDisabled}}
-	</span>
-	<span style="float:left">
+	</div>
+	<div style="float:left">
 		{{bs-button clicked="reload" icon="fa fa-icon fa-refresh" size="sm" disabled=reloadDisabled}}
-	</span>
+	</div>
 
-	<span class="url">
+	<div class="url">
 		{{#if isFetching }}
 			{{#label-with-tooltip title=controller.currentUrl}}
 				{{controller.currentUrl}}
@@ -16,7 +16,7 @@
 				{{controller.currentUrl}}
 			{{/inline-editable-text-field}}
 		{{/if}}
-	</span>
+	</div>
 </div>
 
 <div class="nav-container button-align white-text">

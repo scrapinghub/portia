@@ -58,13 +58,9 @@ body{
 }
 
 #topbar .url {
-    width: 74%;
-    color: #444;
+    width: 25vw;
     float: left;
     margin: 0 20px 0 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     height: 30px;
     line-height: 30px;
 }
@@ -73,10 +69,16 @@ body{
     margin-top: -2px;
 }
 
+#topbar .url div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 #topbar .nav-container {
     float:left;
     text-align:left;
-    width:30%
+    min-width: 20%;
 }
 
 #topbar .small-label {
@@ -730,11 +732,6 @@ ul.breadcrumbs {
     cursor: pointer;
 }
 
-.text-ellipsis {
-    overflow:hidden;
-    text-overflow:ellipsis;
-}
-
 input[type="checkbox"].offset-checkbox {
     margin-top: 1px;
 }
@@ -751,14 +748,6 @@ input[type="checkbox"].offset-checkbox {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.current-crumb {
-    max-width: 40%;
-}
-
-.inactive-crumb {
-    max-width: 25%;
 }
 
 .bs-message {
