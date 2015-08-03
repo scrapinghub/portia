@@ -150,15 +150,9 @@ export default WebDocument.extend({
         return deferred.promise;
     },
 
-    setInteractionsBlocked: function(blocked) {
-        if (this.get('reconnectInteractions') !== null) {
-            this.set('reconnectInteractions', blocked);
-            return;
-        }
-        if (this.get('canvas.interactionsBlocked') !== blocked) {
-            this.set('canvas.interactionsBlocked', blocked);
-        }
-    },
+    _wsOpenChange: function(){
+        this.setInteractionsBlocked(this.get('ws.opened'), 'ws');
+    }.observes('ws.opened'),
 
     setIframeContent: function(doc) {
         if(typeof doc !== 'string') {

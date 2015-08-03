@@ -127,13 +127,27 @@ export default Ember.Component.extend({
         this.get('canvas').clear();
     },
 
+    interactionsBlockedReasons: new Set(),
+
     /**
-        Blocks/unblocks interactions with the document.
-    */
-    setInteractionsBlocked: function(blocked) {
-        if (this.get('canvas.interactionsBlocked') !== blocked) {
-            this.set('canvas.interactionsBlocked', blocked);
-        }
+     *  Adds/lifts a reason for interactions with the document to be blocked.
+     *
+     *  Interactions are blocked for as long as there is a "reason" for them
+     *  to be blocked. This ensures that interactions are not unblocked by a
+     *  different module/reasons that blocked them.
+     */
+    setInteractionsBlocked: function(blocked, reason="default") {
+        var reasons = this.get('interactionsBlockedReasons');
+        reasons[blocked?'add':'delete'](reason);
+        this.set('canvas.interactionsBlocked', reasons.size > 0);
+    },
+
+    blockInteractions: function(reason){
+        return this.setInteractionsBlocked(true, reason);
+    },
+
+    unblockInteractions: function(reason){
+        return this.setInteractionsBlocked(false, reason);
     },
 
     /**
@@ -147,11 +161,11 @@ export default Ember.Component.extend({
             this.spiderPageShown = false;
             // We need to disable all interactions with the document we are loading
             // until we trigger the callback.
-            this.setInteractionsBlocked(true);
+            this.blockInteractions('display');
             Ember.run.later(this, function() {
                 var doc = this.getIframeNode().contentWindow.document;
                 doc.onscroll = this.redrawNow.bind(this);
-                this.setInteractionsBlocked(false);
+                this.unblockInteractions('display');
                 if (readyCallback) {
                     readyCallback(this.getIframe());
                 }
@@ -173,7 +187,7 @@ export default Ember.Component.extend({
         by calling hideLoading.
     */
     showLoading: function() {
-        this.setInteractionsBlocked(true);
+        this.blockInteractions('loading');
         var loader = this.get('loader');
         if (!loader) {
             loader = new CanvasLoader('loader-container');
@@ -201,7 +215,7 @@ export default Ember.Component.extend({
         if (this.get('loader')) {
             this.get('loader').hide();
         }
-        this.setInteractionsBlocked(false);
+        this.unblockInteractions('loading');
     },
 
     /**

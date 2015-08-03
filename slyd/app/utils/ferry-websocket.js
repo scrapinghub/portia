@@ -64,7 +64,7 @@ export default Ember.Object.extend({
         this.set('closed', true);
         this.set('connecting', false);
         Ember.Logger.log('<Closed Websocket>');
-        if(e.code !== APPLICATION_UNLOADING_CODE) {
+        if(e.code !== APPLICATION_UNLOADING_CODE && e.code !== 1000) {
             var timeout = this._connectTimeout();
             this.set('secondsUntilReconnect', Math.round(timeout/1000));
             var next = Ember.run.later(this, this.connect, timeout);
