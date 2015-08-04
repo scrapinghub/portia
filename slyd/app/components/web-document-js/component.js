@@ -25,6 +25,36 @@ function paintCanvasMessage(canvas) {
     ctx.fillStyle = 'black';
     ctx.fillText('Displaying the content of the canvas is not supported', 10, canvas.height / 2);
 }
+
+function addEmbedBlockedMessage(node) {
+    if(!node || !node.parentNode || /EMBED|OBJECT/.test(node.parentNode.tagName)) {
+        return;
+    }
+    var computedStyle = window.getComputedStyle(node);
+
+    var width = node.hasAttribute("width") ? node.getAttribute("width")+"px" : computedStyle.width;
+    var height = node.hasAttribute("height") ? node.getAttribute("height")+"px" : computedStyle.height;
+
+    var errorMsg = $("<div/>").css({
+        'background-color': '#269',
+        'background-image': 'linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px), ' +
+                            'linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px)',
+        'background-size': '20px 20px, 20px 20px',
+        'text-align': "center",
+        'overflow': "hidden",
+        'font-size': "18px",
+        'display': "block",
+        'font-family': 'sans-serif',
+        'color': 'white',
+        'text-shadow': '1px black',
+        'width': width,
+        'height': height,
+        'lineHeight': height,
+    }).text("Portia doesn't support browser plugins.");
+    node.style.display = "none";
+    node.parentNode.insertBefore(errorMsg[0], node);
+}
+
 function treeMirrorDelegate(){
     return {
         createElement: function(tagName) {
@@ -40,6 +70,9 @@ function treeMirrorDelegate(){
             } else if (tagName === 'CANVAS') {
                 node = document.createElement(tagName);
                 paintCanvasMessage(node);
+            } else if (tagName === 'OBJECT' || tagName === 'EMBED') {
+                node = document.createElement(tagName);
+                setTimeout(addEmbedBlockedMessage.bind(null, node), 100);
             }
             return node;
         },
@@ -47,7 +80,9 @@ function treeMirrorDelegate(){
             if(
                 /^on/.test(attrName) ||  // Disallow JS attributes
                 ((node.tagName === 'FRAME' || node.tagName === 'IFRAME') &&
-                (attrName === 'src' || attrName === 'srcdoc')) // Frames not supported
+                (attrName === 'src' || attrName === 'srcdoc')) || // Frames not supported
+                ((node.tagName === 'OBJECT' || node.tagName === 'EMBED') &&
+                (attrName === 'data' || attrName === 'src')) // Block embed / object
             ) {
                 return true;
             }

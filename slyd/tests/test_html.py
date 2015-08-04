@@ -32,6 +32,32 @@ LINKS = [
     "<a HrEf='%s'>Click me :)</a>",
 ]
 
+DANGEROUS_MARKUP = (
+    '<script> alert(xss) </script>',
+    '<script src="xss.js"></script>',
+    '<script src="xss.js"/></script>',
+    '<script><!-- alert(xss) --></script>',
+    '<script><!--\n alert(xss)\n --></script>',
+    '<script><![CDATA[ alert(xss) ]]></script>',
+    '<script/>alert(xss)</script>',
+    '<script/><!-- alert(xss) --></script>',
+    '<script/><!--\n alert(xss)\n --></script>',
+    '<script/><![CDATA[ alert(xss) ]]></script>',
+    '<script> alert(xss); // <script> alert(xss); // <!-- </script> --> </script>'
+    '<script><script> alert(xss) </script></script>',
+    '<embed data="xss"></embed>',
+    '<object src="xss"></object>',
+    '<div onclick="xss" oninput="xss"></object>',
+)
+
+SAFE_MARKUP = (
+    '<div></div>',
+    '<div foo="bar">baz</div>',
+    '<div foo="bar"></div>',
+    '<div/>',
+    '<div><!-- comment --></div>',
+)
+
 class HtmlTest(unittest.TestCase):
     def test_xss(self):
         base = "https://x.es/home/about.html?query=1"
@@ -42,4 +68,11 @@ class HtmlTest(unittest.TestCase):
 
             for relurl, absolute in VALID_URLS:
                 self.assertEqual(descriptify(link % relurl, base=base), '<a href="%s">Click me :)</a>' % absolute)
+
+    def test_html_sanitization(self):
+        for markup in DANGEROUS_MARKUP:
+            self.assertNotRegexpMatches(descriptify(markup), 'javascript|xss|alert')
+
+        for markup in SAFE_MARKUP:
+            self.assertEqual(descriptify(markup), markup)
 

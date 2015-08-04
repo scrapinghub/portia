@@ -19,6 +19,8 @@ from .utils import serialize_tag, add_tagids
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
+BLOCKED_TAGNAMES = ('script', 'noscript', 'object', 'embed')
+
 _ALLOWED_CHARS_RE = re.compile('[^!-~]') # [!-~] = ascii printable characters
 def _contains_js(url):
     return _ALLOWED_CHARS_RE.sub('', url).lower().startswith('javascript:')
@@ -67,16 +69,15 @@ def descriptify(doc, base=None, proxy=None):
     inserted_comment = False
     for element in parsed:
         if isinstance(element, HtmlTag):
-            if not inserted_comment and element.tag == "script" and element.tag_type == HtmlTagType.OPEN_TAG:
-                newdoc.append('<script>')
-                inserted_comment = True
-            elif element.tag in ("script", "noscript") and element.tag_type == HtmlTagType.CLOSE_TAG:
-                if inserted_comment:
+            if element.tag in BLOCKED_TAGNAMES:
+                # Asumes there are no void elements in BLOCKED_TAGNAMES
+                # http://www.w3.org/TR/html5/syntax.html#void-elements
+                if not inserted_comment and element.tag_type in (HtmlTagType.OPEN_TAG, HtmlTagType.UNPAIRED_TAG):
+                    newdoc.append('<%s>' % element.tag)
+                    inserted_comment = True
+                elif element.tag_type == HtmlTagType.CLOSE_TAG:
+                    newdoc.append('</%s>' % element.tag)
                     inserted_comment = False
-                newdoc.append('</%s>' % element.tag)
-            elif element.tag == "noscript":
-                newdoc.append('<noscript>')
-                inserted_comment = True
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events
@@ -97,7 +98,7 @@ def descriptify(doc, base=None, proxy=None):
                 newdoc.append(serialize_tag(element))
         else:
             text = doc[element.start:element.end]
-            if inserted_comment and text.strip() and not (text.startswith("<!--") and text.endswith("-->")):
+            if inserted_comment and text.strip():
                 newdoc.append('<!-- Removed by portia -->')
             else:
                 newdoc.append(text)
