@@ -97,7 +97,7 @@ def descriptify(doc, base=None, proxy=None):
                 newdoc.append(serialize_tag(element))
         else:
             text = doc[element.start:element.end]
-            if inserted_comment and text.strip() and not (text.startswith("<!--") and text.endswith("-->")):
+            if inserted_comment and text.strip():
                 newdoc.append('<!-- Removed by portia -->')
             else:
                 newdoc.append(text)

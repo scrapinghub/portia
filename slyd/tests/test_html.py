@@ -43,3 +43,12 @@ class HtmlTest(unittest.TestCase):
             for relurl, absolute in VALID_URLS:
                 self.assertEqual(descriptify(link % relurl, base=base), '<a href="%s">Click me :)</a>' % absolute)
 
+    def test_html_sanitization(self):
+        for markup in (
+            '<script> alert(xss) </script>',
+            '<script src="xss.js"/>',
+            '<script><!-- alert(xss) --></script>',
+            '<script><!--\n alert(xss)\n --></script>',
+            '<script><![CDATA[ alert(xss) ]]></script>'):
+            self.assertNotRegexpMatches(descriptify(markup), 'javascript|xss|alert')
+
