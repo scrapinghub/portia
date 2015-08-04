@@ -1,7 +1,7 @@
 import re
 import urllib
 from scrapy.utils.url import urljoin_rfc
-from urlparse import urlparse
+from six.moves.urllib_parse import urlparse
 
 
 CSS_IMPORT = re.compile(r'''@import\s*["']([^"']+)["']''')

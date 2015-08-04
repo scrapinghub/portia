@@ -1,4 +1,4 @@
-from urlparse import urlparse
+from six.moves.urllib_parse import urlparse
 import os
 import json
 

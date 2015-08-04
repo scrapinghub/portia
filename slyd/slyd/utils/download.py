@@ -5,7 +5,7 @@ import os
 import zipfile
 
 from collections import defaultdict
-from cStringIO import StringIO
+from six import StringIO
 from datetime import datetime
 
 from slyd.projecttemplates import templates

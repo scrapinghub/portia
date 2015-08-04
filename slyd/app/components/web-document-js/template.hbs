@@ -5,12 +5,16 @@
     <div style="position:absolute;z-index:20;width:100%;pointer-events:none">
         <div id="hovered-element-info"></div>
     </div>
-    {{#if showConnectionLost}}
-        {{#bs-message background=connectionStatusType}}
-            {{connectionStatusMessage}}
-            {{#if connectionAction}}
+
+    {{#if ws.connecting}}
+        {{#bs-message background="warning"}} Reconnecting... {{/bs-message}}
+    {{/if}}
+    {{#if ws.secondsUntilReconnect }}
+        {{#bs-message background="warning"}}
+            Reconnecting to server in {{ws.secondsUntilReconnect}} seconds.
+            {{#unless ws.reconnectImminent}}
                 <a href="#" {{action 'reconnectWebsocket' on="click"}}>Try Again</a>.
-            {{/if}}
+            {{/unless}}
         {{/bs-message}}
     {{/if}}
 </div>

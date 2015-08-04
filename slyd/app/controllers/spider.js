@@ -6,8 +6,6 @@ import ExtractedItem from '../models/extracted-item';
 import Template from '../models/template';
 import utils from '../utils/utils';
 
-/* global URI */
-
 export default BaseController.extend({
     fixedToolbox: false,
 

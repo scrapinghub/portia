@@ -5,7 +5,7 @@ import re
 from operator import itemgetter
 from copy import deepcopy
 import itertools
-from urlparse import urlparse
+from six.moves.urllib_parse import urlparse
 
 from w3lib.http import basic_auth_header
 

@@ -1,5 +1,3 @@
-/* global URI */
-/* global Raven */
 import Ember from 'ember';
 
 /**

@@ -1,4 +1,4 @@
-from cStringIO import StringIO
+from six import StringIO
 from twisted.internet.defer import succeed
 from twisted.web import server
 from twisted.web.http_headers import Headers

@@ -153,7 +153,7 @@ export default Ember.Component.extend(GuessTypes, {
                 partialSelects: false
             });
             this.set('document.view.restrictToDescendants', this.get('mappedElement'));
-            this.get('document.view').setInteractionsBlocked(false);
+            this.get('document.view').unblockInteractions('indoc-annotation');
             this.hide();
         },
 
@@ -230,7 +230,7 @@ export default Ember.Component.extend(GuessTypes, {
                     partialSelects: true
                 });
                 this.set('document.view.restrictToDescendants', null);
-                this.get('document.view').setInteractionsBlocked(this.get('inDoc'));
+                this.get('document.view').setInteractionsBlocked(this.get('inDoc'), 'indoc-annotation');
                 this.set('ignoring', false);
                 this.show();
             }
@@ -474,7 +474,7 @@ export default Ember.Component.extend(GuessTypes, {
     closeWidget: function() {
         this.sendAction('close');
         this.reset();
-        this.get('document.view').setInteractionsBlocked(false);
+        this.get('document.view').unblockInteractions('indoc-annotation');
         this.destroy();
     },
 
@@ -534,7 +534,7 @@ export default Ember.Component.extend(GuessTypes, {
             }
             Ember.$(this.get('element')).css({ 'top': Math.max(y, 50),
                                          'left': Math.max(x - 100, 50)});
-            this.get('document.view').setInteractionsBlocked(true);
+            this.get('document.view').blockInteractions('indoc-annotation');
         }
     },
 
