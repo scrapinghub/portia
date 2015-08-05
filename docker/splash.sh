@@ -13,7 +13,7 @@ apt-get install -qy --no-install-recommends netbase \
                     liblua5.2 liblua5.2-dev
 
 # Install python dependencies
-pip install --no-cache-dir \
+pip install -q --no-cache-dir \
         Twisted==15.2.0 \
         qt4reactor==1.6 \
         psutil==2.2.1 \

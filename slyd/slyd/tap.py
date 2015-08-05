@@ -84,7 +84,8 @@ def create_root(config, settings_module):
 
     # add websockets for communicating with splash
     factory = FerryServerFactory("ws://127.0.0.1:%s" % config['port'],
-                                 debug=False)
+                                 debug=False,
+                                 assets=config['docroot'])
     factory.protocol = FerryServerProtocol
     factory.setProtocolOptions(allowHixie76=True)
     websocket = create_ferry_resource(spec_manager, factory)

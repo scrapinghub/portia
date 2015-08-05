@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import json
+import os
 
 from six.moves.urllib_parse import urlparse
 
@@ -27,7 +28,7 @@ from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        delete_project_data)
 from .css_utils import process_css, wrap_url
 import six
-text = six.text_type # unicode in py2, str in py3
+text = six.text_type  # unicode in py2, str in py3
 
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
 _DEFAULT_VIEWPORT = '1240x680'
@@ -52,6 +53,7 @@ class FerryWebSocketResource(WebSocketResource):
         self.settings = spec_manager.settings
         FerryServerProtocol.spec_manager = spec_manager
         FerryServerProtocol.settings = settings
+        FerryServerProtocol.assets = factory.assets
         WebSocketResource.__init__(self, factory)
 
     def render(self, request):
@@ -65,6 +67,7 @@ class User(object):
 
     def __init__(self, auth, tab=None, spider=None, spiderspec=None):
         self.auth = auth
+        self.authorized_projects = auth.get('authorized_projects', None)
         self.tab = tab
         self.spider = spider
         self.spiderspec = spiderspec
@@ -149,6 +152,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
     }
     spec_manager = None
     settings = None
+    assets = './'
 
     @property
     def tab(self):
@@ -259,12 +263,14 @@ class FerryServerProtocol(WebSocketServerProtocol):
     def populate_window_object(self):
         self.tab.web_page.mainFrame().addToJavaScriptWindowObject(
             '__portiaApi', self.js_api)
-        self.tab.run_js_files('/app/slyd/dist/splash_content_scripts',
-                              handle_errors=False)
+        self.tab.run_js_files(
+            os.path.join(self.assets, 'splash_content_scripts'),
+            handle_errors=False)
 
     def open_spider(self, meta):
         if ('project' not in meta or 'spider' not in meta or
-                (meta['project'] not in self.user.authorized_projects and
+                (self.user.authorized_projects is not None and
+                 meta['project'] not in self.user.authorized_projects and
                  not self.user.staff)):
             return {'error': 4004,
                     'reason': 'Project "%s" not found' % meta['project']}
@@ -318,9 +324,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
 
 class FerryServerFactory(WebSocketServerFactory):
-    def __init__(self, uri, debug=False):
+    def __init__(self, uri, debug=False, assets='./'):
         WebSocketServerFactory.__init__(self, uri, debug=debug)
         self._peers = WeakKeyDictionary()
+        self.assets = assets
 
     def __getitem__(self, key):
         if key in self._peers:

@@ -1,6 +1,7 @@
 # Vagrant files
 .vagrant/
 /.idea/
+*.egg-info
 
 # npm files
 node_modules/*
@@ -14,3 +15,6 @@ slybot/slybot/local_slybot_settings.py
 
 # Docs build directory
 docs/_build
+
+# Default Portia data directory
+slyd/slyd/data
