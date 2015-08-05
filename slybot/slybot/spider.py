@@ -9,11 +9,10 @@ from six.moves.urllib_parse import urlparse
 
 from w3lib.http import basic_auth_header
 
-from scrapy import log
 from scrapy.http import Request, HtmlResponse, FormRequest
 import six
 try:
-    from scrapy.spider import Spider
+    from scrapy.spiders import Spider
 except ImportError:
     # BaseSpider class was deprecated in Scrapy 0.21
     from scrapy.spider import BaseSpider as Spider
@@ -145,7 +144,7 @@ class IblSpider(Spider):
                                   callback=self.after_form_page,
                                   dont_filter=True)
         except Exception as e:
-            self.log(str(e), log.WARNING)
+            self.logger.warning(str(e))
         for req in self._start_requests:
             yield req
 
@@ -198,8 +197,10 @@ class IblSpider(Spider):
         elif "application/rss+xml" in content_type:
             return self.handle_rss(response)
         else:
-            self.log("Ignoring page with content-type=%r: %s" % (content_type,
-                     response.url), level=log.DEBUG)
+            self.logger.debug(
+                "Ignoring page with content-type=%r: %s" % (content_type,
+                                                            response.url)
+            )
             return []
 
     def _plugin_hook(self, name, *args):

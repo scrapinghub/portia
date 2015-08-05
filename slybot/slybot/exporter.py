@@ -1,4 +1,4 @@
-from scrapy.contrib.exporter import CsvItemExporter
+from scrapy.exporters import CsvItemExporter
 from scrapy.conf import settings
 
 
