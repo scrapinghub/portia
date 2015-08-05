@@ -3938,7 +3938,7 @@ var TreeMirrorClient = (function () {
             return __portiaApi.wrapUrl(value, node.baseURI);
         } else if (tagName === 'A' && attr === 'href') {
             value = node.href;
-            if(/^\s*javascript:/i.test(value)){
+            if(!value || value.length === 0 || /^\s*javascript:/i.test(value)){
                 return null;
             }
         }
@@ -3983,8 +3983,9 @@ var TreeMirrorClient = (function () {
                 for (var i = 0; i < elm.attributes.length; i++) {
                     var attr = elm.attributes[i],
                         attrValue = this.getAttribute(node, attr.name);
-                    if (attrValue !== null && attrValue !== undefined) {
-                        data.attributes[attr.name] = attrValue;
+                    data.attributes[attr.name] = attrValue;
+                    if (!attrValue && attr.name === 'href') {
+                        data.attributes[attr.name] = 'javascript:void(0)';
                     }
                 }
 
