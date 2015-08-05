@@ -323,7 +323,6 @@ export default BaseController.extend({
     willEnter: function() {
         this.setBreadCrumb();
         this.get('documentView').reset();
-        this.get('documentView').showSpider();
         if (this.get('controllers.application.siteWizard')) {
             Ember.run.next(this, this.addSpider,
                            this.get('controllers.application.siteWizard'));

@@ -9,14 +9,14 @@ export default BaseRoute.extend({
 
     afterModel: function() {
         // Load the items.
-        var controller = this.controllerFor('spider.index');
+        var controller = this.controllerFor('spider');
         return this.get('slyd').loadItems().then(function(items) {
             controller.set('itemDefinitions', items);
         });
     },
 
     renderTemplate: function() {
-        var controller = this.controllerFor('spider.index');
+        var controller = this.controllerFor('spider');
         this.render('spider/toolbox', {
             into: 'application',
             outlet: 'main',

@@ -149,6 +149,7 @@ export default Ember.Component.extend(GuessTypes, {
             this.set('ignoring', true);
             this.set('previousListener', this.get('document.view.listener'));
             this.get('document.view').config({
+                mode: 'select',
                 listener: this,
                 partialSelects: false
             });

@@ -96,7 +96,6 @@ Accepts json object with the following fields:
 * request - same as scrapy requst object. At least needs a url
 * spider - spider name within in the project
 * page_id - unique ID for this page, must match the id used in templates (not yet implemented)
-* parent_fp - fingerprint of parent request. This is used for managing referrer url, cookies, etc.
 
 Returns a json object containing (so far):
 * page - page content, not yet annotated but will be
