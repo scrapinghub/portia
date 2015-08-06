@@ -46,7 +46,7 @@ class ProjectArchiver(object):
         self._archive = zipfile.ZipFile(zbuff, "w", zipfile.ZIP_DEFLATED)
         self._add_files(spiders)
         self._archive.close()
-        zbuff.reset()
+        zbuff.seek(0)
         return zbuff
 
     def _add_files(self, spiders):
