@@ -1,7 +1,11 @@
 # Vagrant files
 .vagrant/
 /.idea/
+
+# Python build files
 *.egg-info
+slybot/dist
+slyd/slyd/dist
 
 # npm files
 node_modules/*

@@ -31,7 +31,9 @@ script:
 - npm test
 - PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/dist-packages/ nosetests --with-doctest
 - cd ../
-before_deploy: cd ./slybot
+before_deploy:
+- cd ./slybot
+- pip install twine
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
