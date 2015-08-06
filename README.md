@@ -174,6 +174,12 @@ If you had annotated ``Aprilis`` in the template, nothing would have matched bec
 
 The word ``Januarii`` would have been extracted, because its surrounding text matches the text surrounding the text that was annotated in the template.
 
+### Annotating Elements in \<head\>
+
+It's not possible to click on elements that aren't displayed in the ``body``, so in order to annotate elements in ``head`` you need to navigate to them manually in the annotation settings.
+
+You will need to click on an element on the page to create an annotation; it doesn't matter which element of course. The annotation settings can be accessed by clicking the settings icon either in the annotation popup or on the right-hand side toolbox in the annotations panel. With the settings open, you can click the ``html`` element and select its child ``head``. From there simply navigate to the element you wish to annotate and map it to the desired field.
+
 Tips for Working with Multiple Templates
 ----------------------------------------
 
