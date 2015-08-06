@@ -58,10 +58,11 @@ class IblSpider(Spider):
         if settings.get('SPLASH_URL'):
             self.SPLASH_HOST = urlparse(settings.get('SPLASH_URL')).hostname
             self.js_enabled = spec.get('js_enabled', False)
-        if self.js_enabled and (settings.get('SPLASH_PASSWORD') or
-                                settings.get('SPLASH_USER')):
+        if self.js_enabled and (settings.get('SPLASH_PASSWORD') is not None or
+                                settings.get('SPLASH_USER') is not None):
             self.splash_auth = basic_auth_header(
-                settings.get('SPLASH_USER'), settings.get('SPLASH_PASSWORD'))
+                settings.get('SPLASH_USER', ''),
+                settings.get('SPLASH_PASSWORD', ''))
         self._filter_js_urls = self._build_js_url_filter(spec)
         self.login_requests = []
         self.form_requests = []
