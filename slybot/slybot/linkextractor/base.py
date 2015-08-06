@@ -3,7 +3,7 @@ Link extraction for auto scraping
 """
 import re, os, posixpath
 from urlparse import urlparse
-from scrapy.linkextractor import IGNORED_EXTENSIONS
+from scrapy.linkextractors import IGNORED_EXTENSIONS
 
 _ONCLICK_LINK_RE = re.compile("(?P<sep>('|\"))(?P<url>.+?)(?P=sep)")
 
@@ -12,10 +12,11 @@ _ignored_exts = frozenset(['.' + e for e in IGNORED_EXTENSIONS])
 # allowed protocols
 ALLOWED_SCHEMES = frozenset(['http', 'https', None, ''])
 
+
 class BaseLinkExtractor(object):
 
-    def __init__(self, max_url_len=2083, ignore_extensions=_ignored_exts, 
-        allowed_schemes=ALLOWED_SCHEMES):
+    def __init__(self, max_url_len=2083, ignore_extensions=_ignored_exts,
+                 allowed_schemes=ALLOWED_SCHEMES):
         """Creates a new LinkExtractor
 
         The defaults are a good guess for the first time crawl. After that, we
@@ -24,7 +25,7 @@ class BaseLinkExtractor(object):
         self.max_url_len = max_url_len
         self.ignore_extensions = ignore_extensions
         self.allowed_schemes = allowed_schemes
-    
+
     def _extract_links(self, source):
         raise NotImplementedError
 
@@ -37,7 +38,7 @@ class BaseLinkExtractor(object):
 
     def normalize_link(self, link):
         """Normalize a link
-        
+
         >>> from scrapy.link import Link
         >>> le = BaseLinkExtractor()
         >>> l = Link('http://scrapinghub.com/some/path/../dir')
@@ -54,7 +55,7 @@ class BaseLinkExtractor(object):
         True
         >>> le.normalize_link(Link('http://scrapinghub.com')).url
         'http://scrapinghub.com/'
-        
+
         Fragments are removed
         >>> le.normalize_link(Link('http://example.com/#something')).url
         'http://example.com/'
@@ -72,7 +73,7 @@ class BaseLinkExtractor(object):
         if len(link.url) > self.max_url_len:
             return
         parsed = urlparse(link.url)
-        extention = os.path.splitext(parsed.path)[1].lower() 
+        extention = os.path.splitext(parsed.path)[1].lower()
         if parsed.scheme not in self.allowed_schemes or \
                 extention in self.ignore_extensions:
             return
@@ -90,5 +91,3 @@ class BaseLinkExtractor(object):
         if path != parsed.path or parsed.fragment:
             link.url = parsed._replace(path=path, fragment='').geturl()
         return link
-
-

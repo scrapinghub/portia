@@ -2,6 +2,7 @@ import TextFieldWithButton from '../text-field-with-button';
 import NotificationHandler from '../../mixins/notification-handler';
 
 export default TextFieldWithButton.extend(NotificationHandler, {
+    classNames: ['regex-textfield'],
     actions: {
         sendText: function(text) {
             if (arguments.length > 0 && typeof(text) === 'string') {

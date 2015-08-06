@@ -1,7 +1,7 @@
 import difflib
 
 from collections import namedtuple
-from itertools import izip_longest
+from six.moves import zip_longest
 
 _BLANK = object()
 
@@ -18,7 +18,7 @@ class Conflict(object):
         o = other[0] if other else _BLANK
         b = base[0] if base else _BLANK
         conflict = cls(m, o, b)
-        for m, o, b in izip_longest(mine[1:], other[1:], base[1:],
+        for m, o, b in zip_longest(mine[1:], other[1:], base[1:],
                                     fillvalue=_BLANK):
             conflict.update(m, o, b)
         return conflict
@@ -102,7 +102,7 @@ def merge_lists(base, mine, other):
         return other
     result = []
     last_conflict = False
-    for i, (m, o, b) in enumerate(izip_longest(mine, other, base,
+    for i, (m, o, b) in enumerate(zip_longest(mine, other, base,
                                                fillvalue=_BLANK)):
         if m == o and _BLANK not in (m, o):
             result.append(m)
@@ -178,7 +178,7 @@ def merge_jsons(base, mine, other):
     def build_merge_dict(base, mine, other):
         my_diff = JsonDiff(base, mine)
         other_diff = JsonDiff(base, other)
-        all_fields = set(base.keys() + mine.keys() + other.keys())
+        all_fields = set(base.keys()).union(mine.keys()).union(other.keys())
         merge_dict = {}
         for k in all_fields:
             base_val, my_val, other_val = (
@@ -204,7 +204,7 @@ def merge_jsons(base, mine, other):
     def resolve_json(merge_dict):
         out_json = {}
         had_conflict = False
-        for key, diff in merge_dict.iteritems():
+        for key, diff in merge_dict.items():
             if isinstance(diff, dict):
                 out_json[key], rconflict = resolve_json(diff)
                 had_conflict = had_conflict or rconflict

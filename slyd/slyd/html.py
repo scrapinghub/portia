@@ -4,48 +4,52 @@
     This module removes all existing JavaScript in an HTML document.
 
 """
+from __future__ import absolute_import
 import re
+import six
+
+from six.moves.urllib_parse import urljoin
+
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response
 from slybot.baseurl import insert_base_url
+from .splash.css_utils import process_css, wrap_url
 from .utils import serialize_tag, add_tagids
-
-### Known weaknesses
-#     Doesn't deal with JS hidden in CSS
-#     Doesn't deal with meta redirect javascript URIs
-
-INTRINSIC_EVENT_ATTRIBUTES = ("onload", "onunload", "onclick", "ondblclick",
-                              "onmousedown", "onmouseup", "onmouseover",
-                              "onmousemove", "onmouseout", "onfocus",
-                              "onblur", "onkeypress", "onkeydown",
-                              "onkeyup", "onsubmit", "onreset", "onselect",
-                              "onchange", "onerror", "onbeforeunload")
 
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
-AS_SCRIPT_REGION_BEGIN = "<!-- begin region added by slyd-->"
-AS_SCRIPT_REGION_END = "<!-- end region added by slyd-->"
+BLOCKED_TAGNAMES = ('script', 'noscript', 'object', 'embed')
 
-_AS_COMMENT_BEGIN = "<!-- begin_ascomment:"
-_AS_COMMENT_END = ":end_ascomment -->"
-_ENTITY_RE = re.compile("&#(\d+);")
+_ALLOWED_CHARS_RE = re.compile('[^!-~]') # [!-~] = ascii printable characters
+def _contains_js(url):
+    return _ALLOWED_CHARS_RE.sub('', url).lower().startswith('javascript:')
 
+try:
+    from html import unescape
+except ImportError:
+    # https://html.spec.whatwg.org/multipage/syntax.html#character-references
+    # http://stackoverflow.com/questions/18689230/why-do-html-entity-names-with-dec-255-not-require-semicolon
+    _ENTITY_RE = re.compile("&#(\d+|x[a-f\d]+);?", re.I)
+    def _replace_entity(match):
+        entity = match.group(1)
+        if entity[0].lower() == 'x':
+            return six.unichr(int(entity[1:], 16))
+        else:
+            return six.unichr(int(entity, 10))
 
-def _deentitize_unicode(mystr):
-    """replaces all entities in the form &#\d+; by its
-    unicode equivalent.
-    """
-    return _ENTITY_RE.sub(lambda m: unichr(int(m.groups()[0])), mystr)
+    def unscape(mystr):
+        """replaces all numeric html entities by its unicode equivalent.
+        """
+        return _ENTITY_RE.sub(_replace_entity, mystr)
 
-
-def html4annotation(htmlpage, baseurl=None):
+def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     """Convert the given html document for the annotation UI
 
     This adds tags, removes scripts and optionally adds a base url
     """
     htmlpage = add_tagids(htmlpage)
-    cleaned_html = descriptify(htmlpage)
+    cleaned_html = descriptify(htmlpage, baseurl, proxy=proxy_resources)
     if baseurl:
         cleaned_html = insert_base_url(cleaned_html, baseurl)
     return cleaned_html
@@ -57,7 +61,7 @@ def extract_html(response):
     return htmlpage_from_response(response).body
 
 
-def descriptify(doc):
+def descriptify(doc, base=None, proxy=None):
     """Clean JavaScript in a html source string.
     """
     parsed = parse_html(doc)
@@ -65,30 +69,37 @@ def descriptify(doc):
     inserted_comment = False
     for element in parsed:
         if isinstance(element, HtmlTag):
-            if not inserted_comment and element.tag == "script" and element.tag_type == HtmlTagType.OPEN_TAG:
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
-                inserted_comment = True
-            elif element.tag == "script" and element.tag_type == HtmlTagType.CLOSE_TAG:
-                if inserted_comment:
+            if element.tag in BLOCKED_TAGNAMES:
+                # Asumes there are no void elements in BLOCKED_TAGNAMES
+                # http://www.w3.org/TR/html5/syntax.html#void-elements
+                if not inserted_comment and element.tag_type in (HtmlTagType.OPEN_TAG, HtmlTagType.UNPAIRED_TAG):
+                    newdoc.append('<%s>' % element.tag)
+                    inserted_comment = True
+                elif element.tag_type == HtmlTagType.CLOSE_TAG:
+                    newdoc.append('</%s>' % element.tag)
                     inserted_comment = False
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
-            elif element.tag == "noscript":
-                newdoc.append(_AS_COMMENT_BEGIN + doc[element.start:element.end] + _AS_COMMENT_END)
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events
-                    if key in INTRINSIC_EVENT_ATTRIBUTES:
+                    if key.startswith('on') or key == "http-equiv":
                         element.attributes[key] = ""
+                    elif base and proxy and key == "style" and val is not None:
+                        element.attributes[key] = process_css(val, -1, base)
                     # Rewrite javascript URIs
-                    elif key in URI_ATTRIBUTES and val is not None and "javascript:" in _deentitize_unicode(val):
-                        element.attributes[key] = "about:blank"
-                    else:
-                        continue
+                    elif key in URI_ATTRIBUTES and val is not None:
+                            if _contains_js(unscape(val)):
+                                element.attributes[key] = "#"
+                            elif base and proxy and not (element.tag == "a" and key == 'href'):
+                                element.attributes[key] = wrap_url(val, -1,
+                                                                   base)
+                                element.attributes['_portia_%s' % key] = val
+                            elif base:
+                                element.attributes[key] = urljoin(base, val)
                 newdoc.append(serialize_tag(element))
         else:
             text = doc[element.start:element.end]
-            if inserted_comment and text.strip() and not (text.startswith("<!--") and text.endswith("-->")):
-                newdoc.append(_AS_COMMENT_BEGIN + text + _AS_COMMENT_END)
+            if inserted_comment and text.strip():
+                newdoc.append('<!-- Removed by portia -->')
             else:
                 newdoc.append(text)
 

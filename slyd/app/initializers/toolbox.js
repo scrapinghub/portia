@@ -3,7 +3,6 @@ import Ember from 'ember';
 export function initialize(container, application) {
     container.register('toolbox:state', Ember.Object.create({
         fixed: false,
-        expand: false,
         pinned: !!(window.localStorage && localStorage.portia_toolbox_pinned),
     }), { instantiate: false });
     application.inject('route', 'toolbox', 'toolbox:state');

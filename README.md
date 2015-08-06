@@ -237,9 +237,11 @@ Run the following in Portia's directory:
 
     vagrant up
 
-This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000/static/index.html``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
+This will launch a Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 ### Running Portia Locally
+
+**These instructions are only valid for a Debian based OS**
 
 If you would like to run Portia locally you should create an environment with virtualenv:
 
@@ -251,7 +253,11 @@ Now clone this repository into that env:
 
     git clone https://github.com/scrapinghub/portia.git
 
-and inside this env install the required packages:
+install the requirements for building Portia:
+
+    sudo docker/splash.sh
+
+and inside the env install the required packages:
 
     cd portia
     pip install -r requirements.txt
@@ -260,9 +266,9 @@ and inside this env install the required packages:
 To run Portia start slyd:
 
     cd slyd
-    twistd -n slyd
+    bin/slyd
 
-Portia should now be running on port 9001 and you can access it at: ``http://localhost:9001/static/index.html``
+Portia should now be running on port 9001 and you can access it at: ``http://localhost:9001``
 
 ###### Missing Dependencies on Linux
 

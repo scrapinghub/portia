@@ -185,13 +185,9 @@ export var AnnotationSprite = RectSprite.extend({
     textColor: 'white',
     _zPosition: 0,
 
-    text: function() {
-        return this.get('annotation.name');
-    }.property('annotation.name'),
+    text: Ember.computed.reads('annotation.name'),
 
-    highlighted: function() {
-        return this.get('annotation.highlighted');
-    }.property('annotation.highlighted'),
+    highlighted: Ember.computed.reads('annotation.highlighted'),
 
     getBoundingBox: function() {
         if (this.get('annotation.element')) {
@@ -221,17 +217,11 @@ export var IgnoreSprite = RectSprite.extend({
     textColor: 'rgba(255,150,150,1)',
     blend: 'destination-out',
 
-    ignoreBeneath: function() {
-        return this.get('ignore.ignoreBeneath');
-    }.property('ignore.ignoreBeneath'),
+    ignoreBeneath: Ember.computed.reads('ignore.ignoreBeneath'),
 
-    text: function() {
-        return this.get('ignore.name');
-    }.property('ignore.name'),
+    text: Ember.computed.reads('ignore.name'),
 
-    highlighted: function() {
-        return this.get('ignore.highlighted');
-    }.property('ignore.highlighted'),
+    highlighted: Ember.computed.reads('ignore.highlighted'),
 
     draw: function(context) {
         var element = Ember.$(this.get('ignore.element'));

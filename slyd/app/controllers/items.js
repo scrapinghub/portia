@@ -1,6 +1,7 @@
 import BaseController from './base-controller';
 import Item from '../models/item';
 import ItemField from '../models/item-field';
+import utils from '../utils/utils';
 
 export default BaseController.extend({
 
@@ -9,7 +10,10 @@ export default BaseController.extend({
     documentView: null,
 
     addItem: function() {
-        var newItem = Item.create({ name: this.shortGuid('_') });
+        var newItem = Item.create({
+            name: utils.shortGuid('_'),
+            display_name: 'New Item'
+        });
         this.addField(newItem);
         this.model.pushObject(newItem);
     },
@@ -37,8 +41,24 @@ export default BaseController.extend({
             }
         }.bind(this));
         if (valid) {
-            this.get('slyd').saveItems(this.model).then(function() {
-                this.set('project_models.items', this.model);
+            var items = this.get('model'),
+                slyd = this.get('slyd');
+            items = items.map(function(item) {
+                item = item.serialize();
+                if (item.fields) {
+                    item.fields = slyd.listToDict(item.fields);
+                }
+                return item;
+            });
+            items = slyd.listToDict(items);
+            this.get('ws').save('items', items).then(function(data) {
+                items = slyd.dictToList(data.saved.items, Item);
+                items.forEach(function(item) {
+                    if (item.fields) {
+                        item.fields = slyd.dictToList(item.fields, ItemField);
+                    }
+                });
+                this.set('project_models.items', items);
                 this.transitionToRoute(this.getParentRoute());
             }.bind(this));
         }

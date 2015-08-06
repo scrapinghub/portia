@@ -1,13 +1,15 @@
+from __future__ import absolute_import
 import itertools
 import json
 import os
 import zipfile
 
 from collections import defaultdict
-from cStringIO import StringIO
+from six import StringIO
 from datetime import datetime
 
 from slyd.projecttemplates import templates
+import six
 
 REQUIRED_FILES = {'setup.py', 'scrapy.cfg', 'extractors.json', 'items.json',
                   'project.json', 'spiders/__init__.py', 'spiders/settings.py'}
@@ -44,7 +46,7 @@ class ProjectArchiver(object):
         self._archive = zipfile.ZipFile(zbuff, "w", zipfile.ZIP_DEFLATED)
         self._add_files(spiders)
         self._archive.close()
-        zbuff.reset()
+        zbuff.seek(0)
         return zbuff
 
     def _add_files(self, spiders):
@@ -80,7 +82,7 @@ class ProjectArchiver(object):
         if filename is None or contents in (None, 'null'):
             return
         fileinfo = zipfile.ZipInfo(filename, tstamp)
-        fileinfo.external_attr = 0666 << 16L
+        fileinfo.external_attr = 0o666 << 16
         self._archive.writestr(fileinfo, contents, zipfile.ZIP_DEFLATED)
 
     def _add_spider(self, file_path, templates, extractors):
@@ -182,13 +184,13 @@ class ProjectArchiver(object):
         if spiders is None or spiders == '*':
             all_files = self.list_files()
             return all_files, all_files, self._template_paths(None, all_files)
-        if isinstance(spiders, basestring):
+        if isinstance(spiders, six.string_types):
             spiders = [spiders]
         spider_paths = set('spiders/%s.json' % spider for spider in spiders)
         all_files = self.list_files()
         template_paths = self._template_paths(spiders, all_files)
         if self.version > (0, 9):
-            templates = set(itertools.chain(*template_paths.itervalues()))
+            templates = set(itertools.chain(*template_paths.values()))
             spider_paths = spider_paths | templates
         files = list(set(spider_paths) | self.required_files)
         return files, all_files, template_paths

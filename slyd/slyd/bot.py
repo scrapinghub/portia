@@ -91,18 +91,24 @@ class Fetch(BotResource):
                 slyd_request_params=params
             )
         )
+        request.notifyFinish().addErrback(self._requestDisconnect)
+
         scrapy_request_kwargs.setdefault('headers', {})
         user_agent = request.requestHeaders.getRawHeaders('user-agent')
         if user_agent:
             scrapy_request_kwargs['headers'].setdefault('user-agent',
                                                         user_agent[0])
-        request = Request(**scrapy_request_kwargs)
+        scrapy_request = Request(**scrapy_request_kwargs)
         self.bot.runner.crawl(SlydSpider)
         crawler = list(self.bot.runner.crawlers)[0]
         crawler.signals.connect(self.bot.keep_spider_alive,
                                 signals.spider_idle)
-        crawler.engine.schedule(request, crawler.spider)
+        crawler.engine.schedule(scrapy_request, crawler.spider)
+
         return NOT_DONE_YET
+
+    def _requestDisconnect(self, result):
+        self.bot.runner.stop()
 
     def _get_template_name(self, template_id, templates):
         for template in templates:
@@ -184,6 +190,7 @@ class Fetch(BotResource):
         except IOError as ex:
             if ex.errno == errno.ENOENT:
                 log.msg("skipping extraction, no spec: %s" % ex.filename)
+                return None, None
             else:
                 raise
 

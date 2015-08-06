@@ -1,5 +1,10 @@
 language: python
 python: 2.7
+sudo: false
+addons:
+  apt:
+    packages:
+    - python-qt4
 env:
 - WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
 cache:
@@ -12,6 +17,8 @@ install:
 - pip wheel -r ./slybot/requirements.txt
 - pip install --use-wheel -r ./slybot/requirements.txt
 - pip install -e ./slybot[tests]
+- pip wheel -r ./slyd/requirements.txt
+- pip install --use-wheel -r ./slyd/requirements.txt
 - cd ./slyd
 - npm install -g bower
 - npm install
@@ -22,8 +29,11 @@ script:
 - nosetests --with-doctest
 - cd ../slyd
 - npm test
+- PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/dist-packages/ nosetests --with-doctest
 - cd ../
-before_deploy: cd ./slybot
+before_deploy:
+- cd ./slybot
+- pip install twine
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel

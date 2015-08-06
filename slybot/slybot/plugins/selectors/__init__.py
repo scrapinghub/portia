@@ -13,7 +13,7 @@ class Selectors(object):
         if not selectors:
             return
 
-        for field, selector_data in selectors.iteritems():
+        for field, selector_data in selectors.items():
             selector = selector_data['selector']
             selector_type = selector_data['type']
 
