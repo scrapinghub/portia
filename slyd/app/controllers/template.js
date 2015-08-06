@@ -149,13 +149,19 @@ export default BaseController.extend({
     },
 
     saveExtractors: function() {
+        var serializedExtractors = {},
+            extractors = this.get('extractors');
         // Cleanup extractor objects.
-        this.get('extractors').forEach(function(extractor) {
+        extractors.forEach(function(extractor) {
             delete extractor['dragging'];
         });
-        this.get('ws').save('extractors', this.get('extractors').map(function(extractor) {
-            return extractor.serialize();
-        }));
+        for (var i=0; i < extractors.length; i++) {
+            let extractor = extractors[i].serialize(),
+                name = extractor.name;
+            delete extractor['name'];
+            serializedExtractors[name] = extractor;
+        }
+        this.get('ws').save('extractors', serializedExtractors);
     },
 
     validateExtractors: function() {
