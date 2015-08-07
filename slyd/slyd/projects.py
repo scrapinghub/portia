@@ -2,11 +2,11 @@ from __future__ import absolute_import
 import json, re, shutil, errno, os
 from os.path import join
 from twisted.internet.defer import Deferred
-from twisted.web.resource import NoResource, ErrorPage
+from twisted.web.resource import NoResource
 from twisted.web.server import NOT_DONE_YET
 from .errors import BaseError, BaseHTTPError, BadRequest
 from .projecttemplates import templates
-from .resource import SlydJsonResource
+from .resource import SlydJsonResource, SlydJsonErrorPage
 from .utils.copy import FileSystemSpiderCopier
 from .utils.download import FileSystemProjectArchiver
 
@@ -40,7 +40,7 @@ class ProjectsManagerResource(SlydJsonResource):
             request.prepath.append(project_path_element)
             return self.children[next_path_element]
         else:
-            return ErrorPage(
+            return SlydJsonErrorPage(
                 403, "Forbidden", "You don't have access to this project.")
 
     def handle_project_command(self, projects_manager, command_spec):
