@@ -1,0 +1,18 @@
+#url-bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    input {
+        flex: 1 1 auto;
+        z-index: 1;
+
+        &:focus {
+            z-index: 3;
+        }
+    }
+
+    .btn {
+        height: 34px;
+    }
+}

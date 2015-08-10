@@ -1,0 +1,7 @@
+{{#tree-list items=projectTree listKey='key' as |item|}}
+    {{#if item.component}}
+        {{component item.component item=item}}
+    {{else}}
+        {{item.name}}
+    {{/if}}
+{{/tree-list}}

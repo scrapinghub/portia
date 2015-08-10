@@ -1,0 +1,37 @@
+.extracted-item-table {
+    margin-bottom: $line-height-computed;
+
+    & & {
+        margin-left: 20px;
+
+        &:first-of-type {
+            margin-top: $line-height-computed;
+        }
+    }
+
+    &:last-of-type {
+        margin-bottom: 0;
+    }
+
+    &:not(:last-of-type) {
+        > tr {
+            > td {
+                > .extracted-item-table {
+                    &:last-of-type {
+                        margin-bottom: $line-height-computed;
+                    }
+                }
+            }
+        }
+    }
+
+    td {
+        vertical-align: top;
+        color: $text-color;
+
+        &:first-child {
+            padding-right: $line-height-computed;
+            color: $text-muted;
+        }
+    }
+}

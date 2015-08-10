@@ -1,0 +1,21 @@
+{{#each items key=listKey as |item|}}
+    {{#tree-list-item item=item as |collapsed toggleCollapsed|}}
+        <div class="tree-list-item-row">
+            {{#if item.children.length}}
+                <a class="tree-list-collapse" {{action toggleCollapsed}}>
+                    <span class="caret"></span>
+                </a>
+            {{else}}
+                <span class="tree-list-collapse tree-list-no-children"></span>
+            {{/if}}
+            <div class="tree-list-item-content">
+                {{yield item}}
+            </div>
+        </div>
+        {{#unless collapsed}}
+            {{#tree-list items=item.children listKey=listKey as |child|}}
+                {{yield child}}
+            {{/tree-list}}
+        {{/unless}}
+    {{/tree-list-item}}
+{{/each}}

@@ -1,0 +1,29 @@
+<section id="window">
+    <nav id="top-bar" class="navbar navbar-default navbar-static-top">
+        <div class="navbar-header navbar-left">
+            {{partial 'branding'}}
+        </div>
+        <form class="navbar-form" role="navigation">
+            <div id="url-bar" class="input-group">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button">&lt;</button>
+                    <button class="btn btn-default" type="button">&gt;</button>
+                </span>
+                <input type="text" class="form-control" placeholder="Enter a website address">
+                <span class="input-group-btn">
+                    <button class="btn btn-default" type="button">&gt;</button>
+                </span>
+            </div>
+        </form>
+        <div class="navbar-right">
+            {{outlet 'top-bar'}}
+        </div>
+    </nav>
+
+    <section>
+        {{outlet 'side-bar'}}
+        <main class="container-fluid">
+            {{outlet 'main'}}
+        </main>
+    </section>
+</section>

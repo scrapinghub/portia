@@ -1,0 +1,17 @@
+#side-bar {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    order: 1;
+    width: 365px;
+    height: calc(100vh - #{$navbar-height});
+    background-color: $navbar-default-bg;
+    border-left: 1px solid $navbar-default-border;
+
+    &:after {
+        content: '';
+        flex: 1 1 auto;
+    }
+}

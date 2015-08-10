@@ -1,0 +1,5 @@
+<div class="project-list list-group">
+    {{#each model key='id' as |project|}}
+        {{link-to project.name 'projects.project' project class="list-group-item"}}
+    {{/each}}
+</div>

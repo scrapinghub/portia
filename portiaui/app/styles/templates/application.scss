@@ -1,0 +1,18 @@
+#window {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+
+    > section {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+    }
+}
+
+main {
+    order: 0;
+    flex: 1 1 auto;
+}

@@ -1,0 +1,6 @@
+<nav id="side-bar">
+    {{#tool-group id="project-group" as |group|}}
+        {{project-structure-panel group=group project=model projects=projects.model}}
+    {{/tool-group}}
+    {{outlet 'tool-panels'}}
+</nav>

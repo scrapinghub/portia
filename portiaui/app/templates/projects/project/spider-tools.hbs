@@ -1,0 +1,8 @@
+{{outlet 'tool-panels'}}
+
+{{#if showExtractedItems}}
+    {{#tool-group id="extracted-items-group" as |group|}}
+        {{extracted-items-panel group=group}}
+        {{extracted-items-json-panel group=group}}
+    {{/tool-group}}
+{{/if}}

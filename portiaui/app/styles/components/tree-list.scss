@@ -1,0 +1,111 @@
+.tree-list {
+    display: block;
+    position: relative;
+    padding-left: 0;
+    margin-bottom: 0;
+
+    > .tree-list-item {
+        display: block;
+
+        > .tree-list {
+            position: static;
+            padding-left: $tree-list-row-height;
+            list-style: none;
+        }
+    }
+}
+
+$tree-list-caret-padding-x: ($tree-list-row-height - 10px) / 2;
+$tree-list-caret-padding-y: ($tree-list-row-height - 20px) / 2;
+
+.tree-list-item-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.tree-list-item-content {
+    padding: $tree-list-caret-padding-y 0;
+    flex: 1 1 auto;
+    z-index: 1;
+    color: $navbar-default-color;
+
+    a {
+        display: block;
+        margin: -$tree-list-caret-padding-y 0;
+        padding: $tree-list-caret-padding-y 0;
+        outline: none;
+        //color: $navbar-default-link-color;
+
+        &:before {
+            content: '';
+            display: none;
+            position: absolute;
+            height: $tree-list-row-height;
+            margin: -$tree-list-caret-padding-y 0;
+            left: 0;
+            right: 0;
+            z-index: -1;
+        }
+
+        &:hover,
+        &:focus {
+            //color: $navbar-default-link-hover-color;
+            text-decoration: none;
+
+            &:before {
+                display: block;
+                background-color: $navbar-default-link-hover-bg;
+            }
+        }
+
+        &.active {
+            //color: $navbar-default-link-active-color;
+
+            &:before {
+                display: block;
+                background-color: $navbar-default-link-active-bg;
+            }
+        }
+    }
+}
+
+.tree-list-collapse {
+    display: block;
+    flex: 0 0 auto;
+    padding: $tree-list-caret-padding-y $tree-list-caret-padding-x;
+    z-index: 2;
+    //float: left;
+
+    color: $nav-tabs-border-color;
+    transition: color $animation-time $animation-easing;
+
+    &:hover,
+    &:focus {
+        color: $gray-light;
+    }
+
+    .caret {
+        margin: 0 1px;
+        transition: transform $animation-time $animation-easing;
+    }
+
+    &:not(.tree-list-no-children) {
+        cursor: pointer !important;
+    }
+}
+
+.tree-list-no-children {
+    width: $tree-list-row-height;
+    height: $tree-list-row-height;
+}
+
+.tree-list-item {
+    &.collapsed {
+        .tree-list-collapse {
+            .caret {
+                transform: rotate(-90deg);
+            }
+        }
+    }
+}
