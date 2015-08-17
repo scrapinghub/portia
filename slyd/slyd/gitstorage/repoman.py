@@ -86,7 +86,6 @@ class Repoman(object):
 
     @classmethod
     def list_repos(cls):
-        '''Returns true iff a repository named repo_name can be opened.'''
         return cls.storage.list_repos()
 
     @classmethod

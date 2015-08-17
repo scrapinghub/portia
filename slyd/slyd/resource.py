@@ -65,5 +65,6 @@ class SlydJsonObjectResource(SlydJsonResource):
 
     def render(self, request):
         resp = SlydJsonResource.render(self, request)
-        if resp is not None:
-            return json.dumps(resp)
+        if type(resp) == dict:
+            resp = json.dumps(resp)
+        return resp

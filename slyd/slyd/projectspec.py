@@ -6,7 +6,7 @@ import slyd.errors
 from os.path import join, splitext
 from twisted.web.resource import NoResource, ForbiddenResource
 from jsonschema.exceptions import ValidationError
-from .resource import SlydJsonResource
+from .resource import SlydJsonObjectResource
 from .html import html4annotation
 from .errors import BaseHTTPError
 from .utils.projects import allowed_file_name, ProjectModifier
@@ -174,12 +174,12 @@ class ProjectSpec(object):
         out.write(json_template[last:])
 
 
-class ProjectResource(SlydJsonResource, ProjectModifier):
+class ProjectResource(SlydJsonObjectResource, ProjectModifier):
     isLeaf = True
     errors = slyd.errors
 
     def __init__(self, spec_manager):
-        SlydJsonResource.__init__(self)
+        SlydJsonObjectResource.__init__(self)
         self.spec_manager = spec_manager
 
     def render(self, request):
@@ -190,7 +190,7 @@ class ProjectResource(SlydJsonResource, ProjectModifier):
                     else ForbiddenResource
                 resource = resource_class("Bad path element %r." % pathelement)
                 return resource.render(request)
-        return SlydJsonResource.render(self, request)
+        return SlydJsonObjectResource.render(self, request)
 
     def render_GET(self, request):
         project_spec = self.spec_manager.project_spec(
@@ -200,18 +200,19 @@ class ProjectResource(SlydJsonResource, ProjectModifier):
             project_spec.json(request)
         elif len(rpath) == 1 and rpath[0] == 'spiders':
             spiders = project_spec.list_spiders()
-            request.write(json.dumps(list(spiders)))
+            return {"spiders": list(spiders)}
         else:
             try:
                 if rpath[0] == 'spiders' and len(rpath) == 2:
                     spider = project_spec.spider_json(rpath[1])
-                    request.write(json.dumps(spider))
+                    spider['id'] = rpath[1]
+                    return {'spider': spider}
                 elif rpath[0] == 'spiders' and len(rpath) == 3:
                     template = project_spec.template_json(rpath[1], rpath[2])
                     template['original_body'] = ''
-                    request.write(json.dumps(template))
+                    return {'sample': template}
                 else:
-                    project_spec.writejson(request, *rpath)
+                    return project_spec.resource(rpath)
             # Trying to access non existent path
             except (KeyError, IndexError, TypeError):
                 self.not_found()

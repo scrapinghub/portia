@@ -109,7 +109,7 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
         }
 
     def all_projects(self):
-        return Repoman.list_repos()
+        return [{'name': repo, 'id': repo} for repo in Repoman.list_repos()]
 
     def create_project(self, name):
         self.validate_project_name(name)

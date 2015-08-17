@@ -6,7 +6,7 @@ from twisted.web.resource import NoResource, ErrorPage
 from twisted.web.server import NOT_DONE_YET
 from .errors import BaseError, BaseHTTPError, BadRequest
 from .projecttemplates import templates
-from .resource import SlydJsonResource
+from .resource import SlydJsonObjectResource
 from .utils.copy import FileSystemSpiderCopier
 from .utils.download import FileSystemProjectArchiver
 
@@ -19,10 +19,10 @@ def create_projects_manager_resource(spec_manager):
     return ProjectsManagerResource(spec_manager)
 
 
-class ProjectsManagerResource(SlydJsonResource):
+class ProjectsManagerResource(SlydJsonObjectResource):
 
     def __init__(self, spec_manager):
-        SlydJsonResource.__init__(self)
+        SlydJsonObjectResource.__init__(self)
         self.spec_manager = spec_manager
 
     def getChildWithDefault(self, project_path_element, request):
@@ -34,7 +34,7 @@ class ProjectsManagerResource(SlydJsonResource):
             try:
                 next_path_element = request.postpath.pop(0)
             except IndexError:
-                next_path_element = None
+                next_path_element = 'spec'
             if next_path_element not in self.children:
                 raise NoResource("No such child resource.")
             request.prepath.append(project_path_element)
@@ -68,9 +68,17 @@ class ProjectsManagerResource(SlydJsonResource):
         return ''
 
     def render_GET(self, request):
-        project_manager = self.spec_manager.project_manager(request.auth_info)
-        request.write(json.dumps(sorted(project_manager.list_projects())))
-        return '\n'
+        auth_info = request.auth_info
+        project_manager = self.spec_manager.project_manager(auth_info)
+        projects = project_manager.list_projects()
+        for project in projects:
+            project_spec = self.spec_manager.project_spec(project['id'], auth_info)
+            project['spiders'] = project_spec.list_spiders()
+
+        return {
+            "projects": projects
+        }
+
 
     def render_POST(self, request):
 
@@ -134,7 +142,7 @@ class ProjectsManager(object):
         try:
             for fname in os.listdir(self.projectsdir):
                 if os.path.isdir(join(self.projectsdir, fname)):
-                    yield fname
+                    yield {'id': fname, 'name': fname}
         except OSError as ex:
             if ex.errno != errno.ENOENT:
                 raise

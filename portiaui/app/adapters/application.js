@@ -1,5 +1,3 @@
-import LFAdapter from 'ember-localforage-adapter/adapters/localforage';
+import { createAdapter } from '../utils/adapter';
 
-export default LFAdapter.extend({
-    namespace: 'portia'
-});
+export default createAdapter({});
