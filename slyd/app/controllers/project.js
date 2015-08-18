@@ -160,7 +160,7 @@ export default BaseController.extend({
                       'start_urls': [siteUrl],
                       'follow_patterns': [],
                       'exclude_patterns': [],
-                      'js_enabled': true,
+                      'js_enabled': false,
                       'init_requests': [],
                       'templates': [],
                       'template_names': [],
