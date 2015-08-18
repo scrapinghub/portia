@@ -1,6 +1,6 @@
 .inspector {
     $inspector-line-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
-    min-height: ($tree-list-row-height + $panel-padding-y) * 2;
+    min-height: $tree-list-row-height * 3 + $panel-padding-y * 2;
     overflow: hidden;
 
     table {

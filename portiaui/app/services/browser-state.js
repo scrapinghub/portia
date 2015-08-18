@@ -5,16 +5,17 @@ export const ANNOTATION_MODE = 'annotation';
 export const INTERACTION_MODES = new Set([ANNOTATION_MODE]);
 
 export default Ember.Service.extend({
-    disabled: Ember.computed.equal('viewPort', null),
     backBuffer: [],
     forwardBuffer: [],
-    isInteractionMode: Ember.computed('mode', function() {
-        return INTERACTION_MODES.has(this.get('mode'));
-    }),
     loading: false,
     mode: DEFAULT_MODE,
     viewPort: null,
     url: 'owlkingdom.com',
+
+    disabled: Ember.computed.equal('viewPort', null),
+    isInteractionMode: Ember.computed('mode', function() {
+        return INTERACTION_MODES.has(this.get('mode'));
+    }),
 
     registerViewPort(component) {
         this.set('viewPort', component);

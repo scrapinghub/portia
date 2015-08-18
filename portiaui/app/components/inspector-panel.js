@@ -1,13 +1,13 @@
 import Ember from 'ember';
 import ToolPanel from './tool-panel';
 
-const IGNORED_ATTRIBUTES = new Set([
+export const IGNORED_ATTRIBUTES = new Set([
     'id', 'class', 'target', 'width', 'style', 'height', 'cellpadding',
     'cellspacing', 'border', 'bgcolor', 'color', 'colspan',
     'data-scrapy-annotate', 'data-tagid', 'data-genid', 'data-parentid'
 ]);
 
-function getAttributeList(element) {
+export function getAttributeList(element) {
     if (!element) {
         return [];
     }
@@ -44,8 +44,10 @@ function getAttributeList(element) {
 }
 
 export default ToolPanel.extend({
-    classNames: ['inspector', 'container-fluid'],
     hoveredElement: Ember.inject.service(),
+
+    classNames: ['inspector', 'container-fluid'],
+
     title: 'Inspector',
     toolId: 'inspector',
 

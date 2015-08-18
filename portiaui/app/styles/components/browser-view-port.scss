@@ -31,7 +31,7 @@
 .overlay-box-background {
     width: 100%;
     height: 100%;
-    opacity: 0.125;
+    opacity: 0.1;
     border-radius: 2px;
     transition: opacity ($animation-time / 2) $animation-easing-in, background-color $animation-time $animation-easing;
 }
@@ -42,22 +42,33 @@
     left: 0;
     z-index: 1;
 
-    &:hover {
+    .group-hovered &,
+    .none-hovered & {
+        .overlay-box-background {
+            opacity: 0.5;
+        }
+    }
+
+    &.hovered {
         z-index: 2;
 
         .overlay-box-background {
-            opacity: 0.5;
+            opacity: 0.75;
         }
     }
 }
 
 .hover-overlay {
     transition-property: opacity, transform, height, width;
-    transition-duration: $animation-time, 50ms, 50ms, 50ms;
-    transition-timing-function: $animation-easing-in;
+    transition-duration: $animation-time, 100ms, 100ms, 100ms;
+    transition-timing-function: $animation-easing, $animation-easing-out, $animation-easing-out, $animation-easing-out;
 
     &.hide {
         display: block !important;
         opacity: 0;
+    }
+
+    .overlay-box-background {
+        opacity: 0.5;
     }
 }

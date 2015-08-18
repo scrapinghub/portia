@@ -27,11 +27,11 @@ export default Ember.Component.extend({
     willInsertElement() {
         var color = this.get('colorProvider').register(this.itemProxy);
         this.set('color', color);
-        this.get('browserOverlays').add(this.overlay);
+        this.get('browserOverlays').addOverlayComponent(this.overlay);
     },
 
     willDestroyElement() {
-        this.get('browserOverlays').remove(this.overlay);
+        this.get('browserOverlays').removeOverlayComponent(this.overlay);
         this.get('colorProvider').unRegister(this.itemProxy);
         this.set('color', null);
     }

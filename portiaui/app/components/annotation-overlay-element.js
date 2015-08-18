@@ -1,15 +1,22 @@
 import Ember from 'ember';
-import {OverlayUpdater} from '../services/browser-overlays';
 
 
 export default Ember.Component.extend({
+    browserOverlays: Ember.inject.service(),
+    hoveredElement: Ember.inject.service(),
+
     classNames: ['overlay', 'annotation-overlay'],
+    classNameBindings: ['hovered'],
+
+    hovered: Ember.computed('viewPortElement', 'hoveredElement.element', function() {
+        return this.get('viewPortElement') === this.get('hoveredElement.element');
+    }),
 
     willInsertElement() {
-        OverlayUpdater.add(this);
+        this.get('browserOverlays').addElementOverlay(this);
     },
 
     willDestroyElement() {
-        OverlayUpdater.remove(this);
+        this.get('browserOverlays').removeElementOverlay(this);
     }
 });

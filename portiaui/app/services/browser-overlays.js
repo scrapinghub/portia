@@ -1,10 +1,13 @@
 import Ember from 'ember';
 
-export const OverlayUpdater = Ember.Object.extend({
-    components: [],
+
+export default Ember.Service.extend({
+    elementOverlays: [],
+    overlayComponents: [],
     timerId: null,
-    startStopTimer: Ember.observer('components.length', function() {
-        if (this.get('components.length')) {
+
+    startStopTimer: Ember.observer('elementOverlays.length', function() {
+        if (this.get('elementOverlays.length')) {
             if (this.timerId === null) {
                 this.update();
             }
@@ -15,10 +18,10 @@ export const OverlayUpdater = Ember.Object.extend({
     }),
 
     update() {
-        var components = this.get('components');
+        var elementOverlays = this.get('elementOverlays');
         var updates = [];
         // for performance first do DOM reads ...
-        components.forEach(component => {
+        elementOverlays.forEach(component => {
             var element;
             var viewPortElement;
             if ((element = component.get('element')) &&
@@ -40,23 +43,19 @@ export const OverlayUpdater = Ember.Object.extend({
         this.timerId = requestAnimationFrame(this.update.bind(this));
     },
 
-    add(component) {
-        this.get('components').addObject(component);
+    addOverlayComponent(overlay) {
+        this.get('overlayComponents').addObject(overlay);
     },
 
-    remove(component) {
-        this.get('components').removeObject(component);
-    }
-}).create();
-
-export default Ember.Service.extend({
-    overlays: [],
-
-    add(overlay) {
-        this.get('overlays').addObject(overlay);
+    removeOverlayComponent(overlay) {
+        this.get('overlayComponents').removeObject(overlay);
     },
 
-    remove(overlay) {
-        this.get('overlays').removeObject(overlay);
+    addElementOverlay(overlay) {
+        this.get('elementOverlays').addObject(overlay);
+    },
+
+    removeElementOverlay(overlay) {
+        this.get('elementOverlays').removeObject(overlay);
     }
 });

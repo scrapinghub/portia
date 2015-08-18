@@ -1,25 +1,29 @@
 import Ember from 'ember';
-import {OverlayUpdater} from '../services/browser-overlays';
+import {getAttributeList} from './inspector-panel';
+
 
 export const IGNORED_ELEMENTS = new Set(['html', 'body']);
 
 export default Ember.Component.extend({
+    browserOverlays: Ember.inject.service(),
     browserState: Ember.inject.service(),
+    colorProvider: Ember.inject.service(),
     hoveredElement: Ember.inject.service(),
 
     classNames: ['overlay', 'hover-overlay'],
-    classNameBindings: ['viewPortElement::hide'],
+    classNameBindings: ['viewPortElement::hide', 'hoveredElement.hoveringExistingOverlay:hide'],
+
     colorOrder: [Infinity],
-    colorProvider: Ember.inject.service(),
-    showHoverOverlay: Ember.computed.readOnly('browserState.isInteractionMode'),
     timerId: null,
+
+    showHoverOverlay: Ember.computed.readOnly('browserState.isInteractionMode'),
     viewPortElement: Ember.computed.alias('hoveredElement.element'),
 
     willInsertElement() {
         this.beginPropertyChanges();
         var color = this.get('colorProvider').register(this);
         this.set('color', color);
-        OverlayUpdater.add(this);
+        this.get('browserOverlays').addElementOverlay(this);
         this.endPropertyChanges();
         this.scheduleUpdate(1);
     },
@@ -30,7 +34,7 @@ export default Ember.Component.extend({
             this.timerId = null;
         }
         this.beginPropertyChanges();
-        OverlayUpdater.remove(this);
+        this.get('browserOverlays').removeElementOverlay(this);
         this.get('colorProvider').unRegister(this);
         this.set('color', null);
         this.set('viewPortElement', null);
@@ -47,11 +51,15 @@ export default Ember.Component.extend({
             if (this.get('showHoverOverlay')) {
                 let viewPortDocument = Ember.$('iframe').contents();
                 hoveredElement = viewPortDocument.find(':hover').toArray().pop();
-                if (hoveredElement && IGNORED_ELEMENTS.has(hoveredElement.tagName.toLowerCase())) {
+            }
+            if (this.get('viewPortElement') !== hoveredElement) {
+                if (hoveredElement && (
+                        IGNORED_ELEMENTS.has(hoveredElement.tagName.toLowerCase()) ||
+                        !getAttributeList(hoveredElement).length)) {
                     hoveredElement = null;
                 }
+                this.set('viewPortElement', hoveredElement);
             }
-            this.set('viewPortElement', hoveredElement);
             this.scheduleUpdate(50);
         });
     }

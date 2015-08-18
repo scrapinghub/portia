@@ -5,14 +5,16 @@ const Overlay = Ember.Object.extend({
 });
 
 export default Ember.Component.extend({
-    classNames: ['browser-view-port'],
-
     browserOverlays: Ember.inject.service(),
     browserState: Ember.inject.service(),
 
+    classNames: ['browser-view-port'],
+
     content: null,
-    overlays: Ember.computed.readOnly('browserOverlays.overlays'),
+
+    overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
     url: Ember.computed.alias('browserState.url'),
+
     updateContent: Ember.observer('url', function() {
         var url = this.get('url');
 
@@ -58,10 +60,10 @@ export default Ember.Component.extend({
     },
 
     mouseEnter() {
-        this.get('browserOverlays').add(this.overlay);
+        this.get('browserOverlays').addOverlayComponent(this.overlay);
     },
 
     mouseLeave() {
-        this.get('browserOverlays').remove(this.overlay);
+        this.get('browserOverlays').removeOverlayComponent(this.overlay);
     }
 });
