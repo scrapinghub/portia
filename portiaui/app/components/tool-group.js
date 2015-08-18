@@ -4,9 +4,11 @@ export default Ember.Component.extend({
     classNames: ['tool-group'],
     classNameBindings: ['collapsed'],
     panels: null,
+    panelsOrderBy: ['panelOrder'],
+    orderedPanels: Ember.computed.sort('panels', 'panelsOrderBy'),
     toolGroupState: Ember.inject.service(),
     _selected: null,
-    selected: Ember.computed.or('_selected', 'panels.firstObject.toolId'),
+    selected: Ember.computed.or('_selected', 'orderedPanels.firstObject.toolId'),
     collapsed: false,
 
     init() {

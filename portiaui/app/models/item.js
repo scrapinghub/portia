@@ -33,6 +33,10 @@ Item.reopenClass({
                     type: 'annotation'
                 },
                 {
+                    id: 'a4',
+                    type: 'annotation'
+                },
+                {
                     id: 'ia1',
                     type: 'item-annotation'
                 }
@@ -44,11 +48,11 @@ Item.reopenClass({
             schema: 'i2',
             annotations: [
                 {
-                    id: 'a4',
+                    id: 'a5',
                     type: 'annotation'
                 },
                 {
-                    id: 'a5',
+                    id: 'a6',
                     type: 'annotation'
                 }
             ]

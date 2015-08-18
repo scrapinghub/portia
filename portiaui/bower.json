@@ -16,7 +16,9 @@
     "jquery": "^2.1.4",
     "loader.js": "ember-cli/loader.js#3.2.0",
     "qunit": "~1.17.1",
-    "bootstrap-sass": "~3.3.5"
+    "bootstrap-sass": "~3.3.5",
+    "font-awesome": "~4.4.0",
+    "jquery-color": "~2.1.2"
   },
   "private": true
 }

@@ -15,8 +15,8 @@
     }
 }
 
-$tree-list-caret-padding-x: ($tree-list-row-height - 10px) / 2;
-$tree-list-caret-padding-y: ($tree-list-row-height - 20px) / 2;
+$tree-list-caret-padding-x: ($tree-list-row-height - ($caret-width-base * 2) - 2px) / 2;
+$tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
 
 .tree-list-item-row {
     display: flex;
@@ -67,6 +67,24 @@ $tree-list-caret-padding-y: ($tree-list-row-height - 20px) / 2;
                 background-color: $navbar-default-link-active-bg;
             }
         }
+    }
+
+    .badge-container {
+        display: inline-block;
+        width: 26px;
+        text-align: center;
+    }
+
+    .badge {
+        vertical-align: baseline;
+        max-width: 26px;
+        transition: background-color $animation-time $animation-easing;
+    }
+
+    .badge-centered {
+        display: inline-block;
+        margin: 0 -1000%;
+        white-space: nowrap;
     }
 }
 

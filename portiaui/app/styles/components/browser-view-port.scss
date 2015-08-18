@@ -1,0 +1,63 @@
+.browser-view-port {
+    flex: 1 1 auto;
+    overflow: hidden;
+    display: flex;
+    position: relative;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+
+    iframe {
+        width: 100%;
+        border: none;
+        flex: 1 1 auto;
+        overflow: auto;
+    }
+}
+
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.overlay-box {
+    width: 100%;
+    height: 100%;
+    transition: box-shadow $animation-time $animation-easing;
+}
+
+.overlay-box-background {
+    width: 100%;
+    height: 100%;
+    opacity: 0.125;
+    border-radius: 2px;
+    transition: opacity ($animation-time / 2) $animation-easing-in, background-color $animation-time $animation-easing;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+
+    &:hover {
+        z-index: 2;
+
+        .overlay-box-background {
+            opacity: 0.5;
+        }
+    }
+}
+
+.hover-overlay {
+    transition-property: opacity, transform, height, width;
+    transition-duration: $animation-time, 50ms, 50ms, 50ms;
+    transition-timing-function: $animation-easing-in;
+
+    &.hide {
+        display: block !important;
+        opacity: 0;
+    }
+}

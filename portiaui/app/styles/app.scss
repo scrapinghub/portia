@@ -1,13 +1,16 @@
 @import "variables";
 @import "bower_components/bootstrap-sass/assets/stylesheets/bootstrap";
+@import "bower_components/font-awesome/scss/font-awesome";
 
 @import "animations";
 
 @import "templates/application";
 @import "templates/projects";
 
+@import "components/browser-view-port";
 @import "components/extracted-item-table";
 @import "components/extracted-items-json-panel";
+@import "components/inspector-panel";
 @import "components/side-bar";
 @import "components/tool-group";
 @import "components/tool-panel";

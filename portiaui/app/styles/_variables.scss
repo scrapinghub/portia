@@ -1,5 +1,13 @@
 $animation-time: .15s;
 $animation-easing: ease-in-out;
+$animation-easing-in: ease-in;
+$animation-easing-out: ease-out;
 
 // tree list
 $tree-list-row-height: 26px !default;
+
+// panels
+$panel-padding-y: 10px;
+
+// font awesome settings
+$fa-font-path: 'fonts';

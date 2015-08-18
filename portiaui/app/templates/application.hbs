@@ -3,18 +3,7 @@
         <div class="navbar-header navbar-left">
             {{partial 'branding'}}
         </div>
-        <form class="navbar-form" role="navigation">
-            <div id="url-bar" class="input-group">
-                <span class="input-group-btn">
-                    <button class="btn btn-default" type="button">&lt;</button>
-                    <button class="btn btn-default" type="button">&gt;</button>
-                </span>
-                <input type="text" class="form-control" placeholder="Enter a website address">
-                <span class="input-group-btn">
-                    <button class="btn btn-default" type="button">&gt;</button>
-                </span>
-            </div>
-        </form>
+        {{url-bar class="navbar-form" role="navigation"}}
         <div class="navbar-right">
             {{outlet 'top-bar'}}
         </div>
@@ -22,7 +11,7 @@
 
     <section>
         {{outlet 'side-bar'}}
-        <main class="container-fluid">
+        <main>
             {{outlet 'main'}}
         </main>
     </section>

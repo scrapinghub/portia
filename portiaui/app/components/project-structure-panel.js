@@ -12,6 +12,7 @@ var SpiderItem = Ember.ObjectProxy.extend({
             this.get('_routing.currentState'),
             false);
     }),
+    removeCollapsedChildren: true,
     key: Ember.computed('id', function() {
         return 'spider:' + this.get('id');
     }),

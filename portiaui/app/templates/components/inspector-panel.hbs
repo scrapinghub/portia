@@ -1,0 +1,11 @@
+<div>{{elementPath}}</div>
+<table>
+    {{#each attributes as |attribute|}}
+        <tr>
+            <td>{{attribute.name}}</td>
+            <td>
+                <span>{{attribute.value}}</span>
+            </td>
+        </tr>
+    {{/each}}
+</table>

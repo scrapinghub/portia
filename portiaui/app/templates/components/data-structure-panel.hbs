@@ -1,7 +1,14 @@
-{{#tree-list items=annotationTree listKey='key' as |item|}}
-    {{#if item.component}}
-        {{component item.component item=item}}
-    {{else}}
-        {{item.name}}
-    {{/if}}
-{{/tree-list}}
+{{#if selected}}
+    {{#tree-list items=annotationTree listKey='key' as |item|}}
+        {{#if item.component}}
+            {{component item.component item=item}}
+        {{else}}
+            <span class="badge-container">
+                <span class="badge">
+                    <span class="badge-centered">{{item.matches}}</span>
+                </span>
+            </span>
+            {{item.name}}
+        {{/if}}
+    {{/tree-list}}
+{{/if}}

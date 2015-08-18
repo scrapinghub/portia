@@ -1,0 +1,6 @@
+<div class="overlay-container">
+    {{#each overlays key="@identity" as |overlay|}}
+        {{component overlay.component overlay=overlay}}
+    {{/each}}
+</div>
+<iframe srcdoc={{content}}></iframe>

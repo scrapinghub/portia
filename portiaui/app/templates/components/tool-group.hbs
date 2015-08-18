@@ -9,7 +9,7 @@
 --}}
 <header class="tool-group-header">
     <ul class="nav nav-tabs">
-        {{#each panels key='toolId' as |panel|}}
+        {{#each orderedPanels key='toolId' as |panel|}}
             <li class="{{if panel.selected 'active'}}">
                 <a {{action 'selectTab' panel.toolId}}>
                     {{#if panel.tabComponent}}

@@ -1,5 +1,5 @@
 {{#each items key=listKey as |item|}}
-    {{#tree-list-item item=item as |collapsed toggleCollapsed|}}
+    {{#tree-list-item item=item as |collapsed renderChildren toggleCollapsed|}}
         <div class="tree-list-item-row">
             {{#if item.children.length}}
                 <a class="tree-list-collapse" {{action toggleCollapsed}}>
@@ -12,10 +12,10 @@
                 {{yield item}}
             </div>
         </div>
-        {{#unless collapsed}}
-            {{#tree-list items=item.children listKey=listKey as |child|}}
+        {{#if renderChildren}}
+            {{#tree-list items=item.children collapsed=collapsed listKey=listKey as |child|}}
                 {{yield child}}
             {{/tree-list}}
-        {{/unless}}
+        {{/if}}
     {{/tree-list-item}}
 {{/each}}

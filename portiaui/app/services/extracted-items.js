@@ -5,7 +5,7 @@ export default Ember.Service.extend({
         {
             "name": "Pointy",
             "price": "$79",
-            "description": 'Small, pointy, great at cleaning dishes. He is pointing at you and saying "Please buy me".',
+            "description": 'Small, pointy, great at cleaning dishes. He is pointing at you and saying "Please buy me".',  // jshint ignore:line
             "details": [
                 {
                     "property": "Size:",
@@ -58,7 +58,7 @@ export default Ember.Service.extend({
         }, {
             "name": "Shy",
             "price": "$699",
-            "description": "This is the shyest owl on the market. If you ever get to see its face you get your money back.",
+            "description": "This is the shyest owl on the market. If you ever get to see its face you get your money back.",  // jshint ignore:line
             "details": [
                 {
                     "property": "Size:",

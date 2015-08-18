@@ -2,7 +2,19 @@
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
 module.exports = function(defaults) {
-    var app = new EmberApp(defaults, {});
+    var app = new EmberApp(defaults, {
+        babel: {
+            includePolyfill: true
+        }
+    });
+
+    app.import('bower_components/jquery-color/jquery.color.js');
+
+    ['eot', 'svg', 'ttf', 'woff', 'woff2'].forEach(function(file) {
+        app.import('bower_components/font-awesome/fonts/fontawesome-webfont.' + file, {
+            destDir: 'assets/fonts'
+        });
+    });
 
     return app.toTree();
 };
