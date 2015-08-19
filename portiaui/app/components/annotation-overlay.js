@@ -6,6 +6,7 @@ export default Ember.Component.extend({
     classNameBindings: ['groupHovered', 'noneHovered'],
 
     timerId: null,
+    updateInterval: 100,
 
     // proxied from Annotation in components/data-structure-panel
     color: Ember.computed.alias('overlay.color'),
@@ -30,18 +31,18 @@ export default Ember.Component.extend({
     },
 
     scheduleUpdate(delay) {
-        this.timerId = Ember.run.later(this, this.update, delay);
+        this.timerId = Ember.run.later(() => {
+            Ember.run.scheduleOnce('sync', this, 'update');
+        }, delay);
     },
 
     update() {
-        Ember.run.scheduleOnce('sync', () => {
-            var viewPortDocument = Ember.$('iframe').contents();
-            var currentElements = this.get('elements');
-            var newElements = viewPortDocument.find(this.get('selector')).toArray();
-            if (Ember.compare(currentElements, newElements) !== 0) {
-                this.set('elements', newElements);
-            }
-            this.scheduleUpdate(100);
-        });
+        var viewPortDocument = Ember.$('iframe').contents();
+        var currentElements = this.get('elements');
+        var newElements = viewPortDocument.find(this.get('selector')).toArray();
+        if (Ember.compare(currentElements, newElements) !== 0) {
+            this.set('elements', newElements);
+        }
+        this.scheduleUpdate(this.updateInterval);
     }
 });

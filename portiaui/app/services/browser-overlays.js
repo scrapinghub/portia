@@ -27,18 +27,14 @@ export default Ember.Service.extend({
             if ((element = component.get('element')) &&
                     (viewPortElement = component.get('viewPortElement'))) {
                 updates.push([element, viewPortElement.getBoundingClientRect()]);
-            } else {
-                updates.push([null, null]);
             }
         });
         // ... then DOM writes
         updates.forEach(([element, rect]) => {
-            if (element && rect) {
-                element.setAttribute(
-                    'style',
-                    `transform: translate(${rect.left}px, ${rect.top}px); width: ${rect.width}px; height: ${rect.height}px;`  // jshint ignore:line
-                );
-            }
+            element.setAttribute(
+                'style',
+                `transform: translate(${rect.left}px, ${rect.top}px); width: ${rect.width}px; height: ${rect.height}px;`  // jshint ignore:line
+            );
         });
         this.timerId = requestAnimationFrame(this.update.bind(this));
     },

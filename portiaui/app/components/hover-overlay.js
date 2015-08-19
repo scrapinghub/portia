@@ -15,6 +15,7 @@ export default Ember.Component.extend({
 
     colorOrder: [Infinity],
     timerId: null,
+    updateInterval: 100,
 
     showHoverOverlay: Ember.computed.readOnly('browserState.isInteractionMode'),
     viewPortElement: Ember.computed.alias('hoveredElement.element'),
@@ -42,25 +43,25 @@ export default Ember.Component.extend({
     },
 
     scheduleUpdate(delay) {
-        this.timerId = Ember.run.later(this, this.update, delay);
+        this.timerId = Ember.run.later(() => {
+            Ember.run.scheduleOnce('sync', this, 'update');
+        }, delay);
     },
 
     update() {
-        Ember.run.scheduleOnce('sync', () => {
-            var hoveredElement = null;
-            if (this.get('showHoverOverlay')) {
-                let viewPortDocument = Ember.$('iframe').contents();
-                hoveredElement = viewPortDocument.find(':hover').toArray().pop();
+        var hoveredElement = null;
+        if (this.get('showHoverOverlay')) {
+            let viewPortDocument = Ember.$('iframe').contents();
+            hoveredElement = viewPortDocument.find(':hover').toArray().pop();
+        }
+        if (this.get('viewPortElement') !== hoveredElement) {
+            if (hoveredElement && (
+                    IGNORED_ELEMENTS.has(hoveredElement.tagName.toLowerCase()) ||
+                    !getAttributeList(hoveredElement).length)) {
+                hoveredElement = null;
             }
-            if (this.get('viewPortElement') !== hoveredElement) {
-                if (hoveredElement && (
-                        IGNORED_ELEMENTS.has(hoveredElement.tagName.toLowerCase()) ||
-                        !getAttributeList(hoveredElement).length)) {
-                    hoveredElement = null;
-                }
-                this.set('viewPortElement', hoveredElement);
-            }
-            this.scheduleUpdate(50);
-        });
+            this.set('viewPortElement', hoveredElement);
+        }
+        this.scheduleUpdate(this.updateInterval);
     }
 });
