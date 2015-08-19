@@ -31,9 +31,13 @@ export default Ember.Service.extend({
         });
         // ... then DOM writes
         updates.forEach(([element, rect]) => {
+            var left = Math.round(rect.left);
+            var top = Math.round(rect.top);
+            var width = Math.round(rect.width);
+            var height = Math.round(rect.height);
             element.setAttribute(
                 'style',
-                `transform: translate(${rect.left}px, ${rect.top}px); width: ${rect.width}px; height: ${rect.height}px;`  // jshint ignore:line
+                `transform: translate(${left}px, ${top}px); width: ${width}px; height: ${height}px;`
             );
         });
         this.timerId = requestAnimationFrame(this.update.bind(this));
