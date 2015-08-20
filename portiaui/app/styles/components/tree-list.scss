@@ -39,52 +39,31 @@ $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
 
         &:before {
             content: '';
-            display: none;
+            display: block;
             position: absolute;
             height: $tree-list-row-height;
             margin: -$tree-list-caret-padding-y 0;
             left: 0;
             right: 0;
             z-index: -1;
+            background-color: $navbar-default-link-active-bg;
+            opacity: 0;
+            transition: opacity $animation-time $animation-easing;
         }
 
         &:hover,
         &:focus {
             //color: $navbar-default-link-hover-color;
             text-decoration: none;
-
-            &:before {
-                display: block;
-                background-color: $navbar-default-link-hover-bg;
-            }
         }
 
         &.active {
             //color: $navbar-default-link-active-color;
 
             &:before {
-                display: block;
-                background-color: $navbar-default-link-active-bg;
+                opacity: 1;
             }
         }
-    }
-
-    .badge-container {
-        display: inline-block;
-        width: 26px;
-        text-align: center;
-    }
-
-    .badge {
-        vertical-align: baseline;
-        max-width: 26px;
-        transition: background-color $animation-time $animation-easing;
-    }
-
-    .badge-centered {
-        display: inline-block;
-        margin: 0 -1000%;
-        white-space: nowrap;
     }
 }
 

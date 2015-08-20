@@ -1,1 +1,7 @@
-{{link-to item.name 'projects.project.spider.sample' item.spider.project item.spider item}}
+{{#link-to 'projects.project.spider.sample' item.spider.project item.spider item}}
+    {{#structure-list-item icon='sample' hasDetails=true remove=true}}
+        <div class="structure-list-item-main">
+            {{item.name}}
+        </div>
+    {{/structure-list-item}}
+{{/link-to}}

@@ -1,0 +1,15 @@
+<div class="structure-list-item">
+    {{#if attrs.icon}}
+        <i class="structure-list-icon {{iconClasses}}"></i>
+    {{/if}}
+    {{yield}}
+    {{#if attrs.hasDetails}}
+        <i class="structure-list-details fa fa-cog"></i>
+    {{/if}}
+    {{#if attrs.add}}
+        <i class="structure-list-add fa fa-plus-circle" {{action (action attrs.add) bubbles=false}}></i>
+    {{/if}}
+    {{#if attrs.remove}}
+        <i class="structure-list-remove fa fa-minus-circle" {{action (action attrs.remove) bubbles=false}}></i>
+    {{/if}}
+</div>

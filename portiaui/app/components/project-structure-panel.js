@@ -3,7 +3,7 @@ import ToolPanel from './tool-panel';
 
 var SpiderItem = Ember.ObjectProxy.extend({
     _routing: Ember.inject.service('-routing'),
-    component: 'project-structure-spider-item',
+    itemComponentName: 'project-structure-spider-item',
     collapsed: Ember.computed('id', 'project.id', '_routing.currentState', function() {
         return !this.get('_routing').isActiveForRoute(
             [this.get('project.id'), this.get('id')],
@@ -18,14 +18,13 @@ var SpiderItem = Ember.ObjectProxy.extend({
     }),
     children: Ember.computed('start_urls', 'samples', function() {
         var urlsItem = {
-            //component: 'project-structure-url-root-item',
-            name: 'Start URLs',
+            itemComponentName: 'project-structure-url-root-item',
             key: 'spider:' + this.get('id') + ':urls'
         };
         var urls = this.get('start_urls');
         if (urls && urls.length) {
             urlsItem.children = urls.map(url => ({
-                //component: 'project-structure-url-item',
+                itemComponentName: 'project-structure-url-item',
                 name: url,
                 key: 'spider:' + this.get('id') + ':url:' + url
             }));
@@ -37,15 +36,14 @@ var SpiderItem = Ember.ObjectProxy.extend({
 });
 
 var SampleItem = Ember.ObjectProxy.extend({
-    component: 'project-structure-sample-item',
+    itemComponentName: 'project-structure-sample-item',
     key: Ember.computed('id', 'spider.id', function() {
         return 'spider:' + this.get('spider.id') + ':sample:' + this.get('id');
     })
 });
 
 var SampleList = Ember.Object.extend({
-    //component: 'project-structure-sample-root-item',
-    name: 'Samples',
+    itemComponentName: 'project-structure-sample-root-item',
     key: Ember.computed('spider.id', function() {
         return 'spider:' + this.get('id') + ':samples';
     }),
@@ -55,15 +53,14 @@ var SampleList = Ember.Object.extend({
 });
 
 var SchemaItem = Ember.ObjectProxy.extend({
-    component: 'project-structure-schema-item',
+    itemComponentName: 'project-structure-schema-item',
     key: Ember.computed('id', function() {
         return 'schema:' + this.get('id');
     })
 });
 
 var SchemaList = Ember.Object.extend({
-    //component: 'project-structure-schema-root-item',
-    name: 'Schemas',
+    itemComponentName: 'project-structure-schema-root-item',
     key: 'schemas',
     children: Ember.computed.map('project.schemas', schema => SchemaItem.create({
         content: schema
@@ -71,8 +68,9 @@ var SchemaList = Ember.Object.extend({
 });
 
 export default ToolPanel.extend({
-    title: Ember.computed.readOnly('project.name'),
+    tabComponentName: 'project-structure-tab',
     toolId: 'project-structure',
+
     projectTree: Ember.computed('project', 'project.spiders', function() {
         var items = this.get('project.spiders').map(spider => SpiderItem.create({
             content: spider,

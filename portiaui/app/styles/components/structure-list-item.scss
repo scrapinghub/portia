@@ -1,0 +1,67 @@
+.structure-list-item {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.structure-list-item-main {
+    flex: 1 1 auto;
+}
+
+.structure-list-item-main,
+.structure-list-item-content {
+    padding: 0 0.285em;
+
+    &:first-child {
+        padding-left: 0;
+    }
+
+    &:last-child {
+        padding-right: 0;
+    }
+}
+
+.structure-list-icon,
+.structure-list-details,
+.structure-list-add,
+.structure-list-remove {
+    width: $tree-list-row-height;
+    line-height: inherit;
+    text-align: center;
+
+    opacity: 0.15;
+    transition: opacity $animation-time $animation-easing;
+}
+
+.structure-list-icon,
+.structure-list-details {
+    pointer-events: none;
+    color: $navbar-default-color;
+}
+
+.structure-list-icon {
+    opacity: 1;
+}
+
+.structure-list-details {
+    .active & {
+        opacity: 1;
+    }
+}
+
+.structure-list-add {
+    color: $brand-success;
+}
+
+.structure-list-remove {
+    color: $brand-danger;
+}
+
+.structure-list-add,
+.structure-list-remove {
+    cursor: pointer;
+
+    &:hover {
+        opacity: 1;
+    }
+}

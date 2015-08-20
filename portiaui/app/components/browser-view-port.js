@@ -1,8 +1,5 @@
 import Ember from 'ember';
 
-const Overlay = Ember.Object.extend({
-    component: 'hover-overlay'
-});
 
 export default Ember.Component.extend({
     browserOverlays: Ember.inject.service(),
@@ -11,6 +8,7 @@ export default Ember.Component.extend({
     classNames: ['browser-view-port'],
 
     content: null,
+    overlayComponentName: 'hover-overlay',
 
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
     url: Ember.computed.alias('browserState.url'),
@@ -46,9 +44,6 @@ export default Ember.Component.extend({
     init() {
         this._super();
         this.updateContent();
-        this.overlay = Overlay.create({
-            viewPort: this
-        });
     },
 
     willInsertElement() {
@@ -60,10 +55,10 @@ export default Ember.Component.extend({
     },
 
     mouseEnter() {
-        this.get('browserOverlays').addOverlayComponent(this.overlay);
+        this.get('browserOverlays').addOverlayComponent(this);
     },
 
     mouseLeave() {
-        this.get('browserOverlays').removeOverlayComponent(this.overlay);
+        this.get('browserOverlays').removeOverlayComponent(this);
     }
 });

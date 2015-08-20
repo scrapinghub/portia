@@ -2,8 +2,10 @@ import Ember from 'ember';
 import ToolPanel from './tool-panel';
 
 export default ToolPanel.extend({
+    extractedItems: Ember.inject.service(),
+
     classNames: ['extracted-items', 'container-fluid'],
-    toolId: 'extracted-items',
-    tabComponent: 'extracted-items-tab',
-    extractedItems: Ember.inject.service()
+
+    tabComponentName: 'extracted-items-tab',
+    toolId: 'extracted-items'
 });

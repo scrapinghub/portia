@@ -1,0 +1,76 @@
+.portia-icon {
+    display: inline-block;
+    line-height: 1;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+    font-size: inherit; // can't have font-size inherit on line above, so need to override
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.portia-icon-spider {
+    &:before {
+        content: '';
+        display: inline-block;
+        height: 14px;
+        width: 19px;
+        text-align: center;
+        vertical-align: middle;
+        background: transparent url('images/portia.svg') no-repeat center;
+    }
+}
+
+.portia-icon-number,
+.portia-icon-text {
+    position: relative;
+
+    &:before {
+        display: inline-block;
+        font-weight: bold;
+        transform: scaleX(0.5);
+        position: absolute;
+        left: -1000%;
+        right: -1000%;
+        text-align: center;
+    }
+
+    &:after {
+        content: ' ';
+    }
+}
+
+.portia-icon-number {
+    &:before {
+        content: '123';
+    }
+}
+
+.portia-icon-text {
+    &:before {
+        content: 'ABC';
+    }
+}
+
+.portia-icon-safe-html {
+    @extend .#{$fa-css-prefix};
+    @extend .#{$fa-css-prefix}-code;
+    position: relative;
+
+    &:before {
+        display: inline-block;
+        transform: scale(0.8);
+    }
+
+    &:after {
+        content: $fa-var-circle-thin;
+        display: inline-block;
+        position: absolute;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        vertical-align: middle;
+        transform: scale(1.2);
+    }
+}

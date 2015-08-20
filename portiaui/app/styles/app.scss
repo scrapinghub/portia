@@ -3,6 +3,7 @@
 @import "bower_components/font-awesome/scss/font-awesome";
 
 @import "animations";
+@import "icons";
 
 @import "templates/application";
 @import "templates/projects";
@@ -11,7 +12,10 @@
 @import "components/extracted-item-table";
 @import "components/extracted-items-json-panel";
 @import "components/inspector-panel";
+@import "components/list-item-badge";
+@import "components/project-structure-panel";
 @import "components/side-bar";
+@import "components/structure-list-item";
 @import "components/tool-group";
 @import "components/tool-panel";
 @import "components/top-bar";

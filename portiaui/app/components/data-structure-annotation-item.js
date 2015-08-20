@@ -1,7 +1,8 @@
 import Ember from 'ember';
 
+
 const AnnotationOverlay = Ember.ObjectProxy.extend({
-    component: 'annotation-overlay',
+    overlayComponentName: 'annotation-overlay',
     content: Ember.computed.readOnly('annotationItem.item'),
     color: Ember.computed.readOnly('annotationItem.color')
 });
@@ -13,6 +14,8 @@ const ItemProxy = Ember.ObjectProxy.extend({
 export default Ember.Component.extend({
     browserOverlays: Ember.inject.service(),
     colorProvider: Ember.inject.service(),
+
+    tagName: '',
 
     init() {
         this._super();

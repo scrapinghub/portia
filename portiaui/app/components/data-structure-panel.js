@@ -2,7 +2,7 @@ import Ember from 'ember';
 import ToolPanel from './tool-panel';
 
 var RootItem = Ember.ObjectProxy.extend({
-    //component: 'data-structure-root-item',
+    itemComponentName: 'data-structure-root-item',
     name: Ember.computed.readOnly('schema.name'),
     key: Ember.computed('id', function() {
         return 'item:' + this.get('id');
@@ -23,8 +23,7 @@ var RootItem = Ember.ObjectProxy.extend({
 });
 
 var RootItemList = Ember.Object.extend({
-    //component: 'data-structure-root',
-    name: 'Items',
+    itemComponentName: 'data-structure-root',
     key: 'root',
     children: Ember.computed.map('sample.items', item => RootItem.create({
         content: item
@@ -34,7 +33,7 @@ var RootItemList = Ember.Object.extend({
 });
 
 var Annotation = Ember.ObjectProxy.extend({
-    component: 'data-structure-annotation-item',
+    itemComponentName: 'data-structure-annotation-item',
     elements: [],  // this array stores the elements matched in the viewport
     key: Ember.computed('id', 'parent.id', function() {
         return 'item:' + this.get('parent.id') + ':annotation:' + this.get('id');
@@ -43,7 +42,7 @@ var Annotation = Ember.ObjectProxy.extend({
 });
 
 var ItemAnnotation = RootItem.extend({
-    component: 'data-structure-item-annotation-item',
+    itemComponentName: 'data-structure-item-annotation-item',
     name: Ember.computed.readOnly('content.name'),  // TODO: why does 'name' not work?
     schemaName: Ember.computed.readOnly('item.schema.name'),
     key: Ember.computed('id', 'parent.id', function() {

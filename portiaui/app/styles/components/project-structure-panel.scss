@@ -1,0 +1,10 @@
+.project-structure-tab {
+    .dropdown-menu {
+        margin-top: nth($nav-link-padding, 1);
+        margin-left: -(nth($nav-link-padding, 2) + 1px);
+    }
+
+    .caret {
+        cursor: pointer;
+    }
+}
