@@ -2,6 +2,9 @@
   "predef": [
     "document",
     "window",
+    "$",
+    "URI",
+    "TreeMirror",
     "-Promise"
   ],
   "browser": true,

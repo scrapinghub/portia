@@ -268,10 +268,12 @@ class FerryServerProtocol(WebSocketServerProtocol):
             handle_errors=False)
 
     def open_spider(self, meta):
-        if ('project' not in meta or 'spider' not in meta or
-                (self.user.authorized_projects is not None and
-                 meta['project'] not in self.user.authorized_projects and
-                 not self.user.staff)):
+        if ('project' not in meta or 'spider' not in meta):
+            return {'error': 4005, 'reason': 'No project specified'}
+
+        if (self.user.authorized_projects is not None and
+                meta['project'] not in self.user.authorized_projects and
+                not self.user.staff):
             return {'error': 4004,
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
