@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import utils from '../utils/utils';
+import interactionEvent from '../utils/interaction-event';
 import treeMirrorDelegate from '../utils/tree-mirror-delegate';
 import { NAVIGATION_MODE } from '../services/browser';
 
@@ -17,6 +18,8 @@ const BrowserIFrame = Ember.Component.extend({
 
     init() {
         this._super();
+        this.loadCookies();
+        this.frameEventListeners = [];
         let ws = this.get('webSocket');
         ws.addCommand('loadStarted', this.msgLoadStarted.bind(this));
         ws.addCommand('metadata', this.msgMetadata.bind(this));
@@ -122,8 +125,6 @@ const BrowserIFrame = Ember.Component.extend({
             this.iframePromise = this.clearIframe().then(() => {
                 var doc = this.iframe.contentWindow.document;
                 this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
-            }).catch(function(e){
-                console.log(e);
             });
         }
         this.iframePromise.then(() => {
@@ -139,16 +140,67 @@ const BrowserIFrame = Ember.Component.extend({
         }
     },
 
-    loadCookies: function(){
+    loadCookies(){
         if(window.sessionStorage && sessionStorage.portia_cookies){
             this.cookies = JSON.parse(sessionStorage.portia_cookies);
         }
-    }.on('init'),
+    },
+
+    unbindEventHandlers() {
+        $(this.iframe.contentDocument).off('.portia');
+        this.frameEventListeners.forEach(([target, event, fn, useCapture]) => {
+            target.removeEventListener(event, fn, useCapture);
+        });
+        this.frameEventListeners = [];
+    },
+
+    addFrameEventListener(event, fn, useCapture=false) {
+        let frameDoc = this.iframe.contentDocument;
+        frameDoc.addEventListener(event, fn, useCapture);
+        this.frameEventListeners.push([frameDoc, event, fn, useCapture]);
+    },
+
+    bindEventHandlers() {
+        this.unbindEventHandlers();
+        if(this.get('browser.mode') === NAVIGATION_MODE){
+            var $iframe = $(this.iframe.contentDocument);
+            $iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
+                      'mousedown.portia mouseup.portia', this.postEvent.bind(this));
+            $iframe.on('click.portia', this.clickHandlerBrowse.bind(this));
+            this.addFrameEventListener("scroll", e => Ember.run.throttle(this, this.postEvent, e, 200), true);
+            this.addFrameEventListener('focus', this.postEvent.bind(this), true);
+            this.addFrameEventListener('blur', this.postEvent.bind(this), true);
+            this.addFrameEventListener('change', this.postEvent.bind(this), true);
+        } else {
+            // TODO: Other modes
+        }
+    },
+
+    clickHandlerBrowse(evt) {
+        if(evt.which <= 1 && !evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
+            if(evt.target.tagName !== 'INPUT') {
+                evt.preventDefault();
+            }
+            this.postEvent(evt);
+        }
+    },
+
+    postEvent(evt) {
+        this.get('webSocket').send({
+            _meta: {
+                spider: this.get('slyd.spider'),
+                project: this.get('slyd.project'),
+            },
+            _command: 'interact',
+            interaction: interactionEvent(evt)
+        });
+    },
 
     clearIframe() {
         let defer = new Ember.RSVP.defer();
         let iframe = this.iframe;
         let id = utils.shortGuid();
+        let that = this;
         // Using a empty static page because using srcdoc or an data:uri gives
         // permission problems and/or broken baseURI behaviour in different browsers.
         iframe.setAttribute('src', '/static/empty-frame.html?' + id);
@@ -156,7 +208,7 @@ const BrowserIFrame = Ember.Component.extend({
         // Using a message to workaround onload bug on some browsers (cough IE cough).
         let $win = $(window).bind('message', function onMessage(e){
             if(e.originalEvent.data.frameReady === id){
-                //that.rebindEventHandlers() TODO!
+                that.rebindEventHandlers();
                 $win.unbind('message', onMessage);
                 defer.resolve();
             }
