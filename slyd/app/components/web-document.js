@@ -4,6 +4,37 @@ import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
 
+var META_STYLE = `<style data-show-meta>
+    head, title, meta, link {
+        display: block;
+        display: none\9;
+    }
+    title::before {
+        content: 'Title: ';
+    }
+    meta[name][content]::after {
+        content: attr(name) ': "' attr(content) '"';
+    }
+    meta[property][content]::after {
+        content: attr(property) ': "' attr(content) '"';
+    }
+    meta[itemprop][content]::after {
+        content: attr(itemprop) ': "' attr(content) '"';
+    }
+    link[href][rel]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(_portia_href) '"';
+    }
+    link[href][rel][media]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(_portia_href) '" media: "' attr(media) '"';
+    }
+    link[href][rel][type]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(_portia_href) '" type: "' attr(type) '"';
+    }
+    link[href][rel][type][media]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(_portia_href) '" type: "' attr(type) '" media: "' attr(media) '"';
+    }
+</style>`;
+
 export default Ember.Component.extend({
     _register: function() {
         this.set('document.view', this); // documentView is a new property
@@ -249,7 +280,9 @@ export default Ember.Component.extend({
             iframe.find('[style]').each(function() {
                 Ember.$(this).renameAttr('style', '_style');
             });
+            iframe.find('body').append($(META_STYLE));
         } else {
+            iframe.find('[data-show-meta]').remove();
             iframe.find('link[rel="stylesheet"]').each(function() {
                 Ember.$(this).renameAttr('_href', 'href');
             });
@@ -365,7 +398,7 @@ export default Ember.Component.extend({
         }
         var $attributes = $('#hovered-element-info .attributes').empty();
         attributes.forEach(function(attribute) {
-            var value = (attribute.value || "").trim().substring(0, 50);
+            var value = (attribute.value + "").trim().substring(0, 50);
             $attributes.append(
                 $('<div class="attribute" style="margin:2px 0px 2px 0px"></div>').append(
                     $('<span/>').text(attribute.name + ': ')
