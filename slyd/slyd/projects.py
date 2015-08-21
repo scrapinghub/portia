@@ -73,7 +73,7 @@ class ProjectsManagerResource(SlydJsonObjectResource):
         projects = project_manager.list_projects()
         for project in projects:
             project_spec = self.spec_manager.project_spec(project['id'], auth_info)
-            project['spiders'] = project_spec.list_spiders()
+            project['spiders'] = list(project_spec.list_spiders())
 
         return {
             "projects": projects
@@ -151,7 +151,7 @@ class ProjectsManager(object):
         if 'authorized_projects' in self.auth_info:
             return self.auth_info['authorized_projects']
         else:
-            return self.all_projects()
+            return list(self.all_projects())
 
     def create_project(self, name):
         self.validate_project_name(name)

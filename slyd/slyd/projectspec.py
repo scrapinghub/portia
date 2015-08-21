@@ -45,38 +45,22 @@ class ProjectSpec(object):
         }
 
     def list_spiders(self):
-        try:
-            for fname in os.listdir(join(self.project_dir, "spiders")):
-                if fname.endswith(".json"):
-                    yield splitext(fname)[0]
-        except OSError as ex:
-            if ex.errno != errno.ENOENT:
-                raise
+        for fname in os.listdir(join(self.project_dir, "spiders")):
+            if fname.endswith(".json"):
+                yield splitext(fname)[0]
 
     def spider_json(self, name):
         """Loads the spider spec for the given spider name."""
-        try:
-            return self.resource('spiders', name)
-        except IOError as ex:
-            if ex.errno == errno.ENOENT:
-                return({})
-            else:
-                raise
+        return self.resource('spiders', name)
 
     def template_json(self, spider_name, template_name):
         """Loads the given template.
 
         Also converts the annotated body of the template to be used by
         the annotation UI."""
-        try:
-            template = self.resource('spiders', spider_name, template_name)
-            convert_template(template)
-            return template
-        except IOError as ex:
-            if ex.errno == errno.ENOENT:
-                return({})
-            else:
-                raise
+        template = self.resource('spiders', spider_name, template_name)
+        convert_template(template)
+        return template
 
     def rename_spider(self, from_name, to_name):
         if to_name == from_name:
@@ -125,6 +109,9 @@ class ProjectSpec(object):
         return open(self._rfilename(*resources), mode)
 
     def resource(self, *resources):
+        print "for resource", resources, 'filename', self._rfilename(*resources)
+        with self._rfile(resources) as f:
+            print f.read()
         with self._rfile(resources) as f:
             return json.load(f)
 
@@ -135,13 +122,7 @@ class ProjectSpec(object):
 
         If the file does not exist, an empty dict is written
         """
-        try:
-            shutil.copyfileobj(self._rfile(resources), outf)
-        except IOError as ex:
-            if ex.errno == errno.ENOENT:
-                outf.write('{}')
-            else:
-                raise
+        shutil.copyfileobj(self._rfile(resources), outf)
 
     def savejson(self, obj, *resources):
         # convert to json in a way that will make sense in diffs
@@ -205,18 +186,17 @@ class ProjectResource(SlydJsonObjectResource, ProjectModifier):
             try:
                 if rpath[0] == 'spiders' and len(rpath) == 2:
                     spider = project_spec.spider_json(rpath[1])
-                    spider['id'] = rpath[1]
                     return {'spider': spider}
                 elif rpath[0] == 'spiders' and len(rpath) == 3:
                     template = project_spec.template_json(rpath[1], rpath[2])
                     template['original_body'] = ''
                     return {'sample': template}
-                else:
-                    return project_spec.resource(rpath)
+                elif len(rpath) == 1 and rpath[0] in project_spec.resources:
+                    return {rpath[0]: project_spec.resource(*rpath)}
             # Trying to access non existent path
             except (KeyError, IndexError, TypeError):
                 self.not_found()
-        return '\n'
+        self.not_found()
 
     def render_POST(self, request, merge=False):
         obj = self.read_json(request)

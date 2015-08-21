@@ -10,6 +10,11 @@ from .utils import TestSite, create_spec_manager
 from .settings import SPEC_DATA_DIR
 import unittest as pyunittest
 
+def wrap_model_name(model):
+    def __inner__(data):
+        return {model: data}
+    return __inner__
+
 class CrawlerSpecTest(unittest.TestCase):
     spider = """
         {
@@ -43,13 +48,17 @@ class CrawlerSpecTest(unittest.TestCase):
         ffile = join(self.temp_project_dir, resource + ".json")
         fdata = json.load(open(ffile))
         if converter:
-            converter(fdata)
-        rdata = json.loads(result.value())
+            fdata = converter(fdata)
+        try:
+            rdata = json.loads(result.value())
+        except Exception, e:
+            print '_', result.responseCode,  result.value(), '_', resource
+            raise
         self.assertEqual(fdata, rdata)
 
     def test_get_resource(self):
-        self._get_check_resource("project")
-        self._get_check_resource("spiders/pinterest.com")
+        self._get_check_resource("project", wrap_model_name('project'))
+        self._get_check_resource("spiders/pinterest.com", wrap_model_name('spider'))
 
     @inlineCallbacks
     def post_command(self, spider, cmd, *args, **kwargs):
@@ -62,7 +71,7 @@ class CrawlerSpecTest(unittest.TestCase):
         result = yield self.specsite.post('spiders/testpost', data=self.spider)
         self.assertEqual(result.responseCode, 200)
         result = yield self.specsite.get('spiders/testpost')
-        self.assertEqual(json.loads(result.value()), json.loads(self.spider))
+        self.assertEqual(json.loads(result.value()), {u'spider': json.loads(self.spider)})
 
         # should fail - missing required fields
         result = yield self.specsite.post('spiders/testpost', data='{}')
@@ -80,24 +89,24 @@ class CrawlerSpecTest(unittest.TestCase):
         # TODO: mv to existing spider - 400
         result = yield self.specsite.post('spiders/c', data=self.spider)
         self.assertEqual(result.responseCode, 200)
-        self._get_check_resource('spiders/c')
+        self._get_check_resource('spiders/c', wrap_model_name('spider'))
         self.post_command('spiders', 'mv', 'c', 'c2')
         result = yield self.specsite.get('spiders/c')
-        self.assertEqual(result.value(), '{}\n')
-        self._get_check_resource('spiders/c2')
+        self.assertEqual(result.responseCode, 404)
+        self._get_check_resource('spiders/c2', wrap_model_name('spider'))
         yield self.specsite.post('spiders/c3', data=self.spider)
 
         # doesn't overwrite
         result = self.post_command('spiders', 'mv', 'c2', 'c3')
         self.failureResultOf(result, IOError)
-        self._get_check_resource('spiders/c2')
+        self._get_check_resource('spiders/c2', wrap_model_name('spider'))
 
         self.post_command('spiders', 'rm', 'c3')
         result = yield self.specsite.get('spiders/c3')
-        self.assertEqual(result.value(), '{}\n')
+        self.assertEqual(result.responseCode, 404)
         self.post_command('spiders', 'rm', 'c2')
         result = yield self.specsite.get('spiders/c2')
-        self.assertEqual(result.value(), '{}\n')
+        self.assertEqual(result.responseCode, 404)
 
     def tearDown(self):
         rmtree(self.temp_project_dir)
