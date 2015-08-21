@@ -123,6 +123,10 @@ class PortiaJSApi(QObject):
         return wrap_url(text(url), self.protocol.user.tabid, text(baseuri))
 
     @pyqtSlot('QString')
+    def log(self, s):
+        print(s)
+
+    @pyqtSlot('QString')
     def sendMessage(self, message):
         message = text(message)
         try:

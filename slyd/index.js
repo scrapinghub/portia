@@ -55,6 +55,7 @@ module.exports = {
     treeForPublic: function(tree) {
         var relativeDir = this.project.relativeDir || '.',
             splashFiles = [
+                'splash_utils/es5-shim-fixes.js',
                 'node_modules/es5-shim/es5-shim.js',
                 'node_modules/mutationobserver-shim/MutationObserver.js',
                 'vendor/mutation-summary.js',
