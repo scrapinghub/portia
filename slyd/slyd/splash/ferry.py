@@ -153,6 +153,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
     spec_manager = None
     settings = None
     assets = './'
+    storage = None
 
     @property
     def tab(self):
@@ -246,6 +247,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if meta.get('cookies'):
             cookiejar.put_client_cookies(meta['cookies'])
 
+        if meta.get('storage'):
+            self.storage = meta['storage']
+
         main_frame.loadStarted.connect(self._on_load_started)
         self.js_api = PortiaJSApi(self)
         main_frame.javaScriptWindowObjectCleared.connect(
@@ -261,11 +265,23 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.sendMessage({'_command': 'loadStarted'})
 
     def populate_window_object(self):
-        self.tab.web_page.mainFrame().addToJavaScriptWindowObject(
-            '__portiaApi', self.js_api)
+        main_frame = self.tab.web_page.mainFrame()
+        main_frame.addToJavaScriptWindowObject('__portiaApi', self.js_api)
         self.tab.run_js_files(
             os.path.join(self.assets, 'splash_content_scripts'),
             handle_errors=False)
+
+        origin = self.tab.evaljs('location.origin')
+        storage = self.storage or {}
+
+        local_storage = storage.get('local', {}).get(origin, {})
+        session_storage = storage.get('session', {}).get(origin, {})
+
+        if local_storage or session_storage:
+            script = 'livePortiaPage.setLocalStorage(%s, %s)' % (
+                json.dumps(local_storage), json.dumps(session_storage)
+            )
+            main_frame.evaluateJavaScript(script)
 
     def open_spider(self, meta):
         if ('project' not in meta or 'spider' not in meta or

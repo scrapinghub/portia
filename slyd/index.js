@@ -59,6 +59,7 @@ module.exports = {
                 'node_modules/mutationobserver-shim/MutationObserver.js',
                 'vendor/mutation-summary.js',
                 'vendor/tree-mirror.js',
+                'splash_utils/local-storage-shim.js',
                 'splash_utils/inject_this.js'
         ].map(function(p) { return '../'+p; });
 
