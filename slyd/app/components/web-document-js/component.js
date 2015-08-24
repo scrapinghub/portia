@@ -164,6 +164,7 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('cookies', msg => this.saveCookies(msg._data));
+        ws.addCommand('storage', msg => this.saveStorage(msg._data));
     }.on('init'),
 
     fetchDocument: function(url, spider, fp, command) {
@@ -178,7 +179,8 @@ export default WebDocument.extend({
                 id: unique_id,
                 viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight,
                 user_agent: navigator.userAgent,
-                cookies: this.cookies
+                cookies: this.cookies,
+                storage: this.storage,
             },
             _command: command || 'load',
             url: url
@@ -278,12 +280,29 @@ export default WebDocument.extend({
         });
     },
 
+    saveStorage: function(data) {
+        this.storage.local[data.origin] = data.local;
+        this.storage.session[data.origin] = data.session;
+        if(window.sessionStorage){
+            window.sessionStorage.portia_storage = JSON.stringify(this.storage);
+        }
+    },
+
+    loadStorage: function(){
+        if(window.sessionStorage && sessionStorage.portia_storage){
+            this.storage = JSON.parse(sessionStorage.portia_storage);
+        } else {
+            this.storage = { local: {}, session: {} };
+        }
+    }.on('init'),
+
     saveCookies: function(cookies){
         this.cookies = cookies;
         if(window.sessionStorage){
             window.sessionStorage.portia_cookies = JSON.stringify(cookies);
         }
     },
+
     loadCookies: function(){
         if(window.sessionStorage && sessionStorage.portia_cookies){
             this.cookies = JSON.parse(sessionStorage.portia_cookies);

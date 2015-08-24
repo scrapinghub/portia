@@ -55,10 +55,12 @@ module.exports = {
     treeForPublic: function(tree) {
         var relativeDir = this.project.relativeDir || '.',
             splashFiles = [
+                'splash_utils/es5-shim-fixes.js',
                 'node_modules/es5-shim/es5-shim.js',
                 'node_modules/mutationobserver-shim/MutationObserver.js',
                 'vendor/mutation-summary.js',
                 'vendor/tree-mirror.js',
+                'splash_utils/local-storage-shim.js',
                 'splash_utils/inject_this.js'
         ].map(function(p) { return '../'+p; });
 
