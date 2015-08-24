@@ -613,22 +613,18 @@ export var SlydApi = Ember.Object.extend({
     @for this
     @param {String} [pageUrl] the URL of the page to fetch.
     @param {String} [spiderName] the name of the spider to use.
-    @param {String} [parentFp] the fingerprint of the parent page.
     @return {Promise} a promise that fulfills with an {Object} containing
         the document contents (page), the response data (response), the
         extracted items (items), the request fingerprint (fp), an error
         message (error) and the links that will be followed (links).
     */
-    fetchDocument: function(pageUrl, spiderName, parentFp, baseurl) {
+    fetchDocument: function(pageUrl, spiderName, baseurl) {
         var hash = {};
         hash.type = 'POST';
         var data = { spider: spiderName || this.get('spider'),
                      request: { url: pageUrl } };
         if (baseurl) {
             data.baseurl = baseurl;
-        }
-        if (parentFp) {
-            data['parent_fp'] = parentFp;
         }
         hash.data = data;
         hash.url = this.get('botUrl') + 'fetch';

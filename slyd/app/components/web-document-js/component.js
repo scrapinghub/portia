@@ -101,7 +101,10 @@ function treeMirrorDelegate(){
 }
 
 export default WebDocument.extend({
-    ws_deferreds: {},
+    loading: false, // Whatever a page is being loaded at the moment
+    currentUrl: "", // Current URL
+    currentFp: "",  // Hash of the url.
+
     connect: function() {
         var ws = this.get('ws');
 
@@ -120,31 +123,13 @@ export default WebDocument.extend({
                 }
             }
             this[data.loading ? 'showLoading' : 'hideLoading']();
-
-            var listener = this.get('listener');
-            if(listener && listener.updateExtractedItems) {
-                listener.updateExtractedItems(data.items || []);
-                listener.set('followedLinks', data.links || []);
-                var pageMap = listener.get('pageMap');
-                // Handle page change in browser tab on the server caused by event
-                if (!pageMap[data.fp] || data.fp !== listener.get('loadedPageFp')) {
-                    pageMap[data.fp] = data;
-                    this.installEventHandlersForBrowsing();
-                    this.hideLoading();
-                    listener.get('browseHistory').pushObject(data.fp);
-                    Ember.run.later(this, function() {
-                        var doc = this.getIframeNode().contentWindow.document;
-                        doc.onscroll = this.redrawNow.bind(this);
-                    }, 500);
-                }
-                listener.set('loadedPageFp', data.fp);
-            }
-            this.set('loadedPageFp', data.fp);
-            this.set('followedLinks', data.links);
+            this.set('loading', data.loading);
             this.set('currentUrl', data.url);
-            Ember.run.next(this, function() {
-                this.redrawNow();
-            });
+            this.set('currentFp', data.fp);
+
+            this.sendDocumentEvent('pageMetadata', data);
+
+            Ember.run.next(this, this.redrawNow);
         }.bind(this));
 
         ws.addCommand('mutation', function(data){
@@ -167,35 +152,38 @@ export default WebDocument.extend({
         ws.addCommand('storage', msg => this.saveStorage(msg._data));
     }.on('init'),
 
-    fetchDocument: function(url, spider, fp, command) {
-        var unique_id = utils.shortGuid(),
-            deferred = new Ember.RSVP.defer(),
-            ifWindow = this.getIframeNode().contentWindow;
-        this.set('ws_deferreds.' + unique_id, deferred);
+    /**
+     * Loads and displays a url interactively
+     * Can only be called in "browse" mode.
+     */
+    loadUrl: function(url, spider, baseurl) {
+        this.assertInMode('browse');
+        this.showLoading(true);
         this.get('ws').send({
             _meta: {
                 spider: spider,
                 project: this.get('slyd.project'),
-                id: unique_id,
-                viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight,
+                id: utils.shortGuid(),
+                viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
                 cookies: this.cookies,
                 storage: this.storage,
             },
-            _command: command || 'load',
-            url: url
+            _command: 'load',
+            url: url,
+            baseurl: baseurl,
         });
-        return deferred.promise;
     },
 
     _wsOpenChange: function(){
         this.setInteractionsBlocked(this.get('ws.opened'), 'ws');
     }.observes('ws.opened'),
 
+    /**
+     * Set the content of the iframe. Can only be called in "select" mode
+     */
     setIframeContent: function(doc) {
-        if(typeof doc !== 'string') {
-            return;
-        }
+        this.assertInMode('select');
         var iframe = Ember.$('#' + this.get('iframeId'));
         iframe.attr('srcdoc', doc);
         // Wait until iframe has fully loaded before setting iframe to the current iframe
@@ -233,6 +221,7 @@ export default WebDocument.extend({
         iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
                   'mousedown.portia mouseup.portia', this.postEvent.bind(this));
         iframe.on('click.portia', this.clickHandlerBrowse.bind(this));
+        iframe.on('scroll.portia', this.redrawNow.bind(this));
         this.addFrameEventListener("scroll", e => Ember.run.throttle(this, this.postEvent, e, 200), true);
         this.addFrameEventListener('focus', this.postEvent.bind(this), true);
         this.addFrameEventListener('blur', this.postEvent.bind(this), true);
@@ -273,10 +262,9 @@ export default WebDocument.extend({
     }.on('init'),
 
     handleResize: function() {
-        var iframe_window = this.getIframeNode().contentWindow;
         this.get('ws').send({
             _command: 'resize',
-            size: iframe_window.innerWidth + 'x' + iframe_window.innerHeight
+            size: this.iframeSize()
         });
     },
 

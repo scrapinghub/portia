@@ -1,41 +1,30 @@
 import Ember from 'ember';
-import SpiderController from '../spider';
+import BaseController from '../base-controller';
 
-export default SpiderController.extend({
+export default BaseController.extend({
     queryParams: ['url', 'baseurl', 'rmt'],
+    needs: ['spider'],
     url: null,
     baseurl: null,
     rmt: null,
 
-    queryUrl: function() {
-        if (!this.url) {
-            return;
-        }
-        this.fetchQueryUrl();
-    }.observes('url'),
-
     fetchQueryUrl: function() {
-        var url = this.url, baseurl = this.baseurl;
-        this.set('url', null);
-        this.set('baseurl', null);
-        Ember.run.next(this, function() {
-            this.fetchPage(url, null, true, baseurl);
-        });
-    },
+        if(this.get('url')) {
+            var url = this.url, baseurl = this.baseurl;
+            this.set('url', null);
+            this.set('baseurl', null);
+            Ember.run.next(this, function() {
+                this.get('controllers.spider').loadUrl(url, baseurl);
+            });
+        }
+    }.observes('url'),
 
     removeTemplate: function() {
         if (this.get('rmt')) {
-            this.get('model.template_names').removeObject(this.get('rmt'));
+            this.get('controllers.spider.model.template_names').removeObject(this.get('rmt'));
             this.set('rmt', null);
         }
     }.observes('rmt'),
 
     _breadCrumb: null,
-
-    willEnter: function() {
-        this._super();
-        if (this.url) {
-            this.fetchQueryUrl();
-        }
-    }
 });

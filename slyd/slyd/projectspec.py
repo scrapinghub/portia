@@ -53,6 +53,17 @@ class ProjectSpec(object):
             if ex.errno != errno.ENOENT:
                 raise
 
+    def spider_with_templates(self, spider):
+        spider_spec = self.resource('spiders', spider)
+        templates = []
+        for template in spider_spec.get('template_names', []):
+            try:
+                templates.append(self.resource('spiders', spider, template))
+            except TypeError:
+                self.remove_template(spider, template)
+        spider_spec['templates'] = templates
+        return spider_spec
+
     def spider_json(self, name):
         """Loads the spider spec for the given spider name."""
         try:

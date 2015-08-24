@@ -24,8 +24,8 @@ export default Ember.Component.extend({
     url: Ember.computed.reads('extractedItem.url'),
 
     actions: {
-        fetchPage: function() {
-            this.sendAction('fetchPage', this.get('url'));
+        loadUrl: function() {
+            this.sendAction('loadUrl', this.get('url'));
         },
 
         editTemplate: function(templateName) {

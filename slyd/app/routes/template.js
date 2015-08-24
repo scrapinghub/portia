@@ -11,10 +11,6 @@ export default BaseRoute.extend({
     afterModel: function() {
         var controller = this.controllerFor('template');
         var slyd = this.get('slyd');
-        // Load the annotations if we can.
-        if (!controller.get('documentView').getIframe().length) {
-            return Ember.run.later(this, this.refresh, 500);
-        }
 
         // Load the items.
         var itemsPromise = slyd.loadItems().then(function(items) {
@@ -28,7 +24,7 @@ export default BaseRoute.extend({
     },
 
     renderTemplate: function() {
-        var controller = this.controllerFor('template.index');
+        var controller = this.controllerFor('template');
         this.render('template/toolbox', {
             into: 'application',
             outlet: 'main',

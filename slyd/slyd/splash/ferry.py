@@ -296,18 +296,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
         spec = self.spec_manager.project_spec(meta['project'], self.user.auth)
-        spider = spec.resource('spiders', spider_name)
+
+        spider = spec.spider_with_templates(spider_name)
         items = spec.resource('items')
         extractors = spec.resource('extractors')
-        templates = []
-        for template in spider.get('template_names', []):
-            try:
-                templates.append(spec.resource('spiders', spider_name,
-                                               template))
-            except TypeError:
-                # Template names not consistent with templates
-                spec.remove_template(spider_name, template)
-        spider['templates'] = templates
         if not self.settings.get('SPLASH_URL'):
             self.settings.set('SPLASH_URL', 'portia')
         self.factory[self].spider = IblSpider(spider_name, spider, items,
@@ -329,7 +321,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
         else:
             spider = spec.spider
         if template:
-            idx = 0
             for idx, tmpl in enumerate(spider['templates']):
                 if template['original_body'] == tmpl['original_body']:
                     spider['templates'][idx] = template

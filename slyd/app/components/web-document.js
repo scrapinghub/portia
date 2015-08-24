@@ -1,6 +1,5 @@
 /* jshint scripturl:true */
 import Ember from 'ember';
-import ajax from 'ic-ajax';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
 
@@ -10,18 +9,22 @@ export default Ember.Component.extend({
     }.on('init'),
 
     didInsertElement: function() {
-        Ember.run.scheduleOnce('afterRender', this, this.initData());
+        this.initCanvas();
+        var store = new AnnotationStore();
+        var iframe = this.getIframe();
+        store.set('document', this.get('document'));
+        this.set('document.store', store);
+        this.set('document.iframe', iframe);
     },
 
     iframeId: 'scraped-doc-iframe',
-
-    dataSource: null,
 
     sprites: [],
 
     listener: null,
 
     mode: "none", // How it responds to input events, modes are 'none', 'browse' and 'select'
+    useBlankPlaceholder: false,
 
     canvas: null,
 
@@ -35,33 +38,34 @@ export default Ember.Component.extend({
 
     cssEnabled: true,
 
-    annotationStore: null,
-
-    spiderPage: null,
-    spiderPageShown: true,
-
     redrawSprites: function() {
         this.redrawNow();
     }.observes('sprites.sprites.@each', 'sprites'),
 
     /**
-        Attaches this documentview to a datasource and event listener
+        Attaches this documentview to a event listener
         configuring it according to the options dictionary.
         The options dictionary may contain:
 
-        datasource: the datasource that will be attached.
         listener: the event listener will be attached.
         mode: a string. Possible values are 'select', 'browse' and 'none'.
         partialSelects: boolean. Whether to allow partial selections. It only
             has effect for the 'select' mode.
+        blankPage: boolean (default false). Whether to show a blank page or
+            the placeholder page. Only has effect in "none" mode.
     */
     config: function(options) {
-        this.set('dataSource', options.dataSource);
         this.set('listener', options.listener);
-        this.set('mode', options.mode);
-        if (options.mode === 'select') {
-            this.set('partialSelectionEnabled', options.partialSelects);
+        if(options.mode) {
+            this.set('mode', options.mode);
         }
+        if (options.mode === 'select') {
+            this.set('partialSelectionEnabled', !!options.partialSelects);
+        } else if (options.mode === 'none') {
+            this.set('useBlankPlaceholder', !!options.blankPage);
+        }
+        // Block interactions when the spider page is open
+        this.setInteractionsBlocked(this.get('mode') === 'none' && !this.get('useBlankPlaceholder'), 'spider-page');
     },
 
     /**
@@ -71,7 +75,7 @@ export default Ember.Component.extend({
     reset: function() {
         this.set('mode', 'none');
         this.set('partialSelectionEnabled', false);
-        this.set('dataSource', null);
+        this.set('sprites', null);
         this.set('listener', null);
     },
 
@@ -153,18 +157,20 @@ export default Ember.Component.extend({
     /**
         Displays a document by setting it as the content of the iframe.
         readyCallback will be called when the document finishes rendering.
+
+        Only allowed in "select" mode
     */
     displayDocument: function(documentContents, readyCallback) {
+        this.assertInMode('select');
+
         Ember.run.schedule('afterRender', this, function() {
             this.set('loadingDoc', true);
             this.setIframeContent(documentContents);
-            this.spiderPageShown = false;
             // We need to disable all interactions with the document we are loading
             // until we trigger the callback.
             this.blockInteractions('display');
             Ember.run.later(this, function() {
-                var doc = this.getIframeNode().contentWindow.document;
-                doc.onscroll = this.redrawNow.bind(this);
+                this._updateEventHandlers();
                 this.unblockInteractions('display');
                 if (readyCallback) {
                     readyCallback(this.getIframe());
@@ -218,24 +224,12 @@ export default Ember.Component.extend({
         this.unblockInteractions('loading');
     },
 
-    /**
-        Displays the spider image place holder as the content of the
-        iframe.
-    */
-    showSpider: function() {
-        Ember.run.schedule('afterRender', this, function() {
-            if (!Ember.testing) {
-                if (this.spiderPage) {
-                    this.getIframe().find('html').html(this.spiderPage);
-                } else  {
-                    Ember.run.throttle(this, this.reloadIframeContent, 500);
-                }
-                this.spiderPageShown = true;
-            }
-        });
-    },
 
+    /**
+     * Only works in "select" mode
+     */
     toggleCSS: function() {
+        this.assertInMode('select');
         var iframe = this.getIframe();
         if (this.cssEnabled) {
             iframe.find('link[rel="stylesheet"]').each(function() {
@@ -280,16 +274,26 @@ export default Ember.Component.extend({
     _updateEventHandlers: function() {
         var mode = this.get('mode');
         if (mode === 'select') {
-            this.showHoveredInfo();
             this.installEventHandlersForSelecting();
         } else if (mode === 'browse'){
-            this.hideHoveredInfo();
             this.installEventHandlersForBrowsing();
         } else { // none
-            this.hideHoveredInfo();
             this.uninstallEventHandlers();
         }
     }.observes('mode'),
+
+    _showPlaceholder: function() {
+        if(this.get('mode') === 'none') {
+            var iframe = this.getIframeNode();
+            iframe.setAttribute('src', this.get('useBlankPlaceholder') ? 'about:blank' : '/static/start.html');
+        }
+    }.observes('mode', 'useBlankPlaceholder'),
+
+    assertInMode: function(mode, msg) {
+        if(this.get('mode') !== mode) {
+            throw new Error(msg || ('documentView in incorrect mode ' + this.get('mode') + ' != ' + mode));
+        }
+    },
 
     partialSelectionEnabled: false,
 
@@ -298,12 +302,13 @@ export default Ember.Component.extend({
     installEventHandlersForSelecting: function() {
         this.uninstallEventHandlers();
         var iframe = this.getIframe();
+        iframe.on('scroll.portia', this.redrawNow.bind(this));
         iframe.on('click.portia', this.clickHandler.bind(this));
         iframe.on('mouseover.portia', this.mouseOverHandler.bind(this));
         iframe.on('mouseout.portia', this.mouseOutHandler.bind(this));
         iframe.on('mousedown.portia', this.mouseDownHandler.bind(this));
         iframe.on('mouseup.portia', this.mouseUpHandler.bind(this));
-        iframe.on('hover.portia', function(event) {event.preventDefault();});
+        iframe.on('hover.portia', function(event) {event.preventDefault();});  // XXX: Why?
         this.redrawNow();
     },
 
@@ -312,32 +317,23 @@ export default Ember.Component.extend({
         this.set('hoveredSprite', null);
     },
 
-    reloadIframeContent: function() {
-        var iframe = Ember.$(this.getIframeNode());
-        ajax({url: iframe.attr('src')}).then(function(data) {
-            this.spiderPage = data || null;
-            this.showSpider();
-        }.bind(this));
-    },
-
     getIframeContent: function() {
         var iframe = this.getIframe().get(0);
         return iframe.documentElement && iframe.documentElement.outerHTML;
     },
 
     setIframeContent: function(contents) {
+        this.assertInMode('select');
+
         var iframe = this.getIframe();
         iframe.find('html').html(contents);
         this.set('document.iframe', iframe);
     },
 
-    showHoveredInfo: function() {
-        Ember.$("#hovered-element-info").css('display', 'inline');
-    },
-
-    hideHoveredInfo: function() {
-        Ember.$("#hovered-element-info").css('display', 'none');
-    },
+    _updateHoveredInfoVisibility: function() {
+        var display = this.get('mode') === 'select' ? 'inline': 'none';
+        Ember.$("#hovered-element-info").css('display', display);
+    }.observes('mode'),
 
     initHoveredInfo: function() {
         var contents = '<div class="path"/><div class="attributes"/>';
@@ -378,19 +374,7 @@ export default Ember.Component.extend({
     },
 
     sendElementHoveredEvent: function(element, delay, mouseX, mouseY) {
-        var handle = this.get('elementHoveredHandle');
-        if (handle) {
-            Ember.run.cancel(handle);
-            this.set('elementHoveredHandle', null);
-        }
-        if (delay) {
-            handle = Ember.run.later(this, function() {
-                this.sendDocumentEvent('elementHovered', element, mouseX, mouseY);
-            }, delay);
-            this.set('elementHoveredHandle', handle);
-        } else {
-            this.sendDocumentEvent('elementHovered', element, mouseX, mouseY);
-        }
+        this.sendDocumentEvent('elementHovered', element, mouseX, mouseY);
     },
 
     mouseOverHandler:  function(event) {
@@ -402,7 +386,7 @@ export default Ember.Component.extend({
             if (!this.get('restrictToDescendants') ||
                     Ember.$(target).isDescendant(this.get('restrictToDescendants'))) {
                 this.setElementHovered(target);
-                this.sendElementHoveredEvent(target, 0, event.clientX, event.clientY);
+                this.sendElementHoveredEvent(target, event.clientX, event.clientY);
             }
         }
     },
@@ -450,8 +434,6 @@ export default Ember.Component.extend({
                 if (!this.get('restrictToDescendants') ||
                     Ember.$(target).isDescendant(this.get('restrictToDescendants'))) {
                     this.sendDocumentEvent('elementSelected', target, event.clientX, event.clientY);
-                } else {
-                    this.sendDocumentEvent('elementSelected', null);
                 }
             }
         }
@@ -483,26 +465,21 @@ export default Ember.Component.extend({
         this.redrawNow();
     },
 
+    iframeSize: function(){
+        var iframe_window = this.getIframeNode().contentWindow;
+        if (iframe_window) {
+            return iframe_window.innerWidth + 'x' + iframe_window.innerHeight;
+        }
+        return null;
+    },
+
     initCanvas: function() {
         if (!this.get('canvas')) {
             this.set('canvas', Canvas.create({ canvasId: 'infocanvas' }));
             this.initHoveredInfo();
             if (!Ember.testing){
-                window.resize = function() {
-                    this.redrawNow();
-                }.bind(this);
+                window.resize = this.redrawNow.bind(this);
             }
         }
     },
-
-    initData: function() {
-        this.initCanvas();
-        var store = new AnnotationStore(),
-            iframe = this.getIframe();
-        store.set('document', this.get('document'));
-        this.set('document.store', store);
-        this.set('document.iframe', iframe);
-    },
-
-    call: function() {}
 });

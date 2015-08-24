@@ -8,7 +8,6 @@ import SpriteStore from '../utils/sprite-store';
 import utils from '../utils/utils';
 
 export default BaseController.extend({
-
     model: null,
 
     needs: ['application', 'projects', 'project', 'spider', 'spider/index'],
@@ -64,12 +63,6 @@ export default BaseController.extend({
         }
 
         this.set('activeExtractionTool', this.get('extractionTools.' + tool_name));
-        this.get('documentView').config({
-            mode: 'select',
-            listener: this,
-            dataSource: this,
-            partialSelects: true,
-        });
         this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
     },
 
@@ -292,7 +285,7 @@ export default BaseController.extend({
         this.get('extractors').pushObject(extractor);
     },
 
-    showFloatingAnnotationWidget: function(_, element, x, y) {
+    showFloatingAnnotationWidget: function(element, x, y) {
         this.set('showFloatingAnnotationWidgetAt', { x: x, y: y });
         this.set('floatingElement', Ember.$(element));
     },
@@ -472,15 +465,13 @@ export default BaseController.extend({
     documentActions: {
 
         elementSelected: function(element, mouseX, mouseY) {
-            if (element) {
-                this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
-            }
+            this.showFloatingAnnotationWidget(element, mouseX, mouseY);
         },
 
         partialSelection: function(selection, mouseX, mouseY) {
             var element = Ember.$('<ins/>').get(0);
             selection.getRangeAt(0).surroundContents(element);
-            this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
+            this.showFloatingAnnotationWidget(element, mouseX, mouseY);
         },
 
         elementHovered: function() {
@@ -489,7 +480,7 @@ export default BaseController.extend({
     },
 
     setDocument: function() {
-        if (!this.get('model') || !this.get('model.annotated_body') || !this.get('loadDocument')) {
+        if (!this.get('model') || !this.get('model.annotated_body')) {
             return;
         }
         this.get('documentView').displayDocument(this.get('model.annotated_body'),
@@ -538,6 +529,11 @@ export default BaseController.extend({
 
     willEnter: function() {
         var plugins = {};
+        this.get('documentView').config({
+            mode: 'select',
+            listener: this,
+            partialSelects: true,
+        });
         this.get('capabilities.plugins').forEach(function(plugin) {
             plugins[plugin['component'].replace(/\./g, '_')] = plugin['options'];
         });
