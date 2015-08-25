@@ -6,6 +6,8 @@ import socket as _socket
 import six.moves.urllib_parse as urlparse
 import traceback
 import chardet
+import six
+import itertools
 
 import slyd.splash.utils
 
@@ -153,7 +155,9 @@ class ProjectData(ProjectModifier):
             if socket.spider._filter_js_urls(sample['url']):
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
-                sample['original_body'] = self._decode(socket.tab._raw_html)
+                stated_encoding = socket.tab.evaljs('document.characterSet')
+                sample['original_body'] = self._decode(socket.tab._raw_html,
+                                                       stated_encoding)
         return self.save_data(path, 'template', data=sample, socket=socket,
                               meta=meta)
 
@@ -195,8 +199,12 @@ class ProjectData(ProjectModifier):
             socket.update_spider(meta, **{type: obj})
             return obj
 
-    def _decode(self, html):
-        for encoding in ('utf-8', 'windows-1252'):
+    def _decode(self, html, default=None):
+        if default is None:
+            default = []
+        elif isinstance(default, six.string_types):
+            default = [default]
+        for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
             try:
                 return html.decode(encoding)
             except UnicodeDecodeError:
