@@ -5,6 +5,7 @@ requests==2.7.0
 autobahn==0.10.4
 six==1.5.2
 splash==1.6
+chardet==2.3.0
 
 # Dulwich's MySQL backend
 --allow-external=mysql-connector-python
