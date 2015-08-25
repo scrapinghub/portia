@@ -40,7 +40,7 @@ export default Ember.Component.extend({
 
     loadingDoc: false,
 
-    cssEnabled: true,
+    cssEnabled: true, // Only in "select" mode
 
     redrawSprites: function() {
         this.redrawNow();
@@ -60,7 +60,8 @@ export default Ember.Component.extend({
     */
     config: function(options) {
         this.set('listener', options.listener);
-        if(options.mode) {
+        if(options.mode && options.mode !== this.get('mode')) {
+            this.set('cssEnabled', true);
             this.set('mode', options.mode);
         }
         if (options.mode === 'select') {
@@ -235,7 +236,7 @@ export default Ember.Component.extend({
     toggleCSS: function() {
         this.assertInMode('select');
         var iframe = this.getIframe();
-        if (this.cssEnabled) {
+        if (this.get('cssEnabled')) {
             iframe.find('link[rel="stylesheet"]').each(function() {
                 Ember.$(this).renameAttr('href', '_href');
             });
@@ -259,7 +260,7 @@ export default Ember.Component.extend({
             });
         }
         this.redrawNow();
-        this.cssEnabled = !this.cssEnabled;
+        this.toggleProperty('cssEnabled');
     },
 
     /**
@@ -332,6 +333,7 @@ export default Ember.Component.extend({
         var iframe = this.getIframe();
         iframe.find('html').html(contents);
         this.set('document.iframe', iframe);
+        this.set('cssEnabled', true);
     },
 
     _updateHoveredInfoVisibility: function() {
