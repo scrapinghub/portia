@@ -15,6 +15,10 @@ export default Ember.Component.extend({
         store.set('document', this.get('document'));
         this.set('document.store', store);
         this.set('document.iframe', iframe);
+
+        var iframeNode = this.getIframeNode();
+        iframeNode.onload = this._updateEventHandlers.bind(this);
+        iframeNode.onreadystatechange = this._updateEventHandlers.bind(this);
     },
 
     iframeId: 'scraped-doc-iframe',

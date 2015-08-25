@@ -61,7 +61,7 @@ def resolve(data, socket):
         _socket.getaddrinfo(parsed.hostname, port)
     except KeyError:
         result['error'] = 'Can\'t create a spider without a start url'
-    except socket.gaierror:
+    except _socket.gaierror:
         result['error'] = 'Could not resolve "%s"' % url
     return result
 
