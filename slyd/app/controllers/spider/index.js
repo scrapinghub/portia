@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import BaseController from '../base-controller';
+import SpriteStore from '../../utils/sprite-store';
 
 export default BaseController.extend({
     queryParams: ['url', 'baseurl', 'rmt'],
@@ -27,4 +28,17 @@ export default BaseController.extend({
     }.observes('rmt'),
 
     _breadCrumb: null,
+
+    willEnter: function() {
+        this.get('documentView').config({
+            mode: 'browse',
+            listener: this,
+        });
+    },
+
+    willLeave: function() {
+        this.set('documentView.sprites', new SpriteStore());
+        this.get('documentView').hideLoading();
+        this.get('documentView.ws').send({'_command': 'close_tab'});
+    },
 });
