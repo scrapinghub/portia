@@ -1,31 +1,28 @@
 import Ember from 'ember';
-import SpiderController from '../spider';
+import BaseController from '../base-controller';
+import SpriteStore from '../../utils/sprite-store';
 
-export default SpiderController.extend({
+export default BaseController.extend({
     queryParams: ['url', 'baseurl', 'rmt'],
+    needs: ['spider'],
     url: null,
     baseurl: null,
     rmt: null,
 
-    queryUrl: function() {
-        if (!this.url) {
-            return;
-        }
-        this.fetchQueryUrl();
-    }.observes('url'),
-
     fetchQueryUrl: function() {
-        var url = this.url, baseurl = this.baseurl;
-        this.set('url', null);
-        this.set('baseurl', null);
-        Ember.run.next(this, function() {
-            this.fetchPage(url, null, true, baseurl);
-        });
-    },
+        if(this.get('url')) {
+            var url = this.url, baseurl = this.baseurl;
+            this.set('url', null);
+            this.set('baseurl', null);
+            Ember.run.next(this, function() {
+                this.get('controllers.spider').loadUrl(url, baseurl);
+            });
+        }
+    }.observes('url'),
 
     removeTemplate: function() {
         if (this.get('rmt')) {
-            this.get('model.template_names').removeObject(this.get('rmt'));
+            this.get('controllers.spider.model.template_names').removeObject(this.get('rmt'));
             this.set('rmt', null);
         }
     }.observes('rmt'),
@@ -33,9 +30,15 @@ export default SpiderController.extend({
     _breadCrumb: null,
 
     willEnter: function() {
-        this._super();
-        if (this.url) {
-            this.fetchQueryUrl();
-        }
-    }
+        this.get('documentView').config({
+            mode: 'browse',
+            listener: this,
+        });
+    },
+
+    willLeave: function() {
+        this.set('documentView.sprites', new SpriteStore());
+        this.get('documentView').hideLoading();
+        this.get('documentView.ws').send({'_command': 'close_tab'});
+    },
 });

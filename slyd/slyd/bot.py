@@ -173,15 +173,7 @@ class Fetch(BotResource):
             return None, None
         pspec = self.bot.spec_manager.project_spec(project, auth_info)
         try:
-            spider_spec = pspec.resource('spiders', spider)
-            spider_spec['templates'] = []
-            for template in spider_spec.get('template_names', []):
-                try:
-                    spider_spec['templates'].append(
-                        pspec.resource('spiders', spider, template))
-                except TypeError:
-                    # Template names not consistent with templates
-                    pspec.remove_template(spider, template)
+            spider_spec = pspec.spider_with_templates(spider)
             items_spec = pspec.resource('items')
             extractors = pspec.resource('extractors')
             return (IblSpider(spider, spider_spec, items_spec, extractors,

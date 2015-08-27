@@ -5,6 +5,9 @@ import re
 import socket as _socket
 import six.moves.urllib_parse as urlparse
 import traceback
+import chardet
+import six
+import itertools
 
 import slyd.splash.utils
 
@@ -39,7 +42,7 @@ def load_page(data, socket):
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda: on_complete(True),
-                  baseurl=data['url'])
+                  baseurl=data.get('baseurl', data['url']))
 
 
 @open_tab
@@ -61,7 +64,7 @@ def resolve(data, socket):
         _socket.getaddrinfo(parsed.hostname, port)
     except KeyError:
         result['error'] = 'Can\'t create a spider without a start url'
-    except socket.gaierror:
+    except _socket.gaierror:
         result['error'] = 'Could not resolve "%s"' % url
     return result
 
@@ -147,10 +150,14 @@ class ProjectData(ProjectModifier):
         sample, meta = data.get('template'), data.get('_meta')
         path = ['spiders', meta.get('spider'), sample.get('name')]
         if sample.pop('_new', False):
+            if socket.spider is None:
+                socket.open_spider(meta)
             if socket.spider._filter_js_urls(sample['url']):
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
-                sample['original_body'] = socket.tab._raw_html.decode('utf-8')
+                stated_encoding = socket.tab.evaljs('document.characterSet')
+                sample['original_body'] = self._decode(socket.tab._raw_html,
+                                                       stated_encoding)
         return self.save_data(path, 'template', data=sample, socket=socket,
                               meta=meta)
 
@@ -191,6 +198,19 @@ class ProjectData(ProjectModifier):
                 log.err(traceback.format_exc(ex))
             socket.update_spider(meta, **{type: obj})
             return obj
+
+    def _decode(self, html, default=None):
+        if default is None:
+            default = []
+        elif isinstance(default, six.string_types):
+            default = [default]
+        for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
+            try:
+                return html.decode(encoding)
+            except UnicodeDecodeError:
+                pass
+        encoding = chardet.detect(html).get('encoding')
+        return html.decode(encoding)
 
 
 def update_project_data(data, socket):

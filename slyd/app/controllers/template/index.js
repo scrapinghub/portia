@@ -1,7 +1,6 @@
-import TemplateController from '../template';
+import BaseController from '../base-controller';
 
-export default TemplateController.extend({
+export default BaseController.extend({
     breadCrumb: null,
     _breadCrumb: null,
-    loadDocument: true,
 });

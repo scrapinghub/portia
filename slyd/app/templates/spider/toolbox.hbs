@@ -26,7 +26,7 @@
             {{#each url in model.start_urls}}
                 <div class="row">
                     <div class="col-xs-9 clickable-url">
-                        {{#bs-button clicked="fetchPage" clickedParam=url type="light" title=url popoverPlacement='left'}}
+                        {{#bs-button clicked="loadUrl" clickedParam=url type="light" title=url popoverPlacement='left'}}
                             {{url}}
                         {{/bs-button}}
                     </div>
