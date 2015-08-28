@@ -11,6 +11,10 @@ export default BaseController.extend({
 
     needs: ['application', 'projects', 'project', 'project/index'],
 
+    queryParams: ['url', 'baseurl'],
+    url: null,
+    baseurl: null,
+
     saving: false,
 
     browseHistory: [], // List of urls
@@ -216,13 +220,20 @@ export default BaseController.extend({
     },
 
     addTemplate: function() {
-        var iframeTitle = this.get('documentView').getIframe()[0].title;
+        let iframeTitle = (this.get('documentView').getIframe()[0].title
+            .trim()
+            .replace(/[^a-z\s_-]/ig, '')
+            .replace(/\s+/g, '_')
+            .substring(0, 48)
+            .replace(/_+$/, '') || utils.shortGuid());
 
-        var template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
-                                       .replace(/\s+/g, '_').substring(0, 48);
-        if (!template_name) {
-            template_name = utils.shortGuid();
+        // Find an unique template name
+        let template_name = iframeTitle;
+        let template_num = 1;
+        while(this.get('model.template_names').contains(template_name)) {
+            template_name = iframeTitle + '_' + (template_num++);
         }
+
         var template = Template.create({
             name: template_name,
             extractors: {},
@@ -558,6 +569,11 @@ export default BaseController.extend({
             mode: 'browse',
             listener: this,
         });
+        if(this.get('url')) {
+            this.loadUrl(this.get('url'), this.get('baseurl'));
+            this.set('url', null);
+            this.set('baseurl', null);
+        }
     },
 
     willLeave: function() {

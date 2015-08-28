@@ -2,7 +2,6 @@ import Ember from 'ember';
 import ajax from 'ic-ajax';
 import config from '../config/environment';
 import SlydApi from '../utils/slyd-api';
-import Timer from '../utils/timer';
 import utils from '../utils/utils';
 
 

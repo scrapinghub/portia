@@ -59,17 +59,21 @@ function treeMirrorDelegate(){
             var node = null;
             if(tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
                 node = document.createElement('NOSCRIPT');
-            } else if(tagName === 'FORM') {
-                node = document.createElement(tagName);
+            } else {
+                try {
+                    node = document.createElement(tagName);
+                } catch(e) {
+                    // Invalid tag name
+                    node = document.createElement('NOSCRIPT');
+                }
+            }
+            if(tagName === 'FORM') {
                 $(node).on('submit', ()=>false);
             } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
-                node = document.createElement(tagName);
                 node.setAttribute('src', '/static/frames-not-supported.html');
             } else if (tagName === 'CANVAS') {
-                node = document.createElement(tagName);
                 paintCanvasMessage(node);
             } else if (tagName === 'OBJECT' || tagName === 'EMBED') {
-                node = document.createElement(tagName);
                 setTimeout(addEmbedBlockedMessage.bind(null, node), 100);
             }
             return node;
@@ -176,20 +180,17 @@ export default WebDocument.extend({
     },
 
     _wsOpenChange: function(){
-        this.setInteractionsBlocked(this.get('ws.opened'), 'ws');
-    }.observes('ws.opened'),
+        this.setInteractionsBlocked(this.get('ws.closed'), 'ws');
+    }.observes('ws.closed'),
 
     /**
      * Set the content of the iframe. Can only be called in "select" mode
      */
     setIframeContent: function(doc) {
         this.assertInMode('select');
-        var iframe = Ember.$('#' + this.get('iframeId'));
-        iframe.attr('srcdoc', doc);
-        // Wait until iframe has fully loaded before setting iframe to the current iframe
-        iframe.load(function() {
-            this.set('document.iframe', iframe);
-        }.bind(this));
+        var iframe = this.getIframeNode();
+        iframe.setAttribute('srcdoc', doc);
+        this.set('cssEnabled', true);
     },
 
     clearIframe: function() {
