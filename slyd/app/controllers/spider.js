@@ -330,6 +330,8 @@ export default BaseController.extend({
                 return this.get('slyd').fetchDocument(urls.pop(), this.get('model.name'))
                     .then(addItems, utils.showErrorNotification)
                     .then(fetchNext);
+            } else {
+                return new Ember.RSVP.Promise((resolve) => resolve('done'));
             }
         };
 
