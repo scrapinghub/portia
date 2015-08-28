@@ -11,6 +11,10 @@ export default BaseController.extend({
 
     needs: ['application', 'projects', 'project', 'project/index'],
 
+    queryParams: ['url', 'baseurl'],
+    url: null,
+    baseurl: null,
+
     saving: false,
 
     browseHistory: [], // List of urls
@@ -565,6 +569,11 @@ export default BaseController.extend({
             mode: 'browse',
             listener: this,
         });
+        if(this.get('url')) {
+            this.loadUrl(this.get('url'), this.get('baseurl'));
+            this.set('url', null);
+            this.set('baseurl', null);
+        }
     },
 
     willLeave: function() {

@@ -417,14 +417,10 @@ export default BaseController.extend({
         discardChanges: function() {
             var hasData = false, tools = this.get('extractionTools'),
                 finishDiscard = function() {
-                    var params = {
-                        url: this.get('model.url')
-                    };
-                    if (!hasData) {
-                        params.rmt = this.get('model.name');
-                    }
                     this.transitionToRoute('spider', {
-                        queryParams: params
+                        queryParams: {
+                            url: this.get('model.url')
+                        }
                     });
                 }.bind(this);
             this.set('documentView.sprites', new SpriteStore());
@@ -438,8 +434,12 @@ export default BaseController.extend({
             if (hasData) {
                 finishDiscard();
             } else {
-                this.get('slyd').deleteTemplate(this.get('slyd.spider'),
-                                                this.get('model.name')).then(finishDiscard);
+                this.get('slyd')
+                    .deleteTemplate(this.get('slyd.spider'), this.get('model.name'))
+                    .then(() => {
+                        this.get('controllers.spider.model.template_names').removeObject(this.get('model.name'));
+                    })
+                    .then(finishDiscard);
             }
         },
 
