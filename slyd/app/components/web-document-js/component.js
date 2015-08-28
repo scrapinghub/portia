@@ -180,8 +180,8 @@ export default WebDocument.extend({
     },
 
     _wsOpenChange: function(){
-        this.setInteractionsBlocked(this.get('ws.opened'), 'ws');
-    }.observes('ws.opened'),
+        this.setInteractionsBlocked(this.get('ws.closed'), 'ws');
+    }.observes('ws.closed'),
 
     /**
      * Set the content of the iframe. Can only be called in "select" mode
