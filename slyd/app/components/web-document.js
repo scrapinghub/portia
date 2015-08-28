@@ -327,15 +327,6 @@ export default Ember.Component.extend({
         return iframe.documentElement && iframe.documentElement.outerHTML;
     },
 
-    setIframeContent: function(contents) {
-        this.assertInMode('select');
-
-        var iframe = this.getIframe();
-        iframe.find('html').html(contents);
-        this.set('document.iframe', iframe);
-        this.set('cssEnabled', true);
-    },
-
     _updateHoveredInfoVisibility: function() {
         var display = this.get('mode') === 'select' ? 'inline': 'none';
         Ember.$("#hovered-element-info").css('display', display);
