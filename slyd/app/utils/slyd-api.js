@@ -707,8 +707,6 @@ export var SlydApi = Ember.Object.extend({
         } catch (_) {
             cmd = '-';
         }
-        headers['x-portia'] = [this.get('sessionid'), this.get('timer').totalTime(),
-                               this.get('username'), cmd].join(':');
         hash.data = JSON.stringify(hash.data);
         hash.headers = headers;
         return ajax(hash).catch(function(reason) {

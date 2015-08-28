@@ -8,6 +8,8 @@ from autobahn.twisted.resource import WebSocketResource
 from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
 from weakref import WeakKeyDictionary, WeakValueDictionary
+from monotonic import monotonic
+from twisted.python import log
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
@@ -25,7 +27,7 @@ from slyd.errors import BaseHTTPError
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
-                       delete_project_data)
+                       delete_project_data, pause, resume)
 from .css_utils import process_css, wrap_url
 import six
 text = six.text_type  # unicode in py2, str in py3
@@ -77,6 +79,10 @@ class User(object):
     @classmethod
     def findById(cls, tabid):
         return cls._by_id.get(tabid, None)
+
+    @property
+    def name(self):
+        return self.auth.get('username', '')
 
     def __getattr__(self, key):
         try:
@@ -152,7 +158,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'saveChanges': update_project_data,
         'delete': delete_project_data,
         'rename': rename_project_data,
-        'resolve': resolve
+        'resolve': resolve,
+        'resume': resume,
+        'pause': pause
     }
     spec_manager = None
     settings = None
@@ -180,6 +188,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
             request.auth_info = json.loads(request.headers['x-auth-info'])
         except (KeyError, TypeError):
             return
+        self.start_time = monotonic()
+        self.spent_time = 0
+        self.session_id = ''
         self.factory[self] = User(request.auth_info)
 
     def onOpen(self):
@@ -191,6 +202,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if isbinary:
             payload = payload.decode('utf-8')
         data = json.loads(payload)
+        if '_meta' in data and 'session_id' in data['_meta']:
+            self.session_id = data['_meta']['session_id']
         if '_command' in data and data['_command'] in self._handlers:
             command = data['_command']
             try:
@@ -214,9 +227,16 @@ class FerryServerProtocol(WebSocketServerProtocol):
                               'reason': message})
 
     def onClose(self, was_clean, code, reason):
-        if self in self.factory and self.tab is not None:
-            # TODO: Any other clean up logic
-            self.tab.close()
+        if self in self.factory:
+            if self.tab is not None:
+                self.tab.close()
+            self._handlers['pause']({}, self)
+            msg_data = {'session': self.session_id,
+                        'session_time': self.spent_time,
+                        'user': self.user.name}
+            msg = (u'Websocket Closed: id=%(session)s t=%(session_time)s '
+                   u'user=%(user)s command=' % (msg_data))
+            log.err(msg)
 
     def sendMessage(self, payload, is_binary=False):
         super(FerryServerProtocol, self).sendMessage(

@@ -8,6 +8,7 @@ import traceback
 import chardet
 import six
 import itertools
+from monotonic import monotonic
 
 import slyd.splash.utils
 
@@ -120,6 +121,14 @@ def extract(socket):
         'items': items,
         'links': js,
     }
+
+
+def pause(data, socket):
+    socket.spent_time += monotonic() - socket.start_time
+
+
+def resume(data, socket):
+    socket.start_time = monotonic()
 
 
 def resize(data, socket):

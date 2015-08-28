@@ -25,7 +25,6 @@ export function initialize(container, application) {
         api.set('username', settings.username);
         api.set('sessionid', utils.shortGuid());
         api.set('serverCapabilities', container.lookup('api:capabilities'));
-        api.set('timer', new Timer());
         container.register('api:slyd', api, { instantiate: false });
         application.inject('route', 'slyd', 'api:slyd');
         application.inject('adapter', 'slyd', 'api:slyd');
