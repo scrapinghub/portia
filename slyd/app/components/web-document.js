@@ -63,6 +63,10 @@ export default Ember.Component.extend({
         if(options.mode && options.mode !== this.get('mode')) {
             this.set('cssEnabled', true);
             this.set('mode', options.mode);
+            this.emptyIframe();
+            this.set('loading', false);
+            this.set('currentUrl', '');
+            this.set('currentFp', '');
         }
         if (options.mode === 'select') {
             this.set('partialSelectionEnabled', !!options.partialSelects);
@@ -287,12 +291,11 @@ export default Ember.Component.extend({
         }
     }.observes('mode'),
 
-    _showPlaceholder: function() {
-        if(this.get('mode') === 'none') {
-            var iframe = this.getIframeNode();
-            iframe.setAttribute('src', this.get('useBlankPlaceholder') ? 'about:blank' : '/static/start.html');
-        }
-    }.observes('mode', 'useBlankPlaceholder'),
+    emptyIframe: function() {
+        var iframe = this.getIframeNode();
+        iframe.removeAttribute('srcdoc');
+        iframe.setAttribute('src', this.get('useBlankPlaceholder') ? 'about:blank' : '/static/start.html');
+    },
 
     assertInMode: function(mode, msg) {
         if(this.get('mode') !== mode) {
