@@ -126,8 +126,8 @@ export default WebDocument.extend({
                     deferred.resolve(data);
                 }
             }
-            this[data.loading ? 'showLoading' : 'hideLoading']();
-            this.set('loading', data.loading);
+            this[data.loaded ? 'hideLoading' : 'showLoading']();
+            this.set('loading', !data.loaded);
             this.set('currentUrl', data.url);
             this.set('currentFp', data.fp);
 
