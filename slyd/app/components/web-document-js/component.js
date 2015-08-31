@@ -108,6 +108,7 @@ export default WebDocument.extend({
     loading: false, // Whatever a page is being loaded at the moment
     currentUrl: "", // Current URL
     currentFp: "",  // Hash of the url.
+    mutationsAfterLoaded: 0,
 
     connect: function() {
         var ws = this.get('ws');
@@ -117,15 +118,6 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('metadata', function(data) {
-            if (data.id && this.get('ws_deferreds.' + data.id)) {
-                var deferred = this.get('ws_deferreds.' + data.id);
-                this.set('ws_deferreds.' + data.id, undefined);
-                if (data.error) {
-                    deferred.reject(data);
-                } else {
-                    deferred.resolve(data);
-                }
-            }
             this[data.loaded ? 'hideLoading' : 'showLoading']();
             this.set('loading', !data.loaded);
             this.set('currentUrl', data.url);
@@ -142,12 +134,16 @@ export default WebDocument.extend({
             var args = data.slice(1);
             if(action === 'initialize') {
                 this.iframePromise = this.clearIframe().then(function(){
+                    this.set('mutationsAfterLoaded', 0);
                     this._updateEventHandlers();
                     var doc = this.getIframeNode().contentWindow.document;
                     this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
                 }.bind(this));
             }
             this.iframePromise.then(function() {
+                if(action === 'applyChanged') {
+                    this.incrementProperty('mutationsAfterLoaded');
+                }
                 this.treeMirror[action].apply(this.treeMirror, args);
             }.bind(this));
         }.bind(this));
