@@ -571,20 +571,24 @@ export default BaseController.extend({
         this.notifyPropertyChange('links_to_follow');
     },
 
-    willEnter: function() {
+    _willEnter: function() { // willEnter spider.index controller
         this.get('extractedItems').setObjects([]);
         this.get('documentView').config({
             mode: 'browse',
+            useBlankPlaceholder: false,
             listener: this,
         });
-        if(this.get('url')) {
-            this.loadUrl(this.get('url'), this.get('baseurl'));
-            this.set('url', null);
-            this.set('baseurl', null);
-        }
+        this.get('browseHistory').clear();
+        Ember.run.next(() => {
+            if(this.get('url')) {
+                this.loadUrl(this.get('url')); // TODO: baseurl
+                this.set('url', null);
+                this.set('baseurl', null);
+            }
+        });
     },
 
-    willLeave: function() {
+    _willLeave: function() { // willLeave spider.index controller
         this.set('documentView.sprites', new SpriteStore());
         this.get('pendingUrls').clear();
         this.get('documentView').hideLoading();
