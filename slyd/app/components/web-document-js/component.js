@@ -129,6 +129,7 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('mutation', function(data){
+            this.assertInMode('browse');
             data = data._data;
             var action = data[0];
             var args = data.slice(1);
@@ -214,6 +215,7 @@ export default WebDocument.extend({
     },
 
     installEventHandlersForBrowsing: function() {
+        this.uninstallEventHandlers();
         var iframe = this.getIframe();
         iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
                   'mousedown.portia mouseup.portia', this.postEvent.bind(this));
@@ -244,6 +246,9 @@ export default WebDocument.extend({
     },
 
     postEvent: function(evt){
+        if(!evt.target || !evt.target.nodeid) {
+            return;
+        }
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
