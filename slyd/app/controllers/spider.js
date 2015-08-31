@@ -581,7 +581,7 @@ export default BaseController.extend({
         this.get('browseHistory').clear();
         Ember.run.next(() => {
             if(this.get('url')) {
-                this.loadUrl(this.get('url')); // TODO: baseurl
+                this.loadUrl(this.get('url'), this.get('baseurl'));
                 this.set('url', null);
                 this.set('baseurl', null);
             }

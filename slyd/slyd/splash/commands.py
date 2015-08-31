@@ -43,7 +43,7 @@ def load_page(data, socket):
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda: on_complete(True),
-                  baseurl=data.get('baseurl', data['url']))
+                  baseurl=data.get('baseurl') or data['url'])
 
 
 @open_tab
