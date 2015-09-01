@@ -2,7 +2,7 @@
 
 {{#if showExtractedItems}}
     {{#tool-group id="extracted-items-group" as |group|}}
-        {{extracted-items-panel group=group}}
-        {{extracted-items-json-panel group=group}}
+        {{extracted-items-panel group=group panelOrder=1}}
+        {{extracted-items-json-panel group=group panelOrder=2}}
     {{/tool-group}}
 {{/if}}

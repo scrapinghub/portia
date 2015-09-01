@@ -1,9 +1,11 @@
-{{#structure-list-item icon=item.type hasDetails=true remove=true}}
-    {{list-item-badge count=item.matches color=color}}
-    <div class="structure-list-item-main">
-        {{item.name}}
-    </div>
-    <div class="structure-list-item-content">
-        {{item.type}}
-    </div>
-{{/structure-list-item}}
+{{#link-to 'projects.project.spider.sample.annotation' item.sample.spider.project item.sample.spider item.sample item}}
+    {{#structure-list-item icon=item.type hasDetails=true remove=true}}
+        {{list-item-badge count=item.matches color=color}}
+        <div class="structure-list-item-main">
+            {{item.name}}
+        </div>
+        <div class="structure-list-item-content">
+            {{item.type}}
+        </div>
+    {{/structure-list-item}}
+{{/link-to}}

@@ -8,17 +8,39 @@ export default Ember.Component.extend({
     browserOverlays: Ember.inject.service(),
     browserState: Ember.inject.service(),
     colorProvider: Ember.inject.service(),
-    hoveredElement: Ember.inject.service(),
+    routing: Ember.inject.service('-routing'),
+    viewPortSelection: Ember.inject.service(),
 
     classNames: ['overlay', 'hover-overlay'],
-    classNameBindings: ['viewPortElement::hide', 'hoveredElement.hoveringExistingOverlay:hide'],
+    classNameBindings: ['viewPortElement::hide', 'hoveringExistingOverlay:hide'],
 
     colorOrder: [Infinity],
     timerId: null,
     updateInterval: 100,
 
+    existingElementOverlay: Ember.computed(
+        'browserOverlays.elementOverlays.@each.viewPortElement', 'viewPortElement', function() {
+            const hoveredElement = this.get('viewPortElement');
+            return this.get('browserOverlays.elementOverlays')
+                .reject((elementOverlay) => elementOverlay === this)
+                .findBy('viewPortElement', hoveredElement);
+        }),
+    hoveringExistingOverlay: Ember.computed.notEmpty('existingElementOverlay'),
     showHoverOverlay: Ember.computed.readOnly('browserState.isInteractionMode'),
-    viewPortElement: Ember.computed.alias('hoveredElement.element'),
+    viewPortElement: Ember.computed.alias('viewPortSelection.hoveredElement'),
+
+    click() {
+        const existingElementOverlay = this.get('existingElementOverlay');
+        if (existingElementOverlay) {
+            existingElementOverlay.click();
+        } else {
+            const viewPortElement = this.get('viewPortElement');
+            if (!viewPortElement) {
+                const routing = this.get('routing');
+                routing.transitionTo('projects.project.spider.sample', [], {}, true);
+            }
+        }
+    },
 
     willInsertElement() {
         this.beginPropertyChanges();

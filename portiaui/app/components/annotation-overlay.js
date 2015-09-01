@@ -1,9 +1,10 @@
 import Ember from 'ember';
 
-export default Ember.Component.extend({
-    hoveredElement: Ember.inject.service(),
 
-    classNameBindings: ['groupHovered', 'noneHovered'],
+export default Ember.Component.extend({
+    viewPortSelection: Ember.inject.service(),
+
+    classNameBindings: ['groupHovered', 'groupSelected'],
 
     timerId: null,
     updateInterval: 100,
@@ -11,11 +12,11 @@ export default Ember.Component.extend({
     // proxied from Annotation in components/data-structure-panel
     color: Ember.computed.alias('overlay.color'),
     elements: Ember.computed.alias('overlay.elements'),
-    groupHovered: Ember.computed('elements', 'hoveredElement.element', function() {
-        var hoveredElement = this.get('hoveredElement.element');
-        return this.get('elements').some(element => element === hoveredElement);
+    groupHovered: Ember.computed('elements', 'viewPortSelection.hoveredElement', function() {
+        const viewPortSelection = this.get('viewPortSelection.hoveredElement');
+        return this.get('elements').some(element => element === viewPortSelection);
     }),
-    noneHovered: Ember.computed.none('hoveredElement.element'),
+    groupSelected: Ember.computed.readOnly('overlay.isCurrentAnnotation'),
     selector: Ember.computed.alias('overlay.selector'),
 
     willInsertElement() {
@@ -30,6 +31,18 @@ export default Ember.Component.extend({
         this.set('elements', []);
     },
 
+    initSelectedElement: Ember.observer('groupSelected', 'elements', function() {
+        const groupSelected = this.get('groupSelected');
+        const selectedElement = this.get('viewPortSelection.selectedElement');
+        const elements = this.get('elements');
+        const selectedElementInElements = elements.includes(selectedElement);
+        if (groupSelected && !selectedElementInElements) {
+            this.set('viewPortSelection.selectedElement', elements[0] || null);
+        } else if (!groupSelected && selectedElementInElements) {
+            this.set('viewPortSelection.selectedElement', null);
+        }
+    }),
+
     scheduleUpdate(delay) {
         this.timerId = Ember.run.later(() => {
             Ember.run.scheduleOnce('sync', this, 'update');
@@ -37,9 +50,9 @@ export default Ember.Component.extend({
     },
 
     update() {
-        var viewPortDocument = Ember.$('iframe').contents();
-        var currentElements = this.get('elements');
-        var newElements = viewPortDocument.find(this.get('selector')).toArray();
+        const viewPortDocument = Ember.$('iframe').contents();
+        const currentElements = this.get('elements');
+        const newElements = viewPortDocument.find(this.get('selector')).toArray();
         if (Ember.compare(currentElements, newElements) !== 0) {
             this.set('elements', newElements);
         }

@@ -18,7 +18,8 @@
     "qunit": "~1.17.1",
     "bootstrap-sass": "~3.3.5",
     "font-awesome": "~4.4.0",
-    "jquery-color": "~2.1.2"
+    "jquery-color": "~2.1.2",
+    "mathsass": "~0.9.5"
   },
   "private": true
 }

@@ -1,4 +1,6 @@
+import Ember from 'ember';
 import DS from 'ember-data';
+
 
 const Annotation = DS.Model.extend({
     name: DS.attr('string'),
@@ -6,7 +8,9 @@ const Annotation = DS.Model.extend({
         inverse: 'annotations'
     }),
     type: DS.attr('string'),
-    selector: DS.attr('string')
+    selector: DS.attr('string'),
+
+    sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample')
 });
 
 Annotation.reopenClass({

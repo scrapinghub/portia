@@ -1,15 +1,22 @@
 import Ember from 'ember';
+import HoverOverlay from './hover-overlay';
+import {ANNOTATION_MODE} from '../services/browser-state';
 
 
 export default Ember.Component.extend({
     browserOverlays: Ember.inject.service(),
     browserState: Ember.inject.service(),
+    selectedModels: Ember.inject.service(),
+    viewPortSelection: Ember.inject.service(),
 
     classNames: ['browser-view-port'],
+    classNameBindings: ['noneHovered', 'noneSelected'],
 
     content: null,
     overlayComponentName: 'hover-overlay',
 
+    noneHovered: Ember.computed.none('viewPortSelection.hoveredElement'),
+    noneSelected: Ember.computed.none('selectedModels.currentAnnotation'),
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
     url: Ember.computed.alias('browserState.url'),
 
@@ -37,6 +44,9 @@ export default Ember.Component.extend({
                 }
                 this.set('content', content);
                 this.set('browserState.loading', false);
+                Ember.run.later(this, () => {
+                    this.bindEventHandlers();
+                }, 250);
             })
         );
     }),
@@ -60,5 +70,31 @@ export default Ember.Component.extend({
 
     mouseLeave() {
         this.get('browserOverlays').removeOverlayComponent(this);
+    },
+
+    bindEventHandlers() {
+        this.unbindEventHandlers();
+        const viewPortDocument = Ember.$('iframe').contents();
+        viewPortDocument.on('click.portia', () => {
+            this.viewPortClick();
+            return false;
+        });
+    },
+
+    unbindEventHandlers() {
+        const viewPortDocument = Ember.$('iframe').contents();
+        viewPortDocument.off('.portia');
+    },
+
+    viewPortClick() {
+        if (this.get('browserState.mode') !== ANNOTATION_MODE) {
+            return;
+        }
+
+        const hoverOverlay = this.get('browserOverlays.elementOverlays')
+            .find((elementOverlay) => elementOverlay instanceof HoverOverlay);
+        if (hoverOverlay) {
+            hoverOverlay.click();
+        }
     }
 });

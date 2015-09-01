@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import ToolPanel from './tool-panel';
 
+
 export const IGNORED_ATTRIBUTES = new Set([
     'id', 'class', 'target', 'width', 'style', 'height', 'cellpadding',
     'cellspacing', 'border', 'bgcolor', 'color', 'colspan',
@@ -13,7 +14,7 @@ export function getAttributeList(element) {
     }
     var attributeList = [];
     var $element = Ember.$(element);
-    var textContent = $element.text();
+    var textContent = $element.text().trim();
     if (textContent) {
         attributeList.push({
             name: $element.attr('content') ? 'text content' : 'content',
@@ -44,23 +45,25 @@ export function getAttributeList(element) {
 }
 
 export default ToolPanel.extend({
-    hoveredElement: Ember.inject.service(),
+    viewPortSelection: Ember.inject.service(),
 
     classNames: ['inspector', 'container-fluid'],
 
     title: 'Inspector',
     toolId: 'inspector',
 
-    elementPath: Ember.computed('hoveredElement.element', function() {
-        var element = this.get('hoveredElement.element');
+    attributes: Ember.computed('inspectedElement', function() {
+        return getAttributeList(this.get('inspectedElement'));
+    }),
+    elementPath: Ember.computed('inspectedElement', function() {
+        var element = this.get('inspectedElement');
         if (!element) {
             return '';
         }
         var elements = [element].concat(Ember.$(element).parents().not('html').toArray());
         return elements.reverse().map(element => element.tagName.toLowerCase()).join(' > ');
     }),
-
-    attributes: Ember.computed('hoveredElement.element', function() {
-        return getAttributeList(this.get('hoveredElement.element'));
-    })
+    inspectedElement: Ember.computed.or(
+        'viewPortSelection.hoveredElement',
+        'viewPortSelection.selectedElement')
 });

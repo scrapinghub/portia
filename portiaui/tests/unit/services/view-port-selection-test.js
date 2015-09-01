@@ -1,6 +1,6 @@
 import { moduleFor, test } from 'ember-qunit';
 
-moduleFor('service:hovered-element', 'Unit | Service | hovered element', {
+moduleFor('service:view-port-selection', 'Unit | Service | view port selection', {
   // Specify the other units that are required for this test.
   // needs: ['service:foo']
 });

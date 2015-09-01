@@ -31,9 +31,82 @@
 .overlay-box-background {
     width: 100%;
     height: 100%;
-    opacity: 0.1;
+    opacity: 0.15;
     border-radius: 2px;
     transition: opacity ($animation-time / 2) $animation-easing-in, background-color $animation-time $animation-easing;
+}
+
+$min-overlay-icons: 2;
+$max-overlay-icons: 3;
+$overlay-icon-size: 12px;
+$overlay-icon-distance: 2 * $overlay-icon-size;
+$overlay-icon-seperation-angle: $PI / 4;
+$overlay-icon-center-angle: $PI / 4;
+
+.overlay-icons {
+    position: absolute;
+    top: 0;
+    right: $overlay-icon-size;
+    opacity: 0;
+    transition: opacity $animation-time $animation-easing;
+}
+
+.overlay-icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: $overlay-icon-size;
+    height: $overlay-icon-size;
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: auto;
+    transition: transform $animation-time $animation-easing;
+
+    &:hover {
+        z-index: 2;
+        transition-delay: 0ms;
+    }
+
+    &:before {
+        display: inline-block;
+        margin-top: -1px;
+        vertical-align: top;
+    }
+
+    &.fa-check-circle,
+    &.fa-minus-circle,
+    &.fa-plus-circle,
+    &.fa-times-circle {
+        &:after {
+            // white background so the symbol inside the circle is white
+            content: '';
+            background-color: #fff;
+            position: absolute;
+            top: 1px;
+            bottom: 1px;
+            left: 1px;
+            right: 1px;
+            border-radius: 50%;
+            z-index: -1;
+        }
+    }
+
+    &.fa-check-circle,
+    &.fa-plus-circle {
+        color: $brand-success;
+        box-shadow: 0 1px 3px -2px saturate(darken($brand-success, 26%), 15%);
+    }
+
+    &.fa-minus-circle,
+    &.fa-times-circle {
+        color: $brand-danger;
+        box-shadow: 0 1px 3px -2px desaturate(darken($brand-danger, 17%), 16%);
+    }
+
+    &.portia-icon-selector {
+        color: $brand-primary;
+        box-shadow: 0 1px 3px -2px saturate(darken($brand-primary, 26%), 15%);
+    }
 }
 
 .overlay {
@@ -43,22 +116,61 @@
     z-index: 1;
 
     .group-hovered &,
-    .none-hovered & {
+    .group-selected &,
+    .none-hovered.none-selected & {
         .overlay-box-background {
-            opacity: 0.5;
+            opacity: 0.45;
+        }
+    }
+
+    &.hovered,
+    &.selected {
+        .overlay-box-background {
+            opacity: 0.8;
         }
     }
 
     &.hovered {
+        z-index: 1;
+    }
+
+    &.selected {
         z-index: 2;
 
-        .overlay-box-background {
-            opacity: 0.75;
+        .overlay-icons {
+            opacity: 1;
+        }
+
+        .overlay-icon {
+            @for $icons from $min-overlay-icons through $max-overlay-icons {
+                // "quantity query" selector for exactly $icons amount of .overlay-icon elements
+                &:nth-last-child(#{$icons}):first-child {
+                    &,
+                    & ~ .overlay-icon {
+                        @for $index from 1 through $icons {
+                            $index_0: $index - 1;
+                            $start-angle: $overlay-icon-center-angle - ($overlay-icon-seperation-angle * ($icons - 1)) / 2;
+
+                            &:nth-of-type(#{$index}) {
+                                $offset-x: round(sin($start-angle + $overlay-icon-seperation-angle * $index_0) * $overlay-icon-distance);
+                                $offset-y: -(round(cos($start-angle + $overlay-icon-seperation-angle * $index_0) * $overlay-icon-distance));
+
+                                transform: translate($offset-x, $offset-y);
+
+                                &:hover {
+                                    transform: translate($offset-x, $offset-y) scale(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 .hover-overlay {
+    z-index: 3;
     transition-property: opacity, transform, height, width;
     transition-duration: $animation-time, 100ms, 100ms, 100ms;
     transition-timing-function: $animation-easing, $animation-easing-out, $animation-easing-out, $animation-easing-out;
@@ -69,6 +181,6 @@
     }
 
     .overlay-box-background {
-        opacity: 0.5;
+        opacity: 0.65;
     }
 }

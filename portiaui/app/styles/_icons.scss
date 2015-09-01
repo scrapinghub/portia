@@ -18,7 +18,7 @@
         width: 19px;
         text-align: center;
         vertical-align: middle;
-        background: transparent url('images/portia.svg') no-repeat center;
+        background: transparent url('images/portia-list-icon.svg') no-repeat center;
     }
 }
 
@@ -72,5 +72,24 @@
         text-align: center;
         vertical-align: middle;
         transform: scale(1.2);
+    }
+}
+
+.portia-icon-selector {
+    @extend .#{$fa-css-prefix};
+    @extend .#{$fa-css-prefix}-circle;
+    position: relative;
+
+    &:after {
+        content: $fa-var-mouse-pointer;
+        display: inline-block;
+        position: absolute;
+        left: 1px;
+        top: -1px;
+        width: 100%;
+        color: $fa-inverse;
+        text-align: center;
+        vertical-align: middle;
+        transform: scale(0.6);
     }
 }

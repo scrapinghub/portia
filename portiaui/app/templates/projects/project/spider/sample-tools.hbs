@@ -1,13 +1,13 @@
 {{#tool-group id="sample-group" as |group|}}
-    {{data-structure-panel group=group sample=model}}
-    {{#tool-panel group=group toolId='actions' title='Actions' class="container-fluid"}}
+    {{data-structure-panel group=group panelOrder=1 sample=model}}
+    {{#tool-panel group=group panelOrder=2 toolId='actions' title='Actions' class="container-fluid"}}
         TODO
     {{/tool-panel}}
 {{/tool-group}}
 
 {{#tool-group id="inspector-group" as |group|}}
-    {{inspector-panel group=group}}
-    {{#tool-panel group=group toolId='selection' title='Extraction' class="container-fluid"}}
+    {{inspector-panel group=group panelOrder=1}}
+    {{#tool-panel group=group panelOrder=2 toolId='selection' title='Extraction' class="container-fluid"}}
         TODO
     {{/tool-panel}}
 {{/tool-group}}

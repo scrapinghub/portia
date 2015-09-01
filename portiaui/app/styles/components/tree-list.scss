@@ -17,52 +17,49 @@
 
 $tree-list-caret-padding-x: ($tree-list-row-height - ($caret-width-base * 2) - 2px) / 2;
 $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
+$tree-list-highlight-z-index: 0;
 
 .tree-list-item-row {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+
+    &:before {
+        content: '';
+        display: block;
+        position: absolute;
+        height: $tree-list-row-height;
+        left: 0;
+        right: 0;
+        z-index: $tree-list-highlight-z-index;
+        background-color: $navbar-default-link-active-bg;
+        opacity: 0;
+        transition: opacity $animation-time $animation-easing;
+    }
+
+    .active:not(.child-active) > &,
+    .collapsed.child-active > & {
+        &:before {
+            opacity: 1;
+        }
+    }
 }
 
 .tree-list-item-content {
     padding: $tree-list-caret-padding-y 0;
     flex: 1 1 auto;
-    z-index: 1;
     color: $navbar-default-color;
+    z-index: $tree-list-highlight-z-index + 1;
 
     a {
         display: block;
         margin: -$tree-list-caret-padding-y 0;
         padding: $tree-list-caret-padding-y 0;
         outline: none;
-        //color: $navbar-default-link-color;
-
-        &:before {
-            content: '';
-            display: block;
-            position: absolute;
-            height: $tree-list-row-height;
-            margin: -$tree-list-caret-padding-y 0;
-            left: 0;
-            right: 0;
-            z-index: -1;
-            background-color: $navbar-default-link-active-bg;
-            opacity: 0;
-            transition: opacity $animation-time $animation-easing;
-        }
 
         &:hover,
         &:focus {
-            //color: $navbar-default-link-hover-color;
             text-decoration: none;
-        }
-
-        &.active {
-            //color: $navbar-default-link-active-color;
-
-            &:before {
-                opacity: 1;
-            }
         }
     }
 }
@@ -71,15 +68,19 @@ $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
     display: block;
     flex: 0 0 auto;
     padding: $tree-list-caret-padding-y $tree-list-caret-padding-x;
-    z-index: 2;
-    //float: left;
+    z-index: $tree-list-highlight-z-index + 1;
+    opacity: 0.21;  // = color: $nav-tabs-border-color
+    transition: opacity $animation-time $animation-easing;
 
-    color: $nav-tabs-border-color;
-    transition: color $animation-time $animation-easing;
-
+    &,
     &:hover,
     &:focus {
         color: $gray-light;
+    }
+
+    &:hover,
+    &:focus {
+        opacity: 1;
     }
 
     .caret {

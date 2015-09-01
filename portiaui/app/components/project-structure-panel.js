@@ -1,84 +1,124 @@
 import Ember from 'ember';
+import ActiveChildrenMixin from '../mixins/active-children';
+import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
 import ToolPanel from './tool-panel';
+import {computedIsCurrentModelById} from '../services/selected-models';
 
-var SpiderItem = Ember.ObjectProxy.extend({
-    _routing: Ember.inject.service('-routing'),
+
+const SampleItem = InstanceCachedObjectProxy.extend({
+    selectedModels: Ember.inject.service(),
+
+    itemComponentName: 'project-structure-sample-item',
+
+    active: Ember.computed.readOnly('isCurrentSample'),
+    isCurrentSample: computedIsCurrentModelById('sample'),
+    key: Ember.computed('id', 'spider.id', function() {
+        const id = this.get('id');
+        const spiderId = this.get('spider.id');
+        return `spider:${spiderId}:sample:${id}`;
+    })
+});
+
+const SampleList = Ember.Object.extend(ActiveChildrenMixin, {
+    itemComponentName: 'project-structure-sample-root-item',
+
+    children: Ember.computed.map('spider.samples', function(sample) {
+        return SampleItem.create({
+            content: sample,
+            container: this.get('container')
+        });
+    }),
+    key: Ember.computed('spider.id', function() {
+        const spiderId = this.get('spider.id');
+        return `spider:${spiderId}:samples`;
+    })
+});
+
+const SpiderItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
+    selectedModels: Ember.inject.service(),
+
     itemComponentName: 'project-structure-spider-item',
-    collapsed: Ember.computed('id', 'project.id', '_routing.currentState', function() {
-        return !this.get('_routing').isActiveForRoute(
-            [this.get('project.id'), this.get('id')],
-            {},
-            'projects.project.spider',
-            this.get('_routing.currentState'),
-            false);
-    }),
-    removeCollapsedChildren: true,
-    key: Ember.computed('id', function() {
-        return 'spider:' + this.get('id');
-    }),
-    children: Ember.computed('start_urls', 'samples', function() {
+    sampleList: null,
+
+    active: Ember.computed.readOnly('isCurrentSpider'),
+    children: Ember.computed('startUrls', 'samples', function() {
+        const id = this.get('id');
+        const urls = this.get('startUrls');
         var urlsItem = {
             itemComponentName: 'project-structure-url-root-item',
-            key: 'spider:' + this.get('id') + ':urls'
+            key: `spider:${id}:urls`
         };
-        var urls = this.get('start_urls');
         if (urls && urls.length) {
             urlsItem.children = urls.map(url => ({
                 itemComponentName: 'project-structure-url-item',
-                name: url,
-                key: 'spider:' + this.get('id') + ':url:' + url
+                key: `spider:${id}:url:${url}`,
+                name: url
             }));
         }
-        return [urlsItem, SampleList.create({
-            spider: this.get('content')
-        })];
-    })
-});
-
-var SampleItem = Ember.ObjectProxy.extend({
-    itemComponentName: 'project-structure-sample-item',
-    key: Ember.computed('id', 'spider.id', function() {
-        return 'spider:' + this.get('spider.id') + ':sample:' + this.get('id');
-    })
-});
-
-var SampleList = Ember.Object.extend({
-    itemComponentName: 'project-structure-sample-root-item',
-    key: Ember.computed('spider.id', function() {
-        return 'spider:' + this.get('id') + ':samples';
+        return [urlsItem, this.sampleList];
     }),
-    children: Ember.computed.map('spider.samples', sample => SampleItem.create({
-        content: sample
-    }))
+    collapsed: Ember.computed.not('isCurrentSpider'),
+    doNotRenderCollapsedChildren: Ember.computed.not('isCurrentSpider'),
+    isCurrentSpider: computedIsCurrentModelById('spider'),
+    key: Ember.computed('id', function() {
+        const id = this.get('id');
+        return `spider:${id}`;
+    }),
+
+    init() {
+        this._super();
+        this.sampleList = SampleList.create({
+            spider: this,
+            container: this.get('container')
+        });
+    }
 });
 
-var SchemaItem = Ember.ObjectProxy.extend({
+const SchemaItem = InstanceCachedObjectProxy.extend({
+    selectedModels: Ember.inject.service(),
+
     itemComponentName: 'project-structure-schema-item',
+
+    active: Ember.computed.readOnly('isCurrentSchema'),
+    isCurrentSchema: computedIsCurrentModelById('schema'),
     key: Ember.computed('id', function() {
-        return 'schema:' + this.get('id');
+        const id = this.get('id');
+        return `schema:${id}`;
     })
 });
 
-var SchemaList = Ember.Object.extend({
+const SchemaList = Ember.Object.extend(ActiveChildrenMixin, {
     itemComponentName: 'project-structure-schema-root-item',
     key: 'schemas',
-    children: Ember.computed.map('project.schemas', schema => SchemaItem.create({
-        content: schema
-    }))
+
+    children: Ember.computed.map('project.schemas', function(schema) {
+        return SchemaItem.create({
+            content: schema,
+            container: this.get('container')
+        });
+    }),
+    project: Ember.computed.readOnly('toolPanel.project')
 });
 
 export default ToolPanel.extend({
+    schemaList: null,
     tabComponentName: 'project-structure-tab',
     toolId: 'project-structure',
 
     projectTree: Ember.computed('project', 'project.spiders', function() {
-        var items = this.get('project.spiders').map(spider => SpiderItem.create({
+        const items = this.get('project.spiders').map(spider => SpiderItem.create({
             content: spider,
             container: this.get('container')
         }));
-        items.push(SchemaList.create({
-            project: this.get('project')
-        }));
+        items.push(this.schemaList);
         return items;
-    })
+    }),
+
+    init() {
+        this._super();
+        this.schemaList = SchemaList.create({
+            toolPanel: this,
+            container: this.get('container')
+        });
+    }
 });

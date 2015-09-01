@@ -1,9 +1,10 @@
 import DS from 'ember-data';
 
+
 const Spider = DS.Model.extend({
     name: DS.attr('string'),
     project: DS.belongsTo(),
-    start_urls: DS.attr(),
+    startUrls: DS.attr(),
     samples: DS.hasMany({
         async: true
     })
@@ -15,7 +16,7 @@ Spider.reopenClass({
             id: 's1',
             name: 'owlkingdom.com',
             project: 'p1',
-            start_urls: [
+            startUrls: [
                 'owlkingdom.com'
             ],
             samples: [
