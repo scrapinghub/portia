@@ -78,13 +78,14 @@ export default BaseController.extend({
     showItems: true,
     isFetching: Ember.computed.reads('documentView.loading'),
     currentUrl: Ember.computed.reads('documentView.currentUrl'),
-    addTemplateDisabled: Ember.computed.not('currentUrl'),
-    reloadDisabled: Ember.computed.not('currentUrl'),
+    noPageLoaded: Ember.computed.not('currentUrl'),
+    addTemplateDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching', 'testing'),
+    reloadDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching'),
     haveItems: Ember.computed.notEmpty('extractedItems'),
 
     browseBackDisabled: function() {
-        return this.get('browseHistory').length <= 1;
-    }.property('browseHistory.@each'),
+        return this.get('ws.closed') || this.get('browseHistory').length <= 1;
+    }.property('browseHistory.@each', 'ws.closed'),
 
     showNoItemsExtracted: function(){
         return this.get('currentUrl') && !this.get('isFetching') && !this.get('haveItems');

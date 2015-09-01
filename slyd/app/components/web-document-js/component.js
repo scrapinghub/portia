@@ -158,6 +158,7 @@ export default WebDocument.extend({
      * Can only be called in "browse" mode.
      */
     loadUrl: function(url, spider, baseurl) {
+        this.set('loading', true);
         this.assertInMode('browse');
         this.showLoading(true);
         this.get('ws').send({
