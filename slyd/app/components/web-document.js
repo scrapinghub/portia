@@ -380,7 +380,11 @@ export default Ember.Component.extend({
     mouseOverHandler:  function(event) {
         event.preventDefault();
         var target = event.target;
-        var tagName = Ember.$(target).prop("tagName").toLowerCase();
+        if(!target || target.nodeType !== Node.ELEMENT_NODE) {
+            // Ignore events on the document
+            return;
+        }
+        var tagName = target.tagName.toLowerCase();
         if (Ember.$.inArray(tagName, this.get('ignoredElementTags')) === -1 &&
             !this.mouseDown) {
             if (!this.get('restrictToDescendants') ||
@@ -427,9 +431,9 @@ export default Ember.Component.extend({
             } else {
                 selectedText.collapse(this.getIframe().find('html').get(0), 0);
             }
-        } else if (event && event.target){
+        } else if (event && event.target && event.target.nodeType === Node.ELEMENT_NODE){
             var target = event.target;
-            var tagName = Ember.$(target).prop("tagName").toLowerCase();
+            var tagName = target.tagName.toLowerCase();
             if (Ember.$.inArray(tagName, this.get('ignoredElementTags')) === -1) {
                 if (!this.get('restrictToDescendants') ||
                     Ember.$(target).isDescendant(this.get('restrictToDescendants'))) {
