@@ -257,7 +257,7 @@ export default BaseController.extend({
         this.get('ws').save('template', serialized)
             .then((data) => {
                 let mutations = this.get('documentView.mutationsAfterLoaded');
-                if(!data.saved._uses_js && mutations > 1) {
+                if(!data.saved.template._uses_js && mutations > 1) {
                     this.showWarningNotification('JavaScript is disabled', this.get('messages.template_js_disabled'));
                 }
             })

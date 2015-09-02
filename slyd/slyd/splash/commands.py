@@ -101,7 +101,8 @@ def extract(socket):
             'links': {},
         }
     templates = socket.spiderspec.templates
-    url = str(socket.tab.url)
+    # Workarround for https://github.com/scrapinghub/splash/issues/259
+    url = socket.tab.evaljs('location.href')
     html = socket.tab.html()
     js_items, js_links = extract_data(url, html, socket.spider, templates)
     raw_html = getattr(socket.tab, '_raw_html', None)
@@ -162,7 +163,7 @@ class ProjectData(ProjectModifier):
         if creating:
             if socket.spider is None:
                 socket.open_spider(meta)
-            uses_js = socket.spider._filter_js_urls(sample['url'])
+            uses_js = bool(socket.spider._filter_js_urls(sample['url']))
             if uses_js:
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
