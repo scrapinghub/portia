@@ -417,14 +417,10 @@ export default BaseController.extend({
         discardChanges: function() {
             var hasData = false, tools = this.get('extractionTools'),
                 finishDiscard = function() {
-                    var params = {
-                        url: this.get('model.url')
-                    };
-                    if (!hasData) {
-                        params.rmt = this.get('model.name');
-                    }
                     this.transitionToRoute('spider', {
-                        queryParams: params
+                        queryParams: {
+                            url: this.get('model.url')
+                        }
                     });
                 }.bind(this);
             this.set('documentView.sprites', new SpriteStore());
@@ -438,8 +434,12 @@ export default BaseController.extend({
             if (hasData) {
                 finishDiscard();
             } else {
-                this.get('slyd').deleteTemplate(this.get('slyd.spider'),
-                                                this.get('model.name')).then(finishDiscard);
+                this.get('slyd')
+                    .deleteTemplate(this.get('slyd.spider'), this.get('model.name'))
+                    .then(() => {
+                        this.get('controllers.spider.model.template_names').removeObject(this.get('model.name'));
+                    })
+                    .then(finishDiscard);
             }
         },
 
@@ -498,7 +498,7 @@ export default BaseController.extend({
             this.set('extractionTools', {});
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
         }.bind(this));
-    }.observes('model', 'model.annotated_body'),
+    },
 
     /**
      * This will make sure the template scrapes a valid item and if not it will create one.
@@ -527,7 +527,7 @@ export default BaseController.extend({
         }
     }.observes('model.scrapes', 'items.@each'),
 
-    willEnter: function() {
+    _willEnter: function() { // willEnter template.index controller
         var plugins = {};
         this.get('documentView').config({
             mode: 'select',
@@ -542,7 +542,7 @@ export default BaseController.extend({
         this.setDocument();
     },
 
-    willLeave: function() {
+    _willLeave: function() { // willLeave template.index controller
         this.hideFloatingAnnotationWidget();
         this.get('documentView').reset();
         this.set('activeExtractionTool', {extracts: [],

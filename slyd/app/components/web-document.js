@@ -40,7 +40,7 @@ export default Ember.Component.extend({
 
     loadingDoc: false,
 
-    cssEnabled: true,
+    cssEnabled: true, // Only in "select" mode
 
     redrawSprites: function() {
         this.redrawNow();
@@ -60,8 +60,13 @@ export default Ember.Component.extend({
     */
     config: function(options) {
         this.set('listener', options.listener);
-        if(options.mode) {
+        if(options.mode && options.mode !== this.get('mode')) {
+            this.set('cssEnabled', true);
             this.set('mode', options.mode);
+            this.emptyIframe();
+            this.set('loading', false);
+            this.set('currentUrl', '');
+            this.set('currentFp', '');
         }
         if (options.mode === 'select') {
             this.set('partialSelectionEnabled', !!options.partialSelects);
@@ -235,7 +240,7 @@ export default Ember.Component.extend({
     toggleCSS: function() {
         this.assertInMode('select');
         var iframe = this.getIframe();
-        if (this.cssEnabled) {
+        if (this.get('cssEnabled')) {
             iframe.find('link[rel="stylesheet"]').each(function() {
                 Ember.$(this).renameAttr('href', '_href');
             });
@@ -259,7 +264,7 @@ export default Ember.Component.extend({
             });
         }
         this.redrawNow();
-        this.cssEnabled = !this.cssEnabled;
+        this.toggleProperty('cssEnabled');
     },
 
     /**
@@ -286,12 +291,11 @@ export default Ember.Component.extend({
         }
     }.observes('mode'),
 
-    _showPlaceholder: function() {
-        if(this.get('mode') === 'none') {
-            var iframe = this.getIframeNode();
-            iframe.setAttribute('src', this.get('useBlankPlaceholder') ? 'about:blank' : '/static/start.html');
-        }
-    }.observes('mode', 'useBlankPlaceholder'),
+    emptyIframe: function() {
+        var iframe = this.getIframeNode();
+        iframe.removeAttribute('srcdoc');
+        iframe.setAttribute('src', this.get('useBlankPlaceholder') ? 'about:blank' : '/static/start.html');
+    },
 
     assertInMode: function(mode, msg) {
         if(this.get('mode') !== mode) {
@@ -324,14 +328,6 @@ export default Ember.Component.extend({
     getIframeContent: function() {
         var iframe = this.getIframe().get(0);
         return iframe.documentElement && iframe.documentElement.outerHTML;
-    },
-
-    setIframeContent: function(contents) {
-        this.assertInMode('select');
-
-        var iframe = this.getIframe();
-        iframe.find('html').html(contents);
-        this.set('document.iframe', iframe);
     },
 
     _updateHoveredInfoVisibility: function() {
@@ -384,7 +380,11 @@ export default Ember.Component.extend({
     mouseOverHandler:  function(event) {
         event.preventDefault();
         var target = event.target;
-        var tagName = Ember.$(target).prop("tagName").toLowerCase();
+        if(!target || target.nodeType !== Node.ELEMENT_NODE) {
+            // Ignore events on the document
+            return;
+        }
+        var tagName = target.tagName.toLowerCase();
         if (Ember.$.inArray(tagName, this.get('ignoredElementTags')) === -1 &&
             !this.mouseDown) {
             if (!this.get('restrictToDescendants') ||
@@ -431,9 +431,9 @@ export default Ember.Component.extend({
             } else {
                 selectedText.collapse(this.getIframe().find('html').get(0), 0);
             }
-        } else if (event && event.target){
+        } else if (event && event.target && event.target.nodeType === Node.ELEMENT_NODE){
             var target = event.target;
-            var tagName = Ember.$(target).prop("tagName").toLowerCase();
+            var tagName = target.tagName.toLowerCase();
             if (Ember.$.inArray(tagName, this.get('ignoredElementTags')) === -1) {
                 if (!this.get('restrictToDescendants') ||
                     Ember.$(target).isDescendant(this.get('restrictToDescendants'))) {

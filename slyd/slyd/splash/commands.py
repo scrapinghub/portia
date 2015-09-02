@@ -8,6 +8,7 @@ import traceback
 import chardet
 import six
 import itertools
+from monotonic import monotonic
 
 import slyd.splash.utils
 
@@ -42,7 +43,7 @@ def load_page(data, socket):
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda: on_complete(True),
-                  baseurl=data.get('baseurl', data['url']))
+                  baseurl=data.get('baseurl') or data['url'])
 
 
 @open_tab
@@ -122,6 +123,14 @@ def extract(socket):
     }
 
 
+def pause(data, socket):
+    socket.spent_time += monotonic() - socket.start_time
+
+
+def resume(data, socket):
+    socket.start_time = monotonic()
+
+
 def resize(data, socket):
     """Resize virtual tab viewport to match user's viewport"""
     try:
@@ -149,17 +158,23 @@ class ProjectData(ProjectModifier):
     def save_template(self, data, socket):
         sample, meta = data.get('template'), data.get('_meta')
         path = ['spiders', meta.get('spider'), sample.get('name')]
-        if sample.pop('_new', False):
+        creating = sample.pop('_new', False)
+        if creating:
             if socket.spider is None:
                 socket.open_spider(meta)
-            if socket.spider._filter_js_urls(sample['url']):
+            uses_js = socket.spider._filter_js_urls(sample['url'])
+            if uses_js:
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
                 stated_encoding = socket.tab.evaljs('document.characterSet')
                 sample['original_body'] = self._decode(socket.tab._raw_html,
                                                        stated_encoding)
-        return self.save_data(path, 'template', data=sample, socket=socket,
-                              meta=meta)
+        obj = self.save_data(path, 'template', data=sample, socket=socket,
+                             meta=meta)
+        if creating:
+            obj['_uses_js'] = uses_js
+
+        return obj
 
     def save_extractors(self, data, socket):
         extractors, meta = data.get('extractors'), data.get('_meta')

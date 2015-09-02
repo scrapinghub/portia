@@ -18,7 +18,7 @@
 			{{/bs-button}}
 		{{/if}}
 		{{#if showToggleCSS}}
-			{{#bs-button clicked="toggleCSS" icon="fa fa-icon fa-file-code-o" activeType="danger" size="sm" title="Toggle CSS"}}
+			{{#bs-button clicked="toggleCSS" icon="fa fa-icon fa-file-code-o" classNameBindings="documentView.cssEnabled::btn-danger" size="sm" title="Toggle CSS"}}
 				CSS
 			{{/bs-button}}
 		{{/if}}

@@ -59,17 +59,21 @@ function treeMirrorDelegate(){
             var node = null;
             if(tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
                 node = document.createElement('NOSCRIPT');
-            } else if(tagName === 'FORM') {
-                node = document.createElement(tagName);
+            } else {
+                try {
+                    node = document.createElement(tagName);
+                } catch(e) {
+                    // Invalid tag name
+                    node = document.createElement('NOSCRIPT');
+                }
+            }
+            if(tagName === 'FORM') {
                 $(node).on('submit', ()=>false);
             } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
-                node = document.createElement(tagName);
                 node.setAttribute('src', '/static/frames-not-supported.html');
             } else if (tagName === 'CANVAS') {
-                node = document.createElement(tagName);
                 paintCanvasMessage(node);
             } else if (tagName === 'OBJECT' || tagName === 'EMBED') {
-                node = document.createElement(tagName);
                 setTimeout(addEmbedBlockedMessage.bind(null, node), 100);
             }
             return node;
@@ -104,6 +108,7 @@ export default WebDocument.extend({
     loading: false, // Whatever a page is being loaded at the moment
     currentUrl: "", // Current URL
     currentFp: "",  // Hash of the url.
+    mutationsAfterLoaded: 0,
 
     connect: function() {
         var ws = this.get('ws');
@@ -113,17 +118,8 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('metadata', function(data) {
-            if (data.id && this.get('ws_deferreds.' + data.id)) {
-                var deferred = this.get('ws_deferreds.' + data.id);
-                this.set('ws_deferreds.' + data.id, undefined);
-                if (data.error) {
-                    deferred.reject(data);
-                } else {
-                    deferred.resolve(data);
-                }
-            }
-            this[data.loading ? 'showLoading' : 'hideLoading']();
-            this.set('loading', data.loading);
+            this[data.loaded ? 'hideLoading' : 'showLoading']();
+            this.set('loading', !data.loaded);
             this.set('currentUrl', data.url);
             this.set('currentFp', data.fp);
 
@@ -133,17 +129,22 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('mutation', function(data){
+            this.assertInMode('browse');
             data = data._data;
             var action = data[0];
             var args = data.slice(1);
             if(action === 'initialize') {
                 this.iframePromise = this.clearIframe().then(function(){
+                    this.set('mutationsAfterLoaded', 0);
                     this._updateEventHandlers();
                     var doc = this.getIframeNode().contentWindow.document;
                     this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
                 }.bind(this));
             }
             this.iframePromise.then(function() {
+                if(action === 'applyChanged') {
+                    this.incrementProperty('mutationsAfterLoaded');
+                }
                 this.treeMirror[action].apply(this.treeMirror, args);
             }.bind(this));
         }.bind(this));
@@ -157,6 +158,7 @@ export default WebDocument.extend({
      * Can only be called in "browse" mode.
      */
     loadUrl: function(url, spider, baseurl) {
+        this.set('loading', true);
         this.assertInMode('browse');
         this.showLoading(true);
         this.get('ws').send({
@@ -176,20 +178,17 @@ export default WebDocument.extend({
     },
 
     _wsOpenChange: function(){
-        this.setInteractionsBlocked(this.get('ws.opened'), 'ws');
-    }.observes('ws.opened'),
+        this.setInteractionsBlocked(this.get('ws.closed'), 'ws');
+    }.observes('ws.closed'),
 
     /**
      * Set the content of the iframe. Can only be called in "select" mode
      */
     setIframeContent: function(doc) {
         this.assertInMode('select');
-        var iframe = Ember.$('#' + this.get('iframeId'));
-        iframe.attr('srcdoc', doc);
-        // Wait until iframe has fully loaded before setting iframe to the current iframe
-        iframe.load(function() {
-            this.set('document.iframe', iframe);
-        }.bind(this));
+        var iframe = this.getIframeNode();
+        iframe.setAttribute('srcdoc', doc);
+        this.set('cssEnabled', true);
     },
 
     clearIframe: function() {
@@ -217,6 +216,7 @@ export default WebDocument.extend({
     },
 
     installEventHandlersForBrowsing: function() {
+        this.uninstallEventHandlers();
         var iframe = this.getIframe();
         iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
                   'mousedown.portia mouseup.portia', this.postEvent.bind(this));
@@ -247,6 +247,9 @@ export default WebDocument.extend({
     },
 
     postEvent: function(evt){
+        if(!evt.target || !evt.target.nodeid) {
+            return;
+        }
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),

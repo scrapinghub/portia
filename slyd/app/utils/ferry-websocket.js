@@ -64,6 +64,14 @@ export default Ember.Object.extend({
         this.set('closed', true);
         this.set('connecting', false);
         Ember.Logger.log('<Closed Websocket>');
+
+        let closeError = new Error('Socket disconnected');
+        let deferreds = this.get('deferreds');
+        for(var deferred of Object.keys(deferreds)) {
+            deferreds[deferred].reject(closeError);
+            delete deferreds[deferred];
+        }
+
         if(e.code !== APPLICATION_UNLOADING_CODE && e.code !== 1000) {
             var timeout = this._connectTimeout();
             this.set('secondsUntilReconnect', Math.round(timeout/1000));

@@ -11,6 +11,10 @@ export default BaseController.extend({
 
     needs: ['application', 'projects', 'project', 'project/index'],
 
+    queryParams: ['url', 'baseurl'],
+    url: null,
+    baseurl: null,
+
     saving: false,
 
     browseHistory: [], // List of urls
@@ -74,13 +78,14 @@ export default BaseController.extend({
     showItems: true,
     isFetching: Ember.computed.reads('documentView.loading'),
     currentUrl: Ember.computed.reads('documentView.currentUrl'),
-    addTemplateDisabled: Ember.computed.not('currentUrl'),
-    reloadDisabled: Ember.computed.not('currentUrl'),
+    noPageLoaded: Ember.computed.not('currentUrl'),
+    addTemplateDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching', 'testing'),
+    reloadDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching'),
     haveItems: Ember.computed.notEmpty('extractedItems'),
 
     browseBackDisabled: function() {
-        return this.get('browseHistory').length <= 1;
-    }.property('browseHistory.@each'),
+        return this.get('ws.closed') || this.get('browseHistory').length <= 1;
+    }.property('browseHistory.@each', 'ws.closed'),
 
     showNoItemsExtracted: function(){
         return this.get('currentUrl') && !this.get('isFetching') && !this.get('haveItems');
@@ -216,13 +221,20 @@ export default BaseController.extend({
     },
 
     addTemplate: function() {
-        var iframeTitle = this.get('documentView').getIframe()[0].title;
+        let iframeTitle = (this.get('documentView').getIframe()[0].title
+            .trim()
+            .replace(/[^a-z\s_-]/ig, '')
+            .replace(/\s+/g, '_')
+            .substring(0, 48)
+            .replace(/_+$/, '') || utils.shortGuid());
 
-        var template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
-                                       .replace(/\s+/g, '_').substring(0, 48);
-        if (!template_name) {
-            template_name = utils.shortGuid();
+        // Find an unique template name
+        let template_name = iframeTitle;
+        let template_num = 1;
+        while(this.get('model.template_names').contains(template_name)) {
+            template_name = iframeTitle + '_' + (template_num++);
         }
+
         var template = Template.create({
             name: template_name,
             extractors: {},
@@ -243,6 +255,12 @@ export default BaseController.extend({
         var serialized = template.serialize();
         serialized._new = true;
         this.get('ws').save('template', serialized)
+            .then((data) => {
+                let mutations = this.get('documentView.mutationsAfterLoaded');
+                if(!data.saved._uses_js && mutations > 1) {
+                    this.showWarningNotification('JavaScript is disabled', this.get('messages.template_js_disabled'));
+                }
+            })
             .then(() => this.saveSpider(true))
             .then(() => {
                 this.editTemplate(template_name);
@@ -319,6 +337,8 @@ export default BaseController.extend({
                 return this.get('slyd').fetchDocument(urls.pop(), this.get('model.name'))
                     .then(addItems, utils.showErrorNotification)
                     .then(fetchNext);
+            } else {
+                return new Ember.RSVP.Promise((resolve) => resolve('done'));
             }
         };
 
@@ -552,15 +572,24 @@ export default BaseController.extend({
         this.notifyPropertyChange('links_to_follow');
     },
 
-    willEnter: function() {
+    _willEnter: function() { // willEnter spider.index controller
         this.get('extractedItems').setObjects([]);
         this.get('documentView').config({
             mode: 'browse',
+            useBlankPlaceholder: false,
             listener: this,
+        });
+        this.get('browseHistory').clear();
+        Ember.run.next(() => {
+            if(this.get('url')) {
+                this.loadUrl(this.get('url'), this.get('baseurl'));
+                this.set('url', null);
+                this.set('baseurl', null);
+            }
         });
     },
 
-    willLeave: function() {
+    _willLeave: function() { // willLeave spider.index controller
         this.set('documentView.sprites', new SpriteStore());
         this.get('pendingUrls').clear();
         this.get('documentView').hideLoading();
