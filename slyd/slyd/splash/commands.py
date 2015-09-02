@@ -162,7 +162,7 @@ class ProjectData(ProjectModifier):
         if creating:
             if socket.spider is None:
                 socket.open_spider(meta)
-            uses_js = socket.spider._filter_js_urls(sample['url'])
+            uses_js = bool(socket.spider._filter_js_urls(sample['url']))
             if uses_js:
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
