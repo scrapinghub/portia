@@ -498,7 +498,7 @@ export default BaseController.extend({
             this.set('extractionTools', {});
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
         }.bind(this));
-    }.observes('model', 'model.annotated_body'),
+    },
 
     /**
      * This will make sure the template scrapes a valid item and if not it will create one.
@@ -527,7 +527,7 @@ export default BaseController.extend({
         }
     }.observes('model.scrapes', 'items.@each'),
 
-    willEnter: function() {
+    _willEnter: function() { // willEnter template.index controller
         var plugins = {};
         this.get('documentView').config({
             mode: 'select',
@@ -542,7 +542,7 @@ export default BaseController.extend({
         this.setDocument();
     },
 
-    willLeave: function() {
+    _willLeave: function() { // willLeave template.index controller
         this.hideFloatingAnnotationWidget();
         this.get('documentView').reset();
         this.set('activeExtractionTool', {extracts: [],

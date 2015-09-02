@@ -108,6 +108,7 @@ export default WebDocument.extend({
     loading: false, // Whatever a page is being loaded at the moment
     currentUrl: "", // Current URL
     currentFp: "",  // Hash of the url.
+    mutationsAfterLoaded: 0,
 
     connect: function() {
         var ws = this.get('ws');
@@ -117,17 +118,8 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('metadata', function(data) {
-            if (data.id && this.get('ws_deferreds.' + data.id)) {
-                var deferred = this.get('ws_deferreds.' + data.id);
-                this.set('ws_deferreds.' + data.id, undefined);
-                if (data.error) {
-                    deferred.reject(data);
-                } else {
-                    deferred.resolve(data);
-                }
-            }
-            this[data.loading ? 'showLoading' : 'hideLoading']();
-            this.set('loading', data.loading);
+            this[data.loaded ? 'hideLoading' : 'showLoading']();
+            this.set('loading', !data.loaded);
             this.set('currentUrl', data.url);
             this.set('currentFp', data.fp);
 
@@ -137,17 +129,22 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('mutation', function(data){
+            this.assertInMode('browse');
             data = data._data;
             var action = data[0];
             var args = data.slice(1);
             if(action === 'initialize') {
                 this.iframePromise = this.clearIframe().then(function(){
+                    this.set('mutationsAfterLoaded', 0);
                     this._updateEventHandlers();
                     var doc = this.getIframeNode().contentWindow.document;
                     this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
                 }.bind(this));
             }
             this.iframePromise.then(function() {
+                if(action === 'applyChanged') {
+                    this.incrementProperty('mutationsAfterLoaded');
+                }
                 this.treeMirror[action].apply(this.treeMirror, args);
             }.bind(this));
         }.bind(this));
@@ -161,6 +158,7 @@ export default WebDocument.extend({
      * Can only be called in "browse" mode.
      */
     loadUrl: function(url, spider, baseurl) {
+        this.set('loading', true);
         this.assertInMode('browse');
         this.showLoading(true);
         this.get('ws').send({
@@ -218,6 +216,7 @@ export default WebDocument.extend({
     },
 
     installEventHandlersForBrowsing: function() {
+        this.uninstallEventHandlers();
         var iframe = this.getIframe();
         iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
                   'mousedown.portia mouseup.portia', this.postEvent.bind(this));
@@ -248,6 +247,9 @@ export default WebDocument.extend({
     },
 
     postEvent: function(evt){
+        if(!evt.target || !evt.target.nodeid) {
+            return;
+        }
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
