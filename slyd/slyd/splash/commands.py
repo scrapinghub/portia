@@ -31,19 +31,27 @@ def load_page(data, socket):
         return {'error': 4001, 'message': 'Required parameter url'}
 
     socket.tab.loaded = False
+    meta = data.get('_meta', {})
 
     def on_complete(error):
-        extra_meta = {'id': data.get('_meta', {}).get('id')}
+        extra_meta = {'id': meta.get('id')}
         if error:
             extra_meta.update(error=4500, message='Unknown error')
         else:
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
 
+    # Specify the user agent directly in the headers
+    # Workaround for https://github.com/scrapinghub/splash/issues/290
+    headers = {}
+    if "user_agent" in meta:
+        headers['User-Agent'] = meta['user_agent']
+
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda: on_complete(True),
-                  baseurl=data.get('baseurl') or data['url'])
+                  baseurl=data.get('baseurl') or data['url'],
+                  headers=headers)
 
 
 @open_tab
