@@ -8,12 +8,12 @@ If you don't have Portia running yet, please read the :ref:`Installation guide <
 Creating a project and spider
 -----------------------------
 
-To create a new project, begin by entering the site's URL in the navigation bar at the top of the page and clicking ``Start``. Portia can be used as a web browser, and you can navigate to pages you want to extract data from and create samples for them. Clicking ``Start`` should create a new project along with a spider for the website, and you should see the loaded web page:
+To create a new project, begin by entering the site's URL in the navigation bar at the top of the page and clicking ``Start``. Portia can be used as a web browser, and you can navigate to pages you want to extract data from and create new samples. Clicking ``Start`` should create a new project along with a spider for the website, and you should see the loaded web page:
 
 .. image:: _static/portia-new-project.png
     :alt: Newly created project
 
-The spider can be configured on the right. The start pages are the URLs the spider will visit when beginning a new crawl. Portia can be used as a web browser, and you can navigate to the pages you want to extract data from and create new samples. To define the data you wish to extract from the page, click the ``Annotate this page`` button, which will create a new sample and allow you to annotate the page.
+The spider can be configured on the right. The start pages are the URLs the spider will visit when beginning a new crawl. To define the data you wish to extract from the page, click the ``Annotate this page`` button, which will create a new sample and allow you to annotate the page.
 
 Annotating a page
 -----------------
