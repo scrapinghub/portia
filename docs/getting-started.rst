@@ -8,12 +8,12 @@ If you don't have Portia running yet, please read the :ref:`Installation guide <
 Creating a project and spider
 -----------------------------
 
-To create a new project, begin by entering the site's URL in the navigation bar at the top of the page and clicking ``Start``. Portia can be used as a web browser, and you can navigate to pages you want to extract data from and create templates for them. Clicking ``Start`` should create a new project along with a spider for the website, and you should see the loaded web page:
+To create a new project, begin by entering the site's URL in the navigation bar at the top of the page and clicking ``Start``. Portia can be used as a web browser, and you can navigate to pages you want to extract data from and create samples for them. Clicking ``Start`` should create a new project along with a spider for the website, and you should see the loaded web page:
 
 .. image:: _static/portia-new-project.png
     :alt: Newly created project
 
-The spider can be configured on the right. The start pages are the URLs the spider will visit when beginning a new crawl. Portia can be used as a web browser, and you can navigate to the pages you want to extract data from and create new templates. To define the data you wish to extract from the page, click the ``Annotate this page`` button, which will create a new template and allow you to annotate the page.
+The spider can be configured on the right. The start pages are the URLs the spider will visit when beginning a new crawl. Portia can be used as a web browser, and you can navigate to the pages you want to extract data from and create new samples. To define the data you wish to extract from the page, click the ``Annotate this page`` button, which will create a new sample and allow you to annotate the page.
 
 Annotating a page
 -----------------
@@ -31,9 +31,9 @@ Once you are finished annotating, you can then mark any fields that are required
 .. image:: _static/portia-extracted-items.png
     :alt: Extracted items will be shown on the page
 
-You can now confirm that your template works by clicking ``Continue browsing``. The page should reload and a pop-up should appear showing you the items extracted from the page. When visiting a page in Portia, the whole extraction process is performed with the spider with the set of currently defined templates. This allows you to check that data will be extracted from the page before running the spider against the whole website.
+You can now confirm that your sample works by clicking ``Continue browsing``. The page should reload and a pop-up should appear showing you the items extracted from the page. When visiting a page in Portia, the whole extraction process is performed with the spider with the set of currently defined samples. This allows you to check that data will be extracted from the page before running the spider against the whole website.
 
-If you have created a template around one page where the data extracts successfully, but you visit a similar page and no item is extracted, then it's likely that particular page has a different layout or some fields missing. In this case you would simply click ``Annotate this page`` again to create a new template for the page, and then annotate it the same way you had done with the other page. See :ref:`Multiple templates <multiple-templates>` for more details on how multiple templates are used within a single spider.
+If you have created a sample around one page where the data extracts successfully, but you visit a similar page and no item is extracted, then it's likely that particular page has a different layout or some fields missing. In this case you would simply click ``Annotate this page`` again to create a new sample for the page, and then annotate it the same way you had done with the other page. See :ref:`Multiple samples <multiple-samples>` for more details on how multiple samples are used within a single spider.
 
 Once you've confirmed that your spider works and extracts data properly, your project is now ready to :ref:`run <running-spider>` or :ref:`deploy <project-deployment>`.
 

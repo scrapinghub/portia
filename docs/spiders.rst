@@ -3,7 +3,7 @@
 Spiders
 =======
 
-Spiders are web crawlers that consist of one or more :ref:`templates <templates>`.
+Spiders are web crawlers that consist of one or more :ref:`samples <samples>`.
 
 Configuration
 -------------
@@ -20,7 +20,7 @@ The **Crawling** section is used to configure how the spider will behave when it
 
 You can enable JavaScript by checking the 'Enable JS' checkbox. Here you can set the patterns to match against for links that should have JavaScript enabled, as well as those that should have it disabled. Note that when deploying you will need to set the `SPLASH_URL` Scrapy setting to match your Splash endpoint URL in order for JavaScript to work during the crawl.
 
-The **Extraction** section lists the templates for this spider.
+The **Extraction** section lists the samples for this spider.
 
 .. _running-spider:
 

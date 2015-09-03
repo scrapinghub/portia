@@ -10,7 +10,7 @@ Contents:
    getting-started
    projects
    spiders
-   templates
+   samples
    items
 
 Indices and tables
