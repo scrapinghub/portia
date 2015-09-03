@@ -57,7 +57,7 @@ function treeMirrorDelegate(){
     return {
         createElement: function(tagName) {
             var node = null;
-            if(tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
+            if(tagName === 'SCRIPT' || tagName === 'BASE') {
                 node = document.createElement('NOSCRIPT');
             } else {
                 try {
@@ -84,7 +84,8 @@ function treeMirrorDelegate(){
                 ((node.tagName === 'FRAME' || node.tagName === 'IFRAME') &&
                 (attrName === 'src' || attrName === 'srcdoc')) || // Frames not supported
                 ((node.tagName === 'OBJECT' || node.tagName === 'EMBED') &&
-                (attrName === 'data' || attrName === 'src')) // Block embed / object
+                (attrName === 'data' || attrName === 'src')) || // Block embed / object
+                (node.tagName === 'META' && attrName === 'http-equiv') // Disallow meta http-equiv
             ) {
                 return true;
             }
@@ -158,8 +159,8 @@ export default WebDocument.extend({
      * Can only be called in "browse" mode.
      */
     loadUrl: function(url, spider, baseurl) {
-        this.set('loading', true);
         this.assertInMode('browse');
+        this.set('loading', true);
         this.showLoading(true);
         this.get('ws').send({
             _meta: {
