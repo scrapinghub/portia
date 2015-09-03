@@ -82,10 +82,9 @@ export default Ember.Component.extend({
         it also unbinds all event handlers.
     */
     reset: function() {
-        this.set('mode', 'none');
-        this.set('partialSelectionEnabled', false);
-        this.set('sprites', null);
-        this.set('listener', null);
+        this.config({
+            mode: 'none',
+        });
     },
 
     /**
