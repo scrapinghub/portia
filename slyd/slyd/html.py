@@ -15,7 +15,7 @@ from slybot.utils import htmlpage_from_response
 from .splash.css_utils import process_css, wrap_url
 from .utils import serialize_tag, add_tagids
 
-URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase", "action",
+URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
 BLOCKED_TAGNAMES = ('script', 'noscript', 'object', 'embed')
