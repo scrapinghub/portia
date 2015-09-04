@@ -174,6 +174,10 @@ If you had annotated ``Aprilis`` in the template, nothing would have matched bec
 
 The word ``Januarii`` would have been extracted, because its surrounding text matches the text surrounding the text that was annotated in the template.
 
+### Annotating Elements in \<head\>
+
+To annotate elements that are stored in the **head** tag you need to click the `Toggle CSS` button. Once you do this, the elements in the **head** tag will become visible and you can annotate them just like any other element.
+
 Tips for Working with Multiple Templates
 ----------------------------------------
 
