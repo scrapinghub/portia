@@ -290,7 +290,7 @@ After following the appropriate instructions above the Portia image can be built
 
 Portia can be run using the command below:
 
-    docker run -i -t --rm
+    docker run -i -t --rm \
     -v <PROJECT_FOLDER>/data:/app/slyd/data:rw \
     -p 9001:9001 \
     --name portia \
