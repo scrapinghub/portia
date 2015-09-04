@@ -25,7 +25,7 @@ class SlybotItem(DictItem):
         return IblItem
 
 
-def create_slybot_item_descriptor(schema):
+def create_slybot_item_descriptor(schema, schema_name=""):
     field_type_manager = FieldTypeManager()
     descriptors = []
     for pname, pdict in schema['fields'].items():
@@ -34,7 +34,8 @@ def create_slybot_item_descriptor(schema):
         processor = pclass()
         descriptor = SlybotFieldDescriptor(pname, pname, processor, required)
         descriptors.append(descriptor)
-    return ItemDescriptor("", "", descriptors)
+    return ItemDescriptor(schema_name, schema.get('display_name', schema_name),
+                          descriptors)
 
 
 class SlybotFieldDescriptor(FieldDescriptor):
