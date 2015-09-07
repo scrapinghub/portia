@@ -29,6 +29,7 @@ from scrapely.htmlpage import HtmlTagType
 
 MAX_SEARCH_DISTANCE_MULTIPLIER = 3
 MIN_TOKEN_LENGTH_BEFORE_TRUNCATE = 3
+MIN_JUMP_DISTANCE = 0.6
 Region = namedtuple('Region', ['score', 'start_index', 'end_index'])
 
 
@@ -63,7 +64,7 @@ class SlybotTemplatePage(TemplatePage):
     def descriptor(self, descriptor_name=None):
         if descriptor_name is None:
             descriptor_name = '#default'
-        return self.descriptors[descriptor_name]
+        return self.descriptors.get(descriptor_name, {})
 
 
 class SlybotBasicTypeExtractor(BasicTypeExtractor):
@@ -211,7 +212,7 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
         self.best_match = longest_unique_subsequence
         if annotation:
             self.annotation = annotation
-        super(self, ContainerExtractor).__init__(extractors, template)
+        BaseContainerExtractor.__init__(self, extractors, template)
 
     def extract(self, page, start_index=0, end_index=None,
                 ignored_regions=None, **kwargs):
@@ -262,7 +263,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         self.extractors = self._build_extractors(
             extractors, containers, container_contents, template)
         self.best_match = first_longest_subsequence
-        super(self, RepeatedContainerExtractor).__init__(extractors, template)
+        BaseContainerExtractor.__init__(self, extractors, template)
 
     def extract(self, page, start_index=0, end_index=None,
                 ignored_regions=None, **kwargs):
@@ -291,7 +292,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                 suffix_max_length=suffixlen)
                             if items:
                                 extracted.extend([
-                                    self._validate_and_adapt_item(item)
+                                    self._validate_and_adapt_item(item, page)
                                     for item in items])
                             index = max(peek, index) - 1
                         break
@@ -352,7 +353,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                           template, 3, True)
         # Heuristic to reduce chance of false positives
         self.min_jump = int((child.end_index - child.start_index -
-                             len(suffix_tokens)) * 0.6)
+                             len(suffix_tokens)) * MIN_JUMP_DISTANCE)
         return (array(prefix_tokens), array(suffix_tokens))
 
     def _trim_prefix(self, prefix, suffix, template, min_prefix_len=1,
@@ -423,6 +424,8 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         required fields are extracted, adapted and fields are renamed if
         necessary.
         """
+        if not hasattr(self.schema, '_item_validates'):
+            return item
         if not self.schema._item_validates(item):
             return {}
         for k in self.extra_requires:
@@ -478,18 +481,18 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
                 parse_extraction_page(self.token_dict, template)
 
         # TODO: apply extra required attributes
-        # for parsed in parsed_templates:
-        #     default_schema = getattr(parsed, 'default_schema', None)
-        #     descriptor = parsed.descriptors.get(default_schema)
-        #     if descriptor is not None and apply_extrarequired:
-        #         descriptor = descriptor.copy()
-        #         for attr in parsed.extra_required_attrs:
-        #             descriptor._required_attributes.append(attr)
-        #             # A descriptor is not always present for a given attr
-        #             if attr in descriptor.attribute_map:
-        #                 descriptor.attribute_map[attr].required = True
-        #         parsed.descriptors[default_schema] = descriptor
-        #         parsed.descriptors['#default'] = descriptor
+        for parsed in parsed_templates:
+            default_schema = getattr(parsed, 'default_schema', None)
+            descriptor = parsed.descriptors.get(default_schema)
+            if descriptor is not None and apply_extrarequired:
+                descriptor = descriptor.copy()
+                for attr in parsed.extra_required_attrs:
+                    descriptor._required_attributes.append(attr)
+                    # A descriptor is not always present for a given attr
+                    if attr in descriptor.attribute_map:
+                        descriptor.attribute_map[attr].required = True
+                parsed.descriptors[default_schema] = descriptor
+                parsed.descriptors['#default'] = descriptor
 
         # templates with more attributes are considered first
         parsed_templates.sort(key=lambda x: _annotation_count(x),
