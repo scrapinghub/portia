@@ -375,6 +375,10 @@ ul.breadcrumbs {
     color: #444;
 }
 
+.annotation-widget.suggestion:not(.in-doc) {
+    background-color: #bfe1bf;
+}
+
 .attribute-value {
     margin:4px;
     padding:4px;
