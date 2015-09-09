@@ -14,6 +14,7 @@ const ItemProxy = Ember.ObjectProxy.extend({
 export default Ember.Component.extend({
     browserOverlays: Ember.inject.service(),
     colorProvider: Ember.inject.service(),
+    dataStructure: Ember.inject.service(),
 
     tagName: '',
 
@@ -31,11 +32,13 @@ export default Ember.Component.extend({
         var color = this.get('colorProvider').register(this.itemProxy);
         this.set('color', color);
         this.get('browserOverlays').addOverlayComponent(this.overlay);
+        this.get('dataStructure').addAnnotation(this.overlay);
     },
 
     willDestroyElement() {
         this.get('browserOverlays').removeOverlayComponent(this.overlay);
         this.get('colorProvider').unRegister(this.itemProxy);
         this.set('color', null);
+        this.get('dataStructure').removeAnnotation(this.overlay);
     }
 });

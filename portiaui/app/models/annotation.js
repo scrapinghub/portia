@@ -9,6 +9,7 @@ const Annotation = DS.Model.extend({
     }),
     type: DS.attr('string'),
     selector: DS.attr('string'),
+    attribute: DS.attr('string'),
 
     sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample')
 });
@@ -34,7 +35,8 @@ Annotation.reopenClass({
             name: 'image',
             type: 'image',
             parent: 'ti1',
-            selector: '.large-2 img'
+            selector: '.large-2 img',
+            attribute: 'src'
         },
         {
             id: 'a4',

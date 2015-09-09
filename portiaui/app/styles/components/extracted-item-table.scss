@@ -33,5 +33,9 @@
             padding-right: $line-height-computed;
             color: $text-muted;
         }
+
+        &:last-child {
+            word-break: break-all;
+        }
     }
 }
