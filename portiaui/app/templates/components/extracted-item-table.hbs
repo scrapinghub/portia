@@ -1,22 +1,37 @@
-{{#each-in item as |key value|}}
-    {{#if (is-array value)}}
-        <tr>
-            <td>{{key}}</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                {{#each value key='@index' as |item|}}
-                    {{extracted-item-table item=item}}
-                {{/each}}
-            </td>
-        </tr>
-    {{else}}
-        <tr>
-            <td>{{key}}</td>
-            <td>
-                {{value}}
-            </td>
-        </tr>
-    {{/if}}
-{{/each-in}}
+{{#unless (is-object-or-array item)}}
+    <tr>
+        <td>{{index}}{{key}}</td>
+        <td>
+            {{item}}
+        </td>
+    </tr>
+{{else}}
+    {{#each-in item as |key value|}}
+        {{#if (is-object-or-array value)}}
+            <tr>
+                <td>{{key}}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    {{#if (is-object value)}}
+                        {{extracted-item-table item=value}}
+                    {{else}}
+                        <table class="extracted-item-table">
+                            {{#each value key='@index' as |item index|}}
+                                {{extracted-item-table item=item index=index}}
+                            {{/each}}
+                        </table>
+                    {{/if}}
+                </td>
+            </tr>
+        {{else}}
+            <tr>
+                <td>{{key}}</td>
+                <td>
+                    {{value}}
+                </td>
+            </tr>
+        {{/if}}
+    {{/each-in}}
+{{/unless}}
