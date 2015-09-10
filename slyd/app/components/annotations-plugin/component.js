@@ -196,7 +196,6 @@ export default Ember.Component.extend(GuessTypes, {
 
         acceptSuggestion: function(){
             this.set('data.suggested', false);
-            this.updateSprite();
         },
     },
 
@@ -525,7 +524,7 @@ export default Ember.Component.extend(GuessTypes, {
         this.get('sprites').addSprite(this.get('mappedDOMElement'), text, {
             fillColor: data.suggested ? 'rgba(28, 171, 76, 0.4)' : this.get('sprites.fillColor'),
         });
-    }.observes('sprite'),
+    }.observes('sprite', 'data.suggested'),
 
     updateIgnore: function() {
         var data = this.get('data');
@@ -963,6 +962,13 @@ export default Ember.Component.extend(GuessTypes, {
         this.positionWidget();
         this._super();
         Ember.run.scheduleOnce('afterRender', this, this.afterRenderEvent);
+    },
+
+    willDestroyElement: function(){
+        this.get('sprites').removeSprite(this.get('mappedDOMElement'));
+        if(this.get('inDoc')) {
+            this.get('document.view').unblockInteractions('indoc-annotation');
+        }
     },
 
     afterRenderEvent: function() {

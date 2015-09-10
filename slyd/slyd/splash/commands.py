@@ -180,7 +180,7 @@ class ProjectData(ProjectModifier):
                                                        stated_encoding)
         obj = self.save_data(path, 'template', data=sample, socket=socket,
                              meta=meta)
-        if creating:
+        if creating and obj:
             obj['_uses_js'] = uses_js
 
         return obj

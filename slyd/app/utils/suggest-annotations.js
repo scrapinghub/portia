@@ -30,32 +30,33 @@ function findField(seedWords, fieldNames) {
     return bestMatch;
 }
 
-function suggestImageAnnotation(document, fieldNames) { // Returns [[field, node, attr, probability]]
+function suggestImageAnnotation(document, fieldNames, next) { // Returns [[field, node, attr, probability]]
     let field = findField(['img', 'image', 'photo'], fieldNames);
     if(!field) {
-        return [];
+        return next([]);
     }
 
     let images = Array.from(document.querySelectorAll('img'));
     if(!images.length){
-        return [];
+        return next([]);
     }
-
-    let biggest = images.reduce((a, b) => nodeArea(a) > nodeArea(b) ? a : b);
-    return [[field, biggest, 'src', 0.6]];
+    // Wait for images to load
+    setTimeout(() => {
+        let biggest = images.reduce((a, b) => nodeArea(a) > nodeArea(b) ? a : b);
+        return next([[field, biggest, 'src', 0.6]]);
+    }, 500);
 }
 
-function suggestTitleAnnotation(document, fieldNames) {
+function suggestTitleAnnotation(document, fieldNames, next) {
     let field = findField(['title'], fieldNames);
-    console.log(fieldNames);
     let title = document.querySelector('title');
     if(field && title) {
-        return [[field, title, text, 0.6]];
+        return next([[field, title, text, 0.6]]);
     }
-    return [];
+    return next([]);
 }
 
-function suggestMicrodataAnnotations(document, fieldNames) { // Returns [[field, node, attr, probability]]
+function suggestMicrodataAnnotations(document, fieldNames, next) { // Returns [[field, node, attr, probability]]
     let res = [];
     let props = document.querySelectorAll('[itemprop]');
     for(let prop of props) {
@@ -67,7 +68,7 @@ function suggestMicrodataAnnotations(document, fieldNames) { // Returns [[field,
             res.push([field, prop, attr, exactMatch ? 0.8 : 0.5]);
         }
     }
-    return res;
+    next(res);
 }
 
 let enabledSuggesters = [
@@ -81,18 +82,30 @@ let enabledSuggesters = [
  * Calls all the enabled suggesters and returns only the most probable
  * suggestion for each field.
  */
-export default function suggestAnnotations(document, fieldNames) {
+export function suggestAnnotations(document, fieldNames, callback) {
     let suggestionsByField = {};
-    for(let suggester of enabledSuggesters) {
-        let suggestions = suggester(document, fieldNames);
+    let pendingSuggesters = enabledSuggesters.length;
+
+    let processSuggestions = (suggestions) => {
         for(let suggestion of suggestions) {
             if(!(suggestion[0] in suggestionsByField) || suggestion[3] > suggestionsByField[suggestion[3]]){
                 suggestionsByField[suggestion[0]] = suggestion;
             }
         }
+        pendingSuggesters--;
+        if(pendingSuggesters === 0) {
+            callback(Object.values(suggestionsByField).map(
+                suggestion => suggestion.slice(0, 3)
+            ));
+        }
+    };
+
+    for(let suggester of enabledSuggesters) {
+        suggester(document, fieldNames, processSuggestions);
     }
-    return Object.values(suggestionsByField).map(
-        suggestion => suggestion.slice(0, 3)
-    );
+}
+
+export function registerSuggester(suggester) {
+    enabledSuggesters.push(suggester);
 }
 

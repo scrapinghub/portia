@@ -189,6 +189,7 @@ export default WebDocument.extend({
         this.assertInMode('select');
         var iframe = this.getIframeNode();
         iframe.setAttribute('srcdoc', doc);
+        iframe.removeAttribute('src');
         this.set('cssEnabled', true);
     },
 

@@ -6,7 +6,7 @@ import Item from '../models/item';
 import ItemField from '../models/item-field';
 import SpriteStore from '../utils/sprite-store';
 import utils from '../utils/utils';
-import suggestAnnotations from '../utils/suggest-annotations';
+import { suggestAnnotations } from '../utils/suggest-annotations';
 
 export default BaseController.extend({
     model: null,
@@ -468,6 +468,14 @@ export default BaseController.extend({
         updateScraped: function(name) {
             this.set('model.scrapes', name);
         },
+
+        dissmissAllSuggestions: function(){
+            this.dissmissAllSuggestions();
+        },
+
+        acceptAllSuggestions: function(){
+            this.acceptAllSuggestions();
+        }
     },
 
     documentActions: {
@@ -505,7 +513,7 @@ export default BaseController.extend({
             });
             this.set('extractionTools', {});
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
-            Ember.run.later(this, this.suggestAnnotations, 500); // Wait a bit to make sure the document is in it's final layout
+            this.suggestAnnotations();
         }.bind(this));
     },
 
@@ -513,40 +521,55 @@ export default BaseController.extend({
         if (this.hasAnnotations()) {
             return;
         }
-        this.dissmissAllSuggestions();
-
         let docView = this.get('documentView');
 
         let item = this.get('scrapedItem');
         let fields = new Set(item.get('fields').map(field => field.name));
 
-        let suggestions = null;
-        try {
-            let doc = docView.getIframeNode().contentDocument;
-            suggestions = suggestAnnotations(doc, fields);
-        } catch(e) {
-            return utils.logError(e);
-        }
-
-        let annotations = this.get('activeExtractionTool.data.extracts');
-        for (let [field, node, attr] of suggestions) {
-            let mapping = {};
-            mapping[attr] = field;
-            annotations.pushObject({
-                annotations: mapping,
-                id: utils.shortGuid(),
-                tagid: $(node).data('tagid'),
-                suggested: true,
-                required: [],
-            });
-        }
+        let doc = docView.getIframeNode().contentDocument;
+        suggestAnnotations(doc, fields, (suggestions) => {
+            if (this.hasAnnotations()) {
+                return;
+            }
+            this.dissmissAllSuggestions();
+            let annotations = this.get('activeExtractionTool.data.extracts');
+            for (let [field, node, attr] of suggestions) {
+                let mapping = {};
+                mapping[attr] = field;
+                annotations.pushObject(Ember.Object.create({
+                    annotations: mapping,
+                    id: utils.shortGuid(),
+                    tagid: $(node).data('tagid'),
+                    suggested: true,
+                    required: [],
+                }));
+            }
+        });
     },
 
-    dissmissAllSuggestions: function(){
+    suggestionCount: function() {
+        let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
+        let count = 0;
+        for (let annotation of annotations) {
+            if(annotation.suggested) {
+                count++;
+            }
+        }
+        return count;
+    }.property('activeExtractionTool.data.extracts.@each.suggested'),
+
+    severalSuggestions: Ember.computed.gte('suggestionCount', 2),
+
+    dissmissAllSuggestions: function() {
+        let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
+        annotations.removeObjects(annotations.filter(annotation => annotation.suggested));
+    },
+
+    acceptAllSuggestions: function() {
         let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
         for (let annotation of annotations) {
             if(annotation.suggested) {
-                annotations.removeObject(annotation);
+                annotation.set('suggested', false);
             }
         }
     },
