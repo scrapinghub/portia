@@ -34,7 +34,8 @@ export default  Ember.Object.extend({
     },
 
     pause: function() {
-        if (this.get('paused')) { // Avoid overwriting pause if called twice without resume
+         // Avoid overwriting pause if called twice without resume
+        if (this.get('paused') || this.get('ws.closed')) {
             return;
         }
         this.set('paused', true);
@@ -47,7 +48,7 @@ export default  Ember.Object.extend({
     },
 
     resume: function() {
-        if (!this.get('paused')) {
+        if (!this.get('paused') || this.get('ws.closed')) {
             return;
         }
         this.set('paused', false);
