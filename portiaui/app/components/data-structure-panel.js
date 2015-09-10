@@ -3,7 +3,7 @@ import ActiveChildrenMixin from '../mixins/active-children';
 import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
 import ItemAnnotationModel from '../models/item-annotation';
 import ToolPanel from './tool-panel';
-import {computedIsCurrentModelById} from '../services/selected-models';
+import {computedIsCurrentModelById} from '../services/ui-state';
 
 
 const RootItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
@@ -45,7 +45,7 @@ const RootItemList = Ember.Object.extend(ActiveChildrenMixin, {
 });
 
 const Annotation = InstanceCachedObjectProxy.extend({
-    selectedModels: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     elements: null,  // this array stores the elements matched in the viewport
     itemComponentName: 'data-structure-annotation-item',
@@ -83,7 +83,7 @@ function wrapperForAnnotationModel(model) {
 }
 
 export default ToolPanel.extend({
-    browserState: Ember.inject.service(),
+    browser: Ember.inject.service(),
 
     annotationTree: null,
     title: 'Data structure',
@@ -100,11 +100,11 @@ export default ToolPanel.extend({
     },
 
     setMode: Ember.observer('selected', function() {
-        const browserState = this.get('browserState');
+        const browser = this.get('browser');
         if (this.get('selected')) {
-            browserState.setAnnotationMode();
+            browser.setAnnotationMode();
         } else {
-            browserState.clearAnnotationMode();
+            browser.clearAnnotationMode();
         }
     })
 });

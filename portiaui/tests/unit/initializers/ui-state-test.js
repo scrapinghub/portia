@@ -1,10 +1,10 @@
 import Ember from 'ember';
-import { initialize } from '../../../initializers/selected-models';
+import { initialize } from '../../../initializers/ui-state';
 import { module, test } from 'qunit';
 
 var registry, application;
 
-module('Unit | Initializer | selected models', {
+module('Unit | Initializer | ui state', {
   beforeEach: function() {
     Ember.run(function() {
       application = Ember.Application.create();

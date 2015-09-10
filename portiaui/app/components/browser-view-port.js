@@ -1,67 +1,39 @@
 import Ember from 'ember';
 import HoverOverlay from './hover-overlay';
-import {ANNOTATION_MODE} from '../services/browser-state';
+import {ANNOTATION_MODE} from '../services/browser';
 
 
 export default Ember.Component.extend({
+    browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
-    browserState: Ember.inject.service(),
-    selectedModels: Ember.inject.service(),
-    viewPortSelection: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     classNames: ['browser-view-port'],
     classNameBindings: ['noneHovered', 'noneSelected'],
 
-    content: null,
+    iFrame: null,
     overlayComponentName: 'hover-overlay',
 
-    noneHovered: Ember.computed.none('viewPortSelection.hoveredElement'),
-    noneSelected: Ember.computed.none('selectedModels.currentAnnotation'),
+    noneHovered: Ember.computed.none('uiState.viewPort.hoveredElement'),
+    noneSelected: Ember.computed.none('uiState.models.annotation'),
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
-    url: Ember.computed.alias('browserState.url'),
 
-    updateContent: Ember.observer('url', function() {
-        var url = this.get('url');
-
-        if (!url) {
-            this.set('content', '');
-            return;
+    didInsertElement() {
+        if (this.iFrame) {
+            this.get('browser').unRegisterIFrame(this.iFrame);
         }
 
-        if (!url.includes('://')) {
-            url = `http://${url}`;
-        }
+        const $iFrame = this.$('iframe');
+        $iFrame.off('.portia-view-port')
+               .on('load.portia-view-port', this.bindEventHandlers.bind(this));
 
-        this.set('browserState.loading', true);
-        // use cors-anywhere.herokuapp.com to get the url content
-        Ember.$.get(`https://cors-anywhere.herokuapp.com/${url}`,
-            Ember.run.bind(this, content => {
-                var baseUrl = url.match(/^[^\/]+:\/\/[^\/]+/)[0];
-                // make urls relative to page url
-                content = content.replace(/(href|src)=(["'])\/(?!\/)/gi, `$1=$2${baseUrl}/`);
-                if (!content.includes('<base')) {
-                    content = content.replace(/<\/head>/i, `<base href="${url}"/></head>`);
-                }
-                this.set('content', content);
-                this.set('browserState.loading', false);
-                Ember.run.later(this, () => {
-                    this.bindEventHandlers();
-                }, 250);
-            })
-        );
-    }),
-
-    init() {
-        this._super();
-        this.updateContent();
-    },
-
-    willInsertElement() {
-        this.get('browserState').registerViewPort(this);
+        this.iFrame = $iFrame[0];
+        this.get('browser').registerIFrame(this.iFrame);
     },
 
     willDestroyElement() {
-        this.get('browserState').unRegisterViewPort(this);
+        this.get('browser').unRegisterIFrame(this.iFrame);
+        this.iFrame = null;
     },
 
     mouseEnter() {
@@ -73,26 +45,21 @@ export default Ember.Component.extend({
     },
 
     bindEventHandlers() {
-        this.unbindEventHandlers();
-        const viewPortDocument = Ember.$('iframe').contents();
-        viewPortDocument.on('click.portia', () => {
-            this.viewPortClick();
-            return false;
-        });
-    },
-
-    unbindEventHandlers() {
-        const viewPortDocument = Ember.$('iframe').contents();
-        viewPortDocument.off('.portia');
+        const viewPortDocument = this.iFrame.contentDocument;
+        Ember.$(viewPortDocument).off('.portia-view-port')
+            .on('click.portia-view-port', () => {
+                Ember.run.schedule('sync', this, this.viewPortClick);
+                return false;
+            });
     },
 
     viewPortClick() {
-        if (this.get('browserState.mode') !== ANNOTATION_MODE) {
+        if (this.get('browser.mode') !== ANNOTATION_MODE) {
             return;
         }
 
         const hoverOverlay = this.get('browserOverlays.elementOverlays')
-            .find((elementOverlay) => elementOverlay instanceof HoverOverlay);
+            .find(elementOverlay => elementOverlay instanceof HoverOverlay);
         if (hoverOverlay) {
             hoverOverlay.click();
         }

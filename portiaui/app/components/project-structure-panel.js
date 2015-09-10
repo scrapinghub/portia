@@ -2,11 +2,11 @@ import Ember from 'ember';
 import ActiveChildrenMixin from '../mixins/active-children';
 import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
 import ToolPanel from './tool-panel';
-import {computedIsCurrentModelById} from '../services/selected-models';
+import {computedIsCurrentModelById} from '../services/ui-state';
 
 
 const SampleItem = InstanceCachedObjectProxy.extend({
-    selectedModels: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     itemComponentName: 'project-structure-sample-item',
 
@@ -35,7 +35,7 @@ const SampleList = Ember.Object.extend(ActiveChildrenMixin, {
 });
 
 const SpiderItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
-    selectedModels: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     itemComponentName: 'project-structure-spider-item',
     sampleList: null,
@@ -75,7 +75,7 @@ const SpiderItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
 });
 
 const SchemaItem = InstanceCachedObjectProxy.extend({
-    selectedModels: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     itemComponentName: 'project-structure-schema-item',
 

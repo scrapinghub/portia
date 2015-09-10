@@ -16,6 +16,11 @@ export default Ember.Route.extend({
             outlet: 'main'
         });
 
+        this.render('top-url-bar', {
+            into: 'application',
+            outlet: 'top-url-bar'
+        });
+
         this.render('side-bar', {
             into: 'application',
             outlet: 'side-bar'

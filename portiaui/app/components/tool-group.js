@@ -1,21 +1,25 @@
 import Ember from 'ember';
 
+
 export default Ember.Component.extend({
+    uiState: Ember.inject.service(),
+
     classNames: ['tool-group'],
     classNameBindings: ['collapsed'],
+
+    collapsed: false,
     panels: null,
     panelsOrderBy: ['panelOrder'],
-    orderedPanels: Ember.computed.sort('panels', 'panelsOrderBy'),
-    toolGroupState: Ember.inject.service(),
     _selected: null,
+
+    orderedPanels: Ember.computed.sort('panels', 'panelsOrderBy'),
     selected: Ember.computed.or('_selected', 'orderedPanels.firstObject.toolId'),
-    collapsed: false,
 
     init() {
         this._super();
         var id = this.get('id');
         if (id) {
-            this.set('_selected', Ember.computed.alias('toolGroupState.' + this.get('id')));
+            this.set('_selected', Ember.computed.alias('uiState.selectedTools.' + this.get('id')));
         } else {
             this.set('_selected', null);
         }

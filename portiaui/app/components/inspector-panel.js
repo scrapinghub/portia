@@ -45,7 +45,7 @@ export function getAttributeList(element) {
 }
 
 export default ToolPanel.extend({
-    viewPortSelection: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     classNames: ['inspector', 'container-fluid'],
 
@@ -64,6 +64,5 @@ export default ToolPanel.extend({
         return elements.reverse().map(element => element.tagName.toLowerCase()).join(' > ');
     }),
     inspectedElement: Ember.computed.or(
-        'viewPortSelection.hoveredElement',
-        'viewPortSelection.selectedElement')
+        'uiState.viewPort.hoveredElement', 'uiState.viewPort.selectedElement')
 });

@@ -2,7 +2,8 @@ import Ember from 'ember';
 
 
 export default Ember.Component.extend({
-    viewPortSelection: Ember.inject.service(),
+    browser: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     classNameBindings: ['groupHovered', 'groupSelected'],
 
@@ -12,9 +13,9 @@ export default Ember.Component.extend({
     // proxied from Annotation in components/data-structure-panel
     color: Ember.computed.alias('overlay.color'),
     elements: Ember.computed.alias('overlay.elements'),
-    groupHovered: Ember.computed('elements', 'viewPortSelection.hoveredElement', function() {
-        const viewPortSelection = this.get('viewPortSelection.hoveredElement');
-        return this.get('elements').some(element => element === viewPortSelection);
+    groupHovered: Ember.computed('elements', 'uiState.viewPort.hoveredElement', function() {
+        const hoveredElement = this.get('uiState.viewPort.hoveredElement');
+        return this.get('elements').some(element => element === hoveredElement);
     }),
     groupSelected: Ember.computed.readOnly('overlay.isCurrentAnnotation'),
     selector: Ember.computed.alias('overlay.selector'),
@@ -33,13 +34,13 @@ export default Ember.Component.extend({
 
     initSelectedElement: Ember.observer('groupSelected', 'elements', function() {
         const groupSelected = this.get('groupSelected');
-        const selectedElement = this.get('viewPortSelection.selectedElement');
+        const selectedElement = this.get('uiState.viewPort.selectedElement');
         const elements = this.get('elements');
         const selectedElementInElements = elements.includes(selectedElement);
         if (groupSelected && !selectedElementInElements) {
-            this.set('viewPortSelection.selectedElement', elements[0] || null);
+            this.set('uiState.viewPort.selectedElement', elements[0] || null);
         } else if (!groupSelected && selectedElementInElements) {
-            this.set('viewPortSelection.selectedElement', null);
+            this.set('uiState.viewPort.selectedElement', null);
         }
     }),
 
@@ -50,11 +51,13 @@ export default Ember.Component.extend({
     },
 
     update() {
-        const viewPortDocument = Ember.$('iframe').contents();
-        const currentElements = this.get('elements');
-        const newElements = viewPortDocument.find(this.get('selector')).toArray();
-        if (Ember.compare(currentElements, newElements) !== 0) {
-            this.set('elements', newElements);
+        const $document = this.get('browser.$document');
+        if ($document) {
+            const currentElements = this.get('elements');
+            const newElements = $document.find(this.get('selector')).toArray();
+            if (Ember.compare(currentElements, newElements) !== 0) {
+                this.set('elements', newElements);
+            }
         }
         this.scheduleUpdate(this.updateInterval);
     }

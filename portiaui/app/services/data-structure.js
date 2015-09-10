@@ -189,7 +189,7 @@ class StructureNode {
 }
 
 export default Ember.Service.extend({
-    selectedModels: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     annotations: [],
     structure: null,
@@ -206,7 +206,7 @@ export default Ember.Service.extend({
         });
 
         const matchStructure = nodeStructure ?
-            nodeStructure.matchItems(this.get('selectedModels.currentSample.items')) :
+            nodeStructure.matchItems(this.get('uiState.models.sample.items')) :
             null;
 
         this.set('structure', matchStructure);

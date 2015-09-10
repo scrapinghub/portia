@@ -5,11 +5,11 @@ import {getAttributeList} from './inspector-panel';
 export const IGNORED_ELEMENTS = new Set(['html', 'body']);
 
 export default Ember.Component.extend({
+    browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
-    browserState: Ember.inject.service(),
     colorProvider: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
-    viewPortSelection: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     classNames: ['overlay', 'hover-overlay'],
     classNameBindings: ['viewPortElement::hide', 'hoveringExistingOverlay:hide'],
@@ -26,8 +26,8 @@ export default Ember.Component.extend({
                 .findBy('viewPortElement', hoveredElement);
         }),
     hoveringExistingOverlay: Ember.computed.notEmpty('existingElementOverlay'),
-    showHoverOverlay: Ember.computed.readOnly('browserState.isInteractionMode'),
-    viewPortElement: Ember.computed.alias('viewPortSelection.hoveredElement'),
+    showHoverOverlay: Ember.computed.readOnly('browser.isInteractionMode'),
+    viewPortElement: Ember.computed.alias('uiState.viewPort.hoveredElement'),
 
     click() {
         const existingElementOverlay = this.get('existingElementOverlay');
@@ -73,8 +73,10 @@ export default Ember.Component.extend({
     update() {
         var hoveredElement = null;
         if (this.get('showHoverOverlay')) {
-            let viewPortDocument = Ember.$('iframe').contents();
-            hoveredElement = viewPortDocument.find(':hover').toArray().pop();
+            const $document = this.get('browser.$document');
+            if ($document) {
+                hoveredElement = $document.find(':hover').toArray().pop();
+            }
         }
         if (this.get('viewPortElement') !== hoveredElement) {
             if (hoveredElement && (
