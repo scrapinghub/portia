@@ -36,7 +36,7 @@ Items
 
 An :ref:`item <items>` in Portia is a record of data e.g. a product, a location that's extracted during the crawl. We want to define the schema for the item we're going to be extracting. A field is simply an item's attribute, so for example a book would have a `title` field, an `author` field etc.
 
-We should ideally define all of the fields for data we want to extract before annotating. While we can create and modify an item's fields through the annotation menu, it's easier to use the item editor.
+Let's define the fields for data we want to extract before annotating. We can do this through the item editor.
 
 .. image:: _static/portia-item-editor.png
     :alt: Items editor
@@ -50,7 +50,7 @@ Annotating
 
 We create an annotation by clicking an element on the page. We can also highlight text if we only want to extract a portion of text.
 
-A context menu will appear, and here we can map an element's attribute or content to an item field. There are already some fields to choose from as Portia adds a default item when we create a project.
+A context menu will appear, and here we can map an element's attribute or content to an item field. There are already some fields to choose from as Portia adds a default item when we create a project. We can also create new fields if necessary.
 
 We can can select the attribute on the left, in most cases we'll want the ``content``, but for images the ``src`` attribute is selected by default. We can preview the value that'll be extracted to the right. 
 
