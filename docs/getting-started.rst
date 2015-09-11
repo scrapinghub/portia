@@ -17,7 +17,7 @@ Let's start by creating a project. Enter a URL in the navigation bar and click `
 
 We can configure the spider in the toolbox the right. You may notice the URL we entered has been added as a start page. These start pages act as seeds for the crawl and the spider will visit these first. If the site we're using requires JavaScript, we can enable it under the Crawling section.
 
-Now that we've created our spider, we need to define the data we want to extract. We do this using `samples <samples>`_.
+Now that we've created our spider, we need to define the data we want to extract. We do this using :ref:`samples <samples>`.
 
 Creating a sample
 -----------------
@@ -41,7 +41,7 @@ We should ideally define all of the fields for data we want to extract before an
 .. image:: _static/portia-item-editor.png
     :alt: Items editor
 
-We need to think about the data we want to extract, and add the relevant fields. We can mark fields as required and any items extracted that are missing them will be discarded. Marking fields as vary means they won't be taken into account when checking for duplicates, more on that `here <>`. 
+We need to think about the data we want to extract, and add the relevant fields. We can mark fields as required and any items extracted that are missing them will be discarded. Marking fields as vary means they won't be taken into account when checking for duplicates, more on that :ref:`here <items>`. 
 
 Now that we've defined the item we want to extract, let's get back to annotating.
 
