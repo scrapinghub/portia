@@ -12,6 +12,7 @@ Contents:
    spiders
    samples
    items
+   faq
 
 Indices and tables
 ==================
