@@ -1,4 +1,29 @@
 (function(){
+// ES5 shim tries to fix a bug in Object.keys, unfortunatelly it creates another bug.
+// This fixes the bug correctly so ES5 shim doesn't try to fix it.
+
+var keysWorksWithArguments = Object.keys && (function () {
+    // Old webkit bug
+    return Object.keys(arguments).length === 2;
+}(1, 2));
+
+if(!keysWorksWithArguments) {
+    var originalKeys = Object.keys;
+    Object.defineProperty(Object, 'keys', {
+        configurable: true,
+        enumerable: false,
+        writable: true,
+        value: function keys(object){
+            if (Object.prototype.toString.call(object) === '[object Arguments]') {
+                return originalKeys(Array.prototype.slice.call(object));
+            } else {
+                return originalKeys(object);
+            }
+        }
+    });
+}
+
+
 /*!
  * https://github.com/es-shims/es5-shim
  * @license es5-shim Copyright 2009-2015 by contributors, MIT License
@@ -3871,6 +3896,7 @@ var URL_ATTRIBUTES = {
     embed_src: true,
     object_data: true,
     video_poster: true,
+    form_action: true,
     iframe_src: true
 };
 function isUrlAttribute(tagName, attribute) {
@@ -4094,9 +4120,108 @@ var TreeMirrorClient = (function () {
     return TreeMirrorClient;
 })();
 
+;(function(){
+    function makeStorage(valueSizeLimit, keyNumberLimit){
+        var keys = [];
+
+        var storage = Object.create(Object, {
+            getItem: {value: function(k) {
+                if(this.hasOwnProperty(k)) {
+                    return this[k];
+                }
+            }},
+            setItem: {value: function(k, v) {
+                v = String(v);
+                if(v.length <= valueSizeLimit && keys.length <= keyNumberLimit) {
+                    this[k] = v;
+                    update();
+                }
+            }},
+            removeItem: {value: function(k) {
+                if(this.hasOwnProperty(k)) {
+                    delete this[k];
+                }
+                update();
+            }},
+            clear: {value: function(){
+                for(var k in this){
+                    if(this.hasOwnProperty(k)) {
+                        delete this[k];
+                    }
+                }
+                keys.splice(0, keys.length);
+            }},
+            key: {value: function(i) {
+                return keys[i];
+            }},
+            length: {get: function(){
+                return keys.length;
+            }}
+        });
+
+        var update = function() {
+            keys.splice(0, keys.length);
+            for(var k in storage){
+                if(storage.hasOwnProperty(k)){
+                    if(typeof storage[k] !== 'string'){
+                        storage[k] = String(storage[k]);
+                    }
+                    if(storage[k].length > valueSizeLimit || keys.length > keyNumberLimit) {
+                        delete storage[k];
+                    } else {
+                        keys.push(k);
+                    }
+                }
+            }
+            livePortiaPage.localStorageUpdated(local.storage, session.storage);
+        };
+
+        return {
+            storage: storage,
+            update: update
+        };
+    }
+
+    var local = makeStorage(2000, 100);
+    var session = makeStorage(2000, 100);
+
+    window.__defineGetter__('localStorage', function(){
+        local.update();
+        return local.storage;
+    });
+
+    window.__defineGetter__('sessionStorage', function(){
+        session.update();
+        return session.storage;
+    });
+})();
+
 MutationObserver._period = 500;
 
 // Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
+function hashString(string, seed) { // Non cryptographic hash of an string
+    var hash = seed || 0;
+    for (var i = 0, len = string.length; i < len; i++) {
+        var chr = string.charCodeAt(i);
+        hash  = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+}
+
+/**
+ * Returns a non-cryptographic hash of a shallow object
+ * > hashObject({a: '1', b: '2'}) === hashObject({b: '2', a: '1'})
+ * > hashObject({a: '1', b: '2', c:1}) !== hashObject({b: '2', a: '1'})
+ */
+function hashObject(obj, seed) {
+    var keys = Object.keys(obj).sort();
+    var hash = seed || 0;
+    for (var i = 0, len = keys.length; i < len; i++) {
+        hash = hashString(keys[i] + '\n' + obj[keys[i]] + '\n', hash);
+    }
+    return hash;
+}
 
 var MAX_DIALOGS = 15;  // Maximum number of dialogs (alert, confirm, prompt) before throwing an exception
 
@@ -4218,6 +4343,40 @@ PortiaPage.prototype.sendEvent = function(data) {
 
 PortiaPage.prototype.getByNodeId = function(nodeId){
     return this.mirrorClient.knownNodes.byId[nodeId];
+};
+
+PortiaPage.prototype.localStorageUpdated = function(local, session) {
+    if(this._localStorageLoading) {
+        return;
+    }
+    var hash = hashObject(local, 1) + hashObject(session, 2);
+    if(hash !== this._prevStorageHash) {
+        this.sendMessage('storage', {
+            local: local,
+            session: session,
+            origin: location.origin,
+        });
+        this._prevStorageHash = hash;
+    }
+};
+
+PortiaPage.prototype.setLocalStorage = function(localData, sessionData){
+    this._localStorageLoading = true;
+    var local = window.localStorage;
+    var session = window.sessionStorage;
+    for(var k in localData) {
+        if(localData.hasOwnProperty(k)){
+            local[k] = localData[k];
+        }
+    }
+    for(k in sessionData) {
+        if(sessionData.hasOwnProperty(k)){
+            session[k] = sessionData[k];
+        }
+    }
+
+    this._prevStorageHash = hashObject(local, 1) + hashObject(session, 2);
+    this._localStorageLoading = false;
 };
 
 PortiaPage.prototype.pyGetByNodeId = function(nodeId){
