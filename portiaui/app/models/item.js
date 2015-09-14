@@ -1,4 +1,7 @@
+import Ember from 'ember';
 import DS from 'ember-data';
+import ItemAnnotation from './item-annotation';
+
 
 const Item = DS.Model.extend({
     sample: DS.belongsTo(),
@@ -10,7 +13,16 @@ const Item = DS.Model.extend({
         inverse: 'parent',
         polymorphic: true
     }),
-    itemAnnotation: DS.belongsTo()
+    itemAnnotation: DS.belongsTo(),
+
+    orderedAnnotations: Ember.computed(
+        'annotations', 'annotations.@each.orderedAnnotations', function() {
+            return [].concat(...this.get('annotations').map(annotation => (
+                annotation instanceof ItemAnnotation ?
+                    annotation.getWithDefault('orderedAnnotations', []) :
+                    [annotation]
+            )));
+        })
 });
 
 Item.reopenClass({

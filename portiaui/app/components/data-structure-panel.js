@@ -4,17 +4,16 @@ import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
 import ItemAnnotationModel from '../models/item-annotation';
 import ToolPanel from './tool-panel';
 import {computedIsCurrentModelById} from '../services/ui-state';
+import {getColors} from '../utils/colors';
 
 
 const RootItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
     itemComponentName: 'data-structure-root-item',
 
-    children: Ember.computed.map('annotations', function(annotation, index) {
+    children: Ember.computed.map('annotations', function(annotation) {
         const itemClass = wrapperForAnnotationModel(annotation);
         return itemClass.create({
             content: annotation,
-            // we're using array sorting so that nested annotations are grouped with parents
-            colorOrder: this.getWithDefault('colorOrder', []).concat([index]),
             container: this.get('container')
         });
     }),
@@ -84,10 +83,16 @@ function wrapperForAnnotationModel(model) {
 
 export default ToolPanel.extend({
     browser: Ember.inject.service(),
+    browserOverlays: Ember.inject.service(),
 
     annotationTree: null,
     title: 'Data structure',
     toolId: 'data-structure',
+
+    annotationColors: Ember.computed('sample.orderedAnnotations', function() {
+        const annotations = this.get('sample.orderedAnnotations');
+        return annotations ? getColors(annotations.length + 1) : [];  // +1 for hover color
+    }),
 
     init() {
         this._super();
@@ -98,6 +103,12 @@ export default ToolPanel.extend({
             })
         ];
     },
+
+    updateHoverOverlayColor: Ember.observer('selected', 'annotationColors.length', function() {
+        if (this.get('selected')) {
+            this.set('browserOverlays.hoverOverlayColor', this.get('annotationColors.lastObject'));
+        }
+    }),
 
     setMode: Ember.observer('selected', function() {
         const browser = this.get('browser');

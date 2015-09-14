@@ -3,6 +3,7 @@ import Ember from 'ember';
 
 export default Ember.Service.extend({
     elementOverlays: [],
+    hoverOverlayColor: null,
     overlayComponents: [],
     timerId: null,
 

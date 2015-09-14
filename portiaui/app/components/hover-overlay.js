@@ -7,17 +7,20 @@ export const IGNORED_ELEMENTS = new Set(['html', 'body']);
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
-    colorProvider: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
     uiState: Ember.inject.service(),
 
     classNames: ['overlay', 'hover-overlay'],
     classNameBindings: ['viewPortElement::hide', 'hoveringExistingOverlay:hide'],
 
-    colorOrder: [Infinity],
     timerId: null,
     updateInterval: 100,
 
+    backgroundStyle: Ember.computed('color.main', function() {
+        var color = this.get('color.main');
+        return Ember.String.htmlSafe(color ? `background-color: ${color};` : '');
+    }),
+    color: Ember.computed.readOnly('browserOverlays.hoverOverlayColor'),
     existingElementOverlay: Ember.computed(
         'browserOverlays.elementOverlays.@each.viewPortElement', 'viewPortElement', function() {
             const hoveredElement = this.get('viewPortElement');
@@ -26,6 +29,10 @@ export default Ember.Component.extend({
                 .findBy('viewPortElement', hoveredElement);
         }),
     hoveringExistingOverlay: Ember.computed.notEmpty('existingElementOverlay'),
+    shadowStyle: Ember.computed('color.shadow', function() {
+        var color = this.get('color.shadow');
+        return Ember.String.htmlSafe(color ? `box-shadow: 0 1px 3px -2px ${color};` : '');
+    }),
     showHoverOverlay: Ember.computed.readOnly('browser.isInteractionMode'),
     viewPortElement: Ember.computed.alias('uiState.viewPort.hoveredElement'),
 
@@ -44,8 +51,6 @@ export default Ember.Component.extend({
 
     willInsertElement() {
         this.beginPropertyChanges();
-        var color = this.get('colorProvider').register(this);
-        this.set('color', color);
         this.get('browserOverlays').addElementOverlay(this);
         this.endPropertyChanges();
         this.scheduleUpdate(1);
@@ -58,8 +63,6 @@ export default Ember.Component.extend({
         }
         this.beginPropertyChanges();
         this.get('browserOverlays').removeElementOverlay(this);
-        this.get('colorProvider').unRegister(this);
-        this.set('color', null);
         this.set('viewPortElement', null);
         this.endPropertyChanges();
     },

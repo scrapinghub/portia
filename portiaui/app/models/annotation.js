@@ -11,6 +11,9 @@ const Annotation = DS.Model.extend({
     selector: DS.attr('string'),
     attribute: DS.attr('string'),
 
+    orderedIndex: Ember.computed('sample.orderedAnnotations', function() {
+        return this.get('sample.orderedAnnotations').indexOf(this);
+    }),
     sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample')
 });
 

@@ -3,8 +3,7 @@ import Ember from 'ember';
 
 const AnnotationOverlay = Ember.ObjectProxy.extend({
     overlayComponentName: 'annotation-overlay',
-    content: Ember.computed.readOnly('annotationItem.item'),
-    color: Ember.computed.readOnly('annotationItem.color')
+    content: Ember.computed.readOnly('annotationItem.item')
 });
 
 const ItemProxy = Ember.ObjectProxy.extend({
@@ -13,10 +12,14 @@ const ItemProxy = Ember.ObjectProxy.extend({
 
 export default Ember.Component.extend({
     browserOverlays: Ember.inject.service(),
-    colorProvider: Ember.inject.service(),
     dataStructure: Ember.inject.service(),
 
     tagName: '',
+
+    color: Ember.computed('item.orderedIndex', 'colors.length', function() {
+        const colors = this.get('colors');
+        return colors[this.get('item.orderedIndex')];
+    }),
 
     init() {
         this._super();
@@ -29,16 +32,12 @@ export default Ember.Component.extend({
     },
 
     willInsertElement() {
-        var color = this.get('colorProvider').register(this.itemProxy);
-        this.set('color', color);
         this.get('browserOverlays').addOverlayComponent(this.overlay);
         this.get('dataStructure').addAnnotation(this.overlay);
     },
 
     willDestroyElement() {
         this.get('browserOverlays').removeOverlayComponent(this.overlay);
-        this.get('colorProvider').unRegister(this.itemProxy);
-        this.set('color', null);
         this.get('dataStructure').removeAnnotation(this.overlay);
     }
 });

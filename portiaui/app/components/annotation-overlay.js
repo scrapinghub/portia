@@ -10,8 +10,8 @@ export default Ember.Component.extend({
     timerId: null,
     updateInterval: 100,
 
+    color: Ember.computed.alias('overlay.annotationItem.color'),
     // proxied from Annotation in components/data-structure-panel
-    color: Ember.computed.alias('overlay.color'),
     elements: Ember.computed.alias('overlay.elements'),
     groupHovered: Ember.computed('elements', 'uiState.viewPort.hoveredElement', function() {
         const hoveredElement = this.get('uiState.viewPort.hoveredElement');

@@ -8,10 +8,6 @@ export default Ember.Component.extend({
 
     badgeStyle: Ember.computed('color.main', function() {
         var color = this.get('color.main');
-        if (color) {
-            return `background-color: ${color};`;
-        } else {
-            return null;
-        }
+        return Ember.String.htmlSafe(color ? `background-color: ${color};` : '');
     })
 });
