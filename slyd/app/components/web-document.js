@@ -3,6 +3,7 @@ import Ember from 'ember';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
 import utils from '../utils/utils';
+import experiments from '../utils/experiments';
 
 var META_STYLE = `<style data-show-meta>
     head, title, meta, link {
@@ -93,7 +94,9 @@ export default Ember.Component.extend({
     */
     config: function(options) {
         this.set('listener', options.listener);
-        this.set('pageActions', options.pageActions);
+        if(experiments.enabled('page_actions')) {
+            this.set('pageActions', options.pageActions);
+        }
         if(options.mode && options.mode !== this.get('mode')) {
             this.set('cssEnabled', true);
             this.set('mode', options.mode);

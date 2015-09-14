@@ -4,6 +4,7 @@ import Ember from 'ember';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 import utils from '../../utils/utils';
+import experiments from '../../utils/experiments';
 
 
 var predictionHelper = DomPredictionHelper.prototype;
@@ -268,6 +269,9 @@ export default WebDocument.extend({
     },
 
     saveAction: function (interactionEvent, nativeEvent) {
+        if(!experiments.enabled('page_actions')) {
+            return;
+        }
         var pageActions = this.get('pageActions');
         var type = interactionEvent.type;
 
