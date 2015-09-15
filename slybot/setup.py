@@ -19,6 +19,9 @@ setup(name='slybot',
       scripts=['bin/slybot', 'bin/portiacrawl'],
       install_requires=install_requires,
       extras_require=extras,
+      package_data={'': ['slybot/splash-script-combined.js']},
+      include_package_data=True,
+
       classifiers=[
           'Development Status :: 4 - Beta',
           'License :: OSI Approved :: BSD License',
