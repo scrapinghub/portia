@@ -71,41 +71,44 @@ function suggestMicrodataAnnotations(document, fieldNames, next) { // Returns [[
     next(res);
 }
 
-let enabledSuggesters = [
-    suggestTitleAnnotation,
-    suggestImageAnnotation,
-    suggestMicrodataAnnotations,
-];
+let enabledSuggesters = {
+    'title': suggestTitleAnnotation,
+    'image': suggestImageAnnotation,
+    'microdata': suggestMicrodataAnnotations,
+};
 
 /**
- * Returns [[field, node, attr]]
+ * Returns [[field, node, attr, suggestorName]]
  * Calls all the enabled suggesters and returns only the most probable
  * suggestion for each field.
  */
 export function suggestAnnotations(document, fieldNames, callback) {
     let suggestionsByField = {};
-    let pendingSuggesters = enabledSuggesters.length;
+    let suggesterNames = Object.keys(enabledSuggesters);
+    let pendingSuggesters = suggesterNames.length;
 
-    let processSuggestions = (suggestions) => {
+    let processSuggestions = (name, suggestions) => {
         for(let suggestion of suggestions) {
-            if(!(suggestion[0] in suggestionsByField) || suggestion[3] > suggestionsByField[suggestion[3]]){
+            if(!(suggestion[0] in suggestionsByField) || suggestion[3] > suggestionsByField[suggestion[0]][4]){
+                suggestion.splice(3, 0, name);
                 suggestionsByField[suggestion[0]] = suggestion;
             }
         }
         pendingSuggesters--;
         if(pendingSuggesters === 0) {
             callback(Object.values(suggestionsByField).map(
-                suggestion => suggestion.slice(0, 3)
+                suggestion => suggestion.slice(0, 4)
             ));
         }
     };
 
-    for(let suggester of enabledSuggesters) {
-        suggester(document, fieldNames, processSuggestions);
+    for(let name of suggesterNames) {
+        let suggester = enabledSuggesters[name];
+        suggester(document, fieldNames, processSuggestions.bind(null, name));
     }
 }
 
-export function registerSuggester(suggester) {
-    enabledSuggesters.push(suggester);
+export function registerSuggester(name, suggester) {
+    enabledSuggesters[name] = suggester;
 }
 

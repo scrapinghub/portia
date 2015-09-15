@@ -155,6 +155,29 @@ def close_tab(data, socket):
         socket.tab.close()
         socket.factory[socket].tab = None
 
+_valid_params = {
+    "suggestions.title": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
+    "suggestions.image": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
+    "suggestions.microdata": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
+    "suggestions.all": ('accepted', 'rejected'),
+}
+def log_event(data, socket):
+    event = data.get('event')
+    param = data.get('param')
+    print 'le', event, param
+
+    if event not in _valid_params or param not in _valid_params[event]:
+        return
+
+    msg_data = {'session': socket.session_id,
+                'session_time': 0,
+                'user': socket.user.name,
+                'command': '%s.%s' % (event, param)}
+    msg = (u'Stat: id=%(session)s t=%(session_time)s '
+           u'user=%(user)s command=%(command)s' % (msg_data))
+    print msg
+    log.err(msg)
+
 
 class ProjectData(ProjectModifier):
     errors = slyd.splash.utils

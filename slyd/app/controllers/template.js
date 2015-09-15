@@ -470,7 +470,7 @@ export default BaseController.extend({
         },
 
         dissmissAllSuggestions: function(){
-            this.dissmissAllSuggestions();
+            this.dissmissAllSuggestions(true);
         },
 
         acceptAllSuggestions: function(){
@@ -533,7 +533,7 @@ export default BaseController.extend({
             }
             this.dissmissAllSuggestions();
             let annotations = this.get('activeExtractionTool.data.extracts');
-            for (let [field, node, attr] of suggestions) {
+            for (let [field, node, attr, suggestor] of suggestions) {
                 let mapping = {};
                 mapping[attr] = field;
                 annotations.pushObject(Ember.Object.create({
@@ -541,6 +541,7 @@ export default BaseController.extend({
                     id: utils.shortGuid(),
                     tagid: $(node).data('tagid'),
                     suggested: true,
+                    suggestor: suggestor,
                     required: [],
                 }));
             }
@@ -560,15 +561,25 @@ export default BaseController.extend({
 
     severalSuggestions: Ember.computed.gte('suggestionCount', 2),
 
-    dissmissAllSuggestions: function() {
+    dissmissAllSuggestions: function(userInitiated=false) {
         let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
-        annotations.removeObjects(annotations.filter(annotation => annotation.suggested));
+        annotations.removeObjects(annotations.filter((annotation) => {
+            if(userInitiated) {
+                this.get('ws').logEvent('suggestions', annotation.suggestor, 'rejected_all');
+            }
+            return annotation.suggested;
+        }));
+        if(userInitiated) {
+            this.get('ws').logEvent('suggestions.all', 'rejected');
+        }
     },
 
     acceptAllSuggestions: function() {
+        this.get('ws').logEvent('suggestions.all', 'accepted');
         let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
         for (let annotation of annotations) {
             if(annotation.suggested) {
+                this.get('ws').logEvent('suggestions', annotation.suggestor, 'accepted_all');
                 annotation.set('suggested', false);
             }
         }

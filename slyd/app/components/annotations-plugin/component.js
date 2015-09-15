@@ -41,6 +41,9 @@ export default Ember.Component.extend(GuessTypes, {
             this.sendAction('edit', this.get('data'));
         },
         delete: function() {
+            if(this.get('data.suggested')) {
+                this.get('ws').logEvent('suggestions', this.get('data.suggestor'), 'rejected');
+            }
             this.get('alldata').removeObject(this.get('data'));
             this.get('sprites').removeSprite(this.get('mappedDOMElement'));
             if (this.get('mappedDOMElement') && this.get('mappedDOMElement').tagName === 'INS') {
@@ -196,6 +199,7 @@ export default Ember.Component.extend(GuessTypes, {
 
         acceptSuggestion: function(){
             this.set('data.suggested', false);
+            this.get('ws').logEvent('suggestions', this.get('data.suggestor'), 'accepted');
         },
     },
 
