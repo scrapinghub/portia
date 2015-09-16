@@ -114,8 +114,8 @@ export default Ember.Object.extend({
                 deferred = this.get('deferreds.' + deferred);
                 delete this.get('deferreds')[data.id];
                 if (data.error) {
-                    var err = new Error(data.reason);
-                    err.reason = {jqXHR: {responseText: data.reason}};
+                    var err = new Error(data.reason || data.error);
+                    err.reason = {jqXHR: {responseText: data.reason || data.error}};
                     deferred.reject(err);
                     throw err;
                 } else {
