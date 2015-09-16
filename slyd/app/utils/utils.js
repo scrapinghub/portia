@@ -12,7 +12,10 @@ export function cleanUrl(url) {
         url = 'http://' + url;
     }
     try {
-        url = (new URI(url)).normalize();
+        url = (new URI(url))
+            .normalizeProtocol()
+            .normalizeHostname()
+            .normalizePort();
     } catch(e){
         return null;
     }
