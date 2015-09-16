@@ -51,7 +51,11 @@
                     }
                 }
             }
-            livePortiaPage.localStorageUpdated(local.storage, session.storage);
+            if(window.livePortiaPage) {
+                try{
+                    livePortiaPage.localStorageUpdated(local.storage, session.storage);
+                }catch(e){}
+            }
         };
 
         return {
