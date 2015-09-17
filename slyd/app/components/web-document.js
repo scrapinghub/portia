@@ -2,6 +2,7 @@
 import Ember from 'ember';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
+import utils from '../utils/utils';
 
 var META_STYLE = `<style data-show-meta>
     head, title, meta, link {
@@ -203,19 +204,35 @@ export default Ember.Component.extend({
         this.assertInMode('select');
 
         Ember.run.schedule('afterRender', this, function() {
-            this.set('loadingDoc', true);
-            this.setIframeContent(documentContents);
             // We need to disable all interactions with the document we are loading
             // until we trigger the callback.
-            this.blockInteractions('display');
-            Ember.run.later(this, function() {
+            this.blockInteractions('loadingDoc');
+            this.set('loadingDoc', true);
+            let onLoad = () => {
+                this.assertInMode('select');
                 this._updateEventHandlers();
-                this.unblockInteractions('display');
+                this.unblockInteractions('loadingDoc');
+                this.set('loadingDoc', false);
                 if (readyCallback) {
                     readyCallback(this.getIframe());
                 }
-                this.set('loadingDoc', false);
-            }, 800);
+            };
+
+            // Using a message to workaround onload bugs
+            var id = utils.shortGuid();
+            var load_embed = `<script id="__portia_script">
+                window.top.postMessage({frameReady: '${id}'}, "*");
+                var script = document.getElementById('__portia_script');
+                script.parentNode.removeChild(script);
+            </script>`;
+            var $win = $(window).bind('message', function onMessage(e){
+                if(e.originalEvent.data.frameReady === id){
+                    $win.unbind('message', onMessage);
+                    Ember.run(onLoad);
+                }
+            });
+
+            this.setIframeContent(documentContents + load_embed);
         });
     },
 

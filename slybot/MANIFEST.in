@@ -1,3 +1,4 @@
 include README.rst
 include requirements.txt
 include slybot/validation/schemas.json
+include slybot/splash-script-combined.js

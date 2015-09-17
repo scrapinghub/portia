@@ -8,7 +8,7 @@ import utils from '../../utils/utils';
 
 export default Ember.Component.extend(GuessTypes, {
     tagName: 'div',
-    classNameBindings: ['inDoc:in-doc', 'showAnnotation:annotation-widget'],
+    classNameBindings: ['inDoc:in-doc', 'showAnnotation:annotation-widget', 'data.suggested:suggestion'],
     fieldName: null,
     fieldType: null,
     showingBasic: true,
@@ -41,6 +41,9 @@ export default Ember.Component.extend(GuessTypes, {
             this.sendAction('edit', this.get('data'));
         },
         delete: function() {
+            if(this.get('data.suggested')) {
+                this.get('ws').logEvent('suggestions', this.get('data.suggestor'), 'rejected');
+            }
             this.get('alldata').removeObject(this.get('data'));
             this.get('sprites').removeSprite(this.get('mappedDOMElement'));
             if (this.get('mappedDOMElement') && this.get('mappedDOMElement').tagName === 'INS') {
@@ -192,7 +195,12 @@ export default Ember.Component.extend(GuessTypes, {
             } else {
                 this.mapToNewElement(data.data.element);
             }
-        }
+        },
+
+        acceptSuggestion: function(){
+            this.set('data.suggested', false);
+            this.get('ws').logEvent('suggestions', this.get('data.suggestor'), 'accepted');
+        },
     },
 
     //*******************************************************************\\
@@ -361,9 +369,10 @@ export default Ember.Component.extend(GuessTypes, {
                         return true;
                     }
                 });
+        let suggested = this.get('data.suggested');
         for (var key in annotations) {
             var fieldName = annotations[key];
-            if (fieldName && fieldName[0] !== '#') {
+            if (!suggested && fieldName && fieldName[0] !== '#') {
                 extracted.pushObject({
                     id: id,
                     name: fieldName,
@@ -496,9 +505,10 @@ export default Ember.Component.extend(GuessTypes, {
     }.property('data.ignore', 'data.annotations'),
 
     updateSprite: function() {
-        var text = [],
-            data = this.get('data'),
-            annotations = this.get('data.annotations');
+        let text = [];
+        let data = this.get('data');
+        let annotations = this.get('data.annotations');
+
         if (!data || (data.ignore && !data.annotations)) {
             return;
         }
@@ -512,8 +522,13 @@ export default Ember.Component.extend(GuessTypes, {
         } else {
             text = text.join(', ');
         }
-        this.get('sprites').addSprite(this.get('mappedDOMElement'), text);
-    }.observes('sprite'),
+        if(data.suggested) {
+            text = 'Suggestion: ' + text;
+        }
+        this.get('sprites').addSprite(this.get('mappedDOMElement'), text, {
+            fillColor: data.suggested ? 'rgba(28, 171, 76, 0.4)' : this.get('sprites.fillColor'),
+        });
+    }.observes('sprite', 'data.suggested'),
 
     updateIgnore: function() {
         var data = this.get('data');
@@ -951,6 +966,13 @@ export default Ember.Component.extend(GuessTypes, {
         this.positionWidget();
         this._super();
         Ember.run.scheduleOnce('afterRender', this, this.afterRenderEvent);
+    },
+
+    willDestroyElement: function(){
+        this.get('sprites').removeSprite(this.get('mappedDOMElement'));
+        if(this.get('inDoc')) {
+            this.get('document.view').unblockInteractions('indoc-annotation');
+        }
     },
 
     afterRenderEvent: function() {
