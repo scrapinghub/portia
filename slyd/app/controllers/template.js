@@ -6,6 +6,7 @@ import Item from '../models/item';
 import ItemField from '../models/item-field';
 import SpriteStore from '../utils/sprite-store';
 import utils from '../utils/utils';
+import expetiments from '../utils/experiments';
 import { suggestAnnotations } from '../utils/suggest-annotations';
 
 export default BaseController.extend({
@@ -518,7 +519,7 @@ export default BaseController.extend({
     },
 
     suggestAnnotations: function() {
-        if (this.hasAnnotations()) {
+        if (!expetiments.enabled('suggestions') || this.hasAnnotations()) {
             return;
         }
         let docView = this.get('documentView');
