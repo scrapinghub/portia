@@ -1,5 +1,13 @@
 ;(function(){
 
+var _waitAsync = waitAsync;
+var setTimeout = waitAsync.setTimeout;
+var clearTimeout = waitAsync.clearTimeout;
+
+function log() {
+    console.log.apply(console, arguments);
+}
+
 function _select_set_value(select, value) {
     for (var i = 0, len = select.options.length; i < len; i++) {
         var option = select.options[ i ];
@@ -9,10 +17,6 @@ function _select_set_value(select, value) {
         }
     }
     select.selectedIndex = -1;
-}
-
-function log(x){
-    document.title += "\n" + x;
 }
 
 function forEach(arr, fn){
@@ -26,12 +30,12 @@ var WAIT_ASYNC_OPTS = {
 
 var actions = {
     wait: function(data, callback){
-        waitAsync.setTimeout.call(window, callback, timeout);
+        setTimeout.call(window, callback, data.timeout);
     },
     click: function(data, callback) {
         var events = ["mousemove", "mouseover", "mousedown", "mouseup", "click"];
         var elements = document.querySelectorAll(data.selector);
-        waitAsync(function(){
+        _waitAsync(function(){
             forEach(elements, function(element){
                 var clientRect = element.getBoundingClientRect();
                 var clientX = clientRect.left + clientRect.width / 2;
@@ -48,7 +52,7 @@ var actions = {
     },
     set: function(data, callback) {
         var elements = document.querySelectorAll(data.selector);
-        waitAsync(function(){
+        _waitAsync(function(){
             forEach(elements, function(element){
                 var type;
                 if(element.tagName === 'SELECT') {
@@ -79,25 +83,21 @@ function once(fn){
 function performAction(action, callback){
     callback = once(callback);
     try{
-        log('do' + action.type);
-        var tid = waitAsync.setTimeout.call(window, function(){
-            log('to' + action.type);
+        var tid = setTimeout.call(window, function(){
             callback();
         }, 2000);
         actions[action.type](action, function(){
-            waitAsync.clearTimeout.call(window, tid);
-            log('done' + action.type);
+            clearTimeout.call(window, tid);
             callback();
         });
     }catch(e){
-        log('err' + action.type + e);
         callback();
     }
 }
 
 function performEvents(eventList, callback) {
     callback = once(callback);
-    waitAsync.setTimeout.call(window, callback, 8000);
+    setTimeout.call(window, callback, 8000);
     function performNext() {
         if(eventList.length) {
             performAction(eventList.shift(), performNext);

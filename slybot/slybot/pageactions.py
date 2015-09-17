@@ -1,23 +1,15 @@
 import json
 import re
-import os
 
 LUA_SOURCE = """
 function main(splash)
     assert(splash:go(splash.args.url))
+    assert(splash:runjs(splash.args.js_source))
     assert(splash:wait_for_resume(splash.args.slybot_actions_source))
     splash:set_result_content_type("text/html")
     return splash.html()
 end
 """
-
-dir_name = os.path.dirname(__file__)
-JS_LIB = (
-    "(function(){" +
-    open(os.path.join(dir_name, 'waitAsync.js'), 'r').read() +
-    open(os.path.join(dir_name, 'perform_actions.js'), 'r').read() +
-    "})();"
-)
 
 JS_SOURCE = """
 function main(splash) {
@@ -56,7 +48,7 @@ class PageActionsMiddleware(object):
             splash_options['endpoint'] = 'execute'
             splash_args.update({
                 "lua_source": LUA_SOURCE,
-                "slybot_actions_source": JS_LIB + (JS_SOURCE % json.dumps(events)),
+                "slybot_actions_source": (JS_SOURCE % json.dumps(events)),
             })
 
 __all__ = ['PageActionsMiddleware']
