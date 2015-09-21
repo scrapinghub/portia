@@ -11,6 +11,13 @@ const Annotation = DS.Model.extend({
     selector: DS.attr('string'),
     attribute: DS.attr('string'),
 
+    // matching element in the current sample, populated when active
+    elements: [],
+
+    color: Ember.computed('orderedIndex', 'sample.annotationColors.length', function() {
+        const colors = this.get('sample.annotationColors');
+        return colors[this.get('orderedIndex')];
+    }),
     orderedIndex: Ember.computed('sample.orderedAnnotations', function() {
         return this.get('sample.orderedAnnotations').indexOf(this);
     }),

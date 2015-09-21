@@ -191,10 +191,8 @@ class StructureNode {
 export default Ember.Service.extend({
     uiState: Ember.inject.service(),
 
-    annotations: [],
-    structure: null,
-
-    computeStructure: Ember.observer('annotations.@each.elements', function() {
+    annotations: Ember.computed.readOnly('uiState.models.sample.orderedAnnotations'),
+    structure: Ember.computed('annotations', 'annotations.@each.elements', function() {
         let nodeStructure = null;
         this.get('annotations').forEach(annotation => {
             annotation.get('elements').forEach(element => {
@@ -205,18 +203,8 @@ export default Ember.Service.extend({
             });
         });
 
-        const matchStructure = nodeStructure ?
+        return nodeStructure ?
             nodeStructure.matchItems(this.get('uiState.models.sample.items')) :
             null;
-
-        this.set('structure', matchStructure);
-    }),
-
-    addAnnotation(selector) {
-        this.get('annotations').addObject(selector);
-    },
-
-    removeAnnotation(selector) {
-        this.get('annotations').removeObject(selector);
-    }
+    })
 });

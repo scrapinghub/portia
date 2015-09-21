@@ -4,7 +4,6 @@ import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
 import ItemAnnotationModel from '../models/item-annotation';
 import ToolPanel from './tool-panel';
 import {computedIsCurrentModelById} from '../services/ui-state';
-import {getColors} from '../utils/colors';
 
 
 const RootItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
@@ -20,12 +19,7 @@ const RootItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
     key: Ember.computed('id', function() {
         const id = this.get('id');
         return `item:${id}`;
-    }),
-    matches: Ember.computed('children.@each.matches', function() {
-        return Math.max(0, ...this.get('children')
-            .map(child => child.get('children') ? 0 : child.get('matches')));
-    }),
-    name: Ember.computed.readOnly('schema.name')
+    })
 });
 
 const RootItemList = Ember.Object.extend(ActiveChildrenMixin, {
@@ -38,15 +32,12 @@ const RootItemList = Ember.Object.extend(ActiveChildrenMixin, {
             container: this.get('container')
         });
     }),
-    childMatches: Ember.computed.mapBy('children', 'matches'),
-    matches: Ember.computed.sum('childMatches'),
     sample: Ember.computed.readOnly('toolPanel.sample')
 });
 
 const Annotation = InstanceCachedObjectProxy.extend({
     uiState: Ember.inject.service(),
 
-    elements: null,  // this array stores the elements matched in the viewport
     itemComponentName: 'data-structure-annotation-item',
 
     active: Ember.computed.readOnly('isCurrentAnnotation'),
@@ -55,13 +46,7 @@ const Annotation = InstanceCachedObjectProxy.extend({
         const id = this.get('id');
         const parentId = this.get('parent.id');
         return `item:${parentId}:annotation:${id}`;
-    }),
-    matches: Ember.computed.readOnly('elements.length'),
-
-    init() {
-        this._super();
-        this.set('elements', []);
-    }
+    })
 });
 
 const ItemAnnotation = RootItem.extend({
@@ -72,27 +57,27 @@ const ItemAnnotation = RootItem.extend({
         const id = this.get('id');
         const parentId = this.get('parent.id');
         return `item:${parentId}:item-annotation:${id}`;
-    }),
-    name: Ember.computed.readOnly('content.name'),  // TODO: why does 'name' not work?
-    schemaName: Ember.computed.readOnly('item.schema.name')
+    })
 });
 
 function wrapperForAnnotationModel(model) {
     return model instanceof ItemAnnotationModel ? ItemAnnotation : Annotation;
 }
 
+const AnnotationOverlay = Ember.ObjectProxy.extend({
+    overlayComponentName: 'annotation-overlay'
+});
+
 export default ToolPanel.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
+    selectorMatcher: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     annotationTree: null,
+    overlays: new Map(),
     title: 'Data structure',
     toolId: 'data-structure',
-
-    annotationColors: Ember.computed('sample.orderedAnnotations', function() {
-        const annotations = this.get('sample.orderedAnnotations');
-        return annotations ? getColors(annotations.length + 1) : [];  // +1 for hover color
-    }),
 
     init() {
         this._super();
@@ -104,11 +89,43 @@ export default ToolPanel.extend({
         ];
     },
 
-    updateHoverOverlayColor: Ember.observer('selected', 'annotationColors.length', function() {
-        if (this.get('selected')) {
-            this.set('browserOverlays.hoverOverlayColor', this.get('annotationColors.lastObject'));
+    registerSelectors: Ember.observer('sample.orderedAnnotations', function() {
+        const browserOverlays = this.get('browserOverlays');
+        const selectorMatcher = this.get('selectorMatcher');
+        const annotations = new Set(this.getWithDefault('sample.orderedAnnotations', []));
+        const lastAnnotations = new Set(this.getWithDefault('_registeredAnnotations', []));
+
+        this.beginPropertyChanges();
+        for (let annotation of lastAnnotations) {
+            if (!annotations.has(annotation)) {
+                selectorMatcher.unregister(annotation);
+                const overlay = this.overlays.get(annotation);
+                this.overlays.delete(annotation);
+                browserOverlays.removeOverlayComponent(overlay);
+                overlay.destroy();
+            }
         }
+        for (let annotation of annotations) {
+            if (!lastAnnotations.has(annotation)) {
+                selectorMatcher.register(annotation);
+                const overlay = AnnotationOverlay.create({
+                    content: annotation
+                });
+                browserOverlays.addOverlayComponent(overlay);
+                this.overlays.set(annotation, overlay);
+            }
+        }
+        this.set('_registeredAnnotations', annotations);
+        this.endPropertyChanges();
     }),
+
+    updateHoverOverlayColor: Ember.observer(
+        'selected', 'sample.annotationColors.length', function() {
+            if (this.get('selected')) {
+                this.set('browserOverlays.hoverOverlayColor',
+                    this.get('sample.annotationColors.lastObject'));
+            }
+        }),
 
     setMode: Ember.observer('selected', function() {
         const browser = this.get('browser');

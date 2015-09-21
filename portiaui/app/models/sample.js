@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import {getColors} from '../utils/colors';
 
 
 const Sample = DS.Model.extend({
@@ -7,6 +8,11 @@ const Sample = DS.Model.extend({
     spider: DS.belongsTo(),
     items: DS.hasMany({
         async: true
+    }),
+
+    annotationColors: Ember.computed('orderedAnnotations', function() {
+        const annotations = this.get('orderedAnnotations');
+        return annotations ? getColors(annotations.length + 1) : [];  // +1 for hover color
     }),
 
     orderedAnnotations: Ember.computed('items.@each.orderedAnnotations', function() {

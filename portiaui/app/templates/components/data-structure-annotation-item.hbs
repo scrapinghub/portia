@@ -1,11 +1,11 @@
-{{#link-to 'projects.project.spider.sample.annotation' item.sample.spider.project item.sample.spider item.sample item}}
-    {{#structure-list-item icon=item.type hasDetails=true remove=true}}
-        {{list-item-badge count=item.matches color=color}}
+{{#link-to 'projects.project.spider.sample.annotation' annotation.sample.spider.project annotation.sample.spider annotation.sample annotation}}
+    {{#structure-list-item icon=annotation.type hasDetails=true remove=true}}
+        {{list-item-badge count=annotation.elements.length color=annotation.color}}
         <div class="structure-list-item-main">
-            {{item.name}}
+            {{annotation.name}}
         </div>
         <div class="structure-list-item-content">
-            {{item.type}}
+            {{annotation.type}}
         </div>
     {{/structure-list-item}}
 {{/link-to}}
