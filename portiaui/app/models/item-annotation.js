@@ -8,7 +8,8 @@ const ItemAnnotation = Annotation.extend({
         async: true
     }),
 
-    orderedAnnotations: Ember.computed.readOnly('item.orderedAnnotations')
+    orderedAnnotations: Ember.computed.readOnly('item.orderedAnnotations'),
+    orderedChildren: Ember.computed.readOnly('item.orderedChildren')
 });
 
 ItemAnnotation.reopenClass({

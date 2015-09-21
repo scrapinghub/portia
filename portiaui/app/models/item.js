@@ -22,6 +22,16 @@ const Item = DS.Model.extend({
                     annotation.getWithDefault('orderedAnnotations', []) :
                     [annotation]
             )));
+        }),
+    orderedChildren: Ember.computed(
+        'annotations.[]', 'annotations.@each.orderedChildren', function() {
+            return [].concat(...this.get('annotations').map(annotation => (
+                [annotation].concat(
+                    annotation instanceof ItemAnnotation ?
+                        annotation.getWithDefault('orderedChildren', []) :
+                        []
+                )
+            )));
         })
 });
 

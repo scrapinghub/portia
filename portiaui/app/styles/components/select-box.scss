@@ -1,0 +1,11 @@
+.select-box {
+    .btn-default {
+        background-color: $input-bg !important;
+    }
+
+    &.open {
+        .btn-default {
+            border-color: $input-border-focus !important;
+        }
+    }
+}

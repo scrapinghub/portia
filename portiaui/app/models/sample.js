@@ -18,6 +18,9 @@ const Sample = DS.Model.extend({
 
     orderedAnnotations: Ember.computed('items.@each.orderedAnnotations', function() {
         return [].concat(...this.get('items').mapBy('orderedAnnotations'));
+    }),
+    orderedChildren: Ember.computed('items.@each.orderedChildren', function() {
+        return [].concat(...this.get('items').mapBy('orderedChildren'));
     })
 });
 

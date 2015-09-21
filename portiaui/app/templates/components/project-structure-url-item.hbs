@@ -1,5 +1,5 @@
 {{#structure-list-item icon='url' remove=(action 'removeStartUrl')}}
     <div class="structure-list-item-main">
-        {{item.name}}
+        {{editable-text source=(mut item.name)}}
     </div>
 {{/structure-list-item}}

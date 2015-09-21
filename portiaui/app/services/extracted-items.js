@@ -3,8 +3,10 @@ import Ember from 'ember';
 
 export default Ember.Service.extend({
     dataStructure: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
-    items: Ember.computed('dataStructure.structure', (() => {
+    annotations: Ember.computed.readOnly('uiState.models.sample.orderedChildren'),
+    items: Ember.computed('dataStructure.structure', 'annotations.@each.name', (() => {
         function extractItem(itemMatch) {
             const item = {};
 

@@ -1,0 +1,9 @@
+<button class="btn btn-default form-control dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="true" {{action 'toggleDropdown'}}>
+    {{value}}
+    <span class="caret"></span>
+</button>
+<ul class="dropdown-menu {{if alignRight 'pull-right'}}">
+    {{#each choices as |choice|}}
+        <li><a {{action 'setValue' choice}}>{{choice}}</a></li>
+    {{/each}}
+</ul>

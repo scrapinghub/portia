@@ -1,0 +1,25 @@
+.editable-text {
+    &.editing {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+    }
+
+    .fa-pencil {
+        color: $navbar-default-color;
+        cursor: pointer;
+        opacity: 0.15;
+        transition: opacity $animation-time $animation-easing;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    input {
+        $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
+        flex: 1 1 100%;
+        height: $tree-list-row-height;
+        margin: -$tree-list-caret-padding-y 0;
+    }
+}
