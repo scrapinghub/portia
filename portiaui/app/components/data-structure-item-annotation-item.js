@@ -2,9 +2,10 @@ import Ember from 'ember';
 
 
 export default Ember.Component.extend({
-    tagName: '',
-
     dataStructure: Ember.inject.service(),
+    dispatcher: Ember.inject.service(),
+
+    tagName: '',
 
     itemAnnotation: Ember.computed.readOnly('item.content'),
     numItems: Ember.computed('dataStructure.structure', (() => {
@@ -37,5 +38,12 @@ export default Ember.Component.extend({
 
             return structure ? countItems(structure, itemHierarchy, 0) : 0;
         };
-    })())
+    })()),
+
+    actions: {
+        removeItemAnnotation() {
+            const itemAnnotation = this.get('itemAnnotation');
+            this.get('dispatcher').removeItemAnnotation(itemAnnotation);
+        }
+    }
 });

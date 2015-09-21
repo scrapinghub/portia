@@ -1,5 +1,5 @@
 {{#link-to 'projects.project.spider.sample.annotation' annotation.sample.spider.project annotation.sample.spider annotation.sample annotation}}
-    {{#structure-list-item icon=annotation.type hasDetails=true remove=true}}
+    {{#structure-list-item icon=annotation.type hasDetails=true remove=(action 'removeAnnotation')}}
         {{list-item-badge count=annotation.elements.length color=annotation.color}}
         <div class="structure-list-item-main">
             {{annotation.name}}

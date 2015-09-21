@@ -34,6 +34,7 @@ function computedOverlayIncludingElement(propertyName) {
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
+    dispatcher: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
     selectorMatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
@@ -88,11 +89,11 @@ export default Ember.Component.extend({
                     routing.transitionTo(
                         'projects.project.spider.sample.annotation', models, {}, true);
                 }
+            } else if (hoveredElement) {
+                this.get('dispatcher').addAnnotation(hoveredElement);
             } else {
-                if (!hoveredElement) {
-                    const routing = this.get('routing');
-                    routing.transitionTo('projects.project.spider.sample', [], {}, true);
-                }
+                const routing = this.get('routing');
+                routing.transitionTo('projects.project.spider.sample', [], {}, true);
             }
         }
     }

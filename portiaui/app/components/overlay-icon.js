@@ -9,17 +9,5 @@ export default Ember.Component.extend({
         if (this.attrs.click) {
             this.attrs.click();
         }
-    },
-
-    mouseEnter() {
-        if (this.attrs.mouseEnter) {
-            this.attrs.mouseEnter();
-        }
-    },
-
-    mouseLeave() {
-        if (this.attrs.mouseLeave) {
-            this.attrs.mouseLeave();
-        }
     }
 });

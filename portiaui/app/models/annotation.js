@@ -15,11 +15,11 @@ const Annotation = DS.Model.extend({
     elements: [],
 
     color: Ember.computed('orderedIndex', 'sample.annotationColors.length', function() {
-        const colors = this.get('sample.annotationColors');
+        const colors = this.getWithDefault('sample.annotationColors', []);
         return colors[this.get('orderedIndex')];
     }),
     orderedIndex: Ember.computed('sample.orderedAnnotations', function() {
-        return this.get('sample.orderedAnnotations').indexOf(this);
+        return this.getWithDefault('sample.orderedAnnotations', []).indexOf(this);
     }),
     sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample')
 });

@@ -1,4 +1,4 @@
-{{#structure-list-item icon='schema' add=true remove=true}}
+{{#structure-list-item icon='schema' add=true remove=(action 'removeItemAnnotation')}}
     {{list-item-badge count=numItems}}
     <div class="structure-list-item-main">
         {{itemAnnotation.name}}

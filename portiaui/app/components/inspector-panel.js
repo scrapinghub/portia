@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import ToolPanel from './tool-panel';
+import {pathSelectorFromElement} from '../utils/selectors';
 
 
 export const IGNORED_ATTRIBUTES = new Set([
@@ -18,6 +19,7 @@ export function getAttributeList(element) {
     if (textContent) {
         attributeList.push({
             name: $element.attr('content') ? 'text content' : 'content',
+            attribute: null,
             value: textContent
         });
     }
@@ -37,6 +39,7 @@ export function getAttributeList(element) {
                 attribute.value) {
             attributeList.push({
                 name: attribute.nodeName,
+                attribute: attribute.nodeName,
                 value: mappedAttributes[attribute.nodeName] || attribute.value
             });
         }
@@ -56,12 +59,11 @@ export default ToolPanel.extend({
         return getAttributeList(this.get('inspectedElement'));
     }),
     elementPath: Ember.computed('inspectedElement', function() {
-        var element = this.get('inspectedElement');
+        const element = this.get('inspectedElement');
         if (!element) {
             return '';
         }
-        var elements = [element].concat(Ember.$(element).parents().not('html').toArray());
-        return elements.reverse().map(element => element.tagName.toLowerCase()).join(' > ');
+        return pathSelectorFromElement(element);
     }),
     inspectedElement: Ember.computed.or(
         'uiState.viewPort.hoveredElement', 'uiState.viewPort.selectedElement')

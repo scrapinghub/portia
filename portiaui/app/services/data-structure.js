@@ -194,7 +194,7 @@ export default Ember.Service.extend({
     annotations: Ember.computed.readOnly('uiState.models.sample.orderedAnnotations'),
     structure: Ember.computed('annotations', 'annotations.@each.elements', function() {
         let nodeStructure = null;
-        this.get('annotations').forEach(annotation => {
+        (this.get('annotations') || []).forEach(annotation => {
             annotation.get('elements').forEach(element => {
                 const newNode = nodeStructure ?
                     nodeStructure.add(element) :
@@ -205,6 +205,6 @@ export default Ember.Service.extend({
 
         return nodeStructure ?
             nodeStructure.matchItems(this.get('uiState.models.sample.items')) :
-            null;
+            [];
     })
 });

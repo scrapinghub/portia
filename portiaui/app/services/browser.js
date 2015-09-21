@@ -12,7 +12,7 @@ export default Ember.Service.extend({
     forwardBuffer: [],
     loading: false,
     mode: DEFAULT_MODE,
-    url: 'owlkingdom.com',
+    url: null,
 
     isInteractionMode: Ember.computed('mode', function() {
         return INTERACTION_MODES.has(this.get('mode'));

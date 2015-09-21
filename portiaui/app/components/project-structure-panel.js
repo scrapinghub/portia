@@ -41,18 +41,20 @@ const SpiderItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
     sampleList: null,
 
     active: Ember.computed.readOnly('isCurrentSpider'),
-    children: Ember.computed('startUrls', 'samples', function() {
+    children: Ember.computed('startUrls.[]', function() {
         const id = this.get('id');
         const urls = this.get('startUrls');
         var urlsItem = {
             itemComponentName: 'project-structure-url-root-item',
-            key: `spider:${id}:urls`
+            key: `spider:${id}:urls`,
+            spider: this
         };
         if (urls && urls.length) {
             urlsItem.children = urls.map(url => ({
                 itemComponentName: 'project-structure-url-item',
                 key: `spider:${id}:url:${url}`,
-                name: url
+                name: url,
+                spider: this
             }));
         }
         return [urlsItem, this.sampleList];

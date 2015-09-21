@@ -1,5 +1,5 @@
 {{#link-to 'projects.project.spider.sample' item.spider.project item.spider item}}
-    {{#structure-list-item icon='sample' hasDetails=true remove=true}}
+    {{#structure-list-item icon='sample' hasDetails=true remove=(action 'removeSample')}}
         <div class="structure-list-item-main">
             {{item.name}}
         </div>

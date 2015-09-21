@@ -2,7 +2,7 @@
     <div class="overlay-box-background" style={{backgroundStyle}}></div>
 </div>
 <div class="overlay-icons">
-    {{overlay-icon class="fa fa-plus-circle"}}
-    {{overlay-icon class="fa fa-minus-circle"}}
+    {{overlay-icon class="fa fa-plus-circle" click=(action 'addAnnotation')}}
+    {{overlay-icon class="fa fa-minus-circle" click=(action 'removeAnnotation')}}
     {{overlay-icon class="portia-icon portia-icon-selector"}}
 </div>

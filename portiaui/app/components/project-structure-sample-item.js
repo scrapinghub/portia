@@ -1,4 +1,13 @@
 import Ember from 'ember';
 
+
 export default Ember.Component.extend({
+    dispatcher: Ember.inject.service(),
+
+    actions: {
+        removeSample() {
+            const sample = this.get('item.content');
+            this.get('dispatcher').removeSample(sample);
+        }
+    }
 });

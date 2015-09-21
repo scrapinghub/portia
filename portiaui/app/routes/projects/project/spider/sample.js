@@ -1,8 +1,14 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+    browser: Ember.inject.service(),
+
     model(params) {
         return this.store.findRecord('sample', params.sample_id);
+    },
+
+    afterModel(model) {
+        this.set('browser.url', model.get('url'));
     },
 
     renderTemplate() {

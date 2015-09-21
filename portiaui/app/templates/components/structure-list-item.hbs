@@ -7,7 +7,7 @@
         <i class="structure-list-details fa fa-cog"></i>
     {{/if}}
     {{#if attrs.add}}
-        <i class="structure-list-add fa fa-plus-circle" {{action (action attrs.add) bubbles=false}}></i>
+        <i class="structure-list-add fa fa-plus-circle {{if attrs.hideAdd 'hide'}}" {{action (action attrs.add) bubbles=false}}></i>
     {{/if}}
     {{#if attrs.remove}}
         <i class="structure-list-remove fa fa-minus-circle" {{action (action attrs.remove) bubbles=false}}></i>
