@@ -1,5 +1,5 @@
 {{#link-to 'projects.project.spider' item.project item current-when='projects.project.spider.index'}}
-    {{#structure-list-item icon='spider' hasDetails=true remove=true}}
+    {{#structure-list-item icon='spider' hasDetails=true remove=(action 'removeSpider')}}
         <div class="structure-list-item-main">
             {{editable-text source=(mut item.name)}}
         </div>

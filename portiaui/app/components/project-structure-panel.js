@@ -59,7 +59,9 @@ const SpiderItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
         }
         return [urlsItem, this.sampleList];
     }),
-    collapsed: Ember.computed.not('isCurrentSpider'),
+    collapsed: Ember.computed('isCurrentSpider', 'created', function() {
+        return !this.get('isCurrentSpider') && !this.get('created');
+    }),
     doNotRenderCollapsedChildren: Ember.computed.not('isCurrentSpider'),
     isCurrentSpider: computedIsCurrentModelById('spider'),
     key: Ember.computed('id', function() {
@@ -74,6 +76,19 @@ const SpiderItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
             container: this.get('container')
         });
     }
+});
+
+const SpiderList = Ember.Object.extend(ActiveChildrenMixin, {
+    itemComponentName: 'project-structure-spider-root-item',
+    key: 'spiders',
+
+    children: Ember.computed.map('project.spiders', function(spider) {
+        return SpiderItem.create({
+            content: spider,
+            container: this.get('container')
+        });
+    }),
+    project: Ember.computed.readOnly('toolPanel.project')
 });
 
 const SchemaItem = InstanceCachedObjectProxy.extend({
@@ -107,20 +122,20 @@ export default ToolPanel.extend({
     tabComponentName: 'project-structure-tab',
     toolId: 'project-structure',
 
-    projectTree: Ember.computed('project', 'project.spiders', function() {
-        const items = this.get('project.spiders').map(spider => SpiderItem.create({
-            content: spider,
-            container: this.get('container')
-        }));
-        items.push(this.schemaList);
-        return items;
-    }),
+    projectTree: null,
 
     init() {
         this._super();
-        this.schemaList = SchemaList.create({
-            toolPanel: this,
-            container: this.get('container')
-        });
+        const container = this.get('container');
+        this.set('projectTree', [
+            SpiderList.create({
+                toolPanel: this,
+                container: container
+            }),
+            SchemaList.create({
+              toolPanel: this,
+                container: container
+            })
+        ]);
     }
 });

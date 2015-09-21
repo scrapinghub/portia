@@ -24,8 +24,32 @@ export default Ember.Service.extend({
     store: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
+    addSpider() {
+        const url = this.get('browser.url');
+        if (!url) {
+            return;
+        }
+
+        const store = this.get('store');
+        const project = this.get('uiState.models.project');
+        const spider = store.createRecord('spider', {
+            name: url,
+            project: project,
+            startUrls: [url]
+        });
+        spider.save().then(() => {
+            const routing = this.get('routing');
+            routing.transitionTo('projects.project.spider', [spider.get('id')], {}, true);
+        });
+        spider.set('created', true);
+    },
+
     addStartUrl(spider) {
         const url = this.get('browser.url');
+        if (!url) {
+            return;
+        }
+
         spider.get('startUrls').pushObject(url);
         spider.save();
     },
@@ -76,7 +100,7 @@ export default Ember.Service.extend({
         });
     },
 
-    addAnnotation(element) {
+    addAnnotation(element, attribute) {
         const store = this.get('store');
         const item = this.get('uiState.models.sample.items.firstObject');
         const annotation = store.createRecord('annotation', {
@@ -85,9 +109,13 @@ export default Ember.Service.extend({
             type: 'text',
             selector: uniquePathSelectorFromElement(element)
         });
-        const attributes = getAttributeList(element);
-        if (attributes.length === 1 && attributes[0].attribute) {
-            annotation.attribute = attributes[0].attribute;
+        if (attribute !== undefined) {
+            annotation.attribute = attribute;
+        } else {
+            const attributes = getAttributeList(element);
+            if (attributes.length === 1 && attributes[0].attribute) {
+                annotation.attribute = attributes[0].attribute;
+            }
         }
         if (element.tagName.toLowerCase() === 'img') {
             annotation.type = 'image';
@@ -98,6 +126,23 @@ export default Ember.Service.extend({
             routing.transitionTo('projects.project.spider.sample.annotation',
                 [annotation.get('id')], {}, true);
         });
+    },
+
+    changeAnnotationSource(attribute) {
+        const annotation = this.get('uiState.models.annotation');
+        if (annotation) {
+            annotation.set('attribute', attribute);
+            annotation.save();
+        }
+    },
+
+    removeSpider(spider) {
+        const currentSpider = this.get('uiState.models.spider');
+        if (spider === currentSpider) {
+            const routing = this.get('routing');
+            routing.transitionTo('projects.project', [], {}, true);
+        }
+        spider.destroyRecord();
     },
 
     removeStartUrl(url, spider) {

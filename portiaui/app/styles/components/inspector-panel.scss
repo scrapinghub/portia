@@ -7,6 +7,10 @@
         width: 100%;
     }
 
+    tr {
+        cursor: pointer;
+    }
+
     > div,
     td {
         padding: $inspector-line-padding-y 0;
@@ -27,7 +31,24 @@
             width: 100%;
         }
 
-        > span {
+        > div {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+
+            > div {
+                &:first-child {
+                    flex: 1 1 auto;
+                    position: relative;
+                }
+
+                &:last-child {
+                    padding-left: $line-height-computed;
+                }
+            }
+        }
+
+        span {
             position: absolute;
             left: 0;
             right: 0;
@@ -35,5 +56,9 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+    }
+
+    .structure-list-add {
+        opacity: 1;
     }
 }

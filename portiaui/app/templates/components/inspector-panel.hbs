@@ -1,10 +1,23 @@
 <div>{{elementPath}}</div>
 <table>
     {{#each attributes as |attribute|}}
-        <tr>
+        <tr {{action 'changeAnnotationSource' attribute.attribute}}>
             <td>{{attribute.name}}</td>
             <td>
-                <span>{{attribute.value}}</span>
+                <div>
+                    <div>
+                        <span>{{attribute.value}}</span>
+                    </div>
+                    {{#with (attribute-annotation inspectedElement attribute.attribute annotations) as |annotation|}}
+                        <div>
+                        {{#if annotation.name}}
+                            {{annotation.name}}
+                        {{else}}
+                            <i class="structure-list-add fa fa-plus-circle" {{action 'addAnnotation' attribute.attribute bubbles=false}}></i>
+                        {{/if}}
+                        </div>
+                    {{/with}}
+                </div>
             </td>
         </tr>
     {{/each}}

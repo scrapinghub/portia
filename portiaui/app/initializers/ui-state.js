@@ -1,6 +1,8 @@
 export function initialize(container, application) {
     application.inject('service:ui-state', 'router', 'router:main');
     application.inject('service:ui-state',
+        'projectRoute', 'route:projects/project');
+    application.inject('service:ui-state',
         'spiderRoute', 'route:projects/project/spider');
     application.inject('service:ui-state',
         'sampleRoute', 'route:projects/project/spider/sample');

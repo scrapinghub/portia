@@ -48,6 +48,7 @@ export function getAttributeList(element) {
 }
 
 export default ToolPanel.extend({
+    dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
     classNames: ['inspector', 'container-fluid'],
@@ -55,7 +56,8 @@ export default ToolPanel.extend({
     title: 'Inspector',
     toolId: 'inspector',
 
-    attributes: Ember.computed('inspectedElement', function() {
+    annotations: Ember.computed.readOnly('sample.orderedAnnotations'),
+    attributes: Ember.computed('inspectedElement', 'annotations.@each.attribute', function() {
         return getAttributeList(this.get('inspectedElement'));
     }),
     elementPath: Ember.computed('inspectedElement', function() {
@@ -66,5 +68,15 @@ export default ToolPanel.extend({
         return pathSelectorFromElement(element);
     }),
     inspectedElement: Ember.computed.or(
-        'uiState.viewPort.hoveredElement', 'uiState.viewPort.selectedElement')
+        'uiState.viewPort.hoveredElement', 'uiState.viewPort.selectedElement'),
+
+    actions: {
+        addAnnotation(attribute) {
+            this.get('dispatcher').addAnnotation(this.get('inspectedElement'), attribute);
+        },
+
+        changeAnnotationSource(attribute) {
+            this.get('dispatcher').changeAnnotationSource(attribute);
+        }
+    }
 });

@@ -27,6 +27,7 @@ export function computedIsCurrentModelById(modelName, idProperty = 'id') {
 
 export default Ember.Service.extend({
     models: computedRouteModels({
+        project: 'projectRoute',
         spider: 'spiderRoute',
         sample: 'sampleRoute',
         annotation: 'annotationRoute',
