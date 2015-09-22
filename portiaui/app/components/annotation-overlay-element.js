@@ -39,6 +39,18 @@ export default Ember.Component.extend({
         removeAnnotation() {
             const annotation = this.get('annotation');
             this.get('dispatcher').removeAnnotation(annotation);
+        },
+
+        enterSelectionMode() {
+            this.get('dispatcher').enterSelectionMode();
+        },
+
+        exitSelectionModeAndSave() {
+            this.get('dispatcher').exitSelectionMode(/* save = */true);
+        },
+
+        exitSelectionModeAndRollback() {
+            this.get('dispatcher').exitSelectionMode(/* save = */false);
         }
     }
 });

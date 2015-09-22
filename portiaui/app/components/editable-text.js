@@ -21,7 +21,7 @@ export default Ember.Component.extend({
                 value: this.get('source')
             });
             Ember.run.schedule('afterRender', () => {
-                this.$('input').focus();
+                this.$('input').focus().select();
             });
         },
 

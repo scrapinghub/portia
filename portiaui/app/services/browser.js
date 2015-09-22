@@ -12,10 +12,20 @@ export default Ember.Service.extend({
     forwardBuffer: [],
     loading: false,
     mode: DEFAULT_MODE,
-    url: null,
+    _url: null,
 
     isInteractionMode: Ember.computed('mode', function() {
         return INTERACTION_MODES.has(this.get('mode'));
+    }),
+    url: Ember.computed('_url', {
+        get() {
+            return this.get('_url');
+        },
+
+        set(key, value) {
+            this.go(value);
+            return value;
+        }
     }),
     $document: Ember.computed('document', function() {
         const document = this.get('document');
@@ -23,18 +33,23 @@ export default Ember.Service.extend({
     }),
 
     go(url) {
-        this.beginPropertyChanges();
-        this.get('backBuffer').pushObject(this.get('url'));
-        this.set('url', url);
-        this.set('forwardBuffer', []);
-        this.endPropertyChanges();
+        const currentUrl = this.get('_url');
+        if (url && url !== currentUrl) {
+            this.beginPropertyChanges();
+            if (currentUrl) {
+                this.get('backBuffer').pushObject(currentUrl);
+            }
+            this.set('_url', url);
+            this.set('forwardBuffer', []);
+            this.endPropertyChanges();
+        }
     },
 
     back() {
         if (this.get('backBuffer.length')) {
             this.beginPropertyChanges();
-            this.get('forwardBuffer').pushObject(this.get('url'));
-            this.set('url', this.get('backBuffer').popObject());
+            this.get('forwardBuffer').pushObject(this.get('_url'));
+            this.set('_url', this.get('backBuffer').popObject());
             this.endPropertyChanges();
         }
     },
@@ -42,8 +57,8 @@ export default Ember.Service.extend({
     forward() {
         if (this.get('forwardBuffer.length')) {
             this.beginPropertyChanges();
-            this.get('backBuffer').pushObject(this.get('url'));
-            this.set('url', this.get('forwardBuffer').popObject());
+            this.get('backBuffer').pushObject(this.get('_url'));
+            this.set('_url', this.get('forwardBuffer').popObject());
             this.endPropertyChanges();
         }
     },

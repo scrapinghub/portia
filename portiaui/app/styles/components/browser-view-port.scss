@@ -113,6 +113,7 @@ $overlay-icon-center-angle: $PI / 4;
     top: 0;
     left: 0;
     z-index: 1;
+    transition: opacity ($animation-time / 2) $animation-easing-in;
 
     .group-hovered &,
     .group-selected &,
@@ -126,6 +127,18 @@ $overlay-icon-center-angle: $PI / 4;
     &.selected {
         .overlay-box-background {
             opacity: 0.8;
+        }
+    }
+
+    .is-selection-mode:not(.group-selected) & {
+        opacity: 0;
+    }
+
+    .is-selection-mode & {
+        &.hovered {
+            .overlay-box-background {
+                opacity: 0.15;
+            }
         }
     }
 

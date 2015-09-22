@@ -47,6 +47,15 @@ export default Ember.Component.extend({
 
     hoveredElement: Ember.computed.alias('uiState.viewPort.hoveredElement'),
     hoveredOverlay: computedOverlayIncludingElement('hoveredElement'),
+    hoverOverlayColor: Ember.computed(
+        'browserOverlays.hoverOverlayColor', 'isSelectionMode',
+        'selectedOverlay.color', function() {
+            const hoverOverlayColor = this.get('browserOverlays.hoverOverlayColor');
+            const isSelectionMode = this.get('isSelectionMode');
+            const selectedOverlayColor = this.get('selectedOverlay.color');
+            return isSelectionMode ? selectedOverlayColor : hoverOverlayColor;
+        }),
+    isSelectionMode: Ember.computed.readOnly('uiState.routes.selection'),
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
     selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),
     selectedOverlay: computedOverlayIncludingElement('selectedElement'),
@@ -81,8 +90,15 @@ export default Ember.Component.extend({
             const hoveredElement = this.get('hoveredElement');
             const hoveredOverlay = this.get('hoveredOverlay');
             const selectedOverlay = this.get('selectedOverlay');
-            this.set('selectedElement', hoveredElement);
-            if (hoveredOverlay) {
+            if (this.get('isSelectionMode')) {
+                if (selectedOverlay === hoveredOverlay) {
+                    this.get('dispatcher').removeElementFromAnnotation(hoveredElement);
+                } else if (hoveredElement) {
+                    this.set('selectedElement', hoveredElement);
+                    this.get('dispatcher').addElementToAnnotation(hoveredElement);
+                }
+            } else if (hoveredOverlay) {
+                this.set('selectedElement', hoveredElement);
                 if (hoveredOverlay !== selectedOverlay) {
                     const routing = this.get('routing');
                     const models = [hoveredOverlay.get('id')];
@@ -90,8 +106,10 @@ export default Ember.Component.extend({
                         'projects.project.spider.sample.annotation', models, {}, true);
                 }
             } else if (hoveredElement) {
+                this.set('selectedElement', hoveredElement);
                 this.get('dispatcher').addAnnotation(hoveredElement);
             } else {
+                this.set('selectedElement', null);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.spider.sample', [], {}, true);
             }

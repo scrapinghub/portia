@@ -1,9 +1,9 @@
 <div class="overlay-container">
     {{#each overlays key="@identity" as |overlay|}}
-        {{component overlay.overlayComponentName overlay=overlay hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay}}
+        {{component overlay.overlayComponentName overlay=overlay hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay isSelectionMode=isSelectionMode}}
     {{/each}}
     {{#if browser.isInteractionMode}}
-        {{hover-overlay viewPortElement=hoveredElement hoveredOverlay=hoveredOverlay color=browserOverlays.hoverOverlayColor}}
+        {{hover-overlay viewPortElement=hoveredElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay isSelectionMode=isSelectionMode color=hoverOverlayColor}}
     {{/if}}
 </div>
 {{browser-iframe clickHandler=(action 'viewPortClick')}}

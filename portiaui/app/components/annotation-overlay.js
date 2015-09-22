@@ -3,7 +3,7 @@ import {computedPropertiesEqual} from '../utils/computed';
 
 
 export default Ember.Component.extend({
-    classNameBindings: ['groupHovered', 'groupSelected'],
+    classNameBindings: ['groupHovered', 'groupSelected', 'isSelectionMode'],
 
     annotation: Ember.computed.readOnly('overlay.content'),
     color: Ember.computed.readOnly('annotation.color'),

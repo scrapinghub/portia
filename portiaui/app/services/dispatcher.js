@@ -190,5 +190,37 @@ export default Ember.Service.extend({
             routing.transitionTo('projects.project.spider.sample', [], {}, true);
         }
         annotation.destroyRecord();
+    },
+
+    enterSelectionMode() {
+        const routing = this.get('routing');
+        routing.transitionTo('projects.project.spider.sample.annotation.selection', [], {}, true);
+    },
+
+    exitSelectionMode(save = true) {
+        const currentAnnotation = this.get('uiState.models.annotation');
+        const routing = this.get('routing');
+        if (save) {
+            currentAnnotation.save();
+        } else {
+            currentAnnotation.rollbackAttributes();
+        }
+        routing.transitionTo('projects.project.spider.sample.annotation', [], {}, true);
+    },
+
+    addElementToAnnotation(element) {
+        const currentAnnotation = this.get('uiState.models.annotation');
+        const currentSelector = currentAnnotation.get('selector');
+        const elementSelector = uniquePathSelectorFromElement(element);
+        currentAnnotation.set('selector', `${currentSelector}, ${elementSelector}`);
+    },
+
+    removeElementFromAnnotation(element) {
+        const currentAnnotation = this.get('uiState.models.annotation');
+        const currentSelector = currentAnnotation.get('selector');
+        const elementSelector = uniquePathSelectorFromElement(element);
+        currentAnnotation.set('selector', currentSelector.replace(`${elementSelector}, `, '')
+                                                         .replace(`, ${elementSelector}`, '')
+                                                         .replace(elementSelector, ''));
     }
 });

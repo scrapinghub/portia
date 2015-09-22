@@ -44,7 +44,7 @@
 }
 
 .structure-list-details {
-    .active & {
+    .active:not(.child-active) & {
         opacity: 1;
     }
 }

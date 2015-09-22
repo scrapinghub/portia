@@ -1,6 +1,21 @@
 import Ember from 'ember';
 
 
+function computedActiveRoutes(mapping) {
+    const properties = Object.keys(mapping);
+    return Ember.computed(
+        'router.currentState', ...properties.map(key => mapping[key]), function() {
+            const activeRoutes = {};
+            const currentRouteName = this.get('router.currentRouteName');
+            properties.forEach(property => {
+                const routeProperty = mapping[property];
+                const routeName = this.get(`${routeProperty}.routeName`);
+                activeRoutes[property] = currentRouteName.startsWith(routeName);
+            });
+            return activeRoutes;
+        });
+}
+
 function computedRouteModels(mapping) {
     const properties = Object.keys(mapping);
     return Ember.computed(
@@ -31,6 +46,14 @@ export default Ember.Service.extend({
         spider: 'spiderRoute',
         sample: 'sampleRoute',
         annotation: 'annotationRoute',
+        schema: 'schemaRoute'
+    }),
+    routes: computedActiveRoutes({
+        project: 'projectRoute',
+        spider: 'spiderRoute',
+        sample: 'sampleRoute',
+        annotation: 'annotationRoute',
+        selection: 'selectionRoute',
         schema: 'schemaRoute'
     }),
     selectedTools: {},

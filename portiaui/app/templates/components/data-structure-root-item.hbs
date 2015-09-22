@@ -1,4 +1,4 @@
-{{#structure-list-item icon='schema' add=true remove=(action 'removeItem')}}
+{{#structure-list-item icon='schema' add=false remove=(action 'removeItem')}}
     {{list-item-badge count=numItems}}
     <div class="structure-list-item-main">
         {{editable-text source=(mut item.schema.name)}}
