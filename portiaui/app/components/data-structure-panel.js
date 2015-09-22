@@ -68,14 +68,13 @@ const AnnotationOverlay = Ember.ObjectProxy.extend({
     overlayComponentName: 'annotation-overlay'
 });
 
-export default ToolPanel.extend({
+const DataStructurePanel = ToolPanel.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
     selectorMatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
     annotationTree: null,
-    overlays: new Map(),
     title: 'Data structure',
     toolId: 'data-structure',
 
@@ -89,30 +88,30 @@ export default ToolPanel.extend({
         ];
     },
 
-    registerSelectors: Ember.observer('sample.orderedAnnotations', function() {
-        const browserOverlays = this.get('browserOverlays');
-        const selectorMatcher = this.get('selectorMatcher');
+    willDestroyElement() {
+        const lastAnnotations = new Set(this.getWithDefault('_registeredAnnotations', []));
+
+        this.beginPropertyChanges();
+        for (let annotation of lastAnnotations) {
+            this.removeAnnotation(annotation);
+        }
+        this.set('_registeredAnnotations', []);
+        this.endPropertyChanges();
+    },
+
+    registerAnnotations: Ember.observer('sample.orderedAnnotations', function() {
         const annotations = new Set(this.getWithDefault('sample.orderedAnnotations', []));
         const lastAnnotations = new Set(this.getWithDefault('_registeredAnnotations', []));
 
         this.beginPropertyChanges();
         for (let annotation of lastAnnotations) {
             if (!annotations.has(annotation)) {
-                selectorMatcher.unregister(annotation);
-                const overlay = this.overlays.get(annotation);
-                this.overlays.delete(annotation);
-                browserOverlays.removeOverlayComponent(overlay);
-                overlay.destroy();
+                this.removeAnnotation(annotation);
             }
         }
         for (let annotation of annotations) {
             if (!lastAnnotations.has(annotation)) {
-                selectorMatcher.register(annotation);
-                const overlay = AnnotationOverlay.create({
-                    content: annotation
-                });
-                browserOverlays.addOverlayComponent(overlay);
-                this.overlays.set(annotation, overlay);
+                this.addAnnotation(annotation);
             }
         }
         this.set('_registeredAnnotations', annotations);
@@ -134,5 +133,33 @@ export default ToolPanel.extend({
         } else {
             browser.clearAnnotationMode();
         }
-    })
+    }),
+
+    addAnnotation(annotation) {
+        const browserOverlays = this.get('browserOverlays');
+        const selectorMatcher = this.get('selectorMatcher');
+
+        selectorMatcher.register(annotation);
+        const overlay = AnnotationOverlay.create({
+            content: annotation
+        });
+        browserOverlays.addOverlayComponent(overlay);
+        DataStructurePanel.overlays.set(annotation, overlay);
+    },
+
+    removeAnnotation(annotation) {
+        const browserOverlays = this.get('browserOverlays');
+        const selectorMatcher = this.get('selectorMatcher');
+
+        selectorMatcher.unregister(annotation);
+        const overlay = DataStructurePanel.overlays.get(annotation);
+        DataStructurePanel.overlays.delete(annotation);
+        browserOverlays.removeOverlayComponent(overlay);
+        overlay.destroy();
+    }
 });
+DataStructurePanel.reopenClass({
+    overlays: new Map()
+});
+
+export default DataStructurePanel;

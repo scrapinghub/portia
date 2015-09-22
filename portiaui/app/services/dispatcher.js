@@ -4,6 +4,12 @@ import {getAttributeList} from '../components/inspector-panel';
 import {uniquePathSelectorFromElement} from '../utils/selectors';
 
 
+export function computedCanAddSpider() {
+    return Ember.computed('browser.url', function() {
+        return this.get('browser.url');
+    });
+}
+
 export function computedCanAddStartUrl(spiderPropertyName) {
     return Ember.computed('browser.url', `${spiderPropertyName}.startUrls.[]`, function() {
         const url = this.get('browser.url');
@@ -110,15 +116,15 @@ export default Ember.Service.extend({
             selector: uniquePathSelectorFromElement(element)
         });
         if (attribute !== undefined) {
-            annotation.attribute = attribute;
+            annotation.set('attribute', attribute);
         } else {
             const attributes = getAttributeList(element);
             if (attributes.length === 1 && attributes[0].attribute) {
-                annotation.attribute = attributes[0].attribute;
+                annotation.set('attribute', attributes[0].attribute);
             }
         }
         if (element.tagName.toLowerCase() === 'img') {
-            annotation.type = 'image';
+            annotation.set('type', 'image');
         }
         annotation.save().then(() => {
             this.set('uiState.viewPort.selectedElement', element);

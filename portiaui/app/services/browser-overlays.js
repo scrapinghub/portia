@@ -45,11 +45,15 @@ export default Ember.Service.extend({
     },
 
     addOverlayComponent(overlay) {
-        this.get('overlayComponents').addObject(overlay);
+        Ember.run.next(() => {
+            this.get('overlayComponents').addObject(overlay);
+        });
     },
 
     removeOverlayComponent(overlay) {
-        this.get('overlayComponents').removeObject(overlay);
+        Ember.run.next(() => {
+            this.get('overlayComponents').removeObject(overlay);
+        });
     },
 
     addElementOverlay(overlay) {

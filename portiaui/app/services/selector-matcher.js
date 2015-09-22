@@ -25,11 +25,15 @@ export default Ember.Service.extend({
     },
 
     register(client) {
-        this.clients.add(client);
+        Ember.run.next(() => {
+            this.clients.add(client);
+        });
     },
 
     unregister(client) {
-        this.clients.delete(client);
+        Ember.run.next(() => {
+            this.clients.delete(client);
+        });
     },
 
     scheduleUpdate(delay) {
