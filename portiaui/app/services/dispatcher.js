@@ -113,7 +113,7 @@ export default Ember.Service.extend({
             name: `annotation${item.get('annotations.length') + 1}`,
             parent: item,
             type: 'text',
-            selector: uniquePathSelectorFromElement(element)
+            acceptSelectors: [uniquePathSelectorFromElement(element)]
         });
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
@@ -210,17 +210,15 @@ export default Ember.Service.extend({
 
     addElementToAnnotation(element) {
         const currentAnnotation = this.get('uiState.models.annotation');
-        const currentSelector = currentAnnotation.get('selector');
-        const elementSelector = uniquePathSelectorFromElement(element);
-        currentAnnotation.set('selector', `${currentSelector}, ${elementSelector}`);
+        const selector = uniquePathSelectorFromElement(element);
+        currentAnnotation.get('acceptSelectors').addObject(selector);
+        currentAnnotation.get('rejectSelectors').removeObject(selector);
     },
 
     removeElementFromAnnotation(element) {
         const currentAnnotation = this.get('uiState.models.annotation');
-        const currentSelector = currentAnnotation.get('selector');
-        const elementSelector = uniquePathSelectorFromElement(element);
-        currentAnnotation.set('selector', currentSelector.replace(`${elementSelector}, `, '')
-                                                         .replace(`, ${elementSelector}`, '')
-                                                         .replace(elementSelector, ''));
+        const selector = uniquePathSelectorFromElement(element);
+        currentAnnotation.get('acceptSelectors').removeObject(selector);
+        currentAnnotation.get('rejectSelectors').addObject(selector);
     }
 });

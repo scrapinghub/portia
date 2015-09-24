@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import {generalizeSelectors} from '../utils/selectors';
 
 
 const Annotation = DS.Model.extend({
@@ -8,8 +9,13 @@ const Annotation = DS.Model.extend({
         inverse: 'annotations'
     }),
     type: DS.attr('string'),
-    selector: DS.attr('string'),
     attribute: DS.attr('string'),
+    acceptSelectors: DS.attr({
+        defaultValue: []
+    }),
+    rejectSelectors: DS.attr({
+        defaultValue: []
+    }),
 
     // matching element in the current sample, populated when active
     elements: [],
@@ -21,7 +27,12 @@ const Annotation = DS.Model.extend({
     orderedIndex: Ember.computed('sample.orderedAnnotations', function() {
         return this.getWithDefault('sample.orderedAnnotations', []).indexOf(this);
     }),
-    sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample')
+    sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample'),
+    selector: Ember.computed('acceptSelectors.[]', 'rejectSelectors.[]', function() {
+        const accept = this.get('acceptSelectors');
+        const reject = this.get('rejectSelectors');
+        return generalizeSelectors(accept, reject);
+    })
 });
 
 Annotation.reopenClass({
@@ -31,21 +42,31 @@ Annotation.reopenClass({
             name: 'name',
             type: 'text',
             parent: 'ti1',
-            selector: 'h3 a'
+            acceptSelectors: [
+                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > ul:nth-child(1)' +
+                ' > li:nth-child(1) > h3:nth-child(1) > a:nth-child(1)',
+                'body > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > ul:nth-child(1)' +
+                ' > li:nth-child(1) > h3:nth-child(1) > a:nth-child(1)'
+            ]
         },
         {
             id: 'a2',
             name: 'price',
             type: 'price',
             parent: 'ti1',
-            selector: '.large-4 h3'
+            acceptSelectors: [
+                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
+                ' > li:nth-child(1) > h3:nth-child(1)'
+            ]
         },
         {
             id: 'a3',
             name: 'image',
             type: 'image',
             parent: 'ti1',
-            selector: '.large-2 img',
+            acceptSelectors: [
+                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > img:nth-child(1)'
+            ],
             attribute: 'src'
         },
         {
@@ -53,21 +74,32 @@ Annotation.reopenClass({
             name: 'description',
             type: 'text',
             parent: 'ti1',
-            selector: '.large-6 li:nth-child(2)'
+            acceptSelectors: [
+                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > ul:nth-child(1)' +
+                ' > li:nth-child(2)'
+            ]
         },
         {
             id: 'a5',
             name: 'property',
             type: 'text',
             parent: 'ti2',
-            selector: '.details strong'
+            acceptSelectors: [
+                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
+                ' > li:nth-child(2) > strong:nth-child(1)',
+                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
+                ' > li:nth-child(3) > strong:nth-child(1)'
+            ]
         },
         {
             id: 'a6',
             name: 'value',
             type: 'text',
             parent: 'ti2',
-            selector: 'span'
+            acceptSelectors: [
+                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
+                ' > li:nth-child(2) > span:nth-child(2)'
+            ]
         }
     ]
 });
