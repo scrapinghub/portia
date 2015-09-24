@@ -26,6 +26,7 @@
     "ember-cli-babel": "^5.0.0",
     "ember-cli-content-security-policy": "0.4.0",
     "ember-cli-dependency-checker": "^1.0.0",
+    "ember-cli-deprecation-workflow": "^0.1.5",
     "ember-cli-htmlbars": "0.7.9",
     "ember-cli-htmlbars-inline-precompile": "^0.1.1",
     "ember-cli-ic-ajax": "0.2.1",
