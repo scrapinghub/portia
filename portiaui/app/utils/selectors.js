@@ -68,7 +68,7 @@ class SelectorStructureNode {
     }
 
     add(selector, setName) {
-        this.addParts(selector.split(' > '), setName);
+        this.addParts(selector.split(/\s*>\s*/), setName);
     }
 
     addParts(parts, setName) {
@@ -108,7 +108,6 @@ class SelectorStructureNode {
             }
         }
 
-        console.log('generalizeParts', wholeSelectors);
         return wholeSelectors;
     }
 
@@ -122,7 +121,6 @@ class SelectorStructureNode {
             for (let number of this.acceptedIndices.values()) {
                 rejected.delete(number);
             }
-            console.log(rejected.size, Array.from(rejected.values()));
             if (rejected.size || this.acceptedIndices.size < 2) {
                 for (let number of this.acceptedIndices.values()) {
                     selectors.push(`${this.tag}:nth-child(${number})`);
@@ -133,6 +131,26 @@ class SelectorStructureNode {
         }
 
         return selectors;
+    }
+
+    extractParent() {
+        const parts = [];
+        let node = this;
+        let tags;
+
+        while ((tags = Object.keys(node)).length === 1) {
+            const tag = tags[0];
+            node = node[tag];
+            if (node.acceptedIndices.has(/* undefined */)) {
+                parts.push(tag);
+            } else if (node.acceptedIndices.size === 1) {
+                parts.push(`${tag}:nth-child(${node.acceptedIndices.values().next().value})`);
+            } else {
+                break;
+            }
+        }
+
+        return parts.join(' > ');
     }
 }
 
@@ -150,14 +168,43 @@ export function generalizeSelectors(acceptSelectors, rejectSelectors) {
         }
     }
 
-    console.log('generalizeSelectors', matchStructure, matchStructure.generalize());
-
     return matchStructure.generalize();
+}
+
+export function parentSelector(selectors) {
+    const matchStructure = new SelectorStructureNode();
+
+    if (selectors) {
+        for (let multiSelector of selectors) {
+            if (multiSelector) {
+                for (let selector of multiSelector.split(/'s*,\s*/)) {
+                    matchStructure.accept(selector);
+                }
+            }
+        }
+    }
+
+    return matchStructure.extractParent();
+}
+
+export function replacePrefix(selector, newPrefix) {
+    const prefixParts = newPrefix.split(/\s*>\s*/);
+    return selector.split(/\s*,\s*/).map(selector => {
+        let parts = selector.split(/\s*>\s*/);
+        if (parts.length <= prefixParts.length) {
+            parts = prefixParts.slice(0, parts.length);
+        } else {
+            parts.splice(0, prefixParts.length, ...prefixParts);
+        }
+        return parts.join(' > ');
+    }).join(', ');
 }
 
 export default {
     pathSelectorFromElement: pathSelectorFromElement,
     pathAndClassSelectorFromElement: pathAndClassSelectorFromElement,
     uniquePathSelectorFromElement: uniquePathSelectorFromElement,
-    generalizeSelectors: generalizeSelectors
+    generalizeSelectors: generalizeSelectors,
+    parentSelector: parentSelector,
+    replacePrefix: replacePrefix
 };

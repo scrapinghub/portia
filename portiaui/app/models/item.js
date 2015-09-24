@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 import ItemAnnotation from './item-annotation';
+import {parentSelector, replacePrefix} from '../utils/selectors';
 
 
 const Item = DS.Model.extend({
@@ -32,7 +33,20 @@ const Item = DS.Model.extend({
                         []
                 )
             )));
-        })
+        }),
+    generalizedSelector: Ember.computed(
+        'annotations.[]', 'annotations.@each.generalizedSelector', function() {
+            return parentSelector(
+                this.getWithDefault('annotations', []).mapBy('generalizedSelector'));
+        }),
+    selector: Ember.computed('generalizedSelector', 'itemAnnotation.parent.selector', function() {
+        let selector = this.get('generalizedSelector');
+        const parent = this.get('itemAnnotation.parent.selector');
+        if (parent) {
+            selector = replacePrefix(selector, parent);
+        }
+        return selector;
+    })
 });
 
 Item.reopenClass({

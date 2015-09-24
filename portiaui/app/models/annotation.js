@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-import {generalizeSelectors} from '../utils/selectors';
+import {generalizeSelectors, replacePrefix} from '../utils/selectors';
 
 
 const Annotation = DS.Model.extend({
@@ -11,10 +11,14 @@ const Annotation = DS.Model.extend({
     type: DS.attr('string'),
     attribute: DS.attr('string'),
     acceptSelectors: DS.attr({
-        defaultValue: []
+        defaultValue() {
+            return [];
+        }
     }),
     rejectSelectors: DS.attr({
-        defaultValue: []
+        defaultValue() {
+            return [];
+        }
     }),
 
     // matching element in the current sample, populated when active
@@ -28,10 +32,15 @@ const Annotation = DS.Model.extend({
         return this.getWithDefault('sample.orderedAnnotations', []).indexOf(this);
     }),
     sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample'),
-    selector: Ember.computed('acceptSelectors.[]', 'rejectSelectors.[]', function() {
+    generalizedSelector: Ember.computed('acceptSelectors.[]', 'rejectSelectors.[]', function() {
         const accept = this.get('acceptSelectors');
         const reject = this.get('rejectSelectors');
         return generalizeSelectors(accept, reject);
+    }),
+    selector: Ember.computed('generalizedSelector', 'parent.selector', function() {
+        const selector = this.get('generalizedSelector');
+        const parentSelector = this.get('parent.selector');
+        return replacePrefix(selector, parentSelector);
     })
 });
 
