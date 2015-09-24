@@ -1,22 +1,16 @@
 .extracted-item-table {
-    margin-bottom: $line-height-computed;
+    &,
+    table {
+        margin-bottom: $line-height-computed;
 
-    & & {
-        margin-left: 20px;
-
-        &:first-of-type {
-            margin-top: $line-height-computed / 2;
+        &:last-of-type {
+            margin-bottom: 0;
         }
-    }
 
-    &:last-of-type {
-        margin-bottom: 0;
-    }
-
-    &:not(:last-of-type) {
-        > tr {
+        &:not(:last-of-type) > tr,
+        tr:not(:last-of-type) {
             > td {
-                > .extracted-item-table {
+                > table {
                     &:last-of-type {
                         margin-bottom: $line-height-computed;
                     }
@@ -25,11 +19,23 @@
         }
     }
 
+    table {
+        margin-left: 20px;
+
+        &:first-of-type {
+            margin-top: $line-height-computed;
+        }
+
+        &:not(.extracted-item-table):not(:last-of-type) {
+            margin-bottom: 0;
+        }
+    }
+
     td {
         vertical-align: top;
         color: $text-color;
 
-        &:first-child {
+        &:not(:last-child) {
             padding-right: $line-height-computed;
             color: $text-muted;
         }
