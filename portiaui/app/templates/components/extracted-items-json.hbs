@@ -1,0 +1,32 @@
+{{#if (is-object-or-array json) ~}}
+    {{#if showOpen ~}}
+        <b>{{openingCharacter}}</b>
+        {{~#if openChild ~}}
+            <br>
+            <b>{{depthPlus1Spaces}}{{openChild}}</b>
+            {{~#if (is-object json)}}
+                <br>
+            {{/if~}}
+        {{/if}}
+    {{~/if}}
+    {{#if (is-array json) ~}}
+        {{#each json as |value index| ~}}
+            {{#if fromKey}}{{#unless index}}<br>{{/unless}}{{/if}}
+            {{extracted-items-json json=value position=index from='array' parent=json depth=depth ~}}
+        {{~/each}}
+    {{else if (is-object json) ~}}
+        {{#each-in-with-index json as |key value index| ~}}
+            {{#if fromKey}}{{#unless index}}<br>{{/unless}}{{/if}}
+            <span class="json-key">{{depthPlus1Spaces}}"{{key}}": </span>
+            {{~extracted-items-json json=value position=index from='key' parent=json depth=depth key=key ~}}
+        {{~/each-in-with-index}}
+    {{~/if}}
+    <b>{{depthSpaces}}{{closingCharacter}}{{comma}}</b>
+    {{~#if openSibling ~}}
+        <br>
+        <b>{{depthSpaces}}{{openSibling}}</b>
+    {{~/if ~}}
+    <br>
+{{else ~}}
+    {{extracted-items-json-value value=json depth=depth position=position maxPosition=maxPosition key=key from=from ~}}<br>
+{{~/if}}
