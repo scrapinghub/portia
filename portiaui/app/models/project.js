@@ -10,26 +10,4 @@ const Project =  DS.Model.extend({
     })
 });
 
-Project.reopenClass({
-    FIXTURES: [
-        {
-            id: 'p1',
-            name: 'project1',
-            spiders: [
-                's1'
-            ],
-            schemas: [
-                'i1',
-                'i2'
-            ]
-        },
-        {
-            id: 'p2',
-            name: 'project2',
-            spiders: [],
-            schemas: []
-        }
-    ]
-});
-
 export default Project;

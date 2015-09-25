@@ -16,6 +16,11 @@ export default Ember.Component.extend({
         removeItem() {
             const item = this.get('item.content');
             this.get('dispatcher').removeItem(item);
+        },
+
+        saveSchema() {
+            const schema = this.get('item.schema.content');
+            schema.save();
         }
     }
 });

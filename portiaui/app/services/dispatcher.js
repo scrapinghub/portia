@@ -45,7 +45,7 @@ export default Ember.Service.extend({
         });
         spider.save().then(() => {
             const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider', [spider.get('id')], {}, true);
+            routing.transitionTo('projects.project.spider', [spider], {}, true);
         });
         spider.set('created', true);
     },
@@ -74,20 +74,20 @@ export default Ember.Service.extend({
             spider: spider
         });
         sample.save().then(() => {
-            let schema = store.createRecord('schema', {
+            const schema = store.createRecord('schema', {
                 name: name,
                 project: spider.get('project')
             });
             schema.save().then(() => {
-                store.createRecord('item', {
+                const item = store.createRecord('item', {
                     sample: sample,
                     schema: schema
                 });
+                item.save();
             });
 
             const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider.sample',
-                [spider.get('id'), sample.get('id')], {}, true);
+            routing.transitionTo('projects.project.spider.sample', [spider, sample], {}, true);
        });
     },
 
@@ -99,10 +99,11 @@ export default Ember.Service.extend({
             project: sample.get('spider.project')
         });
         schema.save().then(() => {
-            store.createRecord('item', {
+            const item = store.createRecord('item', {
                 sample: sample,
                 schema: schema
             });
+            item.save();
         });
     },
 
@@ -130,7 +131,7 @@ export default Ember.Service.extend({
             this.set('uiState.viewPort.selectedElement', element);
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.annotation',
-                [annotation.get('id')], {}, true);
+                [annotation], {}, true);
         });
     },
 
@@ -153,6 +154,13 @@ export default Ember.Service.extend({
 
     removeStartUrl(url, spider) {
         spider.get('startUrls').removeObject(url);
+        spider.save();
+    },
+
+    replaceStartUrl(oldUrl, newUrl, spider) {
+        const urls = spider.get('startUrls');
+        urls.removeObject(oldUrl);
+        urls.addObject(newUrl);
         spider.save();
     },
 

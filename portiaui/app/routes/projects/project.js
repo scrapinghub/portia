@@ -5,6 +5,11 @@ export default Ember.Route.extend({
         return this.store.findRecord('project', params.project_id);
     },
 
+    afterModel() {
+        this.store.findAll('spider');
+        this.store.findAll('schema');
+    },
+
     setupController: function(controller, model) {
         this._super(controller, model);
         controller.set('projects', this.controllerFor('projects'));
@@ -25,5 +30,11 @@ export default Ember.Route.extend({
             into: 'application',
             outlet: 'side-bar'
         });
+    },
+
+    actions: {
+        error: function() {
+            this.transitionTo('projects');
+        }
     }
 });

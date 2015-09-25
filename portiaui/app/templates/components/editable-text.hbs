@@ -1,5 +1,5 @@
 {{#if editing}}
-    {{input type="text" class="form-control" value=(mut value) enter=(action 'endEditing') escape-press=(action 'cancelEditing') focus-out=(action 'cancelEditing')}}
+    {{input type="text" class="form-control" value=(mut value) enter=(action 'endEditing') escape-press=(action 'cancelEditing') focus-out=(action 'cancelEditing') spellcheck=spellcheck}}
 {{else}}
     {{source}} <i class="fa fa-pencil" {{action 'startEditing' bubbles=false}}></i>
 {{/if}}

@@ -8,6 +8,11 @@ export default Ember.Component.extend({
         removeSample() {
             const sample = this.get('item.content');
             this.get('dispatcher').removeSample(sample);
+        },
+
+        saveSample() {
+            const sample = this.get('item.content');
+            sample.save();
         }
     }
 });

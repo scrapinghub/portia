@@ -6,6 +6,7 @@ export default Ember.Component.extend({
     classNameBindings: ['editing'],
 
     editing: false,
+    spellcheck: true,
     value: null,
 
     click() {
@@ -34,6 +35,7 @@ export default Ember.Component.extend({
                 editing: false,
                 source: this.get('value')
             });
+            this.attrs.save();
         }
     }
 });

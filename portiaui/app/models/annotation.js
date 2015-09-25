@@ -10,12 +10,13 @@ const Annotation = DS.Model.extend({
     }),
     type: DS.attr('string'),
     attribute: DS.attr('string'),
-    acceptSelectors: DS.attr({
+    // json fixes error with storing ember NativeArray in indexed db
+    acceptSelectors: DS.attr('json', {
         defaultValue() {
             return [];
         }
     }),
-    rejectSelectors: DS.attr({
+    rejectSelectors: DS.attr('json', {
         defaultValue() {
             return [];
         }
@@ -42,75 +43,6 @@ const Annotation = DS.Model.extend({
         const parentSelector = this.get('parent.selector');
         return replacePrefix(selector, parentSelector);
     })
-});
-
-Annotation.reopenClass({
-    FIXTURES: [
-        {
-            id: 'a1',
-            name: 'name',
-            type: 'text',
-            parent: 'ti1',
-            acceptSelectors: [
-                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > ul:nth-child(1)' +
-                ' > li:nth-child(1) > h3:nth-child(1) > a:nth-child(1)',
-                'body > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > ul:nth-child(1)' +
-                ' > li:nth-child(1) > h3:nth-child(1) > a:nth-child(1)'
-            ]
-        },
-        {
-            id: 'a2',
-            name: 'price',
-            type: 'price',
-            parent: 'ti1',
-            acceptSelectors: [
-                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
-                ' > li:nth-child(1) > h3:nth-child(1)'
-            ]
-        },
-        {
-            id: 'a3',
-            name: 'image',
-            type: 'image',
-            parent: 'ti1',
-            acceptSelectors: [
-                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > img:nth-child(1)'
-            ],
-            attribute: 'src'
-        },
-        {
-            id: 'a4',
-            name: 'description',
-            type: 'text',
-            parent: 'ti1',
-            acceptSelectors: [
-                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(2) > ul:nth-child(1)' +
-                ' > li:nth-child(2)'
-            ]
-        },
-        {
-            id: 'a5',
-            name: 'property',
-            type: 'text',
-            parent: 'ti2',
-            acceptSelectors: [
-                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
-                ' > li:nth-child(2) > strong:nth-child(1)',
-                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
-                ' > li:nth-child(3) > strong:nth-child(1)'
-            ]
-        },
-        {
-            id: 'a6',
-            name: 'value',
-            type: 'text',
-            parent: 'ti2',
-            acceptSelectors: [
-                'body > div:nth-child(1) > div:nth-child(2) > div:nth-child(3) > ul:nth-child(1)' +
-                ' > li:nth-child(2) > span:nth-child(2)'
-            ]
-        }
-    ]
 });
 
 export default Annotation;

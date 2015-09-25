@@ -33,19 +33,7 @@ Sample.reopenClass({
             .substring(0, 48)
             .trim()
             .replace(/\s+/g, '-');
-    },
-
-    FIXTURES: [
-        {
-            id: 't1',
-            name: 'buy-owls-online',
-            url: 'owlkingdom.com',
-            spider: 's1',
-            items: [
-                'ti1'
-            ]
-        }
-    ]
+    }
 });
 
 export default Sample;

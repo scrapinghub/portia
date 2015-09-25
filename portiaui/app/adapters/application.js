@@ -1,3 +1,5 @@
-import FixtureAdapter from 'ember-data-fixture-adapter';
+import LFAdapter from 'ember-localforage-adapter/adapters/localforage';
 
-export default FixtureAdapter;
+export default LFAdapter.extend({
+    namespace: 'portia'
+});

@@ -1,5 +1,5 @@
 {{#if editing}}
-    {{select-box choices=choices value=(mut source) open=true dropdownAlign="right" change=(action 'cancelEditing') close=(action 'cancelEditing')}}
+    {{select-box choices=choices value=(mut source) open=true dropdownAlign="right" change=(action 'endEditing') close=(action 'cancelEditing')}}
 {{else}}
     <span {{action 'startEditing'}}>
         {{source}} <span class="caret"></span>

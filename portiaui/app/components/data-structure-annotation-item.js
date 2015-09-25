@@ -12,6 +12,11 @@ export default Ember.Component.extend({
         removeAnnotation() {
             const annotation = this.get('annotation');
             this.get('dispatcher').removeAnnotation(annotation);
+        },
+
+        saveAnnotation() {
+            const annotation = this.get('annotation');
+            annotation.save();
         }
     }
 });

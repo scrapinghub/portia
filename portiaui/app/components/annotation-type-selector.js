@@ -15,6 +15,11 @@ export default Ember.Component.extend({
             this.set('editing', true);
         },
 
+        endEditing() {
+            this.set('editing', false);
+            this.attrs.save();
+        },
+
         cancelEditing() {
             this.set('editing', false);
         }

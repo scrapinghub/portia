@@ -2,10 +2,10 @@
     {{#structure-list-item icon=annotation.type hasDetails=true remove=(action 'removeAnnotation')}}
         {{list-item-badge count=annotation.elements.length color=annotation.color}}
         <div class="structure-list-item-main">
-            {{editable-text source=(mut annotation.name)}}
+            {{editable-text source=(mut annotation.name) save=(action 'saveAnnotation')}}
         </div>
         <div class="structure-list-item-content">
-            {{annotation-type-selector source=(mut annotation.type)}}
+            {{annotation-type-selector source=(mut annotation.type) save=(action 'saveAnnotation')}}
         </div>
     {{/structure-list-item}}
 {{/link-to}}

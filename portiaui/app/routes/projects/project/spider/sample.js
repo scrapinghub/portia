@@ -8,6 +8,9 @@ export default Ember.Route.extend({
     },
 
     afterModel(model) {
+        this.store.findAll('item');
+        this.store.findAll('annotation');
+        this.store.findAll('item-annotation');
         this.set('browser.url', model.get('url'));
     },
 
@@ -16,5 +19,12 @@ export default Ember.Route.extend({
             into: 'projects/project/spider-tools',
             outlet: 'tool-panels'
         });
+    },
+
+    actions: {
+        error() {
+            this.transitionTo('projects.project.spider',
+                this.modelFor('projects.project.spider'));
+        }
     }
 });

@@ -14,7 +14,9 @@ export default Ember.Component.extend({
             $button.on({
                 focusout: () => {
                     Ember.run.later(() => {
-                        this.set('open', false);
+                        if (!this.isDestroyed) {
+                            this.set('open', false);
+                        }
                     }, 100);
                 },
                 keyup: (event) => {

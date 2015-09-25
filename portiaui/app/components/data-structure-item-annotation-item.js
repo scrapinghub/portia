@@ -44,6 +44,16 @@ export default Ember.Component.extend({
         removeItemAnnotation() {
             const itemAnnotation = this.get('itemAnnotation');
             this.get('dispatcher').removeItemAnnotation(itemAnnotation);
+        },
+
+        saveItemAnnotation() {
+            const itemAnnotation = this.get('itemAnnotation');
+            itemAnnotation.save();
+        },
+
+        saveSchema() {
+            const schema = this.get('itemAnnotation.item.schema');
+            schema.save();
         }
     }
 });

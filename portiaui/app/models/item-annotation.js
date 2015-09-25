@@ -13,16 +13,4 @@ const ItemAnnotation = Annotation.extend({
     generalizedSelector: Ember.computed.readOnly('item.generalizedSelector')
 });
 
-ItemAnnotation.reopenClass({
-    FIXTURES: [
-        {
-            id: 'ia1',
-            name: 'details',
-            type: 'schema',
-            parent: 'ti1',
-            item: 'ti2'
-        }
-    ]
-});
-
 export default ItemAnnotation;
