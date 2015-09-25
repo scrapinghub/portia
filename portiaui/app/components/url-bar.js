@@ -29,6 +29,7 @@ export default Ember.Component.extend({
         } else {
             browser.reload();
         }
+        return false;
     },
 
     actions: {
