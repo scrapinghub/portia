@@ -58,7 +58,7 @@ export default Ember.Component.extend({
 
     listener: null,
 
-    mode: "none", // How it responds to input events, modes are 'none', 'browse' and 'select'
+    mode: "uninitialized", // How it responds to input events, modes are 'none', 'browse' and 'select'
     useBlankPlaceholder: false,
 
     canvas: null,
@@ -94,7 +94,7 @@ export default Ember.Component.extend({
         if(options.mode && options.mode !== this.get('mode')) {
             this.set('cssEnabled', true);
             this.set('mode', options.mode);
-            this.emptyIframe();
+            Ember.run.next(this, this.emptyIframe);
             this.set('loading', false);
             this.set('currentUrl', '');
             this.set('currentFp', '');

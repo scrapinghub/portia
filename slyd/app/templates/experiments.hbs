@@ -1,0 +1,24 @@
+<div style="margin: 20px 10px 20px 10px">
+    <h2>Experiments</h2>
+    <div class="alert alert-warning">
+        <strong>Warning:</strong>
+        Experiments are features that we are considering adding to Portia. They might be unpolished, not thoughtfully tested or break in unexpected ways. If you find a bug, please let us know by using the button in the bottom right corner.
+    </div>
+    <p>&nbsp;</p>
+
+    {{#each experiment in model}}
+        <div>
+            <label>
+                {{input type="checkbox" checked=experiment.newValue}}
+                {{experiment.label}}
+            </label>
+            {{inline-help title=experiment.helpText}}
+        </div>
+    {{else}}
+        <h4>No active experiments.</h4>
+    {{/each}}
+    <p>&nbsp;</p>
+
+    {{#bs-button clicked="save" type="primary" disabled=notChanged}}Save and reload page{{/bs-button}}
+    {{#bs-button clicked="cancel" type="default"}}Cancel{{/bs-button}}
+</div>

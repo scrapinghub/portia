@@ -20,10 +20,6 @@ function set(feature, value) {
             delete localStorage['portia_enable_' + feature];
         }
     } catch(e) {} // Local Storage may throw errors if quota full
-
-    // Experiments need a reload to enable/disable. We should make sure to
-    // warn the user if we add a GUI to enable experiments.
-    location.href = location.href;
 }
 
 // Public API
