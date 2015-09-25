@@ -30,7 +30,6 @@
     "ember-cli-htmlbars": "0.7.9",
     "ember-cli-htmlbars-inline-precompile": "^0.1.1",
     "ember-cli-ic-ajax": "0.2.1",
-    "ember-cli-inject-live-reload": "^1.3.0",
     "ember-cli-qunit": "0.3.18",
     "ember-cli-release": "0.2.3",
     "ember-cli-sass": "^4.0.1",

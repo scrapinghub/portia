@@ -264,7 +264,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.tab.web_page.mainFrame().addToJavaScriptWindowObject(
             '__portiaApi', self.js_api)
         self.tab.run_js_files(
-            os.path.join(self.assets, 'splash_content_scripts'),
+            os.path.join(self.assets, '..', '..', 'slyd', 'dist', 'splash_content_scripts'),
             handle_errors=False)
 
     def open_spider(self, meta):

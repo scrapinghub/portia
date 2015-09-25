@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import utils from '../utils/utils';
+import { cleanUrl } from '../utils/utils';
 
 
 export const NAVIGATION_MODE = 'navigation';
@@ -61,7 +61,7 @@ export default Ember.Service.extend({
 
     go(url) {
         const currentUrl = this.get('_url');
-        url = utils.cleanUrl(url);
+        url = cleanUrl(url);
         if (url && url !== currentUrl) {
             this.beginPropertyChanges();
             if (currentUrl) {
@@ -71,7 +71,6 @@ export default Ember.Service.extend({
             this.set('forwardBuffer', []);
             this.endPropertyChanges();
         }
-        //this.get('viewPort').loadUrl(url);
     },
 
     back() {

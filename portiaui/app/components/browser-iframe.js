@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import utils from '../utils/utils';
+import { cleanUrl, shortGuid } from '../utils/utils';
 import interactionEvent from '../utils/interaction-event';
 import treeMirrorDelegate from '../utils/tree-mirror-delegate';
 import { NAVIGATION_MODE } from '../services/browser';
@@ -10,6 +10,8 @@ const BrowserIFrame = Ember.Component.extend({
     webSocket: Ember.inject.service(),
 
     tagName: 'iframe',
+
+    splashUrl: null,
 
     disabled: Ember.computed.alias('browser.disabled'),
     document: Ember.computed.alias('browser.document'),
@@ -38,7 +40,6 @@ const BrowserIFrame = Ember.Component.extend({
              */
             Ember.run.next(this, this.attrs.clickHandler, ...arguments);
         }
-        return false;
     },
 
     willInsertElement() {
@@ -54,13 +55,8 @@ const BrowserIFrame = Ember.Component.extend({
                 disabled: false,
                 document: null
             });
+            this.loadUrl();
         });
-
-        this.$().off('.portia-iframe')
-            .on('load.portia.portia-iframe', () => {
-                this.setupEventHandlers();
-                Ember.run(this, this.documentLoaded);
-            });
     },
 
     willDestroyElement() {
@@ -72,33 +68,33 @@ const BrowserIFrame = Ember.Component.extend({
     },
 
     documentLoaded() {
-        this.setProperties({
-            document: this.element.contentDocument,
-            loading: false
-        });
-    },
-
-    setupEventHandlers() {
-        Ember.$(this.element.contentDocument).off('.portia-iframe')
-            .on('click.portia.portia-iframe', this.click.bind(this));
+        this.set('document', this.element.contentDocument);
     },
 
     /**
      * Loads and displays a url interactively
      * Can only be called in "browse" mode.
      */
-    loadUrl: Ember.observer('url', function() {
+    loadUrl: Ember.observer('url', 'webSocket.closed', function() {
         const url = this.get('url');
         let spider, baseurl;  //???
-        Ember.assert('loadUrl can only be called in navigation mode',
-                     this.get('browser.mode') === NAVIGATION_MODE);
-        Ember.assert('Passed a malformed url', url.includes('://') && utils.cleanUrl(url));
-        // TODO show loading
 
+        if (!url || !url.includes('://') || !cleanUrl(url)) {
+            return;
+        }
+        if (this.get('webSocket.closed')) {
+            this.splashUrl = null;
+            return;
+        }
+        if (this.splashUrl === url) {
+            return;
+        }
+
+        this.set('loading', true);
         this.get('webSocket').send({
             _meta: {
                 // TODO: Send current project and spider to see followed links and extracted items?
-                id: utils.shortGuid(),
+                id: shortGuid(),
                 viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
                 cookies: this.cookies
@@ -110,20 +106,24 @@ const BrowserIFrame = Ember.Component.extend({
     }),
 
     msgLoadStarted() {
-        // TODO: show loading, remove this message and use metadata instead?
+        this.set('loading', true);
     },
 
     msgMetadata(data) {
-        data = data._data;
-        // TODO set loading depending on data.loading
-        // TODO: update data.url in browser, adding to history if necessary
+        if (data.loaded) {
+            this.set('loading', false);
+        }
+        if (data.url) {
+            this.splashUrl = data.url;
+            this.set('browser.url', data.url);
+        }
     },
 
     msgMutation(data) {
         var [action, ...args] = data._data;
         if(action === 'initialize') {
             this.iframePromise = this.clearIframe().then(() => {
-                var doc = this.iframe.contentWindow.document;
+                var doc = this.element.contentDocument;
                 this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
             });
         }
@@ -147,7 +147,7 @@ const BrowserIFrame = Ember.Component.extend({
     },
 
     unbindEventHandlers() {
-        $(this.iframe.contentDocument).off('.portia');
+        $(this.element.contentDocument).off('.portia-iframe');
         this.frameEventListeners.forEach(([target, event, fn, useCapture]) => {
             target.removeEventListener(event, fn, useCapture);
         });
@@ -155,29 +155,39 @@ const BrowserIFrame = Ember.Component.extend({
     },
 
     addFrameEventListener(event, fn, useCapture=false) {
-        let frameDoc = this.iframe.contentDocument;
+        let frameDoc = this.element.contentDocument;
         frameDoc.addEventListener(event, fn, useCapture);
         this.frameEventListeners.push([frameDoc, event, fn, useCapture]);
     },
 
     bindEventHandlers() {
         this.unbindEventHandlers();
-        if(this.get('browser.mode') === NAVIGATION_MODE){
-            var $iframe = $(this.iframe.contentDocument);
-            $iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
-                      'mousedown.portia mouseup.portia', this.postEvent.bind(this));
-            $iframe.on('click.portia', this.clickHandlerBrowse.bind(this));
-            this.addFrameEventListener("scroll", e => Ember.run.throttle(this, this.postEvent, e, 200), true);
-            this.addFrameEventListener('focus', this.postEvent.bind(this), true);
-            this.addFrameEventListener('blur', this.postEvent.bind(this), true);
-            this.addFrameEventListener('change', this.postEvent.bind(this), true);
-        } else {
-            // TODO: Other modes
-        }
+        var $iframe = $(this.element.contentDocument);
+        $iframe.on(
+            ['keyup', 'keydown', 'keypress', 'input', 'mousedown', 'mouseup'].map(
+                eventName => `${eventName}.portia.portia-iframe`).join(' '),
+            e => {
+                if (this.get('browser.mode') === NAVIGATION_MODE) {
+                    this.postEvent(e);
+                }
+            });
+        $iframe.on('click.portia.portia-iframe', e => {
+            if (this.get('browser.mode') === NAVIGATION_MODE) {
+                this.clickHandlerBrowse(e);
+            } else {
+                this.click();
+            }
+            return false;
+        });
+        this.addFrameEventListener('focus', this.postEvent.bind(this), true);
+        this.addFrameEventListener('blur', this.postEvent.bind(this), true);
+        this.addFrameEventListener('change', this.postEvent.bind(this), true);
+        this.addFrameEventListener('scroll', e =>
+            Ember.run.throttle(this, this.postEvent, e, 200), true);
     },
 
     clickHandlerBrowse(evt) {
-        if(evt.which <= 1 && !evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
+        if (evt.which <= 1 && !evt.ctrlKey) { // Ignore right/middle click or Ctrl+click
             if(evt.target.tagName !== 'INPUT') {
                 evt.preventDefault();
             }
@@ -189,7 +199,7 @@ const BrowserIFrame = Ember.Component.extend({
         this.get('webSocket').send({
             _meta: {
                 spider: this.get('slyd.spider'),
-                project: this.get('slyd.project'),
+                project: this.get('slyd.project')
             },
             _command: 'interact',
             interaction: interactionEvent(evt)
@@ -198,8 +208,8 @@ const BrowserIFrame = Ember.Component.extend({
 
     clearIframe() {
         let defer = new Ember.RSVP.defer();
-        let iframe = this.iframe;
-        let id = utils.shortGuid();
+        let iframe = this.element;
+        let id = shortGuid();
         let that = this;
         // Using a empty static page because using srcdoc or an data:uri gives
         // permission problems and/or broken baseURI behaviour in different browsers.
@@ -208,7 +218,8 @@ const BrowserIFrame = Ember.Component.extend({
         // Using a message to workaround onload bug on some browsers (cough IE cough).
         let $win = $(window).bind('message', function onMessage(e){
             if(e.originalEvent.data.frameReady === id){
-                that.rebindEventHandlers();
+                that.bindEventHandlers();
+                Ember.run(that, that.documentLoaded);
                 $win.unbind('message', onMessage);
                 defer.resolve();
             }

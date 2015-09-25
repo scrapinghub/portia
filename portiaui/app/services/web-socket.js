@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import config from '../config/environment';
-import utils from '../utils/utils';
+import { logError, shortGuid } from '../utils/utils';
 
 const APPLICATION_UNLOADING_CODE = 4001;
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
@@ -77,11 +77,11 @@ export default Ember.Object.extend({
         try {
             data = JSON.parse(data);
         } catch (err) {
-            return utils.logError('Error parsing data returned by server: ' + err + '\n' + data);
+            return logError('Error parsing data returned by server: ' + err + '\n' + data);
         }
         var command = data._command;
         if (!command) {
-            return utils.logError('Received response with no command: ' + JSON.stringify(data));
+            return logError('Received response with no command: ' + JSON.stringify(data));
         }
         var deferred = data.id;
         if (deferred in this.get('deferreds')) {
@@ -99,7 +99,7 @@ export default Ember.Object.extend({
         if (command in this.get('commands')) {
             this.get('commands')[command](data);
         } else {
-            return utils.logError('Received unknown command: ' + command);
+            return logError('Received unknown command: ' + command);
         }
     },
 
@@ -156,7 +156,7 @@ export default Ember.Object.extend({
                 try {
                     data = JSON.stringify(data);
                 } catch (err) {
-                    return utils.logError('Error serializing data: ' +  err);
+                    return logError('Error serializing data: ' +  err);
                 }
             }
             return this.get('ws').send(data);
@@ -208,7 +208,7 @@ export default Ember.Object.extend({
         return {
             // TODO: send current spider and project?
             type: type,
-            id: utils.shortGuid()
+            id: shortGuid()
         };
     }
 });
