@@ -10,6 +10,7 @@ from autobahn.twisted.websocket import (WebSocketServerFactory,
 from weakref import WeakKeyDictionary, WeakValueDictionary
 from monotonic import monotonic
 from twisted.python import log
+from twisted.python.failure import Failure
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
@@ -209,12 +210,28 @@ class FerryServerProtocol(WebSocketServerProtocol):
             command = data['_command']
             try:
                 result = self._handlers[command](data, self)
-            except BaseHTTPError as e:
+            except Exception as e:
                 command = data.get('_callback') or command
-                return self.sendMessage({'error': e.status,
-                                         '_command': command,
-                                         'id': data.get('_meta', {}).get('id'),
-                                         'reason': e.title})
+                if isinstance(e, BaseHTTPError):
+                    code = e.status
+                    reason = e.title
+                else:
+                    code = 500
+                    reason = "Internal Server Error"
+
+                failure = Failure(e)
+                log.err(failure)
+                event_id = getattr(failure, 'sentry_event_id', None)
+                if event_id:
+                    reason = "%s (Event ID: %s)" % (reason, event_id)
+
+                return self.sendMessage({
+                    'error': code,
+                    '_command': command,
+                    'id': data.get('_meta', {}).get('id'),
+                    'reason': reason
+                })
+
             if result:
                 result.setdefault('_command', data.get('_callback', command))
                 self.sendMessage(result)
