@@ -41,7 +41,7 @@ export default Ember.Mixin.create({
     }.property('ex_tiny_box_height'),
 
     bindResizeEvent: function() {
-        this.handleResize();
+        Ember.run.next(this, this.handleResize);
         Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
     }.on('init'),
 
