@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import config from '../config/environment';
 import utils from '../utils/utils';
+import NotificationManager from '../utils/notification-manager';
 
 const APPLICATION_UNLOADING_CODE = 4001;
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
@@ -117,12 +118,14 @@ export default Ember.Object.extend({
                     var err = new Error(data.reason || data.error);
                     err.reason = {jqXHR: {responseText: data.reason || data.error}};
                     deferred.reject(err);
-                    throw err;
                 } else {
                     deferred.resolve(data);
                 }
             }
-            if (command in this.get('commands')) {
+            if (data.error) {
+                NotificationManager.showErrorNotification(data.reason || data.error);
+                console.error(data.reason || data.error);
+            }else if (command in this.get('commands')) {
                 this.get('commands')[command](data);
             } else {
                 Ember.Logger.warn('Received unknown command: ' + command);
