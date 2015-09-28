@@ -200,6 +200,16 @@ export default Ember.Object.extend({
         });
     },
 
+    logEvent: function(...args) {
+        let param = args.pop();
+        let name = args.join(".");
+        return this.send({
+            _command: 'log_event',
+            event: name,
+            param: param,
+        });
+    },
+
     _sendPromise: function(data) {
         var deferred = new Ember.RSVP.defer();
         if(this.get('opened')) {
