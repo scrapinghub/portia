@@ -136,10 +136,13 @@ class PortiaJSApi(QObject):
     @pyqtSlot('QString')
     def sendMessage(self, message):
         message = text(message)
+        message = message.strip('\x00') # Allocation bug somewhere leaves null characters at the end.
         try:
             command, data = json.loads(message)
-        except ValueError:  # XXX: Possibly null terminated string
-            command, data = json.loads(message[:-1])
+        except ValueError as e:
+            return log.err(ValueError(
+                "%s JSON head: %r tail: %r" % (e.message, message[:100], message[-100:])
+            ))
         self.protocol.sendMessage({
             '_command': command,
             '_data': data
