@@ -846,3 +846,6 @@ input[type="checkbox"].offset-checkbox {
     background-color: black;
 }
 
+.record-button .fa-circle {
+    color: red;
+}

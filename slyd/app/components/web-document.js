@@ -62,6 +62,7 @@ export default Ember.Component.extend({
 
     mode: "uninitialized", // How it responds to input events, modes are 'none', 'browse' and 'select'
     useBlankPlaceholder: false,
+    recording: false, // If we are currently recording page actions
 
     canvas: null,
 
@@ -102,6 +103,7 @@ export default Ember.Component.extend({
             this.set('mode', options.mode);
             Ember.run.next(this, this.emptyIframe);
             this.set('loading', false);
+            this.set('recording', false);
             this.set('currentUrl', '');
             this.set('currentFp', '');
         }

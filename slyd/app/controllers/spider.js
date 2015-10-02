@@ -536,6 +536,10 @@ export default BaseController.extend({
                 }
             }
         },
+
+        toggleRecording: function() {
+            this.get('documentView').toggleProperty('recording');
+        }
     },
 
     documentActions: {

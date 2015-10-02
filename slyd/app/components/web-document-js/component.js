@@ -269,7 +269,7 @@ export default WebDocument.extend({
     },
 
     saveAction: function (interactionEvent, nativeEvent) {
-        if(!experiments.enabled('page_actions')) {
+        if(!experiments.enabled('page_actions') || !this.get('recording')) {
             return;
         }
         var pageActions = this.get('pageActions');
