@@ -1,13 +1,10 @@
-/*global DomPredictionHelper:false */
 import Ember from 'ember';
 
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 import utils from '../../utils/utils';
 import experiments from '../../utils/experiments';
-
-
-var predictionHelper = DomPredictionHelper.prototype;
+import { predictCss, matchesExactly } from '../../utils/selector-prediction';
 
 function paintCanvasMessage(canvas) {
     var ctx = canvas.getContext('2d');
@@ -295,8 +292,7 @@ export default WebDocument.extend({
         }
 
         // Record the action
-        var nonmatches = this.getIframe().find('*').not(target);
-        var selector = predictionHelper.predictCss($(target), nonmatches);
+        var selector = predictCss(matchesExactly($(target)));
         var action = Ember.Object.create({
             type: type === 'click' ? 'click' : 'set',
             selector: selector,
