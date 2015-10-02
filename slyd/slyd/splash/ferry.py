@@ -201,8 +201,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                  'parameters')
 
     def onMessage(self, payload, isbinary):
-        if isbinary:
-            payload = payload.decode('utf-8')
+        payload = payload.decode('utf-8')
         data = json.loads(payload)
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
