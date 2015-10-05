@@ -108,7 +108,7 @@ var TreeMirror = (function () {
         }
 
         if (!node) {
-            throw new Error("No node with id " + nodeData.id);
+            throw new Error("No node with that id.");
         }
 
         this.idMap[nodeData.id] = node;
