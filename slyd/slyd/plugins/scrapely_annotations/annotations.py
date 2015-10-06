@@ -80,6 +80,7 @@ def _gen_annotation_info(annotation):
             'id': annotation.get('id', _gen_id()),
             'annotations': annotation.get('annotations', {}),
             'required': annotation.get('required', []),
+            'required_fields': annotation.get('required', [])
             'variant': int(annotation.get('variant', 0)),
             'generated': annotation.get('generated', False),
             'text-content': annotation.get('text-content', 'content'),

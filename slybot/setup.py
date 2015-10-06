@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema',
                     'dateparser', 'rfc3987', 'scrapyjs']
 extras = {
-    'tests': ['nose']
+    'tests': ['nose', 'nose-timer']
 }
 
 setup(name='slybot',

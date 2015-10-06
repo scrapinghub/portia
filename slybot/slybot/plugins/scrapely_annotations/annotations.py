@@ -2,9 +2,6 @@ from __future__ import absolute_import
 
 import re
 
-from itertools import groupby
-from operator import itemgetter
-
 from scrapy.http import Request
 
 from scrapely.extraction import InstanceBasedLearningExtractor
@@ -16,32 +13,6 @@ from slybot.extractors import apply_extractors
 from slybot.utils import htmlpage_from_response
 
 from .extraction import SlybotIBLExtractor
-
-
-def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
-    processed_data = []
-    for exdict in extracted_data or ():
-        # For repeated items variants, sticky attributes and field adaption
-        # has already been handled
-        if '_type' in exdict:
-            processed_data.append(exdict)
-            continue
-        processed_attributes = []
-        for key, value in exdict.items():
-            if key == "variants":
-                processed_attributes.append(
-                    ("variants", _process_extracted_data(value,
-                                                         item_descriptor,
-                                                         htmlpage))
-                )
-            elif not key.startswith("_sticky"):
-                field_descriptor = item_descriptor.attribute_map.get(key)
-                if field_descriptor:
-                    value = [field_descriptor.adapt(x, htmlpage)
-                             for x in value]
-                processed_attributes.append((key, value))
-        processed_data.append(processed_attributes)
-    return [dict(p) for p in processed_data]
 
 
 class Annotations(object):
@@ -111,14 +82,12 @@ class Annotations(object):
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
         descriptor = template.descriptor() if template is not None else None
-        processed_data = _process_extracted_data(extracted_data, descriptor,
-                                                 htmlpage)
         items = []
         item_cls_name = descriptor.name if descriptor is not None else ''
         item_cls = self.item_classes.get(item_cls_name)
-        for processed_attributes in processed_data:
+        for processed_attributes in extracted_data or []:
             if '_type' in processed_attributes:
-                _type = processed_attributes['type']
+                _type = processed_attributes['_type']
                 item = self.item_classes[_type](processed_attributes)
                 item['_type'] = _type
             else:
