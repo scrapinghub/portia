@@ -187,7 +187,7 @@
     {{#if pageActionsEnabled }}
         {{#accordion-item title="Page Actions"}}
             {{#if documentView.recording}}
-                {{#bs-button clicked="toggleRecording" icon="fa fa-icon fa-stop" title="Stop recording page actions"}}Stop{{/bs-button}}
+                {{#bs-button clicked="toggleRecording" icon="fa fa-icon fa-stop" class="record-button" title="Stop recording page actions"}}Stop{{/bs-button}}
             {{else}}
                 {{#bs-button clicked="toggleRecording" icon="fa fa-icon fa-circle" class="record-button" title="Start recording page actions"}}Record{{/bs-button}}
             {{/if}}

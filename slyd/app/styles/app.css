@@ -822,6 +822,10 @@ input[type="checkbox"].offset-checkbox {
     opacity: 0.3;
 }
 
+.record-button {
+    margin-bottom: 15px;
+}
+
 .page-action {
     overflow: hidden;
 }
@@ -838,6 +842,14 @@ input[type="checkbox"].offset-checkbox {
 .page-action button {
     float: right;
     margin-right: 10px;
+}
+
+.page-action code {
+    display: inline-block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 200px;
 }
 
 .drop-helper {
