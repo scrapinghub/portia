@@ -203,16 +203,16 @@ export default Ember.Component.extend({
     displayDocument: function(documentContents, readyCallback) {
         this.assertInMode('select');
 
-        Ember.run.schedule('afterRender', this, function() {
+        Ember.run.next(() => {
             // We need to disable all interactions with the document we are loading
             // until we trigger the callback.
             this.blockInteractions('loadingDoc');
             this.set('loadingDoc', true);
             let onLoad = () => {
-                this.assertInMode('select');
                 this._updateEventHandlers();
                 this.unblockInteractions('loadingDoc');
                 this.set('loadingDoc', false);
+                this.assertInMode('select');
                 if (readyCallback) {
                     readyCallback(this.getIframe());
                 }
