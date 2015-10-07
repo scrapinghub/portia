@@ -75,7 +75,7 @@ const DataStructurePanel = ToolPanel.extend({
     uiState: Ember.inject.service(),
 
     annotationTree: null,
-    title: 'Data structure',
+    title: 'Data',
     toolId: 'data-structure',
 
     init() {
@@ -96,6 +96,7 @@ const DataStructurePanel = ToolPanel.extend({
             this.removeAnnotation(annotation);
         }
         this.set('_registeredAnnotations', []);
+        this.get('browser').clearAnnotationMode();
         this.endPropertyChanges();
     },
 
