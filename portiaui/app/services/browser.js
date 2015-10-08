@@ -1,19 +1,30 @@
 import Ember from 'ember';
 
 
-export const DEFAULT_MODE = 'navigation';
+export const NAVIGATION_MODE = 'navigation';
 export const ANNOTATION_MODE = 'annotation';
 export const INTERACTION_MODES = new Set([ANNOTATION_MODE]);
+export const DEFAULT_MODE = NAVIGATION_MODE;
 
 export default Ember.Service.extend({
     backBuffer: [],
-    disabled: true,
     document: null,
     forwardBuffer: [],
     loading: false,
     mode: DEFAULT_MODE,
+    _disabled: true,
     _url: null,
 
+    disabled: Ember.computed('_disabled', 'mode', {
+        get() {
+            return this.get('_disabled') || this.get('mode') !== NAVIGATION_MODE;
+        },
+
+        set(key, value) {
+            this.set('_disabled', value);
+            return value || this.get('mode') !== NAVIGATION_MODE;
+        }
+    }),
     isInteractionMode: Ember.computed('mode', function() {
         return INTERACTION_MODES.has(this.get('mode'));
     }),
@@ -64,6 +75,7 @@ export default Ember.Service.extend({
     },
 
     reload() {
+        this.notifyPropertyChange('_url');
     },
 
     setAnnotationMode() {
