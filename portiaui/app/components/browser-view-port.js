@@ -35,7 +35,6 @@ export default Ember.Component.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
-    routing: Ember.inject.service('-routing'),
     selectorMatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
@@ -45,20 +44,60 @@ export default Ember.Component.extend({
 
     overlayComponentName: 'hover-overlay',
 
+    activeSelectionMode: Ember.computed(
+        'selectionMode', 'magicToolActive',
+        'hoveredElement', 'hoveredOverlay', 'selectedElement', 'selectedOverlay', function() {
+            const selectedMode = this.get('selectionMode');
+            const magicToolActive = this.get('magicToolActive');
+            if (selectedMode) {
+                return selectedMode;
+            } else if (magicToolActive) {
+                const hoveredElement = this.get('hoveredElement');
+                const hoveredOverlay = this.get('hoveredOverlay');
+                const selectedOverlay = this.get('selectedOverlay');
+                //TODO: detect edit mode
+                if (hoveredOverlay) {
+                    if (hoveredOverlay === selectedOverlay) {
+                        if (selectedOverlay.get('elements.length') === 1) {
+                            return 'remove';
+                        }
+                        return 'edit';
+                    } else {
+                        return 'select';
+                    }
+                } else if (hoveredElement) {
+                    return 'add';
+                }
+                return 'select';
+            }
+        }),
+    hideHoverOverlay: Ember.computed(
+        'activeSelectionMode', 'hoveredElement', 'hoveredOverlay', 'selectedOverlay', function() {
+            const selectionMode = this.get('activeSelectionMode');
+            const hoveredElement = this.get('hoveredElement');
+            const hoveredOverlay = this.get('hoveredOverlay');
+            const selectedOverlay = this.get('selectedOverlay');
+            return !hoveredElement || !!hoveredOverlay ||
+                selectionMode === 'select' ||
+                selectionMode === 'remove' ||
+                (selectionMode === 'edit' && !selectedOverlay);
+        }),
     hoveredElement: Ember.computed.alias('uiState.viewPort.hoveredElement'),
     hoveredOverlay: computedOverlayIncludingElement('hoveredElement'),
     hoverOverlayColor: Ember.computed(
-        'browserOverlays.hoverOverlayColor', 'isSelectionMode',
+        'browserOverlays.hoverOverlayColor', 'activeSelectionMode',
         'selectedOverlay.color', function() {
             const hoverOverlayColor = this.get('browserOverlays.hoverOverlayColor');
-            const isSelectionMode = this.get('isSelectionMode');
+            const selectionMode = this.get('activeSelectionMode');
             const selectedOverlayColor = this.get('selectedOverlay.color');
-            return isSelectionMode ? selectedOverlayColor : hoverOverlayColor;
+            return selectionMode === 'edit' ? selectedOverlayColor : hoverOverlayColor;
         }),
-    isSelectionMode: Ember.computed.readOnly('uiState.routes.selection'),
+    magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
     selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),
     selectedOverlay: computedOverlayIncludingElement('selectedElement'),
+    selectionMode: Ember.computed.alias('uiState.selectedTools.selectionMode'),
+    showToolbar: Ember.computed.equal('browser.mode', ANNOTATION_MODE),
 
     updateSelectedElement: Ember.observer('uiState.models.annotation.elements', function() {
         const annotation = this.get('uiState.models.annotation');
@@ -82,36 +121,79 @@ export default Ember.Component.extend({
     },
 
     actions: {
+        toggleMagicTool() {
+            const magicToolActive = this.get('magicToolActive');
+            const selectionMode = this.get('selectionMode');
+            if (magicToolActive) {
+                this.set('magicToolActive', false);
+                if (!selectionMode) {
+                    this.set('selectionMode', 'add');
+                }
+            } else {
+                this.setProperties({
+                    magicToolActive: true,
+                    selectionMode: null
+                });
+            }
+        },
+
         viewPortClick() {
             if (this.get('browser.mode') !== ANNOTATION_MODE) {
                 return;
             }
 
+            const magicToolActive = this.get('magicToolActive');
+            const selectionMode = this.get('activeSelectionMode');
             const hoveredElement = this.get('hoveredElement');
             const hoveredOverlay = this.get('hoveredOverlay');
             const selectedOverlay = this.get('selectedOverlay');
-            if (this.get('isSelectionMode')) {
-                if (selectedOverlay === hoveredOverlay) {
-                    this.get('dispatcher').removeElementFromAnnotation(hoveredElement);
-                } else if (hoveredElement) {
-                    this.set('selectedElement', hoveredElement);
-                    this.get('dispatcher').addElementToAnnotation(hoveredElement);
-                }
-            } else if (hoveredOverlay) {
-                this.set('selectedElement', hoveredElement);
-                if (hoveredOverlay !== selectedOverlay) {
-                    const routing = this.get('routing');
-                    const models = [hoveredOverlay.get('id')];
-                    routing.transitionTo(
-                        'projects.project.spider.sample.annotation', models, {}, true);
-                }
-            } else if (hoveredElement) {
-                this.set('selectedElement', hoveredElement);
-                this.get('dispatcher').addAnnotation(hoveredElement);
-            } else {
-                this.set('selectedElement', null);
-                const routing = this.get('routing');
-                routing.transitionTo('projects.project.spider.sample', [], {}, true);
+
+            switch (selectionMode) {
+                case 'select':
+                    if (hoveredOverlay) {
+                        const annotation = hoveredOverlay.get('content');
+                        this.get('dispatcher').selectAnnotationElement(annotation, hoveredElement);
+                    } else {
+                        this.get('dispatcher').clearSelection();
+                    }
+                    break;
+
+                case 'add':
+                    if (hoveredElement) {
+                        this.set('selectedElement', hoveredElement);
+                        this.get('dispatcher').addAnnotation(hoveredElement);
+                    } else {
+                        this.get('dispatcher').clearSelection();
+                    }
+                    break;
+
+                case 'remove':
+                    if (hoveredOverlay) {
+                        const annotation = hoveredOverlay.get('content');
+                        this.get('dispatcher').removeAnnotation(annotation);
+                    } else {
+                        this.get('dispatcher').clearSelection();
+                    }
+                    break;
+
+                case 'edit':
+                    if (!hoveredElement) {
+                        this.get('dispatcher').clearSelection();
+                    } else if (selectedOverlay && selectedOverlay !== hoveredOverlay) {
+                        const annotation = selectedOverlay.get('content');
+                        this.get('dispatcher').addElementToAnnotation(annotation, hoveredElement);
+                    } else if (hoveredOverlay) {
+                        const annotation = hoveredOverlay.get('content');
+                        this.get('dispatcher').removeElementFromAnnotation(
+                            annotation, hoveredElement);
+                    } else {
+                        //TODO: detect possible match
+                    }
+                    break;
+            }
+
+            if (magicToolActive) {
+                this.set('selectionMode', null);
             }
         }
     }

@@ -1,9 +1,39 @@
-<div class="overlay-container">
-    {{#each overlays key="@identity" as |overlay|}}
-        {{component overlay.overlayComponentName overlay=overlay hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay isSelectionMode=isSelectionMode}}
-    {{/each}}
-    {{#if browser.isInteractionMode}}
-        {{hover-overlay viewPortElement=hoveredElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay isSelectionMode=isSelectionMode color=hoverOverlayColor}}
-    {{/if}}
+{{#if showToolbar}}
+    <div class="tool-bar">
+        <div class="btn-group-vertical" role="group">
+            <button type="button" class="btn btn-default {{if magicToolActive 'active'}}" {{action 'toggleMagicTool'}}>
+                <i class="fa fa-magic fa-flip-horizontal"></i>
+            </button>
+        </div>
+
+        <div class="btn-group-vertical" role="group">
+            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'select') 'active'}}" {{action (action (mut selectionMode) 'select')}}>
+                <div class="color-fill"></div>
+                <i class="fa fa-mouse-pointer"></i>
+            </button>
+            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'add') 'active'}}" {{action (action (mut selectionMode) 'add')}}>
+                <div class="color-fill"></div>
+                <i class="fa fa-plus"></i>
+            </button>
+            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'remove') 'active'}}" {{action (action (mut selectionMode) 'remove')}}>
+                <div class="color-fill"></div>
+                <i class="fa fa-minus"></i>
+            </button>
+            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'edit') 'active'}}" {{action (action (mut selectionMode) 'edit')}}>
+                <div class="color-fill"></div>
+                <i class="fa fa-th-large"></i>
+            </button>
+        </div>
+    </div>
+{{/if}}
+<div class="frame-container">
+    <div class="overlay-container">
+        {{#each overlays key="@identity" as |overlay|}}
+            {{component overlay.overlayComponentName overlay=overlay selectionMode=activeSelectionMode hoverOverlayColor=hoverOverlayColor hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay}}
+        {{/each}}
+        {{#if browser.isInteractionMode}}
+            {{element-overlay class=(concat 'hover-overlay' (if hideHoverOverlay ' hide' '')) viewPortElement=hoveredElement icon=activeSelectionMode color=hoverOverlayColor}}
+        {{/if}}
+    </div>
+    {{browser-iframe clickHandler=(action 'viewPortClick')}}
 </div>
-{{browser-iframe clickHandler=(action 'viewPortClick')}}

@@ -19,8 +19,7 @@
     "bootstrap-sass": "~3.3.5",
     "font-awesome": "~4.4.0",
     "jquery-color": "~2.1.2",
-    "localforage": "~1.2.1",
-    "mathsass": "~0.9.5"
+    "localforage": "~1.2.1"
   },
   "private": true
 }

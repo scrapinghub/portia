@@ -53,10 +53,12 @@ export default Ember.Service.extend({
         spider: 'spiderRoute',
         sample: 'sampleRoute',
         annotation: 'annotationRoute',
-        selection: 'selectionRoute',
         schema: 'schemaRoute'
     }),
-    selectedTools: {},
+    selectedTools: {
+        magicToolActive: true,
+        selectionMode: null
+    },
     viewPort: {
         selectedElement: null,
         hoveredElement: null

@@ -128,10 +128,7 @@ export default Ember.Service.extend({
             annotation.set('type', 'image');
         }
         annotation.save().then(() => {
-            this.set('uiState.viewPort.selectedElement', element);
-            const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider.sample.annotation',
-                [annotation], {}, true);
+            this.selectAnnotationElement(annotation, element);
         });
     },
 
@@ -200,33 +197,38 @@ export default Ember.Service.extend({
         annotation.destroyRecord();
     },
 
-    enterSelectionMode() {
-        const routing = this.get('routing');
-        routing.transitionTo('projects.project.spider.sample.annotation.selection', [], {}, true);
-    },
-
-    exitSelectionMode(save = true) {
-        const currentAnnotation = this.get('uiState.models.annotation');
-        const routing = this.get('routing');
-        if (save) {
-            currentAnnotation.save();
-        } else {
-            currentAnnotation.rollbackAttributes();
+    selectAnnotation(annotation) {
+        if (this.get('uiState.models.annotation') !== annotation) {
+            const routing = this.get('routing');
+            routing.transitionTo('projects.project.spider.sample.annotation',
+                [annotation], {}, true);
         }
-        routing.transitionTo('projects.project.spider.sample.annotation', [], {}, true);
     },
 
-    addElementToAnnotation(element) {
-        const currentAnnotation = this.get('uiState.models.annotation');
-        const selector = uniquePathSelectorFromElement(element);
-        currentAnnotation.get('acceptSelectors').addObject(selector);
-        currentAnnotation.get('rejectSelectors').removeObject(selector);
+    selectAnnotationElement(annotation, element) {
+        this.set('uiState.viewPort.selectedElement', element);
+        this.selectAnnotation(annotation);
     },
 
-    removeElementFromAnnotation(element) {
-        const currentAnnotation = this.get('uiState.models.annotation');
+    clearSelection() {
+        this.set('uiState.viewPort.selectedElement', null);
+        const routing = this.get('routing');
+        routing.transitionTo('projects.project.spider.sample', [], {}, true);
+    },
+
+    addElementToAnnotation(annotation, element) {
         const selector = uniquePathSelectorFromElement(element);
-        currentAnnotation.get('acceptSelectors').removeObject(selector);
-        currentAnnotation.get('rejectSelectors').addObject(selector);
+        annotation.get('acceptSelectors').addObject(selector);
+        annotation.get('rejectSelectors').removeObject(selector);
+        annotation.save();
+        this.selectAnnotationElement(annotation, element);
+    },
+
+    removeElementFromAnnotation(annotation, element) {
+        const selector = uniquePathSelectorFromElement(element);
+        annotation.get('acceptSelectors').removeObject(selector);
+        annotation.get('rejectSelectors').addObject(selector);
+        annotation.save();
+        this.selectAnnotation(annotation);
     }
 });

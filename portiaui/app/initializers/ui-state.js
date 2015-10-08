@@ -9,8 +9,6 @@ export function initialize(container, application) {
     application.inject('service:ui-state',
         'annotationRoute', 'route:projects/project/spider/sample/annotation');
     application.inject('service:ui-state',
-        'selectionRoute', 'route:projects/project/spider/sample/annotation/selection');
-    application.inject('service:ui-state',
         'schemaRoute', 'route:projects/project/schema');
 }
 
