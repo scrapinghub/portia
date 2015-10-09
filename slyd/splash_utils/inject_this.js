@@ -203,21 +203,24 @@ PortiaPage.prototype.localStorageUpdated = function(local, session) {
 
 PortiaPage.prototype.setLocalStorage = function(localData, sessionData){
     this._localStorageLoading = true;
-    var local = window.localStorage;
-    var session = window.sessionStorage;
-    for(var k in localData) {
-        if(localData.hasOwnProperty(k)){
-            local[k] = localData[k];
+    try {
+        var local = window.localStorage;
+        var session = window.sessionStorage;
+        for(var k in localData) {
+            if(localData.hasOwnProperty(k)){
+                local[k] = localData[k];
+            }
         }
-    }
-    for(k in sessionData) {
-        if(sessionData.hasOwnProperty(k)){
-            session[k] = sessionData[k];
+        for(k in sessionData) {
+            if(sessionData.hasOwnProperty(k)){
+                session[k] = sessionData[k];
+            }
         }
-    }
 
-    this._prevStorageHash = hashObject(local, 1) + hashObject(session, 2);
-    this._localStorageLoading = false;
+        this._prevStorageHash = hashObject(local, 1) + hashObject(session, 2);
+    } finally {
+        this._localStorageLoading = false;
+    }
 };
 
 PortiaPage.prototype.pyGetByNodeId = function(nodeId){
