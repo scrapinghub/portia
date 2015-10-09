@@ -7,8 +7,7 @@ from twisted.internet.defer import CancelledError
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
 
-from PyQt4.QtNetwork import QNetworkRequest
-
+from .qtutils import QNetworkRequest, to_py
 from .ferry import User
 from .css_utils import process_css
 
@@ -70,7 +69,7 @@ class ProxyResource(Resource):
 
         if hasattr(reply, 'readAll'):
             content = str(reply.readAll())
-            status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute).toPyObject()
+            status_code = to_py(reply.attribute(QNetworkRequest.HttpStatusCodeAttribute))
             if status_code == 400:
                 return self._load_resource(request, original_url, referer)
             request.setResponseCode(status_code or 500)

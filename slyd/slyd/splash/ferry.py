@@ -19,13 +19,10 @@ from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 from splash import defaults
 
-from PyQt4.QtCore import QObject
-from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtWebKit import QWebElement
-
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
 
+from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
