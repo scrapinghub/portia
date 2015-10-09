@@ -563,14 +563,10 @@ export function predictCss(rule) {
         console.error('Invalid rule');
         return '';
     }
-    console.log(seeds);
     rule.doc = seeds[0].ownerDocument;
     var selected_paths = getPathsFor(seeds);
-    console.log(selected_paths);
     var css = cssDiff(selected_paths);
-    console.log(css);
     var simplest = simplifyCss(css, rule);
-    console.log(simplest);
     if (simplest.length > 0) {
         return simplest;
     }

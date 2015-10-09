@@ -282,17 +282,18 @@ export default WebDocument.extend({
             return null;
         }
 
+        var selector = predictCss(matchesExactly($(target)));
+
         // If we are inputting more text into a field, or changing again a select make it only one interaction
         if((type === 'input' || type === 'change') && pageActions.length){
             var lastAction = pageActions[pageActions.length-1];
-            if(lastAction.type === 'set' && lastAction.target === target && !lastAction._edited){
+            if(lastAction.type === 'set' && lastAction.selector === selector && !lastAction._edited){
                 lastAction.set('value', $(target).val());
                 return;
             }
         }
 
         // Record the action
-        var selector = predictCss(matchesExactly($(target)));
         var action = Ember.Object.create({
             type: type === 'click' ? 'click' : 'set',
             selector: selector,
