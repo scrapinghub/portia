@@ -89,7 +89,7 @@ def metadata(socket, extra={}):
         url = socket.tab.evaljs('location.href')
         res.update(
             url=url,
-            fp=hashlib.sha1(url).hexdigest(),
+            fp=hashlib.sha1(url.encode('utf8')).hexdigest(),
             response={
                 'headers': {},  # TODO: Get headers
                 'status': socket.tab.last_http_status()
