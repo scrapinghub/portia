@@ -1,0 +1,20 @@
+{{#if selecting}}
+    {{#if hasBlock}}
+        {{#select-box choices=choices value=(mut source) valueAttribute=sourceAttribute open=true dropdownAlign=dropdownAlign change=(action 'endSelecting') close=(action 'cancelSelecting') as |set close|}}
+            {{yield set close}}
+        {{/select-box}}
+    {{else}}
+        {{select-box choices=choices value=(mut source) valueAttribute=sourceAttribute open=true dropdownAlign=dropdownAlign change=(action 'endSelecting') close=(action 'cancelSelecting')}}
+    {{/if}}
+{{else}}
+    <div class="selectable-text-container">
+        {{#if sourceAttribute}}
+            {{get source sourceAttribute}}
+        {{else}}
+            {{source}}
+        {{/if}}
+        <a {{action 'startSelecting'}}>
+            <span class="caret"></span>
+        </a>
+    </div>
+{{/if}}

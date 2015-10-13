@@ -14,9 +14,9 @@ export default Ember.Component.extend({
         },
 
         removeStartUrl() {
-            const url = this.get('item.name');
             const spider = this.get('item.spider.content');
-            this.get('dispatcher').removeStartUrl(url, spider);
+            const url = this.get('item.name');
+            this.get('dispatcher').removeStartUrl(spider, url);
         },
 
         saveStartUrl() {
@@ -24,7 +24,7 @@ export default Ember.Component.extend({
             const newUrl = this.get('url');
             if (oldUrl !== newUrl) {
                 const spider = this.get('item.spider.content');
-                this.get('dispatcher').replaceStartUrl(oldUrl, newUrl, spider);
+                this.get('dispatcher').replaceStartUrl(spider, oldUrl, newUrl);
             }
         }
     }

@@ -13,7 +13,9 @@ Router.map(function() {
                     this.route('annotation', {path: "annotations/:annotation_id"});
                 });
             });
-            this.route('schema', {path: "schemas/:schema_id"});
+            this.route('schema', {path: "schemas/:schema_id"}, function() {
+                this.route('field', {path: "fields/:field_id"});
+            });
         });
     });
 });

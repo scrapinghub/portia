@@ -9,6 +9,13 @@ export default Ember.Component.extend({
     spellcheck: true,
     value: null,
 
+    init() {
+        this._super(...arguments);
+        if (this.get('editing')) {
+            this.send('startEditing');
+        }
+    },
+
     click() {
         if (this.get('editing')) {
             return false;
@@ -28,6 +35,9 @@ export default Ember.Component.extend({
 
         cancelEditing() {
             this.set('editing', false);
+            if (this.attrs.cancel) {
+                this.attrs.cancel();
+            }
         },
 
         endEditing() {
@@ -35,7 +45,9 @@ export default Ember.Component.extend({
                 editing: false,
                 source: this.get('value')
             });
-            this.attrs.save();
+            if (this.attrs.save) {
+                this.attrs.save();
+            }
         }
     }
 });

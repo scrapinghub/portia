@@ -6,8 +6,13 @@ export default Ember.Route.extend({
     },
 
     afterModel() {
-        this.store.findAll('spider');
         this.store.findAll('schema');
+        this.store.findAll('field');
+        this.store.findAll('spider');
+        this.store.findAll('sample');
+        this.store.findAll('item');
+        this.store.findAll('item-annotation');
+        this.store.findAll('annotation');
     },
 
     setupController: function(controller, model) {

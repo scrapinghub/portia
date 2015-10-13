@@ -1,11 +1,26 @@
 {{#link-to 'projects.project.spider.sample.annotation' annotation.sample.spider.project annotation.sample.spider annotation.sample annotation}}
-    {{#structure-list-item icon=annotation.type hasDetails=true remove=(action 'removeAnnotation')}}
-        {{list-item-badge count=annotation.elements.length color=annotation.color}}
-        <div class="structure-list-item-main">
-            {{editable-text source=(mut annotation.name) save=(action 'saveAnnotation')}}
-        </div>
-        <div class="structure-list-item-content">
-            {{annotation-type-selector source=(mut annotation.type) save=(action 'saveAnnotation')}}
-        </div>
+    {{#structure-list-item icon=annotation.type count=annotation.elements.length countColor=annotation.color hasDetails=true remove=(action 'removeAnnotation')}}
+        {{#if renaming}}
+            {{editable-text editing=true source=(mut annotation.field.name) save=(action 'saveField') cancel=(action 'cancelRenaming')}}
+        {{else}}
+            {{#selectable-text source=(mut annotation.field) sourceAttribute='name' save=(action 'saveAnnotation') as |set close|}}
+                {{#each annotation.field.schema.fields as |field|}}
+                    <li class={{if (eq field.id annotation.field.id) "active"}}><a {{action set field}}><i class="icon {{get iconClasses field.type}}"></i>{{field.name}}</a></li>
+                {{/each}}
+                <li role="separator" class="divider"></li>
+                <li><a {{action 'addField' set}}><i class="icon fa fa-plus"></i>New field</a></li>
+                <li><a {{action 'renameField'}}><i class="icon fa fa-pencil"></i>Rename field</a></li>
+            {{/selectable-text}}
+        {{/if}}
+
+        {{#selectable-text source=(mut annotation.field.type) save=(action 'saveField') dropdownAlign="right" as |set close|}}
+            {{#each types as |type|}}
+                <li class={{if (eq type annotation.field.type) "active"}}><a {{action set type}}><i class="icon {{get iconClasses type}}"></i>{{type}}</a></li>
+            {{/each}}
+            {{!--
+            <li role="separator" class="divider"></li>
+            <li class="disabled"><a href><i class="icon {{if annotation.field.multiple 'fa fa-check'}}"></i>Multiple</a></li>
+            --}}
+        {{/selectable-text}}
     {{/structure-list-item}}
 {{/link-to}}

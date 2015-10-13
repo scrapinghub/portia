@@ -1,7 +1,5 @@
 {{#link-to 'projects.project.spider.sample' item.spider.project item.spider item}}
     {{#structure-list-item icon='sample' hasDetails=true remove=(action 'removeSample')}}
-        <div class="structure-list-item-main">
-            {{editable-text source=(mut item.name) save=(action 'saveSample')}}
-        </div>
+        {{editable-text source=(mut item.name) save=(action 'saveSample')}}
     {{/structure-list-item}}
 {{/link-to}}

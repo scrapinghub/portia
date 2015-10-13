@@ -1,9 +1,4 @@
-{{#structure-list-item icon='schema' add=false remove=(action 'removeItemAnnotation')}}
-    {{list-item-badge count=numItems}}
-    <div class="structure-list-item-main">
-        {{editable-text source=(mut itemAnnotation.name) save=(action 'saveItemAnnotation')}}
-    </div>
-    <div class="structure-list-item-content">
-        {{editable-text source=(mut itemAnnotation.item.schema.name) save=(action 'saveSchema')}}
-    </div>
+{{#structure-list-item icon='schema' count=numItems add=false remove=(action 'removeItemAnnotation')}}
+    {{editable-text source=(mut itemAnnotation.name) save=(action 'saveItemAnnotation')}}
+    {{editable-text source=(mut itemAnnotation.item.schema.name) save=(action 'saveSchema')}}
 {{/structure-list-item}}

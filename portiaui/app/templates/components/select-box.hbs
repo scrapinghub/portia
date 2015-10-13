@@ -1,9 +1,17 @@
 <button class="btn btn-default form-control dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="true" {{action 'toggleDropdown'}}>
-    {{value}}
+    {{#if valueAttribute}}
+        {{get value valueAttribute}}
+    {{else}}
+        {{value}}
+    {{/if}}
     <span class="caret"></span>
 </button>
 <ul class="dropdown-menu {{if alignRight 'pull-right'}}">
-    {{#each choices as |choice|}}
-        <li><a {{action 'setValue' choice}}>{{choice}}</a></li>
-    {{/each}}
+    {{#if hasBlock}}
+        {{yield (action 'setValue') (action 'close')}}
+    {{else}}
+        {{#each choices as |choice|}}
+            <li class={{if (eq choice value) "active"}}><a {{action 'setValue' choice}}>{{choice}}</a></li>
+        {{/each}}
+    {{/if}}
 </ul>

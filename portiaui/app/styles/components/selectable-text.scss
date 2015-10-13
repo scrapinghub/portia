@@ -1,0 +1,29 @@
+.selectable-text {
+    .btn {
+        $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
+        height: $tree-list-row-height;
+        padding: ($padding-base-vertical - $tree-list-caret-padding-y) $padding-base-horizontal;
+    }
+}
+
+.selectable-text-container {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    width: 100%;
+
+    .caret {
+        margin: 0 (($tree-list-icon-width - 8px) / 2);
+        color: $navbar-default-color;
+        opacity: $icon-fade-opacity;
+    }
+
+    a {
+        &:hover {
+            .caret {
+                opacity: 1;
+            }
+        }
+    }
+}

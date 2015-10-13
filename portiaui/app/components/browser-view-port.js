@@ -161,7 +161,8 @@ export default Ember.Component.extend({
                 case 'add':
                     if (hoveredElement) {
                         this.set('selectedElement', hoveredElement);
-                        this.get('dispatcher').addAnnotation(hoveredElement);
+                        const item = this.get('uiState.models.sample.items.firstObject');
+                        this.get('dispatcher').addAnnotation(item, hoveredElement, undefined, /* redirect = */true);
                     } else {
                         this.get('dispatcher').clearSelection();
                     }

@@ -8,7 +8,6 @@
 @import "templates/application";
 @import "templates/projects";
 
-@import "components/annotation-type-selector";
 @import "components/browser-view-port";
 @import "components/editable-text";
 @import "components/extracted-item-table";
@@ -16,6 +15,7 @@
 @import "components/inspector-panel";
 @import "components/list-item-badge";
 @import "components/project-structure-panel";
+@import "components/selectable-text";
 @import "components/select-box";
 @import "components/side-bar";
 @import "components/structure-list-item";

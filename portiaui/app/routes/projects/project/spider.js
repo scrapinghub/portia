@@ -8,7 +8,6 @@ export default Ember.Route.extend({
     },
 
     afterModel(model) {
-        this.store.findAll('sample');
         this.set('browser.url', model.get('startUrls.firstObject'));
     },
 

@@ -1,6 +1,14 @@
-{{#structure-list-item icon='schema' add=false remove=(action 'removeItem')}}
-    {{list-item-badge count=numItems}}
-    <div class="structure-list-item-main">
-        {{editable-text source=(mut item.schema.name) save=(action 'saveSchema')}}
-    </div>
+{{#structure-list-item icon='schema' count=numItems add=false remove=(action 'removeItem')}}
+    {{#if renaming}}
+        {{editable-text editing=true source=(mut item.schema.name) save=(action 'saveSchema')}}
+    {{else}}
+        {{#selectable-text source=(mut item.schema) sourceAttribute='name' as |set close|}}
+            {{#each item.schema.project.schemas as |schema|}}
+                <li class={{if (eq schema.id item.schema.id) "active"}}><a {{action 'changeSchema' schema close}}><i class="icon fa fa-database"></i>{{schema.name}}</a></li>
+            {{/each}}
+            <li role="separator" class="divider"></li>
+            <li><a {{action 'addSchema' close}}><i class="icon fa fa-plus"></i>New schema</a></li>
+            <li><a {{action 'renameSchema' close}}><i class="icon fa fa-pencil"></i>Rename schema</a></li>
+        {{/selectable-text}}
+    {{/if}}
 {{/structure-list-item}}

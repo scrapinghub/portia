@@ -46,14 +46,16 @@ export default Ember.Service.extend({
         spider: 'spiderRoute',
         sample: 'sampleRoute',
         annotation: 'annotationRoute',
-        schema: 'schemaRoute'
+        schema: 'schemaRoute',
+        field: 'fieldRoute'
     }),
     routes: computedActiveRoutes({
         project: 'projectRoute',
         spider: 'spiderRoute',
         sample: 'sampleRoute',
         annotation: 'annotationRoute',
-        schema: 'schemaRoute'
+        schema: 'schemaRoute',
+        field: 'fieldRoute'
     }),
     selectedTools: {
         magicToolActive: true,

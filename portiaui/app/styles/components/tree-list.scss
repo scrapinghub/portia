@@ -10,20 +10,19 @@
 
         > .tree-list {
             position: static;
-            padding-left: $tree-list-row-height;
+            padding-left: $tree-list-icon-width;
             list-style: none;
             z-index: auto;
         }
     }
 }
 
-$tree-list-caret-padding-x: ($tree-list-row-height - ($caret-width-base * 2) - 2px) / 2;
-$tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
-
 .tree-list-item-row {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    align-items: center;
+    height: $tree-list-row-height;
 
     &:before {
         content: '';
@@ -47,14 +46,12 @@ $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
 }
 
 .tree-list-item-content {
-    padding: $tree-list-caret-padding-y 0;
     flex: 1 1 auto;
+    min-width: 0;
     color: $navbar-default-color;
 
     a {
         display: block;
-        margin: -$tree-list-caret-padding-y 0;
-        padding: $tree-list-caret-padding-y 0;
         outline: none;
 
         &:hover,
@@ -66,10 +63,10 @@ $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
 
 .tree-list-collapse {
     display: block;
-    flex: 0 0 auto;
-    padding: $tree-list-caret-padding-y $tree-list-caret-padding-x;
+    flex: 0 0 $tree-list-icon-width;
     opacity: 0.21;  // = color: $nav-tabs-border-color
     transition: opacity $animation-time $animation-easing;
+    text-align: center;
 
     &,
     &:hover,
@@ -90,11 +87,6 @@ $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
     &:not(.tree-list-no-children) {
         cursor: pointer !important;
     }
-}
-
-.tree-list-no-children {
-    width: $tree-list-row-height;
-    height: $tree-list-row-height;
 }
 
 .tree-list-item {

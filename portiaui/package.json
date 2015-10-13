@@ -40,6 +40,7 @@
     "ember-data-fixture-adapter": "1.13.0",
     "ember-disable-proxy-controllers": "^1.0.0",
     "ember-export-application-global": "^1.0.3",
+    "ember-get-helper": "1.0.2",
     "ember-localforage-adapter": "2.0.0",
     "ember-truth-helpers": "1.1.0"
   }

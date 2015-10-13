@@ -72,11 +72,14 @@ export default ToolPanel.extend({
 
     actions: {
         addAnnotation(attribute) {
-            this.get('dispatcher').addAnnotation(this.get('inspectedElement'), attribute);
+            const item = this.get('uiState.models.sample.items.firstObject');
+            this.get('dispatcher').addAnnotation(
+                item, this.get('inspectedElement'), attribute, /* redirect = */true);
         },
 
         changeAnnotationSource(attribute) {
-            this.get('dispatcher').changeAnnotationSource(attribute);
+            const annotation = this.get('uiState.models.annotation');
+            this.get('dispatcher').changeAnnotationSource(annotation, attribute);
         }
     }
 });

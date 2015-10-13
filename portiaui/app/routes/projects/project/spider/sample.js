@@ -8,9 +8,6 @@ export default Ember.Route.extend({
     },
 
     afterModel(model) {
-        this.store.findAll('item');
-        this.store.findAll('annotation');
-        this.store.findAll('item-annotation');
         this.set('browser.url', model.get('url'));
     },
 

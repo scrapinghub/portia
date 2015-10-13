@@ -1,15 +1,18 @@
-<div class="structure-list-item">
-    {{#if attrs.icon}}
-        <i class="structure-list-icon {{iconClasses}}"></i>
-    {{/if}}
+{{#if attrs.icon}}
+    <i class="structure-list-icon {{iconClasses}}"></i>
+{{/if}}
+{{#if attrs.count}}
+    {{list-item-badge count=attrs.count color=attrs.countColor}}
+{{/if}}
+<div class="structure-list-item-content">
     {{yield}}
-    {{#if attrs.hasDetails}}
-        <i class="structure-list-details fa fa-cog"></i>
-    {{/if}}
-    {{#if attrs.add}}
-        <i class="structure-list-add fa fa-plus-circle {{if attrs.hideAdd 'hide'}}" {{action (action attrs.add) bubbles=false}}></i>
-    {{/if}}
-    {{#if attrs.remove}}
-        <i class="structure-list-remove fa fa-minus-circle" {{action (action attrs.remove) bubbles=false}}></i>
-    {{/if}}
 </div>
+{{#if attrs.hasDetails}}
+    <i class="structure-list-details fa fa-cog"></i>
+{{/if}}
+{{#if attrs.add}}
+    <i class="structure-list-add fa fa-plus-circle {{if attrs.addDisabled 'disabled'}}" {{action 'addClicked' bubbles=false}}></i>
+{{/if}}
+{{#if attrs.remove}}
+    <i class="structure-list-remove fa fa-minus-circle {{if attrs.removeDisabled 'disabled'}}" {{action 'removeClicked' bubbles=false}}></i>
+{{/if}}

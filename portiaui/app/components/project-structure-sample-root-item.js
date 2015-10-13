@@ -12,7 +12,7 @@ export default Ember.Component.extend({
     actions: {
         addSample() {
             const spider = this.get('item.spider.content');
-            this.get('dispatcher').addSample(spider);
+            this.get('dispatcher').addSample(spider, /* redirect = */true);
         }
     }
 });

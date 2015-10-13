@@ -43,8 +43,8 @@ export default Ember.Component.extend({
     }),
 
     actions: {
-        toggleDropdown() {
-            this.toggleProperty('open');
+        close() {
+            this.set('open', false);
         },
 
         setValue(value) {
@@ -56,6 +56,10 @@ export default Ember.Component.extend({
             if (change) {
                 change(value);
             }
+        },
+
+        toggleDropdown() {
+            this.toggleProperty('open');
         }
     }
 });

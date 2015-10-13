@@ -4,6 +4,7 @@ import Ember from 'ember';
 export default Ember.Component.extend({
     dataStructure: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     tagName: '',
 
@@ -11,7 +12,8 @@ export default Ember.Component.extend({
 
     actions: {
         addItem() {
-            this.get('dispatcher').addItem();
+            const sample = this.get('uiState.models.sample');
+            this.get('dispatcher').addItem(sample, /* redirect = */true);
         }
     }
 });

@@ -1,15 +1,23 @@
 .editable-text {
-    &.editing {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    > span {
+        flex: 0 1 auto;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .fa-pencil {
+        flex: 0 0 $tree-list-icon-width;
         color: $navbar-default-color;
         cursor: pointer;
-        opacity: 0.15;
+        opacity: $icon-fade-opacity;
         transition: opacity $animation-time $animation-easing;
+        text-align: center;
 
         &:hover {
             opacity: 1;
@@ -17,9 +25,7 @@
     }
 
     input {
-        $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
         flex: 1 1 100%;
         height: $tree-list-row-height;
-        margin: -$tree-list-caret-padding-y 0;
     }
 }

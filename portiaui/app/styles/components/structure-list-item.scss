@@ -2,15 +2,18 @@
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
+    align-items: center;
 }
 
-.structure-list-item-main {
-    flex: 1 1 auto;
-}
-
-.structure-list-item-main,
 .structure-list-item-content {
-    padding: 0 0.285em;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1 1 auto;
+    padding: 0;
+    min-width: 0;
 
     &:first-child {
         padding-left: 0;
@@ -25,12 +28,12 @@
 .structure-list-details,
 .structure-list-add,
 .structure-list-remove {
-    width: $tree-list-row-height;
+    flex: 0 0 $tree-list-icon-width;
     line-height: inherit;
     text-align: center;
 
-    opacity: 0.15;
-    transition: opacity $animation-time $animation-easing;
+    opacity: $icon-fade-opacity;
+    transition: opacity $animation-time $animation-easing, color $animation-time $animation-easing;
 }
 
 .structure-list-icon,
@@ -41,6 +44,8 @@
 
 .structure-list-icon {
     opacity: 1;
+    height: $tree-list-row-height;
+    line-height: $tree-list-row-height;
 }
 
 .structure-list-details {
@@ -61,12 +66,40 @@
 .structure-list-remove {
     cursor: pointer;
 
-    &:hover {
+    &:hover:not(.disabled) {
         opacity: 1;
     }
 
-    &.hide {
-        display: block;
-        opacity: 0;
+    &.disabled {
+        color: $navbar-default-color;
+        cursor: not-allowed;
+    }
+}
+
+.text-content {
+    .structure-list-item-content {
+        display: inline;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 $space-width;
+    }
+}
+
+.structure-list-item-content {
+    > .editable-text {
+        margin-left: $space-width;
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    > .selectable-text {
+        flex: 0 1 auto;
+        min-width: 0;
+        margin-left: $space-width;
+
+        &:not(:first-child) {
+            margin-left: $line-height-computed;
+        }
     }
 }

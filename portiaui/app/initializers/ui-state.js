@@ -10,6 +10,8 @@ export function initialize(container, application) {
         'annotationRoute', 'route:projects/project/spider/sample/annotation');
     application.inject('service:ui-state',
         'schemaRoute', 'route:projects/project/schema');
+    application.inject('service:ui-state',
+        'fieldRoute', 'route:projects/project/schema/field');
 }
 
 export default {

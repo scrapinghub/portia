@@ -4,11 +4,10 @@ import {generalizeSelectors, replacePrefix} from '../utils/selectors';
 
 
 const Annotation = DS.Model.extend({
-    name: DS.attr('string'),
     parent: DS.belongsTo('item', {
         inverse: 'annotations'
     }),
-    type: DS.attr('string'),
+    field: DS.belongsTo(),
     attribute: DS.attr('string'),
     // json fixes error with storing ember NativeArray in indexed db
     acceptSelectors: DS.attr('json', {
@@ -24,6 +23,9 @@ const Annotation = DS.Model.extend({
 
     // matching element in the current sample, populated when active
     elements: [],
+
+    name: Ember.computed.readOnly('field.name'),
+    type: Ember.computed.readOnly('field.type'),
 
     color: Ember.computed('orderedIndex', 'sample.annotationColors.length', function() {
         const colors = this.getWithDefault('sample.annotationColors', []);

@@ -5,9 +5,16 @@ $animation-easing-out: ease-out;
 
 // tree list
 $tree-list-row-height: 26px !default;
+$tree-list-icon-width: $tree-list-row-height !default;
 
 // panels
 $panel-padding-y: 10px;
 
 // font awesome settings
 $fa-font-path: 'fonts';
+
+// typography
+$space-width: 0.285em;
+
+// icons
+$icon-fade-opacity: 0.25;

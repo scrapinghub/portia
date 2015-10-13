@@ -132,12 +132,10 @@ export default ToolPanel.extend({
                 toolPanel: this,
                 container: container
             }),
-/*
             SchemaList.create({
               toolPanel: this,
                 container: container
             })
-*/
         ]);
         this.get('project.schemas');
     }

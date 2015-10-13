@@ -4,6 +4,7 @@ export const ICON_CLASSES = {
     date: 'fa fa-calendar',
     geopoint: 'fa fa-map-marker',
     image: 'fa fa-picture-o',
+    list: 'fa fa-list',
     number: 'portia-icon portia-icon-number',
     price: 'fa fa-dollar',
     'raw html': 'fa fa-code',
@@ -17,10 +18,24 @@ export const ICON_CLASSES = {
 };
 
 export default Ember.Component.extend({
-    tagName: '',
+    classNames: ['structure-list-item'],
 
     iconClasses: Ember.computed('icon', function() {
         var icon = this.get('icon');
         return ICON_CLASSES[icon] || 'fa';
-    })
+    }),
+
+    actions: {
+        addClicked() {
+            if (this.attrs.add && !this.get('addDisabled')) {
+                this.attrs.add();
+            }
+        },
+
+        removeClicked() {
+            if (this.attrs.remove && !this.get('removeDisabled')) {
+                this.attrs.remove();
+            }
+        }
+    }
 });
