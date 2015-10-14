@@ -59,7 +59,7 @@ function suggestTitleAnnotation(document, fieldNames, next) {
 function suggestMicrodataAnnotations(document, fieldNames, next) { // Returns [[field, node, attr, probability]]
     let res = [];
     let props = document.querySelectorAll('[itemprop]');
-    for(let prop of props) {
+    for(let prop of Array.from(props)) {
         let propName = prop.getAttribute('itemprop');
         let field = findField([propName], fieldNames);
         if(field) {
