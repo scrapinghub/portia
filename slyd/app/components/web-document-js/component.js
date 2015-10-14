@@ -3,7 +3,8 @@ import Ember from 'ember';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 import utils from '../../utils/utils';
-
+import experiments from '../../utils/experiments';
+import { predictCss, matchesExactly } from '../../utils/selector-prediction';
 
 function paintCanvasMessage(canvas) {
     var ctx = canvas.getContext('2d');
@@ -252,14 +253,56 @@ export default WebDocument.extend({
         if(!evt.target || !evt.target.nodeid) {
             return;
         }
+        var interaction =  interactionEvent(evt);
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
                 project: this.get('slyd.project'),
             },
             _command: 'interact',
-            interaction: interactionEvent(evt)
+            interaction: interaction
         });
+        this.saveAction(interaction, evt);
+    },
+
+    saveAction: function (interactionEvent, nativeEvent) {
+        if(!experiments.enabled('page_actions') || !this.get('recording')) {
+            return;
+        }
+        var pageActions = this.get('pageActions');
+        var type = interactionEvent.type;
+
+        // Filter actions we are not interested in
+        if (!pageActions || (type !== 'click' && type !== 'input' && type !== 'change')) {
+            return null; // We don't record that kind of actions
+        }
+        var target = nativeEvent.target;
+        if ((type === 'click' && $(target).is('option,select,input:text,body,textarea,html')) || // Ignore click events in some elements
+            (type === 'change' && !$(target).is('select'))){ // We only care about change events in select elements
+            return null;
+        }
+
+        var selector = predictCss(matchesExactly($(target)));
+
+        // If we are inputting more text into a field, or changing again a select make it only one interaction
+        if((type === 'input' || type === 'change') && pageActions.length){
+            var lastAction = pageActions[pageActions.length-1];
+            if(lastAction.type === 'set' && lastAction.selector === selector && !lastAction._edited){
+                lastAction.set('value', $(target).val());
+                return;
+            }
+        }
+
+        // Record the action
+        var action = Ember.Object.create({
+            type: type === 'click' ? 'click' : 'set',
+            selector: selector,
+            target: target
+        });
+        if(action.type === 'set'){
+            action.value = $(target).val();
+        }
+        pageActions.pushObject(action);
     },
 
     bindResizeEvent: function() {

@@ -5,6 +5,7 @@ import SpriteStore from '../utils/sprite-store';
 import ExtractedItem from '../models/extracted-item';
 import Template from '../models/template';
 import utils from '../utils/utils';
+import experiments from '../utils/experiments';
 
 export default BaseController.extend({
     fixedToolbox: false,
@@ -82,6 +83,7 @@ export default BaseController.extend({
     addTemplateDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching', 'testing'),
     reloadDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching'),
     haveItems: Ember.computed.notEmpty('extractedItems'),
+    pageActionsEnabled: experiments.enabled('page_actions') ? Ember.computed.reads('model.js_enabled') : false,
 
     browseBackDisabled: function() {
         return this.get('ws.closed') || this.get('browseHistory').length <= 1;
@@ -534,6 +536,10 @@ export default BaseController.extend({
                 }
             }
         },
+
+        toggleRecording: function() {
+            this.get('documentView').toggleProperty('recording');
+        }
     },
 
     documentActions: {
@@ -578,6 +584,7 @@ export default BaseController.extend({
             mode: 'browse',
             useBlankPlaceholder: false,
             listener: this,
+            pageActions: this.get('model.page_actions'),
         });
         this.get('browseHistory').clear();
         Ember.run.next(() => {

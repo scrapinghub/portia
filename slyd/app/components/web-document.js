@@ -3,6 +3,7 @@ import Ember from 'ember';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
 import utils from '../utils/utils';
+import experiments from '../utils/experiments';
 
 var META_STYLE = `<style data-show-meta>
     head, title, meta, link {
@@ -61,6 +62,7 @@ export default Ember.Component.extend({
 
     mode: "uninitialized", // How it responds to input events, modes are 'none', 'browse' and 'select'
     useBlankPlaceholder: false,
+    recording: false, // If we are currently recording page actions
 
     canvas: null,
 
@@ -84,6 +86,7 @@ export default Ember.Component.extend({
         The options dictionary may contain:
 
         listener: the event listener will be attached.
+        pageActions: Array where to save page actions performed.
         mode: a string. Possible values are 'select', 'browse' and 'none'.
         partialSelects: boolean. Whether to allow partial selections. It only
             has effect for the 'select' mode.
@@ -92,11 +95,15 @@ export default Ember.Component.extend({
     */
     config: function(options) {
         this.set('listener', options.listener);
+        if(experiments.enabled('page_actions')) {
+            this.set('pageActions', options.pageActions);
+        }
         if(options.mode && options.mode !== this.get('mode')) {
             this.set('cssEnabled', true);
             this.set('mode', options.mode);
             Ember.run.next(this, this.emptyIframe);
             this.set('loading', false);
+            this.set('recording', false);
             this.set('currentUrl', '');
             this.set('currentFp', '');
         }
@@ -279,7 +286,6 @@ export default Ember.Component.extend({
         }
         this.unblockInteractions('loading');
     },
-
 
     /**
      * Only works in "select" mode

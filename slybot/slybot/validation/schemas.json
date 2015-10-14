@@ -58,6 +58,7 @@
             "allowed_domains": {"type": "array", "items": {"type": "string"}},
             "templates": {"type": "array", "items": {"$ref": "template"}},
             "template_names": {"type": "array", "items": {"type": "string"}},
+            "page_actions": {"type": "array", "items": {"$ref": "action"}},
             "init_requests": {"type": "array", "items": {"$ref": "request"}}
         }
     },
@@ -105,5 +106,37 @@
             "link_extractor": {"$ref": "link_extractor"},
             "additionalProperties": {"type": "any"}
         }
+    },
+    {
+        "id": "action",
+        "type": "object",
+        "allOf": [{
+            "properties": {
+                "accept": {"type": "string", "format": "regex"},
+                "reject": {"type": "string", "format": "regex"}
+            }
+        }, {
+            "oneOf": [
+                {
+                    "properties": {
+                        "type": {"enum": ["wait"]},
+                        "timeout": {"type": "number", "minimum": 0, "required": true}
+                    }
+                },
+                {
+                    "properties": {
+                        "type": {"enum": ["click"]},
+                        "selector": {"type": "string", "required": true}
+                    }
+                },
+                {
+                    "properties": {
+                        "type": {"enum": ["set"]},
+                        "value": {"type": "string", "required": true},
+                        "selector": {"type": "string", "required": true}
+                    }
+                }
+            ]
+        }]
     }
 ]
