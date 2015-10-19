@@ -6,6 +6,7 @@ module('interactionEvent');
 test('it works', function() {
   var evt = document.createEvent('Event');
   evt.initEvent('TestEvent', true, true);
+  document.documentElement.nodeid = evt;
   document.documentElement.dispatchEvent(evt);
   var result = interactionEvent(evt);
   ok(result);

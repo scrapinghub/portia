@@ -1,6 +1,6 @@
 import Ember from 'ember';
 
-const TYPES = ['click', 'set', 'wait'];
+const TYPES = ['click', 'set', 'wait', 'scroll'];
 
 export default Ember.Component.extend({
     actionTypes: TYPES,
@@ -8,6 +8,7 @@ export default Ember.Component.extend({
     editing: null,
     isEditingWait: Ember.computed.equal('editing.type', 'wait'),
     isEditingSet: Ember.computed.equal('editing.type', 'set'),
+    isEditingScroll: Ember.computed.equal('editing.type', 'scroll'),
     addingNew: false,
 
     actions: {

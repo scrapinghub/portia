@@ -449,15 +449,19 @@ type : string
   * ``wait``: Wait for a specified amount of time before continuing
   * ``click``: Click something on the page
   * ``set``: Set a text field or select box value
+  * ``scroll``: Scroll an element
 
 timeout : number
   Only when type is ``wait``: Ammount of time to wait
 
 selector : string
-  Only when type is ``click`` or ``set``: CSS selector of the elements to apply the action to. If the selector matches several elements, action is applied to all.
+  Only when type is ``click``, ``set`` or ``scroll``: CSS selector of the elements to apply the action to. If the selector matches several elements, action is applied to all.
 
 value : string
   Only when type is ``set``: Value to set the field or select box to.
+
+percent : number
+  Only when type is ``scroll``: Scroll vertically this percentage of the  page.
 
 accept : regex (optional)
   Only run the  action in pages which URL matches the regex

@@ -250,10 +250,10 @@ export default WebDocument.extend({
     },
 
     postEvent: function(evt){
-        if(!evt.target || !evt.target.nodeid) {
+        var interaction =  interactionEvent(evt);
+        if(!interaction) {
             return;
         }
-        var interaction =  interactionEvent(evt);
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
@@ -272,11 +272,24 @@ export default WebDocument.extend({
         var pageActions = this.get('pageActions');
         var type = interactionEvent.type;
 
+        let typemap = {
+            'click': 'click',
+            'input': 'set',
+            'change': 'set',
+            'scroll': 'scroll',
+        };
+
         // Filter actions we are not interested in
-        if (!pageActions || (type !== 'click' && type !== 'input' && type !== 'change')) {
+        if (!pageActions || !(type in typemap)) {
             return null; // We don't record that kind of actions
         }
+
+        let actionType = typemap[type];
+
         var target = nativeEvent.target;
+        if(target.nodeType === Node.DOCUMENT_NODE){
+            target = target.documentElement;
+        }
         if ((type === 'click' && $(target).is('option,select,input:text,body,textarea,html')) || // Ignore click events in some elements
             (type === 'change' && !$(target).is('select'))){ // We only care about change events in select elements
             return null;
@@ -285,22 +298,29 @@ export default WebDocument.extend({
         var selector = predictCss(matchesExactly($(target)));
 
         // If we are inputting more text into a field, or changing again a select make it only one interaction
-        if((type === 'input' || type === 'change') && pageActions.length){
+        if((actionType === 'set' || actionType === 'scroll') && pageActions.length){
             var lastAction = pageActions[pageActions.length-1];
-            if(lastAction.type === 'set' && lastAction.selector === selector && !lastAction._edited){
-                lastAction.set('value', $(target).val());
+
+            if(lastAction.type === actionType && lastAction.selector === selector && !lastAction._edited){
+                if(actionType === 'set') {
+                    Ember.set(lastAction, 'value', $(target).val());
+                } else if (actionType === 'scroll') {
+                    Ember.set(lastAction, 'percent', Math.max(lastAction.percent, interactionEvent.scrollTopPercent));
+                }
                 return;
             }
         }
 
         // Record the action
         var action = Ember.Object.create({
-            type: type === 'click' ? 'click' : 'set',
+            type: actionType,
             selector: selector,
             target: target
         });
-        if(action.type === 'set'){
+        if(actionType === 'set'){
             action.value = $(target).val();
+        } else if(actionType === 'scroll') {
+            action.percent = interactionEvent.scrollTopPercent;
         }
         pageActions.pushObject(action);
     },

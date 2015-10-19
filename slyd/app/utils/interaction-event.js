@@ -13,9 +13,12 @@ var interactionEvent = function(evt) {
     var target = evt.target;
     var doc = target.ownerDocument;
 
-    if(target.nodeType === Node.DOCUMENT_NODE){
+    if(target && target.nodeType === Node.DOCUMENT_NODE){
         doc = target;
         target = doc.documentElement;
+    }
+    if(!target || !target.nodeid) {
+        return null;
     }
 
     var data = {
@@ -41,10 +44,12 @@ var interactionEvent = function(evt) {
         }
         if (scrollTarget) {
             data.scrollTop = scrollTarget.scrollTop;
+            data.scrollTopPercent = scrollTarget.scrollTopMax && Math.round(scrollTarget.scrollTop * 100 / scrollTarget.scrollTopMax);
             data.scrollLeft  = scrollTarget.scrollLeft;
         } else {
             data.scrollTop = 0;
             data.scrollLeft  = 0;
+            data.scrollTopPercent = 0;
         }
     }
 
