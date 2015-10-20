@@ -48,6 +48,10 @@ function xpath(expr, ctx, type){
     }
 }
 
+function xpath_one(expr, ctx) {
+    return xpath(expr, ctx, XPathResult.FIRST_ORDERED_NODE_TYPE);
+}
+
 function getFieldNamesRegex(seedWords) {
     let afix = '[a-z0-9_\\.-]+';
     let source = seedWords.map(word => [word, afix + word, word + afix].join('|')).join('|');
@@ -197,11 +201,10 @@ export function findReleatedTableCell(td) {
         return td.nextElementSibling;
     }
     // If not vertical, check for horizontal header, first find next row
-    let FIRST = XPathResult.FIRST_ORDERED_NODE_TYPE;
-    var nextRow = xpath('following::tr[1]', td, FIRST);
+    var nextRow = xpath_one('following::tr[1]', td);
 
     // Ensure they are in the same table
-    if(nextRow && xpath('ancestor::table[1]', td, FIRST) !== xpath('ancestor::table[1]', nextRow, FIRST)) {
+    if(nextRow && xpath_one('ancestor::table[1]', td) !== xpath_one('ancestor::table[1]', nextRow)) {
         return null;
     }
 
@@ -284,8 +287,11 @@ registerSuggester('dt_dd', function definitionSuggestor(document, fieldNames, ne
         let nameRegexp = new RegExp(`\\b${field}\\b`, 'i');
         let best = null;
         for(let [node, cnt] of dts) {
-            if(nameRegexp.test(cnt) && (!best || best[1].length > cnt.length) && node.nextElementSibling && node.nextElementSibling.tagName === 'DD') {
-                best = [node.nextElementSibling, cnt];
+            if(nameRegexp.test(cnt) && (!best || best[1].length > cnt.length)) {
+                let dd_node = xpath_one('following-sibling::dd', node);
+                if(dd_node) {
+                    best = [dd_node, cnt];
+                }
             }
         }
         if(best) {
@@ -333,9 +339,9 @@ function getDateRegExp(){
  * If the pattern: <field_name>: <inline_text> is found, suggest it
  * If text matching a price is found and there is a field called price, suggest it
  * If text matching a date is found and there is a field called date, suggest it
- * If text matching a percentage is found and there is a field called date, suggest it
+ * If text matching a percentage is found and there is a field called percent, suggest it
  */
-registerSuggester('text_content', function definitionSuggestor(document, fieldNames, next) {
+registerSuggester('text_content', function textSuggestor(document, fieldNames, next) {
     let res = [];
 
     function score(a) {  // Returns number 0-0.0001 representing how emphasized is the node, typographically
@@ -384,7 +390,7 @@ registerSuggester('text_content', function definitionSuggestor(document, fieldNa
             }
 
             if(nameEndRegExp.test(node.nodeValue)){
-                var nextText = xpath('following::text()[normalize-space()]', node, XPathResult.FIRST_ORDERED_NODE_TYPE);
+                var nextText = xpath_one('following::text()[normalize-space()]', node);
                 if(nextText) {
                     res.push([field, nextText.parentNode, text, 0.1 + score(nextText.parentNode)]);
                 }
