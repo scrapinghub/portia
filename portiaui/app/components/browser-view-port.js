@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import {ANNOTATION_MODE} from '../services/browser';
 import {getAttributeList} from './inspector-panel';
+import {uniquePathSelectorFromElement, generalizeSelectors} from '../utils/selectors';
 
 
 const HoverSelector = Ember.Object.extend({
@@ -46,7 +47,8 @@ export default Ember.Component.extend({
 
     activeSelectionMode: Ember.computed(
         'selectionMode', 'magicToolActive',
-        'hoveredElement', 'hoveredOverlay', 'selectedElement', 'selectedOverlay', function() {
+        'hoveredElement', 'hoveredOverlay', 'selectedElement', 'selectedOverlay',
+        'generalizableOverlay', function() {
             const selectedMode = this.get('selectionMode');
             const magicToolActive = this.get('magicToolActive');
             if (selectedMode) {
@@ -55,7 +57,6 @@ export default Ember.Component.extend({
                 const hoveredElement = this.get('hoveredElement');
                 const hoveredOverlay = this.get('hoveredOverlay');
                 const selectedOverlay = this.get('selectedOverlay');
-                //TODO: detect edit mode
                 if (hoveredOverlay) {
                     if (hoveredOverlay === selectedOverlay) {
                         if (selectedOverlay.get('elements.length') === 1) {
@@ -66,31 +67,71 @@ export default Ember.Component.extend({
                         return 'select';
                     }
                 } else if (hoveredElement) {
+                    if (this.get('generalizableOverlay')) {
+                        return 'edit';
+                    }
                     return 'add';
                 }
                 return 'select';
             }
         }),
     hideHoverOverlay: Ember.computed(
-        'activeSelectionMode', 'hoveredElement', 'hoveredOverlay', 'selectedOverlay', function() {
+        'activeSelectionMode', 'hoveredElement',
+        'hoveredOverlay', 'selectedOverlay', 'generalizableOverlay' , function() {
             const selectionMode = this.get('activeSelectionMode');
             const hoveredElement = this.get('hoveredElement');
             const hoveredOverlay = this.get('hoveredOverlay');
             const selectedOverlay = this.get('selectedOverlay');
+            const generalizableOverlay = this.get('generalizableOverlay');
             return !hoveredElement || !!hoveredOverlay ||
                 selectionMode === 'select' ||
                 selectionMode === 'remove' ||
-                (selectionMode === 'edit' && !selectedOverlay);
+                (selectionMode === 'edit' && !(selectedOverlay || generalizableOverlay));
         }),
     hoveredElement: Ember.computed.alias('uiState.viewPort.hoveredElement'),
     hoveredOverlay: computedOverlayIncludingElement('hoveredElement'),
     hoverOverlayColor: Ember.computed(
         'browserOverlays.hoverOverlayColor', 'activeSelectionMode',
-        'selectedOverlay.color', function() {
+        'selectedOverlay.color', 'generalizableOverlay.color', function() {
             const hoverOverlayColor = this.get('browserOverlays.hoverOverlayColor');
             const selectionMode = this.get('activeSelectionMode');
-            const selectedOverlayColor = this.get('selectedOverlay.color');
+            const selectedOverlayColor = this.get('selectedOverlay.color') ||
+                this.get('generalizableOverlay.color');
             return selectionMode === 'edit' ? selectedOverlayColor : hoverOverlayColor;
+        }),
+    generalizableAnnotation: Ember.computed(
+        'selectedOverlay', 'hoveredElement',
+        'uiState.models.sample.orderedAnnotations', function() {
+            const selectedOverlay = this.get('selectedOverlay');
+            const hoveredElement = this.get('hoveredElement');
+            if (!hoveredElement) {
+                return;
+            }
+            let annotations;
+            if (selectedOverlay) {
+                annotations = [selectedOverlay.get('content')];
+            } else {
+                annotations = this.get('uiState.models.sample.orderedAnnotations');
+                //return;
+            }
+            for (let annotation of annotations) {
+                const currentSelector = annotation.get('generalizedSelector');
+                const accept = annotation.get('acceptSelectors').slice();
+                const reject = annotation.get('rejectSelectors').slice();
+                const selector = uniquePathSelectorFromElement(hoveredElement);
+                accept.addObject(selector);
+                reject.removeObject(selector);
+                const possibleSelector = generalizeSelectors(accept, reject);
+                if (currentSelector.split(/\s*,\s*/).length ===
+                    possibleSelector.split(/\s*,\s*/).length) {
+                    return annotation;
+                }
+            }
+        }),
+    generalizableOverlay: Ember.computed(
+        'generalizableAnnotation.id', 'overlays.@each.id', function() {
+            const annotationId = this.get('generalizableAnnotation.id');
+            return this.get('overlays').findBy('id', annotationId);
         }),
     magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
@@ -146,7 +187,6 @@ export default Ember.Component.extend({
             const selectionMode = this.get('activeSelectionMode');
             const hoveredElement = this.get('hoveredElement');
             const hoveredOverlay = this.get('hoveredOverlay');
-            const selectedOverlay = this.get('selectedOverlay');
 
             switch (selectionMode) {
                 case 'select':
@@ -178,17 +218,17 @@ export default Ember.Component.extend({
                     break;
 
                 case 'edit':
+                    const matchingOverlay = this.get('selectedOverlay') ||
+                        this.get('generalizableOverlay');
                     if (!hoveredElement) {
                         this.get('dispatcher').clearSelection();
-                    } else if (selectedOverlay && selectedOverlay !== hoveredOverlay) {
-                        const annotation = selectedOverlay.get('content');
+                    } else if (matchingOverlay && matchingOverlay !== hoveredOverlay) {
+                        const annotation = matchingOverlay.get('content');
                         this.get('dispatcher').addElementToAnnotation(annotation, hoveredElement);
                     } else if (hoveredOverlay) {
                         const annotation = hoveredOverlay.get('content');
                         this.get('dispatcher').removeElementFromAnnotation(
                             annotation, hoveredElement);
-                    } else {
-                        //TODO: detect possible match
                     }
                     break;
             }

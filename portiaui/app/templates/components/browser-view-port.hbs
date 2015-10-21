@@ -29,7 +29,7 @@
 <div class="frame-container">
     <div class="overlay-container">
         {{#each overlays key="@identity" as |overlay|}}
-            {{component overlay.overlayComponentName overlay=overlay selectionMode=activeSelectionMode hoverOverlayColor=hoverOverlayColor hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay}}
+            {{component overlay.overlayComponentName overlay=overlay selectionMode=activeSelectionMode hoverOverlayColor=hoverOverlayColor hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay generalizableOverlay=generalizableOverlay}}
         {{/each}}
         {{#if browser.isInteractionMode}}
             {{element-overlay class=(concat 'hover-overlay' (if hideHoverOverlay ' hide' '')) viewPortElement=hoveredElement icon=activeSelectionMode color=hoverOverlayColor}}

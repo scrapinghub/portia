@@ -68,7 +68,7 @@ class SelectorStructureNode {
     }
 
     add(selector, setName) {
-        this.addParts(selector.split(/\s*>\s*/), setName);
+        this.addParts((selector + '>').split(/\s*>\s*/), setName);
     }
 
     addParts(parts, setName) {
@@ -89,22 +89,22 @@ class SelectorStructureNode {
         const tags = Object.keys(this);
         const selectors = this.generalizeSelector();
 
-        if (!tags.length) {
-            return [...selectors];
-        }
-
         const wholeSelectors = [];
 
         for (let tag of tags) {
-            const childSelectors = this[tag].generalizeParts();
-            if (this.tag) {
-                for (let childSelector of childSelectors) {
-                    for (let selector of selectors) {
-                        wholeSelectors.push(`${selector} > ${childSelector}`);
-                    }
-                }
+            if (tag === '') {
+                wholeSelectors.push(...selectors);
             } else {
-                wholeSelectors.push(...childSelectors);
+                const childSelectors = this[tag].generalizeParts();
+                if (this.tag) {
+                    for (let childSelector of childSelectors) {
+                        for (let selector of selectors) {
+                            wholeSelectors.push(`${selector} > ${childSelector}`);
+                        }
+                    }
+                } else {
+                    wholeSelectors.push(...childSelectors);
+                }
             }
         }
 
@@ -177,7 +177,7 @@ export function parentSelector(selectors) {
     if (selectors) {
         for (let multiSelector of selectors) {
             if (multiSelector) {
-                for (let selector of multiSelector.split(/'s*,\s*/)) {
+                for (let selector of multiSelector.split(/\s*,\s*/)) {
                     matchStructure.accept(selector);
                 }
             }
