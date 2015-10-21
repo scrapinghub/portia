@@ -131,6 +131,13 @@
                 },
                 {
                     "properties": {
+                        "type": {"enum": ["scroll"]},
+                        "selector": {"type": "string", "required": true},
+                        "percent": {"type": "number", "minimum": 0, "maximum": 100, "required": true}
+                    }
+                },
+                {
+                    "properties": {
                         "type": {"enum": ["set"]},
                         "value": {"type": "string", "required": true},
                         "selector": {"type": "string", "required": true}

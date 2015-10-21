@@ -35,6 +35,13 @@
                 {{input value=editing.value class="form-control" }}
             </div>
         </div>
+    {{else if isEditingScroll }}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Scroll %</label>
+            <div class="col-sm-7">
+                {{input value=editing.percent pattern="^[0-9]+$" class="form-control" }}
+            </div>
+        </div>
     {{/if}}
 </form>
     <div class="form-group form-group-sm">
@@ -59,6 +66,7 @@
                 {{#if action.selector}}<code title="{{action.selector}}">{{action.selector}}</code>{{/if}}
                 {{#if action.value}} to <code title="{{action.value}}">"{{action.value}}"</code>{{/if}}
                 {{#if action.timeout}} for {{action.timeout}}ms{{/if}}
+                {{#if action.percent}} to <code>{{action.percent}}%</code>{{/if}}
                 {{bs-button clicked="deletePageAction" clickedParam=index size="xs" icon="fa fa-icon fa-trash" type="danger"}}
                 {{bs-button clicked="editPageAction" clickedParam=action size="xs" icon="fa fa-icon fa-cog" type="default"}}
             </div>

@@ -50,6 +50,18 @@ var actions = {
             });
         }, WAIT_ASYNC_OPTS, callback);
     },
+    scroll: function(data, callback){
+        var elements = document.querySelectorAll(data.selector);
+        _waitAsync(function(){
+            forEach(elements, function(element){
+                // Scroll events in the body are dispatched on the documentElement, reverse this
+                if(element === document.documentElement && element.scrollHeight === document.body.scrollHeight){
+                    element = document.body;
+                }
+                element.scrollTop = (data.percent/100)*element.scrollMaxY;
+            });
+        }, WAIT_ASYNC_OPTS, callback);
+    },
     set: function(data, callback) {
         var elements = document.querySelectorAll(data.selector);
         _waitAsync(function(){

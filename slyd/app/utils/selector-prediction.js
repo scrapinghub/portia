@@ -224,6 +224,9 @@ function siblingsWithoutTextNodes(e) {
 }
 
 function pathOf(elem) {
+    if(elem.parentNode === elem.ownerDocument) {
+        return ':root';
+    }
     var e, j, k, len, path, ref, siblings;
     path = "";
     ref = recursiveNodes(elem);
