@@ -8,20 +8,20 @@
             border-color: $input-border-focus !important;
         }
     }
+}
 
-    > .dropdown-menu {
-        .icon {
-            display: inline-block;
-            width: $tree-list-icon-width;
-            height: $line-height-computed;
-            margin-right: 10px;
-            line-height: $line-height-computed;
-            text-align: center;
-            vertical-align: middle;
-        }
+.select-box-menu {
+    .icon {
+        display: inline-block;
+        width: $tree-list-icon-width;
+        height: $line-height-computed;
+        margin-right: 10px;
+        line-height: $line-height-computed;
+        text-align: center;
+        vertical-align: middle;
+    }
 
-        [data-ember-action] {
-            cursor: pointer;
-        }
+    [data-ember-action] {
+        cursor: pointer;
     }
 }

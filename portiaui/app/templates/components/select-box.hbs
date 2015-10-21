@@ -1,17 +1,20 @@
-<button class="btn btn-default form-control dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="true" {{action 'toggleDropdown'}}>
-    {{#if valueAttribute}}
-        {{get value valueAttribute}}
-    {{else}}
-        {{value}}
+{{#drop-down class="select-box" dropdownClass="select-box-menu" open=open dropdownAlign=dropdownAlign as |section|}}
+    {{#if (eq section 'body')}}
+        <button class="btn btn-default form-control dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="true" {{action 'toggleDropdown'}}>
+            {{#if valueAttribute}}
+                {{get value valueAttribute}}
+            {{else}}
+                {{value}}
+            {{/if}}
+            <span class="caret"></span>
+        </button>
+    {{else if (eq section 'menu')}}
+        {{#if hasBlock}}
+            {{yield (action 'setValue') (action 'close')}}
+        {{else}}
+            {{#each choices as |choice|}}
+                <li class={{if (eq choice value) "active"}}><a {{action 'setValue' choice}}>{{choice}}</a></li>
+            {{/each}}
+        {{/if}}
     {{/if}}
-    <span class="caret"></span>
-</button>
-<ul class="dropdown-menu {{if alignRight 'pull-right'}}">
-    {{#if hasBlock}}
-        {{yield (action 'setValue') (action 'close')}}
-    {{else}}
-        {{#each choices as |choice|}}
-            <li class={{if (eq choice value) "active"}}><a {{action 'setValue' choice}}>{{choice}}</a></li>
-        {{/each}}
-    {{/if}}
-</ul>
+{{/drop-down}}

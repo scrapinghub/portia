@@ -1,8 +1,8 @@
 {{#structure-list-item icon='schema' count=numItems add=false remove=(action 'removeItem')}}
     {{#if renaming}}
-        {{editable-text editing=true source=(mut item.schema.name) save=(action 'saveSchema')}}
+        {{editable-text editing=true source=(mut item.schema.name) save=(action 'saveSchema') cancel=(action 'cancelRenaming')}}
     {{else}}
-        {{#selectable-text source=(mut item.schema) sourceAttribute='name' as |set close|}}
+        {{#selectable-text source=(mut item.schema) sourceAttribute='name' dropdownAlign="right" as |set close|}}
             {{#each item.schema.project.schemas as |schema|}}
                 <li class={{if (eq schema.id item.schema.id) "active"}}><a {{action 'changeSchema' schema close}}><i class="icon fa fa-database"></i>{{schema.name}}</a></li>
             {{/each}}

@@ -32,7 +32,8 @@ export default Ember.Component.extend({
             this.get('dispatcher').removeAnnotation(annotation);
         },
 
-        renameField() {
+        renameField(closeAction) {
+            closeAction();
             this.set('renaming', true);
         },
 

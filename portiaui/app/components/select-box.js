@@ -1,16 +1,12 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-    classNames: ['select-box', 'dropdown'],
-    classNameBindings: ['open'],
-
     open: false,
 
-    alignRight: Ember.computed.equal('dropdownAlign', 'right'),
-
     didInsertElement() {
+        const $button = this.$('button');
+
         Ember.run.schedule('afterRender', () => {
-            const $button = this.$('button');
             $button.on({
                 focusout: () => {
                     Ember.run.later(() => {

@@ -24,6 +24,10 @@ export default Ember.Component.extend({
             closeAction();
         },
 
+        cancelRenaming() {
+            this.set('renaming', false);
+        },
+
         changeSchema(schema, closeAction) {
             const item = this.get('item.content');
             this.get('dispatcher').changeItemSchema(item, schema);
