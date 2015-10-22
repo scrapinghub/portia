@@ -12,6 +12,7 @@
 
     &:after {
         content: '';
-        flex: 1 1 auto;
+        flex: 0.0000001 1 auto;
+        background-color: $panel-bg;
     }
 }

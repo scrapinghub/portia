@@ -11,10 +11,13 @@
     border-bottom: 1px solid $navbar-default-border;
 
     &:last-child {
+        flex: 0.0001 0 auto;
         border-bottom: none;
+        max-height: none !important;
     }
 
     &.collapsed {
+        flex-grow: 0 !important;
         flex-shrink: 0 !important;
         min-height: 0 !important;
     }
@@ -22,7 +25,7 @@
 
 .tool-group-header {
     order: 0;
-    background-color: darken($navbar-default-bg, 1.5%);
+    background-color: $panel-bg;
 
     > .nav-tabs {
         border-color: $navbar-default-border;

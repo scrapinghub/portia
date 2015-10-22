@@ -1,8 +1,3 @@
-$animation-time: .15s;
-$animation-easing: ease-in-out;
-$animation-easing-in: ease-in;
-$animation-easing-out: ease-out;
-
 // tree list
 $tree-list-row-height: 26px !default;
 $tree-list-icon-width: $tree-list-row-height !default;
@@ -10,11 +5,11 @@ $tree-list-icon-width: $tree-list-row-height !default;
 // panels
 $panel-padding-y: 10px;
 
-// font awesome settings
-$fa-font-path: 'fonts';
-
 // typography
 $space-width: 0.285em;
 
 // icons
 $icon-fade-opacity: 0.25;
+
+// colors
+$panel-bg: darken($navbar-default-bg, 1.5%);
