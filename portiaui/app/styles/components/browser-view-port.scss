@@ -53,6 +53,58 @@
     animation-name: flash-success;
 }
 
+.browser-start-page {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 1;
+    background-color: #fff;
+    transition: opacity $animation-time $animation-easing-out;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+
+    &.hide {
+        display: flex !important;
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    img {
+        display: block;
+        width: 20%;
+        margin: 0 auto;
+    }
+
+    form {
+        width: 50%;
+        margin: 2em auto;
+    }
+
+    .btn {
+        display: none;
+    }
+
+    &:before,
+    &:after {
+        content: '';
+        display: block;
+    }
+
+    &:before {
+        flex: 1 1 auto;
+    }
+
+    &:after {
+        flex: 2 1 auto;
+    }
+}
+
 .tool-bar {
     $tool-padding: 8px;
 

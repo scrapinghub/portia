@@ -36,5 +36,14 @@
             {{element-overlay class=(concat 'hover-overlay' (if hideHoverOverlay ' hide' '')) viewPortElement=hoveredElement icon=activeSelectionMode color=hoverOverlayColor}}
         {{/if}}
     </div>
+    <div class="browser-start-page {{if browser.url 'hide'}}">
+        <img src="/assets/images/portia-logo.svg" alt="Portia logo">
+        {{url-bar class="navbar-form" role="navigation"}}
+        {{#if uiState.models.project.spiders.length}}
+            <p>
+                You can also select one of your existing spiders from the sidebar.
+            </p>
+        {{/if}}
+    </div>
     {{browser-iframe clickHandler=(action 'viewPortClick')}}
 </div>
