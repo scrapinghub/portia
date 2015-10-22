@@ -1,5 +1,12 @@
-<div class="project-list list-group">
-    {{#each model key='id' as |project|}}
-        {{link-to project.name 'projects.project' project class="list-group-item"}}
-    {{/each}}
+<div class="project-list-container">
+    <p class="project-list-info">
+        What do you want to work on today?
+        Choose a project from the list below.
+    </p>
+
+    <div class="project-list list-group">
+        {{#each model key='id' as |project|}}
+            {{link-to project.name 'projects.project' project class="list-group-item"}}
+        {{/each}}
+    </div>
 </div>

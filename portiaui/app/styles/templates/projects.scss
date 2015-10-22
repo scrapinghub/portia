@@ -1,4 +1,13 @@
+.project-list-container {
+    width: 100%;
+}
+
 .project-list {
-    margin: $navbar-margin-bottom auto 0;
-    width: 300px;
+    margin: 0 auto;
+    max-width: 300px;
+}
+
+.project-list-info {
+    margin: ($navbar-margin-bottom * 2) auto;
+    max-width: 400px;
 }
