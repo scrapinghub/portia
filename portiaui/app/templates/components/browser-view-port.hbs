@@ -27,6 +27,7 @@
     </div>
 {{/if}}
 <div class="frame-container">
+    <div class="mode-feedback mode-feedback-{{browser.mode}}"></div>
     <div class="overlay-container">
         {{#each overlays key="@identity" as |overlay|}}
             {{component overlay.overlayComponentName overlay=overlay selectionMode=activeSelectionMode hoverOverlayColor=hoverOverlayColor hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay generalizableOverlay=generalizableOverlay}}

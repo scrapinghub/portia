@@ -18,4 +18,19 @@
             outline: none;
         }
     }
+
+
+    .btn-mode {
+        width: 100px;
+        z-index: 2;
+        transition: background-color $animation-time $animation-easing, border-color $animation-time $animation-easing;
+    }
+
+    .btn-mode-navigation {
+        @extend .btn-primary;
+    }
+
+    .btn-mode-annotation {
+        @extend .btn-success;
+    }
 }

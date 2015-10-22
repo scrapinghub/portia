@@ -6,6 +6,11 @@
         <button class="btn btn-default" type="button" disabled={{forwardDisabled}} {{action 'forward'}}>
             <span class="fa fa-arrow-right"></span>
         </button>
+        {{#if modeDescription}}
+            <button class="btn btn-default btn-mode btn-mode-{{browser.mode}}" type="button" disabled>
+                {{modeDescription}}
+            </button>
+        {{/if}}
     </span>
     {{input class="form-control" placeholder="Enter a website address" value=(mut url) focus-in=(action 'restoreInputUrl') focus-out=(action 'revertInputUrl') disabled=disabled spellcheck=false}}
     <span class="input-group-btn">

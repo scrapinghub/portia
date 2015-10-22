@@ -6,14 +6,16 @@ export default Ember.Component.extend({
 
     tagName: 'form',
 
+    inputUrl: null,
+
     backDisabled: Ember.computed.or('disabled', 'noBackUrl'),
     disabled: Ember.computed.readOnly('browser.disabled'),
     forwardDisabled: Ember.computed.or('disabled', 'noForwardUrl'),
     loading: Ember.computed.readOnly('browser.loading'),
+    modeDescription: Ember.computed.readOnly('browser.modeDescription'),
     noBackUrl: Ember.computed.equal('browser.backBuffer.length', 0),
     noForwardUrl: Ember.computed.equal('browser.forwardBuffer.length', 0),
     url: Ember.computed.reads('browser.url'),
-    inputUrl: null,
     urlChanged: Ember.computed('url', 'browser.url', function() {
         return this.get('url') !== this.get('browser.url');
     }),

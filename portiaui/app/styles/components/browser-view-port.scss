@@ -6,6 +6,53 @@
     align-items: stretch;
 }
 
+@keyframes flash-primary {
+    from {
+        box-shadow: inset 0 0 2px 2px rgba($brand-primary, 0);
+    }
+
+    50% {
+        box-shadow: inset 0 0 2px 2px $brand-primary;
+    }
+
+    to {
+        box-shadow: inset 0 0 2px 2px rgba($brand-primary, 0);
+    }
+}
+
+@keyframes flash-success {
+    from {
+        box-shadow: inset 0 0 2px 2px rgba($brand-success, 0);
+    }
+
+    50% {
+        box-shadow: inset 0 0 2px 2px $brand-success;
+    }
+
+    to {
+        box-shadow: inset 0 0 2px 2px rgba($brand-success, 0);
+    }
+}
+
+.mode-feedback {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    animation-duration: $animation-time * 2;
+    animation-timing-function: $animation-easing;
+}
+
+.mode-feedback-navigation {
+    animation-name: flash-primary;
+}
+
+.mode-feedback-annotation {
+    animation-name: flash-success;
+}
+
 .tool-bar {
     $tool-padding: 8px;
 
