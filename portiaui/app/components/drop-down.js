@@ -5,6 +5,7 @@ export default Ember.Component.extend({
     classNameBindings: ['open'],
 
     $dropdown: null,
+    focusedElement: null,
     open: false,
     timerId: null,
 
@@ -13,13 +14,36 @@ export default Ember.Component.extend({
     didInsertElement() {
         const $dropdown = this.$dropdown = this.$('.dropdown-menu');
 
-        Ember.run.schedule('afterRender', () => {
-            $dropdown.css({
-                display: 'block',
-                top: '0px'
-            });
+        Ember.run.schedule('render', () => {
             Ember.$('body').append($dropdown);
+            $dropdown.on({
+                focusout: (e) => {
+                    this.focusedElement = null;
+
+                    Ember.run.next(() => {
+                        if (!this.isDestroyed && !this.focusedElement && this.attrs.focusOut) {
+                            this.attrs.focusOut();
+                        }
+                    });
+                },
+                focusin: (e) => {
+                    this.focusedElement = e.target;
+                },
+                keyup: (event) => {
+                    if (event.keyCode === 27) {  // ESCAPE
+                        Ember.run.next(() => {
+                            if (this.attrs.keyUp) {
+                                this.attrs.keyUp();
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        Ember.run.schedule('afterRender', () => {
             this.updatePosition();
+            this.onOpen();
         });
     },
 
@@ -34,6 +58,16 @@ export default Ember.Component.extend({
         });
     },
 
+    onOpen: Ember.observer('open', function() {
+        if (this.get('open')) {
+            Ember.run.schedule('afterRender', () => {
+                if (!this.focusedElement) {
+                    this.$dropdown.focus();
+                }
+            });
+        }
+    }),
+
     updatePosition() {
         const $dropdown = this.$dropdown;
         const rect = this.element.getBoundingClientRect();
@@ -42,7 +76,6 @@ export default Ember.Component.extend({
         const left = Math.round(rect.left);
         const right = Math.round(rect.right);
         let positionLeft;
-        //console.log(this.get('dropdownAlign'), this.get('alignRight'));
         if (this.get('alignRight')) {
             positionLeft = right - $dropdown.outerWidth();
         } else {

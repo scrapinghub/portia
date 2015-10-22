@@ -4,6 +4,7 @@ export default Ember.Component.extend({
     classNames: ['selectable-text'],
 
     choices: [],
+    focus: true,
     dropdownAlign: 'left',
     selecting: false,
 

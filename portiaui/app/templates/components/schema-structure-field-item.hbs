@@ -3,8 +3,9 @@
         {{editable-text source=(mut field.name) save=(action 'saveField')}}
 
         {{#selectable-text source=(mut field.type) save=(action 'saveField') dropdownAlign="right" as |set close|}}
+            <li class="dropdown-header">Change field type</li>
             {{#each types as |type|}}
-                <li class={{if (eq type field.type) "active"}}><a {{action set type}}><i class="icon {{get iconClasses type}}"></i>{{type}}</a></li>
+                <li class={{if (eq type field.type) "active"}}><a {{action set type}}>{{list-item-icon class="icon" icon=type}}{{type}}</a></li>
             {{/each}}
             {{!--
             <li role="separator" class="divider"></li>

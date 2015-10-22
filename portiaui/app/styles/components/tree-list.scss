@@ -10,7 +10,7 @@
 
         > .tree-list {
             position: static;
-            padding-left: $tree-list-icon-width;
+            padding-left: $tree-list-icon-width / 2;
             list-style: none;
             z-index: auto;
         }

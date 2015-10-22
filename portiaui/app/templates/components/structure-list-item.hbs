@@ -1,5 +1,5 @@
 {{#if attrs.icon}}
-    <i class="structure-list-icon {{iconClasses}}"></i>
+    {{list-item-icon class="structure-list-icon" icon=attrs.icon}}
 {{/if}}
 {{#if attrs.count}}
     {{list-item-badge count=attrs.count color=attrs.countColor}}

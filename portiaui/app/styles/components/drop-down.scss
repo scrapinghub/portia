@@ -1,0 +1,14 @@
+.dropdown-menu-floating {
+    display: none;
+    outline: none !important;
+
+    &.open {
+        display: block;
+    }
+}
+
+.dropdown-menu {
+    .form-control {
+        margin: 0 8px;
+    }
+}

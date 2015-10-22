@@ -5,12 +5,12 @@ export default Ember.Component.extend({
     classNames: ['editable-text'],
     classNameBindings: ['editing'],
 
+    alwaysEditing: false,
     editing: false,
     spellcheck: true,
     value: null,
 
-    init() {
-        this._super(...arguments);
+    didInsertElement() {
         if (this.get('editing')) {
             this.send('startEditing');
         }
@@ -34,17 +34,25 @@ export default Ember.Component.extend({
         },
 
         cancelEditing() {
-            this.set('editing', false);
+            if (!this.get('alwaysEditing')) {
+                this.set('editing', false);
+            }
             if (this.attrs.cancel) {
                 this.attrs.cancel();
             }
         },
 
         endEditing() {
+            if (!this.get('alwaysEditing')) {
+                this.set('editing', false);
+            }
+            this.set('source', this.get('value'));
+/*
             this.setProperties({
                 editing: false,
                 source: this.get('value')
             });
+*/
             if (this.attrs.save) {
                 this.attrs.save();
             }

@@ -7,8 +7,6 @@ export default Ember.Component.extend({
 
     tagName: '',
 
-    renaming: false,
-
     extractedItems: Ember.computed.filter('dataStructure.structure', function(structureItem) {
         const item = this.get('item.content');
         return structureItem.item === item;
@@ -24,10 +22,6 @@ export default Ember.Component.extend({
             closeAction();
         },
 
-        cancelRenaming() {
-            this.set('renaming', false);
-        },
-
         changeSchema(schema, closeAction) {
             const item = this.get('item.content');
             this.get('dispatcher').changeItemSchema(item, schema);
@@ -39,14 +33,8 @@ export default Ember.Component.extend({
             this.get('dispatcher').removeItem(item);
         },
 
-        renameSchema(closeAction) {
-            closeAction();
-            this.set('renaming', true);
-        },
-
         saveSchema() {
             const schema = this.get('item.schema.content');
-            this.set('renaming', false);
             schema.save();
         }
     }

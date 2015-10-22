@@ -1,4 +1,4 @@
-{{#drop-down class="select-box" dropdownClass="select-box-menu" open=open dropdownAlign=dropdownAlign as |section|}}
+{{#drop-down class="select-box" dropdownClass="select-box-menu" open=open dropdownAlign=dropdownAlign focusOut=(action 'close') escape=(action 'close') as |section|}}
     {{#if (eq section 'body')}}
         <button class="btn btn-default form-control dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="true" {{action 'toggleDropdown'}}>
             {{#if valueAttribute}}
