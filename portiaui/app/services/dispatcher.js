@@ -129,7 +129,7 @@ export default Ember.Service.extend({
         return sample;
     },
 
-    addItem(sample, redirect = false) {
+    addItem(sample /*, redirect = false */) {
         const store = this.get('store');
         const schema = store.createRecord('schema', {
             name: sample.get('name'),

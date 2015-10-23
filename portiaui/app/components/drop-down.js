@@ -17,7 +17,7 @@ export default Ember.Component.extend({
         Ember.run.schedule('render', () => {
             Ember.$('body').append($dropdown);
             $dropdown.on({
-                focusout: (e) => {
+                focusout: () => {
                     this.focusedElement = null;
 
                     Ember.run.next(() => {
