@@ -8,6 +8,7 @@ Contents:
 
    installation
    getting-started
+   examples
    projects
    spiders
    samples
