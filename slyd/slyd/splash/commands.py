@@ -50,7 +50,7 @@ def load_page(data, socket):
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda: on_complete(True),
-                  baseurl=data.get('baseurl') or data['url'],
+                  baseurl=data.get('baseurl'),
                   headers=headers)
 
 
@@ -113,7 +113,7 @@ def extract(socket):
     url = socket.tab.evaljs('location.href')
     html = socket.tab.html()
     js_items, js_links = extract_data(url, html, socket.spider, templates)
-    raw_html = getattr(socket.tab, '_raw_html', None)
+    raw_html = socket.tab.network_manager._raw_html
     if raw_html:
         raw_items, links = extract_data(url, raw_html, socket.spider,
                                         templates)
@@ -199,7 +199,7 @@ class ProjectData(ProjectModifier):
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
                 stated_encoding = socket.tab.evaljs('document.characterSet')
-                sample['original_body'] = self._decode(socket.tab._raw_html,
+                sample['original_body'] = self._decode(socket.tab.network_manager._raw_html,
                                                        stated_encoding)
         obj = self.save_data(path, 'template', data=sample, socket=socket,
                              meta=meta)

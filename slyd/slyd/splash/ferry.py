@@ -14,9 +14,10 @@ from twisted.python.failure import Failure
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
-from splash import network_manager
 from splash.browser_tab import BrowserTab
+from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
+from splash import defaults
 
 from PyQt4.QtCore import QObject
 from PyQt4.QtCore import pyqtSlot
@@ -41,12 +42,21 @@ def create_ferry_resource(spec_manager, factory):
     return FerryWebSocketResource(spec_manager, factory)
 
 
-class PortiaBrowserTab(BrowserTab):
-    def set_content(self, data, callback, errback, mime_type=None,
-                    baseurl=None):
-        self._raw_html = str(data)
-        super(PortiaBrowserTab, self).set_content(data, callback, errback,
-                                                  mime_type, baseurl)
+class PortiaNetworkManager(SplashQNetworkAccessManager):
+    _raw_html = None
+
+    def createRequest(self, operation, request, outgoingData=None):
+        reply = super(PortiaNetworkManager, self).createRequest(operation, request, outgoingData)
+        url = six.binary_type(request.url().toEncoded())
+        frame_url = six.binary_type(self.tab.web_page.mainFrame().requestedUrl().toEncoded())
+        if url == frame_url:
+            self._raw_html = ''
+            reply.readyRead.connect(self._ready_read)
+        return reply
+
+    def _ready_read(self):
+        reply = self.sender()
+        self._raw_html = self._raw_html + six.binary_type(reply.peek(reply.bytesAvailable()))
 
 
 class FerryWebSocketResource(WebSocketResource):
@@ -273,18 +283,24 @@ class FerryServerProtocol(WebSocketServerProtocol):
     def open_tab(self, meta=None):
         if meta is None:
             meta = {}
-        manager = network_manager.create_default()
+        manager = PortiaNetworkManager(
+            filters_path=None,
+            allowed_schemes=defaults.ALLOWED_SCHEMES,
+            verbosity=defaults.VERBOSITY
+        )
+        manager.setCache(None)
 
         data = {}
         data['uid'] = id(data)
 
-        self.factory[self].tab = PortiaBrowserTab(
+        self.factory[self].tab = BrowserTab(
             network_manager=manager,
             splash_proxy_factory=None,
             verbosity=0,
             render_options=RenderOptions(data, defaults.MAX_TIMEOUT),
             visible=True,
         )
+        manager.tab = self.tab
         main_frame = self.tab.web_page.mainFrame()
         cookiejar = PortiaCookieJar(self.tab.web_page, self)
         self.tab.web_page.cookiejar = cookiejar
