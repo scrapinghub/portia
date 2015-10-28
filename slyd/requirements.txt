@@ -6,6 +6,7 @@ autobahn==0.10.4
 six==1.5.2
 chardet==2.3.0
 monotonic==0.3
+ndg-httpsclient==0.4.0
 
 # Dulwich's MySQL backend
 --allow-external=mysql-connector-python
