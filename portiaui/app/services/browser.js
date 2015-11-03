@@ -52,6 +52,12 @@ export default Ember.Service.extend({
         return document ? Ember.$(document) : null;
     }),
 
+    resetUrl: Ember.observer('document', function() {
+        if (!this.get('document')) {
+            this.set('_url', null);
+        }
+    }),
+
     go(url) {
         const currentUrl = this.get('_url');
         if (url && url !== currentUrl) {

@@ -1,5 +1,8 @@
 .project-list-container {
-    width: 100%;
+    @extend .full-page-content;
+
+    width: calc(100% - #{$sidebar-width});
+    margin: 0 auto;
     text-align: center;
 
     h3 {

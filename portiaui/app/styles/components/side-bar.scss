@@ -5,7 +5,7 @@
     justify-content: flex-start;
     align-items: stretch;
     order: 1;
-    width: 365px;
+    width: $sidebar-width;
     height: calc(100vh - #{$navbar-height});
     background-color: $navbar-default-bg;
     border-left: 1px solid $navbar-default-border;

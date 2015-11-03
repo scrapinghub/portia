@@ -54,6 +54,7 @@
 }
 
 .browser-start-page {
+    @extend .full-page-content;
     position: absolute;
     top: 0;
     bottom: 0;
@@ -62,23 +63,11 @@
     opacity: 1;
     background-color: #fff;
     transition: opacity $animation-time $animation-easing-out;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: center;
-    align-items: center;
-    align-content: center;
 
     &.hide {
         display: flex !important;
         pointer-events: none;
         opacity: 0;
-    }
-
-    img {
-        display: block;
-        width: 20%;
-        margin: 0 auto;
     }
 
     form {
@@ -88,20 +77,6 @@
 
     .btn {
         display: none;
-    }
-
-    &:before,
-    &:after {
-        content: '';
-        display: block;
-    }
-
-    &:before {
-        flex: 1 1 auto;
-    }
-
-    &:after {
-        flex: 2 1 auto;
     }
 }
 
