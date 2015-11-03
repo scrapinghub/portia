@@ -6,6 +6,7 @@ export default Ember.Component.extend({
     tagName: '',
 
     annotation: null,
+    selecting: false,
 
     actions: {
         addField(name) {

@@ -1,9 +1,0 @@
-{{#link-to 'projects.project.schema.field' field.schema.project field.schema field}}
-    {{list-item-icon icon=field.type}}
-    {{list-item-editable value=(mut field.name) change=(action 'saveField')}}
-    {{#list-item-field-type field=field}}
-        Change field type
-    {{/list-item-field-type}}
-    {{list-item-icon icon='options'}}
-    {{list-item-icon icon='remove' disabled=cannotDeleteField action=(action 'removeField')}}
-{{/link-to}}

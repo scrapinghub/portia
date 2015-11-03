@@ -11,14 +11,6 @@ export function computedCanAddSpider() {
     });
 }
 
-export function computedCanAddStartUrl(spiderPropertyName) {
-    return Ember.computed('browser.url', `${spiderPropertyName}.startUrls.[]`, function() {
-        const url = this.get('browser.url');
-        const urls = this.get(`${spiderPropertyName}.startUrls`);
-        return (url && !urls.includes(url)) || !urls.includes('');
-    });
-}
-
 export function computedCanAddSample(spiderPropertyName) {
     return Ember.computed('browser.url', `${spiderPropertyName}.samples.@each.url`, function() {
         const url = this.get('browser.url');
@@ -45,6 +37,7 @@ export default Ember.Service.extend({
         });
         schema.save().then(() => {
             if (redirect) {
+                schema.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.schema', [schema], {}, true);
             }
@@ -54,7 +47,7 @@ export default Ember.Service.extend({
 
     addField(schema, type, redirect = false) {
         const name = `field${schema.get('fields.length') + 1}`;
-        return this.addNamedField(schema, type, name, redirect);
+        return this.addNamedField(schema, name, type, redirect);
     },
 
     addNamedField(schema, name, type, redirect = false) {
@@ -66,6 +59,7 @@ export default Ember.Service.extend({
         });
         field.save().then(() => {
             if (redirect) {
+                field.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.schema.field', [field], {}, true);
             }
@@ -87,25 +81,20 @@ export default Ember.Service.extend({
         });
         spider.save().then(() => {
             if (redirect) {
+                spider.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.spider', [spider], {}, true);
             }
         });
-        spider.set('created', true);
         return spider;
     },
 
-    addStartUrl(spider) {
-        const url = this.get('browser.url');
+    addStartUrl(spider, url) {
         const urls = spider.get('startUrls');
         if (url && !urls.includes(url)) {
             urls.pushObject(url);
             spider.save();
             return url;
-        } else if (!urls.includes('')) {
-            urls.pushObject('');
-            spider.save();
-            return '';
         }
     },
 
@@ -136,6 +125,7 @@ export default Ember.Service.extend({
             });
 
             if (redirect) {
+                sample.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.spider.sample', [spider, sample], {}, true);
             }
@@ -143,7 +133,7 @@ export default Ember.Service.extend({
         return sample;
     },
 
-    addItem(sample /*, redirect = false */) {
+    addItem(sample, redirect = false) {
         const store = this.get('store');
         const schema = store.createRecord('schema', {
             name: sample.get('name'),
@@ -155,11 +145,14 @@ export default Ember.Service.extend({
         schema.save().then(() => {
             item.set('schema', schema);
             item.save();
+            if (redirect) {
+                item.set('new', true);
+            }
         });
         return item;
     },
 
-    addItemAnnotation(item /*, redirect = false */) {
+    addItemAnnotation(item, redirect = false) {
         const store = this.get('store');
         const project = item.get('schema.project');
         const schema = store.createRecord('schema', {
@@ -176,6 +169,9 @@ export default Ember.Service.extend({
             newItem.save().then(() => {
                 itemAnnotation.set('item', newItem);
                 itemAnnotation.save();
+                if (redirect) {
+                    itemAnnotation.set('new', true);
+                }
             });
         });
         return itemAnnotation;
@@ -207,6 +203,9 @@ export default Ember.Service.extend({
         field.save().then(() => {
             annotation.set('field', field);
             annotation.save().then(() => {
+                if (redirect) {
+                    annotation.set('new', true);
+                }
                 if (element) {
                     this.selectAnnotationElement(annotation, element, redirect);
                 } else if (redirect) {

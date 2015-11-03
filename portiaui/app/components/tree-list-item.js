@@ -1,34 +1,51 @@
 import Ember from 'ember';
 
-
 export default Ember.Component.extend({
     tagName: 'li',
     classNames: ['tree-list-item'],
     classNameBindings: ['active', 'childActive', 'collapsed'],
 
-    collapsed: null,
+    active: false,
+    childActive: false,
+    hasChildren: false,
 
-    active: Ember.computed.readOnly('item.active'),
-    childActive: Ember.computed.readOnly('item.hasActiveChild'),
-    doNotRenderCollapsedChildren: Ember.computed.reads('item.doNotRenderCollapsedChildren'),
-    doNotRenderChildren: Ember.computed.and('doNotRenderCollapsedChildren', 'collapsed'),
+    collapsed: Ember.computed('_collapsed', {
+        get() {
+            return this.get('_collapsed');
+        },
 
-    init() {
-        this._super();
-        this.set('collapsed', !!this.get('item.collapsed'));
-    },
-
-    keepChildren: Ember.observer('doNotRenderChildren', function() {
-        // keep child DOM after it has been rendered once
-        const doNotRenderChildren = this.get('doNotRenderChildren');
-        if (!doNotRenderChildren) {
-            this.set('doNotRenderCollapsedChildren', false);
+        set(key, value, cachedValue) {
+            return cachedValue;
         }
     }),
 
+    updateEverOpened: Ember.observer('collapsed', function() {
+        if (!this.get('collapsed')) {
+            this.set('everOpened', true);
+        }
+    }),
+
+    init() {
+        this._super();
+        this.set('_collapsed', null);
+        this.set('everOpened', false);
+    },
+
+    didReceiveAttrs({oldAttrs, newAttrs}) {
+        if (newAttrs.collapsed === false) {
+            this.set('_collapsed', false);
+        } else if (this.get('_collapsed') === null) {
+            this.set('_collapsed', newAttrs.collapsed);
+        }
+    },
+
     actions: {
+        openCollapsed() {
+            this.set('_collapsed', false);
+        },
+
         toggleCollapsed() {
-            this.toggleProperty('collapsed');
+            this.toggleProperty('_collapsed');
         }
     }
 });

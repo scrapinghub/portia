@@ -8,7 +8,7 @@
             {{/tool-tab}}
         {{else if (eq options.section "panels")}}
             {{#tool-panel toolId="project-structure" group=options.group}}
-                {{project-structure-panel project=model projects=projects.model}}
+                {{project-structure-panel project=model}}
             {{/tool-panel}}
         {{/if}}
     {{/tool-group}}

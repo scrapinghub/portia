@@ -20,16 +20,6 @@
         color: $navbar-default-color;
     }
 
-    &.disabled {
-        color: $navbar-default-color !important;
-        cursor: not-allowed;
-    }
-
-    .dropdown-menu .disabled & {
-        color: $dropdown-link-disabled-color !important;
-        cursor: not-allowed;
-    }
-
     &.has-action {
         opacity: $icon-fade-opacity;
         pointer-events: auto;
@@ -39,6 +29,16 @@
         &:hover:not(.disabled) {
             opacity: 1;
         }
+    }
+
+    &.disabled {
+        color: $navbar-default-color !important;
+        cursor: not-allowed;
+    }
+
+    .dropdown-menu .disabled & {
+        color: $dropdown-link-disabled-color !important;
+        cursor: not-allowed;
     }
 }
 

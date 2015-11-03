@@ -1,0 +1,9 @@
+{{#tree-list-item as |options|}}
+    {{#if (eq options.section "item")}}
+        <a {{action 'loadStartUrl'}}>
+            {{list-item-icon icon='url'}}
+            {{list-item-editable value=(mut viewUrl) editing=(mut urlAdded) spellcheck=false}}
+            {{list-item-icon icon='remove' action=(action 'removeStartUrl')}}
+        </a>
+    {{/if}}
+{{/tree-list-item}}

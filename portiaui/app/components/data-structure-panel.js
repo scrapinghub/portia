@@ -1,67 +1,4 @@
 import Ember from 'ember';
-import ActiveChildrenMixin from '../mixins/active-children';
-import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
-import ItemAnnotationModel from '../models/item-annotation';
-import {computedIsCurrentModelById} from '../services/ui-state';
-
-
-const RootItem = InstanceCachedObjectProxy.extend(ActiveChildrenMixin, {
-    itemComponentName: 'data-structure-root-item',
-
-    children: Ember.computed.map('annotations', function(annotation) {
-        const itemClass = wrapperForAnnotationModel(annotation);
-        return itemClass.create({
-            content: annotation,
-            container: this.get('container')
-        });
-    }),
-    key: Ember.computed('id', function() {
-        const id = this.get('id');
-        return `item:${id}`;
-    })
-});
-
-const RootItemList = Ember.Object.extend(ActiveChildrenMixin, {
-    itemComponentName: 'data-structure-root',
-    key: 'root',
-
-    children: Ember.computed.map('sample.items', function(item) {
-        return RootItem.create({
-            content: item,
-            container: this.get('container')
-        });
-    }),
-    sample: Ember.computed.readOnly('toolPanel.sample')
-});
-
-const Annotation = InstanceCachedObjectProxy.extend({
-    uiState: Ember.inject.service(),
-
-    itemComponentName: 'data-structure-annotation-item',
-
-    active: Ember.computed.readOnly('isCurrentAnnotation'),
-    isCurrentAnnotation: computedIsCurrentModelById('annotation'),
-    key: Ember.computed('id', 'parent.id', function() {
-        const id = this.get('id');
-        const parentId = this.get('parent.id');
-        return `item:${parentId}:annotation:${id}`;
-    })
-});
-
-const ItemAnnotation = RootItem.extend({
-    itemComponentName: 'data-structure-item-annotation-item',
-
-    annotations: Ember.computed.readOnly('item.annotations'),
-    key: Ember.computed('id', 'parent.id', function() {
-        const id = this.get('id');
-        const parentId = this.get('parent.id');
-        return `item:${parentId}:item-annotation:${id}`;
-    })
-});
-
-function wrapperForAnnotationModel(model) {
-    return model instanceof ItemAnnotationModel ? ItemAnnotation : Annotation;
-}
 
 const AnnotationOverlay = Ember.ObjectProxy.extend({
     selectorMatcher: Ember.inject.service(),
@@ -100,23 +37,23 @@ const AnnotationOverlay = Ember.ObjectProxy.extend({
 const DataStructurePanel = Ember.Component.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
+    dataStructure: Ember.inject.service(),
+    dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
     tagName: '',
 
-    annotationTree: null,
+    selected: false,
+
+    activeModels: Ember.computed.readOnly('uiState.models'),
 
     init() {
         this._super();
-        this.annotationTree = [
-            RootItemList.create({
-                toolPanel: this,
-                container: this.get('container')
-            })
-        ];
+        //this.set('doNotRender', false);
     },
 
     willDestroyElement() {
+        //this.set('doNotRender', true);
         const lastAnnotations = new Set(this.getWithDefault('_registeredAnnotations', []));
 
         this.beginPropertyChanges();
@@ -180,6 +117,16 @@ const DataStructurePanel = Ember.Component.extend({
         DataStructurePanel.overlays.delete(annotation);
         browserOverlays.removeOverlayComponent(overlay);
         overlay.destroy();
+    },
+
+    actions: {
+        addItem(sample) {
+            this.get('dispatcher').addItem(sample, /* redirect = */true);
+        },
+
+        removeItem(item) {
+            this.get('dispatcher').removeItem(item);
+        }
     }
 });
 DataStructurePanel.reopenClass({

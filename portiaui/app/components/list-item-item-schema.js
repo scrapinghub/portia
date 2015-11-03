@@ -6,6 +6,7 @@ export default Ember.Component.extend({
     tagName: '',
 
     item: null,
+    selecting: false,
 
     actions: {
         addSchema(name) {

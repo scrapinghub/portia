@@ -13,7 +13,9 @@ export default Ember.Component.extend({
 
     didInsertElement() {
         if (this.get('focused')) {
-            this.send('startEditing');
+            Ember.run.schedule('afterRender', () => {
+                this.send('startEditing');
+            });
         }
     },
 
@@ -66,7 +68,9 @@ export default Ember.Component.extend({
                     viewValue: null
                 });
                 Ember.run.schedule('afterRender', () => {
-                    this.getInputElement().blur();
+                    if (!this.get('isDestroying')) {
+                        this.getInputElement().blur();
+                    }
                 });
             }
         },
@@ -79,12 +83,14 @@ export default Ember.Component.extend({
                     viewValue: null
                 });
                 Ember.run.schedule('afterRender', () => {
-                    this.getInputElement().blur();
+                    if (!this.get('isDestroying')) {
+                        this.getInputElement().blur();
+                    }
                 });
                 if (reason === 'enter' && this.attrs.enter) {
                     this.attrs.enter();
                 }
-                if (this.attrs.change) {
+                if (this.attrs.change && this.attrs.change.call) {
                     this.attrs.change();
                 }
             }

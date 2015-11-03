@@ -5,6 +5,7 @@ export default Ember.Component.extend({
 
     change: null,
     choices: [],
+    selecting: false,
     value: null,
 
     matchQuery(value, query) {

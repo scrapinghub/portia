@@ -1,12 +1,11 @@
 import Ember from 'ember';
+import {computedPropertiesEqual} from '../utils/computed';
 
 export default Ember.Component.extend({
     tagName: 'li',
     classNameBindings: ['active'],
 
-    active: Ember.computed('toolId', 'group.selected', function() {
-        return this.get('group.selected') === this.get('toolId');
-    }),
+    active: computedPropertiesEqual('toolId', 'group.selected'),
 
     didInsertElement() {
         if (!this.$().prev().length) {

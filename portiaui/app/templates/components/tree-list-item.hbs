@@ -1,1 +1,17 @@
-{{yield collapsed doNotRenderChildren (action 'toggleCollapsed')}}
+<div class="tree-list-item-row" {{action 'openCollapsed'}}>
+    {{#if hasChildren}}
+        <a class="tree-list-collapse" {{action 'toggleCollapsed' bubbles=false}}>
+            <span class="caret"></span>
+        </a>
+    {{else}}
+        <span class="tree-list-collapse tree-list-no-children"></span>
+    {{/if}}
+    <div class="tree-list-item-content">
+        {{yield (hash section="item" collapsed=collapsed everOpened=everOpened)}}
+    </div>
+</div>
+{{#if hasChildren}}
+    {{#tree-list class=(if collapsed 'hide')}}
+        {{yield (hash section="subtrees" collapsed=collapsed everOpened=everOpened)}}
+    {{/tree-list}}
+{{/if}}

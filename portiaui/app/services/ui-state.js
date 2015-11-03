@@ -1,6 +1,5 @@
 import Ember from 'ember';
 
-
 function computedActiveRoutes(mapping) {
     const properties = Object.keys(mapping);
     return Ember.computed(
@@ -31,13 +30,6 @@ function computedRouteModels(mapping) {
             });
             return models;
         });
-}
-
-export function computedIsCurrentModelById(modelName, idProperty = 'id') {
-    var currentModelIdProperty = `uiState.models.${modelName}.id`;
-    return Ember.computed(idProperty, currentModelIdProperty, function () {
-        return this.get(currentModelIdProperty) === this.get(idProperty);
-    });
 }
 
 export default Ember.Service.extend({
