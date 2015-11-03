@@ -195,7 +195,7 @@ export default Ember.Service.extend({
     structure: Ember.computed('annotations', 'annotations.@each.elements', function() {
         let nodeStructure = null;
         (this.get('annotations') || []).forEach(annotation => {
-            annotation.get('elements').forEach(element => {
+            annotation.getWithDefault('elements', []).forEach(element => {
                 const newNode = nodeStructure ?
                     nodeStructure.add(element) :
                     (nodeStructure = StructureNode.fromDomNode(element));

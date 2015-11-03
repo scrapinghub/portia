@@ -38,6 +38,14 @@ export default Ember.Service.extend(Ember.Evented, {
         }
     },
 
+    watch(target, method) {
+        this.on('changed', target, method);
+    },
+
+    unWatch(target, method) {
+        this.off('changed', target, method);
+    },
+
     scheduleUpdate(delay) {
         this.timerId = Ember.run.later(this, this.update, delay);
     },
@@ -59,6 +67,7 @@ export default Ember.Service.extend(Ember.Evented, {
                     updates.forEach(([selector, elements]) => {
                         this.trigger(selector, elements);
                     });
+                    this.trigger('changed', updates);
                 });
             }
         }

@@ -8,7 +8,7 @@
                     <div>
                         <span>{{attribute.value}}</span>
                     </div>
-                    {{#with (attribute-annotation inspectedElement attribute.attribute annotations) as |annotation|}}
+                    {{#with (attribute-annotation inspectedElement attribute.attribute) as |annotation|}}
                         <div>
                         {{#if annotation.name}}
                             {{annotation.name}}

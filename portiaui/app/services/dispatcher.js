@@ -334,6 +334,7 @@ export default Ember.Service.extend({
 
     selectAnnotationElement(annotation, element, redirect = false) {
         this.set('uiState.viewPort.selectedElement', element);
+        this.set('uiState.viewPort.selectedModel', annotation);
         if (redirect) {
             this.selectAnnotation(annotation);
         }

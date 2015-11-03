@@ -29,11 +29,13 @@
 <div class="frame-container">
     <div class="mode-feedback mode-feedback-{{browser.mode}}"></div>
     <div class="overlay-container">
-        {{#each overlays key="@identity" as |overlay|}}
-            {{component overlay.overlayComponentName overlay=overlay selectionMode=activeSelectionMode hoverOverlayColor=hoverOverlayColor hoveredElement=hoveredElement selectedElement=selectedElement hoveredOverlay=hoveredOverlay selectedOverlay=selectedOverlay generalizableOverlay=generalizableOverlay}}
+        {{#each overlayElements key="@index" as |overlay|}}
+            {{#each overlay.lastObject key="@index" as |annotation|}}
+                {{element-overlay class=(concat (if (eq overlay.firstObject hoveredElement) 'hovered') (if (includes hoveredModels annotation) ' group-hovered') (if (and (eq overlay.firstObject selectedElement) (eq selectedModel annotation)) ' selected') (if (eq selectedModel annotation) ' group-selected')) viewPortElement=overlay.firstObject icon=(if (eq overlay.firstObject hoveredElement) activeSelectionMode) color=annotation.color}}
+            {{/each}}
         {{/each}}
         {{#if browser.isInteractionMode}}
-            {{element-overlay class=(concat 'hover-overlay' (if hideHoverOverlay ' hide' '')) viewPortElement=hoveredElement icon=activeSelectionMode color=hoverOverlayColor}}
+            {{element-overlay class=(concat 'hover-overlay' (if (or (not hoveredElement) hoveredModels.length) ' hide')) viewPortElement=hoveredElement icon=activeSelectionMode color=hoverOverlayColor}}
         {{/if}}
     </div>
     <div class="browser-start-page {{if browser.url 'hide'}}">

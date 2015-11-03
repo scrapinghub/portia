@@ -178,8 +178,8 @@
     z-index: 1;
     transition: opacity ($animation-time / 2) $animation-easing-in;
 
-    .group-hovered &,
-    .group-selected &,
+    &.group-hovered,
+    &.group-selected,
     .none-hovered.none-selected & {
         .overlay-box-background {
             opacity: 0.45;
@@ -207,24 +207,13 @@
         }
     }
 
-    //TODO: remove is-selection-mode
-    .is-selection-mode:not(.group-selected) & {
-        opacity: 0;
-    }
-
-    .is-selection-mode & {
-        &.hovered {
-            .overlay-box-background {
-                opacity: 0.15;
-            }
-        }
-    }
-
-    &.hovered {
+    &.hovered,
+    &.group-hovered {
         z-index: 1;
     }
 
-    &.selected {
+    &.selected,
+    &.group-selected {
         z-index: 2;
     }
 }

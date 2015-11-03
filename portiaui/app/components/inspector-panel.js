@@ -52,8 +52,7 @@ export default Ember.Component.extend({
 
     tagName: '',
 
-    annotations: Ember.computed.readOnly('sample.orderedAnnotations'),
-    attributes: Ember.computed('inspectedElement', 'annotations.@each.attribute', function() {
+    attributes: Ember.computed('inspectedElement', function() {
         return getAttributeList(this.get('inspectedElement'));
     }),
     elementPath: Ember.computed('inspectedElement', function() {

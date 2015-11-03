@@ -1,13 +1,13 @@
-{{#tool-group id="sample-group" as |options|}}
+{{#sample-tool-group sample=model as |options|}}
     {{#if (eq options.section "tabs")}}
-        {{#tool-tab toolId="data-structure" group=options.group}}
+        {{#tool-tab toolId="data" group=options.group}}
             Data
         {{/tool-tab}}
         {{#tool-tab toolId="actions" group=options.group}}
             Actions
         {{/tool-tab}}
     {{else if (eq options.section "panels")}}
-        {{#tool-panel toolId="data-structure" group=options.group as |active|}}
+        {{#tool-panel toolId="data" group=options.group as |active|}}
             {{data-structure-panel sample=model selected=active}}
         {{/tool-panel}}
         {{#tool-panel class="container-fluid" toolId='actions' group=options.group}}
@@ -15,7 +15,7 @@
             While this tab is active you can interact with the page
         {{/tool-panel}}
     {{/if}}
-{{/tool-group}}
+{{/sample-tool-group}}
 
 {{#tool-group id="inspector-group" as |options|}}
     {{#if (eq options.section "tabs")}}

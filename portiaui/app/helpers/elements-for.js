@@ -15,11 +15,8 @@ export default Ember.Helper.extend({
         this.get('annotationStructure').unRegister(this, this.recompute);
     },
 
-    compute([element, attribute]) {
+    compute([model]) {
         const structure = this.get('annotationStructure');
-        const annotations =  structure.annotationsFor(element) || [];
-        return annotations.find(annotation =>
-            (structure.elementsFor(annotation) || []).includes(element) &&
-            annotation.getWithDefault('attribute', null) === attribute) || {};
+        return structure.elementsFor(model);
     }
 });

@@ -1,3 +1,0 @@
-{{#each elements key="@identity" as |element|}}
-    {{element-overlay class=(concat 'annotation-overlay' (if selectionMode (concat ' mode-' selectionMode) '') (if (eq element hoveredElement) ' hovered' '') (if (eq element selectedElement) ' selected' '')) viewPortElement=element icon=(if (eq element hoveredElement) selectionMode) color=(if (and (eq selectionMode 'add') (eq element hoveredElement)) hoverOverlayColor (if (and (eq selectionMode 'edit') (and (or selectedOverlay generalizableOverlay) (eq element hoveredElement))) (get (or selectedOverlay generalizableOverlay) 'color') annotation.color))}}
-{{/each}}

@@ -21,9 +21,6 @@ const Annotation = DS.Model.extend({
         }
     }),
 
-    // matching element in the current sample, populated when active
-    elements: [],
-
     name: Ember.computed.readOnly('field.name'),
     type: Ember.computed.readOnly('field.type'),
 

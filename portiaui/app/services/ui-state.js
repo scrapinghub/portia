@@ -57,7 +57,9 @@ export default Ember.Service.extend({
 
     },
     viewPort: {
+        hoveredElement: null,
+        hoveredModels: [],
         selectedElement: null,
-        hoveredElement: null
+        selectedModel: null
     }
 });
