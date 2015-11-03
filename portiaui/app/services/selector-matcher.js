@@ -1,6 +1,5 @@
 import Ember from 'ember';
 
-
 function nodesEqual(nodesA, nodesB) {
     if (nodesA.length !== nodesB.length) {
         return false;
@@ -13,48 +12,55 @@ function nodesEqual(nodesA, nodesB) {
     return true;
 }
 
-export default Ember.Service.extend({
+export default Ember.Service.extend(Ember.Evented, {
     browser: Ember.inject.service(),
 
-    clients: new Set(),
+    selectors: new Map(),
+    timerId: null,
     updateInterval: 100,
 
-    init() {
-        this._super();
-        this.scheduleUpdate(1);
+    register(selector, target, method) {
+        this.selectors.set(selector, []);
+        if (this.timerId === null) {
+            this.scheduleUpdate(1);
+        }
+        this.on(selector, target, method);
     },
 
-    register(client) {
-        Ember.run.next(() => {
-            this.clients.add(client);
-        });
-    },
-
-    unregister(client) {
-        Ember.run.next(() => {
-            this.clients.delete(client);
-        });
+    unRegister(selector, target, method) {
+        this.off(selector, target, method);
+        if (!this.has(selector)) {
+            this.selectors.delete(selector);
+            if (!this.selectors.size) {
+                Ember.run.cancel(this.timerId);
+                this.timerId = null;
+            }
+        }
     },
 
     scheduleUpdate(delay) {
-        Ember.run.later(() => {
-            Ember.run.scheduleOnce('sync', this, this.update);
-        }, delay);
+        this.timerId = Ember.run.later(this, this.update, delay);
     },
 
     update() {
         const $document = this.get('browser.$document');
         if ($document) {
-            this.beginPropertyChanges();
-            this.clients.forEach(client => {
-                const selector = client.get('selector');
-                const currentElements = client.get('elements');
+            const updates = [];
+            this.selectors.forEach((currentElements, selector) => {
                 const newElements = $document.find(selector).toArray();
                 if (!nodesEqual(currentElements, newElements)) {
-                    client.set('elements', newElements);
+                    this.selectors.set(selector, newElements);
+                    updates.push([selector, newElements]);
                 }
             });
-            this.endPropertyChanges();
+
+            if (updates.length) {
+                Ember.run.scheduleOnce('sync', () => {
+                    updates.forEach(([selector, elements]) => {
+                        this.trigger(selector, elements);
+                    });
+                });
+            }
         }
         this.scheduleUpdate(this.updateInterval);
     }

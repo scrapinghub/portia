@@ -65,13 +65,36 @@ function wrapperForAnnotationModel(model) {
 }
 
 const AnnotationOverlay = Ember.ObjectProxy.extend({
-    overlayComponentName: 'annotation-overlay'
+    selectorMatcher: Ember.inject.service(),
+
+    overlayComponentName: 'annotation-overlay',
+
+    init() {
+        this._super();
+        this.currentSelector = null;
+        this.registerSelectorMatcher();
+    },
+
+    registerSelectorMatcher: Ember.observer('selector', function() {
+        const selectorMatcher = this.get('selectorMatcher');
+        const selector = this.get('selector');
+        if (this.currentSelector) {
+            selectorMatcher.unRegister(this.currentSelector, this, this.updateElements);
+        }
+        if (selector) {
+            selectorMatcher.register(selector, this, this.updateElements);
+            this.currentSelector = selector;
+        }
+    }),
+
+    updateElements(elements) {
+        this.set('elements', elements);
+    }
 });
 
 const DataStructurePanel = ToolPanel.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
-    selectorMatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
     annotationTree: null,
@@ -138,11 +161,9 @@ const DataStructurePanel = ToolPanel.extend({
 
     addAnnotation(annotation) {
         const browserOverlays = this.get('browserOverlays');
-        const selectorMatcher = this.get('selectorMatcher');
-
-        selectorMatcher.register(annotation);
         const overlay = AnnotationOverlay.create({
-            content: annotation
+            content: annotation,
+            container: this.get('container')
         });
         browserOverlays.addOverlayComponent(overlay);
         DataStructurePanel.overlays.set(annotation, overlay);
@@ -150,9 +171,6 @@ const DataStructurePanel = ToolPanel.extend({
 
     removeAnnotation(annotation) {
         const browserOverlays = this.get('browserOverlays');
-        const selectorMatcher = this.get('selectorMatcher');
-
-        selectorMatcher.unregister(annotation);
         const overlay = DataStructurePanel.overlays.get(annotation);
         DataStructurePanel.overlays.delete(annotation);
         browserOverlays.removeOverlayComponent(overlay);

@@ -3,28 +3,6 @@ import {ANNOTATION_MODE} from '../services/browser';
 import {getAttributeList} from './inspector-panel';
 import {uniquePathSelectorFromElement, generalizeSelectors} from '../utils/selectors';
 
-
-const HoverSelector = Ember.Object.extend({
-    selector: ':hover:not(html):not(body):not(head)',
-    _elements: [],
-
-    element: Ember.computed.alias('parent.hoveredElement'),
-    elements: Ember.computed('_elements', {
-        get() {
-            return this.getWithDefault('_elements', []);
-        },
-
-        set(key, value) {
-            const element = value.get('lastObject');
-            this.setProperties({
-                element: getAttributeList(element).length ? element : null,
-                _elements: value
-            });
-            return value;
-        }
-    })
-});
-
 function computedOverlayIncludingElement(propertyName) {
     return Ember.computed(propertyName, 'overlays.@each.elements', function() {
         const element = this.get(propertyName);
@@ -44,6 +22,7 @@ export default Ember.Component.extend({
     classNameBindings: ['hoveredElement::none-hovered', 'uiState.models.annotation::none-selected'],
 
     overlayComponentName: 'hover-overlay',
+    hoverSelector: ':hover:not(html):not(body):not(head)',
 
     activeSelectionMode: Ember.computed(
         'selectionMode', 'magicToolActive',
@@ -149,16 +128,17 @@ export default Ember.Component.extend({
         }
     }),
 
+    updateHoveredElement(elements) {
+        const element = elements.get('lastObject');
+        this.set('hoveredElement', getAttributeList(element).length ? element : null);
+    },
+
     willInsertElement() {
-        this.hoverSelector = HoverSelector.create({
-            parent: this
-        });
-        this.get('selectorMatcher').register(this.hoverSelector);
+        this.get('selectorMatcher').register(this.hoverSelector, this, this.updateHoveredElement);
     },
 
     willDestroyElement() {
-        this.get('selectorMatcher').unregister(this.hoverSelector);
-        this.hoverSelector.destroy();
+        this.get('selectorMatcher').unRegister(this.hoverSelector, this, this.updateHoveredElement);
     },
 
     actions: {

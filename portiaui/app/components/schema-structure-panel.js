@@ -32,11 +32,6 @@ const FieldList = Ember.Object.extend(ActiveChildrenMixin, {
 });
 
 export default ToolPanel.extend({
-    browser: Ember.inject.service(),
-    browserOverlays: Ember.inject.service(),
-    selectorMatcher: Ember.inject.service(),
-    uiState: Ember.inject.service(),
-
     schemaTree: null,
     title: 'Schema',
     toolId: 'schema-structure',
