@@ -87,13 +87,13 @@
 }
 
 .structure-list-item-content {
-    > .editable-text {
+    > .list-item-editable {
         margin-left: $space-width;
         min-width: 0;
         flex: 1 1 auto;
     }
 
-    > .selectable-text {
+    > .list-item-selectable {
         flex: 0 1 auto;
         min-width: 0;
         margin-left: $space-width;

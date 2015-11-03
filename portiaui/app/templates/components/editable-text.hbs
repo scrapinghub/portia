@@ -1,6 +1,0 @@
-{{#if editing}}
-    {{input type="text" class="form-control" value=(mut value) enter=(action 'endEditing') escape-press=(action 'cancelEditing') focus-out=(action 'endEditing') spellcheck=spellcheck}}
-{{else}}
-    <span>{{source}}</span>
-    <i class="fa fa-pencil" {{action 'startEditing' bubbles=false}}></i>
-{{/if}}

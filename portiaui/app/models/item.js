@@ -6,9 +6,7 @@ import {parentSelector, replacePrefix} from '../utils/selectors';
 
 const Item = DS.Model.extend({
     sample: DS.belongsTo(),
-    schema: DS.belongsTo({
-        async: true
-    }),
+    schema: DS.belongsTo(),
     annotations: DS.hasMany({
         async: true,
         inverse: 'parent',

@@ -1,5 +1,5 @@
 {{#link-to 'projects.project.spider' item.project item current-when='projects.project.spider.index'}}
     {{#structure-list-item icon='spider' hasDetails=true remove=(action 'removeSpider')}}
-        {{editable-text source=(mut item.name) save=(action 'saveSpider')}}
+        {{list-item-editable value=(mut item.name) change=(action 'saveSpider')}}
     {{/structure-list-item}}
 {{/link-to}}

@@ -1,15 +1,3 @@
 {{#structure-list-item icon='schema' count=numItems add=false remove=(action 'removeItem')}}
-    {{!--
-    {{confirmed-input source=(mut item.schema.name) save=(action 'saveSchema')}}
-    --}}
-    {{#selectable-text source=(mut item.schema) sourceAttribute='name' dropdownAlign="right" as |set close|}}
-        <li class="dropdown-header">Rename selected schema</li>
-        <li>{{editable-text editing=true alwaysEditing=true source=(mut item.schema.name) save=(action 'saveSchema')}}</li>
-        <li role="separator" class="divider"></li>
-        <li class="dropdown-header">Select a different schema</li>
-        {{#each item.schema.project.schemas as |schema|}}
-            <li class={{if (eq schema.id item.schema.id) "active"}}><a {{action 'changeSchema' schema close}}><i class="icon fa fa-database"></i>{{schema.name}}</a></li>
-        {{/each}}
-        <li><a {{action 'addSchema' close}}><i class="icon fa fa-plus"></i>New schema</a></li>
-    {{/selectable-text}}
+    {{list-item-item-schema item=item.content}}
 {{/structure-list-item}}

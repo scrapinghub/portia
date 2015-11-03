@@ -6,18 +6,22 @@
 @import "animations";
 @import "icons";
 
+@import "layout/forms";
+
 @import "templates/application";
 @import "templates/projects";
 
 @import "components/browser-view-port";
-@import "components/drop-down";
-@import "components/editable-text";
+@import "components/combo-box";
+@import "components/dropdown-menu";
+@import "components/dropdown-widget";
 @import "components/extracted-item-table";
 @import "components/extracted-items-json-panel";
 @import "components/inspector-panel";
 @import "components/list-item-badge";
+@import "components/list-item-editable";
+@import "components/list-item-selectable";
 @import "components/project-structure-panel";
-@import "components/selectable-text";
 @import "components/select-box";
 @import "components/side-bar";
 @import "components/structure-list-item";

@@ -6,8 +6,6 @@ export default Ember.Component.extend({
 
     tagName: 'form',
 
-    inputUrl: null,
-
     backDisabled: Ember.computed.or('disabled', 'noBackUrl'),
     disabled: Ember.computed.readOnly('browser.disabled'),
     forwardDisabled: Ember.computed.or('disabled', 'noForwardUrl'),
@@ -21,16 +19,10 @@ export default Ember.Component.extend({
     }),
     updateUrl: Ember.observer('browser.url', function() {
         this.set('url', this.get('browser.url'));
-        this.set('inputUrl', null);
     }),
 
     submit() {
-        var browser = this.get('browser');
-        if (this.get('urlChanged')) {
-            browser.go(this.get('url'));
-        } else {
-            browser.reload();
-        }
+        this.send('submit', ...arguments);
         return false;
     },
 
@@ -43,16 +35,8 @@ export default Ember.Component.extend({
             this.get('browser').forward();
         },
 
-        restoreInputUrl() {
-            var inputUrl = this.get('inputUrl');
-            if (inputUrl !== null) {
-                this.set('url', inputUrl);
-            }
-        },
-
-        revertInputUrl() {
-            this.set('inputUrl', this.get('url'));
-            this.set('url', this.get('browser.url'));
+        submit() {
+            this.get('browser').go(this.get('url'));
         }
     }
 });

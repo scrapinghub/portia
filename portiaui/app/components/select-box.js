@@ -1,35 +1,69 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-    open: false,
+    tagName: '',
 
-    onClose: Ember.observer('open', function() {
-        if (!this.get('open')) {
-            const close = this.get('close');
-            if (close) {
-                close(this.get('value'));
-            }
+    choices: [],
+    buttonClass: null,
+    menuAlign: 'left',
+    menuClass: null,
+    menuContainer: null,
+    open: false,
+    value: null,
+    valueAttribute: null,
+    viewValue: null,
+
+    didInitAttrs() {
+        this.updateViewValue();
+    },
+
+    updateViewValue: Ember.observer('open', 'value', function() {
+        if (this.get('open')) {
+            this.set('viewValue', this.get('value'));
         }
     }),
 
     actions: {
-        close() {
-            this.set('open', false);
+        setViewValue(value) {
+            this.set('viewValue', value);
         },
 
         setValue(value) {
             this.setProperties({
-                open: false,
-                value: value
+                value,
+                viewValue: value
             });
-            const change = this.get('change');
-            if (change) {
-                change(value);
+        },
+
+        setValueAndClose(value) {
+            this.setProperties({
+                open: false,
+                value,
+                viewValue: value
+            });
+            if (this.attrs.change) {
+                this.attrs.change();
             }
         },
 
-        toggleDropdown() {
-            this.toggleProperty('open');
+        menuClosed(reason) {
+            if (this.get('open')) {
+                if (reason === 'escape') {
+                    this.setProperties({
+                        open: false,
+                        viewValue: this.get('value')
+                    });
+                } else {
+                    const viewValue = this.get('viewValue');
+                    this.setProperties({
+                        open: false,
+                        value: viewValue
+                    });
+                    if (this.attrs.change) {
+                        this.attrs.change();
+                    }
+                }
+            }
         }
     }
 });

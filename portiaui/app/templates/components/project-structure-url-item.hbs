@@ -1,5 +1,5 @@
 <a href {{action 'openPage'}}>
     {{#structure-list-item icon='url' remove=(action 'removeStartUrl')}}
-        {{editable-text source=(mut url) save=(action 'saveStartUrl') spellcheck=false}}
+        {{list-item-editable value=(mut url) change=(action 'saveStartUrl') spellcheck=false}}
     {{/structure-list-item}}
 </a>

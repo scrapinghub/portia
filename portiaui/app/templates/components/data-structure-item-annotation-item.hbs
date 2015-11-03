@@ -1,4 +1,4 @@
 {{#structure-list-item icon='schema' count=numItems add=false remove=(action 'removeItemAnnotation')}}
-    {{editable-text source=(mut itemAnnotation.name) save=(action 'saveItemAnnotation')}}
-    {{editable-text source=(mut itemAnnotation.item.schema.name) save=(action 'saveSchema')}}
+    {{list-item-editable value=(mut itemAnnotation.name) change=(action 'saveItemAnnotation')}}
+    {{list-item-editable value=(mut itemAnnotation.item.schema.name) change=(action 'saveSchema')}}
 {{/structure-list-item}}

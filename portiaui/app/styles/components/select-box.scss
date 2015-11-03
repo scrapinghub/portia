@@ -1,27 +1,36 @@
 .select-box {
     .btn-default {
+        display: inline-flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
+        color: $input-color !important;
         background-color: $input-bg !important;
+
+        .caret {
+            margin-left: $padding-base-horizontal;
+        }
     }
 
     &.open {
         .btn-default {
             border-color: $input-border-focus !important;
+            $color-rgba: rgba(red($input-border-focus), green($input-border-focus), blue($input-border-focus), .6);
+            @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px $color-rgba !important);
+        }
+    }
+
+    &:not(.open) {
+        .btn-default {
+            &:focus {
+                @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075));
+            }
         }
     }
 }
 
-.select-box-menu {
-    .icon {
-        display: inline-block;
-        width: $tree-list-icon-width;
-        height: $line-height-computed;
-        margin-right: 10px;
-        line-height: $line-height-computed;
-        text-align: center;
-        vertical-align: middle;
-    }
-
-    [data-ember-action] {
-        cursor: pointer;
-    }
+.select-box-dropdown {
+    outline: 0;
 }

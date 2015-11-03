@@ -1,16 +1,9 @@
 {{#link-to 'projects.project.schema.field' field.schema.project field.schema field}}
     {{#structure-list-item icon=field.type hasDetails=true remove=(action 'removeField') removeDisabled=cannotDeleteField}}
-        {{editable-text source=(mut field.name) save=(action 'saveField')}}
+        {{list-item-editable value=(mut field.name) change=(action 'saveField')}}
 
-        {{#selectable-text source=(mut field.type) save=(action 'saveField') dropdownAlign="right" as |set close|}}
-            <li class="dropdown-header">Change field type</li>
-            {{#each types as |type|}}
-                <li class={{if (eq type field.type) "active"}}><a {{action set type}}>{{list-item-icon class="icon" icon=type}}{{type}}</a></li>
-            {{/each}}
-            {{!--
-            <li role="separator" class="divider"></li>
-            <li class="disabled"><a href><i class="icon {{if annotation.field.multiple 'fa fa-check'}}"></i>Multiple</a></li>
-            --}}
-        {{/selectable-text}}
+        {{#list-item-field-type field=field}}
+            Change field type
+        {{/list-item-field-type}}
     {{/structure-list-item}}
 {{/link-to}}

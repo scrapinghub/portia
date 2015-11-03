@@ -1,0 +1,7 @@
+.dropdown-menu-floating {
+    display: none;
+
+    &.open {
+        display: block;
+    }
+}

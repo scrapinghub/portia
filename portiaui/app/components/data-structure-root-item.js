@@ -14,28 +14,9 @@ export default Ember.Component.extend({
     numItems: Ember.computed.readOnly('extractedItems.length'),
 
     actions: {
-        addSchema(closeAction) {
-            const project = this.get('uiState.models.project');
-            const item = this.get('item.content');
-            const schema = this.get('dispatcher').addSchema(project, /* redirect = */false);
-            this.get('dispatcher').changeItemSchema(item, schema);
-            closeAction();
-        },
-
-        changeSchema(schema, closeAction) {
-            const item = this.get('item.content');
-            this.get('dispatcher').changeItemSchema(item, schema);
-            closeAction();
-        },
-
         removeItem() {
             const item = this.get('item.content');
             this.get('dispatcher').removeItem(item);
-        },
-
-        saveSchema() {
-            const schema = this.get('item.schema.content');
-            schema.save();
         }
     }
 });

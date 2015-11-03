@@ -32,9 +32,14 @@ export default Ember.Service.extend({
     uiState: Ember.inject.service(),
 
     addSchema(project, redirect = false) {
+        const name = `schema${project.get('schemas.length') + 1}`;
+        return this.addNamedSchema(project, name, redirect);
+    },
+
+    addNamedSchema(project, name, redirect = false) {
         const store = this.get('store');
         const schema = store.createRecord('schema', {
-            name: `schema${project.get('schemas.length') + 1}`,
+            name,
             project
         });
         schema.save().then(() => {
@@ -47,9 +52,14 @@ export default Ember.Service.extend({
     },
 
     addField(schema, type, redirect = false) {
+        const name = `field${schema.get('fields.length') + 1}`;
+        return this.addNamedField(schema, type, name, redirect);
+    },
+
+    addNamedField(schema, name, type, redirect = false) {
         const store = this.get('store');
         const field = store.createRecord('field', {
-            name: `field${schema.get('fields.length') + 1}`,
+            name,
             type: type || 'text',
             schema
         });

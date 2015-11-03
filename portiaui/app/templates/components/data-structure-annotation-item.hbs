@@ -1,25 +1,9 @@
 {{#link-to 'projects.project.spider.sample.annotation' annotation.sample.spider.project annotation.sample.spider annotation.sample annotation}}
     {{#structure-list-item icon=annotation.type count=annotation.elements.length countColor=annotation.color hasDetails=true remove=(action 'removeAnnotation')}}
-        {{#selectable-text source=(mut annotation.field) sourceAttribute='name' save=(action 'saveAnnotation') dropdownAlign="right" as |set close|}}
-            <li class="dropdown-header">Rename selected field</li>
-            <li>{{editable-text editing=true alwaysEditing=true source=(mut annotation.field.name) save=(action 'saveField' close)}}</li>
-            <li role="separator" class="divider"></li>
-            <li class="dropdown-header">Select a different field</li>
-            {{#each annotation.field.schema.fields as |field|}}
-                <li class={{if (eq field.id annotation.field.id) "active"}}><a {{action set field}}>{{list-item-icon class="icon" icon=field.type}}{{field.name}}</a></li>
-            {{/each}}
-            <li><a {{action 'addField' set}}><i class="icon fa fa-plus"></i>New field</a></li>
-        {{/selectable-text}}
+        {{list-item-annotation-field annotation=annotation}}
 
-        {{#selectable-text source=(mut annotation.field.type) save=(action 'saveField') dropdownAlign="right" as |set close|}}
-            <li class="dropdown-header">Change type of selected field</li>
-            {{#each types as |type|}}
-                <li class={{if (eq type annotation.field.type) "active"}}><a {{action set type}}>{{list-item-icon class="icon" icon=type}}{{type}}</a></li>
-            {{/each}}
-            {{!--
-            <li role="separator" class="divider"></li>
-            <li class="disabled"><a href><i class="icon {{if annotation.field.multiple 'fa fa-check'}}"></i>Multiple</a></li>
-            --}}
-        {{/selectable-text}}
+        {{#list-item-field-type field=annotation.field}}
+            Change type of selected field
+        {{/list-item-field-type}}
     {{/structure-list-item}}
 {{/link-to}}

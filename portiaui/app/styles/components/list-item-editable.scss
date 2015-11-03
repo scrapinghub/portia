@@ -1,4 +1,4 @@
-.editable-text {
+.list-item-editable {
     display: inline-flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -26,6 +26,5 @@
 
     input {
         flex: 1 1 100%;
-        height: $tree-list-row-height;
     }
 }

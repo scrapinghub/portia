@@ -1,0 +1,12 @@
+{{#list-item-selectable value=(mut field.type) change=(action 'saveField') menuContainer="body" menuAlign="right" as |options|}}
+    {{#if hasBlock}}
+        {{#dropdown-header}}
+            {{yield}}
+        {{/dropdown-header}}
+    {{/if}}
+    {{#each types as |type|}}
+        {{#dropdown-item menu=options.menu value=type action=(action options.setValueAndClose type)}}
+            {{list-item-icon class="icon" icon=type}}{{type}}
+        {{/dropdown-item}}
+    {{/each}}
+{{/list-item-selectable}}
