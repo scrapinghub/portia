@@ -23,11 +23,24 @@ function getOrCreateElement(element) {
 
 class SelectorNode {
     constructor(data) {
-        this.annotation = data.annotation;
-        this.acceptSelectors = data.acceptSelectors;
-        this.rejectSelectors = data.rejectSelectors;
-        this.selector = data.selector;
+        this._data = data;
         this.elements = [];
+    }
+
+    get annotation() {
+        return this._data.annotation;
+    }
+
+    get acceptSelectors() {
+        return this._data.acceptSelectors;
+    }
+
+    get rejectSelectors() {
+        return this._data.rejectSelectors;
+    }
+
+    get selector() {
+        return this._data.selector;
     }
 
     updateElements(elements) {
@@ -131,7 +144,14 @@ export default Ember.Service.extend(Ember.Evented, {
     },
 
     updateDefinition() {
-        this.setDefinition(this.definition);
+        const selectorMatcher = this.get('selectorMatcher');
+        this.selectorNodes.forEach(node => {
+            selectorMatcher.unRegister(node.selector, node, node.updateElements);
+        });
+        generalizeDefinitionSelectors(this.definition);
+        this.selectorNodes.forEach(node => {
+            selectorMatcher.register(node.selector, node, node.updateElements);
+        });
     },
 
     update() {

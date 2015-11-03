@@ -1,12 +1,12 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 import ItemAnnotation from './item-annotation';
-import {parentSelector, replacePrefix} from '../utils/selectors';
-
 
 const Item = DS.Model.extend({
     sample: DS.belongsTo(),
-    schema: DS.belongsTo(),
+    schema: DS.belongsTo({
+        async: true,
+    }),
     annotations: DS.hasMany({
         async: true,
         inverse: 'parent',

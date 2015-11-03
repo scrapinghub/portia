@@ -1,7 +1,5 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-import {generalizeSelectors, replacePrefix} from '../utils/selectors';
-
 
 const Annotation = DS.Model.extend({
     parent: DS.belongsTo('item', {

@@ -12,6 +12,7 @@ export default ToolGroup.extend({
         this._super();
         Ember.addObserver(this, 'selected', this, this.setMode);
         Ember.addObserver(this, 'selected', this, this.registerAnnotations);
+        this.setMode();
     },
 
     willDestroyElement() {

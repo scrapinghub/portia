@@ -12,7 +12,8 @@ export default Ember.Component.extend({
     uiState: Ember.inject.service(),
 
     classNames: ['browser-view-port'],
-    classNameBindings: ['hoveredElement::none-hovered', 'selectedElement::none-selected', 'hoveredModels.length:group-hovered', 'selectedModel:group-selected'],
+    classNameBindings: ['hoveredElement::none-hovered', 'selectedElement::none-selected',
+                        'hoveredModels.length:group-hovered', 'selectedModel:group-selected'],
 
     annotationSelectors: [],
     hoverSelector: ':hover:not(html):not(body):not(head)',
@@ -71,7 +72,8 @@ export default Ember.Component.extend({
             }
             let annotationSelectors = this.get('annotationSelectors');
             if (selectedModel) {
-                annotationSelectors = annotationSelectors.filterBy('annotation', selectedModel).concat(annotationSelectors);
+                annotationSelectors = annotationSelectors.filterBy('annotation', selectedModel)
+                    .concat(annotationSelectors);
             }
             for (let annotationSelector of annotationSelectors) {
                 const currentSelector = annotationSelector.selector;
