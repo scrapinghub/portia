@@ -1,6 +1,8 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+    positionMonitor: Ember.inject.service(),
+
     classNames: ['dropdown'],
     classNameBindings: ['open'],
 
@@ -23,7 +25,7 @@ export default Ember.Component.extend({
         this._super();
         this.set('$menu', null);
         this.elementFocused = false;
-        this.positionTimer = null;
+        this.menuWidth = null;
     },
 
     didInsertElement() {
@@ -32,13 +34,12 @@ export default Ember.Component.extend({
             const menu = this.get('menu');
             const $menu = menu && menu.$();
 
-            Ember.run.schedule('render', () => {
-                Ember.$(container).append($menu);
-            });
-
             Ember.run.schedule('afterRender', () => {
                 this.set('$menu', $menu);
-                this.updatePosition();
+                Ember.$(container).append($menu);
+                this.get('positionMonitor').registerElement(
+                    this.element, this, this.updateMenuWidth, this.updatePosition,
+                    /*forceUpdate = */true);
             });
         }
     },
@@ -46,9 +47,8 @@ export default Ember.Component.extend({
     willDestroyElement() {
         const $menu = this.get('$menu');
         if ($menu) {
-            cancelAnimationFrame(this.positionTimer);
-            this.positionTimer = null;
-
+            this.get('positionMonitor').unRegisterElement(
+                this.element, this, this.updateMenuWidth, this.updatePosition);
             Ember.run.schedule('afterRender', () => {
                 $menu.remove();
             });
@@ -67,16 +67,20 @@ export default Ember.Component.extend({
         this.send('keyDown', ...arguments);
     },
 
-    updatePosition() {
+    updateMenuWidth() {
         const $menu = this.get('$menu');
-        const rect = this.element.getBoundingClientRect();
+        this.menuWidth = $menu.outerWidth();
+    },
+
+    updatePosition(rect) {
+        const $menu = this.get('$menu');
         //const top = Math.round(rect.top);
         const bottom = Math.round(rect.bottom);
         const left = Math.round(rect.left);
         const right = Math.round(rect.right);
         let positionLeft;
         if (this.get('alignRight')) {
-            positionLeft = right - $menu.outerWidth();
+            positionLeft = right - this.menuWidth;
         } else {
             positionLeft = left;
         }
@@ -85,7 +89,6 @@ export default Ember.Component.extend({
             left: `${positionLeft}px`,
             right: `auto`
         });
-        this.positionTimer = requestAnimationFrame(this.updatePosition.bind(this));
     },
 
     actions: {

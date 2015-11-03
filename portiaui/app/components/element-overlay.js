@@ -1,5 +1,5 @@
 import Ember from 'ember';
-
+import {attrChanged, attrValue} from '../utils/attrs';
 
 export const ICON_CLASSES = {
     select: 'fa fa-mouse-pointer',
@@ -9,7 +9,7 @@ export const ICON_CLASSES = {
 };
 
 export default Ember.Component.extend({
-    browserOverlays: Ember.inject.service(),
+    positionMonitor: Ember.inject.service(),
 
     classNames: ['overlay'],
 
@@ -30,11 +30,31 @@ export default Ember.Component.extend({
         return Ember.String.htmlSafe(color ? `text-shadow: 0 1px 1px ${color};` : '');
     }),
 
-    willInsertElement() {
-        this.get('browserOverlays').addElementOverlay(this);
+    didReceiveAttrs({oldAttrs, newAttrs}) {
+        if (attrChanged(oldAttrs, newAttrs, 'viewPortElement')) {
+            const oldElement = oldAttrs && attrValue(oldAttrs.viewPortElement);
+            const newElement = attrValue(newAttrs.viewPortElement);
+            const positionMonitor = this.get('positionMonitor');
+            if (oldElement) {
+                positionMonitor.unRegisterElement(oldElement, this, null, this.updatePosition);
+            }
+            if (newElement) {
+                positionMonitor.registerElement(newElement, this, null, this.updatePosition);
+            }
+        }
     },
 
-    willDestroyElement() {
-        this.get('browserOverlays').removeElementOverlay(this);
+    updatePosition(rect) {
+        if (!this.element) {
+            return;
+        }
+        const left = Math.round(rect.left);
+        const top = Math.round(rect.top);
+        const width = Math.round(rect.width);
+        const height = Math.round(rect.height);
+        this.element.setAttribute(
+            'style',
+            `transform: translate(${left}px, ${top}px); width: ${width}px; height: ${height}px;`
+        );
     }
 });
