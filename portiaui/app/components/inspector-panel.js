@@ -1,6 +1,5 @@
 import Ember from 'ember';
-import {pathSelectorFromElement} from '../utils/selectors';
-
+import {ElementPath} from '../utils/selectors';
 
 export const IGNORED_ATTRIBUTES = new Set([
     'id', 'class', 'target', 'width', 'style', 'height', 'cellpadding',
@@ -60,7 +59,7 @@ export default Ember.Component.extend({
         if (!element) {
             return '';
         }
-        return pathSelectorFromElement(element);
+        return new ElementPath(element).pathSelector;
     }),
     inspectedElement: Ember.computed.or(
         'uiState.viewPort.hoveredElement', 'uiState.viewPort.selectedElement'),

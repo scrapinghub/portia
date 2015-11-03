@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import {generalizeSelectors, parentSelector, replacePrefix} from '../utils/selectors';
+import {ElementPath} from '../utils/selectors';
 
 const elementsMap = new Map();
 const nodeMap = new Map();
@@ -39,8 +39,12 @@ class SelectorNode {
         return this._data.rejectSelectors;
     }
 
+    get elementPath() {
+        return this._data.elementPath;
+    }
+
     get selector() {
-        return this._data.selector;
+        return this.elementPath.uniquePathSelector;
     }
 
     updateElements(elements) {
@@ -63,27 +67,12 @@ function generalizeDefinitionSelectors(definition) {
             element.rejectSelectors = rejectSelectors;
             if (element.children) {
                 element.children.forEach(generalize);
-                element.parentSelector = parentSelector(element.children.mapBy('selector'));
+                ElementPath.mergeMany(element.children.mapBy('elementPath'));
             }
             if (Array.isArray(acceptSelectors) &&
                 Array.isArray(rejectSelectors)) {
-                element.selector = generalizeSelectors(acceptSelectors, rejectSelectors);
-            }
-        }
-    });
-    definition.forEach(function applyParent(element) {
-        if (element.annotation) {
-            if (element.children) {
-                element.children.forEach(child => {
-                    if (child.selector) {
-                        child.selector = replacePrefix(child.selector, element.parentSelector);
-                    }
-                    if (child.parentSelector) {
-                        child.parentSelector = replacePrefix(
-                            child.parentSelector, element.parentSelector);
-                    }
-                    applyParent(child);
-                });
+                element.elementPath = ElementPath.fromAcceptedAndRejected(
+                    acceptSelectors, rejectSelectors);
             }
         }
     });
@@ -108,11 +97,13 @@ export default Ember.Service.extend(Ember.Evented, {
         const self = this;
         definition.forEach(function mapper(element) {
             if (element.annotation) {
-                if (element.selector) {
+                if (element.elementPath) {
                     const node = new SelectorNode(element);
                     selectorNodes.push(node);
                     nodeMap.set(node.annotation, node);
-                    selectorMatcher.register(node.selector, node, node.updateElements);
+                    if (node.selector) {
+                        selectorMatcher.register(node.selector, node, node.updateElements);
+                    }
                     Ember.addObserver(
                         node.annotation, 'acceptSelectors.[]', self, self.updateDefinition);
                     Ember.addObserver(
@@ -134,7 +125,11 @@ export default Ember.Service.extend(Ember.Evented, {
                 node.annotation, 'acceptSelectors.[]', this, this.updateDefinition);
             Ember.removeObserver(
                 node.annotation, 'rejectSelectors.[]', this, this.updateDefinition);
-            selectorMatcher.unRegister(node.selector, node, node.updateElements);
+            if (node.selector) {
+                selectorMatcher.unRegister(node.selector, node, node.updateElements);
+            } else {
+                node.updateElements([]);
+            }
         });
         this.definition = null;
         this.selectorNodes = [];
@@ -146,11 +141,17 @@ export default Ember.Service.extend(Ember.Evented, {
     updateDefinition() {
         const selectorMatcher = this.get('selectorMatcher');
         this.selectorNodes.forEach(node => {
-            selectorMatcher.unRegister(node.selector, node, node.updateElements);
+            if (node.selector) {
+                selectorMatcher.unRegister(node.selector, node, node.updateElements);
+            }
         });
         generalizeDefinitionSelectors(this.definition);
         this.selectorNodes.forEach(node => {
-            selectorMatcher.register(node.selector, node, node.updateElements);
+            if (node.selector) {
+                selectorMatcher.register(node.selector, node, node.updateElements);
+            } else {
+                node.updateElements([]);
+            }
         });
     },
 

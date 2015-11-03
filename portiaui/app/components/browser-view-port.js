@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import {ANNOTATION_MODE} from '../services/browser';
 import {getAttributeList} from './inspector-panel';
-import {uniquePathSelectorFromElement, generalizeSelectors} from '../utils/selectors';
+import {ElementPath} from '../utils/selectors';
 
 export default Ember.Component.extend({
     annotationStructure: Ember.inject.service(),
@@ -43,7 +43,8 @@ export default Ember.Component.extend({
                         return 'select';
                     }
                 } else if (hoveredElement) {
-                    if (this.get('generalizableModel')) {
+                    if (this.get('generalizableModel') ||
+                        (selectedModel && this.get('selectedModelElements.length') === 0)) {
                         return 'edit';
                     }
                     return 'add';
@@ -76,17 +77,20 @@ export default Ember.Component.extend({
                     .concat(annotationSelectors);
             }
             for (let annotationSelector of annotationSelectors) {
-                const currentSelector = annotationSelector.selector;
-                const accept = annotationSelector.acceptSelectors.slice();
-                const reject = annotationSelector.rejectSelectors.slice();
-                const selector = uniquePathSelectorFromElement(hoveredElement);
-                accept.addObject(selector);
-                reject.removeObject(selector);
-                const possibleSelector = generalizeSelectors(accept, reject);
-                if (currentSelector.split(/\s*,\s*/).length ===
-                    possibleSelector.split(/\s*,\s*/).length) {
+                const currentElementPath = annotationSelector.elementPath;
+                const hoveredElementPath = new ElementPath(
+                    // FIXME: this should be the same as new ElementPath(hoveredElement)
+                    new ElementPath(hoveredElement).uniquePathSelector);
+                if (currentElementPath.differences(hoveredElementPath) <= 2) {
                     return annotationSelector.annotation;
                 }
+/*
+                hoveredElementPath.add(currentElementPath);
+                if (hoveredElementPath.uniquePathSelector.split(/\s*,\s*!/).length ===
+                    currentElementPath.uniquePathSelector.split(/\s*,\s*!/).length) {
+                    return annotationSelector.annotation;
+                }
+*/
             }
         }),
     magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),

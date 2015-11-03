@@ -2,8 +2,7 @@ import Ember from 'ember';
 import DS from 'ember-data';
 import Annotation from './annotation';
 
-
-const ItemAnnotation = Annotation.extend({
+export default Annotation.extend({
     name: DS.attr('string'),
     item: DS.belongsTo({
         async: true,
@@ -16,5 +15,3 @@ const ItemAnnotation = Annotation.extend({
     orderedAnnotations: Ember.computed.readOnly('item.orderedAnnotations'),
     orderedChildren: Ember.computed.readOnly('item.orderedChildren')
 });
-
-export default ItemAnnotation;
