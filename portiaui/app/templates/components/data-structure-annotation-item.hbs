@@ -1,9 +1,10 @@
 {{#link-to 'projects.project.spider.sample.annotation' annotation.sample.spider.project annotation.sample.spider annotation.sample annotation}}
-    {{#structure-list-item icon=annotation.type count=annotation.elements.length countColor=annotation.color hasDetails=true remove=(action 'removeAnnotation')}}
-        {{list-item-annotation-field annotation=annotation}}
-
-        {{#list-item-field-type field=annotation.field}}
-            Change type of selected field
-        {{/list-item-field-type}}
-    {{/structure-list-item}}
+    {{list-item-icon icon=annotation.type}}
+    {{list-item-badge count=annotation.elements.length color=annotation.color}}
+    {{list-item-annotation-field annotation=annotation}}
+    {{#list-item-field-type field=annotation.field}}
+        Change type of selected field
+    {{/list-item-field-type}}
+    {{list-item-icon icon="options"}}
+    {{list-item-icon icon='remove' action=(action 'removeAnnotation')}}
 {{/link-to}}

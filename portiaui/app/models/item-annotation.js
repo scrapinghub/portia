@@ -4,8 +4,10 @@ import Annotation from './annotation';
 
 
 const ItemAnnotation = Annotation.extend({
+    name: DS.attr('string'),
     item: DS.belongsTo({
-        async: true
+        async: true,
+        inverse: 'itemAnnotation'
     }),
 
     orderedAnnotations: Ember.computed.readOnly('item.orderedAnnotations'),

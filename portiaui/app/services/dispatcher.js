@@ -14,7 +14,8 @@ export function computedCanAddSpider() {
 export function computedCanAddStartUrl(spiderPropertyName) {
     return Ember.computed('browser.url', `${spiderPropertyName}.startUrls.[]`, function() {
         const url = this.get('browser.url');
-        return url && !this.get(`${spiderPropertyName}.startUrls`).includes(url);
+        const urls = this.get(`${spiderPropertyName}.startUrls`);
+        return (url && !urls.includes(url)) || !urls.includes('');
     });
 }
 
@@ -96,13 +97,16 @@ export default Ember.Service.extend({
 
     addStartUrl(spider) {
         const url = this.get('browser.url');
-        if (!url) {
-            return;
+        const urls = spider.get('startUrls');
+        if (url && !urls.includes(url)) {
+            urls.pushObject(url);
+            spider.save();
+            return url;
+        } else if (!urls.includes('')) {
+            urls.pushObject('');
+            spider.save();
+            return '';
         }
-
-        spider.get('startUrls').pushObject(url);
-        spider.save();
-        return url;
     },
 
     addSample(spider, redirect = false) {
@@ -155,6 +159,28 @@ export default Ember.Service.extend({
         return item;
     },
 
+    addItemAnnotation(item /*, redirect = false */) {
+        const store = this.get('store');
+        const project = item.get('schema.project');
+        const schema = store.createRecord('schema', {
+            name: `schema${project.get('schemas.length') + 1}`,
+            project
+        });
+        const newItem = store.createRecord('item', {});
+        const itemAnnotation = store.createRecord('item-annotation', {
+            name: `subitem${item.get('annotations.length') + 1}`,
+            parent: item
+        });
+        schema.save().then(() => {
+            newItem.set('schema', schema);
+            newItem.save().then(() => {
+                itemAnnotation.set('item', newItem);
+                itemAnnotation.save();
+            });
+        });
+        return itemAnnotation;
+    },
+
     addAnnotation(item, element, attribute, redirect = false) {
         const store = this.get('store');
         const schema = item.get('schema');
@@ -163,16 +189,16 @@ export default Ember.Service.extend({
             type: 'text',
             schema
         });
-        if (element.tagName.toLowerCase() === 'img') {
+        if (element && element.tagName.toLowerCase() === 'img') {
             field.set('type', 'image');
         }
         const annotation = store.createRecord('annotation', {
             parent: item,
-            acceptSelectors: [uniquePathSelectorFromElement(element)]
+            acceptSelectors: element ? [uniquePathSelectorFromElement(element)] : []
         });
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
-        } else {
+        } else if (element) {
             const attributes = getAttributeList(element);
             if (attributes.length === 1 && attributes[0].attribute) {
                 annotation.set('attribute', attributes[0].attribute);
@@ -181,7 +207,11 @@ export default Ember.Service.extend({
         field.save().then(() => {
             annotation.set('field', field);
             annotation.save().then(() => {
-                this.selectAnnotationElement(annotation, element, redirect);
+                if (element) {
+                    this.selectAnnotationElement(annotation, element, redirect);
+                } else if (redirect) {
+                    this.selectAnnotation(annotation);
+                }
             });
         });
         return annotation;

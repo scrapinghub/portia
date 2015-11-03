@@ -1,3 +1,4 @@
-{{#structure-list-item class="text-content" add=(action 'addSpider') addDisabled=cannotAddSpider}}
+{{#list-item-text}}
     SPIDERS
-{{/structure-list-item}}
+{{/list-item-text}}
+{{list-item-icon icon='add' disabled=cannotAddSpider action=(action 'addSpider')}}

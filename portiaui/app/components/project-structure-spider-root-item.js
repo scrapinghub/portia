@@ -7,6 +7,8 @@ export default Ember.Component.extend({
     dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
+    tagName: '',
+
     canAddSpider: computedCanAddSpider(),
     cannotAddSpider: Ember.computed.not('canAddSpider'),
 

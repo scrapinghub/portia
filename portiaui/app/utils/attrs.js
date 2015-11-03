@@ -1,7 +1,7 @@
 import Ember from 'ember';
 
 export function attrValue(attr) {
-    return (!Ember.isNone(attr) && 'value' in attr) ? attr.value : attr;
+    return (!Ember.isNone(attr) && typeof attr === 'object' && 'value' in attr) ? attr.value : attr;
 }
 
 export function attrChanged(oldAttrs, newAttrs, key) {

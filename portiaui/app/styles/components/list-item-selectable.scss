@@ -1,17 +1,37 @@
-.list-item-selectable-container {
+.list-item-selectable {
     display: inline-flex;
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
-    width: 100%;
+    flex: 0 1 auto;
 
-    .caret {
-        margin: 0 (($tree-list-icon-width - 8px) / 2);
-        color: $navbar-default-color;
-        opacity: $icon-fade-opacity;
+    .list-item-icon + &,
+    .list-item-badge + &,
+    .list-item-editable + &,
+    & + & {
+        margin-left: $space-width;
     }
 
-    a {
+    .list-item-icon + &,
+    .list-item-badge + & {
+        flex-grow: 1;
+    }
+
+    &:not(.selecting) {
+        > span {
+            flex: 0 1 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .caret {
+            flex: 0 0 auto;
+            margin: 0 (($tree-list-icon-width - 8px) / 2);
+            color: $navbar-default-color;
+            opacity: $icon-fade-opacity;
+        }
+
         &:hover {
             .caret {
                 opacity: 1;

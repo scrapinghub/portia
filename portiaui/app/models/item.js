@@ -12,7 +12,9 @@ const Item = DS.Model.extend({
         inverse: 'parent',
         polymorphic: true
     }),
-    itemAnnotation: DS.belongsTo(),
+    itemAnnotation: DS.belongsTo({
+        inverse: 'item'
+    }),
 
     orderedAnnotations: Ember.computed(
         'annotations', 'annotations.@each.orderedAnnotations', function() {

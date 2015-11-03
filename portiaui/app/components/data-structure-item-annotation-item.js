@@ -49,11 +49,6 @@ export default Ember.Component.extend({
         saveItemAnnotation() {
             const itemAnnotation = this.get('itemAnnotation');
             itemAnnotation.save();
-        },
-
-        saveSchema() {
-            const schema = this.get('itemAnnotation.item.schema');
-            schema.save();
         }
     }
 });

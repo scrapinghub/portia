@@ -1,3 +1,4 @@
-{{#structure-list-item class="text-content" add=(action 'addStartUrl') addDisabled=cannotAddUrl}}
+{{#list-item-text}}
     START URLS
-{{/structure-list-item}}
+{{/list-item-text}}
+{{list-item-icon icon='add' disabled=cannotAddUrl action=(action 'addStartUrl')}}

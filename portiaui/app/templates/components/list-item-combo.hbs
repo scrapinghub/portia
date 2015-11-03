@@ -7,14 +7,14 @@
         {{combo-box choices=choices value=(mut value) valueAttribute=valueAttribute matchQuery=matchQuery open=(mut selecting) change=change autoSelect=autoSelect inputClass=(concat "input-list-item " inputClass) menuClass=menuClass menuAlign=menuAlign menuContainer=menuContainer}}
     {{/if}}
 {{else}}
-    <div class="list-item-selectable-container">
+    <span>
         {{#if valueAttribute}}
             {{get value valueAttribute}}
         {{else}}
             {{value}}
         {{/if}}
-        <a {{action 'startSelecting'}}>
-            <span class="caret"></span>
-        </a>
-    </div>
+    </span>
+    <a {{action 'startSelecting'}}>
+        <span class="caret"></span>
+    </a>
 {{/if}}

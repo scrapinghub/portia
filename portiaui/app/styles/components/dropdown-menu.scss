@@ -1,4 +1,6 @@
 .dropdown-menu {
+    outline: 0;
+
     > .focused:not(.active)
     > a {
         &,
@@ -14,13 +16,10 @@
         display: inline-block;
         width: $tree-list-icon-width;
         height: $line-height-computed;
+        margin-left: -6px;
         margin-right: 10px;
         line-height: $line-height-computed;
         text-align: center;
         vertical-align: middle;
-    }
-
-    [data-ember-action] {
-        cursor: pointer;
     }
 }

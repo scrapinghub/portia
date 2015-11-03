@@ -5,12 +5,16 @@ export default Ember.Component.extend({
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
 
+    tagName: '',
+
     url: Ember.computed.reads('item.name'),
 
     actions: {
         openPage() {
             const url = this.get('item.name');
-            this.set('browser.url', url);
+            if (url) {
+                this.set('browser.url', url);
+            }
         },
 
         removeStartUrl() {

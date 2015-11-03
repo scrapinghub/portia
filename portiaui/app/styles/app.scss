@@ -6,6 +6,7 @@
 @import "animations";
 @import "icons";
 
+@import "layout/clickable";
 @import "layout/forms";
 
 @import "templates/application";
@@ -19,12 +20,14 @@
 @import "components/extracted-items-json-panel";
 @import "components/inspector-panel";
 @import "components/list-item-badge";
+@import "components/list-item-combo";
 @import "components/list-item-editable";
+@import "components/list-item-icon";
 @import "components/list-item-selectable";
+@import "components/list-item-text";
 @import "components/project-structure-panel";
 @import "components/select-box";
 @import "components/side-bar";
-@import "components/structure-list-item";
 @import "components/tool-group";
 @import "components/tool-panel";
 @import "components/top-bar";

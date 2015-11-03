@@ -6,6 +6,8 @@ export default Ember.Component.extend({
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
 
+    tagName: '',
+
     canAddUrl: computedCanAddStartUrl('item.spider'),
     cannotAddUrl: Ember.computed.not('canAddUrl'),
 

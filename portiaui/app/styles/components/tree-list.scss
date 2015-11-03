@@ -50,7 +50,8 @@
     min-width: 0;
     color: $navbar-default-color;
 
-    a {
+    > a {
+        flex: 1 1 auto;
         display: block;
         outline: none;
 
@@ -58,6 +59,17 @@
         &:focus {
             text-decoration: none;
         }
+    }
+}
+
+.tree-list-item-content {
+    &,
+    & > a:only-child {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        min-width: 0;
     }
 }
 

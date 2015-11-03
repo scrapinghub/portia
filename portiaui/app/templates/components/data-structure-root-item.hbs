@@ -1,3 +1,5 @@
-{{#structure-list-item icon='schema' count=numItems add=false remove=(action 'removeItem')}}
-    {{list-item-item-schema item=item.content}}
-{{/structure-list-item}}
+{{list-item-icon icon='schema'}}
+{{list-item-badge count=numItems}}
+{{list-item-item-schema item=item.content}}
+{{list-item-add-annotation-menu item=item.content}}
+{{list-item-icon icon='remove' action=(action 'removeItem')}}

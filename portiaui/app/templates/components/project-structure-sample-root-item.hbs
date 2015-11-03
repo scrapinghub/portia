@@ -1,3 +1,4 @@
-{{#structure-list-item class="text-content" add=(action 'addSample') addDisabled=cannotAddSample}}
+{{#list-item-text}}
     SAMPLES
-{{/structure-list-item}}
+{{/list-item-text}}
+{{list-item-icon icon='add' disabled=cannotAddSample action=(action 'addSample')}}

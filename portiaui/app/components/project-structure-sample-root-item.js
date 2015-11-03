@@ -6,6 +6,8 @@ export default Ember.Component.extend({
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
 
+    tagName: '',
+
     canAddSample: computedCanAddSample('item.spider'),
     cannotAddSample: Ember.computed.not('canAddSample'),
 

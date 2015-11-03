@@ -1,0 +1,8 @@
+.list-item-text {
+    display: inline;
+    flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 $space-width;
+}

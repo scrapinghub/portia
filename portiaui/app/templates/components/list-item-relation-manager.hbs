@@ -12,12 +12,12 @@
         {{yield (hash section='rename')}}
     {{/dropdown-header}}
     {{#dropdown-item menu=options.menu value=(hash special="rename" name=options.menu.activeQuery) disabled=(not options.menu.active.special) action=(chain-actions (action 'rename' options.menu.activeQuery) (action options.closeMenu 'escape'))}}
-        <i class="icon fa fa-pencil"></i>Rename to {{options.menu.activeQuery}}
+        {{list-item-icon class="icon" icon="edit"}}Rename to {{options.menu.activeQuery}}
     {{/dropdown-item}}
     {{#dropdown-header}}
         {{yield (hash section='add')}}
     {{/dropdown-header}}
     {{#dropdown-item menu=options.menu value=(hash special="add" name=options.menu.activeQuery) disabled=(not options.menu.active.special) action=(chain-actions (action 'add' options.menu.activeQuery) (action options.closeMenu 'escape'))}}
-        <i class="icon fa fa-plus"></i>Add {{options.menu.activeQuery}}
+        {{list-item-icon class="icon" icon="add"}}Add {{options.menu.activeQuery}}
     {{/dropdown-item}}
 {{/list-item-combo}}

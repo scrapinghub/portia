@@ -1,5 +1,6 @@
 {{#link-to 'projects.project.schema' item.project item}}
-    {{#structure-list-item icon='schema' hasDetails=true remove=(action 'removeSchema') removeDisabled=cannotDeleteSchema}}
-        {{list-item-editable value=(mut item.name) change=(action 'saveSchema')}}
-    {{/structure-list-item}}
+    {{list-item-icon icon='schema'}}
+    {{list-item-editable value=(mut item.name) change=(action 'saveSchema')}}
+    {{list-item-icon icon='options'}}
+    {{list-item-icon icon='remove' disabled=cannotDeleteSchema action=(action 'removeSchema')}}
 {{/link-to}}
