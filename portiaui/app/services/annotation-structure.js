@@ -3,6 +3,23 @@ import Ember from 'ember';
 const elementsMap = new Map();
 const nodeMap = new Map();
 
+function getElement(element) {
+    const guid = Ember.guidFor(element);
+    return elementsMap.get(guid);
+}
+
+function getOrCreateElement(element) {
+    const guid = Ember.guidFor(element);
+    if (!elementsMap.has(guid)) {
+        elementsMap.set(guid, {
+            guid,
+            element,
+            annotations: []
+        });
+    }
+    return elementsMap.get(guid);
+}
+
 class SelectorNode {
     constructor(model, selector) {
         this.model = model;
@@ -12,18 +29,10 @@ class SelectorNode {
 
     updateElements(elements) {
         this.elements.forEach(element => {
-            const guid = Ember.guidFor(element);
-            if (!elementsMap.has(guid)) {
-                elementsMap.set(guid, [element, []]);
-            }
-            elementsMap.get(guid)[1].removeObject(this.model);
+            getOrCreateElement(element).annotations.removeObject(this.model);
         });
         elements.forEach(element => {
-            const guid = Ember.guidFor(element);
-            if (!elementsMap.has(guid)) {
-                elementsMap.set(guid, [element, []]);
-            }
-            elementsMap.get(guid)[1].addObject(this.model);
+            getOrCreateElement(element).annotations.addObject(this.model);
         });
         this.elements = elements;
     }
@@ -91,6 +100,6 @@ export default Ember.Service.extend(Ember.Evented, {
     },
 
     annotationsFor(element) {
-        return (elementsMap.get(Ember.guidFor(element)) || [])[1];
+        return (getElement(element) || {}).annotations;
     }
 });

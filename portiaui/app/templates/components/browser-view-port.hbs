@@ -29,9 +29,9 @@
 <div class="frame-container">
     <div class="mode-feedback mode-feedback-{{browser.mode}}"></div>
     <div class="overlay-container">
-        {{#each overlayElements key="@index" as |overlay|}}
-            {{#each overlay.lastObject key="@index" as |annotation|}}
-                {{element-overlay class=(concat (if (eq overlay.firstObject hoveredElement) 'hovered') (if (includes hoveredModels annotation) ' group-hovered') (if (and (eq overlay.firstObject selectedElement) (eq selectedModel annotation)) ' selected') (if (eq selectedModel annotation) ' group-selected')) viewPortElement=overlay.firstObject icon=(if (eq overlay.firstObject hoveredElement) activeSelectionMode) color=annotation.color}}
+        {{#each overlayElements key="guid" as |overlay|}}
+            {{#each overlay.annotations key="id" as |annotation|}}
+                {{element-overlay class=(concat (if (eq overlay.element hoveredElement) 'hovered') (if (includes hoveredModels annotation) ' group-hovered') (if (and (eq overlay.element selectedElement) (eq selectedModel annotation)) ' selected') (if (eq selectedModel annotation) ' group-selected')) viewPortElement=overlay.element icon=(if (eq overlay.element hoveredElement) activeSelectionMode) color=annotation.color}}
             {{/each}}
         {{/each}}
         {{#if browser.isInteractionMode}}
