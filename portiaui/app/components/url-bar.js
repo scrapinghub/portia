@@ -6,6 +6,8 @@ export default Ember.Component.extend({
 
     tagName: 'form',
 
+    autofocus: false,
+
     backDisabled: Ember.computed.or('disabled', 'noBackUrl'),
     disabled: Ember.computed.readOnly('browser.disabled'),
     forwardDisabled: Ember.computed.or('disabled', 'noForwardUrl'),

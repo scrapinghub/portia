@@ -12,7 +12,7 @@
             </button>
         {{/if}}
     </span>
-    {{buffered-input placeholder="Enter a website address" value=(mut url) viewValue=(mut editedUrl) autoSelect=true disabled=disabled spellcheck=false enter=(action 'submit')}}
+    {{buffered-input placeholder="Enter a website address" value=(mut url) viewValue=(mut editedUrl) autofocus=autofocus autoSelect=true disabled=disabled spellcheck=false enter=(action 'submit')}}
     <span class="input-group-btn">
         <button class="btn btn-default" type="submit" disabled={{disabled}}>
             <span class="fa {{if loading 'fa-spin fa-refresh' (if (not (eq (or (or editedUrl url) null) browser.url)) 'fa-arrow-right' 'fa-repeat')}}"></span>

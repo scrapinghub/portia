@@ -39,7 +39,7 @@
     <div class="browser-start-page {{if browser.url 'hide'}}">
         <img src="/assets/images/portia-logo.svg" alt="Portia logo">
         <h3>What would you like to scrape?</h3>
-        {{url-bar class="navbar-form" role="navigation"}}
+        {{url-bar class="navbar-form" role="navigation" autofocus=true}}
         {{#if uiState.models.project.spiders.length}}
             <p>
                 You can also select one of your existing spiders from the sidebar.

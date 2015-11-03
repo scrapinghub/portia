@@ -3,12 +3,13 @@ import Ember from 'ember';
 export default Ember.Component.extend({
     tagName: '',
 
+    autofocus: false,
+    autoSelect: false,
     focused: false,
     spellcheck: true,
+    type: 'text',
     value: null,
     viewValue: null,
-    autoSelect: false,
-    type: 'text',
 
     didInsertElement() {
         if (this.get('focused')) {
