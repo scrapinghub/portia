@@ -7,12 +7,12 @@ export default Ember.Helper.extend({
 
     init() {
         this._super();
-        this.get('annotationStructure').register(this, this.recompute);
+        this.get('annotationStructure').registerChange(this, this.recompute);
     },
 
     willDestroy() {
         this._super();
-        this.get('annotationStructure').unRegister(this, this.recompute);
+        this.get('annotationStructure').unRegisterChange(this, this.recompute);
     },
 
     compute([element, attribute]) {

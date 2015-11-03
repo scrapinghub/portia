@@ -16,7 +16,7 @@ export default ToolGroup.extend({
 
     willDestroyElement() {
         this.get('browser').clearAnnotationMode();
-        this.get('annotationStructure').clearSelectors();
+        this.get('annotationStructure').clearDefinition();
     },
 
     setMode() {
@@ -28,22 +28,26 @@ export default ToolGroup.extend({
         }
     },
 
-    registerAnnotations: Ember.observer('sample.orderedAnnotations.@each.selector', function() {
+    registerAnnotations: Ember.observer('sample.orderedAnnotations.[]', function() {
         if (this.get('selected') === 'data') {
-            const selectorStructure = this.get('sample.items').map(item =>
-                item.get('annotations').map(function mapper(annotation) {
+            const selectorStructure = this.get('sample.items').map(item => ({
+                annotation: item,
+                children: item.get('annotations').map(function mapper(annotation) {
                     if (annotation.constructor.modelName === 'annotation') {
                         return {
-                            model: annotation,
-                            selector: annotation.get('selector')
+                            annotation
                         };
                     } else if (annotation.constructor.modelName === 'item-annotation') {
-                        return (annotation.get('item.annotations') || []).map(mapper);
+                        return {
+                            annotation,
+                            children: (annotation.get('item.annotations') || []).map(mapper)
+                        };
                     }
-                }));
-            this.get('annotationStructure').setSelectors(selectorStructure);
+                })
+            }));
+            this.get('annotationStructure').setDefinition(selectorStructure);
         } else {
-            this.get('annotationStructure').clearSelectors();
+            this.get('annotationStructure').clearDefinition();
         }
     })
 });

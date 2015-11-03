@@ -1,6 +1,4 @@
 import Ember from 'ember';
-import ItemAnnotation from '../models/item-annotation';
-
 
 class StructureNode {
     constructor(domPath, parent) {
@@ -128,56 +126,67 @@ class StructureNode {
 
         const matches = [];
 
-        items.forEach(item => {
-            let annotation = null;
+        items.forEach(node => {
+            let item;
+            let annotation = node.annotation;
             const annotations = [];
             const subItems = [];
 
-            if (item instanceof ItemAnnotation) {
-                annotation = item;
+            if (annotation.constructor.modelName === 'item') {
+                item = annotation;
+                annotation = undefined;
+            } else if (annotation.constructor.modelName === 'item-annotation') {
                 item = annotation.get('item');
+            } else if (annotation.constructor.modelName === 'annotation') {
+                item = undefined;
+            } else {
+                return;
             }
 
             // split into annotations and nested items
-            (item.get('annotations') || []).forEach(annotation => {
-                if (annotation instanceof ItemAnnotation) {
-                    subItems.push(annotation);
-                } else {
-                    annotations.push(annotation);
-                }
-            });
+            if (node.children) {
+                node.children.forEach(child => {
+                    const annotation = child.annotation;
+                    if (annotation.constructor.modelName === 'item-annotation') {
+                        subItems.push(child);
+                    } else if (annotation.constructor.modelName === 'annotation') {
+                        annotations.push(annotation);
+                    }
+                });
+            }
 
             // find root elements
             this.forEachAnnotationRoot(annotations, (rootNode, annotations) => {
                 const match = {
-                    item: item,
+                    annotation,
+                    item,
                     node: rootNode.node
                 };
 
-                if (annotation) {
-                    match.annotation = annotation;
-                }
-
                 // find annotations
-                const annotationMatches = new Map();
-                rootNode.forEachAnnotationLeaf(annotations, (leafNode, annotations) => {
-                    annotations.forEach(annotation => {
-                        annotationMatches.set(annotation, {
-                            annotation: annotation,
-                            node: leafNode.node
+                if (annotations.length) {
+                    const annotationMatches = new Map();
+                    rootNode.forEachAnnotationLeaf(annotations, (leafNode, annotations) => {
+                        annotations.forEach(annotation => {
+                            annotationMatches.set(annotation, {
+                                annotation,
+                                node: leafNode.node
+                            });
                         });
                     });
-                });
-                if (annotationMatches.size) {
-                    match.annotations = annotations
-                        .map(annotation => annotationMatches.get(annotation))
-                        .filter(match => match);
+                    if (annotationMatches.size) {
+                        match.annotations = annotations
+                            .map(annotation => annotationMatches.get(annotation))
+                            .filter(match => match);
+                    }
                 }
 
                 // find nested items
-                const childMatches = rootNode.matchItems(subItems);
-                if (childMatches.length) {
-                    match.nestedItems = childMatches;
+                if (subItems.length) {
+                    const childMatches = rootNode.matchItems(subItems);
+                    if (childMatches.length) {
+                        match.nestedItems = childMatches;
+                    }
                 }
 
                 matches.push(match);
@@ -189,22 +198,32 @@ class StructureNode {
 }
 
 export default Ember.Service.extend({
+    annotationStructure: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
-    annotations: Ember.computed.readOnly('uiState.models.sample.orderedAnnotations'),
-    structure: Ember.computed('annotations', 'annotations.@each.elements', function() {
+    structure: [],
+
+    init() {
+        this._super();
+        this.get('annotationStructure').registerAnnotations(this, this.updateStructure);
+    },
+
+    updateStructure(annotations) {
         let nodeStructure = null;
-        (this.get('annotations') || []).forEach(annotation => {
-            annotation.getWithDefault('elements', []).forEach(element => {
-                const newNode = nodeStructure ?
-                    nodeStructure.add(element) :
-                    (nodeStructure = StructureNode.fromDomNode(element));
-                newNode.addAnnotation(annotation);
-            });
+        annotations.forEach(node => {
+            const annotation = node.annotation;
+            if (annotation.constructor.modelName === 'annotation') {
+                node.elements.forEach(element => {
+                    const newNode = nodeStructure ?
+                        nodeStructure.add(element) :
+                        (nodeStructure = StructureNode.fromDomNode(element));
+                    newNode.addAnnotation(annotation);
+                });
+            }
         });
 
-        return nodeStructure ?
-            nodeStructure.matchItems(this.get('uiState.models.sample.items')) :
-            [];
-    })
+        this.set('structure', nodeStructure ?
+            nodeStructure.matchItems(this.get('annotationStructure').definition) :
+            []);
+    }
 });

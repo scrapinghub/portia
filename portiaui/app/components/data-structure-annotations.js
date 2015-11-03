@@ -17,7 +17,7 @@ export default Ember.Component.extend({
             if (!activeItemId && !activeAnnotationId) {
                 return false;
             }
-            return this.get('item.orderedChildren').any(annotation => {
+            return (this.get('item.orderedChildren') || []).any(annotation => {
                 if (annotation.constructor.modelName === 'annotation') {
                     return annotation.get('id') === activeAnnotationId;
                 } else if (annotation.constructor.modelName === 'item-annotation') {

@@ -31,17 +31,7 @@ const Annotation = DS.Model.extend({
     orderedIndex: Ember.computed('sample.orderedAnnotations', function() {
         return this.getWithDefault('sample.orderedAnnotations', []).indexOf(this);
     }),
-    sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample'),
-    generalizedSelector: Ember.computed('acceptSelectors.[]', 'rejectSelectors.[]', function() {
-        const accept = this.get('acceptSelectors');
-        const reject = this.get('rejectSelectors');
-        return generalizeSelectors(accept, reject);
-    }),
-    selector: Ember.computed('generalizedSelector', 'parent.selector', function() {
-        const selector = this.get('generalizedSelector');
-        const parentSelector = this.get('parent.selector');
-        return replacePrefix(selector, parentSelector);
-    })
+    sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample')
 });
 
 export default Annotation;

@@ -359,16 +359,24 @@ export default Ember.Service.extend({
 
     addElementToAnnotation(annotation, element) {
         const selector = uniquePathSelectorFromElement(element);
-        annotation.get('acceptSelectors').addObject(selector);
-        annotation.get('rejectSelectors').removeObject(selector);
+        const acceptSelectors = annotation.get('acceptSelectors');
+        const rejectSelectors = annotation.get('rejectSelectors');
+        acceptSelectors.addObject(selector);
+        rejectSelectors.removeObject(selector);
+        annotation.set('acceptSelectors', acceptSelectors.slice());
+        annotation.set('rejectSelectors', rejectSelectors.slice());
         annotation.save();
         this.selectAnnotationElement(annotation, element);
     },
 
     removeElementFromAnnotation(annotation, element) {
         const selector = uniquePathSelectorFromElement(element);
-        annotation.get('acceptSelectors').removeObject(selector);
-        annotation.get('rejectSelectors').addObject(selector);
+        const acceptSelectors = annotation.get('acceptSelectors');
+        const rejectSelectors = annotation.get('rejectSelectors');
+        acceptSelectors.removeObject(selector);
+        rejectSelectors.addObject(selector);
+        annotation.set('acceptSelectors', acceptSelectors.slice());
+        annotation.set('rejectSelectors', rejectSelectors.slice());
         annotation.save();
         this.selectAnnotation(annotation);
     }
