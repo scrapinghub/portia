@@ -178,6 +178,17 @@ export default Ember.Service.extend({
     },
 
     addAnnotation(item, element, attribute, redirect = false) {
+        if (!item) {
+            let activeItem;
+            let activeAnnotation;
+            if (activeItem = this.get('uiState.models.item')) {
+                item = activeItem;
+            } else if (activeAnnotation = this.get('uiState.models.annotation')) {
+                item = activeAnnotation.get('parent');
+            } else {
+                item = this.get('uiState.models.sample.items.lastObject');
+            }
+        }
         const store = this.get('store');
         const schema = item.get('schema');
         const field = store.createRecord('field', {

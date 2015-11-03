@@ -180,14 +180,16 @@
 
     &.group-hovered,
     &.group-selected,
-    .none-hovered.none-selected & {
+    .none-hovered.none-selected:not(.group-hovered):not(.group-selected) & {
         .overlay-box-background {
             opacity: 0.45;
         }
     }
 
     &.hovered,
-    &.selected {
+    &.selected,
+    .none-hovered &.group-hovered,
+    .none-selected &.group-selected {
         .overlay-box-background {
             opacity: 0.8;
         }

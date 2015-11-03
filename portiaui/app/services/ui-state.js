@@ -37,6 +37,7 @@ export default Ember.Service.extend({
         project: 'projectRoute',
         spider: 'spiderRoute',
         sample: 'sampleRoute',
+        item: 'itemRoute',
         annotation: 'annotationRoute',
         schema: 'schemaRoute',
         field: 'fieldRoute'
@@ -45,6 +46,7 @@ export default Ember.Service.extend({
         project: 'projectRoute',
         spider: 'spiderRoute',
         sample: 'sampleRoute',
+        item: 'itemRoute',
         annotation: 'annotationRoute',
         schema: 'schemaRoute',
         field: 'fieldRoute'

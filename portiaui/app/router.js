@@ -10,7 +10,8 @@ Router.map(function() {
         this.route('project', {path: ":project_id"}, function() {
             this.route('spider', {path: "spiders/:spider_id"}, function() {
                 this.route('sample', {path: "samples/:sample_id"}, function() {
-                    this.route('annotation', {path: "annotations/:annotation_id"});
+                  this.route('annotation', {path: "annotations/:annotation_id"});
+                  this.route('item', {path: "items/:item_id"});
                 });
             });
             this.route('schema', {path: "schemas/:schema_id"}, function() {

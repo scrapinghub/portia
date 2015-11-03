@@ -12,7 +12,8 @@ export default Ember.Component.extend({
     uiState: Ember.inject.service(),
 
     classNames: ['browser-view-port'],
-    classNameBindings: ['hoveredElement::none-hovered', 'selectedElement::none-selected'],
+    classNameBindings: ['hoveredElement::none-hovered', 'selectedElement::none-selected', 'hoveredModels.length:group-hovered', 'selectedModel:group-selected'],
+    //classNameBindings: ['hovered::none-hovered', 'selected::none-selected'],
 
     hoverSelector: ':hover:not(html):not(body):not(head)',
     overlayComponentName: 'hover-overlay',
@@ -49,6 +50,7 @@ export default Ember.Component.extend({
                 return 'select';
             }
         }),
+    hovered: Ember.computed.or('hoveredElement', 'hoveredModels.length'),
     hoveredElement: Ember.computed.alias('uiState.viewPort.hoveredElement'),
     hoveredModels: Ember.computed.alias('uiState.viewPort.hoveredModels'),
     hoverOverlayColor: Ember.computed(
@@ -96,6 +98,7 @@ export default Ember.Component.extend({
         }),
     magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
+    selected: Ember.computed.or('selectedElemen', 'selectedModel'),
     selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),
     selectedModel: Ember.computed.alias('uiState.viewPort.selectedModel'),
     selectionMode: Ember.computed.alias('uiState.selectedTools.selectionMode'),
@@ -178,9 +181,8 @@ export default Ember.Component.extend({
                 case 'add':
                     if (hoveredElement) {
                         this.set('selectedElement', hoveredElement);
-                        const item = this.get('uiState.models.sample.items.firstObject');
                         this.get('dispatcher').addAnnotation(
-                            item, hoveredElement, undefined, /* redirect = */true);
+                            /* auto item */null, hoveredElement, undefined, /* redirect = */true);
                     } else {
                         this.get('dispatcher').clearSelection();
                     }

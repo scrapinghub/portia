@@ -67,9 +67,8 @@ export default Ember.Component.extend({
 
     actions: {
         addAnnotation(attribute) {
-            const item = this.get('uiState.models.sample.items.firstObject');
             this.get('dispatcher').addAnnotation(
-                item, this.get('inspectedElement'), attribute, /* redirect = */true);
+                /* auto item */null, this.get('inspectedElement'), attribute, /* redirect = */true);
         },
 
         changeAnnotationSource(attribute) {
