@@ -14,9 +14,6 @@ export default Ember.Component.extend({
     noBackUrl: Ember.computed.equal('browser.backBuffer.length', 0),
     noForwardUrl: Ember.computed.equal('browser.forwardBuffer.length', 0),
     url: Ember.computed.reads('browser.url'),
-    urlChanged: Ember.computed('url', 'browser.url', function() {
-        return this.get('url') !== this.get('browser.url');
-    }),
     updateUrl: Ember.observer('browser.url', function() {
         this.set('url', this.get('browser.url'));
     }),
