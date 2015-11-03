@@ -2,7 +2,6 @@ import Ember from 'ember';
 import ActiveChildrenMixin from '../mixins/active-children';
 import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
 import ItemAnnotationModel from '../models/item-annotation';
-import ToolPanel from './tool-panel';
 import {computedIsCurrentModelById} from '../services/ui-state';
 
 
@@ -87,19 +86,25 @@ const AnnotationOverlay = Ember.ObjectProxy.extend({
         }
     }),
 
+    willDestroy() {
+        this._super();
+        const selectorMatcher = this.get('selectorMatcher');
+        selectorMatcher.unRegister(this.currentSelector, this, this.updateElements);
+    },
+
     updateElements(elements) {
         this.set('elements', elements);
     }
 });
 
-const DataStructurePanel = ToolPanel.extend({
+const DataStructurePanel = Ember.Component.extend({
     browser: Ember.inject.service(),
     browserOverlays: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
+    tagName: '',
+
     annotationTree: null,
-    title: 'Data',
-    toolId: 'data-structure',
 
     init() {
         this._super();

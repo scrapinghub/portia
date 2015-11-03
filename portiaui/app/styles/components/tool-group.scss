@@ -24,7 +24,6 @@
 }
 
 .tool-group-header {
-    order: 0;
     background-color: $panel-bg;
 
     > .nav-tabs {
@@ -101,7 +100,6 @@
 }
 
 .tool-group-content {
-    order: 1;
     flex: 1 1 100%;
     overflow: auto;
     //transition: opacity $animation-time $animation-easing $animation-time / 3, flex-basis $animation-time / 3 $animation-easing;

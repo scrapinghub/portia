@@ -1,9 +1,9 @@
 <span class="dropdown-toggle">
-    {{title}}
+    {{yield}}
     <span class="caret" {{action 'toggleDropdown' bubbles=false}}></span>
 </span>
 <ul class="dropdown-menu" {{action 'closeDropdown'}}>
-    {{#each panel.projects key='id' as |project|}}
+    {{#each projects key='id' as |project|}}
         <li>
             {{link-to project.name 'projects.project' project}}
         </li>

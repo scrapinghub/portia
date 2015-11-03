@@ -61,6 +61,9 @@ export default Ember.Service.extend({
         magicToolActive: true,
         selectionMode: null
     },
+    collapsedPanels: {
+
+    },
     viewPort: {
         selectedElement: null,
         hoveredElement: null

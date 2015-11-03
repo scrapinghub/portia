@@ -1,7 +1,6 @@
 import Ember from 'ember';
 import ActiveChildrenMixin from '../mixins/active-children';
 import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
-import ToolPanel from './tool-panel';
 import {computedIsCurrentModelById} from '../services/ui-state';
 
 
@@ -31,10 +30,10 @@ const FieldList = Ember.Object.extend(ActiveChildrenMixin, {
     schema: Ember.computed.readOnly('toolPanel.schema')
 });
 
-export default ToolPanel.extend({
+export default Ember.Component.extend({
+    tagName: '',
+
     schemaTree: null,
-    title: 'Schema',
-    toolId: 'schema-structure',
 
     init() {
         this._super();

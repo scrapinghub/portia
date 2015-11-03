@@ -1,3 +1,11 @@
-{{#tool-group id="schema-group" as |group|}}
-    {{schema-structure-panel group=group panelOrder=1 schema=model}}
+{{#tool-group id="schema-group" as |options|}}
+    {{#if (eq options.section "tabs")}}
+        {{#tool-tab toolId="schema-structure" group=options.group}}
+            Schema
+        {{/tool-tab}}
+    {{else if (eq options.section "panels")}}
+        {{#tool-panel toolId="schema-structure" group=options.group}}
+            {{schema-structure-panel schema=model}}
+        {{/tool-panel}}
+    {{/if}}
 {{/tool-group}}

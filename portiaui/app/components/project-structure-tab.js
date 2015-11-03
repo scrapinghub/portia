@@ -6,8 +6,6 @@ export default Ember.Component.extend({
 
     open: false,
 
-    title: Ember.computed.readOnly('panel.project.name'),
-
     actions: {
         closeDropdown() {
             this.set('open', false);

@@ -1,6 +1,5 @@
 import Ember from 'ember';
 
-
 export default Ember.Component.extend({
     uiState: Ember.inject.service(),
 
@@ -8,36 +7,19 @@ export default Ember.Component.extend({
     classNameBindings: ['collapsed'],
 
     collapsed: false,
-    panels: null,
-    panelsOrderBy: ['panelOrder'],
-    _selected: null,
-
-    orderedPanels: Ember.computed.sort('panels', 'panelsOrderBy'),
-    selected: Ember.computed.or('_selected', 'orderedPanels.firstObject.toolId'),
+    selected: null,
 
     init() {
         this._super();
-        var id = this.get('id');
-        if (id) {
-            this.set('_selected', Ember.computed.alias('uiState.selectedTools.' + this.get('id')));
-        } else {
-            this.set('_selected', null);
-        }
-        this.set('panels', []);
-    },
-
-    unregister(tab) {
-        this.get('panels').removeObject(tab);
-    },
-
-    register(tab) {
-        this.get('panels').addObject(tab);
+        const id = this.get('elementId');
+        this.set('selected', Ember.computed.alias('uiState.selectedTools.' + id));
+        this.set('collapsed', Ember.computed.alias('uiState.collapsedPanels.' + id));
     },
 
     actions: {
         selectTab(toolId) {
             this.setProperties({
-                _selected: toolId,
+                selected: toolId,
                 collapsed: false
             });
         },

@@ -1,6 +1,16 @@
 <nav id="side-bar">
-    {{#tool-group id="project-group" as |group|}}
-        {{project-structure-panel group=group project=model projects=projects.model}}
+    {{#tool-group id="project-group" as |options|}}
+        {{#if (eq options.section "tabs")}}
+            {{#tool-tab toolId="project-structure" group=options.group}}
+                {{#project-structure-tab projects=projects.model}}
+                    {{model.name}}
+                {{/project-structure-tab}}
+            {{/tool-tab}}
+        {{else if (eq options.section "panels")}}
+            {{#tool-panel toolId="project-structure" group=options.group}}
+                {{project-structure-panel project=model projects=projects.model}}
+            {{/tool-panel}}
+        {{/if}}
     {{/tool-group}}
     {{outlet 'tool-panels'}}
 </nav>

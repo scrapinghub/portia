@@ -1,7 +1,6 @@
 import Ember from 'ember';
 import ActiveChildrenMixin from '../mixins/active-children';
 import InstanceCachedObjectProxy from '../utils/instance-cached-object-proxy';
-import ToolPanel from './tool-panel';
 import {computedIsCurrentModelById} from '../services/ui-state';
 
 
@@ -117,10 +116,8 @@ const SchemaList = Ember.Object.extend(ActiveChildrenMixin, {
     project: Ember.computed.readOnly('toolPanel.project')
 });
 
-export default ToolPanel.extend({
-    schemaList: null,
-    tabComponentName: 'project-structure-tab',
-    toolId: 'project-structure',
+export default Ember.Component.extend({
+    tagName: '',
 
     projectTree: null,
 
@@ -133,7 +130,7 @@ export default ToolPanel.extend({
                 container: container
             }),
             SchemaList.create({
-              toolPanel: this,
+                toolPanel: this,
                 container: container
             })
         ]);

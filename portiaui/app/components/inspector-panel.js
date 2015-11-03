@@ -1,5 +1,4 @@
 import Ember from 'ember';
-import ToolPanel from './tool-panel';
 import {pathSelectorFromElement} from '../utils/selectors';
 
 
@@ -47,14 +46,11 @@ export function getAttributeList(element) {
     return attributeList;
 }
 
-export default ToolPanel.extend({
+export default Ember.Component.extend({
     dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
-    classNames: ['inspector', 'container-fluid'],
-
-    title: 'Inspector',
-    toolId: 'inspector',
+    tagName: '',
 
     annotations: Ember.computed.readOnly('sample.orderedAnnotations'),
     attributes: Ember.computed('inspectedElement', 'annotations.@each.attribute', function() {

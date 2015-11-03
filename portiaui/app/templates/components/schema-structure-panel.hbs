@@ -1,5 +1,3 @@
-{{#if selected}}
-    {{#tree-list items=schemaTree listKey='key' as |item|}}
-        {{component item.itemComponentName item=item}}
-    {{/tree-list}}
-{{/if}}
+{{#tree-list items=schemaTree listKey='key' as |item|}}
+    {{component item.itemComponentName item=item}}
+{{/tree-list}}

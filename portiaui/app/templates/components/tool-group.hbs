@@ -1,25 +1,6 @@
-<section class="tool-group-content">
-    {{yield this}}
-</section>
-{{!--
-    the header depends on the inner content from yield so it appears after it,
-    otherwise ember will have to re-render this after the inner content is
-    rendered.
-    the order is corrected by the stylesheet.
---}}
 <header class="tool-group-header">
     <ul class="nav nav-tabs">
-        {{#each orderedPanels key='toolId' as |panel|}}
-            <li class="{{if panel.selected 'active'}}">
-                <a {{action 'selectTab' panel.toolId}}>
-                    {{#if panel.tabComponentName}}
-                        {{component panel.tabComponentName panel=panel}}
-                    {{else}}
-                        {{panel.title}}
-                    {{/if}}
-                </a>
-            </li>
-        {{/each}}
+        {{yield (hash section="tabs" group=this)}}
         <li class="tool-group-icons pull-right">
             <a class="tool-group-collapse" {{action 'toggleCollapsed'}}>
                 <span class="caret"></span>
@@ -27,3 +8,6 @@
         </li>
     </ul>
 </header>
+<section class="tool-group-content">
+    {{yield (hash section="panels" group=this)}}
+</section>
