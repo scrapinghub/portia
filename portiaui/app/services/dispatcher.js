@@ -345,6 +345,7 @@ export default Ember.Service.extend({
 
     selectAnnotationElement(annotation, element, redirect = false) {
         this.set('uiState.viewPort.selectedElement', element);
+        this.set('uiState.viewPort.originalSelectedElement', element);
         this.set('uiState.viewPort.selectedModel', annotation);
         if (redirect) {
             this.selectAnnotation(annotation);
@@ -353,6 +354,7 @@ export default Ember.Service.extend({
 
     clearSelection() {
         this.set('uiState.viewPort.selectedElement', null);
+        this.set('uiState.viewPort.originalSelectedElement', null);
         const routing = this.get('routing');
         routing.transitionTo('projects.project.spider.sample', [], {}, true);
     },

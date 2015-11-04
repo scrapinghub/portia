@@ -1,6 +1,6 @@
 import Ember from 'ember';
-import {pathSelectorFromElement} from '../utils/selectors';
 
+const $ = Ember.$;
 
 export const IGNORED_ATTRIBUTES = new Set([
     'id', 'class', 'target', 'width', 'style', 'height', 'cellpadding',
@@ -55,15 +55,35 @@ export default Ember.Component.extend({
     attributes: Ember.computed('inspectedElement', function() {
         return getAttributeList(this.get('inspectedElement'));
     }),
-    elementPath: Ember.computed('inspectedElement', function() {
-        const element = this.get('inspectedElement');
-        if (!element) {
-            return '';
+    elementPath: Ember.computed('originalSelectedElement', 'selectedElement', function() {
+        const inspected = this.get('originalSelectedElement');
+        const selected = this.get('selectedElement');
+        if (!inspected) {
+            return [];
         }
-        return pathSelectorFromElement(element);
+        return $(inspected).add($(inspected).parents()).toArray().map(element => ({
+            element: element,
+            tagName: element.tagName.toLowerCase(),
+            selected: element === selected,
+            isLast: element === inspected,
+        }));
+    }),
+    childElements: Ember.computed('selectedElement', 'isHovered', function() {
+        const selected = this.get('selectedElement');
+        if(!selected || this.get('isHovered')) {
+            return [];
+        }
+        return $(selected).children().toArray().map(element => ({
+            element: element,
+            tagName: element.tagName.toLowerCase()
+        }));
     }),
     inspectedElement: Ember.computed.or(
         'uiState.viewPort.hoveredElement', 'uiState.viewPort.selectedElement'),
+    originalSelectedElement: Ember.computed.or(
+        'uiState.viewPort.hoveredElement', 'uiState.viewPort.originalSelectedElement'),
+    selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),
+    isHovered: Ember.computed.bool('uiState.viewPort.hoveredElement'),
 
     actions: {
         addAnnotation(attribute) {
@@ -74,6 +94,16 @@ export default Ember.Component.extend({
         changeAnnotationSource(attribute) {
             const annotation = this.get('uiState.models.annotation');
             this.get('dispatcher').changeAnnotationSource(annotation, attribute);
-        }
+        },
+
+        selectParent(element) {
+            this.set('selectedElement', element);
+        },
+
+        selectChild(element) {
+            this.set('selectedElement', element);
+            // Selecting sideways resets the originalSelectedElement
+            this.set('uiState.viewPort.originalSelectedElement', element);
+        },
     }
 });

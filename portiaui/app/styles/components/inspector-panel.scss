@@ -3,6 +3,18 @@
     min-height: $tree-list-row-height * 3 + $panel-padding-y * 2;
     overflow: hidden;
 
+    .path-item {
+        border-radius: 5px;
+        padding: 0 3px;
+        font-size: 0.9em;
+        font-family: monospace;
+    }
+
+    .path-selected {
+        background-color: #337AB7;
+        color: #fff;
+    }
+
     table {
         width: 100%;
     }
