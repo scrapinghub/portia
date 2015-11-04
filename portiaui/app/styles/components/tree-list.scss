@@ -23,13 +23,15 @@
     flex-wrap: nowrap;
     align-items: center;
     height: $tree-list-row-height;
+    position: relative;
 
     &:before {
         content: '';
         display: block;
         position: absolute;
         height: $tree-list-row-height;
-        left: 0;
+        top: 0;
+        left: -50px;
         right: 0;
         z-index: -1;
         background-color: $navbar-default-link-active-bg;
