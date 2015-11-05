@@ -3,7 +3,7 @@
 Getting Started
 ===============
 
-.. note::  If you don't have Portia running yet, please read the :ref:`Installation guide <installation>` first.
+.. note:: If you don't have Portia running yet, please read the :ref:`Installation guide <installation>` first. If you're using a hosted version of Portia on a platform like `Scrapinghub <http://scrapinghub.com>`_, you don't need to install anything.
 
 This tutorial will briefly cover how to create a new spider and begin extracting data with Portia. 
 
