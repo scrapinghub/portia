@@ -18,7 +18,7 @@ The **Initialization** section is used to set up the spider when it's first laun
 
 The **Crawling** section is used to configure how the spider will behave when it encounters URLs. You can choose how links are followed and whether to respect `nofollow <http://en.wikipedia.org/wiki/nofollow>`_. You can visualise the effects of the crawling rules using the **Overlay blocked links** option; this will highlight links that will be followed in green, links that will only be followed if JavaScript is enabled in dark green, and links that won't be followed in red.
 
-You can enable JavaScript by checking the 'Enable JS' checkbox. Here you can set the patterns to match against for links that should have JavaScript enabled, as well as those that should have it disabled. Note that when deploying you will need to set the `SPLASH_URL` Scrapy setting to match your Splash endpoint URL in order for JavaScript to work during the crawl.
+.. tip:: You can enable JavaScript by checking the 'Enable JS' checkbox. Here you can define patterns to filter which pages to enable JavaScript on. Note that you'll need to set the `SPLASH_URL` Scrapy setting to your Splash endpoint URL for JavaScript to work during the crawl.
 
 The **Extraction** section lists the samples for this spider.
 
@@ -36,4 +36,13 @@ where ``PROJECT_PATH`` is the path of the project and ``SPIDER_NAME`` is a spide
     portiacrawl PROJECT_PATH
 
 Portia spiders are ultimately `Scrapy <http://scrapy.org>`_ spiders. You can pass Scrapy arguments when running with ``portiacrawl`` using the ``-a`` option. You can also specify a custom settings module using the ``--settings`` option. The `Scrapy documentation <http://doc.scrapy.org/en/latest>`_ contains full details on available options and settings.
+
+Minimum items threshold
+-----------------------
+
+To avoid infinite crawling loops, Portia spiders check to see if the number of scraped items meet a minimum threshold over a given period of time. If not, the job is closed with ``slybot_fewitems_scraped`` outcome.
+
+By default, the period of time is 3600 seconds and the threshold is 200 items scraped. This means if less than 200 items were scraped in the last 3600 seconds, the job will close.
+
+You can set the period in seconds with the ``SLYCLOSE_SPIDER_CHECK_PERIOD`` setting, and the threshold number of items with the ``SLYCLOSE_SPIDER_PERIOD_ITEMS`` setting.
 

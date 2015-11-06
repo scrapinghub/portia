@@ -49,7 +49,8 @@ To run `portiacrawl` add `/app/slybot/bin/portiacrawl <PROJECT_PATH> [SPIDER] [O
 Debian
 ------
 
-### Running Portia Locally
+Running Portia Locally
+^^^^^^^^^^^^^^^^^^^^^^
 
 **These instructions are only valid for a Debian based OS**
 
