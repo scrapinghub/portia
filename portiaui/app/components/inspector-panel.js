@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import {pathSelectorFromElement} from '../utils/selectors';
 
 const $ = Ember.$;
 
@@ -55,7 +56,16 @@ export default Ember.Component.extend({
     attributes: Ember.computed('inspectedElement', function() {
         return getAttributeList(this.get('inspectedElement'));
     }),
-    elementPath: Ember.computed('originalSelectedElement', 'selectedElement', function() {
+
+    elementPath: Ember.computed('inspectedElement', function() {
+        const element = this.get('inspectedElement');
+        if (!element) {
+            return '';
+        }
+        return pathSelectorFromElement(element);
+    }),
+
+    elementParents: Ember.computed('originalSelectedElement', 'selectedElement', function() {
         const inspected = this.get('originalSelectedElement');
         const selected = this.get('selectedElement');
         if (!inspected) {
@@ -68,11 +78,9 @@ export default Ember.Component.extend({
             isLast: element === inspected,
         }));
     }),
-    childElements: Ember.computed('selectedElement', 'isHovered', function() {
+
+    elementChilds: Ember.computed('selectedElement', function() {
         const selected = this.get('selectedElement');
-        if(!selected || this.get('isHovered')) {
-            return [];
-        }
         return $(selected).children().toArray().map(element => ({
             element: element,
             tagName: element.tagName.toLowerCase()
@@ -80,8 +88,7 @@ export default Ember.Component.extend({
     }),
     inspectedElement: Ember.computed.or(
         'uiState.viewPort.hoveredElement', 'uiState.viewPort.selectedElement'),
-    originalSelectedElement: Ember.computed.or(
-        'uiState.viewPort.hoveredElement', 'uiState.viewPort.originalSelectedElement'),
+    originalSelectedElement: Ember.computed.alias('uiState.viewPort.originalSelectedElement'),
     selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),
     isHovered: Ember.computed.bool('uiState.viewPort.hoveredElement'),
 
