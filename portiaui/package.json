@@ -35,11 +35,10 @@
     "ember-cli-sass": "^4.0.1",
     "ember-cli-sri": "^1.0.1",
     "ember-cli-uglify": "^1.0.1",
-    "ember-data": "1.13.7",
-    "ember-data-fixture-adapter": "1.13.0",
+    "ember-data": "2.1.0",
+    "ember-data-url-templates": "0.0.7",
     "ember-disable-proxy-controllers": "^1.0.0",
     "ember-export-application-global": "^1.0.3",
-    "ember-get-helper": "1.0.2",
     "ember-localforage-adapter": "2.0.0",
     "ember-truth-helpers": "1.1.0"
   }

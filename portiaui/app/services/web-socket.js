@@ -15,7 +15,7 @@ var defaultUrl = function() {
     return URI.build(uri);
 };
 
-export default Ember.Object.extend({
+export default Ember.Service.extend({
 
     closed: true,
     opened: Ember.computed.not('closed'),

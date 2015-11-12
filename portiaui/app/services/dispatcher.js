@@ -75,10 +75,11 @@ export default Ember.Service.extend({
 
         const store = this.get('store');
         const spider = store.createRecord('spider', {
-            name: url,
-            project,
-            startUrls: [url]
+            name: url.match('//([a-zA-Z0-9\._-]*)').slice(-1)[0],
+            startUrls: [url],
+            project
         });
+        spider.set('project', project);
         spider.save().then(() => {
             if (redirect) {
                 spider.set('new', true);

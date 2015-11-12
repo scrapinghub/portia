@@ -3,13 +3,10 @@ import DS from 'ember-data';
 
 const Spider = DS.Model.extend({
     name: DS.attr('string'),
-    project: DS.belongsTo(),
-    // json fixes error with storing ember NativeArray in indexed db
-    startUrls: DS.attr('json', {
-        defaultValue() {
-            return [];
-        }
+    project: DS.belongsTo({
+        async: true
     }),
+    startUrls: DS.attr('array'),
     samples: DS.hasMany({
         async: true
     })

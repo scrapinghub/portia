@@ -8,16 +8,8 @@ const Annotation = DS.Model.extend({
     field: DS.belongsTo(),
     attribute: DS.attr('string'),
     // json fixes error with storing ember NativeArray in indexed db
-    acceptSelectors: DS.attr('json', {
-        defaultValue() {
-            return [];
-        }
-    }),
-    rejectSelectors: DS.attr('json', {
-        defaultValue() {
-            return [];
-        }
-    }),
+    acceptSelectors: DS.attr('array'),
+    rejectSelectors: DS.attr('array'),
 
     name: Ember.computed.readOnly('field.name'),
     type: Ember.computed.readOnly('field.type'),

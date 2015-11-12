@@ -10,8 +10,36 @@ from slyd.utils import short_guid
 _INVALID_FILE_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
 
 
+def ctx(manager, **kwargs):
+    kwargs.update({'project_id': manager.project_name})
+    return kwargs
+
+
 def allowed_file_name(name):
     return not _INVALID_FILE_RE.search(name)
+
+
+def gen_id(disallow=None):
+    if disallow is not None:
+        disallow = set(disallow)
+    else:
+        disallow = []
+    id = short_guid()
+    while id in disallow:
+        id = short_guid()
+    return id
+
+
+def init_project(func):
+    def wrapped(*args, **kwargs):
+        if 'manager' in kwargs:
+            manager = kwargs['manager']
+        else:
+            manager = args[0]
+        if hasattr(manager.pm, 'edit_project'):
+            manager.pm.edit_project(manager.project_name, 'master')
+        return func(*args, **kwargs)
+    return wrapped
 
 
 def clean_spider(obj):

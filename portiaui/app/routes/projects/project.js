@@ -5,14 +5,15 @@ export default Ember.Route.extend({
         return this.store.findRecord('project', params.project_id);
     },
 
-    afterModel() {
-        this.store.findAll('schema');
-        this.store.findAll('field');
-        this.store.findAll('spider');
-        this.store.findAll('sample');
-        this.store.findAll('item');
-        this.store.findAll('item-annotation');
-        this.store.findAll('annotation');
+    afterModel(model) {
+        // XXX: Need to wait for project id to be loaded
+        Ember.run.next(this, function() {
+            this.store.findAll('schema');
+            this.store.findAll('spider');
+            //this.store.findAll('item');
+            //this.store.findAll('item-annotation');
+            //this.store.findAll('annotation');
+        });
     },
 
     setupController: function(controller, model) {
