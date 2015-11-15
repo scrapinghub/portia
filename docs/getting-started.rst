@@ -5,7 +5,7 @@ Getting Started
 
 .. note::  If you don't have Portia running yet, please read the :ref:`Installation guide <installation>` first.
 
-This tutorial will briefly cover how to create a new spider and begin extracting data with Portia. 
+This tutorial will briefly cover how to create a new spider and begin extracting data with Portia.
 
 Creating a project and spider
 -----------------------------
@@ -41,7 +41,7 @@ Let's define the fields for data we want to extract before annotating. We can do
 .. image:: _static/portia-item-editor.png
     :alt: Items editor
 
-We need to think about the data we want to extract, and add the relevant fields. We can mark fields as required and any items extracted that are missing them will be discarded. Marking fields as vary means they won't be taken into account when checking for duplicates, more on that :ref:`here <items>`. 
+We need to think about the data we want to extract, and add the relevant fields. We can mark fields as required and any items extracted that are missing them will be discarded. Marking fields as vary means they won't be taken into account when checking for duplicates, more on that :ref:`here <items>`.
 
 Now that we've defined the item we want to extract, let's get back to annotating.
 
@@ -52,13 +52,13 @@ We create an annotation by clicking an element on the page. We can also highligh
 
 A context menu will appear, and here we can map an element's attribute or content to an item field. There are already some fields to choose from as Portia adds a default item when we create a project. We can also create new fields if necessary.
 
-We can can select the attribute on the left, in most cases we'll want the ``content``, but for images the ``src`` attribute is selected by default. We can preview the value that'll be extracted to the right. 
+We can select the attribute on the left, in most cases we'll want the ``content``, but for images the ``src`` attribute is selected by default. We can preview the value that'll be extracted to the right.
 
 If we want to extract data that isn't visible in the body, such as data within the ``head`` element, we can click the ``CSS`` button located in the top bar to toggle styling. This will usually force the data to be displayed on the page. If not we can click the grey cog icon to the open the settings and navigate to parent or child elements manually.
 
 Should we want to delete an annotation, we simply click the red trash can icon.
 
-Once we've defined our annotations, we then need to test them. 
+Once we've defined our annotations, we then need to test them.
 
 Testing
 -------

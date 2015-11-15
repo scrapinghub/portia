@@ -26,7 +26,7 @@ To ensure the spider only visits relevant pages, you'll need to limit crawling t
 .. image:: _static/portia-follow-patterns.png
 	:alt: Follow patterns
 
-Follow patterns are used to filter URLs using `regular expressions <https://en.wikipedia.org/Regular_expressions>`_. By checking ``Overlay blocked links``, you can see which links on the page will be followed. 
+Follow patterns are used to filter URLs using `regular expressions <https://en.wikipedia.org/Regular_expressions>`_. By checking ``Overlay blocked links``, you can see which links on the page will be followed.
 
 As you can see above, the spider will now only visit the boots and shoes category pages and their product listings. To ensure that only products belonging to the target categories are visited, we filter against the ``catID`` parameter value in the URL.
 
