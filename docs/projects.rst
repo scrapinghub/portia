@@ -3,7 +3,7 @@
 Projects
 ========
 
-Projects in Portia consist of one or more :ref:`spiders <spiders>` and can be deployed to any `scrapyd`_ instance. 
+Projects in Portia consist of one or more :ref:`spiders <spiders>` and can be deployed to any `scrapyd`_ instance.
 
 Versioning
 ----------
