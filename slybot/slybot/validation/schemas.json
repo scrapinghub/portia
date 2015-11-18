@@ -28,7 +28,8 @@
         "properties": {
             "type": {"type": "string", "required": true},
             "required": {"type": "boolean", "required": true},
-            "vary": {"type": "boolean", "required": true}
+            "vary": {"type": "boolean", "required": true},
+            "display_name": {"type": "string", "required": false}
         }
     },
     {

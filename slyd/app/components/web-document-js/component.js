@@ -57,19 +57,23 @@ function treeMirrorDelegate(){
     return {
         createElement: function(tagName) {
             var node = null;
-            if(tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
+            if(tagName === 'SCRIPT' || tagName === 'BASE') {
                 node = document.createElement('NOSCRIPT');
-            } else if(tagName === 'FORM') {
-                node = document.createElement(tagName);
+            } else {
+                try {
+                    node = document.createElement(tagName);
+                } catch(e) {
+                    // Invalid tag name
+                    node = document.createElement('NOSCRIPT');
+                }
+            }
+            if(tagName === 'FORM') {
                 $(node).on('submit', ()=>false);
             } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
-                node = document.createElement(tagName);
                 node.setAttribute('src', '/static/frames-not-supported.html');
             } else if (tagName === 'CANVAS') {
-                node = document.createElement(tagName);
                 paintCanvasMessage(node);
             } else if (tagName === 'OBJECT' || tagName === 'EMBED') {
-                node = document.createElement(tagName);
                 setTimeout(addEmbedBlockedMessage.bind(null, node), 100);
             }
             return node;
@@ -80,7 +84,8 @@ function treeMirrorDelegate(){
                 ((node.tagName === 'FRAME' || node.tagName === 'IFRAME') &&
                 (attrName === 'src' || attrName === 'srcdoc')) || // Frames not supported
                 ((node.tagName === 'OBJECT' || node.tagName === 'EMBED') &&
-                (attrName === 'data' || attrName === 'src')) // Block embed / object
+                (attrName === 'data' || attrName === 'src')) || // Block embed / object
+                (node.tagName === 'META' && attrName === 'http-equiv') // Disallow meta http-equiv
             ) {
                 return true;
             }
@@ -101,7 +106,11 @@ function treeMirrorDelegate(){
 }
 
 export default WebDocument.extend({
-    ws_deferreds: {},
+    loading: false, // Whatever a page is being loaded at the moment
+    currentUrl: "", // Current URL
+    currentFp: "",  // Hash of the url.
+    mutationsAfterLoaded: 0,
+
     connect: function() {
         var ws = this.get('ws');
 
@@ -110,96 +119,77 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('metadata', function(data) {
-            if (data.id && this.get('ws_deferreds.' + data.id)) {
-                var deferred = this.get('ws_deferreds.' + data.id);
-                this.set('ws_deferreds.' + data.id, undefined);
-                if (data.error) {
-                    deferred.reject(data);
-                } else {
-                    deferred.resolve(data);
-                }
-            }
-            this[data.loading ? 'showLoading' : 'hideLoading']();
-
-            var listener = this.get('listener');
-            if(listener && listener.updateExtractedItems) {
-                listener.updateExtractedItems(data.items || []);
-                listener.set('followedLinks', data.links || []);
-                var pageMap = listener.get('pageMap');
-                // Handle page change in browser tab on the server caused by event
-                if (!pageMap[data.fp] || data.fp !== listener.get('loadedPageFp')) {
-                    pageMap[data.fp] = data;
-                    this.installEventHandlersForBrowsing();
-                    this.hideLoading();
-                    listener.get('browseHistory').pushObject(data.fp);
-                    Ember.run.later(this, function() {
-                        var doc = this.getIframeNode().contentWindow.document;
-                        doc.onscroll = this.redrawNow.bind(this);
-                    }, 500);
-                }
-                listener.set('loadedPageFp', data.fp);
-            }
-            this.set('loadedPageFp', data.fp);
-            this.set('followedLinks', data.links);
+            this[data.loaded ? 'hideLoading' : 'showLoading']();
+            this.set('loading', !data.loaded);
             this.set('currentUrl', data.url);
-            Ember.run.next(this, function() {
-                this.redrawNow();
-            });
+            this.set('currentFp', data.fp);
+
+            this.sendDocumentEvent('pageMetadata', data);
+
+            Ember.run.next(this, this.redrawNow);
         }.bind(this));
 
         ws.addCommand('mutation', function(data){
+            this.assertInMode('browse');
             data = data._data;
             var action = data[0];
             var args = data.slice(1);
             if(action === 'initialize') {
                 this.iframePromise = this.clearIframe().then(function(){
+                    this.set('mutationsAfterLoaded', 0);
                     this._updateEventHandlers();
                     var doc = this.getIframeNode().contentWindow.document;
                     this.treeMirror = new TreeMirror(doc, treeMirrorDelegate(this));
                 }.bind(this));
             }
             this.iframePromise.then(function() {
+                if(action === 'applyChanged') {
+                    this.incrementProperty('mutationsAfterLoaded');
+                }
                 this.treeMirror[action].apply(this.treeMirror, args);
             }.bind(this));
         }.bind(this));
 
         ws.addCommand('cookies', msg => this.saveCookies(msg._data));
+        ws.addCommand('storage', msg => this.saveStorage(msg._data));
     }.on('init'),
 
-    fetchDocument: function(url, spider, fp, command) {
-        var unique_id = utils.shortGuid(),
-            deferred = new Ember.RSVP.defer(),
-            ifWindow = this.getIframeNode().contentWindow;
-        this.set('ws_deferreds.' + unique_id, deferred);
+    /**
+     * Loads and displays a url interactively
+     * Can only be called in "browse" mode.
+     */
+    loadUrl: function(url, spider, baseurl) {
+        this.assertInMode('browse');
+        this.set('loading', true);
+        this.showLoading(true);
         this.get('ws').send({
             _meta: {
                 spider: spider,
                 project: this.get('slyd.project'),
-                id: unique_id,
-                viewport: ifWindow.innerWidth + 'x' + ifWindow.innerHeight,
+                id: utils.shortGuid(),
+                viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
-                cookies: this.cookies
+                cookies: this.cookies,
+                storage: this.storage,
             },
-            _command: command || 'load',
-            url: url
+            _command: 'load',
+            url: url,
+            baseurl: baseurl,
         });
-        return deferred.promise;
     },
 
     _wsOpenChange: function(){
-        this.setInteractionsBlocked(this.get('ws.opened'), 'ws');
-    }.observes('ws.opened'),
+        this.setInteractionsBlocked(this.get('ws.closed'), 'ws');
+    }.observes('ws.closed'),
 
+    /**
+     * Set the content of the iframe. Can only be called in "select" mode
+     */
     setIframeContent: function(doc) {
-        if(typeof doc !== 'string') {
-            return;
-        }
-        var iframe = Ember.$('#' + this.get('iframeId'));
-        iframe.attr('srcdoc', doc);
-        // Wait until iframe has fully loaded before setting iframe to the current iframe
-        iframe.load(function() {
-            this.set('document.iframe', iframe);
-        }.bind(this));
+        this.assertInMode('select');
+        var iframe = this.getIframeNode();
+        iframe.setAttribute('srcdoc', doc);
+        this.set('cssEnabled', true);
     },
 
     clearIframe: function() {
@@ -227,10 +217,12 @@ export default WebDocument.extend({
     },
 
     installEventHandlersForBrowsing: function() {
+        this.uninstallEventHandlers();
         var iframe = this.getIframe();
         iframe.on('keyup.portia keydown.portia keypress.portia input.portia ' +
                   'mousedown.portia mouseup.portia', this.postEvent.bind(this));
         iframe.on('click.portia', this.clickHandlerBrowse.bind(this));
+        iframe.on('scroll.portia', this.redrawNow.bind(this));
         this.addFrameEventListener("scroll", e => Ember.run.throttle(this, this.postEvent, e, 200), true);
         this.addFrameEventListener('focus', this.postEvent.bind(this), true);
         this.addFrameEventListener('blur', this.postEvent.bind(this), true);
@@ -256,6 +248,9 @@ export default WebDocument.extend({
     },
 
     postEvent: function(evt){
+        if(!evt.target || !evt.target.nodeid) {
+            return;
+        }
         this.get('ws').send({
             _meta: {
                 spider: this.get('slyd.spider'),
@@ -271,12 +266,27 @@ export default WebDocument.extend({
     }.on('init'),
 
     handleResize: function() {
-        var iframe_window = this.getIframeNode().contentWindow;
         this.get('ws').send({
             _command: 'resize',
-            size: iframe_window.innerWidth + 'x' + iframe_window.innerHeight
+            size: this.iframeSize()
         });
     },
+
+    saveStorage: function(data) {
+        this.storage.local[data.origin] = data.local;
+        this.storage.session[data.origin] = data.session;
+        if(window.sessionStorage){
+            window.sessionStorage.portia_storage = JSON.stringify(this.storage);
+        }
+    },
+
+    loadStorage: function(){
+        if(window.sessionStorage && sessionStorage.portia_storage){
+            this.storage = JSON.parse(sessionStorage.portia_storage);
+        } else {
+            this.storage = { local: {}, session: {} };
+        }
+    }.on('init'),
 
     saveCookies: function(cookies){
         this.cookies = cookies;
@@ -284,6 +294,7 @@ export default WebDocument.extend({
             window.sessionStorage.portia_cookies = JSON.stringify(cookies);
         }
     },
+
     loadCookies: function(){
         if(window.sessionStorage && sessionStorage.portia_cookies){
             this.cookies = JSON.parse(sessionStorage.portia_cookies);

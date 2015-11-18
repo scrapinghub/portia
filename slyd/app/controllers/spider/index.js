@@ -1,41 +1,21 @@
-import Ember from 'ember';
-import SpiderController from '../spider';
+import BaseController from '../base-controller';
 
-export default SpiderController.extend({
-    queryParams: ['url', 'baseurl', 'rmt'],
-    url: null,
-    baseurl: null,
-    rmt: null,
-
-    queryUrl: function() {
-        if (!this.url) {
-            return;
-        }
-        this.fetchQueryUrl();
-    }.observes('url'),
-
-    fetchQueryUrl: function() {
-        var url = this.url, baseurl = this.baseurl;
-        this.set('url', null);
-        this.set('baseurl', null);
-        Ember.run.next(this, function() {
-            this.fetchPage(url, null, true, baseurl);
-        });
-    },
-
-    removeTemplate: function() {
-        if (this.get('rmt')) {
-            this.get('model.template_names').removeObject(this.get('rmt'));
-            this.set('rmt', null);
-        }
-    }.observes('rmt'),
-
+export default BaseController.extend({
     _breadCrumb: null,
 
-    willEnter: function() {
-        this._super();
-        if (this.url) {
-            this.fetchQueryUrl();
-        }
-    }
+    needs: ['spider'],
+
+    /**
+     * When returning from a sub-route to a parent route, the parent route's
+     * activate hook will not be called (because it was never deactivated).
+     *
+     * This is to workaround that, ideally most of the methods and state of the
+     * spider controller would be here.
+     */
+    willEnter: function(){
+        this.get('controllers.spider')._willEnter();
+    },
+    willLeave: function(){
+        this.get('controllers.spider')._willLeave();
+    },
 });

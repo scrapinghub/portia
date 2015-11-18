@@ -160,7 +160,7 @@ export default BaseController.extend({
                       'start_urls': [siteUrl],
                       'follow_patterns': [],
                       'exclude_patterns': [],
-                      'js_enabled': true,
+                      'js_enabled': false,
                       'init_requests': [],
                       'templates': [],
                       'template_names': [],
@@ -323,7 +323,6 @@ export default BaseController.extend({
     willEnter: function() {
         this.setBreadCrumb();
         this.get('documentView').reset();
-        this.get('documentView').showSpider();
         if (this.get('controllers.application.siteWizard')) {
             Ember.run.next(this, this.addSpider,
                            this.get('controllers.application.siteWizard'));

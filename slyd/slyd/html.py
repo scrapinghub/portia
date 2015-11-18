@@ -12,7 +12,6 @@ from six.moves.urllib_parse import urljoin
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response
-from slybot.baseurl import insert_base_url
 from .splash.css_utils import process_css, wrap_url
 from .utils import serialize_tag, add_tagids
 
@@ -50,8 +49,6 @@ def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     """
     htmlpage = add_tagids(htmlpage)
     cleaned_html = descriptify(htmlpage, baseurl, proxy=proxy_resources)
-    if baseurl:
-        cleaned_html = insert_base_url(cleaned_html, baseurl)
     return cleaned_html
 
 
@@ -78,6 +75,9 @@ def descriptify(doc, base=None, proxy=None):
                 elif element.tag_type == HtmlTagType.CLOSE_TAG:
                     newdoc.append('</%s>' % element.tag)
                     inserted_comment = False
+            elif element.tag == 'base':
+                element.attributes = {}
+                newdoc.append(serialize_tag(element))
             else:
                 for key, val in element.attributes.copy().items():
                     # Empty intrinsic events

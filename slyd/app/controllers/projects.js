@@ -114,6 +114,5 @@ export default BaseController.extend({
             this.set('ws.project', null);
         }
         this.get('documentView').reset();
-        this.get('documentView').showSpider();
     },
 });

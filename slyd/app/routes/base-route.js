@@ -20,7 +20,6 @@ export default Ember.Route.extend({
     },
 
     getControllerName: function() {
-        return this.getWithDefault('defaultControllerName',
-                                   this.get('routeName').split('.').get(0));
+        return this.getWithDefault('defaultControllerName', this.get('routeName'));
     }
 });

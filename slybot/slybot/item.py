@@ -1,10 +1,12 @@
 import hashlib
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 from scrapy.item import DictItem, Field
 from scrapely.descriptor import ItemDescriptor, FieldDescriptor
 
 from slybot.fieldtypes import FieldTypeManager
+FieldProcessor = namedtuple('FieldProcessor', ['name', 'description',
+                                               'extract', 'adapt'])
 
 
 class SlybotItem(DictItem):
@@ -18,23 +20,28 @@ class SlybotItem(DictItem):
             fields = defaultdict(dict)
             version_fields = []
             for _name, _meta in schema['fields'].items():
-                fields[_name] = Field(_meta)
+                name = _meta.get('display_name', _name)
+                fields[name] = Field(_meta)
                 if not _meta.get("vary", False):
-                    version_fields.append(_name)
+                    version_fields.append(name)
             version_fields = sorted(version_fields)
         return IblItem
 
 
-def create_slybot_item_descriptor(schema):
+def create_slybot_item_descriptor(schema, schema_name=""):
     field_type_manager = FieldTypeManager()
     descriptors = []
     for pname, pdict in schema['fields'].items():
         required = pdict['required']
+        pdisplay_name = pdict.get('display_name', pname)
         pclass = field_type_manager.type_processor_class(pdict['type'])
         processor = pclass()
-        descriptor = SlybotFieldDescriptor(pname, pname, processor, required)
+        descriptor = SlybotFieldDescriptor(pname, pdisplay_name, processor,
+                                           required)
         descriptors.append(descriptor)
-    return ItemDescriptor("", "", descriptors)
+    return SlybotItemDescriptor(schema_name,
+                                schema.get('display_name', schema_name),
+                                descriptors)
 
 
 class SlybotFieldDescriptor(FieldDescriptor):
@@ -50,6 +57,31 @@ class SlybotFieldDescriptor(FieldDescriptor):
                                  field_type_processor.extract, required)
         # add an adapt method
         self.adapt = field_type_processor.adapt
+        self._processor = field_type_processor
+
+    @property
+    def processor(self):
+        return FieldProcessor(self._processor.name,
+                              self._processor.description,
+                              self.extractor, self.adapt)
+
+    def __str__(self):
+        return "SlybotFieldDescriptor(%s, %s)" % (self.name,
+                                                  self._processor.name)
+
+
+class SlybotItemDescriptor(ItemDescriptor):
+    def __str__(self):
+        return "SlybotItemDescriptor(%s)" % self.name
+
+    def copy(self):
+        attribute_descriptors = []
+        for d in self.attribute_map.values():
+            attribute_descriptors.append(
+                SlybotFieldDescriptor(d.name, d.description, d.processor,
+                                      d.required))
+        return SlybotItemDescriptor(self.name, self.description,
+                                    attribute_descriptors)
 
 
 def create_item_version(item):

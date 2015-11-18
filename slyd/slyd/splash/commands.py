@@ -5,6 +5,10 @@ import re
 import socket as _socket
 import six.moves.urllib_parse as urlparse
 import traceback
+import chardet
+import six
+import itertools
+from monotonic import monotonic
 
 import slyd.splash.utils
 
@@ -27,19 +31,27 @@ def load_page(data, socket):
         return {'error': 4001, 'message': 'Required parameter url'}
 
     socket.tab.loaded = False
+    meta = data.get('_meta', {})
 
     def on_complete(error):
-        extra_meta = {'id': data.get('_meta', {}).get('id')}
+        extra_meta = {'id': meta.get('id')}
         if error:
             extra_meta.update(error=4500, message='Unknown error')
         else:
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
 
+    # Specify the user agent directly in the headers
+    # Workaround for https://github.com/scrapinghub/splash/issues/290
+    headers = {}
+    if "user_agent" in meta:
+        headers['User-Agent'] = meta['user_agent']
+
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda: on_complete(True),
-                  baseurl=data['url'])
+                  baseurl=data.get('baseurl') or data['url'],
+                  headers=headers)
 
 
 @open_tab
@@ -61,7 +73,7 @@ def resolve(data, socket):
         _socket.getaddrinfo(parsed.hostname, port)
     except KeyError:
         result['error'] = 'Can\'t create a spider without a start url'
-    except socket.gaierror:
+    except _socket.gaierror:
         result['error'] = 'Could not resolve "%s"' % url
     return result
 
@@ -97,7 +109,8 @@ def extract(socket):
             'links': {},
         }
     templates = socket.spiderspec.templates
-    url = str(socket.tab.url)
+    # Workarround for https://github.com/scrapinghub/splash/issues/259
+    url = socket.tab.evaljs('location.href')
     html = socket.tab.html()
     js_items, js_links = extract_data(url, html, socket.spider, templates)
     raw_html = getattr(socket.tab, '_raw_html', None)
@@ -117,6 +130,14 @@ def extract(socket):
         'items': items,
         'links': js,
     }
+
+
+def pause(data, socket):
+    socket.spent_time += monotonic() - socket.start_time
+
+
+def resume(data, socket):
+    socket.start_time = monotonic()
 
 
 def resize(data, socket):
@@ -146,13 +167,23 @@ class ProjectData(ProjectModifier):
     def save_template(self, data, socket):
         sample, meta = data.get('template'), data.get('_meta')
         path = ['spiders', meta.get('spider'), sample.get('name')]
-        if sample.pop('_new', False):
-            if socket.spider._filter_js_urls(sample['url']):
+        creating = sample.pop('_new', False)
+        if creating:
+            if socket.spider is None:
+                socket.open_spider(meta)
+            uses_js = bool(socket.spider._filter_js_urls(sample['url']))
+            if uses_js:
                 sample['original_body'] = socket.tab.html().decode('utf-8')
             else:
-                sample['original_body'] = socket.tab._raw_html.decode('utf-8')
-        return self.save_data(path, 'template', data=sample, socket=socket,
-                              meta=meta)
+                stated_encoding = socket.tab.evaljs('document.characterSet')
+                sample['original_body'] = self._decode(socket.tab._raw_html,
+                                                       stated_encoding)
+        obj = self.save_data(path, 'template', data=sample, socket=socket,
+                             meta=meta)
+        if creating:
+            obj['_uses_js'] = uses_js
+
+        return obj
 
     def save_extractors(self, data, socket):
         extractors, meta = data.get('extractors'), data.get('_meta')
@@ -191,6 +222,19 @@ class ProjectData(ProjectModifier):
                 log.err(traceback.format_exc(ex))
             socket.update_spider(meta, **{type: obj})
             return obj
+
+    def _decode(self, html, default=None):
+        if default is None:
+            default = []
+        elif isinstance(default, six.string_types):
+            default = [default]
+        for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
+            try:
+                return html.decode(encoding)
+            except UnicodeDecodeError:
+                pass
+        encoding = chardet.detect(html).get('encoding')
+        return html.decode(encoding)
 
 
 def update_project_data(data, socket):

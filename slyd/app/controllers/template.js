@@ -8,7 +8,6 @@ import SpriteStore from '../utils/sprite-store';
 import utils from '../utils/utils';
 
 export default BaseController.extend({
-
     model: null,
 
     needs: ['application', 'projects', 'project', 'spider', 'spider/index'],
@@ -64,12 +63,6 @@ export default BaseController.extend({
         }
 
         this.set('activeExtractionTool', this.get('extractionTools.' + tool_name));
-        this.get('documentView').config({
-            mode: 'select',
-            listener: this,
-            dataSource: this,
-            partialSelects: true,
-        });
         this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
     },
 
@@ -292,7 +285,7 @@ export default BaseController.extend({
         this.get('extractors').pushObject(extractor);
     },
 
-    showFloatingAnnotationWidget: function(_, element, x, y) {
+    showFloatingAnnotationWidget: function(element, x, y) {
         this.set('showFloatingAnnotationWidgetAt', { x: x, y: y });
         this.set('floatingElement', Ember.$(element));
     },
@@ -424,14 +417,10 @@ export default BaseController.extend({
         discardChanges: function() {
             var hasData = false, tools = this.get('extractionTools'),
                 finishDiscard = function() {
-                    var params = {
-                        url: this.get('model.url')
-                    };
-                    if (!hasData) {
-                        params.rmt = this.get('model.name');
-                    }
                     this.transitionToRoute('spider', {
-                        queryParams: params
+                        queryParams: {
+                            url: this.get('model.url')
+                        }
                     });
                 }.bind(this);
             this.set('documentView.sprites', new SpriteStore());
@@ -445,8 +434,12 @@ export default BaseController.extend({
             if (hasData) {
                 finishDiscard();
             } else {
-                this.get('slyd').deleteTemplate(this.get('slyd.spider'),
-                                                this.get('model.name')).then(finishDiscard);
+                this.get('slyd')
+                    .deleteTemplate(this.get('slyd.spider'), this.get('model.name'))
+                    .then(() => {
+                        this.get('controllers.spider.model.template_names').removeObject(this.get('model.name'));
+                    })
+                    .then(finishDiscard);
             }
         },
 
@@ -472,15 +465,13 @@ export default BaseController.extend({
     documentActions: {
 
         elementSelected: function(element, mouseX, mouseY) {
-            if (element) {
-                this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
-            }
+            this.showFloatingAnnotationWidget(element, mouseX, mouseY);
         },
 
         partialSelection: function(selection, mouseX, mouseY) {
             var element = Ember.$('<ins/>').get(0);
             selection.getRangeAt(0).surroundContents(element);
-            this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
+            this.showFloatingAnnotationWidget(element, mouseX, mouseY);
         },
 
         elementHovered: function() {
@@ -489,7 +480,7 @@ export default BaseController.extend({
     },
 
     setDocument: function() {
-        if (!this.get('model') || !this.get('model.annotated_body') || !this.get('loadDocument')) {
+        if (!this.get('model') || !this.get('model.annotated_body')) {
             return;
         }
         this.get('documentView').displayDocument(this.get('model.annotated_body'),
@@ -507,7 +498,7 @@ export default BaseController.extend({
             this.set('extractionTools', {});
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
         }.bind(this));
-    }.observes('model', 'model.annotated_body'),
+    },
 
     /**
      * This will make sure the template scrapes a valid item and if not it will create one.
@@ -536,8 +527,13 @@ export default BaseController.extend({
         }
     }.observes('model.scrapes', 'items.@each'),
 
-    willEnter: function() {
+    _willEnter: function() { // willEnter template.index controller
         var plugins = {};
+        this.get('documentView').config({
+            mode: 'select',
+            listener: this,
+            partialSelects: true,
+        });
         this.get('capabilities.plugins').forEach(function(plugin) {
             plugins[plugin['component'].replace(/\./g, '_')] = plugin['options'];
         });
@@ -546,7 +542,7 @@ export default BaseController.extend({
         this.setDocument();
     },
 
-    willLeave: function() {
+    _willLeave: function() { // willLeave template.index controller
         this.hideFloatingAnnotationWidget();
         this.get('documentView').reset();
         this.set('activeExtractionTool', {extracts: [],
