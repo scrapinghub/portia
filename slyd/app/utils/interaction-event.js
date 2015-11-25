@@ -1,12 +1,22 @@
+var eventCategories = {
+    "keyup": "keyboard",
+  "keydown": "keyboard",
+ "keypress": "keyboard",
+"mousedown": "mouse",
+  "mouseup": "mouse",
+    "click": "mouse",
+   "scroll": "scroll",
+    "focus": "focus",
+     "blur": "focus",
+    "input": "simple",
+   "change": "simple",
+};
+
 function getEventCategory (evt) {
-    switch (evt.constructor.name) {
-        case 'MouseEvent': return 'mouse';
-        case 'KeyboardEvent': return 'keyboard';
-        case 'UIEvent': return 'scroll';
-        case 'FocusEvent': return 'focus';
-        case 'Event': case 'InputEvent': return 'simple';
-        default: return 'unknown';
+    if(evt.type in eventCategories) {
+        return eventCategories[evt.type];
     }
+    throw new Error("Can't serialize event of type " + evt.type);
 }
 
 var interactionEvent = function(evt) {
