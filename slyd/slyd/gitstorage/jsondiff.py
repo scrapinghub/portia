@@ -104,7 +104,8 @@ def merge_lists(base, mine, other):
     last_conflict = False
     for i, (m, o, b) in enumerate(zip_longest(mine, other, base,
                                               fillvalue=_BLANK)):
-        if m == o and _BLANK not in (m, o):
+        if (m == o and _BLANK not in (m, o) or
+                isinstance(m, dict) and isinstance(o, dict)):
             result.append(m)
         else:  # Conflict
             if last_conflict:
