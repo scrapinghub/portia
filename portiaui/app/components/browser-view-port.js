@@ -93,6 +93,7 @@ export default Ember.Component.extend({
     overlays: Ember.computed.readOnly('browserOverlays.overlayComponents'),
     selected: Ember.computed.or('selectedElemen', 'selectedModel'),
     selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),
+    originalSelectedElement: Ember.computed.alias('uiState.viewPort.originalSelectedElement'),
     selectedModel: Ember.computed.alias('uiState.viewPort.selectedModel'),
     selectionMode: Ember.computed.alias('uiState.selectedTools.selectionMode'),
     showToolbar: Ember.computed.equal('browser.mode', ANNOTATION_MODE),
@@ -180,6 +181,7 @@ export default Ember.Component.extend({
                 case 'add':
                     if (hoveredElement) {
                         this.set('selectedElement', hoveredElement);
+                        this.set('originalSelectedElement', hoveredElement);
                         this.get('dispatcher').addAnnotation(
                             /* auto item */null, hoveredElement, undefined, /* redirect = */true);
                     } else {

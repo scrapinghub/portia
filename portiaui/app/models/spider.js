@@ -10,6 +10,11 @@ const Spider = DS.Model.extend({
             return [];
         }
     }),
+    pageActions: DS.attr('json', {
+        defaultValue() {
+            return [];
+        }
+    }),
     samples: DS.hasMany({
         async: true
     })
