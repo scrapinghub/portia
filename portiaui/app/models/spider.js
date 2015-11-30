@@ -12,17 +12,7 @@ const Spider = DS.Model.extend({
     }),
     pageActions: DS.attr('json', {
         defaultValue() {
-            return [{
-                type: "click",
-                selector: "body"
-            }, {
-                type: "click",
-                selector: "#foffo",
-            }, {
-                type: "set",
-                selector: ".bar",
-                value: "asd"
-            }];
+            return [];
         }
     }),
     samples: DS.hasMany({
