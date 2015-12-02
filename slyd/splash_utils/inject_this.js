@@ -1,5 +1,17 @@
 MutationObserver._period = 500;
 
+// Keep a reference to some native methods, so we use the originals if
+// they are overridden by the page
+var Json = JSON;
+var JSONstringify = JSON.stringify;
+var arraySplice = Array.prototype.splice;
+var ArrayProto = Array.prototype;
+var ObjectProto = Object.prototype;
+var NumberProto = Number.prototype;
+var StringProto = String.prototype;
+var BooleanProto = Boolean.prototype;
+
+
 // Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
 function hashString(string, seed) { // Non cryptographic hash of an string
     var hash = seed || 0;
@@ -40,11 +52,28 @@ var PortiaPage = function PortiaPage() {
 };
 
 PortiaPage.prototype.sendMutation = function(){
-    this.sendMessage('mutation', Array.prototype.splice.call(arguments, 0));
+    this.sendMessage('mutation', arraySplice.call(arguments, 0));
 };
 
 PortiaPage.prototype.sendMessage = function(action, message) {
-    __portiaApi.sendMessage(JSON.stringify([action, message]));
+    var oldAPtoJson = ArrayProto.toJSON;
+    var oldOPtoJson = ObjectProto.toJSON;
+    var oldNPtoJson = NumberProto.toJSON;
+    var oldSPtoJson = StringProto.toJSON;
+    var oldBPtoJson = BooleanProto.toJSON;
+    delete ArrayProto.toJSON;
+    delete ObjectProto.toJSON;
+    delete NumberProto.toJSON;
+    delete StringProto.toJSON;
+    delete BooleanProto.toJSON;
+
+    __portiaApi.sendMessage(JSONstringify.call(Json, [action, message]));
+
+    if(oldAPtoJson) { ArrayProto.toJSON   = oldAPtoJson; }
+    if(oldOPtoJson) { ObjectProto.toJSON  = oldOPtoJson; }
+    if(oldNPtoJson) { NumberProto.toJSON  = oldNPtoJson; }
+    if(oldSPtoJson) { StringProto.toJSON  = oldSPtoJson; }
+    if(oldBPtoJson) { BooleanProto.toJSON = oldBPtoJson; }
 };
 
 PortiaPage.prototype.url = function() {
@@ -147,6 +176,16 @@ PortiaPage.prototype.getByNodeId = function(nodeId){
     return this.mirrorClient.knownNodes.byId[nodeId];
 };
 
+function cloneStorage(s){
+    var n = Object.create(null);
+    for(var k in s) {
+        if(s.hasOwnProperty(k)){
+            n[k] = s[k];
+        }
+    }
+    return n;
+}
+
 PortiaPage.prototype.localStorageUpdated = function(local, session) {
     if(this._localStorageLoading) {
         return;
@@ -154,8 +193,8 @@ PortiaPage.prototype.localStorageUpdated = function(local, session) {
     var hash = hashObject(local, 1) + hashObject(session, 2);
     if(hash !== this._prevStorageHash) {
         this.sendMessage('storage', {
-            local: local,
-            session: session,
+            local: cloneStorage(local),
+            session: cloneStorage(session),
             origin: location.origin,
         });
         this._prevStorageHash = hash;

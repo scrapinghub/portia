@@ -47,12 +47,16 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
 
     def createRequest(self, operation, request, outgoingData=None):
         reply = super(PortiaNetworkManager, self).createRequest(operation, request, outgoingData)
-        url = six.binary_type(request.url().toEncoded())
-        frame_url = six.binary_type(self.tab.web_page.mainFrame().requestedUrl().toEncoded())
-        if url == frame_url:
-            self._raw_html = ''
-            reply.readyRead.connect(self._ready_read)
-        return reply
+        try:
+            url = six.binary_type(request.url().toEncoded())
+            frame_url = six.binary_type(self.tab.web_page.mainFrame().requestedUrl().toEncoded())
+            if url == frame_url:
+                self._raw_html = ''
+                reply.readyRead.connect(self._ready_read)
+        except:
+            log.err()
+        finally:
+            return reply
 
     def _ready_read(self):
         reply = self.sender()
