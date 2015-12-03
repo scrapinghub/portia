@@ -2,7 +2,7 @@
     {{#if (eq options.section "item")}}
         {{yield}}
     {{else if (eq options.section "subtrees")}}
-        {{#each item.annotations key="id" as |annotation|}}
+        {{#each item.annotations as |annotation|}}
             {{#if (eq annotation.constructor.modelName "annotation")}}
                 {{#tree-list-item active=(eq activeModels.annotation annotation) mouse-enter=(action 'enterAnnotation' annotation) mouse-leave=(action 'leaveAnnotation' item) as |options|}}
                     {{#if (eq options.section "item")}}

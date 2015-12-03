@@ -5,7 +5,7 @@
         {{/list-item-text}}
         {{list-item-icon icon='add' disabled=(not canAddSample) action=(action 'addSample' spider)}}
     {{else if (eq options.section "subtrees")}}
-        {{#each spider.samples key="id" as |sample|}}
+        {{#each spider.samples as |sample|}}
             {{#tree-list-item active=(eq activeModels.sample sample) as |options|}}
                 {{#if (eq options.section "item")}}
                     {{#link-to 'projects.project.spider.sample' project spider sample}}
