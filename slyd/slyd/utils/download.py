@@ -110,7 +110,7 @@ class ProjectArchiver(object):
         spider = self._spider_name(file_path)
         file_path = self._spider_path(file_path)
         spider_data = self.read_file(file_path, deserialize=True)
-        if spider_data.get('deleted'):
+        if spider_data is None or spider_data.get('deleted'):
             return file_path, spider_data, {file_path}
         names = set(spider_data.pop('template_names', []))
         spider_templates = [tp for tp in templates.get(spider, [])

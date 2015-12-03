@@ -328,7 +328,7 @@ var TreeMirrorClient = (function () {
         var map = new MutationSummary.NodeMap();
 
         Object.keys(attributeChanged).forEach(function (attrName) {
-            attributeChanged[attrName].forEach(function (element) {
+            (attributeChanged[attrName] || []).forEach(function (element) {
                 var record = map.get(element);
                 if (!record) {
                     record = _this.serializeNode(element);
