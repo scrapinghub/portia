@@ -97,6 +97,15 @@ export default SelectBox.extend({
                     }
                 }
             });
+        },
+
+        menuClosed(reason) {
+            if (this.get('open')) {
+                this.setProperties({
+                    open: false,
+                    viewValue: this.get('value.content')
+                });
+            }
         }
     }
 });

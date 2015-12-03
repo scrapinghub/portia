@@ -5,7 +5,9 @@ const Annotation = DS.Model.extend({
     parent: DS.belongsTo('item', {
         inverse: 'annotations'
     }),
-    field: DS.belongsTo(),
+    field: DS.belongsTo({
+        async: false
+    }),
     attribute: DS.attr('string'),
     // json fixes error with storing ember NativeArray in indexed db
     acceptSelectors: DS.attr('array'),
