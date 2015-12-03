@@ -113,6 +113,7 @@ export default BaseController.extend(ConflictMixin, {
     actions: {
 
         displayConflictedFile: function(fileName) {
+            this.get('documentView').setInteractionsBlocked(false)
             this.displayConflictedFile(fileName);
         },
         conflictOptionUpdated: function(path, accepted, rejected) {
