@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from slybot.validation.schema import get_schema_validator
 
-from .models import SpiderSchema, SampleSchema
+from .models import SpiderSchema
 from ..errors import BadRequest
 from ..utils.projects import allowed_file_name, clean_spider, ctx, init_project
 
@@ -14,12 +14,9 @@ def list_spiders(manager, attributes=None):
 
 @init_project
 def get_spider(manager, spider_id, attributes=None):
-    spider = _load_spider(manager, spider_id, include_samples=True)
+    spider = _load_spider(manager, spider_id)
     context = ctx(manager, spider_id=spider_id)
-    data = SpiderSchema(context=context).dump(spider).data
-    included = SampleSchema(many=True, context=context).dump(spider['samples'])
-    data['included'] = included.data['data']
-    return data
+    return SpiderSchema(context=context).dump(spider).data
 
 
 @init_project
@@ -44,10 +41,11 @@ def update_spider(manager, spider_id, attributes):
     if spider.get('name') and spider_id != spider['name']:
         manager.rename_spider(spider_id, spider['name'])
         spider_id = spider['name']
+    clean_spider(spider)
     manager.savejson(spider, ['spiders', spider_id.encode('utf-8')])
-    # TODO: Separate out templates for AS projects
     spider['samples'] = [{'id': name} for name in spider['template_names']]
-    return SpiderSchema(context=ctx(manager, spider_id=spider_id)).dump(spider)
+    context = ctx(manager, spider_id=spider_id)
+    return SpiderSchema(context=context).dump(spider).data
 
 
 def delete_spider(manager, spider_id, attributes=None):
@@ -68,7 +66,6 @@ def _load_spider(manager, spider_id, include_samples=False):
     spider = manager.spider_json(spider_id)
     spider['id'] = spider_id
     spider['samples'] = [{'id': name} for name in spider['template_names']]
-    # TODO: split templates when needed
     if include_samples:
         samples = []
         for name in spider['template_names']:

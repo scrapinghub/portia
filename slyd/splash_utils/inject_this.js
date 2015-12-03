@@ -1,4 +1,5 @@
 MutationObserver._period = 500;
+var portiaJSON = JSON;
 
 // Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
 function hashString(string, seed) { // Non cryptographic hash of an string
@@ -44,7 +45,7 @@ PortiaPage.prototype.sendMutation = function(){
 };
 
 PortiaPage.prototype.sendMessage = function(action, message) {
-    __portiaApi.sendMessage(JSON.stringify([action, message]));
+    __portiaApi.sendMessage(portiaJSON.stringify([action, message]));
 };
 
 PortiaPage.prototype.url = function() {

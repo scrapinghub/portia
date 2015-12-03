@@ -17,7 +17,7 @@ class Annotations(object):
         data = {
             extracts: [
                 {
-                    annotatations: {"content": "Title"},
+                    annotations: {"content": "Title"},
                     id: "id-string",
                     required: [],
                     tagid: 12,
@@ -30,7 +30,10 @@ class Annotations(object):
                     slice: [2, 16],
                     item_container: True,
                     container_id: "parent-id-string",
-                    item_id: "item-id-string"
+                    schema_id: "schema-id-string",
+                    repeated: true,
+                    siblings: 2,
+                    field: "field-id-to-be-added-to-in-parent-container"
                 }
             ]
         }
@@ -80,13 +83,16 @@ def _gen_annotation_info(annotation):
             'id': annotation.get('id', _gen_id()),
             'annotations': annotation.get('annotations', {}),
             'required': annotation.get('required', []),
-            'required_fields': annotation.get('required', [])
+            'required_fields': annotation.get('required', []),
             'variant': int(annotation.get('variant', 0)),
             'generated': annotation.get('generated', False),
             'text-content': annotation.get('text-content', 'content'),
             'item_container': annotation.get('item_container', False),
             'container_id': annotation.get('container_id'),
-            'item_id': annotation.get('item_id')
+            'schema_id': annotation.get('schema_id'),
+            'repeated': annotation.get('repeated'),
+            'siblings': annotation.get('siblings'),
+            'field': annotation.get('field')
         }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):

@@ -55,12 +55,12 @@ class APIResource():
                     parsed['attributes'] = load_attributes(request)
                     return self.format_response(request,
                                                 callback(manager, **parsed))
-        # except KeyError as ex:
-        #     if isinstance(ex, KeyError):
-        #         ex = NotFound('Resource not found',
-        #                       'The resource at "%s" could not be'
-        #                       ' found' % request.path)
-        #     return self.format_error(request, ex)
+        except KeyError as ex:
+            if isinstance(ex, KeyError):
+                ex = NotFound('Resource not found',
+                              'The resource at "%s" could not be'
+                              ' found' % request.path)
+            return self.format_error(request, ex)
         except (AssertionError, jsValidationError, mwValidationError) as ex:
             return self.format_error(request,
                                      BadRequest('The input data was not valid.'
@@ -68,9 +68,9 @@ class APIResource():
                                                 'error: %s.' % str(ex)))
         except BaseHTTPError as ex:
             return self.format_error(request, ex)
-        # except Exception as ex:
-        #     return self.format_error(request,
-        #                              self._handle_uncaught_exception(ex))
+        except Exception as ex:
+            return self.format_error(request,
+                                     self._handle_uncaught_exception(ex))
         return self.format_error(request, NotFound('Resource not found',
                                                    'No route matches: '
                                                    '"%s"' % request.path))

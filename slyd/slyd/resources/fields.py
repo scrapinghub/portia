@@ -21,17 +21,19 @@ def get_field(manager, schema_id, field_id, attributes=None):
     if schema_id not in items:
         raise NotFound('No item with id "%s" found' % schema_id)
     item = items[schema_id]
-    field = item['fields'][field_id.split('/')[-1]]
+    field = item['fields'][field_id]
     field['id'] = field_id
-    field = FieldSchema(context=ctx(manager, schema_id=schema_id)).dump(field)
-    return field.data
+    context = ctx(manager, schema_id=schema_id)
+    return FieldSchema(context=context).dump(field).data
 
 
 def create_field(manager, schema_id, attributes):
     attributes = _check_field_attributes(attributes, include_defaults=True)
     schemas = _read_schemas(manager)
+    fields = {f for schema in schemas.values()
+              for f in schema.get('fields', [])}
     schema = schemas[schema_id]
-    field_id = gen_id(disallow=list(schema.get('fields', {}).keys()))
+    field_id = gen_id(disallow=fields)
     attributes['name'] = attributes.pop('name', field_id)
     get_schema_validator('field').validate(attributes)
     schema['fields'][field_id] = attributes
@@ -46,12 +48,13 @@ def update_field(manager, schema_id, field_id, attributes):
     if schema_id not in schemas:
         raise NotFound('No item with id "%s" found' % schema_id)
     schema = schemas[schema_id]
-    field = schema['fields'][field_id.split('/')[-1]]
+    field = schema['fields'][field_id]
     attributes = _check_field_attributes(attributes)
     field.update(attributes)
     get_schema_validator('field').validate(field)
     schemas[schema_id]['fields'][field_id] = field
     manager.savejson(schemas, ['items'])
+    field['id'] = field_id
     context = ctx(manager, schema_id=schema_id)
     return FieldSchema(context=context).dump(field).data
 

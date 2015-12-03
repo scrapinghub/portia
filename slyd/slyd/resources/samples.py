@@ -1,9 +1,14 @@
+from itertools import chain
+
 from scrapy.http.request import Request
 from scrapy.utils.request import request_fingerprint
 
 from slybot.validation.schema import get_schema_validator
 
-from .models import SampleSchema, HtmlSchema
+from .models import (SampleSchema, HtmlSchema, ItemSchema, AnnotationSchema,
+                     ItemAnnotationSchema)
+from .annotations import _group_annotations, _split_annotations
+from .utils import _load_sample
 from ..errors import BadRequest
 from ..utils.projects import ctx, gen_id
 
@@ -11,13 +16,9 @@ from ..utils.projects import ctx, gen_id
 def list_samples(manager, spider_id, attributes=None):
     samples = []
     spider = manager.resource('spiders', spider_id)
-    _samples = spider.get('template_names')
-    if _samples is None:
-        # TODO: Convert to new format
-        _samples = [str(i) for i in range(1, len(spider.get('templates', 0)))]
+    _samples = spider.get('template_names', [])
     for name in _samples:
         sample = _load_sample(manager, spider_id, name)
-        sample['id'] = name
         samples.append(sample)
     context = ctx(manager, spider_id=spider_id)
     return SampleSchema(many=True, context=context).dump(samples).data
@@ -25,11 +26,26 @@ def list_samples(manager, spider_id, attributes=None):
 
 def get_sample(manager, spider_id, sample_id, attributes=None):
     sample = _load_sample(manager, spider_id, sample_id)
-    sample['id'] = sample_id
-    context = ctx(manager, spider_id=spider_id)
-    # Convert to having annotations shown
-    # add annotations as included
-    return SampleSchema(context=context).dump(sample)
+    _ctx = lambda x=None, y=None: ctx(manager, spider_id=spider_id,
+                                      sample_id=sample_id, schema_id=x,
+                                      item_id=y)
+    items, annotations, item_annotations = _process_annotations(sample)
+    sample['items'] = items
+    data = SampleSchema(context=_ctx()).dump(sample).data
+    items = [ItemSchema(context=_ctx(i['schema']['id'])).dump(i).data['data']
+             for i in items]
+    annos = []
+    for a in annotations:
+        context = _ctx(None, a['container_id'])
+        dumper = AnnotationSchema(context=context)
+        annos.append(dumper.dump(a).data['data'])
+    item_annos = []
+    for a in item_annotations:
+        context = _ctx(a['schema_id'], a['id'])
+        dumper = ItemAnnotationSchema(context=context)
+        item_annos.append(dumper.dump(_split_annotations([a])[0]).data['data'])
+    data['included'] = items + annos + item_annos
+    return data
 
 
 def create_sample(manager, spider_id, attributes):
@@ -42,7 +58,7 @@ def create_sample(manager, spider_id, attributes):
     manager.savejson(spider, ['spiders', spider_id])
     attributes['id'] = sample_id
     context = ctx(manager, spider_id=spider_id)
-    return SampleSchema(context=context).dump(attributes)
+    return SampleSchema(context=context).dump(attributes).data
 
 
 def update_sample(manager, spider_id, sample_id, attributes):
@@ -50,11 +66,9 @@ def update_sample(manager, spider_id, sample_id, attributes):
     sample = _load_sample(manager, spider_id, sample_id)
     sample.update(attributes)
     get_schema_validator('template').validate(sample)
-    manager.savejson(sample, 'spiders', spider_id, sample_id)
-    sample['id'] = sample_id
-    # TODO: add annotation data
+    manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id)
-    return SampleSchema(context=context).dump(sample)
+    return SampleSchema(context=context).dump(sample).data
 
 
 def delete_sample(manager, spider_id, sample_id, attributes=None):
@@ -77,13 +91,37 @@ def _check_sample_attributes(attributes, include_defaults=False):
     if 'scrapes' not in attributes:
         attributes['scrapes'] = 'default'  # TODO: add default schema
     if include_defaults:
-        attributes['_skip_relationships'] = True
-        return SampleSchema().dump(attributes).data['data']['attributes']
+        dumper = SampleSchema(skip_relationships=True,
+                              exclude=('html', 'items'))
+        return dumper.dump(attributes).data['data']['attributes']
     return attributes
 
 
-def _load_sample(manager, spider_id, sample_id):
-    sample = manager.resource('spiders', spider_id, sample_id)
-    if 'name' not in sample:
-        sample['name'] = sample_id
-    return sample
+def _process_annotations(sample):
+    annotation_info = sample.get('plugins', {}).get('annotations-plugin', {})
+    annotations = annotation_info.get('extracts', [])
+    containers, grouped, remaining = _group_annotations(annotations)
+    if remaining:
+        scrapes = sample['scrapes']  # TODO: handle default scraped item
+        containers['metacontainer'] = {
+            'annotatations': {}, 'id': 'metacontainer', 'required': [],
+            'tagid': 1, 'item_container': True, 'schema_id': scrapes
+        }
+        for r in remaining:
+            remaining['container_id'] = 'metacontainer'
+            remaining['schema_id'] = scrapes
+        grouped['metacontainer'] = remaining
+    items = []
+    for id, container in containers.items():
+        item = {
+            'id': id,
+            'sample': sample,
+            'schema': {'id': container['schema_id']},  # TODO: handle default
+            'item_annotation': container,
+            'annotations': grouped.get(id, [])
+        }
+        items.append(item)
+    annotations = [i for i in chain(*grouped.values())
+                   if not i.get('item_container')]
+    item_annotations = list(containers.values())
+    return items, annotations, item_annotations

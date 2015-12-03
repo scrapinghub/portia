@@ -1,8 +1,21 @@
+from itertools import chain
+
 from marshmallow_jsonapi import Schema, fields
 from marshmallow import pre_dump
 
 
 class SlydSchema(Schema):
+    _properties = ('project', 'spider', 'schema', 'item', 'sample', 'field')
+
+    def __init__(self, *args, **kwargs):
+        self._skip_relationships = kwargs.pop('skip_relationships', False)
+        if self._skip_relationships:
+            relationships = ((f, '%s_id' % f) for f in self._properties)
+            exclude = kwargs.get('exclude', [])
+            excluded = tuple(chain(exclude, *zip(*relationships)))
+            kwargs['exclude'] = excluded
+        super(SlydSchema, self).__init__(*args, **kwargs)
+
     @property
     def project_id(self):
         return self.context.get('project_id')
@@ -19,15 +32,24 @@ class SlydSchema(Schema):
     def schema_id(self):
         return self.context.get('schema_id')
 
+    @property
+    def item_id(self):
+        return self.context.get('item_id')
+
+    @property
+    def field_id(self):
+        return self.context.get('field_id')
+
     @pre_dump
     def _dump_relationship_properties(self, item):
-        if '_skip_relationships' in item and item['_skip_relationships']:
-            del item['_skip_relationships']
+        if getattr(self, '_skip_relationships', False):
             return item
-        for attr in ['project', 'spider', 'sample', 'schema']:
+        for attr in self._properties:
             id = '_'.join((attr, 'id'))
-            if id not in item:
+            if id not in item or item['id'] is None:
                 item[id] = getattr(self, id)
+            else:
+                self.context[id] = item[id]
             if item.get(attr) is None:
                 item[attr] = {'id': getattr(self, id)}
         return item
@@ -62,7 +84,8 @@ class SchemaSchema(SlydSchema):
     name = fields.Str()
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
-        related_url_kwargs={'project_id': '<project_id>'}, type_='projects',
+        related_url_kwargs={'project_id': '<project_id>'},
+        type_='projects',
         include_data=True
     )
     fields = fields.Relationship(
@@ -116,14 +139,15 @@ class SpiderSchema(SlydSchema):
     init_requests = fields.List(fields.Dict(), default=[])
     template_names = fields.List(fields.Str(), default=[])
     samples = fields.Relationship(
-        related_url='/api/projects/{project_id}/spider/{spider_id}',
+        related_url='/api/projects/{project_id}/spider/{spider_id}/samples',
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>'},
         many=True, include_data=True, type_='samples'
     )
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
-        related_url_kwargs={'project_id': '<project_id>'}, type_='projects',
+        related_url_kwargs={'project_id': '<project_id>'},
+        type_='projects',
         include_data=True
     )
 
@@ -143,15 +167,14 @@ class SampleSchema(SlydSchema):
     annotated_body = fields.Str(default='')
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
-        related_url_kwargs={'project_id': '<project_id>'}, type_='projects',
-        include_data=True
+        related_url_kwargs={'project_id': '<project_id>'},
+        type_='projects', include_data=True
     )
     spider = fields.Relationship(
         related_url='/api/projects/{project_id}/spiders/{spider_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>'},
-        type_='spiders',
-        include_data=True
+        type_='spiders', include_data=True
     )
     html = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
@@ -159,35 +182,55 @@ class SampleSchema(SlydSchema):
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
                             'sample_id': '<id>'},
-        many=True
+        type_='html', include_data=True
     )
-    annotations = fields.Relationship(
+    items = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
-                    '{sample_id}/annotations',
+                    '{sample_id}/items',
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
                             'sample_id': '<id>'},
-        many=True, include_data=True, type_='annotations'
+        type_='items', many=True, include_data=True
     )
+
+    def dump(self, obj, many=None, update_fields=True, **kwargs):
+        obj.setdefault('items', [])
+        return super(SampleSchema, self).dump(obj, many, update_fields,
+                                              **kwargs)
 
     class Meta:
         type_ = 'samples'
 
 
-class AnnotationSchema(SlydSchema):
+class BaseAnnotationSchema(SlydSchema):
     id = fields.Str()
     attribute = fields.Str(required=True)
     accept_selectors = fields.List(fields.Str(), default=[])
     reject_selectors = fields.List(fields.Str(), default=[])
-    required = fields.Boolean(default=False)
     tagid = fields.Integer(required=True)
+    text_content = fields.Str()
+
+    sample = fields.Relationship(
+        related_url='/api/projects/{project_id}/spiders/{spider_id}/samples/'
+                    '{sample_id}',
+        related_url_kwargs={'project_id': '<project_id>',
+                            'spider_id': '<spider_id>',
+                            'sample_id': '<sample_id>'},
+        type_='samples',
+        include_data=True
+    )
+
+
+class AnnotationSchema(BaseAnnotationSchema):
+    @property
+    def parent_id(self):
+        return self.context.get('container_id', self.item_id)
+
+    required = fields.Boolean(default=False)
     ignore = fields.Boolean(default=False)
     ignore_beneath = fields.Boolean(default=False)
     variant = fields.Integer(default=False)
-    text_content = fields.Str()
     slice = fields.List(fields.Integer())
-    item_container = fields.Boolean()
-    container_id = fields.Str()
 
     field = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas/{schema_id}/fields/'
@@ -195,38 +238,54 @@ class AnnotationSchema(SlydSchema):
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>',
                             'field_id': '<field_id>'},
-        type_='fields'
+        type_='fields', include_data=True
     )
+    parent = fields.Relationship(
+        related_url='/api/projects/{project_id}/spiders/{spider_id}/samples/'
+                    '{sample_id}/items/{item_id}',
+        related_url_kwargs={'project_id': '<project_id>',
+                            'spider_id': '<spider_id>',
+                            'sample_id': '<sample_id>',
+                            'item_id': '<parent_id>'},
+        type_='items', include_data=True
+    )
+
+    @pre_dump
+    def _dump_parent_id(self, item):
+        parent_id = item.get('container_id', self.parent_id)
+        if parent_id and item.get('parent_id') is None:
+            item['parent_id'] = parent_id
+        if parent_id and item.get('parent') is None:
+            item['parent'] = {'id': parent_id}
+
+    class Meta:
+        type_ = 'annotations'
+
+
+class ItemAnnotationSchema(BaseAnnotationSchema):
+    item_container = fields.Boolean()
+    container_id = fields.Str()
+    repeated = fields.Boolean()
+    siblings = fields.Integer()
+    parent_field = fields.Str()
     schema = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas/{schema_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>'},
-        type_='schema'
+        type_='schemas', include_data=True
     )
-    project = fields.Relationship(
-        related_url='/api/projects/{project_id}',
-        related_url_kwargs={'project_id': '<project_id>'}, type_='projects',
-        include_data=True
-    )
-    spider = fields.Relationship(
-        related_url='/api/projects/{project_id}/spiders/{spider_id}',
-        related_url_kwargs={'project_id': '<project_id>',
-                            'spider_id': '<spider_id>'},
-        type_='spiders',
-        include_data=True
-    )
-    sample = fields.Relationship(
+    item = fields.Relationship(
         related_url='/api/projects/{project_id}/spiders/{spider_id}/samples/'
-                    '{sample_id}',
+                    '{sample_id}/items/{item_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
-                            'sample_id': '<sample_id'},
-        type_='samples',
-        include_data=True
+                            'sample_id': '<sample_id>',
+                            'item_id': '<id>'},
+        type_='items', include_data=True
     )
 
     class Meta:
-        type_ = 'annotations'
+        type_ = 'item_annotations'
 
 
 class ExtractorSchema(SlydSchema):
@@ -244,3 +303,43 @@ class HtmlSchema(SlydSchema):
 
     class Meta:
         type_ = 'html'
+
+
+class ItemSchema(SlydSchema):
+    """Instance of a schema. Meta item built from sample"""
+    id = fields.Str()
+    sample = fields.Relationship(
+        related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
+                    '{sample_id}',
+        related_url_kwargs={'project_id': '<project_id>',
+                            'spider_id': '<spider_id>',
+                            'sample_id': '<sample_id>'},
+        include_data=True, type_='samples'
+    )
+    schema = fields.Relationship(
+        related_url='/api/projects/{project_id}/schemas/{schema_id}',
+        related_url_kwargs={'project_id': '<project_id>',
+                            'schema_id': '<schema_id>'},
+        type_='schemas', include_data=True
+    )
+    annotations = fields.Relationship(
+        related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
+                    '{sample_id}/items/{item_id}/annotations',
+        related_url_kwargs={'project_id': '<project_id>',
+                            'spider_id': '<spider_id>',
+                            'sample_id': '<sample_id>',
+                            'item_id': '<id>'},
+        many=True, include_data=True, type_='annotations'
+    )
+    item_annotation = fields.Relationship(
+        related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
+                    '{sample_id}/items/{item_id}/item_annotation',
+        related_url_kwargs={'project_id': '<project_id>',
+                            'spider_id': '<spider_id>',
+                            'sample_id': '<sample_id>',
+                            'item_id': '<id>'},
+        include_data=True, type_='item_annotations'
+    )
+
+    class Meta:
+        type_ = 'items'
