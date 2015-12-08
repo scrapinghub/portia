@@ -184,14 +184,34 @@ export default WebDocument.extend({
     }.observes('ws.closed'),
 
     /**
-     * Set the content of the iframe. Can only be called in "select" mode
-     */
-    setIframeContent: function(doc) {
-        this.assertInMode('select');
-        var iframe = this.getIframeNode();
-        iframe.setAttribute('srcdoc', doc);
-        iframe.removeAttribute('src');
-        this.set('cssEnabled', true);
+        Displays a document by setting it as the content of the iframe.
+        readyCallback will be called when the document finishes rendering.
+
+        Only allowed in "select" mode
+    */
+    displayDocument: function(documentContents, readyCallback) {
+        Ember.run.next(() => {
+            this.assertInMode('select');
+            // We need to disable all interactions with the document we are loading
+            // until we trigger the callback.
+            this.blockInteractions('loadingDoc');
+            this.set('loadingDoc', true);
+            this.set('cssEnabled', true);
+
+            this.clearIframe().then(() => {
+                var iframeDoc = this.getIframe()[0];
+                iframeDoc.open('text/html', 'replace');
+                iframeDoc.write(documentContents);
+                iframeDoc.close();
+                this._updateEventHandlers();
+            }).finally(() => {
+                this.unblockInteractions('loadingDoc');
+                this.set('loadingDoc', false);
+                if (readyCallback) {
+                    readyCallback(this.getIframe());
+                }
+            });
+        });
     },
 
     clearIframe: function() {
