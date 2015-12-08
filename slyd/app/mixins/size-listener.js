@@ -42,7 +42,9 @@ export default Ember.Mixin.create({
 
     bindResizeEvent: function() {
         Ember.run.next(this, this.handleResize);
-        Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        if (!Ember.testing){
+            Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        }
     }.on('init'),
 
     openAccordion: function(accordionNumber) {
