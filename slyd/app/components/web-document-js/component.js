@@ -326,7 +326,9 @@ export default WebDocument.extend({
     },
 
     bindResizeEvent: function() {
-        Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        if (!Ember.testing){
+            Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        }
     }.on('init'),
 
     handleResize: function() {

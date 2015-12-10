@@ -1,0 +1,37 @@
+{
+    "default": {
+        "display_name": "default_item",
+        "fields": {
+            "required": {
+                "required": true,
+                "type": "text",
+                "vary": false
+            },
+            "optional": {
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "image": {
+                "required": false,
+                "type": "image",
+                "vary": false
+            },
+            "text": {
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "price": {
+                "required": true,
+                "type": "price",
+                "vary": false
+            },
+            "safe_html": {
+                "required": true,
+                "type": "safe html",
+                "vary": false
+            }
+        }
+    }
+}

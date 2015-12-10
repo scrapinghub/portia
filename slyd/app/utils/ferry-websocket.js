@@ -52,9 +52,9 @@ export default Ember.Object.extend({
             clearInterval(this.get('countdownTid'));
             this.set('countdownTid', null);
         } else if (this.secondsUntilReconnect > 0 && !this.get('countdownTid')) {
-            this.set('countdownTid', setInterval(() => {
+            this.set('countdownTid', setInterval(Ember.run.bind(this, () => {
                 this.decrementProperty('secondsUntilReconnect');
-            }, 1000));
+            }), 1000));
         }
     }.observes('secondsUntilReconnect'),
 
@@ -96,8 +96,8 @@ export default Ember.Object.extend({
             this.set('connecting', false);
             return;
         }
-        ws.onclose = this._onclose.bind(this);
-        ws.onmessage = function(e) {
+        ws.onclose = Ember.run.bind(this, this._onclose);
+        ws.onmessage = Ember.run.bind(this, function(e) {
             var data;
             try {
                 data = JSON.parse(e.data);
@@ -130,8 +130,8 @@ export default Ember.Object.extend({
             } else {
                 Ember.Logger.warn('Received unknown command: ' + command);
             }
-        }.bind(this);
-        ws.onopen = function() {
+        });
+        ws.onopen = Ember.run.bind(this, function() {
             Ember.Logger.log('<Opened Websocket>');
             this.set('closed', false);
             this.set('connecting', false);
@@ -139,7 +139,7 @@ export default Ember.Object.extend({
             this.heartbeat = setInterval(function() {
                 this.send({_command: 'heartbeat'});
             }.bind(this), 20000);
-        }.bind(this);
+        });
         this.set('ws', ws);
     },
 
