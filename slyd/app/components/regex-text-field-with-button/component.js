@@ -11,6 +11,9 @@ export default TextFieldWithButton.extend(NotificationHandler, {
             try {
                 new RegExp(this.get('text'));
                 this.sendAction('action', this.get('text'));
+                if(/([^\\]|^)\[\]/.test(this.get('text'))) { // A lone [] is invalid in a python RegExp but valid in JS
+                    throw new Error('Invalid regexp');
+                }
             } catch (e) {
                 this.showWarningNotification('Validation Error',
                                              '"' + this.get('text') + '" ' +
