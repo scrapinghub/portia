@@ -319,11 +319,11 @@ export default BaseController.extend({
             return;
         }
         this.set('saving', true);
-        return this.get('ws').save('spider', this.get('model')).then(function() {
-            this.set('saving', false);
-        }.bind(this),function() {
-            this.set('saving', false);
-        }.bind(this));
+        return this.get('ws').save('spider', this.get('model')).finally(() => {
+            if(!this.isDestroying) {
+                this.set('saving', false);
+            }
+        });
     },
 
     testSpider: function() {
