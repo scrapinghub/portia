@@ -174,11 +174,13 @@ class SpiderCopier(object):
         dest_extractors = self.read_file(self.destination, 'extractors.json')
         for spider in templates.values():
             for extractor in spider.get('extractors', []):
-                if extractor not in dest_extractors:
+                if (extractor in source_extractors and
+                        extractor not in dest_extractors):
                     dest_extractors[extractor] = source_extractors[extractor]
         return dest_extractors
 
-    def _build_summary(self, spider_paths, items, renamed_spiders, renamed_items):
+    def _build_summary(self, spider_paths, items, renamed_spiders,
+                       renamed_items):
         """
         Build a summary of copied spiders and items
         """
