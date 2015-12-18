@@ -34,6 +34,9 @@ from .css_utils import process_css, wrap_url
 import six
 text = six.text_type  # unicode in py2, str in py3
 
+import txaio
+txaio.use_twisted()
+
 _DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
 _DEFAULT_VIEWPORT = '1240x680'
 
