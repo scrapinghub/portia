@@ -14,4 +14,4 @@ https://github.com/scrapinghub/dulwich/tarball/420a056#egg=dulwich
 
 # Splash dev
 --allow-external=splash
-https://github.com/scrapinghub/splash/archive/3acde4ef0d389e5067d51dcc9b4ac6d260658757.tar.gz
+https://github.com/scrapinghub/splash/archive/master.tar.gz

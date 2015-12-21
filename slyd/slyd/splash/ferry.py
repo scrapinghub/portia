@@ -288,8 +288,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if meta is None:
             meta = {}
         manager = PortiaNetworkManager(
-            filters_path=None,
-            allowed_schemes=defaults.ALLOWED_SCHEMES,
+            request_middlewares=[],
+            response_middlewares=[],
             verbosity=defaults.VERBOSITY
         )
         manager.setCache(None)
