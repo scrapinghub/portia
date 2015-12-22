@@ -2,7 +2,6 @@
 import Ember from 'ember';
 import {Canvas, ElementSprite} from '../utils/canvas';
 import AnnotationStore from '../utils/annotation-store';
-import utils from '../utils/utils';
 import experiments from '../utils/experiments';
 
 var META_STYLE = `<style data-show-meta>
@@ -199,48 +198,6 @@ export default Ember.Component.extend({
 
     unblockInteractions: function(reason){
         return this.setInteractionsBlocked(false, reason);
-    },
-
-    /**
-        Displays a document by setting it as the content of the iframe.
-        readyCallback will be called when the document finishes rendering.
-
-        Only allowed in "select" mode
-    */
-    displayDocument: function(documentContents, readyCallback) {
-        this.assertInMode('select');
-
-        Ember.run.next(() => {
-            // We need to disable all interactions with the document we are loading
-            // until we trigger the callback.
-            this.blockInteractions('loadingDoc');
-            this.set('loadingDoc', true);
-            let onLoad = () => {
-                this._updateEventHandlers();
-                this.unblockInteractions('loadingDoc');
-                this.set('loadingDoc', false);
-                this.assertInMode('select');
-                if (readyCallback) {
-                    readyCallback(this.getIframe());
-                }
-            };
-
-            // Using a message to workaround onload bugs
-            var id = utils.shortGuid();
-            var load_embed = `<script id="__portia_script">
-                window.top.postMessage({frameReady: '${id}'}, "*");
-                var script = document.getElementById('__portia_script');
-                script.parentNode.removeChild(script);
-            </script>`;
-            var $win = $(window).bind('message', function onMessage(e){
-                if(e.originalEvent.data.frameReady === id){
-                    $win.unbind('message', onMessage);
-                    Ember.run(onLoad);
-                }
-            });
-
-            this.setIframeContent(documentContents + load_embed);
-        });
     },
 
     /**
