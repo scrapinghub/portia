@@ -19,7 +19,11 @@ export const ICON_CLASSES = {
     spider: 'portia-icon portia-icon-spider',
     structure: 'fa fa-sitemap',
     text: 'portia-icon portia-icon-text',
-    url: 'fa fa-globe'
+    url: 'fa fa-globe',
+    click: 'fa fa-mouse-pointer',
+    set: 'fa fa-i-cursor',
+    scroll: 'fa fa-unsorted',
+    wait: 'fa fa-hourglass-half',
 };
 
 export default Ember.Component.extend({

@@ -1,4 +1,20 @@
-<div>{{elementPath}}</div>
+{{#if isHovered}}
+    <div> {{elementPath}} </div>
+{{else}}
+    <div>
+    {{#each elementParents as |part|}}<!--
+        --><a {{action "selectParent" part.element }} class="path-item path-{{if part.selected 'selected' 'not-selected'}}" >{{part.tagName}}</a><!--
+        -->{{#unless part.isLast }}&gt;{{/unless}}<!--
+    -->{{/each}}
+    </div>
+    <div>
+        Children:
+        {{#each elementChilds as |child|}}
+            <a {{action "selectChild" child.element }} class="path-item" >{{child.tagName}}</a>
+        {{/each}}
+    </div>
+{{/if}}
+
 <table>
     {{#each attributes as |attribute|}}
         <tr {{action 'changeAnnotationSource' attribute.attribute}}>
