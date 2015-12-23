@@ -152,7 +152,6 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('cookies', msg => this.saveCookies(msg._data));
-        ws.addCommand('storage', msg => this.saveStorage(msg._data));
     }.on('init'),
 
     /**
@@ -171,7 +170,6 @@ export default WebDocument.extend({
                 viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
                 cookies: this.cookies,
-                storage: this.storage,
             },
             _command: 'load',
             url: url,
@@ -337,22 +335,6 @@ export default WebDocument.extend({
             size: this.iframeSize()
         });
     },
-
-    saveStorage: function(data) {
-        this.storage.local[data.origin] = data.local;
-        this.storage.session[data.origin] = data.session;
-        if(window.sessionStorage){
-            window.sessionStorage.portia_storage = JSON.stringify(this.storage);
-        }
-    },
-
-    loadStorage: function(){
-        if(window.sessionStorage && sessionStorage.portia_storage){
-            this.storage = JSON.parse(sessionStorage.portia_storage);
-        } else {
-            this.storage = { local: {}, session: {} };
-        }
-    }.on('init'),
 
     saveCookies: function(cookies){
         this.cookies = cookies;

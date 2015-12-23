@@ -13,29 +13,6 @@ var BooleanProto = Boolean.prototype;
 
 
 // Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
-function hashString(string, seed) { // Non cryptographic hash of an string
-    var hash = seed || 0;
-    for (var i = 0, len = string.length; i < len; i++) {
-        var chr = string.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-}
-
-/**
- * Returns a non-cryptographic hash of a shallow object
- * > hashObject({a: '1', b: '2'}) === hashObject({b: '2', a: '1'})
- * > hashObject({a: '1', b: '2', c:1}) !== hashObject({b: '2', a: '1'})
- */
-function hashObject(obj, seed) {
-    var keys = Object.keys(obj).sort();
-    var hash = seed || 0;
-    for (var i = 0, len = keys.length; i < len; i++) {
-        hash = hashString(keys[i] + '\n' + obj[keys[i]] + '\n', hash);
-    }
-    return hash;
-}
 
 var MAX_DIALOGS = 15;  // Maximum number of dialogs (alert, confirm, prompt) before throwing an exception
 
@@ -174,53 +151,6 @@ PortiaPage.prototype.sendEvent = function(data) {
 
 PortiaPage.prototype.getByNodeId = function(nodeId){
     return this.mirrorClient.knownNodes.byId[nodeId];
-};
-
-function cloneStorage(s){
-    var n = Object.create(null);
-    for(var k in s) {
-        if(s.hasOwnProperty(k)){
-            n[k] = s[k];
-        }
-    }
-    return n;
-}
-
-PortiaPage.prototype.localStorageUpdated = function(local, session) {
-    if(this._localStorageLoading) {
-        return;
-    }
-    var hash = hashObject(local, 1) + hashObject(session, 2);
-    if(hash !== this._prevStorageHash) {
-        this.sendMessage('storage', {
-            local: cloneStorage(local),
-            session: cloneStorage(session),
-            origin: location.origin,
-        });
-        this._prevStorageHash = hash;
-    }
-};
-
-PortiaPage.prototype.setLocalStorage = function(localData, sessionData){
-    this._localStorageLoading = true;
-    try {
-        var local = window.localStorage;
-        var session = window.sessionStorage;
-        for(var k in localData) {
-            if(localData.hasOwnProperty(k)){
-                local[k] = localData[k];
-            }
-        }
-        for(k in sessionData) {
-            if(sessionData.hasOwnProperty(k)){
-                session[k] = sessionData[k];
-            }
-        }
-
-        this._prevStorageHash = hashObject(local, 1) + hashObject(session, 2);
-    } finally {
-        this._localStorageLoading = false;
-    }
 };
 
 PortiaPage.prototype.pyGetByNodeId = function(nodeId){
