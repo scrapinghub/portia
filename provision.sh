@@ -1,31 +1,106 @@
 #!/bin/bash
-echo "Updating apt-get"
-echo "================"
-apt-get update -qq
-echo "Installing git"
-echo "=============="
-apt-get install -qq --force-yes git
-echo "Installing python build requirements"
-echo "===================================="
-apt-get install -qq --force-yes build-essential python python-dev libxml2-dev \
-    libxslt1-dev libmysqlclient-dev libevent-dev libffi-dev libssl-dev \
-    netbase ca-certificates apt-transport-https python-software-properties
-echo "Installing python pip"
-echo "====================="
-wget -nv -O - https://bootstrap.pypa.io/get-pip.py | python
-echo "Installing Splash"
-echo "================="
-/vagrant/docker/splash.sh
-echo "Installing portia dependencies"
-echo "=============================="
-cd /vagrant
-pip install -q -r slybot/requirements.txt
-pip install -q -r slyd/requirements.txt
-pip install -q -e /vagrant/slybot
-pip install -q -e /vagrant/slyd
-echo "Installing slyd as a Upstart service"
-echo "===================================="
-cp /vagrant/slyd.conf /etc/init
-echo "Starting slyd service"
-echo "====================="
-start slyd
+set -e
+
+if [ "x$APP_ROOT" = x ]
+then
+    for dir in "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" /app /vagrant
+    do
+        if [ -d "$dir" ] && [ -d "$dir/slyd" ]
+        then
+            APP_ROOT="$dir"
+            break
+        fi
+    done
+fi
+
+if [ "x$APP_ROOT" = x ]
+then
+    echo "Could not determine app directory"
+    exit 1
+fi
+
+echo "APP_ROOT=$APP_ROOT"
+
+usage() {
+    cat <<EOF
+Portia provisioner.
+
+Usage: $0 COMMAND [ COMMAND ... ]
+
+Available commands:
+usage -- print this message
+install_deps -- install system-level dependencies
+install_splash -- install splash
+install_python_deps -- install python-level dependencies
+cleanup -- remove unnecessary files. DON'T RUN UNLESS IT'S INSIDE AN IMAGE AND YOU KNOW WHAT YOU ARE DOING
+
+EOF
+}
+
+install_deps(){
+    echo deb http://nginx.org/packages/ubuntu/ trusty nginx > /etc/apt/sources.list.d/nginx.list
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
+    apt-get update
+    apt-get -y install \
+            curl \
+            libxml2-dev \
+            libxslt-dev \
+            nginx python-dev \
+            python-numpy \
+            python-openssl \
+            python-pip \
+            python-software-properties
+}
+
+install_python_deps(){
+    pip install -r "$APP_ROOT/slyd/requirements.txt"
+    pip install -r "$APP_ROOT/slybot/requirements.txt"
+}
+
+install_splash(){
+    cd /tmp
+    curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/master.tar.gz'
+    tar -xvf splash.tar.gz --keep-newer-files
+    cd splash-*
+    SPLASH_PYTHON_VERSION=2 dockerfiles/splash/provision.sh \
+        prepare_install \
+        install_builddeps \
+        install_deps \
+        install_pyqt5
+    pip install .
+}
+
+
+cleanup() {
+    cd /tmp/splash-*
+    SPLASH_PYTHON_VERSION=2 dockerfiles/splash/provision.sh \
+        remove_builddeps \
+        remove_extra
+    cd /
+    rm -rf /tmp/splash*
+}
+
+if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then
+    usage
+    exit 1
+fi
+
+UNKNOWN=0
+for cmd in "$@"; do
+    if [ "$(type -t -- "$cmd")" != "function" ]; then
+        echo "Unknown command: $cmd"
+        UNKNOWN=1
+    fi
+done
+
+if [ $UNKNOWN -eq 1 ]; then
+    echo "Unknown commands encountered, exiting..."
+    exit 1
+fi
+
+while [ $# -gt 0 ]; do
+    echo "Executing command: $1"
+    "$1"
+    shift
+done
+
