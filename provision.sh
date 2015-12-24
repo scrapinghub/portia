@@ -37,6 +37,15 @@ cleanup -- remove unnecessary files. DON'T RUN UNLESS IT'S INSIDE AN IMAGE AND Y
 EOF
 }
 
+export SPLASH_PYTHON_VERSION=${SPLASH_PYTHON_VERSION:-"2"}
+
+activate_venv () {
+    if [ -e ${VIRTUAL_ENV}/bin/activate ]; then
+        echo "Activating virtual env..."
+        source ${VIRTUAL_ENV}/bin/activate
+    fi
+}
+
 install_deps(){
     echo deb http://nginx.org/packages/ubuntu/ trusty nginx > /etc/apt/sources.list.d/nginx.list
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
@@ -45,7 +54,12 @@ install_deps(){
             curl \
             libxml2-dev \
             libxslt-dev \
+            libgl1-mesa-dev-lts-utopic \
+            libgl1-mesa-glx-lts-utopic \
+            libglapi-mesa-lts-utopic \
+            libgl1-mesa-dri-lts-utopic \
             nginx python-dev \
+            python-mysql.connector \
             python-numpy \
             python-openssl \
             python-pip \
@@ -53,6 +67,8 @@ install_deps(){
 }
 
 install_python_deps(){
+    activate_venv
+    pip install http://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-1.2.3.zip#md5=6d42998cfec6e85b902d4ffa5a35ce86
     pip install -r "$APP_ROOT/slyd/requirements.txt"
     pip install -r "$APP_ROOT/slybot/requirements.txt"
 }
@@ -62,7 +78,8 @@ install_splash(){
     curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/master.tar.gz'
     tar -xvf splash.tar.gz --keep-newer-files
     cd splash-*
-    SPLASH_PYTHON_VERSION=2 dockerfiles/splash/provision.sh \
+    activate_venv
+    dockerfiles/splash/provision.sh \
         prepare_install \
         install_builddeps \
         install_deps \
@@ -73,7 +90,7 @@ install_splash(){
 
 cleanup() {
     cd /tmp/splash-*
-    SPLASH_PYTHON_VERSION=2 dockerfiles/splash/provision.sh \
+    dockerfiles/splash/provision.sh \
         remove_builddeps \
         remove_extra
     cd /
