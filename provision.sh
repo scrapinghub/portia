@@ -73,6 +73,8 @@ install_python_deps(){
     pip install http://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-1.2.3.zip#md5=6d42998cfec6e85b902d4ffa5a35ce86
     pip install -r "$APP_ROOT/slyd/requirements.txt"
     pip install -r "$APP_ROOT/slybot/requirements.txt"
+    pip install -e "$APP_ROOT/slyd"
+    pip install -e "$APP_ROOT/slybot"
 }
 
 install_splash(){
