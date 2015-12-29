@@ -3,7 +3,6 @@ import Ember from 'ember';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 import utils from '../../utils/utils';
-import experiments from '../../utils/experiments';
 import { predictCss, matchesExactly } from '../../utils/selector-prediction';
 
 function paintCanvasMessage(canvas) {
@@ -286,7 +285,7 @@ export default WebDocument.extend({
     },
 
     saveAction: function (interactionEvent, nativeEvent) {
-        if(!experiments.enabled('page_actions') || !this.get('recording')) {
+        if(!this.get('recording')) {
             return;
         }
         var pageActions = this.get('pageActions');
