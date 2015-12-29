@@ -1,0 +1,28 @@
+{{#tree-list}}
+    {{#tree-list-item hasChildren=schema.fields.length as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text}}
+                Fields
+            {{/list-item-text}}
+            {{list-item-icon icon='add' action=(action 'addField')}}
+        {{else if (eq options.section "subtrees")}}
+            {{#each schema.fields key="id" as |field|}}
+                {{#tree-list-item as |options|}}
+                    {{#if (eq options.section "item")}}
+                        {{#link-to 'projects.project.schema.field' field}}
+                            {{list-item-icon icon=field.type}}
+                            {{list-item-editable value=(mut field.name) editing=(mut field.new) change=(action 'saveField' field)}}
+                            {{#list-item-field-type field=field}}
+                                Change field type
+                            {{/list-item-field-type}}
+                            {{#link-to 'projects.project.schema.field.options' field bubbles=false class="ignore-active"}}
+                                {{list-item-icon icon='options'}}
+                            {{/link-to}}
+                            {{list-item-icon icon='remove' disabled=(not (not field.annotations.length)) action=(action 'removeField' field) bubbles=false}}
+                        {{/link-to}}
+                    {{/if}}
+                {{/tree-list-item}}
+            {{/each}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}

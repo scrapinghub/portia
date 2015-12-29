@@ -6,6 +6,8 @@ export const FIELD_TYPES = [
 export default DS.Model.extend({
     name: DS.attr('string'),
     type: DS.attr('string'),
+    required: DS.attr('boolean'),
+    vary: DS.attr('boolean'),
     schema: DS.belongsTo({
         async: true
     }),

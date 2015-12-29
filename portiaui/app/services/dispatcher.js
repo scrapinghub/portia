@@ -18,6 +18,23 @@ export function computedCanAddSample(spiderPropertyName) {
     });
 }
 
+export function computedEditableSample(spiderPropertyName) {
+    return Ember.computed('browser.url', `${spiderPropertyName}.samples.@each.url`, function() {
+        const url = this.get('browser.url');
+        if (!url) {
+            return;
+        }
+        return this.get(`${spiderPropertyName}.samples`).findBy('url', url);
+    });
+}
+
+export function computedCanAddStartUrl(spiderPropertyName) {
+    return Ember.computed('browser.url', `${spiderPropertyName}.startUrls.[]`, function() {
+        const url = this.get('browser.url');
+        return url && !this.get(`${spiderPropertyName}.startUrls`).includes(url);
+    });
+}
+
 export default Ember.Service.extend({
     browser: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
@@ -312,7 +329,7 @@ export default Ember.Service.extend({
         const currentAnnotation = this.get('uiState.models.annotation');
         if (item.get('orderedAnnotations').includes(currentAnnotation)) {
             const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider.sample', [], {}, true);
+            routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
         item.destroyRecord();
     },
@@ -321,7 +338,7 @@ export default Ember.Service.extend({
         const currentAnnotation = this.get('uiState.models.annotation');
         if (itemAnnotation.get('orderedAnnotations').includes(currentAnnotation)) {
             const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider.sample', [], {}, true);
+            routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
         itemAnnotation.destroyRecord();
     },
@@ -330,7 +347,7 @@ export default Ember.Service.extend({
         const currentAnnotation = this.get('uiState.models.annotation');
         if (annotation === currentAnnotation) {
             const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider.sample', [], {}, true);
+            routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
         annotation.destroyRecord();
     },
@@ -338,7 +355,7 @@ export default Ember.Service.extend({
     selectAnnotation(annotation) {
         if (this.get('uiState.models.annotation') !== annotation) {
             const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider.sample.annotation',
+            routing.transitionTo('projects.project.spider.sample.data.annotation',
                 [annotation], {}, true);
         }
     },
@@ -354,7 +371,14 @@ export default Ember.Service.extend({
     clearSelection() {
         this.set('uiState.viewPort.selectedElement', null);
         const routing = this.get('routing');
-        routing.transitionTo('projects.project.spider.sample', [], {}, true);
+        const currentRouteName = routing.get('router.currentRouteName');
+        let nextRouteName;
+        if (currentRouteName.startsWith('projects.project.spider.sample')) {
+            nextRouteName = currentRouteName.split('.').slice(0, 5).join('.');
+        } else {
+            nextRouteName = 'projects.project.spider.sample';
+        }
+        routing.transitionTo(nextRouteName, [], {}, true);
     },
 
     addElementToAnnotation(annotation, element) {

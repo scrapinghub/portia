@@ -7,6 +7,11 @@ const Annotation = DS.Model.extend({
     }),
     field: DS.belongsTo(),
     attribute: DS.attr('string'),
+
+    // selection
+    selectionMode: DS.attr('string', {
+        defaultValue: 'auto'
+    }),
     // json fixes error with storing ember NativeArray in indexed db
     acceptSelectors: DS.attr('json', {
         defaultValue() {

@@ -12,14 +12,24 @@ export default Ember.Route.extend({
     },
 
     renderTemplate() {
-        this.render('projects/project/spider-tools', {
-            into: 'side-bar',
+        this.render('projects/project/spider/structure', {
+            into: 'projects/project/structure',
+            outlet: 'project-structure'
+        });
+
+        this.render('projects/project/spider/tools', {
+            into: 'tool-panels',
             outlet: 'tool-panels'
+        });
+
+        this.render('projects/project/spider/toolbar', {
+            into: 'projects/project',
+            outlet: 'browser-toolbar'
         });
     },
 
     actions: {
-        error: function() {
+        error() {
             this.transitionTo('projects.project',
                 this.modelFor('projects.project'));
         }

@@ -1,4 +1,4 @@
-.list-item-icon {
+.icon-button {
     width: $tree-list-icon-width;
     flex: 0 0 $tree-list-icon-width;
     line-height: inherit;
@@ -21,14 +21,8 @@
     }
 
     &.has-action {
-        opacity: $icon-fade-opacity;
         pointer-events: auto;
         cursor: pointer;
-
-        .dropdown.open &,
-        &:hover:not(.disabled) {
-            opacity: 1;
-        }
     }
 
     &.disabled {
@@ -42,10 +36,23 @@
     }
 }
 
+.list-item-icon {
+    &.has-action {
+        opacity: $icon-fade-opacity;
+
+        .dropdown.open &,
+        &:hover:not(.disabled) {
+            opacity: 1;
+        }
+    }
+}
+
 .structure-list-details {
     opacity: $icon-fade-opacity;
+    pointer-events: inherit;
 
-    .active:not(.child-active) > :not(.tree-list) & {
+    &:hover,
+    .active > & {
         opacity: 1;
     }
 }
@@ -54,6 +61,11 @@
     color: $brand-success !important;
 }
 
+.structure-list-error,
 .structure-list-remove {
     color: $brand-danger !important;
+}
+
+.structure-list-warning {
+    color: $brand-warning !important;
 }

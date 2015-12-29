@@ -36,7 +36,7 @@
         color: $text-color;
 
         &:not(:last-child) {
-            padding-right: $line-height-computed;
+            padding-right: ($grid-gutter-width / 2);
             color: $text-muted;
         }
 

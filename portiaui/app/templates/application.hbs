@@ -3,7 +3,6 @@
         <div class="navbar-header navbar-left">
             {{partial 'branding'}}
         </div>
-        {{outlet 'top-url-bar'}}
         <div class="navbar-right">
             {{outlet 'top-bar'}}
         </div>
@@ -11,8 +10,10 @@
 
     <section>
         {{outlet 'side-bar'}}
-        <main>
+        {{#sliding-main}}
+            {{outlet 'options-panels'}}
             {{outlet 'main'}}
-        </main>
+            {{outlet 'tool-panels'}}
+        {{/sliding-main}}
     </section>
 </section>

@@ -4,86 +4,92 @@ import Ember from 'ember';
 // material design colours
 export const COLORS = [
     {
-        // indigo
+        name: 'indigo',
         main: '#3f51b5',
         shadow: '#1a237e'
     },
     {
-        // blue
+        name: 'blue',
         main: '#2196f3',
         shadow: '#0d47a1'
     },
     {
-        // light blue
+        name: 'light blue',
         main: '#03a9f4',
         shadow: '#01579b'
     },
     {
-        // cyan
+        name: 'cyan',
         main: '#00bcd4',
         shadow: '#006064'
     },
     {
-        // teal
+        name: 'teal',
         main: '#009688',
         shadow: '#004d40'
     },
     {
-        // green
+        name: 'green',
         main: '#4caf50',
         shadow: '#1b5e20'
     },
     {
-        // light green
+        name: 'light green',
         main: '#8bc34a',
         shadow: '#33691e'
     },
     {
-        // lime
+        name: 'lime',
         main: '#cddc39',
         shadow: '#827717'
     },
     {
-        // yellow
+        name: 'yellow',
         main: '#ffeb3b',
         shadow: '#f57f17'
     },
     {
-        // amber
+        name: 'amber',
         main: '#ffc107',
         shadow: '#ff6f00'
     },
     {
-        // orange
+        name: 'orange',
         main: '#ff9800',
         shadow: '#e65100'
     },
     {
-        // deep orange
+        name: 'deep orange',
         main: '#ff5722',
         shadow: '#bf360c'
     },
     {
-        // red
+        name: 'red',
         main: '#f44336',
         shadow: '#b71c1c'
     },
     {
-        // pink
+        name: 'pink',
         main: '#e91e63',
         shadow: '#880e4f'
     },
     {
-        // purple
+        name: 'purple',
         main: '#9c27b0',
         shadow: '#4a148c'
     },
     {
-        // deep purple
+        name: 'deep purple',
         main: '#673ab7',
         shadow: '#311b92'
     }
 ];
+
+export const NAMED_COLORS = {};
+for (let color of COLORS) {
+    NAMED_COLORS[color.name] = color;
+}
+
 
 export function interpolate(start, end, fraction) {
     return {

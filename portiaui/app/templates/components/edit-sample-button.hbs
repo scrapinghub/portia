@@ -1,0 +1,9 @@
+{{#if editableSample}}
+    {{#link-to 'projects.project.spider.sample' editableSample class="btn btn-primary"}}
+        <i class="fa fa-file"></i> Edit sample
+    {{/link-to}}
+{{else}}
+    <button type="button" class="btn btn-primary" disabled={{not canAddSample}} {{action "addSample"}}>
+        <i class="fa fa-file"></i> New sample
+    </button>
+{{/if}}

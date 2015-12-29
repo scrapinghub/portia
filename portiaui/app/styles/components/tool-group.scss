@@ -7,12 +7,15 @@
     flex: 0 1 auto;
     overflow: auto;
     width: 100%;
-    min-height: 25%;
-    border-bottom: 1px solid $navbar-default-border;
+    margin-top: $grid-gutter-width;
+    min-height: 0;
+    background-color: $navbar-default-bg;
+    border: 1px solid $navbar-default-border;
+    border-radius: $panel-border-radius;
 
     &:last-child {
         flex: 0.0001 0 auto;
-        border-bottom: none;
+        margin-bottom: $grid-gutter-width;
         max-height: none !important;
     }
 
@@ -53,7 +56,6 @@
 
             &:first-of-type {
                 > a {
-                    border-top-left-radius: 0;
                     margin-left: -1px;
                 }
             }
@@ -61,21 +63,15 @@
 
         > .tool-group-icons {
             > a {
+                display: inline-block;
                 margin-right: 0;
                 margin-left: 2px;
 
                 &,
                 &:hover,
                 &:focus {
-                    border-color: $navbar-default-border transparent;
-                }
-            }
-
-            > .tool-group-collapse {
-                &,
-                &:hover,
-                &:focus {
                     color: $nav-tabs-active-link-hover-color;
+                    border-color: $navbar-default-border transparent;
                 }
             }
         }
@@ -104,17 +100,12 @@
     overflow: auto;
     //transition: opacity $animation-time $animation-easing $animation-time / 3, flex-basis $animation-time / 3 $animation-easing;
     display: block;
+    min-height: $panel-min-height;
     opacity: 1;
 }
 
 .tool-group {
     &.collapsed {
-        &:last-child {
-            .tool-group-header {
-                border-bottom: 1px solid $navbar-default-border;
-            }
-        }
-
         .nav-tabs {
             border-bottom-width: 0;
 
@@ -122,7 +113,12 @@
                 margin-bottom: 0;
 
                 a {
-                    border-bottom-width: 0;
+                    margin-bottom: -1px;
+                    border-radius: $border-radius-base;
+                }
+
+                &.active > a {
+                    border-color: $navbar-default-border;
                 }
             }
         }
@@ -147,17 +143,20 @@
 
 #inspector-group {
     flex-shrink: 0;
-    min-height: 0;
-    max-height: 35%;
 }
 
 #extracted-items-group {
-    flex: 1 10000 auto;
-    min-height: 15%;
+    flex-shrink: 10000;
 
     .nav-tabs {
         .badge {
             vertical-align: baseline;
         }
+    }
+}
+
+#options-panels {
+    .tool-group {
+        flex-shrink: 10000;
     }
 }

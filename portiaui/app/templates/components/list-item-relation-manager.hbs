@@ -1,4 +1,4 @@
-{{#list-item-combo value=(mut value) valueAttribute='name' matchQuery=matchQuery selecting=(mut selecting) change=change autoSelect=true menuContainer="body" menuAlign="right" as |options|}}
+{{#list-item-combo value=(mut value) valueAttribute='name' matchQuery=matchQuery selecting=(mut selecting) change=change autoSelect=true menuContainer="body" as |options|}}
     {{#dropdown-header}}
         {{yield (hash section='choices')}}
     {{/dropdown-header}}

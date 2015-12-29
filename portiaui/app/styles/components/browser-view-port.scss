@@ -1,9 +1,11 @@
 .browser-view-port {
-    flex: 1 1 auto;
+    position: relative;
+    flex: 1 0 auto;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
+    margin: $grid-gutter-width;
 }
 
 @keyframes flash-primary {
@@ -56,13 +58,14 @@
 .browser-start-page {
     @extend .full-page-content;
     position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    top: -$grid-gutter-width;
+    bottom: -$grid-gutter-width;
+    left: -$grid-gutter-width;
+    right: -$grid-gutter-width;
     opacity: 1;
     background-color: #fff;
     transition: opacity $animation-time $animation-easing-out;
+    z-index: 2;
 
     &.hide {
         display: flex !important;
@@ -80,36 +83,32 @@
     }
 }
 
-.tool-bar {
-    $tool-padding: 8px;
+.browser-navigation {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
 
-    padding: $tool-padding;
-    background-color: $navbar-default-bg;
-    border-right: 1px solid $navbar-default-border;
+    .btn {
+        line-height: $line-height-computed;
+    }
 
-    .btn-group-vertical {
-        display: block;
+    > * {
+        flex: 0 0 auto;
+        margin: 0 ($panel-body-padding / 2);
 
-        &:not(:last-child) {
-            margin-bottom: $tool-padding;
+        &:first-child {
+            margin-left: 0;
+        }
+
+        &:last-child {
+            margin-right: 0;
         }
     }
 
-    button {
-        position: relative;
-        overflow: hidden;
-        z-index: 0;
-    }
-
-    .color-fill {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        //background-color: red;
-        opacity: 0.5;
-        z-index: -1;
+    .navbar-form {
+        padding: 0;
+        flex: 1 1 auto;
     }
 }
 
@@ -121,6 +120,8 @@
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: stretch;
+    padding: 0;
+    @include border-bottom-radius($panel-border-radius - 1);
 
     iframe {
         width: 100%;

@@ -1,0 +1,11 @@
+{{#tool-group id="spider-options-group" collapsible=false close=(action 'closeOptions') as |options|}}
+    {{#if (eq options.section "tabs")}}
+        {{#tool-tab toolId="spider-options" group=options.group}}
+            Spider properties
+        {{/tool-tab}}
+    {{else if (eq options.section "panels")}}
+        {{#tool-panel class="extracted-items container-fluid" toolId="spider-options" group=options.group as |active|}}
+            {{spider-options spider=model}}
+        {{/tool-panel}}
+    {{/if}}
+{{/tool-group}}

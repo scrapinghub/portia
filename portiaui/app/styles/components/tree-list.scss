@@ -23,29 +23,10 @@
     flex-wrap: nowrap;
     align-items: center;
     height: $tree-list-row-height;
-
-    &:before {
-        content: '';
-        display: block;
-        position: absolute;
-        height: $tree-list-row-height;
-        left: 0;
-        right: 0;
-        z-index: -1;
-        background-color: $navbar-default-link-active-bg;
-        opacity: 0;
-        transition: opacity $animation-time $animation-easing;
-    }
-
-    .active:not(.child-active) > &,
-    .collapsed.child-active > & {
-        &:before {
-            opacity: 1;
-        }
-    }
 }
 
 .tree-list-item-content {
+    position: relative;
     flex: 1 1 auto;
     min-width: 0;
     color: $navbar-default-color;
@@ -59,6 +40,28 @@
         &:focus {
             text-decoration: none;
         }
+
+        &:before {
+            content: '';
+            display: block;
+            position: absolute;
+            height: $tree-list-row-height;
+            left: 0;
+            right: 0;
+            z-index: -1;
+            background-color: $navbar-default-link-active-bg;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity $animation-time $animation-easing;
+        }
+
+        &.active,
+        &:hover {
+            &:before {
+                opacity: 1;
+            }
+
+        }
     }
 }
 
@@ -70,43 +73,5 @@
         flex-wrap: nowrap;
         align-items: center;
         min-width: 0;
-    }
-}
-
-.tree-list-collapse {
-    display: block;
-    flex: 0 0 $tree-list-icon-width;
-    opacity: 0.21;  // = color: $nav-tabs-border-color
-    transition: opacity $animation-time $animation-easing;
-    text-align: center;
-
-    &,
-    &:hover,
-    &:focus {
-        color: $gray-light;
-    }
-
-    &:hover,
-    &:focus {
-        opacity: 1;
-    }
-
-    .caret {
-        margin: 0 1px;
-        transition: transform $animation-time $animation-easing;
-    }
-
-    &:not(.tree-list-no-children) {
-        cursor: pointer !important;
-    }
-}
-
-.tree-list-item {
-    &.collapsed {
-        .tree-list-collapse {
-            .caret {
-                transform: rotate(-90deg);
-            }
-        }
     }
 }

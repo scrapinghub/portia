@@ -77,9 +77,10 @@ export default Ember.Component.extend({
 
         endEditing(reason) {
             if (this.get('focused')) {
+                const value = this.get('viewValue');
                 this.setProperties({
                     focused: false,
-                    value: this.get('viewValue'),
+                    value: value,
                     viewValue: null
                 });
                 Ember.run.schedule('afterRender', () => {
@@ -91,7 +92,7 @@ export default Ember.Component.extend({
                     this.attrs.enter();
                 }
                 if (this.attrs.change && this.attrs.change.call) {
-                    this.attrs.change();
+                    this.attrs.change(value);
                 }
             }
         }
