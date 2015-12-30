@@ -143,7 +143,12 @@ export function suggestAnnotations(document, fieldNames, callback) {
 
     for(let name of suggesterNames) {
         let suggester = enabledSuggesters[name];
-        suggester(document, fieldNames, processSuggestions.bind(null, name));
+        try {
+            suggester(document, fieldNames, processSuggestions.bind(null, name));
+        } catch(e) {
+            console.error(e);
+            processSuggestions(name, []);
+        }
     }
 }
 
