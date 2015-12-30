@@ -109,6 +109,7 @@ configure_initctl(){
     cp "$APP_ROOT/slyd.conf" /etc/init
     echo "Starting slyd service"
     echo "====================="
+    /etc/init.d/nginx start
     start slyd
 }
 
