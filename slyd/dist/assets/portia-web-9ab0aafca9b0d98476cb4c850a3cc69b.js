@@ -3911,7 +3911,7 @@ define('portia-web/components/page-actions-editor', ['exports', 'ember'], functi
 
     'use strict';
 
-    var TYPES = ['click', 'set', 'wait'];
+    var TYPES = ['click', 'set', 'wait', 'scroll'];
 
     exports['default'] = Ember['default'].Component.extend({
         actionTypes: TYPES,
@@ -3919,6 +3919,7 @@ define('portia-web/components/page-actions-editor', ['exports', 'ember'], functi
         editing: null,
         isEditingWait: Ember['default'].computed.equal('editing.type', 'wait'),
         isEditingSet: Ember['default'].computed.equal('editing.type', 'set'),
+        isEditingScroll: Ember['default'].computed.equal('editing.type', 'scroll'),
         addingNew: false,
 
         actions: {
@@ -3991,6 +3992,10 @@ define('portia-web/components/regex-text-field-with-button/component', ['exports
                 try {
                     new RegExp(this.get('text'));
                     this.sendAction('action', this.get('text'));
+                    if (/([^\\]|^)\[\]/.test(this.get('text'))) {
+                        // A lone [] is invalid in a python RegExp but valid in JS
+                        throw new Error('Invalid regexp');
+                    }
                 } catch (e) {
                     this.showWarningNotification('Validation Error', '"' + this.get('text') + '" ' + 'is not a valid regular expression');
                     return;
@@ -4461,7 +4466,7 @@ define('portia-web/components/top-bar', ['exports', 'ember'], function (exports,
 	exports['default'] = Ember['default'].Component.extend({});
 
 });
-define('portia-web/components/web-document-js/component', ['exports', 'ember', 'portia-web/components/web-document', 'portia-web/utils/interaction-event', 'portia-web/utils/utils', 'portia-web/utils/experiments', 'portia-web/utils/selector-prediction'], function (exports, Ember, WebDocument, interaction_event, utils, experiments, selector_prediction) {
+define('portia-web/components/web-document-js/component', ['exports', 'ember', 'portia-web/components/web-document', 'portia-web/utils/interaction-event', 'portia-web/utils/utils', 'portia-web/utils/selector-prediction'], function (exports, Ember, WebDocument, interaction_event, utils, selector_prediction) {
 
     'use strict';
 
@@ -4649,14 +4654,35 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
         }).observes('ws.closed'),
 
         /**
-         * Set the content of the iframe. Can only be called in "select" mode
-         */
-        setIframeContent: function setIframeContent(doc) {
-            this.assertInMode('select');
-            var iframe = this.getIframeNode();
-            iframe.setAttribute('srcdoc', doc);
-            iframe.removeAttribute('src');
-            this.set('cssEnabled', true);
+            Displays a document by setting it as the content of the iframe.
+            readyCallback will be called when the document finishes rendering.
+             Only allowed in "select" mode
+        */
+        displayDocument: function displayDocument(documentContents, readyCallback) {
+            var _this2 = this;
+
+            Ember['default'].run.next(function () {
+                _this2.assertInMode('select');
+                // We need to disable all interactions with the document we are loading
+                // until we trigger the callback.
+                _this2.blockInteractions('loadingDoc');
+                _this2.set('loadingDoc', true);
+                _this2.set('cssEnabled', true);
+
+                _this2.clearIframe().then(function () {
+                    var iframeDoc = _this2.getIframe()[0];
+                    iframeDoc.open('text/html', 'replace');
+                    iframeDoc.write(documentContents);
+                    iframeDoc.close();
+                    _this2._updateEventHandlers();
+                })['finally'](function () {
+                    _this2.unblockInteractions('loadingDoc');
+                    _this2.set('loadingDoc', false);
+                    if (readyCallback) {
+                        readyCallback(_this2.getIframe());
+                    }
+                });
+            });
         },
 
         clearIframe: function clearIframe() {
@@ -4686,7 +4712,7 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
         },
 
         installEventHandlersForBrowsing: function installEventHandlersForBrowsing() {
-            var _this2 = this;
+            var _this3 = this;
 
             this.uninstallEventHandlers();
             var iframe = this.getIframe();
@@ -4694,7 +4720,7 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
             iframe.on('click.portia', this.clickHandlerBrowse.bind(this));
             iframe.on('scroll.portia', this.redrawNow.bind(this));
             this.addFrameEventListener("scroll", function (e) {
-                return Ember['default'].run.throttle(_this2, _this2.postEvent, e, 200);
+                return Ember['default'].run.throttle(_this3, _this3.postEvent, e, 200);
             }, true);
             this.addFrameEventListener('focus', this.postEvent.bind(this), true);
             this.addFrameEventListener('blur', this.postEvent.bind(this), true);
@@ -4727,10 +4753,10 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
         },
 
         postEvent: function postEvent(evt) {
-            if (!evt.target || !evt.target.nodeid) {
+            var interaction = interaction_event['default'](evt);
+            if (!interaction) {
                 return;
             }
-            var interaction = interaction_event['default'](evt);
             this.get('ws').send({
                 _meta: {
                     spider: this.get('slyd.spider'),
@@ -4743,17 +4769,30 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
         },
 
         saveAction: function saveAction(interactionEvent, nativeEvent) {
-            if (!experiments['default'].enabled('page_actions') || !this.get('recording')) {
+            if (!this.get('recording')) {
                 return;
             }
             var pageActions = this.get('pageActions');
             var type = interactionEvent.type;
 
+            var typemap = {
+                'click': 'click',
+                'input': 'set',
+                'change': 'set',
+                'scroll': 'scroll'
+            };
+
             // Filter actions we are not interested in
-            if (!pageActions || type !== 'click' && type !== 'input' && type !== 'change') {
+            if (!pageActions || !(type in typemap)) {
                 return null; // We don't record that kind of actions
             }
+
+            var actionType = typemap[type];
+
             var target = nativeEvent.target;
+            if (target.nodeType === Node.DOCUMENT_NODE) {
+                target = target.documentElement;
+            }
             if (type === 'click' && $(target).is('option,select,input:text,body,textarea,html') || // Ignore click events in some elements
             type === 'change' && !$(target).is('select')) {
                 // We only care about change events in select elements
@@ -4763,28 +4802,37 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
             var selector = selector_prediction.predictCss(selector_prediction.matchesExactly($(target)));
 
             // If we are inputting more text into a field, or changing again a select make it only one interaction
-            if ((type === 'input' || type === 'change') && pageActions.length) {
+            if ((actionType === 'set' || actionType === 'scroll') && pageActions.length) {
                 var lastAction = pageActions[pageActions.length - 1];
-                if (lastAction.type === 'set' && lastAction.selector === selector && !lastAction._edited) {
-                    lastAction.set('value', $(target).val());
+
+                if (lastAction.type === actionType && lastAction.selector === selector && !lastAction._edited) {
+                    if (actionType === 'set') {
+                        Ember['default'].set(lastAction, 'value', $(target).val());
+                    } else if (actionType === 'scroll') {
+                        Ember['default'].set(lastAction, 'percent', Math.max(lastAction.percent, interactionEvent.scrollTopPercent));
+                    }
                     return;
                 }
             }
 
             // Record the action
             var action = Ember['default'].Object.create({
-                type: type === 'click' ? 'click' : 'set',
+                type: actionType,
                 selector: selector,
                 target: target
             });
-            if (action.type === 'set') {
+            if (actionType === 'set') {
                 action.value = $(target).val();
+            } else if (actionType === 'scroll') {
+                action.percent = interactionEvent.scrollTopPercent;
             }
             pageActions.pushObject(action);
         },
 
         bindResizeEvent: (function () {
-            Ember['default'].$(window).on('resize', Ember['default'].run.bind(this, this.handleResize));
+            if (!Ember['default'].testing) {
+                Ember['default'].$(window).on('resize', Ember['default'].run.bind(this, this.handleResize));
+            }
         }).on('init'),
 
         handleResize: function handleResize() {
@@ -5133,7 +5181,7 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
   }()));
 
 });
-define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/utils/canvas', 'portia-web/utils/annotation-store', 'portia-web/utils/utils', 'portia-web/utils/experiments'], function (exports, Ember, utils__canvas, AnnotationStore, utils, experiments) {
+define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/utils/canvas', 'portia-web/utils/annotation-store'], function (exports, Ember, utils__canvas, AnnotationStore) {
 
     'use strict';
 
@@ -5198,9 +5246,7 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
         */
         config: function config(options) {
             this.set('listener', options.listener);
-            if (experiments['default'].enabled('page_actions')) {
-                this.set('pageActions', options.pageActions);
-            }
+            this.set('pageActions', options.pageActions);
             if (options.mode && options.mode !== this.get('mode')) {
                 this.set('cssEnabled', true);
                 this.set('mode', options.mode);
@@ -5301,45 +5347,6 @@ define('portia-web/components/web-document', ['exports', 'ember', 'portia-web/ut
 
         unblockInteractions: function unblockInteractions(reason) {
             return this.setInteractionsBlocked(false, reason);
-        },
-
-        /**
-            Displays a document by setting it as the content of the iframe.
-            readyCallback will be called when the document finishes rendering.
-             Only allowed in "select" mode
-        */
-        displayDocument: function displayDocument(documentContents, readyCallback) {
-            var _this = this;
-
-            this.assertInMode('select');
-
-            Ember['default'].run.next(function () {
-                // We need to disable all interactions with the document we are loading
-                // until we trigger the callback.
-                _this.blockInteractions('loadingDoc');
-                _this.set('loadingDoc', true);
-                var onLoad = function onLoad() {
-                    _this._updateEventHandlers();
-                    _this.unblockInteractions('loadingDoc');
-                    _this.set('loadingDoc', false);
-                    _this.assertInMode('select');
-                    if (readyCallback) {
-                        readyCallback(_this.getIframe());
-                    }
-                };
-
-                // Using a message to workaround onload bugs
-                var id = utils['default'].shortGuid();
-                var load_embed = '<script id="__portia_script">\n                window.top.postMessage({frameReady: \'' + id + '\'}, "*");\n                var script = document.getElementById(\'__portia_script\');\n                script.parentNode.removeChild(script);\n            </script>';
-                var $win = $(window).bind('message', function onMessage(e) {
-                    if (e.originalEvent.data.frameReady === id) {
-                        $win.unbind('message', onMessage);
-                        Ember['default'].run(onLoad);
-                    }
-                });
-
-                _this.setIframeContent(documentContents + load_embed);
-            });
         },
 
         /**
@@ -5866,6 +5873,7 @@ define('portia-web/controllers/conflicts', ['exports', 'ember', 'portia-web/cont
         actions: {
 
             displayConflictedFile: function displayConflictedFile(fileName) {
+                this.get('documentView').setInteractionsBlocked(false);
                 this.displayConflictedFile(fileName);
             },
             conflictOptionUpdated: function conflictOptionUpdated(path, accepted, rejected) {
@@ -6493,7 +6501,7 @@ define('portia-web/controllers/projects/index', ['exports', 'portia-web/controll
     });
 
 });
-define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/utils/canvas', 'portia-web/utils/sprite-store', 'portia-web/models/extracted-item', 'portia-web/models/template', 'portia-web/utils/utils', 'portia-web/utils/experiments'], function (exports, Ember, BaseController, canvas, SpriteStore, ExtractedItem, Template, utils, experiments) {
+define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/utils/canvas', 'portia-web/utils/sprite-store', 'portia-web/models/extracted-item', 'portia-web/models/template', 'portia-web/utils/utils'], function (exports, Ember, BaseController, canvas, SpriteStore, ExtractedItem, Template, utils) {
 
     'use strict';
 
@@ -6569,7 +6577,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
         addTemplateDisabled: Ember['default'].computed.or('noPageLoaded', 'ws.closed', 'isFetching', 'testing'),
         reloadDisabled: Ember['default'].computed.or('noPageLoaded', 'ws.closed', 'isFetching'),
         haveItems: Ember['default'].computed.notEmpty('extractedItems'),
-        pageActionsEnabled: experiments['default'].enabled('page_actions') ? Ember['default'].computed.reads('model.js_enabled') : false,
+        pageActionsEnabled: Ember['default'].computed.reads('model.js_enabled'),
 
         browseBackDisabled: (function () {
             return this.get('ws.closed') || this.get('browseHistory').length <= 1;
@@ -6786,32 +6794,34 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
         }).observes('model'),
 
         saveSpider: function saveSpider() {
+            var _this2 = this;
+
             var force = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
 
             if (!force && this.get('saving')) {
                 return;
             }
             this.set('saving', true);
-            return this.get('ws').save('spider', this.get('model')).then((function () {
-                this.set('saving', false);
-            }).bind(this), (function () {
-                this.set('saving', false);
-            }).bind(this));
+            return this.get('ws').save('spider', this.get('model'))['finally'](function () {
+                if (!_this2.isDestroying) {
+                    _this2.set('saving', false);
+                }
+            });
         },
 
         testSpider: function testSpider() {
-            var _this2 = this;
+            var _this3 = this;
 
             var urls = this.get('pendingUrls');
 
             var addItems = function addItems(data) {
-                var items = (data.items || []).map(_this2.wrapItem, _this2);
-                _this2.get('extractedItems').pushObjects(items);
+                var items = (data.items || []).map(_this3.wrapItem, _this3);
+                _this3.get('extractedItems').pushObjects(items);
             };
 
             var fetchNext = function fetchNext() {
                 if (urls.length) {
-                    return _this2.get('slyd').fetchDocument(urls.pop(), _this2.get('model.name')).then(addItems, utils['default'].showErrorNotification).then(fetchNext);
+                    return _this3.get('slyd').fetchDocument(urls.pop(), _this3.get('model.name')).then(addItems, utils['default'].showErrorNotification).then(fetchNext);
                 } else {
                     return new Ember['default'].RSVP.Promise(function (resolve) {
                         return resolve('done');
@@ -6820,8 +6830,8 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             };
 
             fetchNext().then(function () {
-                _this2.get('documentView').hideLoading();
-                _this2.set('testing', false);
+                _this3.get('documentView').hideLoading();
+                _this3.set('testing', false);
             });
         },
 
@@ -7051,7 +7061,7 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
         },
 
         _willEnter: function _willEnter() {
-            var _this3 = this;
+            var _this4 = this;
 
             // willEnter spider.index controller
             this.get('extractedItems').setObjects([]);
@@ -7063,10 +7073,10 @@ define('portia-web/controllers/spider', ['exports', 'ember', 'portia-web/control
             });
             this.get('browseHistory').clear();
             Ember['default'].run.next(function () {
-                if (_this3.get('url')) {
-                    _this3.loadUrl(_this3.get('url'), _this3.get('baseurl'));
-                    _this3.set('url', null);
-                    _this3.set('baseurl', null);
+                if (_this4.get('url')) {
+                    _this4.loadUrl(_this4.get('url'), _this4.get('baseurl'));
+                    _this4.set('url', null);
+                    _this4.set('baseurl', null);
                 }
             });
         },
@@ -7113,7 +7123,7 @@ define('portia-web/controllers/template-items', ['exports', 'portia-web/controll
 	exports['default'] = Items['default'];
 
 });
-define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/extractor', 'portia-web/models/mapped-field-data', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/utils/sprite-store', 'portia-web/utils/utils', 'portia-web/utils/experiments', 'portia-web/utils/suggest-annotations'], function (exports, Ember, BaseController, Extractor, MappedFieldData, Item, ItemField, SpriteStore, utils, expetiments, suggest_annotations) {
+define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/controllers/base-controller', 'portia-web/models/extractor', 'portia-web/models/mapped-field-data', 'portia-web/models/item', 'portia-web/models/item-field', 'portia-web/utils/sprite-store', 'portia-web/utils/utils', 'portia-web/utils/suggest-annotations'], function (exports, Ember, BaseController, Extractor, MappedFieldData, Item, ItemField, SpriteStore, utils, suggest_annotations) {
 
     'use strict';
 
@@ -7639,7 +7649,7 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
         suggestAnnotations: function suggestAnnotations() {
             var _this2 = this;
 
-            if (!expetiments['default'].enabled('suggestions') || this.hasAnnotations()) {
+            if (this.hasAnnotations()) {
                 return;
             }
             var docView = this.get('documentView');
@@ -7664,13 +7674,13 @@ define('portia-web/controllers/template', ['exports', 'ember', 'portia-web/contr
                     for (var _iterator2 = suggestions[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                         var _step2$value = _slicedToArray(_step2.value, 4);
 
-                        var _field = _step2$value[0];
+                        var field = _step2$value[0];
                         var node = _step2$value[1];
                         var attr = _step2$value[2];
                         var suggestor = _step2$value[3];
 
                         var mapping = {};
-                        mapping[attr] = _field;
+                        mapping[attr] = field;
                         annotations.pushObject(Ember['default'].Object.create({
                             annotations: mapping,
                             id: utils['default'].shortGuid(),
@@ -8970,7 +8980,9 @@ define('portia-web/mixins/size-listener', ['exports', 'ember'], function (export
 
         bindResizeEvent: (function () {
             Ember['default'].run.next(this, this.handleResize);
-            Ember['default'].$(window).on('resize', Ember['default'].run.bind(this, this.handleResize));
+            if (!Ember['default'].testing) {
+                Ember['default'].$(window).on('resize', Ember['default'].run.bind(this, this.handleResize));
+            }
         }).on('init'),
 
         openAccordion: function openAccordion(accordionNumber) {
@@ -9595,19 +9607,13 @@ define('portia-web/routes/experiments', ['exports', 'portia-web/routes/base-rout
         fixedToolbox: true,
 
         model: function model() {
-            return [{
-                name: 'page_actions',
-                label: 'Page Actions',
-                helpText: 'Record actions in the page and replay them when crawling.'
-            }, {
-                name: 'suggestions',
-                label: 'Annotation suggestions',
-                helpText: 'Portia will suggest annotations when annotating a page'
-            }]. // }, {
-            //     name: 'selectors',
-            //     label: 'XPath and CSS selectors',
-            //     helpText: 'Add custom XPath and CSS Selectors to a template',
-            map(function (experiment) {
+            return [
+                // {
+                //     name: 'selectors',
+                //     label: 'XPath and CSS selectors',
+                //     helpText: 'Add custom XPath and CSS Selectors to a template',
+                // }
+            ].map(function (experiment) {
                 experiment.enabled = expetiments['default'].enabled(experiment.name);
                 experiment.newValue = experiment.enabled;
                 return experiment;
@@ -15023,6 +15029,112 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           };
         }());
         var child3 = (function() {
+          var child0 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 0,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode("        ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("div");
+                dom.setAttribute(el1,"class","form-group form-group-sm");
+                var el2 = dom.createTextNode("\n            ");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createElement("label");
+                dom.setAttribute(el2,"for","actionType");
+                dom.setAttribute(el2,"class","col-sm-4 control-label");
+                var el3 = dom.createTextNode("Scroll %");
+                dom.appendChild(el2, el3);
+                dom.appendChild(el1, el2);
+                var el2 = dom.createTextNode("\n            ");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createElement("div");
+                dom.setAttribute(el2,"class","col-sm-7");
+                var el3 = dom.createTextNode("\n                ");
+                dom.appendChild(el2, el3);
+                var el3 = dom.createComment("");
+                dom.appendChild(el2, el3);
+                var el3 = dom.createTextNode("\n            ");
+                dom.appendChild(el2, el3);
+                dom.appendChild(el1, el2);
+                var el2 = dom.createTextNode("\n        ");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                var el1 = dom.createTextNode("\n    ");
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement) {
+                var dom = env.dom;
+                var hooks = env.hooks, get = hooks.get, inline = hooks.inline;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                var morph0 = dom.createMorphAt(dom.childAt(fragment, [1, 3]),1,1);
+                inline(env, morph0, context, "input", [], {"value": get(env, context, "editing.percent"), "pattern": "^[0-9]+$", "class": "form-control"});
+                return fragment;
+              }
+            };
+          }());
+          return {
+            isHTMLBars: true,
+            revision: "Ember@1.11.3",
+            blockParams: 0,
+            cachedFragment: null,
+            hasRendered: false,
+            build: function build(dom) {
+              var el0 = dom.createDocumentFragment();
+              var el1 = dom.createComment("");
+              dom.appendChild(el0, el1);
+              return el0;
+            },
+            render: function render(context, env, contextualElement) {
+              var dom = env.dom;
+              var hooks = env.hooks, get = hooks.get, block = hooks.block;
+              dom.detectNamespace(contextualElement);
+              var fragment;
+              if (env.useFragmentCache && dom.canClone) {
+                if (this.cachedFragment === null) {
+                  fragment = this.build(dom);
+                  if (this.hasRendered) {
+                    this.cachedFragment = fragment;
+                  } else {
+                    this.hasRendered = true;
+                  }
+                }
+                if (this.cachedFragment) {
+                  fragment = dom.cloneNode(this.cachedFragment, true);
+                }
+              } else {
+                fragment = this.build(dom);
+              }
+              var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
+              dom.insertBoundary(fragment, null);
+              dom.insertBoundary(fragment, 0);
+              block(env, morph0, context, "if", [get(env, context, "isEditingScroll")], {}, child0, null);
+              return fragment;
+            }
+          };
+        }());
+        var child4 = (function() {
           return {
             isHTMLBars: true,
             revision: "Ember@1.11.3",
@@ -15155,10 +15267,10 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
             var morph3 = dom.createMorphAt(dom.childAt(fragment, [4]),3,3);
             var morph4 = dom.createMorphAt(dom.childAt(fragment, [6]),1,1);
             block(env, morph0, context, "if", [get(env, context, "isEditingWait")], {}, child0, child1);
-            block(env, morph1, context, "if", [get(env, context, "isEditingSet")], {}, child2, null);
+            block(env, morph1, context, "if", [get(env, context, "isEditingSet")], {}, child2, child3);
             inline(env, morph2, context, "input", [], {"value": get(env, context, "editing.accept"), "class": "form-control"});
             inline(env, morph3, context, "input", [], {"value": get(env, context, "editing.reject"), "class": "form-control"});
-            block(env, morph4, context, "bs-button", [], {"clicked": "back", "icon": "fa fa-icon fa-check", "type": "primary"}, child3, null);
+            block(env, morph4, context, "bs-button", [], {"clicked": "back", "icon": "fa fa-icon fa-check", "type": "primary"}, child4, null);
             return fragment;
           }
         };
@@ -15343,6 +15455,51 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
               }
             };
           }());
+          var child3 = (function() {
+            return {
+              isHTMLBars: true,
+              revision: "Ember@1.11.3",
+              blockParams: 0,
+              cachedFragment: null,
+              hasRendered: false,
+              build: function build(dom) {
+                var el0 = dom.createDocumentFragment();
+                var el1 = dom.createTextNode(" to ");
+                dom.appendChild(el0, el1);
+                var el1 = dom.createElement("code");
+                var el2 = dom.createComment("");
+                dom.appendChild(el1, el2);
+                var el2 = dom.createTextNode("%");
+                dom.appendChild(el1, el2);
+                dom.appendChild(el0, el1);
+                return el0;
+              },
+              render: function render(context, env, contextualElement) {
+                var dom = env.dom;
+                var hooks = env.hooks, content = hooks.content;
+                dom.detectNamespace(contextualElement);
+                var fragment;
+                if (env.useFragmentCache && dom.canClone) {
+                  if (this.cachedFragment === null) {
+                    fragment = this.build(dom);
+                    if (this.hasRendered) {
+                      this.cachedFragment = fragment;
+                    } else {
+                      this.hasRendered = true;
+                    }
+                  }
+                  if (this.cachedFragment) {
+                    fragment = dom.cloneNode(this.cachedFragment, true);
+                  }
+                } else {
+                  fragment = this.build(dom);
+                }
+                var morph0 = dom.createMorphAt(dom.childAt(fragment, [1]),0,0);
+                content(env, morph0, context, "action.percent");
+                return fragment;
+              }
+            };
+          }());
           return {
             isHTMLBars: true,
             revision: "Ember@1.11.3",
@@ -15355,6 +15512,10 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
               dom.appendChild(el0, el1);
               var el1 = dom.createElement("div");
               dom.setAttribute(el1,"class","page-action");
+              var el2 = dom.createComment("");
+              dom.appendChild(el1, el2);
+              var el2 = dom.createTextNode("\n                ");
+              dom.appendChild(el1, el2);
               var el2 = dom.createComment("");
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n                ");
@@ -15416,6 +15577,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
               var morph4 = dom.createMorphAt(element2,8,8);
               var morph5 = dom.createMorphAt(element2,10,10);
               var morph6 = dom.createMorphAt(element2,12,12);
+              var morph7 = dom.createMorphAt(element2,14,14);
               set(env, context, "action", blockArguments[0]);
               set(env, context, "index", blockArguments[1]);
               content(env, morph0, context, "reorder-handler");
@@ -15423,8 +15585,9 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
               block(env, morph2, context, "if", [get(env, context, "action.selector")], {}, child0, null);
               block(env, morph3, context, "if", [get(env, context, "action.value")], {}, child1, null);
               block(env, morph4, context, "if", [get(env, context, "action.timeout")], {}, child2, null);
-              inline(env, morph5, context, "bs-button", [], {"clicked": "deletePageAction", "clickedParam": get(env, context, "index"), "size": "xs", "icon": "fa fa-icon fa-trash", "type": "danger"});
-              inline(env, morph6, context, "bs-button", [], {"clicked": "editPageAction", "clickedParam": get(env, context, "action"), "size": "xs", "icon": "fa fa-icon fa-cog", "type": "default"});
+              block(env, morph5, context, "if", [get(env, context, "action.percent")], {}, child3, null);
+              inline(env, morph6, context, "bs-button", [], {"clicked": "deletePageAction", "clickedParam": get(env, context, "index"), "size": "xs", "icon": "fa fa-icon fa-trash", "type": "danger"});
+              inline(env, morph7, context, "bs-button", [], {"clicked": "editPageAction", "clickedParam": get(env, context, "action"), "size": "xs", "icon": "fa fa-icon fa-cog", "type": "default"});
               return fragment;
             }
           };
@@ -21865,7 +22028,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
           var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
           dom.insertBoundary(fragment, null);
           dom.insertBoundary(fragment, 0);
-          block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "documentView.currentUrl"), "placeholder": "http://", "validation": "^(https?://)?[^\\s\\/]+\\.[^\\s]*$", "action": "navigate"}, child0, null);
+          block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "documentView.currentUrl"), "placeholder": "http://", "action": "navigate"}, child0, null);
           return fragment;
         }
       };
@@ -24716,9 +24879,9 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
                 clearInterval(this.get('countdownTid'));
                 this.set('countdownTid', null);
             } else if (this.secondsUntilReconnect > 0 && !this.get('countdownTid')) {
-                this.set('countdownTid', setInterval(function () {
+                this.set('countdownTid', setInterval(Ember['default'].run.bind(this, function () {
                     _this2.decrementProperty('secondsUntilReconnect');
-                }, 1000));
+                }), 1000));
             }
         }).observes('secondsUntilReconnect'),
 
@@ -24781,8 +24944,8 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
                 this.set('connecting', false);
                 return;
             }
-            ws.onclose = this._onclose.bind(this);
-            ws.onmessage = (function (e) {
+            ws.onclose = Ember['default'].run.bind(this, this._onclose);
+            ws.onmessage = Ember['default'].run.bind(this, function (e) {
                 var data;
                 try {
                     data = JSON.parse(e.data);
@@ -24815,8 +24978,8 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
                 } else {
                     Ember['default'].Logger.warn('Received unknown command: ' + command);
                 }
-            }).bind(this);
-            ws.onopen = (function () {
+            });
+            ws.onopen = Ember['default'].run.bind(this, function () {
                 Ember['default'].Logger.log('<Opened Websocket>');
                 this.set('closed', false);
                 this.set('connecting', false);
@@ -24824,7 +24987,7 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
                 this.heartbeat = setInterval((function () {
                     this.send({ _command: 'heartbeat' });
                 }).bind(this), 20000);
-            }).bind(this);
+            });
             this.set('ws', ws);
         },
 
@@ -24928,30 +25091,37 @@ define('portia-web/utils/interaction-event', ['exports'], function (exports) {
 
     'use strict';
 
+    var eventCategories = {
+        "keyup": "keyboard",
+        "keydown": "keyboard",
+        "keypress": "keyboard",
+        "mousedown": "mouse",
+        "mouseup": "mouse",
+        "click": "mouse",
+        "scroll": "scroll",
+        "focus": "focus",
+        "blur": "focus",
+        "input": "simple",
+        "change": "simple"
+    };
+
     function getEventCategory(evt) {
-        switch (evt.constructor.name) {
-            case 'MouseEvent':
-                return 'mouse';
-            case 'KeyboardEvent':
-                return 'keyboard';
-            case 'UIEvent':
-                return 'scroll';
-            case 'FocusEvent':
-                return 'focus';
-            case 'Event':case 'InputEvent':
-                return 'simple';
-            default:
-                return 'unknown';
+        if (evt.type in eventCategories) {
+            return eventCategories[evt.type];
         }
+        throw new Error("Can't serialize event of type " + evt.type);
     }
 
     var interactionEvent = function interactionEvent(evt) {
         var target = evt.target;
         var doc = target.ownerDocument;
 
-        if (target.nodeType === Node.DOCUMENT_NODE) {
+        if (target && target.nodeType === Node.DOCUMENT_NODE) {
             doc = target;
             target = doc.documentElement;
+        }
+        if (!target || !target.nodeid) {
+            return null;
         }
 
         var data = {
@@ -24976,10 +25146,12 @@ define('portia-web/utils/interaction-event', ['exports'], function (exports) {
             }
             if (scrollTarget) {
                 data.scrollTop = scrollTarget.scrollTop;
+                data.scrollTopPercent = scrollTarget.scrollTopMax && Math.round(scrollTarget.scrollTop * 100 / scrollTarget.scrollTopMax);
                 data.scrollLeft = scrollTarget.scrollLeft;
             } else {
                 data.scrollTop = 0;
                 data.scrollLeft = 0;
+                data.scrollTopPercent = 0;
             }
         }
 
@@ -25424,6 +25596,9 @@ define('portia-web/utils/selector-prediction', ['exports'], function (exports) {
     }
 
     function pathOf(elem) {
+        if (elem.parentNode === elem.ownerDocument) {
+            return ':root';
+        }
         var e, j, k, len, path, ref, siblings;
         path = "";
         ref = recursiveNodes(elem);
@@ -26691,6 +26866,9 @@ define('portia-web/utils/suggest-annotations', ['exports'], function (exports) {
 
     exports.suggestAnnotations = suggestAnnotations;
     exports.registerSuggester = registerSuggester;
+    exports.findReleatedTableCell = findReleatedTableCell;
+
+    var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
     var text = 'content';
 
@@ -26704,6 +26882,47 @@ define('portia-web/utils/suggest-annotations', ['exports'], function (exports) {
         return sum(Array.from(node.getClientRects()).map(function (rect) {
             return rect.width * rect.height;
         }));
+    }
+
+    function xpath(expr, ctx, type) {
+        ctx = ctx || document;
+        type = type || XPathResult.ANY_TYPE;
+        var doc = ctx.nodeType === Node.DOCUMENT_NODE ? ctx : ctx.ownerDocument;
+        var nsResolver = doc.createNSResolver(doc.documentElement);
+        var arr = [],
+            i = null;
+        try {
+            var res = doc.evaluate(expr, ctx, nsResolver, type, null);
+            type = res.resultType;
+            if (type === XPathResult.NUMBER_TYPE) {
+                return res.numberValue;
+            } else if (type === XPathResult.STRING_TYPE) {
+                return res.stringValue;
+            } else if (type === XPathResult.BOOLEAN_TYPE) {
+                return res.booleanValue;
+            } else if (type === XPathResult.UNORDERED_NODE_ITERATOR_TYPE || type === XPathResult.ORDERED_NODE_ITERATOR_TYPE) {
+                while ((i = res.iterateNext()) !== null) {
+                    arr.push(i);
+                }
+                return arr;
+            } else if (type === XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE || type === XPathResult.ORDERED_NODE_SNAPSHOT_TYPE) {
+                for (i = 0; i < res.snapshotLength; i++) {
+                    arr.push(res.snapshotItem(i));
+                }
+                return arr;
+            } else if (type === XPathResult.ANY_UNORDERED_NODE_TYPE || type === XPathResult.FIRST_ORDERED_NODE_TYPE) {
+                return res.singleNodeValue;
+            } else {
+                throw new Error('Unknown result type ' + type);
+            }
+        } catch (e) {
+            console.log(e);
+            return null;
+        }
+    }
+
+    function xpath_one(expr, ctx) {
+        return xpath(expr, ctx, XPathResult.FIRST_ORDERED_NODE_TYPE);
     }
 
     function getFieldNamesRegex(seedWords) {
@@ -26785,7 +27004,7 @@ define('portia-web/utils/suggest-annotations', ['exports'], function (exports) {
         var _iteratorError2 = undefined;
 
         try {
-            for (var _iterator2 = props[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            for (var _iterator2 = Array.from(props)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                 var prop = _step2.value;
 
                 var propName = prop.getAttribute('itemprop');
@@ -26898,6 +27117,439 @@ define('portia-web/utils/suggest-annotations', ['exports'], function (exports) {
     function registerSuggester(name, suggester) {
         enabledSuggesters[name] = suggester;
     }
+
+    /**
+     * Suggest the href attributes of links for fields names <something>_url.
+     *
+     * For example
+     *
+     * next_url => suggest <a href="[annotation]">Next →</a>
+     * comments_href => suggest <a href="[annotation]">Show comments</a>
+     */
+    registerSuggester('links', function linkSuggestor(document, fieldNames, next) {
+        var res = [],
+            name = undefined;
+        var url_word = '(?:url|href|link)';
+        var regexp = new RegExp(url_word + '$|^' + url_word, 'i');
+
+        var links = Array.from(document.querySelectorAll('a[href]')).map(function (node) {
+            return [node, node.textContent];
+        });
+
+        var _iteratorNormalCompletion5 = true;
+        var _didIteratorError5 = false;
+        var _iteratorError5 = undefined;
+
+        try {
+            for (var _iterator5 = fieldNames[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                var field = _step5.value;
+
+                if ((name = field.replace(regexp, '')).length !== field.length) {
+                    name = name.replace(/^[-_]+/, '').replace(/[-_]+$/, '').replace(/[-_]+/g, '\\b.{0,10}\\b');
+                    var nameRegexp = new RegExp('^.{0,10}\\b' + name + '\\b.{0,10}$', 'i');
+                    var best = null;
+                    var _iteratorNormalCompletion6 = true;
+                    var _didIteratorError6 = false;
+                    var _iteratorError6 = undefined;
+
+                    try {
+                        for (var _iterator6 = links[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                            var _step6$value = _slicedToArray(_step6.value, 2);
+
+                            var node = _step6$value[0];
+                            var cnt = _step6$value[1];
+
+                            if (nameRegexp.test(cnt) && (!best || best[1].length > cnt.length)) {
+                                best = [node, cnt];
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError6 = true;
+                        _iteratorError6 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion6 && _iterator6['return']) {
+                                _iterator6['return']();
+                            }
+                        } finally {
+                            if (_didIteratorError6) {
+                                throw _iteratorError6;
+                            }
+                        }
+                    }
+
+                    if (best) {
+                        res.push([field, best[0], 'href', 0.2]);
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError5 = true;
+            _iteratorError5 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion5 && _iterator5['return']) {
+                    _iterator5['return']();
+                }
+            } finally {
+                if (_didIteratorError5) {
+                    throw _iteratorError5;
+                }
+            }
+        }
+
+        next(res);
+    });
+
+    function findReleatedTableCell(td) {
+        // Check for a vertical header
+        if (!td.previousElementSibling && td.nextElementSibling && td.nextElementSibling.tagName === 'TD' && !(td.nextElementSibling.nextElementSibling && td.nextElementSibling.nextElementSibling.tagName === 'TD') && td.parentNode.parentNode.tagName !== 'THEAD') {
+            return td.nextElementSibling;
+        }
+        // If not vertical, check for horizontal header, first find next row
+        var nextRow = xpath_one('following::tr[1]', td);
+
+        // Ensure they are in the same table
+        if (nextRow && xpath_one('ancestor::table[1]', td) !== xpath_one('ancestor::table[1]', nextRow)) {
+            return null;
+        }
+
+        // Find the same column in the next now
+        var column = 0,
+            n = td;
+        while (n.previousElementSibling) {
+            n = n.previousElementSibling;
+            if (n.tagName === 'TD' || n.tagName === 'TH') {
+                column += parseInt(n.getAttribute('colspan') || 1, 10);
+            }
+        }
+        n = nextRow.firstElementChild;
+        while (n && column > 0) {
+            if (n.tagName === 'TD' || n.tagName === 'TH') {
+                column -= parseInt(n.getAttribute('colspan') || 1, 10);
+            }
+            n = n.nextElementSibling;
+        }
+        if (n && n.tagName === 'TD') {
+            return n;
+        }
+        return null;
+    }
+
+    /**
+     * If a table header cell contains the field name, suggest the releated body cell
+     */
+    registerSuggester('table', function tableSuggestor(document, fieldNames, next) {
+        var ths = Array.from(document.querySelectorAll('\n        tr:first-child > td,\n        tr:first-child > th,\n        tr > td:first-child,\n        tr > th:first-child\n    ')).map(function (node) {
+            return [node, node.textContent];
+        });
+
+        var res = [];
+        var _iteratorNormalCompletion7 = true;
+        var _didIteratorError7 = false;
+        var _iteratorError7 = undefined;
+
+        try {
+            for (var _iterator7 = fieldNames[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                var field = _step7.value;
+
+                field = field.replace(/[-_]/g, '\\b.{0,10}\\b');
+                var nameRegexp = new RegExp('\\b' + field + '\\b', 'i');
+                var best = null;
+                var _iteratorNormalCompletion8 = true;
+                var _didIteratorError8 = false;
+                var _iteratorError8 = undefined;
+
+                try {
+                    for (var _iterator8 = ths[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                        var _step8$value = _slicedToArray(_step8.value, 2);
+
+                        var node = _step8$value[0];
+                        var cnt = _step8$value[1];
+
+                        if (nameRegexp.test(cnt) && (!best || best[1].length > cnt.length)) {
+                            var releated = findReleatedTableCell(node);
+                            if (releated) {
+                                best = [releated, cnt];
+                            }
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError8 = true;
+                    _iteratorError8 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion8 && _iterator8['return']) {
+                            _iterator8['return']();
+                        }
+                    } finally {
+                        if (_didIteratorError8) {
+                            throw _iteratorError8;
+                        }
+                    }
+                }
+
+                if (best) {
+                    res.push([field, best[0], text, 0.2]);
+                }
+            }
+        } catch (err) {
+            _didIteratorError7 = true;
+            _iteratorError7 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion7 && _iterator7['return']) {
+                    _iterator7['return']();
+                }
+            } finally {
+                if (_didIteratorError7) {
+                    throw _iteratorError7;
+                }
+            }
+        }
+
+        next(res);
+    });
+
+    /**
+     * If an element ID or class matches exactly the field name, suggest it
+     */
+    registerSuggester('id_class', function idClassSuggestor(document, fieldNames, next) {
+        var res = [];
+        var _iteratorNormalCompletion9 = true;
+        var _didIteratorError9 = false;
+        var _iteratorError9 = undefined;
+
+        try {
+            for (var _iterator9 = fieldNames[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                var field = _step9.value;
+
+                var node = document.getElementById(field) || document.querySelector('.' + field);
+                if (node) {
+                    res.push([field, node, node.tagName === 'IMG' ? 'src' : text, node.id === field ? 0.25 : 0.15]);
+                }
+            }
+        } catch (err) {
+            _didIteratorError9 = true;
+            _iteratorError9 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion9 && _iterator9['return']) {
+                    _iterator9['return']();
+                }
+            } finally {
+                if (_didIteratorError9) {
+                    throw _iteratorError9;
+                }
+            }
+        }
+
+        next(res);
+    });
+
+    /**
+     * If a <dt> tag contains the field name, suggest the associated <dd>
+     */
+    registerSuggester('dt_dd', function definitionSuggestor(document, fieldNames, next) {
+        var res = [];
+        var dts = Array.from(document.querySelectorAll('dt')).map(function (node) {
+            return [node, node.textContent];
+        });
+
+        var _iteratorNormalCompletion10 = true;
+        var _didIteratorError10 = false;
+        var _iteratorError10 = undefined;
+
+        try {
+            for (var _iterator10 = fieldNames[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                var field = _step10.value;
+
+                field = field.replace(/[-_]+/g, '\\b.{0,10}\\b');
+                var nameRegexp = new RegExp('\\b' + field + '\\b', 'i');
+                var best = null;
+                var _iteratorNormalCompletion11 = true;
+                var _didIteratorError11 = false;
+                var _iteratorError11 = undefined;
+
+                try {
+                    for (var _iterator11 = dts[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                        var _step11$value = _slicedToArray(_step11.value, 2);
+
+                        var node = _step11$value[0];
+                        var cnt = _step11$value[1];
+
+                        if (nameRegexp.test(cnt) && (!best || best[1].length > cnt.length)) {
+                            var dd_node = xpath_one('following-sibling::dd', node);
+                            if (dd_node) {
+                                best = [dd_node, cnt];
+                            }
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError11 = true;
+                    _iteratorError11 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion11 && _iterator11['return']) {
+                            _iterator11['return']();
+                        }
+                    } finally {
+                        if (_didIteratorError11) {
+                            throw _iteratorError11;
+                        }
+                    }
+                }
+
+                if (best) {
+                    res.push([field, best[0], text, 0.2]);
+                }
+            }
+        } catch (err) {
+            _didIteratorError10 = true;
+            _iteratorError10 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion10 && _iterator10['return']) {
+                    _iterator10['return']();
+                }
+            } finally {
+                if (_didIteratorError10) {
+                    throw _iteratorError10;
+                }
+            }
+        }
+
+        next(res);
+    });
+
+    function getCurrencyRegExp() {
+        /*
+        Currency simbols found in: http://www.xe.com/symbols.php
+         Extracted with:
+         Array.from(document.querySelectorAll('.cSmbl_Fnt_AU'))
+            .map(x => x.textContent)
+            .filter(x => x && !/[\u00A2-\u00A5\u20A0-\u20CF]/.test(x));
+        */
+        var currency_symbol = '(:?[¢-¥₠-⃏؋$ƒP៛QL﷼SR฿€]'; // Unicode currency pane and one letter currency symbols
+        currency_symbol += '|[A-Z]{3}'; // Currency code
+        currency_symbol += '|(BZ|R|RD|J|C|NT|TT|Z)\\$|\\$[bU]'; // Different kinds of dollars
+        currency_symbol += '|Lek|ман|p\\.|KM|лв|kn|Kč|kr|Ft|Rp|Ls|Lt|ден|RM|MT|B/\\.|Gs|S/\\.|zł|lei|руб|Дин\\.|Bs)'; // Rest of currencies
+
+        var numbers = '[0-9\\., ]+';
+
+        return new RegExp('^(' + currency_symbol + numbers + '|' + numbers + currency_symbol + ')$');
+    }
+
+    function getDateRegExp() {
+        // Bad approximation, it will works for most numeric or english dates
+        return new RegExp(['NN/NN/NNNN', 'NNNN/NN/NN', 'NN? of \\w+ of NNNN'].join('|').replace(/N/g, '\\d').replace(/\//g, '[/\\. -]'));
+    }
+
+    /**
+     * If the pattern: <field_name>: <inline_text> is found, suggest it
+     * If text matching a price is found and there is a field called price, suggest it
+     * If text matching a date is found and there is a field called date, suggest it
+     * If text matching a percentage is found and there is a field called percent, suggest it
+     */
+    registerSuggester('text_content', function textSuggestor(document, fieldNames, next) {
+        var res = [];
+
+        function score(a) {
+            // Returns number 0-0.0001 representing how emphasized is the node, typographically
+            var style = document.defaultView && document.defaultView.getComputedStyle(a.parentNode);
+            if (!style) {
+                return 0;
+            }
+
+            var res = parseInt(style.fontSize, 10) + parseInt(style.fontWeight, 10) / 1000 + (style.textDecorationLine === 'line-through' ? -5 : 0) + (style.textDecorationLine === 'underline' ? +1 : 0);
+
+            return Math.min(res / 50, 0.0001);
+        }
+
+        var texts = xpath('.//text()[normalize-space()]', document.body);
+
+        var priceField = findField(['price'], fieldNames);
+        var dateField = findField(['date', 'created', 'updated'], fieldNames);
+        var percentField = findField(['percent', 'discount'], fieldNames);
+        var priceRegexp = getCurrencyRegExp();
+        var dateRegexp = getDateRegExp();
+        var percentRegExp = /^\d+([\.,]\d+)?%$/;
+
+        var _iteratorNormalCompletion12 = true;
+        var _didIteratorError12 = false;
+        var _iteratorError12 = undefined;
+
+        try {
+            for (var _iterator12 = fieldNames[Symbol.iterator](), _step12; !(_iteratorNormalCompletion12 = (_step12 = _iterator12.next()).done); _iteratorNormalCompletion12 = true) {
+                var field = _step12.value;
+
+                field = field.replace(/[-_]/g, '\\b.{0,7}\\b');
+
+                var nameColonRegExp = new RegExp('^.{0,7}\\b' + field + '\\b.{0,7}:\\s*\\S', 'i');
+                var nameEndRegExp = new RegExp('^.{0,7}\\b' + field + '\\b.{0,7}:\\s*$', 'i');
+                var specialRegExp = null;
+
+                if (field === priceField) {
+                    specialRegExp = priceRegexp;
+                } else if (field === dateField) {
+                    specialRegExp = dateRegexp;
+                } else if (field === percentField) {
+                    specialRegExp = percentRegExp;
+                }
+
+                var _iteratorNormalCompletion13 = true;
+                var _didIteratorError13 = false;
+                var _iteratorError13 = undefined;
+
+                try {
+                    for (var _iterator13 = texts[Symbol.iterator](), _step13; !(_iteratorNormalCompletion13 = (_step13 = _iterator13.next()).done); _iteratorNormalCompletion13 = true) {
+                        var node = _step13.value;
+
+                        if (specialRegExp && specialRegExp.test(node.nodeValue)) {
+                            res.push([field, node.parentNode, text, 0.12 + score(node.parentNode)]);
+                        }
+
+                        if (nameEndRegExp.test(node.nodeValue)) {
+                            var nextText = xpath_one('following::text()[normalize-space()]', node);
+                            if (nextText) {
+                                res.push([field, nextText.parentNode, text, 0.1 + score(nextText.parentNode)]);
+                            }
+                        } else if (nameColonRegExp.test(node.nodeValue)) {
+                            res.push([field, node.parentNode, text, 0.1 + score(node.parentNode)]);
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError13 = true;
+                    _iteratorError13 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion13 && _iterator13['return']) {
+                            _iterator13['return']();
+                        }
+                    } finally {
+                        if (_didIteratorError13) {
+                            throw _iteratorError13;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError12 = true;
+            _iteratorError12 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion12 && _iterator12['return']) {
+                    _iterator12['return']();
+                }
+            } finally {
+                if (_didIteratorError12) {
+                    throw _iteratorError12;
+                }
+            }
+        }
+
+        next(res);
+    });
 
 });
 define('portia-web/utils/timer', ['exports', 'ember', 'portia-web/utils/utils'], function (exports, Ember, utils) {

@@ -2,6 +2,7 @@ import acceptanceTest from '../helpers/acceptance-test';
 import Ember from 'ember';
 import { lastRequest, fixtures } from '../helpers/fixtures';
 import ws from '../helpers/websocket-mock';
+import { waitForElement } from '../helpers/wait';
 
 
 module('Acceptance | Edit Items', { });
@@ -9,13 +10,6 @@ module('Acceptance | Edit Items', { });
 const save = 'button:contains("Save changes")';
 const add_item = 'button:contains("Item") .fa-plus';
 const inline_field = '.form-control.input-sm';
-
-var savedItems = null;
-
-fixtures['POST /projects/11/spec/items'] = function(items){
-    savedItems = items;
-};
-
 
 acceptanceTest('Edit Items', function(app, assert) {
 
@@ -25,22 +19,25 @@ acceptanceTest('Edit Items', function(app, assert) {
       return Object.values(ws.lastMessage.items).map((item) => item.display_name).sort();
   }
 
-  reset().then(function(){
-      return click(save);
-  }).then(function(){
+  return reset()
+  .then(() => waitForElement(save))
+  .then(() => click(save))
+  .then(function(){
       var saveMeta = ws.lastMessage._meta;
       equal([saveMeta.project, saveMeta.type].join('/'), '11/items');
       deepEqual(Object.keys(ws.lastMessage.items), ['default']);
       return reset();
   })
   .then(() => click(add_item))
-  .then(() => click('.editable-name:contains("Item: New")'))
+  .then(() => click('.editable-name:contains("Item: New"):eq(0)'))
   .then(() => fillIn(inline_field, 'foobar'))
   .then(() => triggerEvent(inline_field, 'blur'))
-  .then(() => click(save)).then(function(){
+  .then(() => click(save))
+  .then(function(){
       deepEqual(getItemNames(), ['default_item', 'foobar']);
-      return reset();
   })
+  .then(reset)
+  .then(() => click('.editable-item-container:contains("Item: foobar") .fa-trash:eq(0)'))
   .then(() => click('.editable-name:contains("optional")'))
   .then(() => fillIn(inline_field, 'url'))
   .then(() => triggerEvent(inline_field, 'blur')).then(function(){
@@ -65,21 +62,11 @@ acceptanceTest('Edit Items', function(app, assert) {
     ok($(inline_field).length === 0, "Works when valid name");
     ok(!app.lastNotification, "Doesn't show notification when valid name");
     return click(save);
-  }).then(function(){
-      var fields = Ember.copy(fixtures['/projects/11/spec/items'].default.fields, true);
-      fields.foobar = fields.optional;
-      delete fields.optional;
-      deepEqual(ws.lastMessage.items.default.fields, fields);
-      return reset();
   })
-  .then(() => click('.row:has(.editable-name:contains("optional")) .fa-trash:eq(0)'))
-  .then(() => click('.row:has(.editable-name:contains("price")) .fa-trash:eq(0)'))
-  .then(() => click(save))
-  .then(function(){
-      var fields = Ember.copy(fixtures['/projects/11/spec/items'].default.fields, true);
-      delete fields.optional;
-      delete fields.price;
-      deepEqual(ws.lastMessage.items.default.fields, fields);
-  });
+  .then(reset)
+  .then(() => click('.editable-name:contains("foobar")'))
+  .then(() => fillIn(inline_field, 'optional'))
+  .then(() => triggerEvent(inline_field, 'blur'))
+  .then(() => click(save));
 });
 

@@ -5,19 +5,13 @@ export default BaseRoute.extend({
     fixedToolbox: true,
 
     model: function(){
-        return [{
-            name: 'page_actions',
-            label: 'Page Actions',
-            helpText: 'Record actions in the page and replay them when crawling.',
-        }, {
-            name: 'suggestions',
-            label: 'Annotation suggestions',
-            helpText: 'Portia will suggest annotations when annotating a page',
-        // }, {
+        return [
+        // {
         //     name: 'selectors',
         //     label: 'XPath and CSS selectors',
         //     helpText: 'Add custom XPath and CSS Selectors to a template',
-        }].map((experiment) => {
+        // }
+        ].map((experiment) => {
             experiment.enabled = expetiments.enabled(experiment.name);
             experiment.newValue = experiment.enabled;
             return experiment;

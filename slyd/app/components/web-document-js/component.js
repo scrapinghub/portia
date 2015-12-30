@@ -3,7 +3,6 @@ import Ember from 'ember';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 import utils from '../../utils/utils';
-import experiments from '../../utils/experiments';
 import { predictCss, matchesExactly } from '../../utils/selector-prediction';
 
 function paintCanvasMessage(canvas) {
@@ -184,14 +183,34 @@ export default WebDocument.extend({
     }.observes('ws.closed'),
 
     /**
-     * Set the content of the iframe. Can only be called in "select" mode
-     */
-    setIframeContent: function(doc) {
-        this.assertInMode('select');
-        var iframe = this.getIframeNode();
-        iframe.setAttribute('srcdoc', doc);
-        iframe.removeAttribute('src');
-        this.set('cssEnabled', true);
+        Displays a document by setting it as the content of the iframe.
+        readyCallback will be called when the document finishes rendering.
+
+        Only allowed in "select" mode
+    */
+    displayDocument: function(documentContents, readyCallback) {
+        Ember.run.next(() => {
+            this.assertInMode('select');
+            // We need to disable all interactions with the document we are loading
+            // until we trigger the callback.
+            this.blockInteractions('loadingDoc');
+            this.set('loadingDoc', true);
+            this.set('cssEnabled', true);
+
+            this.clearIframe().then(() => {
+                var iframeDoc = this.getIframe()[0];
+                iframeDoc.open('text/html', 'replace');
+                iframeDoc.write(documentContents);
+                iframeDoc.close();
+                this._updateEventHandlers();
+            }).finally(() => {
+                this.unblockInteractions('loadingDoc');
+                this.set('loadingDoc', false);
+                if (readyCallback) {
+                    readyCallback(this.getIframe());
+                }
+            });
+        });
     },
 
     clearIframe: function() {
@@ -266,7 +285,7 @@ export default WebDocument.extend({
     },
 
     saveAction: function (interactionEvent, nativeEvent) {
-        if(!experiments.enabled('page_actions') || !this.get('recording')) {
+        if(!this.get('recording')) {
             return;
         }
         var pageActions = this.get('pageActions');
@@ -326,7 +345,9 @@ export default WebDocument.extend({
     },
 
     bindResizeEvent: function() {
-        Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        if (!Ember.testing){
+            Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        }
     }.on('init'),
 
     handleResize: function() {
