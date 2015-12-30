@@ -13,7 +13,8 @@ function waitForLoad() {
 
 function baseSplashRenderTest(name, url, fn) {
     acceptanceTest("Splash Web Document " + name, function(app){
-        return visit('/')
+        return timeout(300)
+        .then(() => visit('/'))
         .then(() => visit('/projects/11'))
         .then(() => visit('/projects/11/spider1'))
         .then(() => equal(currentURL(), '/projects/11/spider1'))
