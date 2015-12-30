@@ -36,7 +36,7 @@ if(!keysWorksWithArguments) {
 ;
 
 // UMD (Universal Module Definition)
-// see https://github.com/umdjs/umd/blob/master/returnExports.js
+// see https://github.com/umdjs/umd/blob/master/templates/returnExports.js
 (function (root, factory) {
     'use strict';
 
@@ -65,65 +65,54 @@ if(!keysWorksWithArguments) {
  */
 
 // Shortcut to an often accessed properties, in order to avoid multiple
-// dereference that costs universally.
-var ArrayPrototype = Array.prototype;
-var ObjectPrototype = Object.prototype;
+// dereference that costs universally. This also holds a reference to known-good
+// functions.
+var $Array = Array;
+var ArrayPrototype = $Array.prototype;
+var $Object = Object;
+var ObjectPrototype = $Object.prototype;
 var FunctionPrototype = Function.prototype;
-var StringPrototype = String.prototype;
-var NumberPrototype = Number.prototype;
+var $String = String;
+var StringPrototype = $String.prototype;
+var $Number = Number;
+var NumberPrototype = $Number.prototype;
 var array_slice = ArrayPrototype.slice;
 var array_splice = ArrayPrototype.splice;
 var array_push = ArrayPrototype.push;
 var array_unshift = ArrayPrototype.unshift;
 var array_concat = ArrayPrototype.concat;
 var call = FunctionPrototype.call;
+var apply = FunctionPrototype.apply;
+var max = Math.max;
+var min = Math.min;
 
 // Having a toString local variable name breaks in Opera so use to_string.
 var to_string = ObjectPrototype.toString;
-
-var isArray = Array.isArray || function isArray(obj) {
-    return to_string.call(obj) === '[object Array]';
-};
 
 var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
 var isCallable; /* inlined from https://npmjs.com/is-callable */ var fnToStr = Function.prototype.toString, tryFunctionObject = function tryFunctionObject(value) { try { fnToStr.call(value); return true; } catch (e) { return false; } }, fnClass = '[object Function]', genClass = '[object GeneratorFunction]'; isCallable = function isCallable(value) { if (typeof value !== 'function') { return false; } if (hasToStringTag) { return tryFunctionObject(value); } var strClass = to_string.call(value); return strClass === fnClass || strClass === genClass; };
 var isRegex; /* inlined from https://npmjs.com/is-regex */ var regexExec = RegExp.prototype.exec, tryRegexExec = function tryRegexExec(value) { try { regexExec.call(value); return true; } catch (e) { return false; } }, regexClass = '[object RegExp]'; isRegex = function isRegex(value) { if (typeof value !== 'object') { return false; } return hasToStringTag ? tryRegexExec(value) : to_string.call(value) === regexClass; };
 var isString; /* inlined from https://npmjs.com/is-string */ var strValue = String.prototype.valueOf, tryStringObject = function tryStringObject(value) { try { strValue.call(value); return true; } catch (e) { return false; } }, stringClass = '[object String]'; isString = function isString(value) { if (typeof value === 'string') { return true; } if (typeof value !== 'object') { return false; } return hasToStringTag ? tryStringObject(value) : to_string.call(value) === stringClass; };
 
-var isArguments = function isArguments(value) {
-    var str = to_string.call(value);
-    var isArgs = str === '[object Arguments]';
-    if (!isArgs) {
-        isArgs = !isArray(value) &&
-          value !== null &&
-          typeof value === 'object' &&
-          typeof value.length === 'number' &&
-          value.length >= 0 &&
-          isCallable(value.callee);
-    }
-    return isArgs;
-};
-
 /* inlined from http://npmjs.com/define-properties */
+var supportsDescriptors = $Object.defineProperty && (function () {
+    try {
+        var obj = {};
+        $Object.defineProperty(obj, 'x', { enumerable: false, value: obj });
+        for (var _ in obj) { return false; }
+        return obj.x === obj;
+    } catch (e) { /* this is ES3 */
+        return false;
+    }
+}());
 var defineProperties = (function (has) {
-  var supportsDescriptors = Object.defineProperty && (function () {
-      try {
-          var obj = {};
-          Object.defineProperty(obj, 'x', { enumerable: false, value: obj });
-          for (var _ in obj) { return false; }
-          return obj.x === obj;
-      } catch (e) { /* this is ES3 */
-          return false;
-      }
-  }());
-
-  // Define configurable, writable and non-enumerable props
+  // Define configurable, writable, and non-enumerable props
   // if they don't exist.
   var defineProperty;
   if (supportsDescriptors) {
       defineProperty = function (object, name, method, forceAssign) {
           if (!forceAssign && (name in object)) { return; }
-          Object.defineProperty(object, name, {
+          $Object.defineProperty(object, name, {
               configurable: true,
               enumerable: false,
               writable: true,
@@ -156,6 +145,8 @@ var isPrimitive = function isPrimitive(input) {
     return input === null || (type !== 'object' && type !== 'function');
 };
 
+var isActualNaN = $Number.isNaN || function (x) { return x !== x; };
+
 var ES = {
     // ES5 9.4
     // http://es5.github.com/#x9.4
@@ -163,7 +154,7 @@ var ES = {
     /* replaceable with https://npmjs.com/package/es-abstract ES5.ToInteger */
     ToInteger: function ToInteger(num) {
         var n = +num;
-        if (n !== n) { // isNaN
+        if (isActualNaN(n)) {
             n = 0;
         } else if (n !== 0 && n !== (1 / 0) && n !== -(1 / 0)) {
             n = (n > 0 || -1) * Math.floor(Math.abs(n));
@@ -198,11 +189,10 @@ var ES = {
     // http://es5.github.com/#x9.9
     /* replaceable with https://npmjs.com/package/es-abstract ES5.ToObject */
     ToObject: function (o) {
-        /* jshint eqnull: true */
         if (o == null) { // this matches both null and undefined
             throw new TypeError("can't convert " + o + ' to object');
         }
-        return Object(o);
+        return $Object(o);
     },
 
     /* replaceable with https://npmjs.com/package/es-abstract ES5.ToUint32 */
@@ -266,7 +256,7 @@ defineProperties(FunctionPrototype, {
                     this,
                     array_concat.call(args, array_slice.call(arguments))
                 );
-                if (Object(result) === result) {
+                if ($Object(result) === result) {
                     return result;
                 }
                 return this;
@@ -306,13 +296,13 @@ defineProperties(FunctionPrototype, {
         //       larger.
         // 16. Else set the length own property of F to 0.
 
-        var boundLength = Math.max(0, target.length - args.length);
+        var boundLength = max(0, target.length - args.length);
 
         // 17. Set the attributes of the length own property of F to the values
         //   specified in 15.3.5.1.
         var boundArgs = [];
         for (var i = 0; i < boundLength; i++) {
-            boundArgs.push('$' + i);
+            array_push.call(boundArgs, '$' + i);
         }
 
         // XXX Build a dynamic function with desired amount of arguments is the only
@@ -356,53 +346,26 @@ defineProperties(FunctionPrototype, {
 });
 
 // _Please note: Shortcuts are defined after `Function.prototype.bind` as we
-// us it in defining shortcuts.
+// use it in defining shortcuts.
 var owns = call.bind(ObjectPrototype.hasOwnProperty);
+var toStr = call.bind(ObjectPrototype.toString);
+var arraySlice = call.bind(array_slice);
+var arraySliceApply = apply.bind(array_slice);
+var strSlice = call.bind(StringPrototype.slice);
+var strSplit = call.bind(StringPrototype.split);
+var strIndexOf = call.bind(StringPrototype.indexOf);
+var push = call.bind(array_push);
+var isEnum = call.bind(ObjectPrototype.propertyIsEnumerable);
+var arraySort = call.bind(ArrayPrototype.sort);
 
 //
 // Array
 // =====
 //
 
-// ES5 15.4.4.12
-// http://es5.github.com/#x15.4.4.12
-var spliceNoopReturnsEmptyArray = (function () {
-    var a = [1, 2];
-    var result = a.splice();
-    return a.length === 2 && isArray(result) && result.length === 0;
-}());
-defineProperties(ArrayPrototype, {
-    // Safari 5.0 bug where .splice() returns undefined
-    splice: function splice(start, deleteCount) {
-        if (arguments.length === 0) {
-            return [];
-        } else {
-            return array_splice.apply(this, arguments);
-        }
-    }
-}, !spliceNoopReturnsEmptyArray);
-
-var spliceWorksWithEmptyObject = (function () {
-    var obj = {};
-    ArrayPrototype.splice.call(obj, 0, 0, 1);
-    return obj.length === 1;
-}());
-defineProperties(ArrayPrototype, {
-    splice: function splice(start, deleteCount) {
-        if (arguments.length === 0) { return []; }
-        var args = arguments;
-        this.length = Math.max(ES.ToInteger(this.length), 0);
-        if (arguments.length > 0 && typeof deleteCount !== 'number') {
-            args = array_slice.call(arguments);
-            if (args.length < 2) {
-                args.push(this.length - start);
-            } else {
-                args[1] = ES.ToInteger(deleteCount);
-            }
-        }
-        return array_splice.apply(this, args);
-    }
-}, !spliceWorksWithEmptyObject);
+var isArray = $Array.isArray || function isArray(obj) {
+    return toStr(obj) === '[object Array]';
+};
 
 // ES5 15.4.4.12
 // http://es5.github.com/#x15.4.4.13
@@ -420,7 +383,7 @@ defineProperties(ArrayPrototype, {
 // ES5 15.4.3.2
 // http://es5.github.com/#x15.4.3.2
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
-defineProperties(Array, { isArray: isArray });
+defineProperties($Array, { isArray: isArray });
 
 // The IsCallable() check in the Array functions
 // has been replaced with a strict check on the
@@ -440,7 +403,7 @@ defineProperties(Array, { isArray: isArray });
 
 // Check failure of by-index access of string characters (IE < 9)
 // and failure of `0 in boxedString` (Rhino)
-var boxedString = Object('a');
+var boxedString = $Object('a');
 var splitString = boxedString[0] !== 'a' || !(0 in boxedString);
 
 var properlyBoxesContext = function properlyBoxed(method) {
@@ -462,11 +425,11 @@ var properlyBoxesContext = function properlyBoxed(method) {
 };
 
 defineProperties(ArrayPrototype, {
-    forEach: function forEach(callbackfn /*, thisArg*/) {
+    forEach: function forEach(callbackfn/*, thisArg*/) {
         var object = ES.ToObject(this);
-        var self = splitString && isString(this) ? this.split('') : object;
+        var self = splitString && isString(this) ? strSplit(this, '') : object;
         var i = -1;
-        var length = self.length >>> 0;
+        var length = ES.ToUint32(self.length);
         var T;
         if (arguments.length > 1) {
           T = arguments[1];
@@ -481,10 +444,10 @@ defineProperties(ArrayPrototype, {
             if (i in self) {
                 // Invoke the callback function with call, passing arguments:
                 // context, property value, property key, thisArg object
-                if (typeof T !== 'undefined') {
-                    callbackfn.call(T, self[i], i, object);
-                } else {
+                if (typeof T === 'undefined') {
                     callbackfn(self[i], i, object);
+                } else {
+                    callbackfn.call(T, self[i], i, object);
                 }
             }
         }
@@ -497,9 +460,9 @@ defineProperties(ArrayPrototype, {
 defineProperties(ArrayPrototype, {
     map: function map(callbackfn/*, thisArg*/) {
         var object = ES.ToObject(this);
-        var self = splitString && isString(this) ? this.split('') : object;
-        var length = self.length >>> 0;
-        var result = Array(length);
+        var self = splitString && isString(this) ? strSplit(this, '') : object;
+        var length = ES.ToUint32(self.length);
+        var result = $Array(length);
         var T;
         if (arguments.length > 1) {
             T = arguments[1];
@@ -512,10 +475,10 @@ defineProperties(ArrayPrototype, {
 
         for (var i = 0; i < length; i++) {
             if (i in self) {
-                if (typeof T !== 'undefined') {
-                    result[i] = callbackfn.call(T, self[i], i, object);
-                } else {
+                if (typeof T === 'undefined') {
                     result[i] = callbackfn(self[i], i, object);
+                } else {
+                    result[i] = callbackfn.call(T, self[i], i, object);
                 }
             }
         }
@@ -527,10 +490,10 @@ defineProperties(ArrayPrototype, {
 // http://es5.github.com/#x15.4.4.20
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/filter
 defineProperties(ArrayPrototype, {
-    filter: function filter(callbackfn /*, thisArg*/) {
+    filter: function filter(callbackfn/*, thisArg*/) {
         var object = ES.ToObject(this);
-        var self = splitString && isString(this) ? this.split('') : object;
-        var length = self.length >>> 0;
+        var self = splitString && isString(this) ? strSplit(this, '') : object;
+        var length = ES.ToUint32(self.length);
         var result = [];
         var value;
         var T;
@@ -547,7 +510,7 @@ defineProperties(ArrayPrototype, {
             if (i in self) {
                 value = self[i];
                 if (typeof T === 'undefined' ? callbackfn(value, i, object) : callbackfn.call(T, value, i, object)) {
-                    result.push(value);
+                    push(result, value);
                 }
             }
         }
@@ -559,10 +522,10 @@ defineProperties(ArrayPrototype, {
 // http://es5.github.com/#x15.4.4.16
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/every
 defineProperties(ArrayPrototype, {
-    every: function every(callbackfn /*, thisArg*/) {
+    every: function every(callbackfn/*, thisArg*/) {
         var object = ES.ToObject(this);
-        var self = splitString && isString(this) ? this.split('') : object;
-        var length = self.length >>> 0;
+        var self = splitString && isString(this) ? strSplit(this, '') : object;
+        var length = ES.ToUint32(self.length);
         var T;
         if (arguments.length > 1) {
             T = arguments[1];
@@ -588,8 +551,8 @@ defineProperties(ArrayPrototype, {
 defineProperties(ArrayPrototype, {
     some: function some(callbackfn/*, thisArg */) {
         var object = ES.ToObject(this);
-        var self = splitString && isString(this) ? this.split('') : object;
-        var length = self.length >>> 0;
+        var self = splitString && isString(this) ? strSplit(this, '') : object;
+        var length = ES.ToUint32(self.length);
         var T;
         if (arguments.length > 1) {
             T = arguments[1];
@@ -617,10 +580,10 @@ if (ArrayPrototype.reduce) {
     reduceCoercesToObject = typeof ArrayPrototype.reduce.call('es5', function (_, __, ___, list) { return list; }) === 'object';
 }
 defineProperties(ArrayPrototype, {
-    reduce: function reduce(callbackfn /*, initialValue*/) {
+    reduce: function reduce(callbackfn/*, initialValue*/) {
         var object = ES.ToObject(this);
-        var self = splitString && isString(this) ? this.split('') : object;
-        var length = self.length >>> 0;
+        var self = splitString && isString(this) ? strSplit(this, '') : object;
+        var length = ES.ToUint32(self.length);
 
         // If no callback function or if callback is not a callable function
         if (!isCallable(callbackfn)) {
@@ -670,8 +633,8 @@ if (ArrayPrototype.reduceRight) {
 defineProperties(ArrayPrototype, {
     reduceRight: function reduceRight(callbackfn/*, initial*/) {
         var object = ES.ToObject(this);
-        var self = splitString && isString(this) ? this.split('') : object;
-        var length = self.length >>> 0;
+        var self = splitString && isString(this) ? strSplit(this, '') : object;
+        var length = ES.ToUint32(self.length);
 
         // If no callback function or if callback is not a callable function
         if (!isCallable(callbackfn)) {
@@ -718,11 +681,11 @@ defineProperties(ArrayPrototype, {
 // ES5 15.4.4.14
 // http://es5.github.com/#x15.4.4.14
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
-var hasFirefox2IndexOfBug = Array.prototype.indexOf && [0, 1].indexOf(1, 2) !== -1;
+var hasFirefox2IndexOfBug = ArrayPrototype.indexOf && [0, 1].indexOf(1, 2) !== -1;
 defineProperties(ArrayPrototype, {
-    indexOf: function indexOf(searchElement /*, fromIndex */) {
-        var self = splitString && isString(this) ? this.split('') : ES.ToObject(this);
-        var length = self.length >>> 0;
+    indexOf: function indexOf(searchElement/*, fromIndex */) {
+        var self = splitString && isString(this) ? strSplit(this, '') : ES.ToObject(this);
+        var length = ES.ToUint32(self.length);
 
         if (length === 0) {
             return -1;
@@ -734,7 +697,7 @@ defineProperties(ArrayPrototype, {
         }
 
         // handle negative indices
-        i = i >= 0 ? i : Math.max(0, length + i);
+        i = i >= 0 ? i : max(0, length + i);
         for (; i < length; i++) {
             if (i in self && self[i] === searchElement) {
                 return i;
@@ -747,18 +710,18 @@ defineProperties(ArrayPrototype, {
 // ES5 15.4.4.15
 // http://es5.github.com/#x15.4.4.15
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/lastIndexOf
-var hasFirefox2LastIndexOfBug = Array.prototype.lastIndexOf && [0, 1].lastIndexOf(0, -3) !== -1;
+var hasFirefox2LastIndexOfBug = ArrayPrototype.lastIndexOf && [0, 1].lastIndexOf(0, -3) !== -1;
 defineProperties(ArrayPrototype, {
-    lastIndexOf: function lastIndexOf(searchElement /*, fromIndex */) {
-        var self = splitString && isString(this) ? this.split('') : ES.ToObject(this);
-        var length = self.length >>> 0;
+    lastIndexOf: function lastIndexOf(searchElement/*, fromIndex */) {
+        var self = splitString && isString(this) ? strSplit(this, '') : ES.ToObject(this);
+        var length = ES.ToUint32(self.length);
 
         if (length === 0) {
             return -1;
         }
         var i = length - 1;
         if (arguments.length > 1) {
-            i = Math.min(i, ES.ToInteger(arguments[1]));
+            i = min(i, ES.ToInteger(arguments[1]));
         }
         // handle negative indices
         i = i >= 0 ? i : length - Math.abs(i);
@@ -771,6 +734,234 @@ defineProperties(ArrayPrototype, {
     }
 }, hasFirefox2LastIndexOfBug);
 
+// ES5 15.4.4.12
+// http://es5.github.com/#x15.4.4.12
+var spliceNoopReturnsEmptyArray = (function () {
+    var a = [1, 2];
+    var result = a.splice();
+    return a.length === 2 && isArray(result) && result.length === 0;
+}());
+defineProperties(ArrayPrototype, {
+    // Safari 5.0 bug where .splice() returns undefined
+    splice: function splice(start, deleteCount) {
+        if (arguments.length === 0) {
+            return [];
+        } else {
+            return array_splice.apply(this, arguments);
+        }
+    }
+}, !spliceNoopReturnsEmptyArray);
+
+var spliceWorksWithEmptyObject = (function () {
+    var obj = {};
+    ArrayPrototype.splice.call(obj, 0, 0, 1);
+    return obj.length === 1;
+}());
+defineProperties(ArrayPrototype, {
+    splice: function splice(start, deleteCount) {
+        if (arguments.length === 0) { return []; }
+        var args = arguments;
+        this.length = max(ES.ToInteger(this.length), 0);
+        if (arguments.length > 0 && typeof deleteCount !== 'number') {
+            args = arraySlice(arguments);
+            if (args.length < 2) {
+                push(args, this.length - start);
+            } else {
+                args[1] = ES.ToInteger(deleteCount);
+            }
+        }
+        return array_splice.apply(this, args);
+    }
+}, !spliceWorksWithEmptyObject);
+var spliceWorksWithLargeSparseArrays = (function () {
+    // Per https://github.com/es-shims/es5-shim/issues/295
+    // Safari 7/8 breaks with sparse arrays of size 1e5 or greater
+    var arr = new $Array(1e5);
+    // note: the index MUST be 8 or larger or the test will false pass
+    arr[8] = 'x';
+    arr.splice(1, 1);
+    // note: this test must be defined *after* the indexOf shim
+    // per https://github.com/es-shims/es5-shim/issues/313
+    return arr.indexOf('x') === 7;
+}());
+var spliceWorksWithSmallSparseArrays = (function () {
+    // Per https://github.com/es-shims/es5-shim/issues/295
+    // Opera 12.15 breaks on this, no idea why.
+    var n = 256;
+    var arr = [];
+    arr[n] = 'a';
+    arr.splice(n + 1, 0, 'b');
+    return arr[n] === 'a';
+}());
+defineProperties(ArrayPrototype, {
+    splice: function splice(start, deleteCount) {
+        var O = ES.ToObject(this);
+        var A = [];
+        var len = ES.ToUint32(O.length);
+        var relativeStart = ES.ToInteger(start);
+        var actualStart = relativeStart < 0 ? max((len + relativeStart), 0) : min(relativeStart, len);
+        var actualDeleteCount = min(max(ES.ToInteger(deleteCount), 0), len - actualStart);
+
+        var k = 0;
+        var from;
+        while (k < actualDeleteCount) {
+            from = $String(actualStart + k);
+            if (owns(O, from)) {
+                A[k] = O[from];
+            }
+            k += 1;
+        }
+
+        var items = arraySlice(arguments, 2);
+        var itemCount = items.length;
+        var to;
+        if (itemCount < actualDeleteCount) {
+            k = actualStart;
+            while (k < (len - actualDeleteCount)) {
+                from = $String(k + actualDeleteCount);
+                to = $String(k + itemCount);
+                if (owns(O, from)) {
+                    O[to] = O[from];
+                } else {
+                    delete O[to];
+                }
+                k += 1;
+            }
+            k = len;
+            while (k > (len - actualDeleteCount + itemCount)) {
+                delete O[k - 1];
+                k -= 1;
+            }
+        } else if (itemCount > actualDeleteCount) {
+            k = len - actualDeleteCount;
+            while (k > actualStart) {
+                from = $String(k + actualDeleteCount - 1);
+                to = $String(k + itemCount - 1);
+                if (owns(O, from)) {
+                    O[to] = O[from];
+                } else {
+                    delete O[to];
+                }
+                k -= 1;
+            }
+        }
+        k = actualStart;
+        for (var i = 0; i < items.length; ++i) {
+            O[k] = items[i];
+            k += 1;
+        }
+        O.length = len - actualDeleteCount + itemCount;
+
+        return A;
+    }
+}, !spliceWorksWithLargeSparseArrays || !spliceWorksWithSmallSparseArrays);
+
+var originalJoin = ArrayPrototype.join;
+var hasStringJoinBug;
+try {
+    hasStringJoinBug = Array.prototype.join.call('123', ',') !== '1,2,3';
+} catch (e) {
+    hasStringJoinBug = true;
+}
+if (hasStringJoinBug) {
+    defineProperties(ArrayPrototype, {
+        join: function join(separator) {
+            var sep = typeof separator === 'undefined' ? ',' : separator;
+            return originalJoin.call(isString(this) ? strSplit(this, '') : this, sep);
+        }
+    }, hasStringJoinBug);
+}
+
+var hasJoinUndefinedBug = [1, 2].join(undefined) !== '1,2';
+if (hasJoinUndefinedBug) {
+    defineProperties(ArrayPrototype, {
+        join: function join(separator) {
+            var sep = typeof separator === 'undefined' ? ',' : separator;
+            return originalJoin.call(this, sep);
+        }
+    }, hasJoinUndefinedBug);
+}
+
+var pushShim = function push(item) {
+    var O = ES.ToObject(this);
+    var n = ES.ToUint32(O.length);
+    var i = 0;
+    while (i < arguments.length) {
+        O[n + i] = arguments[i];
+        i += 1;
+    }
+    O.length = n + i;
+    return n + i;
+};
+
+var pushIsNotGeneric = (function () {
+    var obj = {};
+    var result = Array.prototype.push.call(obj, undefined);
+    return result !== 1 || obj.length !== 1 || typeof obj[0] !== 'undefined' || !owns(obj, 0);
+}());
+defineProperties(ArrayPrototype, {
+    push: function push(item) {
+        if (isArray(this)) {
+            return array_push.apply(this, arguments);
+        }
+        return pushShim.apply(this, arguments);
+    }
+}, pushIsNotGeneric);
+
+// This fixes a very weird bug in Opera 10.6 when pushing `undefined
+var pushUndefinedIsWeird = (function () {
+    var arr = [];
+    var result = arr.push(undefined);
+    return result !== 1 || arr.length !== 1 || typeof arr[0] !== 'undefined' || !owns(arr, 0);
+}());
+defineProperties(ArrayPrototype, { push: pushShim }, pushUndefinedIsWeird);
+
+// ES5 15.2.3.14
+// http://es5.github.io/#x15.4.4.10
+// Fix boxed string bug
+defineProperties(ArrayPrototype, {
+    slice: function (start, end) {
+        var arr = isString(this) ? strSplit(this, '') : this;
+        return arraySliceApply(arr, arguments);
+    }
+}, splitString);
+
+var sortIgnoresNonFunctions = (function () {
+    try {
+        [1, 2].sort(null);
+        [1, 2].sort({});
+        return true;
+    } catch (e) { /**/ }
+    return false;
+}());
+var sortThrowsOnRegex = (function () {
+    // this is a problem in Firefox 4, in which `typeof /a/ === 'function'`
+    try {
+        [1, 2].sort(/a/);
+        return false;
+    } catch (e) { /**/ }
+    return true;
+}());
+var sortIgnoresUndefined = (function () {
+    // applies in IE 8, for one.
+    try {
+        [1, 2].sort(undefined);
+        return true;
+    } catch (e) { /**/ }
+    return false;
+}());
+defineProperties(ArrayPrototype, {
+    sort: function sort(compareFn) {
+        if (typeof compareFn === 'undefined') {
+            return arraySort(this);
+        }
+        if (!isCallable(compareFn)) {
+            throw new TypeError('Array.prototype.sort callback must be a function');
+        }
+        return arraySort(this, compareFn);
+    }
+}, sortIgnoresNonFunctions || !sortIgnoresUndefined || !sortThrowsOnRegex);
+
 //
 // Object
 // ======
@@ -780,26 +971,79 @@ defineProperties(ArrayPrototype, {
 // http://es5.github.com/#x15.2.3.14
 
 // http://whattheheadsaid.com/2010/10/a-safer-object-keys-compatibility-implementation
-var hasDontEnumBug = !({ 'toString': null }).propertyIsEnumerable('toString'),
-    hasProtoEnumBug = function () {}.propertyIsEnumerable('prototype'),
-    hasStringEnumBug = !owns('x', '0'),
-    dontEnums = [
-        'toString',
-        'toLocaleString',
-        'valueOf',
-        'hasOwnProperty',
-        'isPrototypeOf',
-        'propertyIsEnumerable',
-        'constructor'
-    ],
-    dontEnumsLength = dontEnums.length;
+var hasDontEnumBug = !({ 'toString': null }).propertyIsEnumerable('toString');
+var hasProtoEnumBug = function () {}.propertyIsEnumerable('prototype');
+var hasStringEnumBug = !owns('x', '0');
+var equalsConstructorPrototype = function (o) {
+    var ctor = o.constructor;
+    return ctor && ctor.prototype === o;
+};
+var blacklistedKeys = {
+    $window: true,
+    $console: true,
+    $parent: true,
+    $self: true,
+    $frame: true,
+    $frames: true,
+    $frameElement: true,
+    $webkitIndexedDB: true,
+    $webkitStorageInfo: true,
+    $external: true
+};
+var hasAutomationEqualityBug = (function () {
+    /* globals window */
+    if (typeof window === 'undefined') { return false; }
+    for (var k in window) {
+        try {
+            if (!blacklistedKeys['$' + k] && owns(window, k) && window[k] !== null && typeof window[k] === 'object') {
+                equalsConstructorPrototype(window[k]);
+            }
+        } catch (e) {
+            return true;
+        }
+    }
+    return false;
+}());
+var equalsConstructorPrototypeIfNotBuggy = function (object) {
+    if (typeof window === 'undefined' || !hasAutomationEqualityBug) { return equalsConstructorPrototype(object); }
+    try {
+        return equalsConstructorPrototype(object);
+    } catch (e) {
+        return false;
+    }
+};
+var dontEnums = [
+    'toString',
+    'toLocaleString',
+    'valueOf',
+    'hasOwnProperty',
+    'isPrototypeOf',
+    'propertyIsEnumerable',
+    'constructor'
+];
+var dontEnumsLength = dontEnums.length;
 
-defineProperties(Object, {
+// taken directly from https://github.com/ljharb/is-arguments/blob/master/index.js
+// can be replaced with require('is-arguments') if we ever use a build process instead
+var isStandardArguments = function isArguments(value) {
+    return toStr(value) === '[object Arguments]';
+};
+var isLegacyArguments = function isArguments(value) {
+    return value !== null &&
+        typeof value === 'object' &&
+        typeof value.length === 'number' &&
+        value.length >= 0 &&
+        !isArray(value) &&
+        isCallable(value.callee);
+};
+var isArguments = isStandardArguments(arguments) ? isStandardArguments : isLegacyArguments;
+
+defineProperties($Object, {
     keys: function keys(object) {
-        var isFn = isCallable(object),
-            isArgs = isArguments(object),
-            isObject = object !== null && typeof object === 'object',
-            isStr = isObject && isString(object);
+        var isFn = isCallable(object);
+        var isArgs = isArguments(object);
+        var isObject = object !== null && typeof object === 'object';
+        var isStr = isObject && isString(object);
 
         if (!isObject && !isFn && !isArgs) {
             throw new TypeError('Object.keys called on a non-object');
@@ -809,25 +1053,24 @@ defineProperties(Object, {
         var skipProto = hasProtoEnumBug && isFn;
         if ((isStr && hasStringEnumBug) || isArgs) {
             for (var i = 0; i < object.length; ++i) {
-                theKeys.push(String(i));
+                push(theKeys, $String(i));
             }
         }
 
         if (!isArgs) {
             for (var name in object) {
                 if (!(skipProto && name === 'prototype') && owns(object, name)) {
-                    theKeys.push(String(name));
+                    push(theKeys, $String(name));
                 }
             }
         }
 
         if (hasDontEnumBug) {
-            var ctor = object.constructor,
-                skipConstructor = ctor && ctor.prototype === object;
+            var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object);
             for (var j = 0; j < dontEnumsLength; j++) {
                 var dontEnum = dontEnums[j];
                 if (!(skipConstructor && dontEnum === 'constructor') && owns(object, dontEnum)) {
-                    theKeys.push(dontEnum);
+                    push(theKeys, dontEnum);
                 }
             }
         }
@@ -835,20 +1078,24 @@ defineProperties(Object, {
     }
 });
 
-var keysWorksWithArguments = Object.keys && (function () {
+var keysWorksWithArguments = $Object.keys && (function () {
     // Safari 5.0 bug
-    return Object.keys(arguments).length === 2;
+    return $Object.keys(arguments).length === 2;
 }(1, 2));
-var originalKeys = Object.keys;
-defineProperties(Object, {
+var keysHasArgumentsLengthBug = $Object.keys && (function () {
+    var argKeys = $Object.keys(arguments);
+    return arguments.length !== 1 || argKeys.length !== 1 || argKeys[0] !== 1;
+}(1));
+var originalKeys = $Object.keys;
+defineProperties($Object, {
     keys: function keys(object) {
         if (isArguments(object)) {
-            return originalKeys(ArrayPrototype.slice.call(object));
+            return originalKeys(arraySlice(object));
         } else {
             return originalKeys(object);
         }
     }
-}, !keysWorksWithArguments);
+}, !keysWorksWithArguments || keysHasArgumentsLengthBug);
 
 //
 // Date
@@ -865,6 +1112,7 @@ defineProperties(Object, {
 var negativeDate = -62198755200000;
 var negativeYearString = '-000001';
 var hasNegativeDateBug = Date.prototype.toISOString && new Date(negativeDate).toISOString().indexOf(negativeYearString) === -1;
+var hasSafari51DateBug = Date.prototype.toISOString && new Date(-1).toISOString() !== '1969-12-31T23:59:59.999Z';
 
 defineProperties(Date.prototype, {
     toISOString: function toISOString() {
@@ -884,7 +1132,7 @@ defineProperties(Date.prototype, {
         result = [month + 1, this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()];
         year = (
             (year < 0 ? '-' : (year > 9999 ? '+' : '')) +
-            ('00000' + Math.abs(year)).slice((0 <= year && year <= 9999) ? -4 : -6)
+            strSlice('00000' + Math.abs(year), (0 <= year && year <= 9999) ? -4 : -6)
         );
 
         length = result.length;
@@ -898,12 +1146,12 @@ defineProperties(Date.prototype, {
         }
         // pad milliseconds to have three digits.
         return (
-            year + '-' + result.slice(0, 2).join('-') +
-            'T' + result.slice(2).join(':') + '.' +
-            ('000' + this.getUTCMilliseconds()).slice(-3) + 'Z'
+            year + '-' + arraySlice(result, 0, 2).join('-') +
+            'T' + arraySlice(result, 2).join(':') + '.' +
+            strSlice('000' + this.getUTCMilliseconds(), -3) + 'Z'
         );
     }
-}, hasNegativeDateBug);
+}, hasNegativeDateBug || hasSafari51DateBug);
 
 // ES5 15.9.5.44
 // http://es5.github.com/#x15.9.5.44
@@ -929,7 +1177,7 @@ if (!dateToJSONIsSupported) {
         // 1.  Let O be the result of calling ToObject, giving it the this
         // value as its argument.
         // 2. Let tv be ES.ToPrimitive(O, hint Number).
-        var O = Object(this);
+        var O = $Object(this);
         var tv = ES.ToPrimitive(O);
         // 3. If tv is a Number and is not finite, return null.
         if (typeof tv === 'number' && !isFinite(tv)) {
@@ -964,11 +1212,13 @@ if (!dateToJSONIsSupported) {
 var supportsExtendedYears = Date.parse('+033658-09-27T01:46:40.000Z') === 1e15;
 var acceptsInvalidDates = !isNaN(Date.parse('2012-04-04T24:00:00.500Z')) || !isNaN(Date.parse('2012-11-31T23:59:59.000Z')) || !isNaN(Date.parse('2012-12-31T23:59:60.000Z'));
 var doesNotParseY2KNewYear = isNaN(Date.parse('2000-01-01T00:00:00.000Z'));
-if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExtendedYears) {
+if (doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExtendedYears) {
     // XXX global assignment won't work in embeddings that use
     // an alternate object for the context.
     /* global Date: true */
     /* eslint-disable no-undef */
+    var maxSafeUnsigned32Bit = Math.pow(2, 31) - 1;
+    var hasSafariSignedIntBug = isActualNaN(new Date(1970, 0, 1, 0, 0, 0, maxSafeUnsigned32Bit + 1).getTime());
     Date = (function (NativeDate) {
     /* eslint-enable no-undef */
         // Date.length === 7
@@ -976,13 +1226,22 @@ if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExt
             var length = arguments.length;
             var date;
             if (this instanceof NativeDate) {
-                date = length === 1 && String(Y) === Y ? // isString(Y)
+                var seconds = s;
+                var millis = ms;
+                if (hasSafariSignedIntBug && length >= 7 && ms > maxSafeUnsigned32Bit) {
+                    // work around a Safari 8/9 bug where it treats the seconds as signed
+                    var msToShift = Math.floor(ms / maxSafeUnsigned32Bit) * maxSafeUnsigned32Bit;
+                    var sToShift = Math.floor(msToShift / 1e3);
+                    seconds += sToShift;
+                    millis -= sToShift * 1e3;
+                }
+                date = length === 1 && $String(Y) === Y ? // isString(Y)
                     // We explicitly pass it through parse:
                     new NativeDate(DateShim.parse(Y)) :
                     // We have to manually make calls depending on argument
                     // length here
-                    length >= 7 ? new NativeDate(Y, M, D, h, m, s, ms) :
-                    length >= 6 ? new NativeDate(Y, M, D, h, m, s) :
+                    length >= 7 ? new NativeDate(Y, M, D, h, m, seconds, millis) :
+                    length >= 6 ? new NativeDate(Y, M, D, h, m, seconds) :
                     length >= 5 ? new NativeDate(Y, M, D, h, m) :
                     length >= 4 ? new NativeDate(Y, M, D, h) :
                     length >= 3 ? new NativeDate(Y, M, D) :
@@ -992,8 +1251,10 @@ if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExt
             } else {
                 date = NativeDate.apply(this, arguments);
             }
-            // Prevent mixups with unfixed Date object
-            defineProperties(date, { constructor: DateShim }, true);
+            if (!isPrimitive(date)) {
+              // Prevent mixups with unfixed Date object
+              defineProperties(date, { constructor: DateShim }, true);
+            }
             return date;
         };
 
@@ -1034,7 +1295,16 @@ if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExt
         };
 
         var toUTC = function toUTC(t) {
-            return Number(new NativeDate(1970, 0, 1, 0, 0, 0, t));
+            var s = 0;
+            var ms = t;
+            if (hasSafariSignedIntBug && ms > maxSafeUnsigned32Bit) {
+                // work around a Safari 8/9 bug where it treats the seconds as signed
+                var msToShift = Math.floor(ms / maxSafeUnsigned32Bit) * maxSafeUnsigned32Bit;
+                var sToShift = Math.floor(msToShift / 1e3);
+                s += sToShift;
+                ms -= sToShift * 1e3;
+            }
+            return $Number(new NativeDate(1970, 0, 1, 0, 0, s, ms));
         };
 
         // Copy any custom methods a 3rd party library may have added
@@ -1061,34 +1331,29 @@ if (!Date.parse || doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExt
                 // parse months, days, hours, minutes, seconds, and milliseconds
                 // provide default values if necessary
                 // parse the UTC offset component
-                var year = Number(match[1]),
-                    month = Number(match[2] || 1) - 1,
-                    day = Number(match[3] || 1) - 1,
-                    hour = Number(match[4] || 0),
-                    minute = Number(match[5] || 0),
-                    second = Number(match[6] || 0),
-                    millisecond = Math.floor(Number(match[7] || 0) * 1000),
+                var year = $Number(match[1]),
+                    month = $Number(match[2] || 1) - 1,
+                    day = $Number(match[3] || 1) - 1,
+                    hour = $Number(match[4] || 0),
+                    minute = $Number(match[5] || 0),
+                    second = $Number(match[6] || 0),
+                    millisecond = Math.floor($Number(match[7] || 0) * 1000),
                     // When time zone is missed, local offset should be used
                     // (ES 5.1 bug)
                     // see https://bugs.ecmascript.org/show_bug.cgi?id=112
                     isLocalTime = Boolean(match[4] && !match[8]),
                     signOffset = match[9] === '-' ? 1 : -1,
-                    hourOffset = Number(match[10] || 0),
-                    minuteOffset = Number(match[11] || 0),
+                    hourOffset = $Number(match[10] || 0),
+                    minuteOffset = $Number(match[11] || 0),
                     result;
+                var hasMinutesOrSecondsOrMilliseconds = minute > 0 || second > 0 || millisecond > 0;
                 if (
-                    hour < (
-                        minute > 0 || second > 0 || millisecond > 0 ?
-                        24 : 25
-                    ) &&
+                    hour < (hasMinutesOrSecondsOrMilliseconds ? 24 : 25) &&
                     minute < 60 && second < 60 && millisecond < 1000 &&
                     month > -1 && month < 12 && hourOffset < 24 &&
                     minuteOffset < 60 && // detect invalid offsets
                     day > -1 &&
-                    day < (
-                        dayFromMonth(year, month + 1) -
-                        dayFromMonth(year, month)
-                    )
+                    day < (dayFromMonth(year, month + 1) - dayFromMonth(year, month))
                 ) {
                     result = (
                         (dayFromMonth(year, month) + day) * 24 +
@@ -1165,11 +1430,11 @@ var toFixedHelpers = {
       var s = '';
       while (--i >= 0) {
           if (s !== '' || i === 0 || toFixedHelpers.data[i] !== 0) {
-              var t = String(toFixedHelpers.data[i]);
+              var t = $String(toFixedHelpers.data[i]);
               if (s === '') {
                   s = t;
               } else {
-                  s += '0000000'.slice(0, 7 - t.length) + t;
+                  s += strSlice('0000000', 0, 7 - t.length) + t;
               }
           }
       }
@@ -1193,92 +1458,104 @@ var toFixedHelpers = {
   }
 };
 
-defineProperties(NumberPrototype, {
-    toFixed: function toFixed(fractionDigits) {
-        var f, x, s, m, e, z, j, k;
+var toFixedShim = function toFixed(fractionDigits) {
+    var f, x, s, m, e, z, j, k;
 
-        // Test for NaN and round fractionDigits down
-        f = Number(fractionDigits);
-        f = f !== f ? 0 : Math.floor(f);
+    // Test for NaN and round fractionDigits down
+    f = $Number(fractionDigits);
+    f = isActualNaN(f) ? 0 : Math.floor(f);
 
-        if (f < 0 || f > 20) {
-            throw new RangeError('Number.toFixed called with invalid number of decimals');
-        }
-
-        x = Number(this);
-
-        // Test for NaN
-        if (x !== x) {
-            return 'NaN';
-        }
-
-        // If it is too big or small, return the string value of the number
-        if (x <= -1e21 || x >= 1e21) {
-            return String(x);
-        }
-
-        s = '';
-
-        if (x < 0) {
-            s = '-';
-            x = -x;
-        }
-
-        m = '0';
-
-        if (x > 1e-21) {
-            // 1e-21 < x < 1e21
-            // -70 < log2(x) < 70
-            e = toFixedHelpers.log(x * toFixedHelpers.pow(2, 69, 1)) - 69;
-            z = (e < 0 ? x * toFixedHelpers.pow(2, -e, 1) : x / toFixedHelpers.pow(2, e, 1));
-            z *= 0x10000000000000; // Math.pow(2, 52);
-            e = 52 - e;
-
-            // -18 < e < 122
-            // x = z / 2 ^ e
-            if (e > 0) {
-                toFixedHelpers.multiply(0, z);
-                j = f;
-
-                while (j >= 7) {
-                    toFixedHelpers.multiply(1e7, 0);
-                    j -= 7;
-                }
-
-                toFixedHelpers.multiply(toFixedHelpers.pow(10, j, 1), 0);
-                j = e - 1;
-
-                while (j >= 23) {
-                    toFixedHelpers.divide(1 << 23);
-                    j -= 23;
-                }
-
-                toFixedHelpers.divide(1 << j);
-                toFixedHelpers.multiply(1, 1);
-                toFixedHelpers.divide(2);
-                m = toFixedHelpers.numToString();
-            } else {
-                toFixedHelpers.multiply(0, z);
-                toFixedHelpers.multiply(1 << (-e), 0);
-                m = toFixedHelpers.numToString() + '0.00000000000000000000'.slice(2, 2 + f);
-            }
-        }
-
-        if (f > 0) {
-            k = m.length;
-
-            if (k <= f) {
-                m = s + '0.0000000000000000000'.slice(0, f - k + 2) + m;
-            } else {
-                m = s + m.slice(0, k - f) + '.' + m.slice(k - f);
-            }
-        } else {
-            m = s + m;
-        }
-
-        return m;
+    if (f < 0 || f > 20) {
+        throw new RangeError('Number.toFixed called with invalid number of decimals');
     }
-}, hasToFixedBugs);
+
+    x = $Number(this);
+
+    if (isActualNaN(x)) {
+        return 'NaN';
+    }
+
+    // If it is too big or small, return the string value of the number
+    if (x <= -1e21 || x >= 1e21) {
+        return $String(x);
+    }
+
+    s = '';
+
+    if (x < 0) {
+        s = '-';
+        x = -x;
+    }
+
+    m = '0';
+
+    if (x > 1e-21) {
+        // 1e-21 < x < 1e21
+        // -70 < log2(x) < 70
+        e = toFixedHelpers.log(x * toFixedHelpers.pow(2, 69, 1)) - 69;
+        z = (e < 0 ? x * toFixedHelpers.pow(2, -e, 1) : x / toFixedHelpers.pow(2, e, 1));
+        z *= 0x10000000000000; // Math.pow(2, 52);
+        e = 52 - e;
+
+        // -18 < e < 122
+        // x = z / 2 ^ e
+        if (e > 0) {
+            toFixedHelpers.multiply(0, z);
+            j = f;
+
+            while (j >= 7) {
+                toFixedHelpers.multiply(1e7, 0);
+                j -= 7;
+            }
+
+            toFixedHelpers.multiply(toFixedHelpers.pow(10, j, 1), 0);
+            j = e - 1;
+
+            while (j >= 23) {
+                toFixedHelpers.divide(1 << 23);
+                j -= 23;
+            }
+
+            toFixedHelpers.divide(1 << j);
+            toFixedHelpers.multiply(1, 1);
+            toFixedHelpers.divide(2);
+            m = toFixedHelpers.numToString();
+        } else {
+            toFixedHelpers.multiply(0, z);
+            toFixedHelpers.multiply(1 << (-e), 0);
+            m = toFixedHelpers.numToString() + strSlice('0.00000000000000000000', 2, 2 + f);
+        }
+    }
+
+    if (f > 0) {
+        k = m.length;
+
+        if (k <= f) {
+            m = s + strSlice('0.0000000000000000000', 0, f - k + 2) + m;
+        } else {
+            m = s + strSlice(m, 0, k - f) + '.' + strSlice(m, k - f);
+        }
+    } else {
+        m = s + m;
+    }
+
+    return m;
+};
+defineProperties(NumberPrototype, { toFixed: toFixedShim }, hasToFixedBugs);
+
+var hasToPrecisionUndefinedBug = (function () {
+    try {
+        return 1.0.toPrecision(undefined) === '1';
+    } catch (e) {
+        return true;
+    }
+}());
+var originalToPrecision = NumberPrototype.toPrecision;
+defineProperties(NumberPrototype, {
+    toPrecision: function toPrecision(precision) {
+        return typeof precision === 'undefined' ? originalToPrecision.call(this) : originalToPrecision.call(this, precision);
+    }
+}, hasToPrecisionUndefinedBug);
 
 //
 // String
@@ -1300,7 +1577,6 @@ defineProperties(NumberPrototype, {
 //    ''.split(/.?/) should be [], not [""]
 //    '.'.split(/()()/) should be ["."], not ["", "", "."]
 
-var string_split = StringPrototype.split;
 if (
     'ab'.split(/(?:ab)*/).length !== 2 ||
     '.'.split(/(.?)(.?)/).length !== 4 ||
@@ -1311,48 +1587,46 @@ if (
 ) {
     (function () {
         var compliantExecNpcg = typeof (/()??/).exec('')[1] === 'undefined'; // NPCG: nonparticipating capturing group
+        var maxSafe32BitInt = Math.pow(2, 32) - 1;
 
         StringPrototype.split = function (separator, limit) {
-            var string = this;
+            var string = String(this);
             if (typeof separator === 'undefined' && limit === 0) {
                 return [];
             }
 
             // If `separator` is not a regex, use native split
             if (!isRegex(separator)) {
-                return string_split.call(this, separator, limit);
+                return strSplit(this, separator, limit);
             }
 
             var output = [];
             var flags = (separator.ignoreCase ? 'i' : '') +
                         (separator.multiline ? 'm' : '') +
-                        (separator.extended ? 'x' : '') + // Proposed for ES6
-                        (separator.sticky ? 'y' : ''), // Firefox 3+
+                        (separator.unicode ? 'u' : '') + // in ES6
+                        (separator.sticky ? 'y' : ''), // Firefox 3+ and ES6
                 lastLastIndex = 0,
                 // Make `global` and avoid `lastIndex` issues by working with a copy
                 separator2, match, lastIndex, lastLength;
             var separatorCopy = new RegExp(separator.source, flags + 'g');
-            string += ''; // Type-convert
             if (!compliantExecNpcg) {
                 // Doesn't need flags gy, but they don't hurt
                 separator2 = new RegExp('^' + separatorCopy.source + '$(?!\\s)', flags);
             }
             /* Values for `limit`, per the spec:
-             * If undefined: 4294967295 // Math.pow(2, 32) - 1
+             * If undefined: 4294967295 // maxSafe32BitInt
              * If 0, Infinity, or NaN: 0
              * If positive number: limit = Math.floor(limit); if (limit > 4294967295) limit -= 4294967296;
              * If negative number: 4294967296 - Math.floor(Math.abs(limit))
              * If other: Type-convert, then use the above rules
              */
-            var splitLimit = typeof limit === 'undefined' ?
-                -1 >>> 0 : // Math.pow(2, 32) - 1
-                ES.ToUint32(limit);
+            var splitLimit = typeof limit === 'undefined' ? maxSafe32BitInt : ES.ToUint32(limit);
             match = separatorCopy.exec(string);
             while (match) {
                 // `separatorCopy.lastIndex` is not reliable cross-browser
                 lastIndex = match.index + match[0].length;
                 if (lastIndex > lastLastIndex) {
-                    output.push(string.slice(lastLastIndex, match.index));
+                    push(output, strSlice(string, lastLastIndex, match.index));
                     // Fix browsers whose `exec` methods don't consistently return `undefined` for
                     // nonparticipating capturing groups
                     if (!compliantExecNpcg && match.length > 1) {
@@ -1367,7 +1641,7 @@ if (
                         /* eslint-enable no-loop-func */
                     }
                     if (match.length > 1 && match.index < string.length) {
-                        array_push.apply(output, match.slice(1));
+                        array_push.apply(output, arraySlice(match, 1));
                     }
                     lastLength = match[0].length;
                     lastLastIndex = lastIndex;
@@ -1382,12 +1656,12 @@ if (
             }
             if (lastLastIndex === string.length) {
                 if (lastLength || !separatorCopy.test('')) {
-                    output.push('');
+                    push(output, '');
                 }
             } else {
-                output.push(string.slice(lastLastIndex));
+                push(output, strSlice(string, lastLastIndex));
             }
-            return output.length > splitLimit ? output.slice(0, splitLimit) : output;
+            return output.length > splitLimit ? strSlice(output, 0, splitLimit) : output;
         };
     }());
 
@@ -1400,7 +1674,7 @@ if (
 } else if ('0'.split(void 0, 0).length) {
     StringPrototype.split = function split(separator, limit) {
         if (typeof separator === 'undefined' && limit === 0) { return []; }
-        return string_split.call(this, separator, limit);
+        return strSplit(this, separator, limit);
     };
 }
 
@@ -1408,7 +1682,7 @@ var str_replace = StringPrototype.replace;
 var replaceReportsGroupsCorrectly = (function () {
     var groups = [];
     'x'.replace(/x(.)?/g, function (match, group) {
-        groups.push(group);
+        push(groups, group);
     });
     return groups.length === 1 && typeof groups[0] === 'undefined';
 }());
@@ -1426,7 +1700,7 @@ if (!replaceReportsGroupsCorrectly) {
                 searchValue.lastIndex = 0;
                 var args = searchValue.exec(match) || [];
                 searchValue.lastIndex = originalLastIndex;
-                args.push(arguments[length - 2], arguments[length - 1]);
+                push(args, arguments[length - 2], arguments[length - 1]);
                 return replaceValue.apply(this, args);
             };
             return str_replace.call(this, searchValue, wrappedReplaceValue);
@@ -1445,7 +1719,7 @@ defineProperties(StringPrototype, {
     substr: function substr(start, length) {
         var normalizedStart = start;
         if (start < 0) {
-            normalizedStart = Math.max(this.length + start, 0);
+            normalizedStart = max(this.length + start, 0);
         }
         return string_substr.call(this, normalizedStart, length);
     }
@@ -1468,21 +1742,116 @@ defineProperties(StringPrototype, {
         if (typeof this === 'undefined' || this === null) {
             throw new TypeError("can't convert " + this + ' to object');
         }
-        return String(this).replace(trimBeginRegexp, '').replace(trimEndRegexp, '');
+        return $String(this).replace(trimBeginRegexp, '').replace(trimEndRegexp, '');
     }
 }, hasTrimWhitespaceBug);
 
+var hasLastIndexBug = StringPrototype.lastIndexOf && 'abcあい'.lastIndexOf('あい', 2) !== -1;
+defineProperties(StringPrototype, {
+    lastIndexOf: function lastIndexOf(searchString) {
+        if (typeof this === 'undefined' || this === null) {
+            throw new TypeError("can't convert " + this + ' to object');
+        }
+        var S = $String(this);
+        var searchStr = $String(searchString);
+        var numPos = arguments.length > 1 ? $Number(arguments[1]) : NaN;
+        var pos = isActualNaN(numPos) ? Infinity : ES.ToInteger(numPos);
+        var start = min(max(pos, 0), S.length);
+        var searchLen = searchStr.length;
+        var k = start + searchLen;
+        while (k > 0) {
+            k = max(0, k - searchLen);
+            var index = strIndexOf(strSlice(S, k, start + searchLen), searchStr);
+            if (index !== -1) {
+                return k + index;
+            }
+        }
+        return -1;
+    }
+}, hasLastIndexBug);
+
+var originalLastIndexOf = StringPrototype.lastIndexOf;
+defineProperties(StringPrototype, {
+    lastIndexOf: function lastIndexOf(searchString) {
+        return originalLastIndexOf.apply(this, arguments);
+    }
+}, StringPrototype.lastIndexOf.length !== 1);
+
 // ES-5 15.1.2.2
+/* eslint-disable radix */
 if (parseInt(ws + '08') !== 8 || parseInt(ws + '0x16') !== 22) {
+/* eslint-enable radix */
     /* global parseInt: true */
     parseInt = (function (origParseInt) {
-        var hexRegex = /^0[xX]/;
+        var hexRegex = /^[\-+]?0[xX]/;
         return function parseInt(str, radix) {
-            var string = String(str).trim();
-            var defaultedRadix = Number(radix) || (hexRegex.test(string) ? 16 : 10);
+            var string = $String(str).trim();
+            var defaultedRadix = $Number(radix) || (hexRegex.test(string) ? 16 : 10);
             return origParseInt(string, defaultedRadix);
         };
     }(parseInt));
+}
+
+if (String(new RangeError('test')) !== 'RangeError: test') {
+    var errorToStringShim = function toString() {
+        if (typeof this === 'undefined' || this === null) {
+            throw new TypeError("can't convert " + this + ' to object');
+        }
+        var name = this.name;
+        if (typeof name === 'undefined') {
+            name = 'Error';
+        } else if (typeof name !== 'string') {
+            name = $String(name);
+        }
+        var msg = this.message;
+        if (typeof msg === 'undefined') {
+            msg = '';
+        } else if (typeof msg !== 'string') {
+            msg = $String(msg);
+        }
+        if (!name) {
+            return msg;
+        }
+        if (!msg) {
+            return name;
+        }
+        return name + ': ' + msg;
+    };
+    // can't use defineProperties here because of toString enumeration issue in IE <= 8
+    Error.prototype.toString = errorToStringShim;
+}
+
+if (supportsDescriptors) {
+    var ensureNonEnumerable = function (obj, prop) {
+        if (isEnum(obj, prop)) {
+            var desc = Object.getOwnPropertyDescriptor(obj, prop);
+            desc.enumerable = false;
+            Object.defineProperty(obj, prop, desc);
+        }
+    };
+    ensureNonEnumerable(Error.prototype, 'message');
+    if (Error.prototype.message !== '') {
+      Error.prototype.message = '';
+    }
+    ensureNonEnumerable(Error.prototype, 'name');
+}
+
+if (String(/a/mig) !== '/a/gim') {
+    var regexToString = function toString() {
+        var str = '/' + this.source + '/';
+        if (this.global) {
+            str += 'g';
+        }
+        if (this.ignoreCase) {
+            str += 'i';
+        }
+        if (this.multiline) {
+            str += 'm';
+        }
+        return str;
+    };
+    // can't use defineProperties here because of toString enumeration issue in IE <= 8
+    RegExp.prototype.toString = regexToString;
 }
 
 }));
@@ -1502,7 +1871,7 @@ if (parseInt(ws + '08') !== 8 || parseInt(ws + '0x16') !== 22) {
     - https://bugs.webkit.org/show_bug.cgi?id=85161
     - https://bugzilla.mozilla.org/show_bug.cgi?id=749920
 */
-window.MutationObserver = (function(undefined) {
+window.MutationObserver = window.MutationObserver || window.WebKitMutationObserver || (function(undefined) {
     "use strict";
     /**
      * @param {function(Array.<MutationRecord>, MutationObserver)} listener
@@ -1529,11 +1898,7 @@ window.MutationObserver = (function(undefined) {
 
             if (mutations.length) { // fire away
                 // calling the listener with context is not spec but currently consistent with FF and WebKit
-                try{
-                    observer._listener(mutations, observer);
-                }catch(e) {
-                    __portiaApi.log('MutationChecker ' +e);
-                }
+                observer._listener(mutations, observer);
             }
             /** @private */
             observer._timeout = setTimeout(check, MutationObserver._period);
