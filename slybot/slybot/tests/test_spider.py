@@ -132,12 +132,12 @@ class SpiderTest(TestCase):
         spider = self.smanager.create(name)
         generic_form_request = list(spider.start_requests())[0]
 
-        response = HtmlResponse(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc", body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
+        response = HtmlResponse(url="http://www.ebay.com/sch/ebayadvsearch/?rt=nc", body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
         response.request = generic_form_request
         request_list = [request_to_dict(req, spider)
                              for req in generic_form_request.callback(response)]
 
-        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=1&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=2&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=3&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=4&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse', 'method': 'GET', 'errback': None}]
+        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=1&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=2&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=3&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=4&_nkw=Cars&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=', 'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None}, {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {}, 'url': u'http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
 
     def test_generic_form_requests_with_file_field(self):
@@ -150,7 +150,7 @@ class SpiderTest(TestCase):
         response.request = generic_form_request
         requests = list(generic_form_request.callback(response))
         request_list = [request_to_dict(req, spider) for req in requests]
-        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'form_url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', u'type': u'form', 'field_index': 1, u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'inurl', u'value': u'file://tmp/test_params.txt'}, {u'type': u'inurl', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'iterate'}]}, 'headers': {}, 'url': u'file://tmp/test_params.txt', 'dont_filter': True, 'priority': 0, 'callback': 'parse_field_url_page', 'method': 'GET', 'errback': None}]
+        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'form_url': u'http://www.ebay.com/sch/ebayadvsearch/?rt=nc', u'type': u'form', 'field_index': 1, u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'inurl', u'value': u'file://tmp/test_params.txt'}, {u'type': u'inurl', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'iterate'}]}, 'headers': {}, 'url': u'file://tmp/test_params.txt', 'dont_filter': True, 'priority': 0, 'callback': 'parse_field_url_page', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
 
         generic_form_request = requests[0]
@@ -160,12 +160,12 @@ class SpiderTest(TestCase):
 
         requests = list(generic_form_request.callback(response))
         request_list = [request_to_dict(req, spider) for req in requests]
-        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'inurl', u'value': u'file://tmp/test_params.txt'}, {'file_values': ['Cars', 'Boats'], u'type': u'inurl', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'iterate'}], u'type': u'form', 'field_index': 1}, 'headers': {}, 'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse_form_page', 'method': 'GET', 'errback': None}]
+        expected = [{'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {u'xpath': u"//form[@name='adv_search_from']", u'fields': [{u'xpath': u".//*[@name='_nkw']", 'file_values': ['Cars', 'Boats'], u'type': u'inurl', u'value': u'file://tmp/test_params.txt'}, {'file_values': ['Cars', 'Boats'], u'type': u'inurl', u'name': u'_nkw2', u'value': u'file://tmp/test_params.txt'}, {u'xpath': u".//*[@name='_in_kw']", u'type': u'iterate'}], u'type': u'form', 'field_index': 1}, 'headers': {}, 'url': u'http://www.ebay.com/sch/ebayadvsearch/?rt=nc', 'dont_filter': True, 'priority': 0, 'callback': 'parse_form_page', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
 
         generic_form_request = requests[0]
-        self.assertEqual(generic_form_request.url, 'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc')
-        response = HtmlResponse(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc", body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
+        self.assertEqual(generic_form_request.url, 'http://www.ebay.com/sch/ebayadvsearch/?rt=nc')
+        response = HtmlResponse(url="http://www.ebay.com/sch/ebayadvsearch/?rt=nc", body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
         response.request = generic_form_request
         request_list = [request_to_dict(req, spider)
                              for req in generic_form_request.callback(response)]
@@ -218,7 +218,7 @@ class SpiderTest(TestCase):
             'url': u'http://www.ebay.com/sch/i.html?_adv=1&_ex_kw=&_ftrv=1&_ftrt=901&_sabdlo=&_sabdhi=&_sop=12&_samihi=&_ipg=50&_salic=1&_sasl=&_udlo=&_okw=&_nkw2=Boats&_fsradio=%26LH_SpecificSeller%3D1&_udhi=&_in_kw=4&_nkw=Boats&_sacat=0&_oexkw=&_dmd=1&_saslop=1&_samilow=',
             'dont_filter': True, 'priority': 0, 'callback': 'after_form_page', 'method': 'GET', 'errback': None},
             {'body': '', '_encoding': 'utf-8', 'cookies': {}, 'meta': {}, 'headers': {},
-            'url': u'http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc',
+            'url': u'http://www.ebay.com/sch/ebayadvsearch/?rt=nc',
             'dont_filter': True, 'priority': 0, 'callback': 'parse', 'method': 'GET', 'errback': None}]
         self.assertEqual(request_list, expected)
 
@@ -273,7 +273,7 @@ class SpiderTest(TestCase):
         spider = self.smanager.create(name)
         generic_form_request = list(spider.start_requests())[0]
 
-        response = Response(url="http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+        response = Response(url="http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
                             body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
         response.request = generic_form_request
         # must not raise an error

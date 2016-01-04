@@ -13,7 +13,7 @@ class GenericFormTest(TestCase):
         body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
         form_descriptor = json.loads("""{
             "type": "form",
-            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
@@ -34,7 +34,7 @@ class GenericFormTest(TestCase):
         body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
         form_descriptor = json.loads("""{
             "type": "form",
-            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
@@ -55,7 +55,7 @@ class GenericFormTest(TestCase):
         body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
         form_descriptor = json.loads("""{
             "type": "form",
-            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
@@ -80,7 +80,7 @@ class GenericFormTest(TestCase):
         body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
         form_descriptor = json.loads("""{
             "type": "form",
-            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
@@ -107,7 +107,7 @@ class GenericFormTest(TestCase):
         body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
         form_descriptor = json.loads("""{
             "type": "form",
-            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
@@ -128,7 +128,7 @@ class GenericFormTest(TestCase):
         body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
         form_descriptor = json.loads("""{
             "type": "form",
-            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {
