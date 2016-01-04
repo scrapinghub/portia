@@ -10,7 +10,7 @@ export default Ember.Component.extend(Draggable, {
             dataTransfer.effectAllowed = "move";
             dataTransfer.setData('text/plain', "");
             var dragElement = this.$().parentsUntil('.reorderable-list').eq(-1);
-            dataTransfer.addElement(dragElement[0]);
+            dataTransfer.setDragImage(dragElement[0], 5, 5);
             dragElement.addClass('dragging');
         }
 });
