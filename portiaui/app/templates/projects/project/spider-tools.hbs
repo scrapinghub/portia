@@ -1,5 +1,17 @@
 {{outlet 'tool-panels'}}
 
+{{#tool-group id="inspector-group" as |options|}}
+    {{#if (eq options.section "tabs")}}
+        {{#tool-tab toolId="actions" group=options.group}}
+            Actions
+        {{/tool-tab}}
+    {{else if (eq options.section "panels")}}
+        {{#tool-panel class="actions container-fluid" toolId="actions" group=options.group}}
+             {{page-actions-editor pageActions=model.pageActions}}
+        {{/tool-panel}}
+    {{/if}}
+{{/tool-group}}
+
 {{#if showExtractedItems}}
     {{#tool-group id="extracted-items-group" as |options|}}
         {{#if (eq options.section "tabs")}}

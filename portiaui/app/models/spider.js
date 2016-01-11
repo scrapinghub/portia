@@ -14,6 +14,11 @@ const Spider = DS.Model.extend({
     excludePatterns: DS.attr('array'),
     jsEnablePatterns: DS.attr('array'),
     jsDisablePatterns: DS.attr('array'),
+    pageActions: DS.attr('json', {
+        defaultValue() {
+            return [];
+        }
+    }),
     samples: DS.hasMany({
         async: true
     })

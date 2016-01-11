@@ -59,9 +59,13 @@ export default Ember.Service.extend({
 
     },
     viewPort: {
-        hoveredElement: null,
         hoveredModels: [],
         selectedElement: null,
-        selectedModel: null
+        selectedModel: null,
+
+        // When the selected element is changed by clicking a parent in
+        // the inspector, this is the original element that was selected
+        originalSelectedElement: null,
+        hoveredElement: null
     }
 });

@@ -38,7 +38,7 @@ export default Ember.Component.extend({
                 this.set('$menu', $menu);
                 Ember.$(container).append($menu);
                 this.get('positionMonitor').registerElement(
-                    this.element, this, this.updateMenuWidth, this.updatePosition,
+                    this.element, this, this.updateMenuSize, this.updatePosition,
                     /*forceUpdate = */true);
             });
         }
@@ -48,7 +48,7 @@ export default Ember.Component.extend({
         const $menu = this.get('$menu');
         if ($menu) {
             this.get('positionMonitor').unRegisterElement(
-                this.element, this, this.updateMenuWidth, this.updatePosition);
+                this.element, this, this.updateMenuSize, this.updatePosition);
             Ember.run.schedule('afterRender', () => {
                 $menu.remove();
             });
@@ -67,15 +67,14 @@ export default Ember.Component.extend({
         this.send('keyDown', ...arguments);
     },
 
-    updateMenuWidth() {
+    updateMenuSize() {
         const $menu = this.get('$menu');
         this.menuWidth = $menu.outerWidth();
+        this.menuHeight = $menu.outerHeight();
     },
 
     updatePosition(rect) {
         const $menu = this.get('$menu');
-        //const top = Math.round(rect.top);
-        const bottom = Math.round(rect.bottom);
         const left = Math.round(rect.left);
         const right = Math.round(rect.right);
         let positionLeft;
@@ -84,10 +83,13 @@ export default Ember.Component.extend({
         } else {
             positionLeft = left;
         }
+        let overflows = (rect.bottom + this.menuHeight) > window.innerHeight;
+        // If it overflows under the screen, align top
+        let top =  overflows ? rect.top - this.menuHeight : rect.bottom;
         $menu.css({
-            top: `${bottom}px`,
+            top: `${Math.round(top)}px`,
             left: `${positionLeft}px`,
-            right: `auto`
+            right: `auto`,
         });
     },
 
