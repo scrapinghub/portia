@@ -28,7 +28,7 @@ export function getAttributeList(element) {
         if (attrib.name.startsWith('_portia_')) {
             var originalName = attrib.name.slice(8);
             if (!mappedAttributes[originalName]) {
-                mappedAttributes[originalName] = attrib.value;
+                mappedAttributes[originalName] = element.getAttribute(originalName).value;
             }
         }
     }

@@ -263,7 +263,7 @@ class AnnotationSchema(BaseAnnotationSchema):
 
 
 class ItemAnnotationSchema(BaseAnnotationSchema):
-    item_container = fields.Boolean()
+    item_container = fields.Boolean(default=True)
     container_id = fields.Str()
     repeated = fields.Boolean()
     siblings = fields.Integer()

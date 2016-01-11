@@ -76,7 +76,6 @@ def delete_item(manager, spider_id, sample_id, item_id, attributes=None):
 
 def _get_item(items, item_id):
     for item in items:
-        print(item)
         if item['id'] == item_id and item['container_id']:
             return item
     raise NotFound('No item with the id "%s" could be found.' % item_id)

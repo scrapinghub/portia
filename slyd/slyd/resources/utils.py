@@ -25,7 +25,8 @@ def _load_sample(manager, spider_id, sample_id):
         return sample
     annotations = load_annotations(sample.get('annotated_body', ''))
     sample['plugins'] = annotations
-    # add_plugin_data(sample, manager.plugins)  # TODO: add original body
+    if annotations['annotations-plugin']['extracts']:
+        add_plugin_data(sample, manager.plugins)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     return sample
 

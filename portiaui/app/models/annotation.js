@@ -9,6 +9,13 @@ const Annotation = DS.Model.extend({
         async: false
     }),
     attribute: DS.attr('string'),
+    tagid: DS.attr('string'),
+    required: DS.attr('boolean'),
+    ignore: DS.attr('boolean'),
+    ignoreBeneath: DS.attr('boolean'),
+    variant: DS.attr('number'),
+    slice: DS.attr('array'),
+
     // json fixes error with storing ember NativeArray in indexed db
     acceptSelectors: DS.attr('array'),
     rejectSelectors: DS.attr('array'),

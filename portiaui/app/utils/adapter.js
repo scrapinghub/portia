@@ -9,7 +9,7 @@ var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
     uiState: Ember.inject.service('ui-state'),
     _load_relationship: function(model, record, from, id) {
         if (from === model && !!id) {
-            return id
+            return id;
         }
         if (!record) {
             return undefined;
@@ -36,7 +36,7 @@ var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
         let re = new RegExp(`/${prefix}/([^/]+)`),
             matches = re.exec(document.location.hash);
         if (matches) {
-            return matches.slice(-1)[0]
+            return matches.slice(-1)[0];
         }
     },
 

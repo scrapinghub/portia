@@ -6,6 +6,9 @@ import {getColors} from '../utils/colors';
 const Sample = DS.Model.extend({
     name: DS.attr('string'),
     url: DS.attr('string'),
+    pageId: DS.attr('string'),
+    pageType: DS.attr('string'),
+    scrapes: DS.attr('string'),
     spider: DS.belongsTo(),
     items: DS.hasMany({
         async: true

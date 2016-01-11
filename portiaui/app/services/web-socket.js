@@ -195,6 +195,11 @@ export default Ember.Service.extend({
 
     _sendPromise: function(data) {
         var deferred = new Ember.RSVP.defer();
+        if (!data._meta) {
+            data._meta = this._metadata(null);
+        } else if (!data._meta.id) {
+            data._meta.id = shortGuid();
+        }
         if(this.get('opened')) {
             this.set('deferreds.' + data._meta.id, deferred);
             this.send(data);

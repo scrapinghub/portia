@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import re
 
+from collections import OrderedDict
+
 from scrapy.http import Request
 
 from scrapely.extraction import InstanceBasedLearningExtractor
@@ -29,7 +31,6 @@ class Annotations(object):
              t.get('extractors', [])]
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
         ))
-
         self.item_classes = {}
         self.html_link_extractor = HtmlLinkExtractor()
         self.rss_link_extractor = RssLinkExtractor()
@@ -41,14 +42,15 @@ class Annotations(object):
         # Create descriptors and apply additional extractors to fields
         page_descriptor_pairs = []
         for default, template, template_extractors in _item_template_pages:
-            descriptors = {}
+            descriptors = OrderedDict()
             for schema_name, schema in items.items():
                 item_descriptor = create_slybot_item_descriptor(schema,
                                                                 schema_name)
                 apply_extractors(item_descriptor, template_extractors,
                                  extractors)
                 descriptors[schema_name] = item_descriptor
-            descriptors['#default'] = descriptors[default]
+            descriptor = descriptors.values() or [{}]
+            descriptors['#default'] = descriptors.get(default, descriptor[0])
             page_descriptor_pairs.append((template, descriptors))
 
         self.extractors = SlybotIBLExtractor(page_descriptor_pairs)

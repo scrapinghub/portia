@@ -62,11 +62,12 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
     elif data.get('required') and attribute in annotation['annotations']:
         data['required'] = annotation['required'] + [attribute]
     new_attribute = data.pop('attribute', attribute)
+    data.pop('required', None)
 
     # Check if annotation has been moved to new container
     if ('parent_id' in relationships and
             relationships['parent_id'] != annotation.get('container_id')):
-        data['container_id'] = relationships['parent_id']
+        data['container_id'] = relationships['parent_id'].split('#')[0]
 
     # Add or update annotation
     annotation.update(data)
@@ -132,7 +133,11 @@ def _split_annotations(annotations):
             a = a.annotation.metadata.copy()
         else:
             a = a.copy()
-        for attribute, field_id in a.get('annotations', {}).items():
+        _default = {'#portia-content': None}
+        attributes = a.get('annotations', _default)
+        if not attributes:
+            attributes = _default
+        for attribute, field_id in attributes.items():
             if attribute:
                 a['id'] = '#'.join((a['id'], attribute))
             a['attribute'] = attribute
@@ -169,13 +174,13 @@ def _create_annotation(sample, attributes):
     aid = gen_id(disallow=[a['id'] for a in annotations if a.get('id')])
     annotation = {
         'id': aid,
-        'container_id': relationships['parent_id'],
+        'container_id': relationships['parent_id'].split('#')[0],
         # TODO: default to most likely attribute
         'annotations': {'content': relationships['field_id']},
         'accept_selectors': attributes.get('accept_selectors', []),
         'reject_selectors': attributes.get('reject_selectors', []),
         'required': [],
-        'tagid': 1  # TODO: update this during PATCH from ui
+        'tagid': attributes.get('tagid', '1')
     }
     annotations.append(annotation)
     return annotation

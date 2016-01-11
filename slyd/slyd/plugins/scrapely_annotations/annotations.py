@@ -42,7 +42,7 @@ class Annotations(object):
         data['extracts'] = annotation_data
         template['annotated_body'] = apply_annotations(
             annotation_data,
-            template['original_body'])
+            template[options.get('body', 'original_body')])
         return data
 
 
@@ -245,7 +245,7 @@ def apply_annotations(annotations, target_page):
     filtered = defaultdict(list)
     for ann in annotations:
         if ann and ann.get('tagid') and (ann.get('annotations') or
-                ann.get('ignore')):
+                                         ann.get('ignore')):
             filtered[ann['tagid']].append(ann)
     dummy = [(1e9, [{}])]
     sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +

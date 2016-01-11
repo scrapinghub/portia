@@ -11,7 +11,7 @@ from .resources import routes
 from .errors import BadRequest, NotFound, BaseHTTPError, InternalServerError
 
 
-class APIResource():
+class APIResource(object):
     isLeaf = True
     children = routes
     method_map = {'PUT': 'PATCH'}
@@ -38,23 +38,26 @@ class APIResource():
         # TODO (SPEC): get content-type/accept and return error is it has media
         #              extensions
         try:
-            # TODO (SPEC): Check content-type and raise error when needed
-            path = '/'.join(request.postpath).strip('/')
-            for route, callback in self.routes[method]:
-                parsed = route.parse(path)
-                if parsed:
-                    if 'project_id' in parsed.named:
-                        manager = self.spec_manager.project_spec(
-                            parsed.named.pop('project_id'), request.auth_info)
-                        manager.pm = self.spec_manager.project_manager(
-                            request.auth_info)
-                    else:
-                        manager = self.spec_manager.project_manager(
-                            request.auth_info)
-                    parsed = parsed.named
-                    parsed['attributes'] = load_attributes(request)
-                    return self.format_response(request,
-                                                callback(manager, **parsed))
+            for i in range(1):
+                # TODO (SPEC): Check content-type and raise error when needed
+                path = '/'.join(request.postpath).strip('/')
+                for route, callback in self.routes[method]:
+                    parsed = route.parse(path)
+                    if parsed:
+                        if 'project_id' in parsed.named:
+                            manager = self.spec_manager.project_spec(
+                                parsed.named.pop('project_id'),
+                                request.auth_info)
+                            manager.pm = self.spec_manager.project_manager(
+                                request.auth_info)
+                        else:
+                            manager = self.spec_manager.project_manager(
+                                request.auth_info)
+                        parsed = parsed.named
+                        parsed['attributes'] = load_attributes(request)
+                        return self.format_response(request,
+                                                    callback(manager,
+                                                             **parsed))
         except KeyError as ex:
             if isinstance(ex, KeyError):
                 ex = NotFound('Resource not found',

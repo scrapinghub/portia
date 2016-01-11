@@ -23,6 +23,8 @@ export default Ember.Service.extend({
     routing: Ember.inject.service('-routing'),
     store: Ember.inject.service(),
     uiState: Ember.inject.service(),
+    annotationStructure: Ember.inject.service(),
+    webSocket: Ember.inject.service(),
 
     addSchema(project, redirect = false) {
         const name = `schema${project.get('schemas.length') + 1}`;
@@ -124,6 +126,12 @@ export default Ember.Service.extend({
                 });
                 item.save();
             });
+            this.get('webSocket')._sendPromise({
+                _command: 'save_html',
+                project: spider.get('project.id'),
+                spider: spider.get('id'),
+                sample: sample.get('id')
+            })
 
             if (redirect) {
                 sample.set('new', true);
@@ -212,6 +220,7 @@ export default Ember.Service.extend({
                 annotation.set('attribute', attributes[0].attribute);
             }
         }
+        annotation.set('tagid', element.getAttribute('data-tagid'));
         field.save().then(() => {
             annotation.set('field', field);
             annotation.save().then(() => {
@@ -367,6 +376,7 @@ export default Ember.Service.extend({
         annotation.set('acceptSelectors', acceptSelectors.slice());
         annotation.set('rejectSelectors', rejectSelectors.slice());
         annotation.save();
+        this.updateContainers(annotation.get('parent'));
         this.selectAnnotationElement(annotation, element);
     },
 
@@ -379,6 +389,25 @@ export default Ember.Service.extend({
         annotation.set('acceptSelectors', acceptSelectors.slice());
         annotation.set('rejectSelectors', rejectSelectors.slice());
         annotation.save();
+        this.updateContainers(annotation.get('parent'));
         this.selectAnnotation(annotation);
+    }
+
+    updateContainers(containerAnnotation) {
+        let elements = this.get('annotationStructure')._annotations()),
+            container = findContainer(elements),
+            [repeatedContainer, siblings] = findRepeatedContainer(elements, container),
+            containerId = '0',
+            repeatedContainerId = null;
+        if (container) {
+            containerId = container.getAttribute('data-tagid');
+        }
+        if (repeatedContainer) {
+            repeatedContainerId = repeatedContainer.getAttribute('data-tagid');
+        }
+        containerAnnotation.set('tagid', containerId);
+        containerAnnotation.set('repeatedTagid', repeatedContainerId);
+        containerAnnotation.set('siblings', siblings);
+        containerAnnotation.save();
     }
 });

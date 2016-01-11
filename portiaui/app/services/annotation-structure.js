@@ -93,6 +93,9 @@ export default Ember.Service.extend(Ember.Evented, {
     selectorMatcher: Ember.inject.service(),
 
     definition: null,
+    _annotations: function() {
+        return nodeMap.values();
+    },
 
     init() {
         this._super();

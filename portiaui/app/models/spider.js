@@ -7,6 +7,13 @@ const Spider = DS.Model.extend({
         async: true
     }),
     startUrls: DS.attr('array'),
+    linksToFollow: DS.attr('string'),
+    jsEnabled: DS.attr('boolean'),
+    respectNofollow: DS.attr('boolean'),
+    followPatterns: DS.attr('array'),
+    excludePatterns: DS.attr('array'),
+    jsEnablePatterns: DS.attr('array'),
+    jsDisablePatterns: DS.attr('array'),
     samples: DS.hasMany({
         async: true
     })

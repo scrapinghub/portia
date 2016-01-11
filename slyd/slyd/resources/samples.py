@@ -93,7 +93,7 @@ def _check_sample_attributes(attributes, include_defaults=False):
     if include_defaults:
         dumper = SampleSchema(skip_relationships=True,
                               exclude=('html', 'items'))
-        return dumper.dump(attributes).data['data']['attributes']
+        attributes = dumper.dump(attributes).data['data']['attributes']
     return attributes
 
 
@@ -101,22 +101,24 @@ def _process_annotations(sample):
     annotation_info = sample.get('plugins', {}).get('annotations-plugin', {})
     annotations = annotation_info.get('extracts', [])
     containers, grouped, remaining = _group_annotations(annotations)
+    scrapes = sample['scrapes']  # TODO: handle default scraped item
     if remaining:
-        scrapes = sample['scrapes']  # TODO: handle default scraped item
         containers['metacontainer'] = {
             'annotatations': {}, 'id': 'metacontainer', 'required': [],
             'tagid': 1, 'item_container': True, 'schema_id': scrapes
         }
         for r in remaining:
-            remaining['container_id'] = 'metacontainer'
-            remaining['schema_id'] = scrapes
+            r['container_id'] = 'metacontainer'
+            r['schema_id'] = scrapes
         grouped['metacontainer'] = remaining
     items = []
     for id, container in containers.items():
+        if 'schema_id' not in container:
+            container['schema_id'] = scrapes
         item = {
             'id': id,
             'sample': sample,
-            'schema': {'id': container['schema_id']},  # TODO: handle default
+            'schema': {'id': container['schema_id']},
             'item_annotation': container,
             'annotations': grouped.get(id, [])
         }

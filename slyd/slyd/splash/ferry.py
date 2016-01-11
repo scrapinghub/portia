@@ -27,7 +27,8 @@ from slyd.errors import BaseHTTPError
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
-                       delete_project_data, pause, resume)
+                       delete_project_data, pause, resume, extract_items,
+                       save_html)
 from .css_utils import process_css, wrap_url
 import six
 text = six.text_type  # unicode in py2, str in py3
@@ -160,7 +161,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'rename': rename_project_data,
         'resolve': resolve,
         'resume': resume,
-        'pause': pause
+        'pause': pause,
+        'extract_items': extract_items,
+        'save_html': save_html
     }
     spec_manager = None
     settings = None

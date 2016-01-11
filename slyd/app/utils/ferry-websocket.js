@@ -26,6 +26,7 @@ export default Ember.Object.extend({
     reconnectTimeout: DEFAULT_RECONNECT_TIMEOUT,
     deferreds: {},
     commands: {},
+    promiseQueue: [],
     url: defaultUrl(),
     secondsUntilReconnect: 0,
     reconnectImminent: Ember.computed.lt('secondsUntilReconnect', 2),
@@ -127,6 +128,9 @@ export default Ember.Object.extend({
             } else {
                 Ember.Logger.warn('Received unknown command: ' + command);
             }
+            if (this.get('promiseQueue').length) {
+                this.send(this.get('promiseQueue').unshift());
+            }
         }.bind(this);
         ws.onopen = function() {
             Ember.Logger.log('<Opened Websocket>');
@@ -136,6 +140,9 @@ export default Ember.Object.extend({
             this.heartbeat = setInterval(function() {
                 this.send({_command: 'heartbeat'});
             }.bind(this), 20000);
+            if (this.get('promiseQueue').length) {
+                this.send(this.get('promiseQueue').shift());
+            }
         }.bind(this);
         this.set('ws', ws);
     },
@@ -167,6 +174,8 @@ export default Ember.Object.extend({
                 }
             }
             return this.get('ws').send(data);
+        } else if (data) {
+            this.get('promiseQueue').push(data);
         }
     },
 
