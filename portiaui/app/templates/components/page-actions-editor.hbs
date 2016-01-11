@@ -3,7 +3,11 @@
     <div class="form-group form-group-sm">
         <label for="actionType" class="col-sm-4 control-label">Action type</label>
         <div class="col-sm-7">
-            {{view "select" content=actionTypes selection=editing.type}}
+            <select onchange={{action (mut editing.type) value="target.value"}}>
+                {{#each actionTypes as |type|}}
+                    <option value={{type}} selected={{eq type editing.type}}>{{type}}</option>
+                {{/each}}
+            </select>
         </div>
         <div class="btn-center">
             <button {{action "addContinue"}} class="btn btn-primary fa fa-icon fa-plus">

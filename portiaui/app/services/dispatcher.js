@@ -2,7 +2,9 @@ import Ember from 'ember';
 import Sample from '../models/sample';
 import ItemAnnotation from '../models/item-annotation';
 import {getAttributeList} from '../components/inspector-panel';
-import {uniquePathSelectorFromElement} from '../utils/selectors';
+import {uniquePathSelectorFromElement,
+        findContainer, 
+        findRepeatedContainer} from '../utils/selectors';
 
 
 export function computedCanAddSpider() {
@@ -131,7 +133,7 @@ export default Ember.Service.extend({
                 project: spider.get('project.id'),
                 spider: spider.get('id'),
                 sample: sample.get('id')
-            })
+            });
 
             if (redirect) {
                 sample.set('new', true);
@@ -393,10 +395,10 @@ export default Ember.Service.extend({
         annotation.save();
         this.updateContainers(annotation.get('parent'));
         this.selectAnnotation(annotation);
-    }
+    },
 
     updateContainers(containerAnnotation) {
-        let elements = this.get('annotationStructure')._annotations()),
+        let elements = this.get('annotationStructure')._annotations(),
             container = findContainer(elements),
             [repeatedContainer, siblings] = findRepeatedContainer(elements, container),
             containerId = '0',

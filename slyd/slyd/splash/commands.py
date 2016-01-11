@@ -60,9 +60,12 @@ def _update_sample(data, socket):
                                             socket.user.auth)
     sample = spec.resource('spiders', data['spider'], data['sample'])
     # TODO: Handle js enabled
-    Annotations().save_extraction_data(
-        sample['plugins']['annotations-plugin'], sample,
-        options={'body': 'original_body'})
+    try:
+        Annotations().save_extraction_data(
+            sample['plugins']['annotations-plugin'], sample,
+            options={'body': 'original_body'})
+    except StopIteration:
+        sample['annotated_body'] = sample.get('original_body', '')
     spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample
 
