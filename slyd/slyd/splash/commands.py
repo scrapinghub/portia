@@ -34,7 +34,6 @@ def save_html(data, socket):
     stated_encoding = socket.tab.evaljs('document.characterSet')
     sample['original_body'] = _decode(socket.tab._raw_html, stated_encoding)
     sample['js_original_body'] = socket.tab.html().decode('utf-8')
-    import pdb;pdb.set_trace()
     manager.savejson(sample, [s.encode('utf-8') for s in path])
 
 

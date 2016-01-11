@@ -2,7 +2,7 @@ import Ember from 'ember';
 import DS from 'ember-data';
 import ItemAnnotation from './item-annotation';
 
-const Item = DS.Model.extend({
+export default DS.Model.extend({
     sample: DS.belongsTo(),
     schema: DS.belongsTo({
         async: true,
@@ -35,5 +35,3 @@ const Item = DS.Model.extend({
             )));
         })
 });
-
-export default Item;

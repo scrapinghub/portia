@@ -1,203 +1,238 @@
 import Ember from 'ember';
 
-
-function elementPath(element) {
-    const elements = [element].concat(Ember.$(element).parents().not('html').toArray());
-    return elements.reverse();
+function combineIndices(accept, reject) {
+    if (!reject.length && (!accept.length || accept.length > 1)) {
+        return null;
+    }
+    return accept;
 }
 
-export function pathSelectorFromElement(element) {
-    const path = elementPath(element);
-    return path.map(element => element.tagName.toLowerCase()).join(' > ');
-}
-
-export function pathAndClassSelectorFromElement(element) {
-    const path = elementPath(element);
-    return path.map(element => {
-        const tag = element.tagName.toLowerCase();
-        const classes = element.className.trim();
-        if (tag === 'body' || !classes) {
-            return tag;
+export class ElementPath {
+    constructor(element) {
+        if (!element) {
+            this.paths = [];
+            return;
         }
-        return tag + [''].concat(classes.split(/\s+/g)).join('.');
-    }).join(' > ');
-}
 
-export function uniquePathSelectorFromElement(element) {
-    const path = elementPath(element);
-    return path.map((element, index) => {
-        const tag = element.tagName.toLowerCase();
-        if (index === 0) {
-            return tag;
+        if (Array.isArray(element)) {
+            this.paths = [element];
+            return;
         }
-        const nodeIndex = Array.prototype.indexOf.call(element.parentNode.children, element) + 1;
-        return `${tag}:nth-child(${nodeIndex})`;
-    }).join(' > ');
-}
 
-class SelectorStructureNode {
-    constructor(tag) {
-        Object.defineProperties(this, {
-            tag: {
-                configurable: false,
-                enumerable: false,
-                writeable: false,
-                value: tag
-            },
-            acceptedIndices: {
-                configurable: false,
-                enumerable: false,
-                writeable: false,
-                value: new Set()
-            },
-            rejectedIndices: {
-                configurable: false,
-                enumerable: false,
-                writeable: false,
-                value: new Set()
+        if (typeof element === 'string') {
+            this.paths = [element.split(/\s*>\s*/).map(part => {
+                const tagAndClasses = part.split(':')[0].split('.');
+                const tagName = tagAndClasses[0];
+                const classes = tagAndClasses.slice(1);
+                classes.sort();
+                const match = part.match(/:nth\-child\((\d+)\)/);
+
+                return {
+                    tagName,
+                    classes,
+                    acceptedIndices: match ? [match[1]] : [],
+                    rejectedIndices: []
+                };
+            })];
+            return;
+        }
+
+        // else DOM element
+        const elements = [element].concat(Ember.$(element).parents().not('html').toArray());
+        this.paths = [elements.reverse().map((element, index) => {
+            const tagName = element.tagName.toLowerCase();
+            let classes = [];
+            const acceptedIndices = [];
+            const rejectedIndices = [];
+            if (index > 0) {
+                classes = Array.from(new Set(element.className.trim().split(/\s+/g)));
+                if (classes.length === 1 && classes[0] === '') {
+                    classes.pop();
+                } else {
+                    classes.sort();
+                }
+                acceptedIndices.push(
+                    Array.prototype.indexOf.call(element.parentNode.children, element) + 1);
             }
-        });
+            return {
+                tagName,
+                classes,
+                acceptedIndices,
+                rejectedIndices
+            };
+        })];
     }
 
-    accept(selector) {
-        this.add(selector, 'acceptedIndices');
-    }
-
-    reject(selector) {
-        this.add(selector, 'rejectedIndices');
-    }
-
-    add(selector, setName) {
-        this.addParts((selector + '>').split(/\s*>\s*/), setName);
-    }
-
-    addParts(parts, setName) {
-        const part = parts.shift();
-        const [, tag, number] = part.match(/^([^:]*)(?::nth-child\((\d+)\))?/);
-        const child = this[tag] || (this[tag] = new SelectorStructureNode(tag));
-        child[setName].add(number);
-        if (parts.length) {
-            child.addParts(parts, setName);
+    static fromAcceptedAndRejected(acceptedSelectors, rejectedSelectors) {
+        if (acceptedSelectors) {
+            const result = new ElementPath(acceptedSelectors[0]);
+            for (let accepted of acceptedSelectors.slice(1)) {
+                result.add(new ElementPath(accepted));
+            }
+            if (rejectedSelectors) {
+                for (let rejected of rejectedSelectors.slice(1)) {
+                    result.remove(new ElementPath(rejected));
+                }
+            }
+            return result;
         }
+        return new ElementPath();
     }
 
-    generalize() {
-        return this.generalizeParts().join(', ');
+    static mergeMany(elementPaths) {
+        // TODO: merge these objects
     }
 
-    generalizeParts() {
-        const tags = Object.keys(this);
-        const selectors = this.generalizeSelector();
+    get pathSelector() {
+        return this.paths.map(path =>
+            path.map(element => element.tagName).join(' > ')).join(', ');
+    }
 
-        const wholeSelectors = [];
+    get pathAndClassSelector() {
+        return this.paths.map(path => path.map(element => {
+            let part = element.tagName;
+            if (element.classes) {
+                part = [part].concat(element.classes).join('.');
+            }
+            return part;
+        }).join(' > ')).join(', ');
+    }
 
-        for (let tag of tags) {
-            if (tag === '') {
-                wholeSelectors.push(...selectors);
-            } else {
-                const childSelectors = this[tag].generalizeParts();
-                if (this.tag) {
-                    for (let childSelector of childSelectors) {
-                        for (let selector of selectors) {
-                            wholeSelectors.push(`${selector} > ${childSelector}`);
+    get uniquePathSelector() {
+        return this.paths.map(path => {
+            let selectors = [];
+            for (let [index, element] of path.entries()) {
+                const indices = combineIndices(element.acceptedIndices, element.rejectedIndices);
+                let part = element.tagName;
+                if (element.classes) {
+                    part = [part].concat(element.classes).join('.');
+                }
+                let parts;
+                if (index === 0 || !indices) {
+                    parts = [part];
+                } else {
+                    parts = indices.map(index => `${part}:nth-child(${index})`);
+                }
+                if (!selectors.length) {
+                    selectors = parts;
+                } else {
+                    const prefixes = selectors;
+                    selectors = [];
+                    for (let part of parts) {
+                        for (let prefix of prefixes) {
+                            selectors.push(`${prefix} > ${part}`);
                         }
                     }
-                } else {
-                    wholeSelectors.push(...childSelectors);
+                }
+            }
+            return selectors.join(', ');
+        }).join(', ');
+    }
+
+    get pathMap() {
+        return new Map(this.paths.map(path => {
+            return [new ElementPath(path).pathSelector, path];
+        }));
+    }
+
+    get pathAndClassMap() {
+        return new Map(this.paths.map(path => {
+            return [new ElementPath(path).pathAndClassSelector, path];
+        }));
+    }
+
+    differences(other) {
+        let count = 0;
+        //const pathMap = this.pathMap;
+        const pathMap = this.pathAndClassMap;
+
+        for (let otherElements of other.paths) {
+            //const elements = pathMap.get(new ElementPath(otherElements).pathSelector);
+            const elements = pathMap.get(new ElementPath(otherElements).pathAndClassSelector);
+            if (!elements) {
+                count += otherElements.length;
+                continue;
+            }
+
+            for (let [index, element] of elements.entries()) {
+                const otherElement = otherElements[index];
+                if (element.tagName !== otherElement.tagName) {
+                    count += 1;
+                    continue;
+                }
+                if (Ember.compare(element.classes, otherElement.classes) !== 0) {
+                    count += 1;
+                    continue;
+                }
+                if (Ember.compare(element.acceptedIndices, otherElement.acceptedIndices) !== 0) {
+                    count += 1;
+                    continue;
+                }
+                if (Ember.compare(element.rejectedIndices, otherElement.rejectedIndices) !== 0) {
+                    count += 1;
                 }
             }
         }
 
-        return wholeSelectors;
+        return count;
     }
 
-    generalizeSelector() {
-        const selectors = [];
+    add(other) {
+        const pathMap = this.pathAndClassMap;
 
-        if (this.acceptedIndices.has(/* undefined */)) {
-            selectors.push(this.tag);
-        } else {
-            const rejected = new Set(this.rejectedIndices);
-            for (let number of this.acceptedIndices.values()) {
-                rejected.delete(number);
+        for (let otherElements of other.paths) {
+            const elements = pathMap.get(new ElementPath(otherElements).pathAndClassSelector);
+            if (!elements) {
+                this.paths.push(otherElements);
+                continue;
             }
-            if (rejected.size || this.acceptedIndices.size < 2) {
-                for (let number of this.acceptedIndices.values()) {
-                    selectors.push(`${this.tag}:nth-child(${number})`);
+
+            for (let [index, element] of elements.entries()) {
+                const otherElement = otherElements[index];
+                if (element.tagName !== otherElement.tagName) {
+                    element.tagName = '*';
                 }
-            } else {
-                selectors.push(this.tag);
+                const missingClasses = element.classes.slice();
+                missingClasses.removeObjects(otherElement.classes);
+                element.classes.removeObjects(missingClasses);
+                element.classes.sort();
+                element.acceptedIndices.addObjects(otherElement.acceptedIndices);
+                element.acceptedIndices.sort();
+                element.rejectedIndices.addObjects(otherElement.rejectedIndices);
+                element.rejectedIndices.sort();
             }
         }
 
-        return selectors;
+        return this;
     }
 
-    extractParent() {
-        const parts = [];
-        let node = this;
-        let tags;
+    remove(other) {
+        const pathMap = this.pathAndClassMap;
 
-        while ((tags = Object.keys(node)).length === 1) {
-            const tag = tags[0];
-            node = node[tag];
-            if (node.acceptedIndices.has(/* undefined */)) {
-                parts.push(tag);
-            } else if (node.acceptedIndices.size === 1) {
-                parts.push(`${tag}:nth-child(${node.acceptedIndices.values().next().value})`);
-            } else {
-                break;
+        for (let otherElements of other.paths) {
+            const elements = pathMap.get(new ElementPath(otherElements).pathAndClassSelector);
+            if (!elements) {
+                continue;
             }
-        }
 
-        return parts.join(' > ');
-    }
-}
-
-export function generalizeSelectors(acceptSelectors, rejectSelectors) {
-    const matchStructure = new SelectorStructureNode();
-
-    if (acceptSelectors) {
-        for (let selector of acceptSelectors) {
-            matchStructure.accept(selector);
-        }
-    }
-    if (rejectSelectors) {
-        for (let selector of rejectSelectors) {
-            matchStructure.reject(selector);
-        }
-    }
-
-    return matchStructure.generalize();
-}
-
-export function parentSelector(selectors) {
-    const matchStructure = new SelectorStructureNode();
-
-    if (selectors) {
-        for (let multiSelector of selectors) {
-            if (multiSelector) {
-                for (let selector of multiSelector.split(/\s*,\s*/)) {
-                    matchStructure.accept(selector);
+            for (let [index, element] of elements.entries()) {
+                const otherElement = otherElements[index];
+                if (element.tagName !== otherElement.tagName && element.tagName !== '*') {
+                    continue;
+                }
+                element.classes.removeObjects(otherElement.classes);
+                element.classes.sort();
+                element.acceptedIndices.removeObjects(otherElement.acceptedIndices);
+                element.acceptedIndices.sort();
+                if (!combineIndices(element.acceptedIndices, element.rejectedIndices)) {
+                    element.rejectedIndices.addObjects(otherElement.acceptedIndices);
+                    element.rejectedIndices.sort();
                 }
             }
         }
+
+        return this;
     }
-
-    return matchStructure.extractParent();
-}
-
-export function replacePrefix(selector, newPrefix) {
-    const prefixParts = newPrefix.split(/\s*>\s*/);
-    return selector.split(/\s*,\s*/).map(selector => {
-        let parts = selector.split(/\s*>\s*/);
-        if (parts.length <= prefixParts.length) {
-            parts = prefixParts.slice(0, parts.length);
-        } else {
-            parts.splice(0, prefixParts.length, ...prefixParts);
-        }
-        return parts.join(' > ');
-    }).join(', ');
 }
 
 export function setIntersection(a, b) {
@@ -477,12 +512,7 @@ export function makeItemsFromGroups(groups) {
 }
 
 export default {
-    pathSelectorFromElement: pathSelectorFromElement,
-    pathAndClassSelectorFromElement: pathAndClassSelectorFromElement,
-    uniquePathSelectorFromElement: uniquePathSelectorFromElement,
-    generalizeSelectors: generalizeSelectors,
-    parentSelector: parentSelector,
-    replacePrefix: replacePrefix,
+    ElementPath: ElementPath,
     findContainer: findContainer,
     findRepeatedContainer: findRepeatedContainer
 };

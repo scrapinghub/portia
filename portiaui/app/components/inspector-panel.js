@@ -1,7 +1,5 @@
 import Ember from 'ember';
-import {pathSelectorFromElement} from '../utils/selectors';
-
-const $ = Ember.$;
+import {ElementPath} from '../utils/selectors';
 
 export const IGNORED_ATTRIBUTES = new Set([
     'id', 'class', 'target', 'width', 'style', 'height', 'cellpadding',
@@ -62,7 +60,7 @@ export default Ember.Component.extend({
         if (!element) {
             return '';
         }
-        return pathSelectorFromElement(element);
+        return new ElementPath(element).pathSelector;
     }),
 
     elementParents: Ember.computed('originalSelectedElement', 'selectedElement', function() {

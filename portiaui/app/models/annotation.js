@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 
-const Annotation = DS.Model.extend({
+export default DS.Model.extend({
     parent: DS.belongsTo('item', {
         inverse: 'annotations'
     }),
@@ -32,5 +32,3 @@ const Annotation = DS.Model.extend({
     }),
     sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample')
 });
-
-export default Annotation;

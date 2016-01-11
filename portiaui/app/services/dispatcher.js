@@ -2,7 +2,7 @@ import Ember from 'ember';
 import Sample from '../models/sample';
 import ItemAnnotation from '../models/item-annotation';
 import {getAttributeList} from '../components/inspector-panel';
-import {uniquePathSelectorFromElement,
+import {ElementPath,
         findContainer, 
         findRepeatedContainer} from '../utils/selectors';
 
@@ -212,7 +212,7 @@ export default Ember.Service.extend({
         }
         const annotation = store.createRecord('annotation', {
             parent: item,
-            acceptSelectors: element ? [uniquePathSelectorFromElement(element)] : []
+            acceptSelectors: element ? [new ElementPath(element).uniquePathSelector] : []
         });
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
@@ -372,26 +372,22 @@ export default Ember.Service.extend({
     },
 
     addElementToAnnotation(annotation, element) {
-        const selector = uniquePathSelectorFromElement(element);
+        const selector = new ElementPath(element).uniquePathSelector;
         const acceptSelectors = annotation.get('acceptSelectors');
         const rejectSelectors = annotation.get('rejectSelectors');
         acceptSelectors.addObject(selector);
         rejectSelectors.removeObject(selector);
-        annotation.set('acceptSelectors', acceptSelectors.slice());
-        annotation.set('rejectSelectors', rejectSelectors.slice());
         annotation.save();
         this.updateContainers(annotation.get('parent'));
         this.selectAnnotationElement(annotation, element);
     },
 
     removeElementFromAnnotation(annotation, element) {
-        const selector = uniquePathSelectorFromElement(element);
+        const selector = new ElementPath(element).uniquePathSelector;
         const acceptSelectors = annotation.get('acceptSelectors');
         const rejectSelectors = annotation.get('rejectSelectors');
         acceptSelectors.removeObject(selector);
         rejectSelectors.addObject(selector);
-        annotation.set('acceptSelectors', acceptSelectors.slice());
-        annotation.set('rejectSelectors', rejectSelectors.slice());
         annotation.save();
         this.updateContainers(annotation.get('parent'));
         this.selectAnnotation(annotation);
