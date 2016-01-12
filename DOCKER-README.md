@@ -28,9 +28,11 @@ Run portia:
      	portia
 
 Portia will now be running on port 9001 and you can access it at:
+
     http://localhost:9001/static/index.html   (http://192.168.99.100:9001 if using boot2docker-windows)
 
 Projects will be stored in the project folder that you mount at:
+
     portia-data
 
 
