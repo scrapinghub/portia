@@ -6,6 +6,8 @@ export default Ember.Component.extend({
     classNames: ['tool-group'],
     classNameBindings: ['collapsed'],
 
+    close: false,
+    collapsible: true,
     collapsed: false,
     selected: null,
 
@@ -17,6 +19,11 @@ export default Ember.Component.extend({
     },
 
     actions: {
+        close() {
+            if (this.attrs.close) {
+                this.attrs.close();
+            }
+        },
         selectTab(toolId) {
             this.setProperties({
                 selected: toolId,

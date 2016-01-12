@@ -16,6 +16,10 @@ export default DS.Model.extend({
     variant: DS.attr('number'),
     slice: DS.attr('array'),
 
+    // selection
+    selectionMode: DS.attr('string', {
+        defaultValue: 'auto'
+    }),
     // json fixes error with storing ember NativeArray in indexed db
     acceptSelectors: DS.attr('array'),
     rejectSelectors: DS.attr('array'),

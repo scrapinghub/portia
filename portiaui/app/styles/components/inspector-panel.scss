@@ -1,6 +1,5 @@
 .inspector {
     $inspector-line-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
-    min-height: $tree-list-row-height * 3 + $panel-padding-y * 2;
     overflow: hidden;
 
     .path-item {
@@ -33,7 +32,7 @@
         color: $text-color;
 
         &:first-child {
-            padding-right: $line-height-computed;
+            padding-right: ($grid-gutter-width / 2);
             color: $text-muted;
             white-space: nowrap;
         }
@@ -73,5 +72,14 @@
     .structure-list-add {
         opacity: 1;
         text-align: right;
+    }
+
+    .empty-notice {
+        height: $panel-content-min-height;
+        line-height: $panel-content-min-height;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        vertical-align: middle;
     }
 }

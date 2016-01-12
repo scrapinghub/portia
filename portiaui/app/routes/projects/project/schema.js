@@ -6,9 +6,9 @@ export default Ember.Route.extend({
     },
 
     renderTemplate() {
-        this.render('projects/project/schema-tools', {
-            into: 'side-bar',
-            outlet: 'tool-panels'
+        this.render('projects/project/schema/structure', {
+            into: 'projects/project/structure',
+            outlet: 'project-structure'
         });
     },
 

@@ -1,0 +1,13 @@
+<h3>Field</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="required" checked=(mut field.required)}} Required
+        </label>
+    </div>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="vary" checked=(mut field.vary)}} Vary
+        </label>
+    </div>
+</form>

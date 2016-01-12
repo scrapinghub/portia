@@ -27,14 +27,24 @@ export default Ember.Route.extend({
             outlet: 'main'
         });
 
-        this.render('top-url-bar', {
-            into: 'application',
-            outlet: 'top-url-bar'
-        });
-
-        this.render('side-bar', {
+        this.render('projects/project/structure', {
             into: 'application',
             outlet: 'side-bar'
+        });
+
+        this.render('options-panels', {
+            into: 'application',
+            outlet: 'options-panels'
+        });
+
+        this.render('tool-panels', {
+            into: 'application',
+            outlet: 'tool-panels'
+        });
+
+        this.render('projects/project/toolbar', {
+            into: 'projects/project',
+            outlet: 'browser-toolbar'
         });
     },
 

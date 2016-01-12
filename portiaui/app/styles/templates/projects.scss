@@ -1,7 +1,7 @@
 .project-list-container {
     @extend .full-page-content;
 
-    width: calc(100% - #{$sidebar-width});
+    width: calc(100% - #{$sidebar-width * 2});
     margin: 0 auto;
     text-align: center;
 

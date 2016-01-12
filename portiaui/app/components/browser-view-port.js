@@ -11,7 +11,7 @@ export default Ember.Component.extend({
     selectorMatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
-    classNames: ['browser-view-port'],
+    classNames: ['browser-view-port', 'panel', 'panel-default'],
     classNameBindings: ['hoveredElement::none-hovered', 'selectedElement::none-selected',
                         'hoveredModels.length:group-hovered', 'selectedModel:group-selected'],
 

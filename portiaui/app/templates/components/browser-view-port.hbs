@@ -1,32 +1,39 @@
-{{#if showToolbar}}
-    <div class="tool-bar">
-        <div class="btn-group-vertical" role="group">
-            <button type="button" class="btn btn-default {{if magicToolActive 'active'}}" {{action 'toggleMagicTool'}}>
-                <i class="fa fa-magic fa-flip-horizontal"></i>
-            </button>
-        </div>
+<div class="browser-navigation panel-heading">
+    {{url-bar class="navbar-form" role="navigation"}}
+    {{#if showToolbar}}
+        <span>Tools</span>
 
-        <div class="btn-group-vertical" role="group">
-            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'select') 'active'}}" {{action (action (mut selectionMode) 'select')}}>
-                <div class="color-fill"></div>
-                <i class="fa fa-mouse-pointer"></i>
-            </button>
-            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'add') 'active'}}" {{action (action (mut selectionMode) 'add')}}>
-                <div class="color-fill"></div>
-                <i class="fa fa-plus"></i>
-            </button>
-            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'remove') 'active'}}" {{action (action (mut selectionMode) 'remove')}}>
-                <div class="color-fill"></div>
-                <i class="fa fa-minus"></i>
-            </button>
-            <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'edit') 'active'}}" {{action (action (mut selectionMode) 'edit')}}>
-                <div class="color-fill"></div>
-                <i class="fa fa-th-large"></i>
-            </button>
+        <div class="tool-bar">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default {{if magicToolActive 'active'}}" {{action 'toggleMagicTool'}}>
+                    <i class="fa fa-magic fa-flip-horizontal"></i>
+                </button>
+            </div>
+
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'select') 'active'}}" {{action (action (mut selectionMode) 'select')}}>
+                    <div class="color-fill"></div>
+                    <i class="fa fa-mouse-pointer"></i>
+                </button>
+                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'add') 'active'}}" {{action (action (mut selectionMode) 'add')}}>
+                    <div class="color-fill"></div>
+                    <i class="fa fa-plus"></i>
+                </button>
+                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'remove') 'active'}}" {{action (action (mut selectionMode) 'remove')}}>
+                    <div class="color-fill"></div>
+                    <i class="fa fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'edit') 'active'}}" {{action (action (mut selectionMode) 'edit')}}>
+                    <div class="color-fill"></div>
+                    <i class="fa fa-th-large"></i>
+                </button>
+            </div>
         </div>
-    </div>
-{{/if}}
-<div class="frame-container">
+    {{else}}
+        {{yield (hash section="toolbar")}}
+    {{/if}}
+</div>
+<div class="frame-container panel-body">
     <div class="mode-feedback mode-feedback-{{browser.mode}}"></div>
     <div class="overlay-container">
         {{#each overlayElements as |overlay|}}
@@ -38,15 +45,16 @@
             {{element-overlay class=(concat 'hover-overlay' (if (or (not hoveredElement) hoveredModels.length) ' hide')) viewPortElement=hoveredElement icon=activeSelectionMode color=hoverOverlayColor}}
         {{/if}}
     </div>
-    <div class="browser-start-page {{if browser.url 'hide'}}">
-        <img src="/assets/images/portia-logo.svg" alt="Portia logo">
-        <h3>What would you like to scrape?</h3>
-        {{url-bar class="navbar-form" role="navigation" autofocus=true}}
-        {{#if uiState.models.project.spiders.length}}
-            <p>
-                You can also select one of your existing spiders from the sidebar.
-            </p>
-        {{/if}}
-    </div>
     {{browser-iframe clickHandler=(action 'viewPortClick')}}
+</div>
+
+<div class="browser-start-page {{if browser.url 'hide'}}">
+    <img src="/assets/images/portia-logo.svg" alt="Portia logo">
+    <h3>What would you like to scrape?</h3>
+    {{url-bar class="navbar-form" role="navigation" autofocus=true}}
+    {{#if uiState.models.project.spiders.length}}
+        <p>
+            You can also select one of your existing spiders from the sidebar.
+        </p>
+    {{/if}}
 </div>

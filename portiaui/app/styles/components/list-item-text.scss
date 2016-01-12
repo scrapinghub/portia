@@ -1,8 +1,9 @@
 .list-item-text {
     display: inline;
     flex: 1 1 auto;
-    white-space: nowrap;
+    padding: 0;
     overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
-    padding: 0 $space-width;
+    text-transform: uppercase;
 }

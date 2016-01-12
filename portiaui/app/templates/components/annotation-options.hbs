@@ -1,0 +1,34 @@
+<h3>Annotation</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="required" checked=(mut annotation.required)}} Required
+        </label>
+    </div>
+    <div class="form-group">
+        <label for="selectionMode">Selection mode</label>
+        {{#select-box name="selectionMode" value=(mut selectionMode) valueAttribute='label' change=(action "save") as |select|}}
+            {{#each selectionModeOptions as |option|}}
+                {{#dropdown-item menu=select.menu value=option action=(action select.setValueAndClose option)}}
+                    {{option.label}}
+                {{/dropdown-item}}
+            {{/each}}
+        {{/select-box}}
+    </div>
+    {{#if (not-eq annotation.selectionMode 'auto')}}
+        <div class="form-group">
+            <label for="selector">Selector</label>
+            {{input type="text" name="selector" class="form-control" value=annotation.selector readonly=true}}
+        </div>
+    {{/if}}
+    <div class="form-group">
+        <label for="attribute">Source</label>
+        {{#select-box name="attribute" value=(mut attribute) valueAttribute='name' change=(action "save") as |select|}}
+            {{#each attributes as |option|}}
+                {{#dropdown-item menu=select.menu value=option action=(action select.setValueAndClose option)}}
+                    {{option.name}}
+                {{/dropdown-item}}
+            {{/each}}
+        {{/select-box}}
+    </div>
+</form>

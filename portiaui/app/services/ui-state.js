@@ -46,11 +46,13 @@ export default Ember.Service.extend({
         project: 'projectRoute',
         spider: 'spiderRoute',
         sample: 'sampleRoute',
+        data: 'dataRoute',
         item: 'itemRoute',
         annotation: 'annotationRoute',
         schema: 'schemaRoute',
         field: 'fieldRoute'
     }),
+    slideMain: false,
     selectedTools: {
         magicToolActive: true,
         selectionMode: null

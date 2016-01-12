@@ -8,6 +8,7 @@ export default Ember.Component.extend({
     menuAlign: 'left',
     menuClass: null,
     menuContainer: null,
+    name: null,
     open: false,
     value: null,
     valueAttribute: null,

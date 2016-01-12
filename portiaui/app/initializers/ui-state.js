@@ -7,9 +7,11 @@ export function initialize(container, application) {
     application.inject('service:ui-state',
         'sampleRoute', 'route:projects/project/spider/sample');
     application.inject('service:ui-state',
-        'itemRoute', 'route:projects/project/spider/sample/item');
+        'dataRoute', 'route:projects/project/spider/sample/data');
     application.inject('service:ui-state',
-        'annotationRoute', 'route:projects/project/spider/sample/annotation');
+        'itemRoute', 'route:projects/project/spider/sample/data/item');
+    application.inject('service:ui-state',
+        'annotationRoute', 'route:projects/project/spider/sample/data/annotation');
     application.inject('service:ui-state',
         'schemaRoute', 'route:projects/project/schema');
     application.inject('service:ui-state',

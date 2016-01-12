@@ -1,0 +1,10 @@
+<nav id="side-bar">
+    <h2>
+        {{list-item-icon icon='project'}} {{model.name}}
+        {{#link-to 'projects'}}
+            {{list-item-icon icon='close'}}
+        {{/link-to}}
+    </h2>
+    {{project-structure-listing project=model}}
+    {{outlet 'project-structure'}}
+</nav>

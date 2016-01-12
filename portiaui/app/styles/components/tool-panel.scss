@@ -1,4 +1,25 @@
 .tool-panel {
     padding-top: $panel-padding-y;
     padding-bottom: $panel-padding-y;
+
+    h3 {
+        display: inline-block;
+        color: $navbar-default-color;
+        font-size: $font-size-base;
+        line-height: $tree-list-row-height;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+    }
+
+    form {
+        label {
+            font-weight: normal;
+        }
+    }
 }

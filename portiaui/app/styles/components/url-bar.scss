@@ -13,7 +13,8 @@
     }
 
     .btn {
-        height: 34px;
+        line-height: $line-height-computed;
+
         &:focus {
             outline: none;
         }

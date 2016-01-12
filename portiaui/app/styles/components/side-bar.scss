@@ -1,18 +1,177 @@
+#side-bar,
+#options-panels,
+#tool-panels {
+    height: calc(100vh - #{$navbar-height});
+}
+
 #side-bar {
+    width: $sidebar-width;
+    background-color: $sidebar-background-color;
+    border-right: 1px solid $navbar-default-border;
+    padding: $navbar-padding-horizontal;
+    overflow: auto;
+    z-index: 1;
+
+    h2 {
+        position: relative;
+        font-size: $font-size-base;
+        font-weight: bold;
+        line-height: $tree-list-row-height;
+        margin: (-$tree-list-row-height / 2) 0 0 0;
+        padding: 0 0 ($tree-list-row-height / 2);
+        color: $list-heading-color;
+        text-transform: uppercase;
+
+        &:first-of-type {
+            margin-top: 0;
+            padding-top: 0;
+        }
+
+        > i {
+            $icon-border-width: 2px;
+            width: $tree-list-row-height;
+            height: $tree-list-row-height;
+            line-height: $tree-list-row-height - $icon-border-width * 2;
+            margin: (-$icon-border-width) 6px (-$icon-border-width) (-$icon-border-width);
+            background-color: $sidebar-background-color;
+            border: $icon-border-width solid $pip-color;
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px $sidebar-background-color;
+        }
+
+        > a {
+            float: right;
+            &,
+            &:focus {
+                color: $pip-color;
+            }
+
+            &:hover {
+                color: $navbar-default-color;
+            }
+        }
+    }
+
+    > .tree-list {
+        margin-left: -6px;
+        padding-left: $tree-list-row-height;
+        padding-bottom: ($tree-list-row-height * 3 / 2);
+        overflow: hidden;
+
+        &:last-child {
+            padding-bottom: 0;
+        }
+
+        > li {
+            padding-bottom: ($tree-list-row-height / 2);
+
+            &:last-child {
+                padding-bottom: 0;
+            }
+        }
+
+        > .tree-list-item {
+            > .tree-list {
+                padding-left: 0;
+            }
+        }
+    }
+
+    .has-submenu .tree-list-item-content {
+        > a {
+            &:after {
+                content: '';
+                display: inline-block;
+                position: absolute;
+                left: -($tree-list-row-height + $pip-size + 4px) / 2 - 5px;
+                width: $pip-size + 4px;
+                height: $pip-size + 4px;
+                margin-top: ($tree-list-row-height - $pip-size - 4px) / 2;
+                background-color: $list-heading-color;
+                border: 2px solid $sidebar-background-color;
+                border-radius: 50%;
+                box-shadow: 0 0 0 1px $pip-color, 0 0 0 3px $sidebar-background-color;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity $animation-time $animation-easing;
+            }
+
+            > i:first-child {
+                &:after {
+                    $line-width: 1px;
+                    content: '';
+                    display: inline-block;
+                    position: absolute;
+                    left: -($tree-list-row-height + $line-width) / 2 - 5px;
+                    width: $line-width;
+                    height: 10000px;
+                    margin-top: ($tree-list-row-height - $pip-size) / 2;
+                    z-index: -1;
+                    background-color: $pip-color;
+                    opacity: 0;
+                    transition: opacity 0 $animation-easing;
+                }
+            }
+
+            &.active {
+                &:before,
+                &:after {
+                    opacity: 1;
+                }
+
+                > i:first-child {
+                    &:after {
+                        opacity: 1;
+                        transition-duration: $animation-time;
+                    }
+                }
+            }
+        }
+    }
+}
+
+#options-panels,
+#tool-panels {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: stretch;
-    order: 1;
-    width: $sidebar-width;
-    height: calc(100vh - #{$navbar-height});
-    background-color: $navbar-default-bg;
-    border-left: 1px solid $navbar-default-border;
+    width: $sidebar-width - $grid-gutter-width;
+    transition: opacity $animation-time $animation-easing;
 
     &:after {
         content: '';
         flex: 0.0000001 1 auto;
         background-color: $panel-bg;
+    }
+}
+
+#tool-panels {
+    margin-right: $grid-gutter-width;
+
+    main & {
+        opacity: 1;
+        transition-delay: $animation-time;
+    }
+
+    main.slide-right & {
+        opacity: 0;
+        transition-delay: 0s;
+    }
+}
+
+#options-panels {
+    margin-left: $grid-gutter-width - $sidebar-width;
+
+    main & {
+        opacity: 0;
+        transition-delay: 0s;
+    }
+
+    main.slide-right & {
+        opacity: 1;
+        transition-delay: $animation-time;
     }
 }

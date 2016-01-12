@@ -1,0 +1,7 @@
+<h2>
+    {{list-item-icon icon='schema'}} {{model.name}}
+    {{#link-to 'projects.project'}}
+        {{list-item-icon icon='close'}}
+    {{/link-to}}
+</h2>
+{{schema-structure-listing schema=model}}

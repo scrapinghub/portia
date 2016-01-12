@@ -1,0 +1,22 @@
+{{#tree-list}}
+    {{#tree-list-item hasChildren=sample.items.length as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text}}
+                Items
+            {{/list-item-text}}
+            {{list-item-icon icon='add' action=(action 'addItem' sample)}}
+        {{else if (eq options.section "subtrees")}}
+            {{#each sample.items key="id" as |item|}}
+                {{#data-structure-annotations sample=sample item=item}}
+                    {{#link-to 'projects.project.spider.sample.data.item' item}}
+                        {{list-item-icon icon='schema'}}
+                        {{list-item-badge value=(matched-items item)}}
+                        {{list-item-item-schema item=item selecting=(mut item.new)}}
+                        {{list-item-add-annotation-menu item=item}}
+                        {{list-item-icon icon='remove' action=(action 'removeItem' item) bubbles=false}}
+                    {{/link-to}}
+                {{/data-structure-annotations}}
+            {{/each}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}

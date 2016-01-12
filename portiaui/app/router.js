@@ -10,12 +10,20 @@ Router.map(function() {
         this.route('project', {path: ":project_id"}, function() {
             this.route('spider', {path: "spiders/:spider_id"}, function() {
                 this.route('sample', {path: "samples/:sample_id"}, function() {
-                  this.route('annotation', {path: "annotations/:annotation_id"});
-                  this.route('item', {path: "items/:item_id"});
+                    this.route('data', function() {
+                        this.route('annotation', {path: "annotations/:annotation_id"}, function() {
+                            this.route('options');
+                        });
+                        this.route('item', {path: "items/:item_id"});
+                    });
                 });
+                this.route('options');
             });
             this.route('schema', {path: "schemas/:schema_id"}, function() {
-                this.route('field', {path: "fields/:field_id"});
+                this.route('field', {path: "fields/:field_id"}, function() {
+                    this.route('options');
+                });
+                this.route('options');
             });
         });
     });

@@ -1,1 +1,5 @@
-{{browser-view-port}}
+{{#browser-view-port as |options|}}
+    {{#if (eq options.section "toolbar")}}
+        {{outlet "browser-toolbar"}}
+    {{/if}}
+{{/browser-view-port}}

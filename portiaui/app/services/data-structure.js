@@ -199,7 +199,6 @@ class StructureNode {
 
 export default Ember.Service.extend({
     annotationStructure: Ember.inject.service(),
-    uiState: Ember.inject.service(),
 
     structure: [],
 

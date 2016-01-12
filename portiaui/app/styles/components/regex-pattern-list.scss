@@ -1,0 +1,15 @@
+.regex-pattern-list {
+    .new-pattern {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+
+        i {
+            width: $tree-list-row-height;
+            height: $tree-list-row-height;
+            line-height: $tree-list-row-height;
+            text-align: center;
+        }
+    }
+}

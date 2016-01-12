@@ -2,9 +2,16 @@
     <ul class="nav nav-tabs">
         {{yield (hash section="tabs" group=this)}}
         <li class="tool-group-icons pull-right">
-            <a class="tool-group-collapse" {{action 'toggleCollapsed'}}>
-                <span class="caret"></span>
-            </a>
+            {{#if collapsible}}
+                <a class="tool-group-collapse" {{action 'toggleCollapsed'}}>
+                    <span class="caret"></span>
+                </a>
+            {{/if}}
+            {{#if close}}
+                <a class="tool-group-close" {{action 'close'}}>
+                    <i class="fa fa-times"></i>
+                </a>
+            {{/if}}
         </li>
     </ul>
 </header>
