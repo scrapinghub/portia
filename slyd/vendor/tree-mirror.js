@@ -108,7 +108,7 @@ var TreeMirror = (function () {
         }
 
         if (!node) {
-            throw new Error("No node with id " + nodeData.id);
+            throw new Error("No node with that id.");
         }
 
         this.idMap[nodeData.id] = node;
@@ -148,6 +148,7 @@ var URL_ATTRIBUTES = {
     embed_src: true,
     object_data: true,
     video_poster: true,
+    form_action: true,
     iframe_src: true
 };
 function isUrlAttribute(tagName, attribute) {
@@ -327,7 +328,7 @@ var TreeMirrorClient = (function () {
         var map = new MutationSummary.NodeMap();
 
         Object.keys(attributeChanged).forEach(function (attrName) {
-            attributeChanged[attrName].forEach(function (element) {
+            (attributeChanged[attrName] || []).forEach(function (element) {
                 var record = map.get(element);
                 if (!record) {
                     record = _this.serializeNode(element);

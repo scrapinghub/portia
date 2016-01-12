@@ -8,8 +8,6 @@ export default Ember.Component.extend(Popover, {
 
   tagName: 'button',
   classNameBindings: ['class'],
-  activeType: null,
-  inactiveType: null,
   processing: false,
 
   attributeBindings: ['disabled', 'title', 'width'],
@@ -32,15 +30,6 @@ export default Ember.Component.extend(Popover, {
   }.observes('activeType'),
 
   click: function() {
-    if (this.get('activeType')) {
-      if (!this.get('inactiveType')) {
-        this.set('inactiveType', this.get('activeType'));
-        this.set('activeType', this.getWithDefault('type', 'default'));
-      }
-      var tmp = this.get('activeType');
-      this.set('activeType', this.get('inactiveType'));
-      this.set('inactiveType', tmp);
-    }
     return this.sendAction('clicked', this.get('clickedParam'));
   }
 });

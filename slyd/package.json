@@ -27,7 +27,6 @@
     "broccoli-concat": "0.0.13",
     "broccoli-merge-trees": "^0.2.1",
     "broccoli-funnel": "^0.2.3",
-    "ember": "^1.0.0-pre.2",
     "ember-breadcrumbs": "^0.1.1",
     "ember-cli": "^0.2.5",
     "ember-cli-auto-register-helpers": "^1.0.0",

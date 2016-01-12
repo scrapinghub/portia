@@ -221,6 +221,9 @@ init_requests : list of request objects : optional
   A list of requests objects that will be executed (sequentially, in order)
   when the spider is opened and before visiting the start urls.
 
+page_actions : list of page action objects : optional
+  A list of page actions (like clicking a button or typing text into a field) that will be executed (sequentially) on the page.
+
 Template
 --------
 
@@ -426,7 +429,46 @@ xpath : string
 
 fields : list
   A list of fields to be posted with the form.
-  
+
+Page Action
+-----------
+
+Used to represent an action to be performed on a page::
+
+    {
+        "type": "click",
+        "selector": "#show_more",
+        "accept": "/product/[0-9]+",
+        "reject": "/product/(0|999)"
+    }
+
+Attributes:
+
+type : string
+  Either one of these values:
+  * ``wait``: Wait for a specified amount of time before continuing
+  * ``click``: Click something on the page
+  * ``set``: Set a text field or select box value
+  * ``scroll``: Scroll an element
+
+timeout : number
+  Only when type is ``wait``: Ammount of time to wait
+
+selector : string
+  Only when type is ``click``, ``set`` or ``scroll``: CSS selector of the elements to apply the action to. If the selector matches several elements, action is applied to all.
+
+value : string
+  Only when type is ``set``: Value to set the field or select box to.
+
+percent : number
+  Only when type is ``scroll``: Scroll vertically this percentage of the  page.
+
+accept : regex (optional)
+  Only run the  action in pages which URL matches the regex
+
+reject: regex (optional)
+  Don't run the action in pages which URL matches the regex
+
 Generic Form Field
 ------------------
 

@@ -28,5 +28,5 @@ export default BaseRoute.extend({
             outlet: 'topbar',
             controller: controller,
         });
-    },
+    }
 });

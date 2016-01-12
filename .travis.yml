@@ -24,6 +24,13 @@ install:
 - npm install
 - bower install
 - cd ../
+before_script:
+- "export DISPLAY=:99.0"
+- "sh -e /etc/init.d/xvfb start"
+- cd slyd
+- PYTHONPATH=.:../slybot:/usr/lib/python2.7/dist-packages/ python tests/testserver/server.py 2>&1 | grep -v 'HTTP/1.1" 200' &
+- cd ..
+- sleep 3 # give xvfb some time to start
 script:
 - cd ./slybot
 - nosetests --with-doctest

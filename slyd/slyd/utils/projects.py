@@ -17,6 +17,8 @@ def allowed_file_name(name):
 def clean_spider(obj):
     """Removes incomplete data from the spider"""
     if 'init_requests' in obj:
+        if obj['init_requests'] is None:
+            obj['init_requests'] = []
         required_fields = ('type', 'loginurl', 'username', 'password')
         obj['init_requests'] = [req for req in obj['init_requests']
                                 if all(f in req for f in required_fields)]

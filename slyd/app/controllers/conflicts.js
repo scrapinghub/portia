@@ -113,8 +113,7 @@ export default BaseController.extend(ConflictMixin, {
     actions: {
 
         displayConflictedFile: function(fileName) {
-            this.get('document.view').setInteractionsBlocked(false);
-            this.get('document.view').setIframeContent('<html></html>');
+            this.get('documentView').setInteractionsBlocked(false);
             this.displayConflictedFile(fileName);
         },
         conflictOptionUpdated: function(path, accepted, rejected) {
@@ -150,8 +149,10 @@ export default BaseController.extend(ConflictMixin, {
 
     willEnter: function() {
         this.set('model', this.get('model') || {});
-        this.get('document.view').setInteractionsBlocked(false);
-        this.get('document.view').showSpider();
+        this.get('document.view').config({
+            mode: 'none',
+            blankPage: true
+        });
         if (!Ember.isEmpty(this.get('conflictedFileNames'))) {
             this.displayConflictedFile(this.get('conflictedFileNames')[0]);
         }

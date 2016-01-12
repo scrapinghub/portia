@@ -1,0 +1,82 @@
+{{#if editing }}
+{{#if addingNew}}
+    <div class="form-group form-group-sm">
+        <label for="actionType" class="col-sm-4 control-label">Action type</label>
+        <div class="col-sm-7">
+            {{item-select options=actionTypes id="actionType" value=editing.type}}
+        </div>
+        <div class="btn-center">
+            {{#bs-button clicked="addContinue" icon="fa fa-icon fa-plus" type="primary"}}
+                Continue
+            {{/bs-button}}
+        </div>
+    </div>
+{{else}}
+<form class="form-horizontal">
+    {{#if isEditingWait}}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Timeout (ms)</label>
+            <div class="col-sm-7">
+                {{input value=editing.timeout pattern="^[0-9]+$" class="form-control" }}
+            </div>
+        </div>
+    {{else}}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Selector</label>
+            <div class="col-sm-7">
+                {{input value=editing.selector class="form-control" }}
+            </div>
+        </div>
+    {{/if}}
+    {{#if isEditingSet }}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Value</label>
+            <div class="col-sm-7">
+                {{input value=editing.value class="form-control" }}
+            </div>
+        </div>
+    {{else if isEditingScroll }}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Scroll %</label>
+            <div class="col-sm-7">
+                {{input value=editing.percent pattern="^[0-9]+$" class="form-control" }}
+            </div>
+        </div>
+    {{/if}}
+</form>
+    <div class="form-group form-group-sm">
+        <label for="actionType" class="control-label">Run only in pages matching</label>
+        {{input value=editing.accept class="form-control" }}
+    </div>
+    <div class="form-group form-group-sm">
+        <label for="actionType" class="control-label">Don't run in pages matching</label>
+        {{input value=editing.reject class="form-control" }}
+    </div>
+    <div class="btn-center">
+        {{#bs-button clicked="back" icon="fa fa-icon fa-check" type="primary"}}
+            Back
+        {{/bs-button}}
+    </div>
+{{/if}}
+{{else}}
+    {{#reorderable-list reorder="reorderPageAction" class="page-actions"}}
+        {{#each pageActions as |action index|}}
+            <div class="page-action">{{reorder-handler}}
+                {{action.type}}
+                {{#if action.selector}}<code title="{{action.selector}}">{{action.selector}}</code>{{/if}}
+                {{#if action.value}} to <code title="{{action.value}}">"{{action.value}}"</code>{{/if}}
+                {{#if action.timeout}} for {{action.timeout}}ms{{/if}}
+                {{#if action.percent}} to <code>{{action.percent}}%</code>{{/if}}
+                {{bs-button clicked="deletePageAction" clickedParam=index size="xs" icon="fa fa-icon fa-trash" type="danger"}}
+                {{bs-button clicked="editPageAction" clickedParam=action size="xs" icon="fa fa-icon fa-cog" type="default"}}
+            </div>
+        {{else}}
+            <h5>No actions have been recorded yet.</h5>
+        {{/each}}
+    {{/reorderable-list}}
+    <div class="btn-center">
+        {{#bs-button clicked="addNew" icon="fa fa-icon fa-plus" type="primary"}}
+            Add action
+        {{/bs-button}}
+    </div>
+{{/if}}

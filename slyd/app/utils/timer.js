@@ -1,7 +1,8 @@
 import Ember from 'ember';
+import utils from './utils';
 
 export default  Ember.Object.extend({
-    init: function() {
+    init: function(websocket) {
         var hidden, visibilityChange;
         if (typeof document.hidden !== "undefined") {
           hidden = "hidden";
@@ -27,29 +28,35 @@ export default  Ember.Object.extend({
         // Handle user putting browser into background
         window.addEventListener('blur', this.pause.bind(this));
         window.addEventListener('focus', this.resume.bind(this));
-
         this.set('_startTime', new Date());
-    },
-
-    totalTime: function() {
-        return parseInt((new Date() - this.get('_startTime') - this.getWithDefault('_pausedTime', 0))/1000);
+        this.set('sessionid', utils.shortGuid());
+        this.set('ws', websocket);
     },
 
     pause: function() {
-        if (this.get('paused')) { // Avoid overwriting pause if called twice without resume
+         // Avoid overwriting pause if called twice without resume
+        if (this.get('paused') || this.get('ws.closed')) {
             return;
         }
-        this.set('paused', new Date());
+        this.set('paused', true);
+        this.get('ws').send({
+            '_command': 'pause',
+            '_meta': {
+                'session_id': this.get('sessionid')
+            }
+        });
     },
 
     resume: function() {
-        if (!this.get('paused')) {
+        if (!this.get('paused') || this.get('ws.closed')) {
             return;
         }
-        var paused = this.getWithDefault('_pausedTime', 0),
-            pausedAt = this.get('paused');
-        paused = paused + (new Date() - pausedAt);
-        this.set('_pausedTime', paused);
-        this.set('paused', null);
+        this.set('paused', false);
+        this.get('ws').send({
+            '_command': 'resume',
+            '_meta': {
+                'session_id': this.get('sessionid')
+            }
+        });
     }
 });

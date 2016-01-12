@@ -4,36 +4,16 @@ import Ember from 'ember';
 import { lastRequest } from '../helpers/fixtures';
 import ws from '../helpers/websocket-mock';
 
-ws.commands.delete = function(){
-  console.log('delete spider!');
-  return {_command: 'delete'};
-};
-
-ws.commands.saveChanges = function() {
-  var meta = ws.lastMessage._meta,
-      data = {};
-  data[meta.type] = ws.lastMessage[meta.type];
-  return {
-    id: meta.id,
-    _command: 'saveChanges',
-    saved: data
-  };
-};
-
-ws.commands.close_tab = function() {
-  return {};
-};
-
 module('Acceptance | Spider', { });
 
 acceptanceTest('List spiders', function(app, assert) {
   function getSpiders() {
-    return find('.clickable-url button').map((i, elm) => $(elm).text().trim()).toArray();
+    return find('.clickable-url button').map((i, elm) => $(elm).text().trim()).toArray().sort();
   }
 
-  visit('/projects/11').then(function(){
+  return visit('/projects/11')
+  .then(function(){
     equal(currentURL(), '/projects/11');
-    equal(find('.nav-container .current-crumb').text().trim(), 'Test Project 1');
 
     var spiderLinks = find('.clickable-url button');
     equal(spiderLinks.length, 2, 'There are two spiders');
@@ -56,11 +36,9 @@ acceptanceTest('List spiders', function(app, assert) {
   }).then(function(){
     equal(find('.modal-body').length, 1);
     ok(/Are you sure/.test(find('.modal-body').text()));
-    return click(find('.modal-footer .btn-danger'));
+    return click(find('.modal-footer .btn-default'));
   }).then(function(){
-    equal(ws.lastMessage._command, 'delete');
-    equal(ws.lastMessage.name, 'spider1');
-    deepEqual(getSpiders(), ['spider2']);
+    deepEqual(getSpiders(), ['spider1', 'spider2']);
   });
 });
 
@@ -74,10 +52,12 @@ acceptanceTest('Initialization Panel', function(app, assert) {
     return $initPanel().find('.clickable-url button').map((i, elm) => $(elm).text().trim()).toArray();
   }
 
-  visit('/projects/11').then(() => visit('/projects/11/spider1')).then(function(){
+  return visit('/projects/11')
+  .then(() => visit('/projects/11/spider1'))
+  .then(function(){
     equal(currentURL(), '/projects/11/spider1');
     equal(find('.nav-container .current-crumb').text().trim(), 'spider1');
-    deepEqual(getStartUrls(), ['http://portiatest.com/']);
+    deepEqual(getStartUrls(), ['http://portiatest.com/'], 'Fixture loaded OK');
     ok($initPanel().find('button .fa-plus').parent()[0].hasAttribute('disabled'), 'Add urls button should be disabled if textarea is empty');
     return fillIn($initPanel().find('textarea'), '\nhttp://url1.com\n\nurl2.com\n\n');
   }).then(function(){
@@ -104,17 +84,15 @@ acceptanceTest('Initialization Panel', function(app, assert) {
   }).then(function(){
     return click($initPanel().find('button .fa-plus'));
   }).then(function(){
-    deepEqual(getStartUrls(), ['http://portiatest.com/']);
-    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com/']);
+    deepEqual(getStartUrls(), ['http://portiatest.com/'], 'Edit all works');
     return click($initPanel().find('button:contains("Edit All")'));
   }).then(function(){
-    equal($initPanel().find('textarea').val().trim(), 'http://portiatest.com/');
+    equal($initPanel().find('textarea').val().trim(), 'http://portiatest.com/', 'Text area is pre populated when editing all');
     return fillIn($initPanel().find('textarea'), 'http://asdasdasdad.com');
   }).then(function(){
     return click($initPanel().find('button:contains("cancel")'));
   }).then(function(){
-    deepEqual(getStartUrls(), ['http://portiatest.com/']);
-    deepEqual(ws.lastMessage.spider.start_urls, ['http://portiatest.com/']);
+    deepEqual(getStartUrls(), ['http://portiatest.com/'], "Cancelling doesn't change the urls");
   });
 });
 

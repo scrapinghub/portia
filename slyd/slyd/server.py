@@ -57,15 +57,4 @@ def debugLogFormatter(timestamp, request):
             agent=agent,
         )
     )
-    additional_data = request.getHeader(b"x-portia")
-    if additional_data:
-        split_data = _escape(additional_data).split(':')
-        if len(split_data) == 4:
-            session, session_time, user, command = split_data
-            line += (u' id=%(session)s t=%(session_time)s user=%(user)s '
-                     u'command=%(command)s' % dict(
-                         session=session,
-                         session_time=session_time,
-                         user=user,
-                         command=command))
     return line

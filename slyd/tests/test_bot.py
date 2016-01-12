@@ -43,7 +43,6 @@ class BotTest(unittest.TestCase):
         value = json.loads(result.value())
         # expect 200 response and base href added
         self.assertEqual(value['response']['status'], 200)
-        self.assertIn('<base href="%s"' % test_url, value['page'])
 
         # parse fetched data
         test_url = "http://localhost:8997/pin1.html"

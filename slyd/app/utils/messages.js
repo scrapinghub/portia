@@ -27,4 +27,6 @@ export default Ember.Object.create({
     deploy_ok_schedule: 'The project was successfully deployed. Do you want to be redirected to the schedule page?',
     publish_conflict: 'Another user has made changes to this project which conflict with your changes. You will need to manually resolve these conflicts',
     conflicts_solved: 'You have resolved all conflicts, your changes have been published.',
+    page_actions: 'Page actions are run on the page before extracting items in the specified order. Page actions are performed on one or several elements, and it waits autmatically for any AJAX call or timeout to finish before continuing. JavaScript needs to be enabled to use page actions.',
+    template_js_disabled: "The spider is configured to disable javascript for this URL, If you can't find the data you want to extract try enabing JavaScript for this page and creating the template again.",
 });

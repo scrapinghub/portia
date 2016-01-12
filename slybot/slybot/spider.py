@@ -34,6 +34,7 @@ class IblSpider(Spider):
     def __init__(self, name, spec, item_schemas, all_extractors, settings=None,
                  **kw):
         super(IblSpider, self).__init__(name, **kw)
+        self._job_id = settings.get('JOB', '')
         spec = deepcopy(spec)
         for key, val in kw.items():
             if isinstance(val, six.string_types) and key in STRING_KEYS:
@@ -74,6 +75,7 @@ class IblSpider(Spider):
             'allowed_domains',
             self._get_allowed_domains(self._templates)
         )
+        self.page_actions = spec.get('page_actions', [])
         if not self.allowed_domains:
             self.allowed_domains = None
 
@@ -255,7 +257,7 @@ class IblSpider(Spider):
             cleaned_url = urlparse(request.url)._replace(params='', query='',
                                                          fragment='').geturl()
             request.meta['splash'] = {
-                'endpoint': 'render.html',
+                'endpoint': 'render.html?job_id=%s' % self._job_id,
                 'args': {
                     'wait': 5,
                     'images': 0,

@@ -8,12 +8,12 @@
 
 	<div class="url">
 		{{#if isFetching }}
-			{{#label-with-tooltip title=controller.currentUrl}}
-				{{controller.currentUrl}}
+			{{#label-with-tooltip title="Loading page..."}}
+				Loading page...
 			{{/label-with-tooltip}}
 		{{else}}
-			{{#inline-editable-text-field text=documentView.currentUrl placeholder='http://' validation='^(https?://)?[^\s\/]+\.[^\s]*$' action='navigate'}}
-				{{controller.currentUrl}}
+			{{#inline-editable-text-field text=documentView.currentUrl placeholder='http://' action='navigate'}}
+				{{controller.urlLabel}}
 			{{/inline-editable-text-field}}
 		{{/if}}
 	</div>
@@ -26,11 +26,11 @@
 		{{/bs-button}}
 	{{/unless}}
 
-	{{#unless showItemsDisabled}}
+	{{#if haveItems}}
 		{{#bs-button clicked="toggleShowItems" type="black" size="sm"}}
 			{{itemsButtonLabel}}
 		{{/bs-button}}
-	{{/unless}}
+	{{/if}}
 
 	{{#if showNoItemsExtracted}}
 		{{bs-label content="No items extracted" type="info"}}
@@ -42,7 +42,7 @@
 </div>
 
 {{#if showItems}}
-	{{#if controller.extractedItems.length}}
+	{{#if haveItems }}
 		<div class="extracted-items-container">
 			<span style="float:right">
 				{{bs-button clicked="toggleShowItems" size="sm" type="light" icon="fa fa-icon fa-close"}}
@@ -52,7 +52,7 @@
 				{{#each item in controller.extractedItems}}
 					<hr style="margin:0px;background-color:rgba(70,70,70,1)"/>
 					<div style="padding:10px 0px 10px 0px; border-bottom: 1px groove rgba(255,255,255,0.2);">
-						{{extracted-item extractedItem=item fetchPage="fetchPage" editTemplate="editTemplate"}}
+						{{extracted-item extractedItem=item loadUrl="loadUrl" editTemplate="editTemplate"}}
 					</div>
 				{{/each}}
 			</div>

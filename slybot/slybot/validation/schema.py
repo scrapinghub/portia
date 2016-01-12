@@ -34,13 +34,12 @@ def get_schema_validator(schema):
     resolver = RefResolver("", schema, _SCHEMAS)
 
     @FormatChecker.cls_checks('url', (ValueError,))
-    def is_valid_uri(instance):
-        if not isinstance(instance, six.string_types):
-            return True
-        uri = urlparse(instance)
-        query = urlencode(parse_qsl(unquote(uri.query.encode('utf-8'))))
-        return rfc3987.parse(uri._replace(query=query).geturl(),
-                             rule='URI')
+    def is_valid_uri(url):
+        if not isinstance(url, six.string_types):
+            return False
+        if isinstance(url, six.binary_type):
+            url = url.decode('utf-8')
+        return rfc3987.parse(url, rule='IRI')
 
     return SlybotJsonSchemaValidator(_SCHEMAS[schema], resolver=resolver,
                                      format_checker=FormatChecker())

@@ -23,25 +23,31 @@ class ProxyResource(Resource):
         url = request.args['url'][0]
         referer = request.args['referer'][0]
         tabid = int(request.args['tabid'][0])
-        user = User.findById(tabid)
+        return self._load_resource(request, url, referer, tabid)
 
-        # It's not easy to cancel a request that's being made by splash, because it does't
-        # return the QNetworkReply and when redirecting the current QNetworkReply changes,
-        # so if the client closes the connection while fetching the content we simply note
-        # it in this object and let the request finish without aborting.
-        connection_status = { "finished": False }
-        cb = functools.partial(self.end_response, request, url, connection_status, tabid)
+    def _load_resource(self, request, url, referer, tabid=None):
+        # It's not easy to cancel a request that's being made by splash,
+        # because it does't return the QNetworkReply and when redirecting the
+        # current QNetworkReply changes, so if the client closes the connection
+        # while fetching the content we simply note it in this object and let
+        # the request finish without aborting.
+        user = User.findById(tabid)
+        connection_status = {"finished": False}
+        cb = functools.partial(self.end_response, request, url, referer,
+                               connection_status, tabid)
         if not user or not user.tab:
             d = deferToThread(requests.get, url, headers={'referer': referer})
             d.addCallback(cb)
             d.addErrback(self._requestError, request)
-            request.notifyFinish().addErrback(self._requestDisconnect, deferred=d)
+            request.notifyFinish().addErrback(self._requestDisconnect,
+                                              deferred=d)
             return NOT_DONE_YET
 
         if request.auth_info['username'] != user.auth['username']:
             return self._error(request, 403, "You don't own that browser session")
 
-        request.notifyFinish().addErrback(self._requestDisconnect, None, connection_status)
+        request.notifyFinish().addErrback(self._requestDisconnect, None,
+                                          connection_status)
         user.tab.http_client.get(url, cb, headers={'referer': referer})
         return NOT_DONE_YET
 
@@ -57,17 +63,19 @@ class ProxyResource(Resource):
         if connection_status:
             connection_status["finished"] = True
 
-    def end_response(self, request, original_url, connection_status, tabid, reply):
+    def end_response(self, request, original_url, referer, connection_status,
+                     tabid, reply):
         if connection_status["finished"]:
             return
 
         if hasattr(reply, 'readAll'):
             content = str(reply.readAll())
             status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute).toPyObject()
+            if status_code == 400:
+                return self._load_resource(request, original_url, referer)
             request.setResponseCode(status_code or 500)
         else:
             content = ''.join(chunk for chunk in reply.iter_content(65535))
-            redirect_url = None
             request.setResponseCode(reply.status_code)
 
         headers = {

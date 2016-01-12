@@ -19,7 +19,7 @@ class Conflict(object):
         b = base[0] if base else _BLANK
         conflict = cls(m, o, b)
         for m, o, b in zip_longest(mine[1:], other[1:], base[1:],
-                                    fillvalue=_BLANK):
+                                   fillvalue=_BLANK):
             conflict.update(m, o, b)
         return conflict
 
@@ -103,8 +103,9 @@ def merge_lists(base, mine, other):
     result = []
     last_conflict = False
     for i, (m, o, b) in enumerate(zip_longest(mine, other, base,
-                                               fillvalue=_BLANK)):
-        if m == o and _BLANK not in (m, o):
+                                              fillvalue=_BLANK)):
+        if (m == o and _BLANK not in (m, o) or
+                isinstance(m, dict) and isinstance(o, dict)):
             result.append(m)
         else:  # Conflict
             if last_conflict:
@@ -178,6 +179,8 @@ def merge_jsons(base, mine, other):
     def build_merge_dict(base, mine, other):
         my_diff = JsonDiff(base, mine)
         other_diff = JsonDiff(base, other)
+        base, mine, other = (j if isinstance(j, dict) else {}
+                             for j in (base, mine, other))
         all_fields = set(base.keys()).union(mine.keys()).union(other.keys())
         merge_dict = {}
         for k in all_fields:

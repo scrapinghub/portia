@@ -10,9 +10,10 @@ BAD_CSS = re.compile(r'''(-moz-binding|expression\s*\(|javascript\s*:)''', re.I)
 
 
 def wrap_url(url, tabid, base=None):
+    url = url.strip()
     referer = None
     if base:
-        referer = urlparse(base).netloc
+        referer = urlparse(base.strip()).netloc
         url = urljoin_rfc(base, url)
     parsed = urlparse(url)
     referer = referer or parsed.netloc

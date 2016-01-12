@@ -6,9 +6,9 @@ import Item from '../models/item';
 import ItemField from '../models/item-field';
 import SpriteStore from '../utils/sprite-store';
 import utils from '../utils/utils';
+import { suggestAnnotations } from '../utils/suggest-annotations';
 
 export default BaseController.extend({
-
     model: null,
 
     needs: ['application', 'projects', 'project', 'spider', 'spider/index'],
@@ -64,12 +64,6 @@ export default BaseController.extend({
         }
 
         this.set('activeExtractionTool', this.get('extractionTools.' + tool_name));
-        this.get('documentView').config({
-            mode: 'select',
-            listener: this,
-            dataSource: this,
-            partialSelects: true,
-        });
         this.set('documentView.sprites', this.get('activeExtractionTool.sprites'));
     },
 
@@ -106,6 +100,7 @@ export default BaseController.extend({
     }.property('activeExtractionTool', 'activeExtractionTool.sprites'),
 
     saveTemplate: function() {
+        this.dissmissAllSuggestions();
         if (this.get('model')) {
             this.set('model.extractors', this.validateExtractors());
             this.set('model.plugins', this.getWithDefault('model.plugins', {}));
@@ -292,13 +287,26 @@ export default BaseController.extend({
         this.get('extractors').pushObject(extractor);
     },
 
-    showFloatingAnnotationWidget: function(_, element, x, y) {
+    showFloatingAnnotationWidget: function(element, x, y) {
         this.set('showFloatingAnnotationWidgetAt', { x: x, y: y });
         this.set('floatingElement', Ember.$(element));
     },
 
     hideFloatingAnnotationWidget: function() {
         this.set('showFloatingAnnotationWidgetAt', null);
+    },
+
+    /**
+     * @returns bool indicating if the user has created any annotation.
+     */
+    hasAnnotations: function() {
+        for (let tool of Object.values(this.get('extractionTools'))) {
+            let annotations = (tool.pluginState || {}).extracted || [];
+            if(annotations.length) {
+                return true;
+            }
+        }
+        return false;
     },
 
     actions: {
@@ -422,31 +430,24 @@ export default BaseController.extend({
         },
 
         discardChanges: function() {
-            var hasData = false, tools = this.get('extractionTools'),
-                finishDiscard = function() {
-                    var params = {
+            let finishDiscard = () => {
+                this.transitionToRoute('spider', {
+                    queryParams: {
                         url: this.get('model.url')
-                    };
-                    if (!hasData) {
-                        params.rmt = this.get('model.name');
                     }
-                    this.transitionToRoute('spider', {
-                        queryParams: params
-                    });
-                }.bind(this);
+                });
+            };
             this.set('documentView.sprites', new SpriteStore());
-            for (var key in tools) {
-                if (((tools[key]['pluginState']||{})['extracted']||[]).length > 0) {
-                    hasData = true;
-                    break;
-                }
-            }
 
-            if (hasData) {
+            if (this.hasAnnotations()) {
                 finishDiscard();
             } else {
-                this.get('slyd').deleteTemplate(this.get('slyd.spider'),
-                                                this.get('model.name')).then(finishDiscard);
+                this.get('slyd')
+                    .deleteTemplate(this.get('slyd.spider'), this.get('model.name'))
+                    .then(() => {
+                        this.get('controllers.spider.model.template_names').removeObject(this.get('model.name'));
+                    })
+                    .then(finishDiscard);
             }
         },
 
@@ -467,20 +468,26 @@ export default BaseController.extend({
         updateScraped: function(name) {
             this.set('model.scrapes', name);
         },
+
+        dissmissAllSuggestions: function(){
+            this.dissmissAllSuggestions(true);
+        },
+
+        acceptAllSuggestions: function(){
+            this.acceptAllSuggestions();
+        }
     },
 
     documentActions: {
 
         elementSelected: function(element, mouseX, mouseY) {
-            if (element) {
-                this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
-            }
+            this.showFloatingAnnotationWidget(element, mouseX, mouseY);
         },
 
         partialSelection: function(selection, mouseX, mouseY) {
             var element = Ember.$('<ins/>').get(0);
             selection.getRangeAt(0).surroundContents(element);
-            this.showFloatingAnnotationWidget(null, element, mouseX, mouseY);
+            this.showFloatingAnnotationWidget(element, mouseX, mouseY);
         },
 
         elementHovered: function() {
@@ -489,7 +496,7 @@ export default BaseController.extend({
     },
 
     setDocument: function() {
-        if (!this.get('model') || !this.get('model.annotated_body') || !this.get('loadDocument')) {
+        if (!this.get('model') || !this.get('model.annotated_body')) {
             return;
         }
         this.get('documentView').displayDocument(this.get('model.annotated_body'),
@@ -506,8 +513,77 @@ export default BaseController.extend({
             });
             this.set('extractionTools', {});
             this.enableExtractionTool(this.get('capabilities.plugins').get(0)['component'] || 'annotations-plugin');
+            this.suggestAnnotations();
         }.bind(this));
-    }.observes('model', 'model.annotated_body'),
+    },
+
+    suggestAnnotations: function() {
+        if (this.hasAnnotations()) {
+            return;
+        }
+        let docView = this.get('documentView');
+
+        let item = this.get('scrapedItem');
+        let fields = new Set(item.get('fields').map(field => field.name));
+
+        let doc = docView.getIframeNode().contentDocument;
+        suggestAnnotations(doc, fields, (suggestions) => {
+            if (this.hasAnnotations()) {
+                return;
+            }
+            this.dissmissAllSuggestions();
+            let annotations = this.get('activeExtractionTool.data.extracts');
+            for (let [field, node, attr, suggestor] of suggestions) {
+                let mapping = {};
+                mapping[attr] = field;
+                annotations.pushObject(Ember.Object.create({
+                    annotations: mapping,
+                    id: utils.shortGuid(),
+                    tagid: $(node).data('tagid'),
+                    suggested: true,
+                    suggestor: suggestor,
+                    required: [],
+                }));
+            }
+        });
+    },
+
+    suggestionCount: function() {
+        let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
+        let count = 0;
+        for (let annotation of annotations) {
+            if(annotation.suggested) {
+                count++;
+            }
+        }
+        return count;
+    }.property('activeExtractionTool.data.extracts.@each.suggested'),
+
+    severalSuggestions: Ember.computed.gte('suggestionCount', 2),
+
+    dissmissAllSuggestions: function(userInitiated=false) {
+        let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
+        annotations.removeObjects(annotations.filter((annotation) => {
+            if(userInitiated) {
+                this.get('ws').logEvent('suggestions', annotation.suggestor, 'rejected_all');
+            }
+            return annotation.suggested;
+        }));
+        if(userInitiated) {
+            this.get('ws').logEvent('suggestions.all', 'rejected');
+        }
+    },
+
+    acceptAllSuggestions: function() {
+        this.get('ws').logEvent('suggestions.all', 'accepted');
+        let annotations = this.getWithDefault('activeExtractionTool.data.extracts', []);
+        for (let annotation of annotations) {
+            if(annotation.suggested) {
+                this.get('ws').logEvent('suggestions', annotation.suggestor, 'accepted_all');
+                annotation.set('suggested', false);
+            }
+        }
+    },
 
     /**
      * This will make sure the template scrapes a valid item and if not it will create one.
@@ -536,8 +612,13 @@ export default BaseController.extend({
         }
     }.observes('model.scrapes', 'items.@each'),
 
-    willEnter: function() {
+    _willEnter: function() { // willEnter template.index controller
         var plugins = {};
+        this.get('documentView').config({
+            mode: 'select',
+            listener: this,
+            partialSelects: true,
+        });
         this.get('capabilities.plugins').forEach(function(plugin) {
             plugins[plugin['component'].replace(/\./g, '_')] = plugin['options'];
         });
@@ -546,7 +627,7 @@ export default BaseController.extend({
         this.setDocument();
     },
 
-    willLeave: function() {
+    _willLeave: function() { // willLeave template.index controller
         this.hideFloatingAnnotationWidget();
         this.get('documentView').reset();
         this.set('activeExtractionTool', {extracts: [],

@@ -1,11 +1,21 @@
 {{#if showAnnotation}}
     <div class="row">
         <div class="col-md-1">
-            {{bs-button clicked=topLeftAction icon=topLeftIcon size="xs"}}
+            {{#unless data.suggested}}
+                {{bs-button clicked=topLeftAction icon=topLeftIcon size="xs"}}
+            {{/unless}}
         </div>
         <div class="col-md-8">
+            {{#if data.suggested}}
+                Annotation suggestion
+            {{/if}}
         </div>
-        {{#if inDoc}}
+        {{#if data.suggested}}
+            <div class="col-md-3">
+                {{bs-button clicked="acceptSuggestion" icon="fa fa-icon fa-check" title="Accept suggestion" type="success" size="xs"}}
+                {{bs-button clicked="delete" icon="fa fa-icon fa-trash" title="Remove suggestion" type="warning" size="xs"}}
+            </div>
+        {{else if inDoc}}
             <div class="col-md-3">
                 {{bs-button clicked="delete" icon="fa fa-icon fa-trash" title="Delete Annotation" type="danger" size="xs"}}
                 {{bs-button clicked="dismiss" icon="fa fa-icon fa-close" title="Finish Editing" size="xs"}}
@@ -77,6 +87,21 @@
                 Select Ignores
             {{/bs-button}}
         </div>
+    {{else if data.suggested}}
+        <div class="row">
+            <div class="col-md-7 small-label">Value</div>
+            <div class="col-md-3 small-label">Field</div>
+        </div>
+        {{#each mappings as |annotation index|}}
+            <div class="row">
+                <div class="col-md-7" style=overflow:hidden;text-overflow:ellipsis;">
+                    {{collapsible-text fullText=annotation.content trimTo=100 title=annotation.content}}
+                </div>
+                <div class="col-md-3">
+                    {{annotation.field}}
+                </div>
+            </div>
+        {{/each}}
     {{else}}
         <div style="margin-top:10px"></div>
         <div class="row">

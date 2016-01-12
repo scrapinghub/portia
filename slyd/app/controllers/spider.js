@@ -11,17 +11,14 @@ export default BaseController.extend({
 
     needs: ['application', 'projects', 'project', 'project/index'],
 
+    queryParams: ['url', 'baseurl'],
+    url: null,
+    baseurl: null,
+
     saving: false,
 
-    browseHistory: [],
-
-    pageMap: {},
-
-    loadedPageFp: null,
-
-    autoloadTemplate: null,
-
-    pendingFetches: [],
+    browseHistory: [], // List of urls
+    pendingUrls: [], // List of urls we still need to fetch when testing spider
 
     itemDefinitions: null,
 
@@ -79,40 +76,33 @@ export default BaseController.extend({
     }.property('_showLinks'),
 
     showItems: true,
-
-    addTemplateDisabled: Ember.computed.not('loadedPageFp'),
+    isFetching: Ember.computed.reads('documentView.loading'),
+    currentUrl: Ember.computed.reads('documentView.currentUrl'),
+    noPageLoaded: Ember.computed.not('currentUrl'),
+    addTemplateDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching', 'testing'),
+    reloadDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching'),
+    haveItems: Ember.computed.notEmpty('extractedItems'),
+    pageActionsEnabled: Ember.computed.reads('model.js_enabled'),
 
     browseBackDisabled: function() {
-        return this.get('browseHistory').length <= 1;
-    }.property('browseHistory.@each'),
+        return this.get('ws.closed') || this.get('browseHistory').length <= 1;
+    }.property('browseHistory.@each', 'ws.closed'),
 
-    reloadDisabled: Ember.computed.not('loadedPageFp'),
+    showNoItemsExtracted: function(){
+        return this.get('currentUrl') && !this.get('isFetching') && !this.get('haveItems');
+    }.property('haveItems', 'isFetching'),
 
-    showItemsDisabled: function() {
-        var loadedPageFp = this.get('loadedPageFp');
-        if (this.extractedItems.length > 0) {
-            return false;
-        }
-        if (this.pageMap[loadedPageFp] && this.pageMap[loadedPageFp].items) {
-            return !loadedPageFp ? true : !this.pageMap[loadedPageFp].items.length;
-        }
-        return true;
-    }.property('loadedPageFp', 'extractedItems'),
+    urlLabel: function() {
+        return this.get('currentUrl') || 'No page loaded';
+    }.property('currentUrl', 'isFetching'),
 
-    showNoItemsExtracted: function() {
-        return this.get('loadedPageFp') && Ember.isEmpty(this.get('extractedItems')) && this.showItemsDisabled;
-    }.property('loadedPageFp', 'showItemsDisabled'),
 
     itemsButtonLabel: function() {
         return this.get('showItems') ? "Hide Items " : "Show Items";
     }.property('showItems'),
 
     testButtonLabel: function() {
-        if (this.get('testing')) {
-            return "Stop testing";
-        } else {
-            return "Test spider";
-        }
+        return this.get('testing') ? "Stop testing" : "Test spider";
     }.property('testing'),
 
     links_to_follow: function(key, follow) {
@@ -165,8 +155,8 @@ export default BaseController.extend({
         return spiderDomains;
     }.property('model.start_urls.@each'),
 
-    sprites: function() {
-        if (!this.get('loadedPageFp') || !this.get('showLinks')) {
+    _updateSprites: function() {
+        if (!this.get('currentUrl') || !this.get('showLinks')) {
             return [];
         }
         var followedLinks = this.getWithDefault('followedLinks', {}),
@@ -199,18 +189,6 @@ export default BaseController.extend({
         return false;
     },
 
-    isFetching: Ember.computed.notEmpty('pendingFetches'),
-
-    currentUrl: function() {
-        if (this.get('isFetching')) {
-            return 'Fetching page...';
-        } else if (this.get('loadedPageFp')) {
-            return this.get('pageMap')[this.get('loadedPageFp')].url;
-        } else {
-            return 'No page loaded';
-        }
-    }.property('loadedPageFp', 'pendingFetches.@each'),
-
     editTemplate: function(templateName) {
         this.transitionToRoute('template', templateName);
     },
@@ -239,83 +217,35 @@ export default BaseController.extend({
                                       matchedTemplate: item['_template_name'] });
     },
 
-    updateExtractedItems: function(items) {
-        var extractedItems = items.map(this.wrapItem, this);
-        this.set('extractedItems', extractedItems);
-    },
-
-    renderPage: function(url, data, skipHistory, callback) {
-        data.url = url;
-        if (!skipHistory) {
-            this.get('browseHistory').pushObject(data.fp);
-        }
-        this.get('documentView').displayDocument(data,
-            function(){
-                this.get('documentView').reset();
-                this.get('documentView').config({ mode: 'browse',
-                                  listener: this,
-                                  dataSource: this });
-                this.set('documentView.sprites', this.get('spriteStore'));
-                this.set('loadedPageFp', data.fp);
-                this.get('pageMap')[data.fp] = data;
-                Ember.run.later(function() {
-                    this.get('documentView').redrawNow();
-                }.bind(this), 100);
-                if (callback) {
-                    callback();
-                }
-            }.bind(this)
-        );
-    },
-
-    fetchPage: function(url, parentFp, skipHistory, baseurl) {
-        this.set('loadedPageFp', null);
-        var documentView = this.get('documentView');
-        documentView.showLoading();
-        var fetchId = utils.guid();
-        this.get('pendingFetches').pushObject(fetchId);
-        this.set('documentView.sprites', new SpriteStore());
-        this.set('documentView.listener', this);
-        this.get('documentView').fetchDocument(url, this.get('model.name'), parentFp).
-            then(function(data) {
-                if (this.get('pendingFetches').indexOf(fetchId) === -1) {
-                    // This fetch has been cancelled.
-                    return;
-                }
-                if (!data.error) {
-                    this.renderPage(baseurl || url, data, skipHistory, function() {
-                        this.get('pendingFetches').removeObject(fetchId);
-                        documentView.hideLoading();
-                    }.bind(this));
-                } else {
-                    documentView.hideLoading();
-                    this.get('pendingFetches').removeObject(fetchId);
-                    this.showErrorNotification('Failed to fetch page', data.error);
-                }
-            }.bind(this), function(err) {
-                documentView.hideLoading();
-                this.get('pendingFetches').removeObject(fetchId);
-                throw err;  // re-throw for the notification
-            }.bind(this)
-        );
+    loadUrl: function(url, baseUrl) {
+        this.get('documentView').loadUrl(url, this.get('model.name'), baseUrl);
     },
 
     addTemplate: function() {
-        var page = this.get('pageMap')[this.get('loadedPageFp')],
-            iframeTitle = this.get('documentView').getIframe().get(0).title,
-            template_name = iframeTitle.trim().replace(/[^a-z\s_-]/ig, '')
-                                       .substring(0, 48).trim().replace(/\s+/g, '_');
-        if (!template_name || ('' + template_name).length < 1) {
-            template_name = utils.shortGuid();
+        let iframeTitle = (this.get('documentView').getIframe()[0].title
+            .trim()
+            .replace(/[^a-z\s_-]/ig, '')
+            .replace(/\s+/g, '_')
+            .substring(0, 48)
+            .replace(/_+$/, '') || utils.shortGuid());
+
+        // Find an unique template name
+        let template_name = iframeTitle;
+        let template_num = 1;
+        while(this.get('model.template_names').contains(template_name)) {
+            template_name = iframeTitle + '_' + (template_num++);
         }
-        var template = Template.create(
-            { name: template_name,
-              extractors: {},
-              annotations: {},
-              page_id: page.fp,
-              _new: true,
-              url: page.url }),
-            itemDefs = this.get('itemDefinitions');
+
+        var template = Template.create({
+            name: template_name,
+            extractors: {},
+            annotations: {},
+            page_id: this.get('documentView.currentFp'),
+            _new: true,
+            url: this.get('currentUrl')
+        });
+        var itemDefs = this.get('itemDefinitions');
+
         if (!itemDefs.findBy('name', 'default') && !Ember.isEmpty(itemDefs)) {
             // The default item doesn't exist but we have at least one item def.
             template.set('scrapes', itemDefs[0].get('name'));
@@ -325,12 +255,17 @@ export default BaseController.extend({
         this.get('model.template_names').pushObject(template_name);
         var serialized = template.serialize();
         serialized._new = true;
-        this.get('ws').save('template', serialized).then(function() {
-            this.set('saving', false);
-            this.saveSpider().then(function() {
+        this.get('ws').save('template', serialized)
+            .then((data) => {
+                let mutations = this.get('documentView.mutationsAfterLoaded');
+                if(!data.saved.template._uses_js && mutations > 1) {
+                    this.showWarningNotification('JavaScript is disabled', this.get('messages.template_js_disabled'));
+                }
+            })
+            .then(() => this.saveSpider(true))
+            .then(() => {
                 this.editTemplate(template_name);
-            }.bind(this));
-        }.bind(this));
+            });
     },
 
     addStartUrls: function(urls) {
@@ -378,61 +313,45 @@ export default BaseController.extend({
         }.bind(this));
     }.observes('model'),
 
-    saveSpider: function() {
-        if (this.get('saving')) {
+    saveSpider: function(force=false) {
+        if (!force && this.get('saving')) {
             return;
         }
         this.set('saving', true);
-        return this.get('ws').save('spider', this.get('model')).then(function() {
-            this.set('saving', false);
-        }.bind(this),function() {
-            this.set('saving', false);
-        }.bind(this));
-    },
-
-    reset: function() {
-        this.set('browseHistory', []);
-        this.set('pageMap', {});
-    }.observes('model'),
-
-    testSpider: function(urls) {
-        if (this.get('testing') && urls.length) {
-            var fetchId = utils.guid();
-            this.get('pendingFetches').pushObject(fetchId);
-            this.get('documentView').fetchDocument(urls[0], this.get('model.name')).then(
-                function(data) {
-                    if (this.get('pendingFetches').indexOf(fetchId) !== -1) {
-                        this.get('pendingFetches').removeObject(fetchId);
-                        if (!Ember.isEmpty(data.items)) {
-                            data.items.forEach(function(item) {
-                                this.get('extractedItems').pushObject(this.wrapItem(item));
-                            }, this);
-                        }
-                        this.testSpider(urls.splice(1));
-                    } else {
-                        this.set('testing', false);
-                    }
-                }.bind(this),
-                function(err) {
-                    this.get('documentView').hideLoading();
-                    if (this.get('pendingFetches').indexOf(fetchId) !== -1) {
-                        this.get('pendingFetches').removeObject(fetchId);
-                    }
-                    this.set('testing', false);
-                    throw err;
-                }.bind(this)
-            );
-        } else {
-            this.get('documentView').hideLoading();
-            if (Ember.isEmpty(this.get('extractedItems'))) {
-                this.showSuccessNotification('Test Completed', this.messages.get('no_items_extracted'));
+        return this.get('ws').save('spider', this.get('model')).finally(() => {
+            if(!this.isDestroying) {
+                this.set('saving', false);
             }
-            this.set('testing', false);
-        }
+        });
     },
 
-    reload: function(){
-        this.fetchPage(this.get('pageMap')[this.get('loadedPageFp')].url, null, true);
+    testSpider: function() {
+        let urls = this.get('pendingUrls');
+
+        let addItems = (data) => {
+            let items = (data.items || []).map(this.wrapItem, this);
+            this.get('extractedItems').pushObjects(items);
+        };
+
+        let fetchNext = () => {
+            if(urls.length) {
+                return this.get('slyd').fetchDocument(urls.pop(), this.get('model.name'))
+                    .then(addItems, utils.showErrorNotification)
+                    .then(fetchNext);
+            } else {
+                return new Ember.RSVP.Promise((resolve) => resolve('done'));
+            }
+        };
+
+        fetchNext().then(() => {
+            this.get('documentView').hideLoading();
+            this.set('testing', false);
+        });
+    },
+
+    reload: function() {
+        // TODO: This resets the baseurl the page was loaded with (if it was set)
+        this.loadUrl(this.get('documentView.currentUrl'));
     },
 
     actions: {
@@ -480,10 +399,8 @@ export default BaseController.extend({
             this.viewTemplate(templateName);
         },
 
-        fetchPage: function(url) {
-            // Cancel all pending fetches.
-            this.get('pendingFetches').setObjects([]);
-            this.fetchPage(url);
+        loadUrl: function(url) {
+            this.loadUrl(url);
         },
 
         reload: function() {
@@ -492,16 +409,16 @@ export default BaseController.extend({
 
         browseBack: function() {
             var history = this.get('browseHistory');
-            history.removeAt(history.length - 1);
-            var lastPageFp = history.get('lastObject');
-            this.fetchPage(this.get('pageMap')[lastPageFp].url,
-                           history.length > 1 ? history.get(history.length -1) : null);
+            history.popObject();
+            var lastPageUrl = history.get('lastObject');
+            // TODO: This resets the baseurl the page was loaded with (if it was set)
+            this.loadUrl(lastPageUrl);
         },
 
         navigate: function(url) {
             url = utils.cleanUrl(url);
             if(url) {
-                this.fetchPage(url);
+                this.loadUrl(url);
             }
         },
 
@@ -590,14 +507,14 @@ export default BaseController.extend({
 
         testSpider: function() {
             if (this.get('testing')) {
-                this.set('testing', false);
+                this.get('pendingUrls').clear();
             } else {
                 this.set('testing', true);
                 this.get('documentView').showLoading();
-                this.get('pendingFetches').setObjects([]);
-                this.get('extractedItems').setObjects([]);
+                this.get('extractedItems').clear();
                 this.set('showItems', true);
-                this.testSpider(this.get('model.start_urls').copy());
+                this.get('pendingUrls').setObjects(this.get('model.start_urls').copy());
+                this.testSpider();
             }
         },
 
@@ -618,13 +535,22 @@ export default BaseController.extend({
                 }
             }
         },
+
+        toggleRecording: function() {
+            this.get('documentView').toggleProperty('recording');
+        }
     },
 
     documentActions: {
+        pageMetadata: function(data) {
+            if(!this.get('testing')) {
+                this.set('extractedItems', (data.items || []).map(this.wrapItem, this));
+            }
+            this.set('followedLinks', data.links || []);
 
-        linkClicked: function(url) {
-            this.get('documentView').showLoading();
-            this.fetchPage(url, this.get('loadedPageFp'));
+            if (this.get('browseHistory.lastObject') !== data.url){
+                this.get('browseHistory').pushObject(data.url);
+            }
         }
     },
 
@@ -651,29 +577,27 @@ export default BaseController.extend({
         this.notifyPropertyChange('links_to_follow');
     },
 
-    willEnter: function() {
-        this.set('loadedPageFp', null);
+    _willEnter: function() { // willEnter spider.index controller
         this.get('extractedItems').setObjects([]);
-        this.get('documentView').config({ mode: 'browse',
-                                          listener: this,
-                                          dataSource: this });
-        this.set('documentView.listener', this);
-        this.get('documentView').showSpider();
-        this.set('documentView.sprites', new SpriteStore());
-        if (this.get('autoloadTemplate')) {
-            Ember.run.next(this, function() {
-                this.saveSpider().then(function() {
-                    this.fetchPage(this.get('autoloadTemplate'), null, true);
-                    this.set('autoloadTemplate', null);
-                }.bind(this));
-            });
-        }
+        this.get('documentView').config({
+            mode: 'browse',
+            useBlankPlaceholder: false,
+            listener: this,
+            pageActions: this.get('model.page_actions'),
+        });
+        this.get('browseHistory').clear();
+        Ember.run.next(() => {
+            if(this.get('url')) {
+                this.loadUrl(this.get('url'), this.get('baseurl'));
+                this.set('url', null);
+                this.set('baseurl', null);
+            }
+        });
     },
 
-    willLeave: function() {
+    _willLeave: function() { // willLeave spider.index controller
         this.set('documentView.sprites', new SpriteStore());
-        this.get('documentView').redrawNow();
-        this.get('pendingFetches').setObjects([]);
+        this.get('pendingUrls').clear();
         this.get('documentView').hideLoading();
         this.get('documentView.ws').send({'_command': 'close_tab'});
     },
