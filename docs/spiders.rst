@@ -22,6 +22,66 @@ The **Crawling** section is used to configure how the spider will behave when it
 
 The **Extraction** section lists the samples for this spider.
 
+.. _page-actions:
+
+Page actions
+------------
+
+Page actions let you do things like scroll or click a button on the page. This is useful when scraping websites that have menus or dialogs you need to navigate.
+
+.. important:: You need to enable JavaScript in your spider before you can define page actions.
+
+The following actions are available:
+
+Click
+~~~~~
+
+Clicks a button on the page.
+
+======== =================================
+Setting  Description
+======== =================================
+Selector The target button's CSS selector.
+======== =================================
+
+Set
+~~~
+
+Sets a particular element to a certain value using `CSS selectors <https://developer.mozilla.org/en/docs/Web/Guide/CSS/Getting_started/Selectors>`_.
+
+======== ==================================
+Setting  Description
+======== ==================================
+Selector The target element's CSS selector.
+Value    The value you want to set.
+======== ==================================
+
+Wait
+~~~~
+
+Waits a certain amount of time.
+
+======= ==================================
+Setting Description
+======= ==================================
+Timeout Time to wait in milliseconds.
+======= ==================================
+
+Scroll
+~~~~~~
+
+Scrolls an element by a certain percentage.
+
+======== ==================================
+Setting  Description
+======== ==================================
+Selector The target element's CSS selector.
+Scroll   The percentage at which to scroll.
+======== ==================================
+
+
+You can use the ``Record`` button to record actions you perform on the page, or you can define them manually. To control which pages the actions are performed on, you can set page matching rules for each action using `regular expressions <https://developer.mozilla.org/en/docs/Web/JavaScript/Guide/Regular_Expressions>`_.
+
 .. _running-spider:
 
 Running a spider
