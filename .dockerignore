@@ -1,5 +1,6 @@
 .git
 docs
-slyd/node_modules
-slyd/bower_components
-slyd/tmp
+*/node_modules
+*/bower_components
+*/tmp
+
