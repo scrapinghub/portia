@@ -53,6 +53,8 @@ def create_sample(manager, spider_id, attributes):
     get_schema_validator('template').validate(attributes)
     spider = manager.resource('spiders', spider_id)
     sample_id = gen_id(disallow=spider['template_names'])
+    attributes.pop('original_body', None)
+    attributes.pop('annotated_body', None)
     manager.savejson(attributes, ['spiders', spider_id, sample_id])
     spider['template_names'].append(sample_id)
     manager.savejson(spider, ['spiders', spider_id])
@@ -116,7 +118,7 @@ def _process_annotations(sample):
         if 'schema_id' not in container:
             container['schema_id'] = scrapes
         item = {
-            'id': id,
+            'id': id.split('#')[0],
             'sample': sample,
             'schema': {'id': container['schema_id']},
             'item_annotation': container,

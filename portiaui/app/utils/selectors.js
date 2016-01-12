@@ -279,9 +279,11 @@ export function closestParentIndex(element, parents) {
 }
 
 export function findContainers(extractedElements, upto) {
-    let parentArrays = extractedElements.map(
-            (element) => getParents(element, upto)),
-        parentSets = parentArrays.map((array) => new Set(array)),
+    let parentArrays = [];
+    for (let element of extractedElements) {
+        parentArrays.push(getParents(element, upto));
+    }
+    let parentSets = parentArrays.map((array) => new Set(array)),
         intersection = parentSets[0] || new Set();
     for (let set of parentSets.slice(1, parentSets.length)) {
         intersection = setIntersection(intersection, set);
@@ -290,7 +292,11 @@ export function findContainers(extractedElements, upto) {
 }
 
 export function findContainer(extractedElements) {
-    return findContainers(extractedElements.map((item) => item.context.element))[0];
+    let elements = [];
+    for (let item of extractedElements) {
+        elements = elements.concat(item.elements);
+    }
+    return findContainers(elements)[0];
 }
 
 
@@ -384,12 +390,8 @@ export function groupItems(extracted, upto) {
     // Group fields based on their color
     // TODO: Group by schema too
     for (let item of extracted) {
-        let color = item.context.color;
-        if (color in groups) {
-            groups[color].push(item.context.element);
-        } else {
-            groups[color] = [item.context.element];
-        }
+        let id = item._data.annotation.get('id');
+        groups[id] = item.elements;
     }
     // If all groups are the same length page hass a regular structure where
     // all items have the necessary fields and share a common repeating parent

@@ -1,4 +1,5 @@
 import json
+from six.moves.urllib.parse import unquote
 
 from itertools import groupby
 from operator import itemgetter
@@ -53,11 +54,14 @@ class APIResource(object):
                         else:
                             manager = self.spec_manager.project_manager(
                                 request.auth_info)
-                        parsed = parsed.named
+                        parsed = {k: unquote(v)
+                                  for k, v in parsed.named.items()}
                         parsed['attributes'] = load_attributes(request)
                         return self.format_response(request,
                                                     callback(manager,
                                                              **parsed))
+        except NotImplementedError:
+            pass
         except KeyError as ex:
             if isinstance(ex, KeyError):
                 ex = NotFound('Resource not found',

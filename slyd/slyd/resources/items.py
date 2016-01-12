@@ -48,6 +48,7 @@ def create_item(manager, spider_id, sample_id, attributes):
 
 
 def update_item(manager, spider_id, sample_id, item_id, attributes):
+    item_id = item_id.split('#')[0]
     sample = _load_sample(manager, spider_id, sample_id)
     annotations = sample['plugins']['annotations-plugin']['extracts']
     annotation = filter(lambda x: x.get('id') == item_id, annotations)
@@ -88,7 +89,7 @@ def _item(sample, schema, item_annotation, annotations=None, context=None):
         context = {}
     item_annotation = _split_annotations([item_annotation.copy()])[0]
     item = ItemSchema(context=context).dump({
-        'id': item_annotation['id'],
+        'id': item_annotation['id'].split('#')[0],
         'sample': sample,
         'schema': schema,
         'item_annotation': item_annotation,
