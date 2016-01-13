@@ -13,7 +13,8 @@ export default DS.Model.extend({
         polymorphic: true
     }),
     itemAnnotation: DS.belongsTo({
-        inverse: 'item'
+        inverse: 'item',
+        async: false
     }),
 
     orderedAnnotations: Ember.computed(

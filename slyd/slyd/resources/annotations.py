@@ -170,6 +170,7 @@ def _load_relationships(attributes):
 
 def _create_annotation(sample, attributes):
     relationships = _load_relationships(attributes['data'])
+    attributes = attributes['data']['attributes']
     annotations = sample['plugins']['annotations-plugin']['extracts']
     aid = gen_id(disallow=[a['id'] for a in annotations if a.get('id')])
     annotation = {

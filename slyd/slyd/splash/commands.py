@@ -34,7 +34,7 @@ def save_html(data, socket):
     stated_encoding = socket.tab.evaljs('document.characterSet')
     sample['original_body'] = _decode(socket.tab._raw_html, stated_encoding)
     sample['js_original_body'] = socket.tab.html().decode('utf-8')
-    manager.savejson(sample, [s.encode('utf-8') for s in path])
+    _update_sample(data, socket, sample)
 
 
 def extract_items(data, socket):
@@ -51,20 +51,21 @@ def extract_items(data, socket):
     return items
 
 
-def _update_sample(data, socket):
+def _update_sample(data, socket, sample=None):
     """Recompile sample with latest annotations"""
     # TODO: Keep page parsed to speed up processing time?
     # TODO: Keep hash of annotations so update only happens on change
     spec = socket.spec_manager.project_spec(data['project'],
                                             socket.user.auth)
-    sample = spec.resource('spiders', data['spider'], data['sample'])
+    if sample is None:
+        sample = spec.resource('spiders', data['spider'], data['sample'])
     # TODO: Handle js enabled
     try:
         Annotations().save_extraction_data(
             sample['plugins']['annotations-plugin'], sample,
             options={'body': 'original_body'})
     except StopIteration:
-        sample['annotated_body'] = sample.get('original_body', '')
+        sample['annotated_body'] = sample.get('original_body', u'')
     spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample
 

@@ -5,6 +5,7 @@ from .fields import (list_fields, get_field, create_field, update_field,
                      delete_field)
 from .items import (list_items, get_item, create_item, update_item,
                     delete_item)
+from .item_annotations import update_item_annotation
 from .projects import (list_projects, get_project, create_project,
                        update_project, delete_project)
 from .spiders import (list_spiders, get_spider, create_spider, update_spider,
@@ -73,6 +74,11 @@ item = Route(
     patch=update_item,
     delete=delete_item
 )
+item_annotations = Route(
+    'projects/{project_id}/spiders/{spider_id}/samples/{sample_id}/'
+    'item_annotations/{annotation_id}',
+    patch=update_item_annotation
+)
 projects_list = Route(
     'projects',
     get=list_projects,
@@ -129,6 +135,7 @@ routes = [
     field,
     items_list,
     item,
+    item_annotations,
     projects_list,
     project,
     samples_list,

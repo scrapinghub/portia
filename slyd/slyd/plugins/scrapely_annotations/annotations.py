@@ -50,7 +50,8 @@ def _clean_annotation_data(data):
     result = []
     sticky_count, stickies = count(1), set()
     for ann in data:
-        if 'annotations' in ann and ann['annotations']:
+        if ('annotations' in ann and
+                (ann['annotations'] or ann.get('item_container'))):
             filtered_annotations = {}
             for k, v in ann['annotations'].items():
                 if not (v and v.strip()):

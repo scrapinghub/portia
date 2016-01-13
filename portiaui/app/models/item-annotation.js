@@ -8,7 +8,11 @@ export default Annotation.extend({
         async: true,
         inverse: 'itemAnnotation'
     }),
-    repeated: DS.attr('boolean'),
+    repeated: DS.attr('boolean', {
+        defaultValue() {
+            return false;
+        }
+    }),
     repeatedTagid: DS.attr('string'), // Tagid of repeated container inside container
     siblings: DS.attr('number'),     // Number of siblings to look at for repeated container
     parentField: DS.attr('string'),   // Field to extract to in parent container

@@ -3,7 +3,8 @@ import DS from 'ember-data';
 
 export default DS.Model.extend({
     parent: DS.belongsTo('item', {
-        inverse: 'annotations'
+        inverse: 'annotations',
+        async: false
     }),
     field: DS.belongsTo({
         async: false

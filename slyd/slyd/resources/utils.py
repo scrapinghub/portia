@@ -23,7 +23,7 @@ def _load_sample(manager, spider_id, sample_id):
         sample['version'] = SLYBOT_VERSION
     if 'plugins' in sample:
         return sample
-    annotations = load_annotations(sample.get('annotated_body', ''))
+    annotations = load_annotations(sample.get('annotated_body', u''))
     sample['plugins'] = annotations
     if annotations['annotations-plugin']['extracts']:
         add_plugin_data(sample, manager.plugins)
@@ -32,6 +32,8 @@ def _load_sample(manager, spider_id, sample_id):
 
 
 def load_annotations(body):
+    if not body:
+        return {'annotations-plugin': {'extracts': []}}
     sel = Selector(text=add_tagids(body))
     existing_ids = set()
     annotations = []

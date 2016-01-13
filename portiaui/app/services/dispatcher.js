@@ -144,12 +144,15 @@ export default Ember.Service.extend({
                     schema
                 });
                 item.save();
-            });
-            this.get('webSocket')._sendPromise({
-                _command: 'save_html',
-                project: spider.get('project.id'),
-                spider: spider.get('id'),
-                sample: sample.get('id')
+                this.get('webSocket')._sendPromise({
+                    _command: 'save_html',
+                    project: spider.get('project.id'),
+                    spider: spider.get('id'),
+                    sample: sample.get('id')
+                }).then(() => {
+                    sample.set('scrapes', schema.get('id'));
+                    sample.save();
+                });
             });
 
             if (redirect) {
@@ -402,7 +405,7 @@ export default Ember.Service.extend({
         acceptSelectors.addObject(selector);
         rejectSelectors.removeObject(selector);
         annotation.save();
-        this.updateContainers(annotation.get('parent'));
+        this.updateContainers(annotation.get('parent').get('itemAnnotation'));
         this.selectAnnotationElement(annotation, element);
     },
 
@@ -418,20 +421,23 @@ export default Ember.Service.extend({
     },
 
     updateContainers(containerAnnotation) {
-        let elements = this.get('annotationStructure')._annotations(),
-            container = findContainer(elements),
-            [repeatedContainer, siblings] = findRepeatedContainer(elements, container),
-            containerId = '0',
-            repeatedContainerId = null;
-        if (container) {
-            containerId = container.getAttribute('data-tagid');
-        }
-        if (repeatedContainer) {
-            repeatedContainerId = repeatedContainer.getAttribute('data-tagid');
-        }
-        containerAnnotation.set('tagid', containerId);
-        containerAnnotation.set('repeatedTagid', repeatedContainerId);
-        containerAnnotation.set('siblings', siblings);
-        containerAnnotation.save();
+        Ember.run.next(this, function() {
+            let elements = this.get('annotationStructure')._annotations(),
+                container = findContainer(elements),
+                [repeatedContainer, siblings] = findRepeatedContainer(elements, container),
+                containerId = '0',
+                repeatedContainerId = null;
+            if (container) {
+                containerId = container.getAttribute('data-tagid');
+            }
+            if (repeatedContainer) {
+                repeatedContainerId = repeatedContainer.getAttribute('data-tagid');
+                containerAnnotation.set('repeated', true);
+            }
+            containerAnnotation.set('tagid', containerId);
+            containerAnnotation.set('repeatedTagid', repeatedContainerId);
+            containerAnnotation.set('siblings', siblings);
+            containerAnnotation.save();
+        });
     }
 });

@@ -171,9 +171,14 @@ class BaseContainerExtractor(object):
         Group all annotations without a container.
         """
         # Get information about nested data
-        containers = dict((x.annotation.metadata['id'], x)
-                          for x in extractors
-                          if x.annotation.metadata.get('item_container'))
+        _containers = dict((x.annotation.metadata['id'], x)
+                           for x in extractors
+                           if x.annotation.metadata.get('item_container'))
+        containers = {}
+        for id, container in _containers.items():
+            if id.endswith('#parent') and id[:-7] not in container:
+                id = id[:-7]
+            containers[id] = container
         container_annos = defaultdict(list)
         non_container_annos = []
         for con_id, annotation in groupby(extractors, container_id):

@@ -266,6 +266,8 @@ class ItemAnnotationSchema(BaseAnnotationSchema):
     item_container = fields.Boolean(default=True)
     container_id = fields.Str()
     repeated = fields.Boolean()
+    repeated_container_id = fields.Str(dump_only=True)
+    repeated_tag_id = fields.Str(dump_only=True)
     siblings = fields.Integer()
     parent_field = fields.Str()
     schema = fields.Relationship(

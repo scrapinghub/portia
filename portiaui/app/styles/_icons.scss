@@ -31,18 +31,18 @@
         width: 19px;
         text-align: center;
         vertical-align: middle;
-        background: transparent url(portia-spider-icon(#777, $sidebar-background-color)) no-repeat center;
+        background: transparent url(portia-spider-icon('#777', ''+$sidebar-background-color)) no-repeat center;
     }
 
     .btn-primary & {
         &:before {
-            background-image: url(portia-spider-icon($btn-primary-color, $btn-primary-bg));
+            background-image: url(portia-spider-icon(''+$btn-primary-color, ''+$btn-primary-bg));
         }
     }
 
     #side-bar h2 > & {
         &:before {
-            background-image: url(portia-spider-icon($list-heading-color, $sidebar-background-color));
+            background-image: url(portia-spider-icon(''+$list-heading-color, ''+$sidebar-background-color));
         }
     }
 }

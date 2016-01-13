@@ -26,26 +26,7 @@ def list_samples(manager, spider_id, attributes=None):
 
 def get_sample(manager, spider_id, sample_id, attributes=None):
     sample = _load_sample(manager, spider_id, sample_id)
-    _ctx = lambda x=None, y=None: ctx(manager, spider_id=spider_id,
-                                      sample_id=sample_id, schema_id=x,
-                                      item_id=y)
-    items, annotations, item_annotations = _process_annotations(sample)
-    sample['items'] = items
-    data = SampleSchema(context=_ctx()).dump(sample).data
-    items = [ItemSchema(context=_ctx(i['schema']['id'])).dump(i).data['data']
-             for i in items]
-    annos = []
-    for a in annotations:
-        context = _ctx(None, a['container_id'])
-        dumper = AnnotationSchema(context=context)
-        annos.append(dumper.dump(a).data['data'])
-    item_annos = []
-    for a in item_annotations:
-        context = _ctx(a['schema_id'], a['id'])
-        dumper = ItemAnnotationSchema(context=context)
-        item_annos.append(dumper.dump(_split_annotations([a])[0]).data['data'])
-    data['included'] = items + annos + item_annos
-    return data
+    return _process_sample(sample, manager, spider_id)
 
 
 def create_sample(manager, spider_id, attributes):
@@ -53,8 +34,6 @@ def create_sample(manager, spider_id, attributes):
     get_schema_validator('template').validate(attributes)
     spider = manager.resource('spiders', spider_id)
     sample_id = gen_id(disallow=spider['template_names'])
-    attributes.pop('original_body', None)
-    attributes.pop('annotated_body', None)
     manager.savejson(attributes, ['spiders', spider_id, sample_id])
     spider['template_names'].append(sample_id)
     manager.savejson(spider, ['spiders', spider_id])
@@ -69,8 +48,7 @@ def update_sample(manager, spider_id, sample_id, attributes):
     sample.update(attributes)
     get_schema_validator('template').validate(sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id)
-    return SampleSchema(context=context).dump(sample).data
+    return _process_sample(sample, manager, spider_id)
 
 
 def delete_sample(manager, spider_id, sample_id, attributes=None):
@@ -97,6 +75,31 @@ def _check_sample_attributes(attributes, include_defaults=False):
                               exclude=('html', 'items'))
         attributes = dumper.dump(attributes).data['data']['attributes']
     return attributes
+
+
+def _process_sample(sample, manager, spider_id):
+    _ctx = lambda x=None, y=None: ctx(manager, spider_id=spider_id,
+                                      sample_id=sample['id'], schema_id=x,
+                                      item_id=y)
+    items, annotations, item_annotations = _process_annotations(sample)
+    sample['items'] = items
+    data = SampleSchema(context=_ctx()).dump(sample).data
+    items = [ItemSchema(context=_ctx(i['schema']['id'])).dump(i).data['data']
+             for i in items]
+    annos = []
+    for a in annotations:
+        context = _ctx(None, a['container_id'])
+        dumper = AnnotationSchema(context=context)
+        annos.append(dumper.dump(a).data['data'])
+    item_annos = []
+    for a in item_annotations:
+        context = _ctx(a['schema_id'], a['id'].split('#')[0])
+        dumper = ItemAnnotationSchema(context=context)
+        item_anno = _split_annotations([a])[0]
+        item_anno['id'] = item_anno['id'].rsplit('#', 1)[0]
+        item_annos.append(dumper.dump(item_anno).data['data'])
+    data['included'] = items + annos + item_annos
+    return data
 
 
 def _process_annotations(sample):

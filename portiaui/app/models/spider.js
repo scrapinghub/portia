@@ -3,22 +3,17 @@ import DS from 'ember-data';
 
 const Spider = DS.Model.extend({
     name: DS.attr('string'),
-    project: DS.belongsTo({
-        async: true
-    }),
     startUrls: DS.attr('array', {
         defaultValue() {
             return [];
         }
     }),
-    linksToFollow: DS.attr('string'),
-    jsEnabled: DS.attr('boolean'),
     respectNofollow: DS.attr('boolean'),
-    followPatterns: DS.attr('array'),
-    excludePatterns: DS.attr('array'),
-    jsEnablePatterns: DS.attr('array'),
-    jsDisablePatterns: DS.attr('array'),
-    pageActions: DS.attr('json', {
+    pageActions: DS.attr('array', {
+        defaultValue() {
+            return [];
+        }
+    }),
     project: DS.belongsTo(),
 
     // login
@@ -31,12 +26,12 @@ const Spider = DS.Model.extend({
     linksToFollow: DS.attr('string', {
         defaultValue: 'all'
     }),
-    followPatterns: DS.attr('json', {
+    followPatterns: DS.attr('array', {
         defaultValue() {
             return [];
         }
     }),
-    excludePatterns: DS.attr('json', {
+    excludePatterns: DS.attr('array', {
         defaultValue() {
             return [];
         }
@@ -48,12 +43,12 @@ const Spider = DS.Model.extend({
 
     // JS
     jsEnabled: DS.attr('boolean'),
-    jsEnablePatterns: DS.attr('json', {
+    jsEnablePatterns: DS.attr('array', {
         defaultValue() {
             return [];
         }
     }),
-    jsDisablePatterns: DS.attr('json', {
+    jsDisablePatterns: DS.attr('array', {
         defaultValue() {
             return [];
         }

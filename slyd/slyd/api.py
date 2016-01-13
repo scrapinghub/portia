@@ -60,8 +60,6 @@ class APIResource(object):
                         return self.format_response(request,
                                                     callback(manager,
                                                              **parsed))
-        except NotImplementedError:
-            pass
         except KeyError as ex:
             if isinstance(ex, KeyError):
                 ex = NotFound('Resource not found',

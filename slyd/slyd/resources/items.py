@@ -15,6 +15,7 @@ def list_items(manager, spider_id, sample_id, attributes=None):
 
 
 def get_item(manager, spider_id, sample_id, item_id, attributes=None):
+    item_id = item_id.split('#')[0]
     sample = _load_sample(manager, spider_id, sample_id)
     items, _, _ = _process_annotations(sample)
     item = filter(lambda x: x.get('id') == item_id, items)
@@ -32,8 +33,8 @@ def create_item(manager, spider_id, sample_id, attributes):
     aid = gen_id(disallow=[a['id'] for a in annotations if a.get('id')])
     schema_id = attributes['data']['relationships']['schema']['data']['id']
     annotation = {
-        'id': aid,
-        'tagid': 1,
+        'id': '%s#parent' % aid,
+        'tagid': '1',
         # TODO: Field id in place of None for nested items
         'annotations': {'#portia-content': None},
         'required': [],
@@ -66,6 +67,7 @@ def update_item(manager, spider_id, sample_id, item_id, attributes):
 
 
 def delete_item(manager, spider_id, sample_id, item_id, attributes=None):
+    item_id = item_id.split('#')[0]
     sample = _load_sample(manager, spider_id, sample_id)
     annotations = sample['plugins']['annotations-plugin']['extracts']
     _get_item(annotations, item_id)  # Raises 404 error if item doesn't exist
@@ -89,7 +91,7 @@ def _item(sample, schema, item_annotation, annotations=None, context=None):
         context = {}
     item_annotation = _split_annotations([item_annotation.copy()])[0]
     item = ItemSchema(context=context).dump({
-        'id': item_annotation['id'].split('#')[0],
+        'id': item_annotation['id'].rsplit('#', 1)[0],
         'sample': sample,
         'schema': schema,
         'item_annotation': item_annotation,

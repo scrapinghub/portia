@@ -257,6 +257,9 @@ export function getParents(element, upto) {
 }
 
 export function getPreviousSiblings(element, upto) {
+    if (!element) {
+        return [];
+    }
     var siblings = [],
         sibling = element.previousElementSibling;
     while (sibling && sibling !== upto) {
@@ -293,8 +296,8 @@ export function findContainers(extractedElements, upto) {
 
 export function findContainer(extractedElements) {
     let elements = [];
-    for (let item of extractedElements) {
-        elements = elements.concat(item.elements);
+    for (let fields of extractedElements) {
+        elements = elements.concat(fields);
     }
     return findContainers(elements)[0];
 }
@@ -386,12 +389,13 @@ function getItemBounds(items, tagNumber=true) {
 }
 
 export function groupItems(extracted, upto) {
-    let groups = {};
+    let groups = {},
+        id = 0;
     // Group fields based on their color
     // TODO: Group by schema too
-    for (let item of extracted) {
-        let id = item._data.annotation.get('id');
-        groups[id] = item.elements;
+    for (let elements of extracted) {
+        groups[id] = elements;
+        id += 1;
     }
     // If all groups are the same length page hass a regular structure where
     // all items have the necessary fields and share a common repeating parent
