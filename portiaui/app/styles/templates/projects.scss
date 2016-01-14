@@ -5,11 +5,15 @@
     margin: 0 auto;
     text-align: center;
 
-    h3 {
+    > img {
+        flex-shrink: 0;
+    }
+
+    > h3 {
         margin: 2em auto 0;
     }
 
-    p {
+    > p {
         margin: 1em auto 0;
     }
 }
@@ -17,4 +21,5 @@
 .project-list {
     margin: 3em auto 0;
     max-width: 300px;
+    min-height: 0;
 }

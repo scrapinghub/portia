@@ -1,9 +1,3 @@
-#side-bar,
-#options-panels,
-#tool-panels {
-    height: calc(100vh - #{$navbar-height});
-}
-
 #side-bar {
     width: $sidebar-width;
     background-color: $sidebar-background-color;
