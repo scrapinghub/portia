@@ -41,7 +41,8 @@ def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
     url = socket.tab.evaljs('location.href')
     html = socket.tab.html()
-    if socket.spiderspec is None or socket.spiderspec.name != data['spider']:
+    if (socket.spiderspec is None or
+            (data['spider'] and socket.spiderspec.name != data['spider'])):
         socket.open_spider(data)
     samples = socket.spiderspec.templates
     sid = data.get('sample')

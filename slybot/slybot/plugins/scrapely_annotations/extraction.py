@@ -176,13 +176,16 @@ class BaseContainerExtractor(object):
                            if x.annotation.metadata.get('item_container'))
         containers = {}
         for id, container in _containers.items():
-            if id.endswith('#parent') and id[:-7] not in container:
-                id = id[:-7]
+            if id.endswith('#parent') and id.strip('#parent') not in container:
+                id = id.strip('#parent')
             containers[id] = container
         container_annos = defaultdict(list)
         non_container_annos = []
         for con_id, annotation in groupby(extractors, container_id):
             annotation = list(annotation)
+            if (con_id and str(con_id).endswith('#parent')
+                    and con_id not in containers):
+                con_id = con_id.strip('#parent')
             if con_id and con_id in containers:
                 container_annos[con_id].extend(annotation)
             else:

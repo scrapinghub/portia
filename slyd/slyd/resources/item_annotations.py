@@ -1,4 +1,4 @@
-from .annotations import _group_annotations, _split_annotations
+from .annotations import _group_annotations
 from .samples import _load_sample
 from .models import ItemAnnotationSchema
 from ..utils.projects import ctx
@@ -10,22 +10,29 @@ def update_item_annotation(manager, spider_id, sample_id, annotation_id,
     sample = _load_sample(manager, spider_id, sample_id)
     annotations = sample['plugins']['annotations-plugin']['extracts']
     containers, _, _ = _group_annotations(annotations)
-    container = containers[annotation_id]
+    container = containers.get(annotation_id,
+                               containers[annotation_id.strip('#parent')])
     container['tagid'] = attributes.get('tagid')
     repeated_container_tagid = attributes.pop('repeated_container_tagid', None)
     if attributes.get('repeated'):
-        repeated_container_id = container['id'].split('#')[0]
+        repeated_container_id = container['id'].strip('#parent')
+        if container['id'] == repeated_container_id:
+            container = container.copy()
+            container['id'] = repeated_container_id + '#parent'
+            annotations.append(container)
         repeated_container = containers.get(repeated_container_id)
         if not repeated_container:
             repeated_container = {
-                'id': container['id'].split('#')[0],
+                'id': repeated_container_id,
                 'container_id': container['id'],
-                'repeated': True,
                 'required': [],
                 'annotations': {'#portia-content': None},
                 'text_content': '#portia-content',
                 'item_container': True
             }
+            annotations.append(repeated_container)
+        repeated_container['repeated'] = True
+        repeated_container['container_id'] = container['id']
         repeated_container['siblings'] = attributes.pop('siblings', 0)
         repeated_container['tagid'] = attributes.pop(repeated_container_tagid)
         # TODO: Add selectors
@@ -34,6 +41,5 @@ def update_item_annotation(manager, spider_id, sample_id, annotation_id,
                   item_id=annotation_id.split('#')[0])
     container['repeated_container_tagid'] = repeated_container_tagid
     container['siblings'] = attributes.get('siblings', 0)
-    item_container = _split_annotations([container.copy()])[0]
-    item_container['id'] = item_container['id'].rsplit('#', 1)[0]
-    return ItemAnnotationSchema(context=context).dump(item_container).data
+    container['id'] = annotation_id
+    return ItemAnnotationSchema(context=context).dump(container).data

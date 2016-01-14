@@ -133,6 +133,8 @@ def _split_annotations(annotations):
             a = a.annotation.metadata.copy()
         else:
             a = a.copy()
+        if a.get('item_container'):
+            continue
         _default = {'#portia-content': None}
         attributes = a.get('annotations', _default)
         if not attributes:

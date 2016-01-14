@@ -16,7 +16,7 @@ SLYBOT_VERSION = slybot.__version__
 
 def _load_sample(manager, spider_id, sample_id):
     sample = manager.resource('spiders', spider_id, sample_id)
-    if 'name' not in sample:
+    if not sample.get('name'):
         sample['name'] = sample_id
     sample['id'] = sample_id
     if 'version' not in sample:

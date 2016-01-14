@@ -65,6 +65,8 @@ def _check_spider_attributes(attributes, include_defaults=False):
 def _load_spider(manager, spider_id, include_samples=False):
     spider = manager.spider_json(spider_id)
     spider['id'] = spider_id
+    if not spider.get('name'):
+        spider['name'] = spider_id
     spider['samples'] = [{'id': name} for name in spider['template_names']]
     if include_samples:
         samples = []

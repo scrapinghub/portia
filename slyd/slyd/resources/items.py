@@ -89,7 +89,6 @@ def _item(sample, schema, item_annotation, annotations=None, context=None):
         annotatations = []
     if context is None:
         context = {}
-    item_annotation = _split_annotations([item_annotation.copy()])[0]
     item = ItemSchema(context=context).dump({
         'id': item_annotation['id'].rsplit('#', 1)[0],
         'sample': sample,

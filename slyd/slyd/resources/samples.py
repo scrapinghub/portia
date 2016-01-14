@@ -7,7 +7,7 @@ from slybot.validation.schema import get_schema_validator
 
 from .models import (SampleSchema, HtmlSchema, ItemSchema, AnnotationSchema,
                      ItemAnnotationSchema)
-from .annotations import _group_annotations, _split_annotations
+from .annotations import _group_annotations
 from .utils import _load_sample
 from ..errors import BadRequest
 from ..utils.projects import ctx, gen_id
@@ -88,6 +88,8 @@ def _process_sample(sample, manager, spider_id):
              for i in items]
     annos = []
     for a in annotations:
+        if a.get('item_container'):
+            continue
         context = _ctx(None, a['container_id'])
         dumper = AnnotationSchema(context=context)
         annos.append(dumper.dump(a).data['data'])
@@ -95,9 +97,7 @@ def _process_sample(sample, manager, spider_id):
     for a in item_annotations:
         context = _ctx(a['schema_id'], a['id'].split('#')[0])
         dumper = ItemAnnotationSchema(context=context)
-        item_anno = _split_annotations([a])[0]
-        item_anno['id'] = item_anno['id'].rsplit('#', 1)[0]
-        item_annos.append(dumper.dump(item_anno).data['data'])
+        item_annos.append(dumper.dump(a).data['data'])
     data['included'] = items + annos + item_annos
     return data
 
