@@ -4,6 +4,7 @@ service_identity==14.0.0
 requests==2.7.0
 autobahn==0.10.4
 six==1.5.2
+splash==1.6
 chardet==2.3.0
 monotonic==0.3
 marshmallow_jsonapi==0.3
@@ -13,7 +14,3 @@ ndg-httpsclient==0.4.0
 # Dulwich's MySQL backend
 http://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-1.2.3.zip#md5=6d42998cfec6e85b902d4ffa5a35ce86
 https://github.com/scrapinghub/dulwich/tarball/420a056#egg=dulwich
-
-# Splash dev
---allow-external=splash
-https://github.com/scrapinghub/splash/archive/master.tar.gz
