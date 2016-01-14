@@ -24,7 +24,7 @@
             {{/list-item-text}}
             {{list-item-icon icon='add' disabled=(not canAddSample) action=(action 'addSample')}}
         {{else if (eq options.section "subtrees")}}
-            {{#each spider.samples key="id" as |sample|}}
+            {{#each spider.samples as |sample|}}
                 {{#tree-list-item class="has-submenu" as |options|}}
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.spider.sample' sample}}

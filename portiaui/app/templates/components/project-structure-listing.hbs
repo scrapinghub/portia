@@ -6,7 +6,7 @@
             {{/list-item-text}}
             {{list-item-icon icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}}
         {{else if (eq options.section "subtrees")}}
-            {{#each project.spiders key="id" as |spider|}}
+            {{#each project.spiders as |spider|}}
                 {{#tree-list-item class="has-submenu" as |options|}}
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.spider' spider}}
@@ -29,7 +29,7 @@
             {{/list-item-text}}
             {{list-item-icon icon='add' action=(action 'addSchema')}}
         {{else if (eq options.section "subtrees")}}
-            {{#each project.schemas key="id" as |schema|}}
+            {{#each project.schemas as |schema|}}
                 {{#tree-list-item class="has-submenu" as |options|}}
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.schema' schema}}

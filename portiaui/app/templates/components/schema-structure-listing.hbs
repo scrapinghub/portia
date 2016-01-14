@@ -6,7 +6,7 @@
             {{/list-item-text}}
             {{list-item-icon icon='add' action=(action 'addField')}}
         {{else if (eq options.section "subtrees")}}
-            {{#each schema.fields key="id" as |field|}}
+            {{#each schema.fields as |field|}}
                 {{#tree-list-item as |options|}}
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.schema.field' field}}
