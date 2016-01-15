@@ -8,7 +8,7 @@
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.spider.sample.data.annotation' annotation}}
                             {{list-item-icon icon=annotation.type}}
-                            {{list-item-badge value=(get (elements-for annotation) 'length') color=annotation.color}}
+                            {{list-item-badge value=(get (elements-for annotation) 'length') color=(array-get annotationColors annotation.orderedIndex)}}
                             {{list-item-annotation-field annotation=annotation selecting=(mut annotation.new)}}
                             {{#list-item-field-type field=annotation.field}}
                                 Change type of selected field
@@ -21,7 +21,7 @@
                     {{/if}}
                 {{/tree-list-item}}
             {{else if (eq annotation.constructor.modelName "item-annotation")}}
-                {{#data-structure-annotations sample=sample item=annotation.item}}
+                {{#data-structure-annotations sample=sample item=annotation.item annotationColors=annotationColors}}
                     {{#link-to 'projects.project.spider.sample.data.item' annotation.item}}
                         {{list-item-icon icon='schema'}}
                         {{list-item-badge value=(matched-items annotation.item)}}

@@ -14,8 +14,10 @@ export default Ember.Component.extend({
     init() {
         this._super();
         const id = this.get('elementId');
-        this.selected = Ember.computed.alias('uiState.selectedTools.' + id);
-        this.collapsed = Ember.computed.alias('uiState.collapsedPanels.' + id);
+        Ember.mixin(this, {
+            selected: Ember.computed.alias('uiState.selectedTools.' + id),
+            collapsed: Ember.computed.alias('uiState.collapsedPanels.' + id)
+        });
     },
 
     actions: {

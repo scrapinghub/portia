@@ -230,6 +230,10 @@
     &.hide {
         display: block !important;
         opacity: 0;
+
+        .overlay-icon {
+            display: none;
+        }
     }
 
     .overlay-box-background {

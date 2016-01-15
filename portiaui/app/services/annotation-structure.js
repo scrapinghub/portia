@@ -84,7 +84,7 @@ export default Ember.Service.extend(Ember.Evented, {
     definition: null,
     _annotations: function() {
         let annotations = [];
-        for (let nodes of this.get('selectorNodes')) {
+        for (let nodes of this.selectorNodes) {
             annotations.push(nodes.elements);
         }
         return annotations;

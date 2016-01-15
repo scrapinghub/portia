@@ -7,7 +7,7 @@
             {{list-item-icon icon='add' action=(action 'addItem' sample)}}
         {{else if (eq options.section "subtrees")}}
             {{#each sample.items as |item|}}
-                {{#data-structure-annotations sample=sample item=item}}
+                {{#data-structure-annotations sample=sample item=item annotationColors=annotationColors}}
                     {{#link-to 'projects.project.spider.sample.data.item' item}}
                         {{list-item-icon icon='schema'}}
                         {{list-item-badge value=(matched-items item)}}

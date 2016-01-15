@@ -1,7 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
-    beforeModel() {
+    redirect() {
         this.transitionTo('projects.project.spider.sample.data');
     }
 });

@@ -1,49 +1,11 @@
 <div class="browser-navigation panel-heading">
     {{url-bar class="navbar-form" role="navigation"}}
-    {{#if showToolbar}}
-        <span>Tools</span>
-
-        <div class="tool-bar">
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default {{if magicToolActive 'active'}}" {{action 'toggleMagicTool'}}>
-                    <i class="fa fa-magic fa-flip-horizontal"></i>
-                </button>
-            </div>
-
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'select') 'active'}}" {{action (action (mut selectionMode) 'select')}}>
-                    <div class="color-fill"></div>
-                    <i class="fa fa-mouse-pointer"></i>
-                </button>
-                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'add') 'active'}}" {{action (action (mut selectionMode) 'add')}}>
-                    <div class="color-fill"></div>
-                    <i class="fa fa-plus"></i>
-                </button>
-                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'remove') 'active'}}" {{action (action (mut selectionMode) 'remove')}}>
-                    <div class="color-fill"></div>
-                    <i class="fa fa-minus"></i>
-                </button>
-                <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'edit') 'active'}}" {{action (action (mut selectionMode) 'edit')}}>
-                    <div class="color-fill"></div>
-                    <i class="fa fa-th-large"></i>
-                </button>
-            </div>
-        </div>
-    {{else}}
-        {{yield (hash section="toolbar")}}
-    {{/if}}
+    {{yield (hash section="toolbar")}}
 </div>
 <div class="frame-container panel-body">
     <div class="mode-feedback mode-feedback-{{browser.mode}}"></div>
     <div class="overlay-container">
-        {{#each overlayElements as |overlay|}}
-            {{#each overlay.annotations as |annotation|}}
-                {{element-overlay class=(concat (if (eq overlay.element hoveredElement) 'hovered') (if (includes hoveredModels annotation) ' group-hovered') (if (and (eq overlay.element selectedElement) (eq selectedModel annotation)) ' selected') (if (eq selectedModel annotation) ' group-selected')) viewPortElement=overlay.element icon=(if (eq overlay.element hoveredElement) activeSelectionMode) color=annotation.color}}
-            {{/each}}
-        {{/each}}
-        {{#if browser.isInteractionMode}}
-            {{element-overlay class=(concat 'hover-overlay' (if (or (not hoveredElement) hoveredModels.length) ' hide')) viewPortElement=hoveredElement icon=activeSelectionMode color=hoverOverlayColor}}
-        {{/if}}
+        {{yield (hash section="overlays")}}
     </div>
     {{browser-iframe clickHandler=(action 'viewPortClick')}}
 </div>

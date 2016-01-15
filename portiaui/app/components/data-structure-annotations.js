@@ -8,6 +8,7 @@ export default Ember.Component.extend({
 
     item: null,
     sample: null,
+    annotationColors: [],
 
     actions: {
         enterAnnotation(annotation) {
