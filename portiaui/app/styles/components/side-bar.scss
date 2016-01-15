@@ -77,10 +77,10 @@
                 content: '';
                 display: inline-block;
                 position: absolute;
+                top: ($tree-list-row-height - $pip-size - 4px) / 2;
                 left: -($tree-list-row-height + $pip-size + 4px) / 2 - 5px;
                 width: $pip-size + 4px;
                 height: $pip-size + 4px;
-                margin-top: ($tree-list-row-height - $pip-size - 4px) / 2;
                 background-color: $list-heading-color;
                 border: 2px solid $sidebar-background-color;
                 border-radius: 50%;
