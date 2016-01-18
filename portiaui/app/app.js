@@ -8,9 +8,13 @@ var App;
 Ember.MODEL_FACTORY_INJECTIONS = true;
 
 App = Ember.Application.extend({
-  modulePrefix: config.modulePrefix,
-  podModulePrefix: config.podModulePrefix,
-  Resolver: Resolver
+    modulePrefix: config.modulePrefix,
+    podModulePrefix: config.podModulePrefix,
+    Resolver: Resolver,
+
+    customEvents: {
+        transitionend: 'transitionEnd'
+    }
 });
 
 loadInitializers(App, config.modulePrefix);
