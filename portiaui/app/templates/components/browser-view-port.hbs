@@ -2,6 +2,17 @@
     {{url-bar class="navbar-form" role="navigation"}}
     {{yield (hash section="toolbar")}}
 </div>
+<div class="browser-banner{{unless webSocket.closed ' hide'}}">
+    {{#if webSocket.connecting}}
+        Connecting ...
+    {{/if}}
+    {{#if webSocket.secondsUntilReconnect }}
+        Reconnecting to server in {{webSocket.secondsUntilReconnect}} seconds.
+        {{#unless webSocket.reconnectImminent}}
+            <a class="alert-link" {{action 'reconnectWebsocket'}}>Try Again</a>.
+        {{/unless}}
+    {{/if}}
+</div>
 <div class="frame-container panel-body">
     <div class="mode-feedback mode-feedback-{{browser.mode}}"></div>
     <div class="overlay-container">

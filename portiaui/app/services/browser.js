@@ -13,6 +13,8 @@ export const MODE_DESCRIPTIONS = {
 };
 
 export default Ember.Service.extend({
+    webSocket: Ember.inject.service(),
+
     backBuffer: [],
     document: null,
     forwardBuffer: [],
@@ -21,14 +23,15 @@ export default Ember.Service.extend({
     _disabled: true,
     _url: null,
 
-    disabled: Ember.computed('_disabled', 'mode', {
+    disabled: Ember.computed('_disabled', 'webSocket.closed', 'mode', {
         get() {
-            return this.get('_disabled') || this.get('mode') !== NAVIGATION_MODE;
+            return this.get('_disabled') || this.get('webSocket.closed') ||
+                this.get('mode') !== NAVIGATION_MODE;
         },
 
         set(key, value) {
             this.set('_disabled', value);
-            return value || this.get('mode') !== NAVIGATION_MODE;
+            return value || this.get('webSocket.closed') || this.get('mode') !== NAVIGATION_MODE;
         }
     }),
     isInteractionMode: Ember.computed('mode', function() {

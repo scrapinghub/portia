@@ -5,6 +5,7 @@ export default Ember.Component.extend({
     browser: Ember.inject.service(),
     selectorMatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
+    webSocket: Ember.inject.service(),
 
     classNames: ['browser-view-port', 'panel', 'panel-default'],
 
@@ -29,6 +30,10 @@ export default Ember.Component.extend({
             if (this.attrs.clickHandler) {
                 this.attrs.clickHandler(...arguments);
             }
+        },
+
+        reconnectWebsocket() {
+            this.get('webSocket').connect();
         }
     }
 });
