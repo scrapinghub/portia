@@ -1,0 +1,16 @@
+{
+    "templates": [
+    ], 
+    "start_urls": [
+    ], 
+    "exclude_patterns": [
+    ], 
+    "follow_patterns": [
+    ],
+    "allowed_domains": [
+        "webupd8.org",
+        "siliconrepublic.com"
+    ],
+    "links_to_follow": "patterns", 
+    "respect_nofollow": false
+}
