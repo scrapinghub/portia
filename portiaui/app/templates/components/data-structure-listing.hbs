@@ -13,7 +13,7 @@
                         {{list-item-badge value=(matched-items item)}}
                         {{list-item-item-schema item=item selecting=(mut item.new)}}
                         {{list-item-add-annotation-menu item=item}}
-                        {{list-item-icon icon='remove' action=(action 'removeItem' item) bubbles=false}}
+                        {{list-item-icon icon='remove' action=(action 'removeItem' item) disabled=(lte sample.items.length 1) bubbles=false}}
                     {{/link-to}}
                 {{/data-structure-annotations}}
             {{/each}}
