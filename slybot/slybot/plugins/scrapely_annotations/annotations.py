@@ -57,7 +57,6 @@ class Annotations(object):
 
         self.itemcls_info = {}
         self.html_link_extractor = HtmlLinkExtractor()
-        self.rss_link_extractor = RssLinkExtractor()
         for itemclass_name, triplets in groupby(_item_template_pages,
                                                 itemgetter(0)):
             page_extractors_pairs = map(itemgetter(1, 2), triplets)

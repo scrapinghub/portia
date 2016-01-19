@@ -193,7 +193,7 @@ class IblSpider(SitemapSpider):
         if isinstance(response, HtmlResponse):
             return self.handle_html(response)
         if (isinstance(response, XmlResponse) or
-                response.url.endswith(('xml', 'xml.gz'))):
+                response.url.endswith(('.xml', '.xml.gz'))):
             response._set_body(self._get_sitemap_body(response))
             return self.handle_xml(response)
         self.logger.debug(
