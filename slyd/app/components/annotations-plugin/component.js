@@ -636,6 +636,7 @@ export default Ember.Component.extend(GuessTypes, {
             this.set('data.required', required);
             this.set('data.variant', this.getWithDefault('data.variant', 0));
         } else {
+            this.sendAction('dissmissAllSuggestions');
             this.set('data', this.createAnnotationData(generatedData));
             this.get('alldata').unshiftObject(this.get('data'));
         }
