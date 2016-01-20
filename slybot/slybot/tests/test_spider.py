@@ -29,7 +29,7 @@ class SpiderTest(TestCase):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
                 "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "ebay4", "cargurus",
                 "networkhealth.com", "allowed_domains", "any_allowed_domains", "example.com", "example2.com",
-                "example3.com"]))
+                "example3.com", "sitemaps"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
@@ -267,6 +267,36 @@ class SpiderTest(TestCase):
                 "http://www.cargurus.com/Cars/2004-Alfa-Romeo-GT-Reviews-c10012",
                 "http://www.cargurus.com/Cars/2005-Alfa-Romeo-GT-Reviews-c10013",
                 "http://www.cargurus.com/Cars/2007-Alfa-Romeo-GT-Reviews-c10015"]))
+
+    def test_links_from_atom(self):
+        body = open(join(_PATH, "data", "atom_sample.xml")).read()
+        response = XmlResponse(url="http://example.com/sample.xml", body=body,
+                headers={'Content-Type': "application/atom+xml; charset=UTF-8"})
+
+        name = "sitemaps"
+        spider = self.smanager.create(name)
+
+        urls = [r.url for r in spider.parse(response)]
+        self.assertEqual(len(urls), 3)
+        self.assertEqual(set(urls), set([
+                "http://www.webupd8.org/sitemap.xml?page=1",
+                "http://www.webupd8.org/sitemap.xml?page=2",
+                "http://www.webupd8.org/sitemap.xml?page=3"]))
+
+    def test_links_from_sitemap(self):
+        body = open(join(_PATH, "data", "sitemap_sample.xml")).read()
+        response = XmlResponse(url="http://example.com/sample.xml", body=body,
+                headers={'Content-Type': "text/xml; charset=UTF-8"})
+
+        name = "sitemaps"
+        spider = self.smanager.create(name)
+
+        urls = [r.url for r in spider.parse(response)]
+        self.assertEqual(len(urls), 3)
+        self.assertEqual(set(urls), set([
+                "https://www.siliconrepublic.com/post-sitemap1.xml",
+                "https://www.siliconrepublic.com/post-sitemap2.xml",
+                "https://www.siliconrepublic.com/post-sitemap3.xml"]))
 
     def test_empty_content_type(self):
         name = "ebay4"

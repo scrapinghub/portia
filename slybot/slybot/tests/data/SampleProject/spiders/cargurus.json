@@ -15,7 +15,7 @@
         "-Overview-", 
         "-Reviews-", 
         "/rss/"
-    ], 
+    ],
     "links_to_follow": "patterns", 
     "respect_nofollow": false
 }
