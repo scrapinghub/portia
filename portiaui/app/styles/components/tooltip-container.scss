@@ -1,0 +1,8 @@
+.tooltip-content {
+    @extend .tooltip-inner;
+
+    > p {
+        margin: ($line-height-computed / 2) 0 0;
+        text-align: left;
+    }
+}
