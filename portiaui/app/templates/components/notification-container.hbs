@@ -1,0 +1,7 @@
+{{#each banners as |notification|}}
+    {{notification-message notification=notification fade=notification.fading fadeAction=(action 'fadeBanner' notification)}}
+{{/each}}
+
+{{#each displayNotifications as |notification|}}
+    {{notification-message notification=notification fade=notification.fading closeAction=(action 'dismissNotification' notification) fadeAction=(action 'fadeNotification' notification)}}
+{{/each}}

@@ -4,9 +4,11 @@ import LFAdapter from 'ember-localforage-adapter/adapters/localforage';
 import UrlTemplates from "ember-data-url-templates";
 
 var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
+    savingNotification: Ember.inject.service(),
+    uiState: Ember.inject.service(),
+
     baseTemplate: '{+host}/api/projects/',
     shouldReloadAll: () => true,
-    uiState: Ember.inject.service('ui-state'),
     _load_relationship: function(model, record, from, id) {
         if (from === model && !!id) {
             return id;
@@ -61,6 +63,26 @@ var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
                     this.get('uiState.sampleRoute.currentModel.id') ||
                     this._id_from_location('samples'));
         }
+    },
+
+    notifySaving(promise) {
+        this.get('savingNotification').start();
+        promise.finally(() => {
+            this.get('savingNotification').end();
+        });
+        return promise;
+    },
+
+    createRecord() {
+        return this.notifySaving(this._super(...arguments));
+    },
+
+    deleteRecord() {
+        return this.notifySaving(this._super(...arguments));
+    },
+
+    updateRecord() {
+        return this.notifySaving(this._super(...arguments));
     }
 });
 
@@ -76,8 +98,7 @@ export function createAdapter(adapterMembers) {
     console.log(apiOptIn);
     if(!Ember.testing && apiOptIn) {
         return SlydJSONAPIAdapter.extend({
-            urlTemplate: adapterMembers.urlTemplate,
-            uiState: Ember.inject.service(),
+            urlTemplate: adapterMembers.urlTemplate
         });
     } else {
         return LFAdapter.extend({

@@ -88,6 +88,7 @@
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
+    z-index: 1;
 
     .btn {
         line-height: $line-height-computed;
@@ -109,6 +110,26 @@
     .navbar-form {
         padding: 0;
         flex: 1 1 auto;
+    }
+}
+
+.browser-banner {
+    $browser-banner-height: $line-height-computed + $alert-padding * 2;
+
+    @extend .alert;
+    @extend .alert-warning;
+    height: $browser-banner-height;
+    margin-bottom: 0;
+    border-radius: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    margin-top: 0;
+    transition: margin-top $animation-time $animation-easing;
+
+    &.hide {
+        display: block !important;
+        margin-top: -$browser-banner-height;
     }
 }
 
