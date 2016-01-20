@@ -37,7 +37,7 @@ export default Ember.Route.extend({
         });
 
         this.render('projects/project/spider/sample/data/toolbar', {
-            into: 'projects/project',
+            into: 'projects/project/spider/sample/toolbar',
             outlet: 'browser-toolbar'
         });
     },

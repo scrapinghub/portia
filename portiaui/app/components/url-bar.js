@@ -12,7 +12,7 @@ export default Ember.Component.extend({
     disabled: Ember.computed.readOnly('browser.disabled'),
     forwardDisabled: Ember.computed.or('disabled', 'noForwardUrl'),
     loading: Ember.computed.readOnly('browser.loading'),
-    modeDescription: Ember.computed.readOnly('browser.modeDescription'),
+    mode: Ember.computed.readOnly('browser.mode'),
     noBackUrl: Ember.computed.equal('browser.backBuffer.length', 0),
     noForwardUrl: Ember.computed.equal('browser.forwardBuffer.length', 0),
     url: Ember.computed.reads('browser.url'),
