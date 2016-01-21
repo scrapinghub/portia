@@ -1,12 +1,9 @@
 import Ember from 'ember';
-import { NAMED_COLORS } from '../utils/colors';
 
 export default Ember.Component.extend({
     tagName: '',
 
     spider: null,
-
-    colors: NAMED_COLORS,
     followPatternOptions: [
         {
             value: 'all',

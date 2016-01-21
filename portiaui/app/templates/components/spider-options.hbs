@@ -46,27 +46,6 @@
             </label>
         </div>
     {{/if}}
-    <div class="checkbox">
-        <label>
-            {{input type="checkbox" name="showLinks" checked=(mut spider.showLinks)}} Overlay blocked links
-        </label>
-    </div>
-    {{#if spider.showLinks}}
-        <ul class="list-group">
-            <li class="list-group-item">
-                {{colored-badge color=colors.green value=" "}}
-                Followed
-            </li>
-            <li class="list-group-item">
-                {{colored-badge color=colors.blue value=" "}}
-                Followed when Javascript is enabled
-            </li>
-            <li class="list-group-item">
-                {{colored-badge color=colors.red value=" "}}
-                Not Followed
-            </li>
-        </ul>
-    {{/if}}
 </form>
 
 <h3>Javascript support</h3>

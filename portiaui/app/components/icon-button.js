@@ -10,6 +10,7 @@ export const ICON_CLASSES = {
     error: 'structure-list-error fa fa-exclamation-circle',
     geopoint: 'fa fa-map-marker',
     image: 'fa fa-picture-o',
+    link: 'fa fa-link',
     list: 'fa fa-list',
     navigation: 'fa fa-eye',
     number: 'portia-icon portia-icon-number',

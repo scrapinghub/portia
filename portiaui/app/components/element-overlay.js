@@ -28,7 +28,9 @@ export default Ember.Component.extend({
                 positionMonitor.unRegisterElement(oldElement, this, null, this.updatePosition);
             }
             if (newElement) {
-                positionMonitor.registerElement(newElement, this, null, this.updatePosition);
+                Ember.run.schedule('afterRender', () => {
+                    positionMonitor.registerElement(newElement, this, null, this.updatePosition);
+                });
             }
         }
     },
