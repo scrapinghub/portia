@@ -24,6 +24,11 @@ export const ICON_CLASSES = {
     spider: 'portia-icon portia-icon-spider',
     structure: 'fa fa-sitemap',
     text: 'portia-icon portia-icon-text',
+    'tool-magic': 'fa fa-magic fa-flip-horizontal',
+    'tool-select': 'fa fa-mouse-pointer',
+    'tool-add': 'fa fa-plus',
+    'tool-remove': 'fa fa-minus',
+    'tool-multiple': 'fa fa-th-large',
     url: 'fa fa-globe',
     warning: 'structure-list-warning fa fa-exclamation-circle'
 };

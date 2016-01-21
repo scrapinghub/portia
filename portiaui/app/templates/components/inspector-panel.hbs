@@ -14,7 +14,7 @@
                             {{#if annotation.name}}
                                 {{annotation.name}}
                             {{else}}
-                                <i class="structure-list-add fa fa-plus-circle" {{action 'addAnnotation' attribute.attribute bubbles=false}}></i>
+                                {{icon-button icon='add' action=(action 'addAnnotation' attribute.attribute) bubbles=false}}
                             {{/if}}
                             </div>
                         {{/with}}

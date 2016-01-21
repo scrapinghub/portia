@@ -7,6 +7,7 @@
 
         i {
             width: $tree-list-row-height;
+            flex: 0 0 $tree-list-row-height;
             height: $tree-list-row-height;
             line-height: $tree-list-row-height;
             text-align: center;

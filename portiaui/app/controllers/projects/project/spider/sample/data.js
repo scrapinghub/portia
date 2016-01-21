@@ -11,7 +11,12 @@ export default Ember.Controller.extend({
     annotationSelectors: [],
     overlayElements: [],
     selectedModelElements: [],
-
+    selectionModeIcons: {
+        select: 'tool-select',
+        add: 'tool-add',
+        remove: 'tool-remove',
+        edit: 'tool-multiple'
+    },
     magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),
     hoveredElement: Ember.computed.readOnly('uiState.viewPort.hoveredElement'),
     hoveredModels: Ember.computed.alias('uiState.viewPort.hoveredModels'),

@@ -12,7 +12,7 @@
         {{/if}}
     {{else}}
         <button id="start-url-button" type="button" class="btn btn-default {{if (not canAddStartUrl) 'active'}}" disabled={{not browser.url}} {{action "toggleStartUrl"}}>
-            <i class="fa fa-globe"></i> Start page
+            {{icon-button icon='url'}} Start page
         </button>
     {{/if}}
 {{/tooltip-container}}

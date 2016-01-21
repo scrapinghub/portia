@@ -1,14 +1,14 @@
-.icon-button {
+.list-item-icon {
     width: $tree-list-icon-width;
     flex: 0 0 $tree-list-icon-width;
-    line-height: inherit;
-    text-align: center;
-    outline: 0;
-    pointer-events: none;
-    transition: opacity $animation-time $animation-easing, color $animation-time $animation-easing;
 
-    .dropdown-menu & {
-        transition: 0s;
+    &.has-action {
+        opacity: $icon-fade-opacity;
+
+        .dropdown.open &,
+        &:hover:not(.disabled) {
+            opacity: 1;
+        }
     }
 
     .tree-list-item-content & {
@@ -19,53 +19,4 @@
     .tree-list-item-content a & {
         color: $navbar-default-color;
     }
-
-    &.has-action {
-        pointer-events: auto;
-        cursor: pointer;
-    }
-
-    &.disabled {
-        color: $navbar-default-color !important;
-        cursor: not-allowed;
-    }
-
-    .dropdown-menu .disabled & {
-        color: $dropdown-link-disabled-color !important;
-        cursor: not-allowed;
-    }
-}
-
-.list-item-icon {
-    &.has-action {
-        opacity: $icon-fade-opacity;
-
-        .dropdown.open &,
-        &:hover:not(.disabled) {
-            opacity: 1;
-        }
-    }
-}
-
-.structure-list-details {
-    opacity: $icon-fade-opacity;
-    pointer-events: inherit;
-
-    &:hover,
-    .active > & {
-        opacity: 1;
-    }
-}
-
-.structure-list-add {
-    color: $brand-success !important;
-}
-
-.structure-list-error,
-.structure-list-remove {
-    color: $brand-danger !important;
-}
-
-.structure-list-warning {
-    color: $brand-warning !important;
 }
