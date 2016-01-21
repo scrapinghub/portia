@@ -11,7 +11,7 @@ export default Ember.Component.extend({
     text: false,
     tooltipContainer: false,
     tooltipFor: false,
-    triggerEvents: 'hover focus',
+    triggerEvents: 'hover',
     viewport: {
         selector: 'body',
         padding: 0

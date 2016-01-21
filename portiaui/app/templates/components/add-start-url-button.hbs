@@ -1,3 +1,18 @@
-<button type="button" class="btn btn-default" disabled={{not browser.url}} {{action "toggleStartUrl"}}>
-    <i class="fa fa-globe"></i> {{#if (not canAddStartUrl)}}Remove start URL{{else}}Add start URL{{/if}}
-</button>
+{{#tooltip-container tooltipFor="start-url-button" tooltipContainer='body' as |options|}}
+    {{#if (eq options.section 'tooltip')}}
+        Toggle start page
+        {{#if canAddStartUrl}}
+            <p>
+                This page is <em>not</em> a start page for your spider.
+            </p>
+        {{else}}
+            <p>
+                This page <em>is</em> a start page for your spider.
+            </p>
+        {{/if}}
+    {{else}}
+        <button id="start-url-button" type="button" class="btn btn-default {{if (not canAddStartUrl) 'active'}}" disabled={{not browser.url}} {{action "toggleStartUrl"}}>
+            <i class="fa fa-globe"></i> Start page
+        </button>
+    {{/if}}
+{{/tooltip-container}}
