@@ -52,7 +52,7 @@ Running Portia Locally
 
 Install the following dependencies::
 
-    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
+    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev libjpeg-dev
 
 If you would like to run Portia locally you should create an environment with virtualenv::
 
