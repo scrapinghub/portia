@@ -4,6 +4,7 @@ import json, re, shutil, errno, os
 import slyd.errors
 
 from os.path import join, splitext
+from scrapy.http import HtmlResponse
 from twisted.web.resource import NoResource, ForbiddenResource
 from twisted.web.server import NOT_DONE_YET
 from jsonschema.exceptions import ValidationError
@@ -142,7 +143,10 @@ class ProjectSpec(object):
             urls = urls.get('urls', [])
         if isinstance(urls, dict):
             return urls.items()
-        return enumerate(urls)
+        return urls
+
+    def _process_extraction_response(self, url, html):
+        return [(url, HtmlResponse(url, body=html))]
 
     def extract_data(self, spider_name, url_info, request):
         urls = self._process_extraction_urls(url_info)
