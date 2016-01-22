@@ -33,11 +33,7 @@ After following the appropriate instructions above the Portia image can be built
 
 Portia can be run using the command below::
 
-    docker run -i -t --rm
-    -v <PROJECT_FOLDER>/data:/app/slyd/data:rw \
-    -p 9001:9001 \
-    --name portia \
-    portia
+    docker run -i -t --rm -v <PROJECT_FOLDER>/data:/app/slyd/data:rw -p 9001:9001 --name portia portia
 
 Portia will now be running on port 9001 and you can access it at ``http://localhost:9001/static/index.html``.
 Projects will be stored in the project folder that you mount to docker.
