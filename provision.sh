@@ -56,10 +56,10 @@ install_deps(){
             curl \
             libxml2-dev \
             libxslt-dev \
-            libgl1-mesa-dev-lts-utopic \
-            libgl1-mesa-glx-lts-utopic \
-            libglapi-mesa-lts-utopic \
-            libgl1-mesa-dri-lts-utopic \
+            libgl1-mesa-dev \
+            libgl1-mesa-glx \
+            libglapi-mesa \
+            libgl1-mesa-dri \
             nginx python-dev \
             python-mysql.connector \
             python-numpy \
