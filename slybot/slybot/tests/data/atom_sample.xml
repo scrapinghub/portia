@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+    <feed xmlns="http://www.w3.org/2005/Atom">
+       <title>Webupd8 Posts</title>
+       <entry>
+         <link href="http://www.webupd8.org/sitemap.xml?page=1"/>
+       </entry>
+       <entry>
+         <link href="http://www.webupd8.org/sitemap.xml?page=2"/>
+       </entry>
+       <entry>
+         <link href="http://www.webupd8.org/sitemap.xml?page=3"/>
+       </entry>
+
+    </feed>

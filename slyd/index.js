@@ -17,6 +17,7 @@ module.exports = {
         app.import('vendor/bootstrap.min.js');
         app.import('vendor/jquery.binarytransport.js');
         app.import('vendor/tree-mirror.js');
+        app.import('bower_components/google-diff-match-patch-js/diff_match_patch.js');
 
         if (app.env === 'test') {
             app.import('bower_components/ember/ember-template-compiler.js');
@@ -60,7 +61,8 @@ module.exports = {
                 'node_modules/mutationobserver-shim/MutationObserver.js',
                 'vendor/mutation-summary.js',
                 'vendor/tree-mirror.js',
-                'splash_utils/local-storage-shim.js',
+                // LocalStorage Shim disabled since it doesn't work in Qt5
+                //'splash_utils/local-storage-shim.js',
                 'splash_utils/inject_this.js'
         ].map(function(p) { return '../'+p; });
 
@@ -74,7 +76,7 @@ module.exports = {
 
         return mergeTrees([
             funnel(tree, { destDir: '/' }),
-            splashTree
+            splashTree,
         ]);
     },
     treeForStyles: function(tree) {

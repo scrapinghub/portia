@@ -9,13 +9,9 @@ from six.moves.urllib_parse import urlparse
 
 from w3lib.http import basic_auth_header
 
-from scrapy.http import Request, HtmlResponse, FormRequest
+from scrapy.http import Request, HtmlResponse, XmlResponse, FormRequest
 import six
-try:
-    from scrapy.spiders import Spider
-except ImportError:
-    # BaseSpider class was deprecated in Scrapy 0.21
-    from scrapy.spider import BaseSpider as Spider
+from scrapy.spiders.sitemap import SitemapSpider
 
 from loginform import fill_login_form
 
@@ -23,13 +19,12 @@ from slybot.utils import (iter_unique_scheme_hostname, load_plugins,
                           load_plugin_names, IndexedDict)
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.generic_form import GenericForm
-
 STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
                'allowed_domains', 'js_enabled', 'js_enable_patterns',
                'js_disable_patterns']
 
 
-class IblSpider(Spider):
+class IblSpider(SitemapSpider):
 
     def __init__(self, name, spec, item_schemas, all_extractors, settings=None,
                  **kw):
@@ -75,6 +70,7 @@ class IblSpider(Spider):
             'allowed_domains',
             self._get_allowed_domains(self._templates)
         )
+        self.page_actions = spec.get('page_actions', [])
         if not self.allowed_domains:
             self.allowed_domains = None
 
@@ -196,14 +192,15 @@ class IblSpider(Spider):
         content_type = response.headers.get('Content-Type', '')
         if isinstance(response, HtmlResponse):
             return self.handle_html(response)
-        elif "application/rss+xml" in content_type:
-            return self.handle_rss(response)
-        else:
-            self.logger.debug(
-                "Ignoring page with content-type=%r: %s" % (content_type,
-                                                            response.url)
-            )
-            return []
+        if (isinstance(response, XmlResponse) or
+                response.url.endswith(('.xml', '.xml.gz'))):
+            response._set_body(self._get_sitemap_body(response))
+            return self.handle_xml(response)
+        self.logger.debug(
+            "Ignoring page with content-type=%r: %s" % (content_type,
+                                                        response.url)
+        )
+        return []
 
     def _plugin_hook(self, name, *args):
         results = []
@@ -223,8 +220,8 @@ class IblSpider(Spider):
                 item_or_request = self._add_splash_meta(item_or_request)
             yield item_or_request
 
-    def handle_rss(self, response):
-        return self._handle('handle_rss', response, set([]))
+    def handle_xml(self, response):
+        return self._handle('handle_xml', response, set([]))
 
     def handle_html(self, response):
         return self._handle('handle_html', response)

@@ -1,5 +1,5 @@
 #!/bin/bash
 cd slyd
 npm install --cache-min 999999
-bower install --allow-root
+bower install
 ember build -e production

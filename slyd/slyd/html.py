@@ -85,6 +85,8 @@ def descriptify(doc, base=None, proxy=None):
                         element.attributes[key] = ""
                     elif base and proxy and key == "style" and val is not None:
                         element.attributes[key] = process_css(val, -1, base)
+                    elif element.tag in ('frame', 'iframe') and key == 'src':
+                        element.attributes[key] = '/static/frames-not-supported.html'
                     # Rewrite javascript URIs
                     elif key in URI_ATTRIBUTES and val is not None:
                             if _contains_js(unscape(val)):

@@ -94,10 +94,11 @@ def load_page(data, socket):
     socket.tab.loaded = False
     meta = data.get('_meta', {})
 
-    def on_complete(error):
+    def on_complete(is_error, error_info=None):
         extra_meta = {'id': meta.get('id')}
-        if error:
-            extra_meta.update(error=4500, message='Unknown error')
+        if is_error:
+            msg = 'Unknown error' if error_info is None else error_info.text
+            extra_meta.update(error=4500, reason=msg)
         else:
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
@@ -110,8 +111,8 @@ def load_page(data, socket):
 
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
-                  lambda: on_complete(True),
-                  baseurl=data.get('baseurl') or data['url'],
+                  lambda err=None: on_complete(True, err),
+                  baseurl=data.get('baseurl'),
                   headers=headers)
 
 
@@ -150,7 +151,7 @@ def metadata(socket, extra={}):
         url = socket.tab.evaljs('location.href')
         res.update(
             url=url,
-            fp=hashlib.sha1(url).hexdigest(),
+            fp=hashlib.sha1(url.encode('utf8')).hexdigest(),
             response={
                 'headers': {},  # TODO: Get headers
                 'status': socket.tab.last_http_status()
@@ -174,7 +175,7 @@ def extract(socket):
     url = socket.tab.evaljs('location.href')
     html = socket.tab.html()
     js_items, js_links = extract_data(url, html, socket.spider, templates)
-    raw_html = getattr(socket.tab, '_raw_html', None)
+    raw_html = socket.tab.network_manager._raw_html
     if raw_html:
         raw_items, links = extract_data(url, raw_html, socket.spider,
                                         templates)
@@ -216,6 +217,29 @@ def close_tab(data, socket):
         socket.tab.close()
         socket.factory[socket].tab = None
 
+_valid_params = {
+    "suggestions.title": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
+    "suggestions.image": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
+    "suggestions.microdata": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
+    "suggestions.all": ('accepted', 'rejected'),
+}
+def log_event(data, socket):
+    event = data.get('event')
+    param = data.get('param')
+    print 'le', event, param
+
+    if event not in _valid_params or param not in _valid_params[event]:
+        return
+
+    msg_data = {'session': socket.session_id,
+                'session_time': 0,
+                'user': socket.user.name,
+                'command': '%s.%s' % (event, param)}
+    msg = (u'Stat: id=%(session)s t=%(session_time)s '
+           u'user=%(user)s command=%(command)s' % (msg_data))
+    print msg
+    log.err(msg)
+
 
 class ProjectData(ProjectModifier):
     errors = slyd.splash.utils
@@ -234,14 +258,14 @@ class ProjectData(ProjectModifier):
                 socket.open_spider(meta)
             uses_js = bool(socket.spider._filter_js_urls(sample['url']))
             if uses_js:
-                sample['original_body'] = socket.tab.html().decode('utf-8')
+                sample['original_body'] = socket.tab.html()
             else:
                 stated_encoding = socket.tab.evaljs('document.characterSet')
-                sample['original_body'] = self._decode(socket.tab._raw_html,
+                sample['original_body'] = self._decode(socket.tab.network_manager._raw_html,
                                                        stated_encoding)
         obj = self.save_data(path, 'template', data=sample, socket=socket,
                              meta=meta)
-        if creating:
+        if creating and obj:
             obj['_uses_js'] = uses_js
 
         return obj

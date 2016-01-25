@@ -2,29 +2,6 @@ MutationObserver._period = 500;
 var portiaJSON = JSON;
 
 // Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
-function hashString(string, seed) { // Non cryptographic hash of an string
-    var hash = seed || 0;
-    for (var i = 0, len = string.length; i < len; i++) {
-        var chr = string.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-}
-
-/**
- * Returns a non-cryptographic hash of a shallow object
- * > hashObject({a: '1', b: '2'}) === hashObject({b: '2', a: '1'})
- * > hashObject({a: '1', b: '2', c:1}) !== hashObject({b: '2', a: '1'})
- */
-function hashObject(obj, seed) {
-    var keys = Object.keys(obj).sort();
-    var hash = seed || 0;
-    for (var i = 0, len = keys.length; i < len; i++) {
-        hash = hashString(keys[i] + '\n' + obj[keys[i]] + '\n', hash);
-    }
-    return hash;
-}
 
 var MAX_DIALOGS = 15;  // Maximum number of dialogs (alert, confirm, prompt) before throwing an exception
 
@@ -41,11 +18,28 @@ var PortiaPage = function PortiaPage() {
 };
 
 PortiaPage.prototype.sendMutation = function(){
-    this.sendMessage('mutation', Array.prototype.splice.call(arguments, 0));
+    this.sendMessage('mutation', arraySplice.call(arguments, 0));
 };
 
 PortiaPage.prototype.sendMessage = function(action, message) {
-    __portiaApi.sendMessage(portiaJSON.stringify([action, message]));
+    var oldAPtoJson = ArrayProto.toJSON;
+    var oldOPtoJson = ObjectProto.toJSON;
+    var oldNPtoJson = NumberProto.toJSON;
+    var oldSPtoJson = StringProto.toJSON;
+    var oldBPtoJson = BooleanProto.toJSON;
+    delete ArrayProto.toJSON;
+    delete ObjectProto.toJSON;
+    delete NumberProto.toJSON;
+    delete StringProto.toJSON;
+    delete BooleanProto.toJSON;
+
+    __portiaApi.sendMessage(JSONstringify.call(Json, [action, message]));
+
+    if(oldAPtoJson) { ArrayProto.toJSON   = oldAPtoJson; }
+    if(oldOPtoJson) { ObjectProto.toJSON  = oldOPtoJson; }
+    if(oldNPtoJson) { NumberProto.toJSON  = oldNPtoJson; }
+    if(oldSPtoJson) { StringProto.toJSON  = oldSPtoJson; }
+    if(oldBPtoJson) { BooleanProto.toJSON = oldBPtoJson; }
 };
 
 PortiaPage.prototype.url = function() {
@@ -146,40 +140,6 @@ PortiaPage.prototype.sendEvent = function(data) {
 
 PortiaPage.prototype.getByNodeId = function(nodeId){
     return this.mirrorClient.knownNodes.byId[nodeId];
-};
-
-PortiaPage.prototype.localStorageUpdated = function(local, session) {
-    if(this._localStorageLoading) {
-        return;
-    }
-    var hash = hashObject(local, 1) + hashObject(session, 2);
-    if(hash !== this._prevStorageHash) {
-        this.sendMessage('storage', {
-            local: local,
-            session: session,
-            origin: location.origin,
-        });
-        this._prevStorageHash = hash;
-    }
-};
-
-PortiaPage.prototype.setLocalStorage = function(localData, sessionData){
-    this._localStorageLoading = true;
-    var local = window.localStorage;
-    var session = window.sessionStorage;
-    for(var k in localData) {
-        if(localData.hasOwnProperty(k)){
-            local[k] = localData[k];
-        }
-    }
-    for(k in sessionData) {
-        if(sessionData.hasOwnProperty(k)){
-            session[k] = sessionData[k];
-        }
-    }
-
-    this._prevStorageHash = hashObject(local, 1) + hashObject(session, 2);
-    this._localStorageLoading = false;
 };
 
 PortiaPage.prototype.pyGetByNodeId = function(nodeId){

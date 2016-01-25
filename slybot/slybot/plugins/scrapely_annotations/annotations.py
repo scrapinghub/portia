@@ -9,10 +9,13 @@ from scrapy.http import Request
 from scrapely.extraction import InstanceBasedLearningExtractor
 from scrapely.htmlpage import HtmlPage, dict_to_page
 
-from slybot.linkextractor import HtmlLinkExtractor, RssLinkExtractor
+from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
+                                  RssLinkExtractor,)
+from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
 from slybot.utils import htmlpage_from_response
+XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
 
 from .extraction import SlybotIBLExtractor
 
@@ -33,7 +36,6 @@ class Annotations(object):
         ))
         self.item_classes = {}
         self.html_link_extractor = HtmlLinkExtractor()
-        self.rss_link_extractor = RssLinkExtractor()
         for schema_name, schema in items.items():
             if schema_name not in self.item_classes:
                 item_cls = SlybotItem.create_iblitem_class(schema)
@@ -180,8 +182,16 @@ class Annotations(object):
             if request is not None:
                 yield request
 
-    def handle_rss(self, response, seen):
-        for link in self.rss_link_extractor.links_to_follow(response):
+    def handle_xml(self, response, seen):
+        _type = XML_APPLICATION_TYPE(response.headers.get('Content-Type', ''))
+        _type = _type.groupdict()['type'] if _type else 'xml'
+        try:
+            link_extractor = create_linkextractor_from_specs({
+                'type': _type, 'value': ''
+            })
+        except ValueError:
+            link_extractor = SitemapLinkExtractor()
+        for link in link_extractor.links_to_follow(response):
             request = self._filter_link(link, seen)
             if request:
                 yield request

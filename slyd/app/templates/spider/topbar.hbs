@@ -12,7 +12,7 @@
 				Loading page...
 			{{/label-with-tooltip}}
 		{{else}}
-			{{#inline-editable-text-field text=documentView.currentUrl placeholder='http://' validation='^(https?://)?[^\s\/]+\.[^\s]*$' action='navigate'}}
+			{{#inline-editable-text-field text=documentView.currentUrl placeholder='http://' action='navigate'}}
 				{{controller.urlLabel}}
 			{{/inline-editable-text-field}}
 		{{/if}}

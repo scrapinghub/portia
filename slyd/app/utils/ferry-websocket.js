@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import config from '../config/environment';
 import utils from '../utils/utils';
+import NotificationManager from '../utils/notification-manager';
 
 const APPLICATION_UNLOADING_CODE = 4001;
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
@@ -52,9 +53,9 @@ export default Ember.Object.extend({
             clearInterval(this.get('countdownTid'));
             this.set('countdownTid', null);
         } else if (this.secondsUntilReconnect > 0 && !this.get('countdownTid')) {
-            this.set('countdownTid', setInterval(() => {
+            this.set('countdownTid', setInterval(Ember.run.bind(this, () => {
                 this.decrementProperty('secondsUntilReconnect');
-            }, 1000));
+            }), 1000));
         }
     }.observes('secondsUntilReconnect'),
 
@@ -96,8 +97,8 @@ export default Ember.Object.extend({
             this.set('connecting', false);
             return;
         }
-        ws.onclose = this._onclose.bind(this);
-        ws.onmessage = function(e) {
+        ws.onclose = Ember.run.bind(this, this._onclose);
+        ws.onmessage = Ember.run.bind(this, function(e) {
             var data;
             try {
                 data = JSON.parse(e.data);
@@ -115,15 +116,17 @@ export default Ember.Object.extend({
                 deferred = this.get('deferreds.' + deferred);
                 delete this.get('deferreds')[data.id];
                 if (data.error) {
-                    var err = new Error(data.reason);
-                    err.reason = {jqXHR: {responseText: data.reason}};
+                    var err = new Error(data.reason || data.error);
+                    err.reason = {jqXHR: {responseText: data.reason || data.error}};
                     deferred.reject(err);
-                    throw err;
                 } else {
                     deferred.resolve(data);
                 }
             }
-            if (command in this.get('commands')) {
+            if (data.error) {
+                NotificationManager.showErrorNotification(data.reason || data.error);
+                console.error(data.reason || data.error);
+            }else if (command in this.get('commands')) {
                 this.get('commands')[command](data);
             } else {
                 Ember.Logger.warn('Received unknown command: ' + command);
@@ -206,6 +209,16 @@ export default Ember.Object.extend({
             _command: 'rename',
             old: from,
             new: to
+        });
+    },
+
+    logEvent: function(...args) {
+        let param = args.pop();
+        let name = args.join(".");
+        return this.send({
+            _command: 'log_event',
+            event: name,
+            param: param,
         });
     },
 

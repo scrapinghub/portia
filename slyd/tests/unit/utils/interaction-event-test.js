@@ -5,7 +5,8 @@ module('interactionEvent');
 // Replace this with your real tests.
 test('it works', function() {
   var evt = document.createEvent('Event');
-  evt.initEvent('TestEvent', true, true);
+  evt.initEvent('scroll', true, true);
+  document.documentElement.nodeid = evt;
   document.documentElement.dispatchEvent(evt);
   var result = interactionEvent(evt);
   ok(result);

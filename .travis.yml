@@ -1,10 +1,7 @@
 language: python
 python: 2.7
-sudo: false
-addons:
-  apt:
-    packages:
-    - python-qt4
+sudo: required
+dist: trusty
 env:
 - WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
 cache:
@@ -13,23 +10,32 @@ cache:
   - "$HOME/.cache/wheelhouse"
   - slyd/node_modules
   - slyd/bower_components
+
 install:
-- pip wheel -r ./slybot/requirements.txt
-- pip install --use-wheel -r ./slybot/requirements.txt
-- pip install -e ./slybot[tests]
-- pip wheel -r ./slyd/requirements.txt
-- pip install --use-wheel -r ./slyd/requirements.txt
-- cd ./slyd
+- source ${VIRTUAL_ENV}/bin/activate
+- sudo -E ./provision.sh install_deps install_splash install_python_deps
+- python -c 'import splash, qt5reactor' # Check it's in the python path
+- cd slyd
 - npm install -g bower
 - npm install
 - bower install
-- cd ../
+- cd ..
+
+before_script:
+- "export DISPLAY=:99.0"
+- "sh -e /etc/init.d/xvfb start"
+- source ${VIRTUAL_ENV}/bin/activate
+- export PYTHONPATH=`pwd`/slybot:`pwd`/slyd
+- cd slyd
+- python tests/testserver/server.py 2>&1 | grep -v 'HTTP/1.1" 200' &
+- cd ..
+- sleep 3 # give xvfb some time to start
 script:
 - cd ./slybot
 - nosetests --with-doctest
 - cd ../slyd
 - npm test
-- PYTHONPATH=$PYTHONPATH:/usr/lib/python2.7/dist-packages/ nosetests --with-doctest
+- nosetests --with-doctest
 - cd ../
 before_deploy:
 - cd ./slybot

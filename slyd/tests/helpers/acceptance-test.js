@@ -4,8 +4,31 @@ import WebDocument from 'portia-web/components/web-document-js/component';
 import FerryWebsocket from 'portia-web/utils/ferry-websocket';
 import { Canvas } from 'portia-web/utils/canvas';
 import { lastRequest } from '../helpers/fixtures';
-
 import NotificationManager from 'portia-web/utils/notification-manager';
+import ws from '../helpers/websocket-mock';
+import { waitFor } from '../helpers/wait';
+
+var oldSend = FerryWebsocket.create().send;
+FerryWebsocket.reopen({
+    url: 'ws://localhost:8787/ws',
+    send: function(msg) {
+        if(msg._command && !/(resize|heartbeat|pause|resume)/.test(msg._command)) {
+            ws.lastMessage = msg;
+        }
+        return oldSend.apply(this, arguments);
+    }
+});
+
+Ember.assert = function(m, a){
+    if(!a) {
+        try{
+            throw new Error();
+        }catch(e){
+            m += e.stack;
+        }
+        throw new Error(m);
+    }
+};
 
 export default function portiaTest(name, fn) {
     test(name, function(assert) {
@@ -15,7 +38,7 @@ export default function portiaTest(name, fn) {
 
         NotificationManager.reopen({
             add: function(obj){
-                app.lastNotification = obj;
+                if(app) app.lastNotification = obj;
             }
         });
 
@@ -28,19 +51,25 @@ export default function portiaTest(name, fn) {
         Ember.run(function() {
             app.setupForTesting();
             app.injectTestHelpers();
-            var doc = app.registry.resolve('document:obj');
-            WebDocument.create({
-                document: doc,
-                ws: FerryWebsocket.create({}),
-                canvas: Canvas.create({
-                    canvasId: canvas.attr('id')
-                })
-            });
-            fn.call(that, app, assert);
-            andThen(function() {
+            Ember.Test.adapter.asyncStart();
+
+            visit('/')
+            .then(() => waitFor(function(){
+                var doc = app.registry.resolve('document:obj');
+                return doc && doc.view && doc.view.ws.get('opened');
+            }, 'ws open'))
+            .then(function(){
+                return fn.call(that, app, assert);
+            }).then(function() {
+                var doc = app.registry.resolve('document:obj');
+                if(doc && doc.view && doc.view.ws) {
+                    doc.view.ws.set('deferreds', {});
+                    doc.view.ws.close();
+                }
                 app.destroy();
                 root.remove();
                 canvas.remove();
+                Ember.Test.adapter.asyncEnd();
             });
         });
     });

@@ -1,7 +1,7 @@
 
 <div style="text-align:center;font-size:1.1em;margin:10px 0px 10px 0px">
     {{#if capabilities.rename_spiders}}
-        {{#inline-editable-text-field text=model.name validation='^[a-zA-Z0-9_-]+$' name=model.name action='rename'}}
+        {{#inline-editable-text-field text=model.name validation='^[a-zA-Z0-9_-\.]+$' name=model.name action='rename'}}
             Spider: {{model.name}}
         {{/inline-editable-text-field}}
     {{else}}
@@ -183,9 +183,21 @@
             {{/each}}
         </div>
     {{/accordion-item}}
+
+    {{#if pageActionsEnabled }}
+        {{#accordion-item title="Page Actions"}}
+            {{#if documentView.recording}}
+                {{#bs-button clicked="toggleRecording" icon="fa fa-icon fa-stop" class="record-button" title="Stop recording page actions"}}Stop{{/bs-button}}
+            {{else}}
+                {{#bs-button clicked="toggleRecording" icon="fa fa-icon fa-circle" class="record-button" title="Start recording page actions"}}Record{{/bs-button}}
+            {{/if}}
+            {{inline-help message="page_actions"}}
+            {{page-actions-editor pageActions=model.page_actions}}
+        {{/accordion-item}}
+    {{/if}}
 {{/closable-accordion}}
 
-<div style="margin-top:10px;text-align:center">
+<div class="btn-center">
 		{{#bs-button clicked="testSpider" clickedParam=this icon="fa fa-icon fa-check" type="primary" title="Tests the spider on every start URL."}}
 			{{controller.testButtonLabel}}
 		{{/bs-button}}

@@ -1,0 +1,22 @@
+*.sh eol=lf
+*.bat eol=crlf
+*.js text
+*.py text
+*.css text
+*.hbs text
+*.json text
+*.html text
+*.xml text
+*.yml text
+*.txt text
+*.rst text
+*.md text
+*.cfg text
+*.conf text
+Makefile* text
+
+*.png binary
+*.swf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary

@@ -1,5 +1,4 @@
 import BaseRoute from './base-route';
-import Timer from '../utils/timer';
 
 export default BaseRoute.extend({
     model: function() {
@@ -29,9 +28,5 @@ export default BaseRoute.extend({
             outlet: 'topbar',
             controller: controller,
         });
-    },
-
-    init: function() {
-        this.set('timer', new Timer(this.get('ws')));
     }
 });
