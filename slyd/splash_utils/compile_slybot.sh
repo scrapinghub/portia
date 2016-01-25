@@ -5,7 +5,6 @@
 
     cat 'es5-shim-fixes.js'
     cat '../node_modules/es5-shim/es5-shim.js'
-    cat 'local-storage-shim.js'
 
     # Page actions scripts
     cat 'waitAsync.js'

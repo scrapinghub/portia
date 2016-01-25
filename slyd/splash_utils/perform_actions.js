@@ -58,7 +58,8 @@ var actions = {
                 if(element === document.documentElement && element.scrollHeight === document.body.scrollHeight){
                     element = document.body;
                 }
-                element.scrollTop = (data.percent/100)*element.scrollMaxY;
+                var maxY = element.scrollMaxY || element.scrollHeight;
+                element.scrollTop = (data.percent/100)*maxY;
             });
         }, WAIT_ASYNC_OPTS, callback);
     },

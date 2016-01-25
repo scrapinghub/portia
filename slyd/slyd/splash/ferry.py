@@ -19,13 +19,10 @@ from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 from splash import defaults
 
-from PyQt4.QtCore import QObject
-from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtWebKit import QWebElement
-
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
 
+from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
@@ -187,7 +184,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
     spec_manager = None
     settings = None
     assets = './'
-    storage = None
 
     @property
     def tab(self):
@@ -291,8 +287,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if meta is None:
             meta = {}
         manager = PortiaNetworkManager(
-            filters_path=None,
-            allowed_schemes=defaults.ALLOWED_SCHEMES,
+            request_middlewares=[],
+            response_middlewares=[],
             verbosity=defaults.VERBOSITY
         )
         manager.setCache(None)
@@ -314,9 +310,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if meta.get('cookies'):
             cookiejar.put_client_cookies(meta['cookies'])
 
-        if meta.get('storage'):
-            self.storage = meta['storage']
-
         main_frame.loadStarted.connect(self._on_load_started)
         self.js_api = PortiaJSApi(self)
         main_frame.javaScriptWindowObjectCleared.connect(
@@ -337,18 +330,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.tab.run_js_files(
             os.path.join(self.assets, 'splash_content_scripts'),
             handle_errors=False)
-
-        origin = self.tab.evaljs('location.origin')
-        storage = self.storage or {}
-
-        local_storage = storage.get('local', {}).get(origin, {})
-        session_storage = storage.get('session', {}).get(origin, {})
-
-        if local_storage or session_storage:
-            script = 'livePortiaPage.setLocalStorage(%s, %s)' % (
-                json.dumps(local_storage), json.dumps(session_storage)
-            )
-            main_frame.evaluateJavaScript(script)
 
     def open_spider(self, meta):
         if ('project' not in meta or 'spider' not in meta or

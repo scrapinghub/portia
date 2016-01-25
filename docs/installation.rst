@@ -16,7 +16,7 @@ Run the following in Portia's directory::
 
     vagrant up
 
-This will launch an Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:8000``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
+This will launch an Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:9001``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 Docker
 ------
@@ -52,7 +52,7 @@ Running Portia Locally
 
 Install the following dependencies::
 
-    sudo apt-get install libxml2-dev libxslt-dev python-dev zlib1g-dev libffi-dev libssl-dev
+    sudo ./provision.sh install_deps
 
 If you would like to run Portia locally you should create an environment with virtualenv::
 
@@ -64,15 +64,9 @@ Now clone this repository into that env::
 
     git clone https://github.com/scrapinghub/portia.git
 
-install the requirements for building Portia::
+Install splash and the required packages::
 
-    sudo docker/splash.sh
-
-and inside the env install the required packages::
-
-    cd portia
-    pip install -r requirements.txt
-    pip install -e ./slybot
+    sudo ./provision.sh install_splash install_python_deps
 
 To run Portia start slyd::
 

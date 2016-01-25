@@ -63,6 +63,7 @@ export default function portiaTest(name, fn) {
             }).then(function() {
                 var doc = app.registry.resolve('document:obj');
                 if(doc && doc.view && doc.view.ws) {
+                    doc.view.ws.set('deferreds', {});
                     doc.view.ws.close();
                 }
                 app.destroy();

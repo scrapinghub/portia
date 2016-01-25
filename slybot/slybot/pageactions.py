@@ -4,8 +4,8 @@ import re
 LUA_SOURCE = """
 function main(splash)
     assert(splash:go(splash.args.url))
-    assert(splash:runjs(splash.args.js_source))
-    assert(splash:wait_for_resume(splash.args.slybot_actions_source))
+    splash:runjs(splash.args.js_source)
+    splash:wait_for_resume(splash.args.slybot_actions_source)
     splash:set_result_content_type("text/html")
     return splash.html()
 end

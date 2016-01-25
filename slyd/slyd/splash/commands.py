@@ -33,10 +33,11 @@ def load_page(data, socket):
     socket.tab.loaded = False
     meta = data.get('_meta', {})
 
-    def on_complete(error):
+    def on_complete(is_error, error_info=None):
         extra_meta = {'id': meta.get('id')}
-        if error:
-            extra_meta.update(error=4500, message='Unknown error')
+        if is_error:
+            msg = 'Unknown error' if error_info is None else error_info.text
+            extra_meta.update(error=4500, reason=msg)
         else:
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
@@ -49,7 +50,7 @@ def load_page(data, socket):
 
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
-                  lambda: on_complete(True),
+                  lambda err=None: on_complete(True, err),
                   baseurl=data.get('baseurl'),
                   headers=headers)
 
@@ -196,7 +197,7 @@ class ProjectData(ProjectModifier):
                 socket.open_spider(meta)
             uses_js = bool(socket.spider._filter_js_urls(sample['url']))
             if uses_js:
-                sample['original_body'] = socket.tab.html().decode('utf-8')
+                sample['original_body'] = socket.tab.html()
             else:
                 stated_encoding = socket.tab.evaljs('document.characterSet')
                 sample['original_body'] = self._decode(socket.tab.network_manager._raw_html,

@@ -1,15 +1,11 @@
 
 const text = 'content';
 
-function sum(numbers) {
-    return numbers.reduce((a,b) => a+b, 0);
-}
-
-function nodeArea(node) {
-    return sum(
-        Array.from(node.getClientRects())
-             .map(rect => rect.width*rect.height)
-    );
+function imageScore(img) {
+    const cr = img.getBoundingClientRect();
+    const area = cr.width*cr.height;
+    const penalization = cr.top > 1000 ? 500/cr.top : 1; // Penalize images under the fold
+    return area*penalization;
 }
 
 function xpath(expr, ctx, type){
@@ -81,9 +77,9 @@ function suggestImageAnnotation(document, fieldNames, next) { // Returns [[field
     }
     // Wait for images to load
     setTimeout(() => {
-        let biggest = images.reduce((a, b) => nodeArea(a) > nodeArea(b) ? a : b);
+        let biggest = images.reduce((a, b) => imageScore(a) > imageScore(b) ? a : b);
         return next([[field, biggest, 'src', 0.6]]);
-    }, 500);
+    }, 1500);
 }
 
 function suggestTitleAnnotation(document, fieldNames, next) {
@@ -143,7 +139,12 @@ export function suggestAnnotations(document, fieldNames, callback) {
 
     for(let name of suggesterNames) {
         let suggester = enabledSuggesters[name];
-        suggester(document, fieldNames, processSuggestions.bind(null, name));
+        try {
+            suggester(document, fieldNames, processSuggestions.bind(null, name));
+        } catch(e) {
+            console.error(e);
+            processSuggestions(name, []);
+        }
     }
 }
 

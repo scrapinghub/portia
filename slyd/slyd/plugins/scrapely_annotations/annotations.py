@@ -239,7 +239,7 @@ def apply_annotations(annotations, target_page):
         for aid, annotation_data in sorted_annotations:
             # Move target until replacement/insertion point
             while True:
-                while not isinstance(element, HtmlTag):
+                while not isinstance(element, HtmlTag) or element.tag=='ins':
                     output.append(numbered_html[element.start:element.end])
                     element = next(target)
                 if element.tag_type in {OPEN_TAG, UNPAIRED_TAG}:
