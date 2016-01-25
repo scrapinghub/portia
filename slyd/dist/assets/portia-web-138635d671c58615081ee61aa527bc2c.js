@@ -676,6 +676,7 @@ define('portia-web/components/annotations-plugin/component', ['exports', 'ember'
                 this.set('data.required', required);
                 this.set('data.variant', this.getWithDefault('data.variant', 0));
             } else {
+                this.sendAction('dissmissAllSuggestions');
                 this.set('data', this.createAnnotationData(generatedData));
                 this.get('alldata').unshiftObject(this.get('data'));
             }
@@ -1031,7 +1032,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1074,7 +1075,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1110,7 +1111,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
       var child2 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1168,7 +1169,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1225,7 +1226,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1281,7 +1282,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1323,7 +1324,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1358,7 +1359,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -1487,7 +1488,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -1543,7 +1544,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
           var child1 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -1599,7 +1600,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
           var child2 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 2,
               cachedFragment: null,
               hasRendered: false,
@@ -1671,7 +1672,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
           var child3 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -1706,7 +1707,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -1809,7 +1810,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
             var child0 = (function() {
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 2,
                 cachedFragment: null,
                 hasRendered: false,
@@ -1882,7 +1883,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
             }());
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -1946,7 +1947,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
             var child0 = (function() {
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 2,
                 cachedFragment: null,
                 hasRendered: false,
@@ -2059,7 +2060,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
               var child0 = (function() {
                 return {
                   isHTMLBars: true,
-                  revision: "Ember@1.11.3",
+                  revision: "Ember@1.11.4",
                   blockParams: 0,
                   cachedFragment: null,
                   hasRendered: false,
@@ -2094,7 +2095,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
               }());
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -2157,7 +2158,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
               var child0 = (function() {
                 return {
                   isHTMLBars: true,
-                  revision: "Ember@1.11.3",
+                  revision: "Ember@1.11.4",
                   blockParams: 0,
                   cachedFragment: null,
                   hasRendered: false,
@@ -2192,7 +2193,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
               }());
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -2241,7 +2242,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
             }());
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -2347,7 +2348,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -2387,7 +2388,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -2427,7 +2428,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -2508,7 +2509,7 @@ define('portia-web/components/annotations-plugin/template', ['exports'], functio
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3047,7 +3048,7 @@ define('portia-web/components/copy-spider/template', ['exports'], function (expo
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3110,7 +3111,7 @@ define('portia-web/components/copy-spider/template', ['exports'], function (expo
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -3172,7 +3173,7 @@ define('portia-web/components/copy-spider/template', ['exports'], function (expo
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3374,7 +3375,7 @@ define('portia-web/components/edit-items/template', ['exports'], function (expor
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -3506,7 +3507,7 @@ define('portia-web/components/file-download/template', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -4016,7 +4017,7 @@ define('portia-web/components/regex-text-field-with-button/template', ['exports'
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -4089,7 +4090,7 @@ define('portia-web/components/reorder-handler', ['exports', 'ember', 'portia-web
             dataTransfer.effectAllowed = "move";
             dataTransfer.setData('text/plain', "");
             var dragElement = this.$().parentsUntil('.reorderable-list').eq(-1);
-            dataTransfer.addElement(dragElement[0]);
+            dataTransfer.setDragImage(dragElement[0], 5, 5);
             dragElement.addClass('dragging');
         }
     });
@@ -4620,9 +4621,6 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
             ws.addCommand('cookies', function (msg) {
                 return _this.saveCookies(msg._data);
             });
-            ws.addCommand('storage', function (msg) {
-                return _this.saveStorage(msg._data);
-            });
         }).on('init'),
 
         /**
@@ -4640,8 +4638,7 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
                     id: utils['default'].shortGuid(),
                     viewport: this.iframeSize(),
                     user_agent: navigator.userAgent,
-                    cookies: this.cookies,
-                    storage: this.storage
+                    cookies: this.cookies
                 },
                 _command: 'load',
                 url: url,
@@ -4842,22 +4839,6 @@ define('portia-web/components/web-document-js/component', ['exports', 'ember', '
             });
         },
 
-        saveStorage: function saveStorage(data) {
-            this.storage.local[data.origin] = data.local;
-            this.storage.session[data.origin] = data.session;
-            if (window.sessionStorage) {
-                window.sessionStorage.portia_storage = JSON.stringify(this.storage);
-            }
-        },
-
-        loadStorage: (function () {
-            if (window.sessionStorage && sessionStorage.portia_storage) {
-                this.storage = JSON.parse(sessionStorage.portia_storage);
-            } else {
-                this.storage = { local: {}, session: {} };
-            }
-        }).on('init'),
-
         saveCookies: function saveCookies(cookies) {
             this.cookies = cookies;
             if (window.sessionStorage) {
@@ -4888,7 +4869,7 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -4923,7 +4904,7 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -4968,7 +4949,7 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -5013,7 +4994,7 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -5060,7 +5041,7 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -5100,7 +5081,7 @@ define('portia-web/components/web-document-js/template', ['exports'], function (
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -9901,7 +9882,7 @@ define('portia-web/templates/application', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -9944,7 +9925,7 @@ define('portia-web/templates/application', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -9986,7 +9967,7 @@ define('portia-web/templates/application', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -10060,7 +10041,7 @@ define('portia-web/templates/base-route', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -10108,7 +10089,7 @@ define('portia-web/templates/components/accordion-item', ['exports'], function (
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -10200,7 +10181,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -10243,7 +10224,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
           var child1 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -10283,7 +10264,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -10323,7 +10304,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -10365,7 +10346,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -10408,7 +10389,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -10448,7 +10429,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -10488,7 +10469,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 2,
         cachedFragment: null,
         hasRendered: false,
@@ -10541,7 +10522,7 @@ define('portia-web/templates/components/bread-crumbs', ['exports'], function (ex
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -10593,7 +10574,7 @@ define('portia-web/templates/components/bs-badge', ['exports'], function (export
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -10641,7 +10622,7 @@ define('portia-web/templates/components/bs-button', ['exports'], function (expor
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -10682,7 +10663,7 @@ define('portia-web/templates/components/bs-button', ['exports'], function (expor
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -10735,7 +10716,7 @@ define('portia-web/templates/components/bs-dropdown', ['exports'], function (exp
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -10779,7 +10760,7 @@ define('portia-web/templates/components/bs-dropdown', ['exports'], function (exp
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -10828,7 +10809,7 @@ define('portia-web/templates/components/bs-dropdown', ['exports'], function (exp
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -10879,7 +10860,7 @@ define('portia-web/templates/components/bs-dropdown', ['exports'], function (exp
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -10919,7 +10900,7 @@ define('portia-web/templates/components/bs-dropdown', ['exports'], function (exp
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 1,
         cachedFragment: null,
         hasRendered: false,
@@ -10960,7 +10941,7 @@ define('portia-web/templates/components/bs-dropdown', ['exports'], function (exp
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11037,7 +11018,7 @@ define('portia-web/templates/components/bs-label', ['exports'], function (export
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11084,7 +11065,7 @@ define('portia-web/templates/components/bs-message', ['exports'], function (expo
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11132,7 +11113,7 @@ define('portia-web/templates/components/bs-modal', ['exports'], function (export
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -11175,7 +11156,7 @@ define('portia-web/templates/components/bs-modal', ['exports'], function (export
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -11218,7 +11199,7 @@ define('portia-web/templates/components/bs-modal', ['exports'], function (export
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -11263,7 +11244,7 @@ define('portia-web/templates/components/bs-modal', ['exports'], function (export
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -11305,7 +11286,7 @@ define('portia-web/templates/components/bs-modal', ['exports'], function (export
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -11345,7 +11326,7 @@ define('portia-web/templates/components/bs-modal', ['exports'], function (export
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -11395,7 +11376,7 @@ define('portia-web/templates/components/bs-modal', ['exports'], function (export
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11508,7 +11489,7 @@ define('portia-web/templates/components/bs-notification', ['exports'], function 
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -11552,7 +11533,7 @@ define('portia-web/templates/components/bs-notification', ['exports'], function 
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11623,7 +11604,7 @@ define('portia-web/templates/components/closable-accordion', ['exports'], functi
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11673,7 +11654,7 @@ define('portia-web/templates/components/collapsible-text', ['exports'], function
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -11716,7 +11697,7 @@ define('portia-web/templates/components/collapsible-text', ['exports'], function
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -11758,7 +11739,7 @@ define('portia-web/templates/components/collapsible-text', ['exports'], function
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -11798,7 +11779,7 @@ define('portia-web/templates/components/collapsible-text', ['exports'], function
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11852,7 +11833,7 @@ define('portia-web/templates/components/display-button-delete', ['exports'], fun
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -11894,7 +11875,7 @@ define('portia-web/templates/components/display-button-delete', ['exports'], fun
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -11959,7 +11940,7 @@ define('portia-web/templates/components/display-button-edit-delete', ['exports']
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -12006,7 +11987,7 @@ define('portia-web/templates/components/display-button-edit-delete', ['exports']
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -12046,7 +12027,7 @@ define('portia-web/templates/components/display-button-edit-delete', ['exports']
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -12110,7 +12091,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -12155,7 +12136,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -12200,7 +12181,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 2,
           cachedFragment: null,
           hasRendered: false,
@@ -12321,7 +12302,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -12444,7 +12425,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -12486,7 +12467,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
     var child3 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -12521,7 +12502,7 @@ define('portia-web/templates/components/edit-item', ['exports'], function (expor
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -12630,7 +12611,7 @@ define('portia-web/templates/components/em-accordion-item', ['exports'], functio
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -12740,7 +12721,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -12789,7 +12770,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -12852,7 +12833,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -12912,7 +12893,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -12977,7 +12958,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -13026,7 +13007,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -13087,7 +13068,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -13136,7 +13117,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -13185,7 +13166,7 @@ define('portia-web/templates/components/extracted-item', ['exports'], function (
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -13304,7 +13285,7 @@ define('portia-web/templates/components/extractor-dropzone', ['exports'], functi
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -13353,7 +13334,7 @@ define('portia-web/templates/components/inline-editable-text-field', ['exports']
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -13397,7 +13378,7 @@ define('portia-web/templates/components/inline-editable-text-field', ['exports']
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -13437,7 +13418,7 @@ define('portia-web/templates/components/inline-editable-text-field', ['exports']
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -13493,7 +13474,7 @@ define('portia-web/templates/components/inline-editable-text-field', ['exports']
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -13541,7 +13522,7 @@ define('portia-web/templates/components/item-select', ['exports'], function (exp
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -13594,7 +13575,7 @@ define('portia-web/templates/components/item-select', ['exports'], function (exp
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -13641,7 +13622,7 @@ define('portia-web/templates/components/j-breadcrumb', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -13693,7 +13674,7 @@ define('portia-web/templates/components/j-breadcrumbs', ['exports'], function (e
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 2,
         cachedFragment: null,
         hasRendered: false,
@@ -13744,7 +13725,7 @@ define('portia-web/templates/components/j-breadcrumbs', ['exports'], function (e
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -13795,7 +13776,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -13837,7 +13818,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -13878,7 +13859,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -13924,7 +13905,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 2,
           cachedFragment: null,
           hasRendered: false,
@@ -13968,7 +13949,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -14014,7 +13995,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -14083,7 +14064,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
               var child0 = (function() {
                 return {
                   isHTMLBars: true,
-                  revision: "Ember@1.11.3",
+                  revision: "Ember@1.11.4",
                   blockParams: 0,
                   cachedFragment: null,
                   hasRendered: false,
@@ -14128,7 +14109,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
                 var child0 = (function() {
                   return {
                     isHTMLBars: true,
-                    revision: "Ember@1.11.3",
+                    revision: "Ember@1.11.4",
                     blockParams: 0,
                     cachedFragment: null,
                     hasRendered: false,
@@ -14171,7 +14152,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
                 }());
                 return {
                   isHTMLBars: true,
-                  revision: "Ember@1.11.3",
+                  revision: "Ember@1.11.4",
                   blockParams: 0,
                   cachedFragment: null,
                   hasRendered: false,
@@ -14211,7 +14192,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
               }());
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -14295,7 +14276,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
             }());
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -14351,7 +14332,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -14393,7 +14374,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -14452,7 +14433,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -14500,7 +14481,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -14541,7 +14522,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -14583,7 +14564,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -14623,7 +14604,7 @@ define('portia-web/templates/components/json-file-compare', ['exports'], functio
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -14670,7 +14651,7 @@ define('portia-web/templates/components/label-with-tooltip', ['exports'], functi
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -14721,7 +14702,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -14756,7 +14737,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -14836,7 +14817,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -14901,7 +14882,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -14966,7 +14947,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         var child2 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -15032,7 +15013,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -15096,7 +15077,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -15137,7 +15118,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         var child4 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -15172,7 +15153,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -15277,7 +15258,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -15321,7 +15302,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -15365,7 +15346,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           var child1 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -15415,7 +15396,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           var child2 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -15458,7 +15439,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           var child3 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -15502,7 +15483,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 2,
             cachedFragment: null,
             hasRendered: false,
@@ -15595,7 +15576,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -15636,7 +15617,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -15677,7 +15658,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -15712,7 +15693,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -15766,7 +15747,7 @@ define('portia-web/templates/components/page-actions-editor', ['exports'], funct
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -15814,7 +15795,7 @@ define('portia-web/templates/components/pin-toolbox-button', ['exports'], functi
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -15854,7 +15835,7 @@ define('portia-web/templates/components/pin-toolbox-button', ['exports'], functi
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -15906,7 +15887,7 @@ define('portia-web/templates/components/text-area-with-button', ['exports'], fun
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -15941,7 +15922,7 @@ define('portia-web/templates/components/text-area-with-button', ['exports'], fun
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16004,7 +15985,7 @@ define('portia-web/templates/components/text-field-dropdown-button', ['exports']
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -16039,7 +16020,7 @@ define('portia-web/templates/components/text-field-dropdown-button', ['exports']
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16120,7 +16101,7 @@ define('portia-web/templates/components/text-field-with-button', ['exports'], fu
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16187,7 +16168,7 @@ define('portia-web/templates/components/tool-box', ['exports'], function (export
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16299,7 +16280,7 @@ define('portia-web/templates/components/top-bar', ['exports'], function (exports
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16381,7 +16362,7 @@ define('portia-web/templates/components/web-document', ['exports'], function (ex
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16460,7 +16441,7 @@ define('portia-web/templates/components/wizard-box', ['exports'], function (expo
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -16502,7 +16483,7 @@ define('portia-web/templates/components/wizard-box', ['exports'], function (expo
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16576,7 +16557,7 @@ define('portia-web/templates/components/zero-clipboard', ['exports'], function (
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -16619,7 +16600,7 @@ define('portia-web/templates/components/zero-clipboard', ['exports'], function (
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -16666,7 +16647,7 @@ define('portia-web/templates/components/zero-clipboard', ['exports'], function (
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16713,7 +16694,7 @@ define('portia-web/templates/conflicts', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16761,7 +16742,7 @@ define('portia-web/templates/conflicts/resolver', ['exports'], function (exports
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16832,7 +16813,7 @@ define('portia-web/templates/conflicts/toolbox', ['exports'], function (exports)
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -16874,7 +16855,7 @@ define('portia-web/templates/conflicts/toolbox', ['exports'], function (exports)
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -16924,7 +16905,7 @@ define('portia-web/templates/conflicts/toolbox', ['exports'], function (exports)
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -16991,7 +16972,7 @@ define('portia-web/templates/conflicts/topbar', ['exports'], function (exports) 
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -17026,7 +17007,7 @@ define('portia-web/templates/conflicts/topbar', ['exports'], function (exports) 
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -17093,7 +17074,7 @@ define('portia-web/templates/empty/toolbox', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -17145,7 +17126,7 @@ define('portia-web/templates/empty/topbar', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -17193,7 +17174,7 @@ define('portia-web/templates/experiments', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -17262,7 +17243,7 @@ define('portia-web/templates/experiments', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -17304,7 +17285,7 @@ define('portia-web/templates/experiments', ['exports'], function (exports) {
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -17340,7 +17321,7 @@ define('portia-web/templates/experiments', ['exports'], function (exports) {
     var child3 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -17375,7 +17356,7 @@ define('portia-web/templates/experiments', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -17476,7 +17457,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -17512,7 +17493,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -17548,7 +17529,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
         var child2 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -17584,7 +17565,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
         var child3 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -17619,7 +17600,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -17716,7 +17697,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -17797,7 +17778,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -17838,7 +17819,7 @@ define('portia-web/templates/items/item', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -17914,7 +17895,7 @@ define('portia-web/templates/items/items', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -17963,7 +17944,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18006,7 +17987,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18048,7 +18029,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18084,7 +18065,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
     var child3 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18120,7 +18101,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
     var child4 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18155,7 +18136,7 @@ define('portia-web/templates/items/toolbox', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -18253,7 +18234,7 @@ define('portia-web/templates/loading', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -18307,7 +18288,7 @@ define('portia-web/templates/project', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -18357,7 +18338,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18399,7 +18380,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18440,7 +18421,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18487,7 +18468,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
     var child2 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18531,7 +18512,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18573,7 +18554,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18645,7 +18626,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18694,7 +18675,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18735,7 +18716,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -18777,7 +18758,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18813,7 +18794,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       var child1 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18851,7 +18832,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -18886,7 +18867,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -18935,7 +18916,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -18975,7 +18956,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -19034,7 +19015,7 @@ define('portia-web/templates/project/toolbox', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -19163,7 +19144,7 @@ define('portia-web/templates/project/topbar', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -19198,7 +19179,7 @@ define('portia-web/templates/project/topbar', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -19250,7 +19231,7 @@ define('portia-web/templates/projects', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -19301,7 +19282,7 @@ define('portia-web/templates/projects/toolbox', ['exports'], function (exports) 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -19343,7 +19324,7 @@ define('portia-web/templates/projects/toolbox', ['exports'], function (exports) 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -19407,7 +19388,7 @@ define('portia-web/templates/projects/toolbox', ['exports'], function (exports) 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -19449,7 +19430,7 @@ define('portia-web/templates/projects/toolbox', ['exports'], function (exports) 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -19498,7 +19479,7 @@ define('portia-web/templates/projects/toolbox', ['exports'], function (exports) 
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -19548,7 +19529,7 @@ define('portia-web/templates/projects/toolbox', ['exports'], function (exports) 
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -19589,7 +19570,7 @@ define('portia-web/templates/projects/toolbox', ['exports'], function (exports) 
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -19663,7 +19644,7 @@ define('portia-web/templates/projects/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -19698,7 +19679,7 @@ define('portia-web/templates/projects/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -19738,7 +19719,7 @@ define('portia-web/templates/projects/topbar', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -19789,7 +19770,7 @@ define('portia-web/templates/spider', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -19839,7 +19820,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -19881,7 +19862,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -19914,7 +19895,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
           dom.insertBoundary(fragment, null);
           dom.insertBoundary(fragment, 0);
-          block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "model.name"), "validation": "^[a-zA-Z0-9_-]+$", "name": get(env, context, "model.name"), "action": "rename"}, child0, null);
+          block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "model.name"), "validation": "^[a-zA-Z0-9_-\\.]+$", "name": get(env, context, "model.name"), "action": "rename"}, child0, null);
           return fragment;
         }
       };
@@ -19922,7 +19903,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -19971,7 +19952,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -20015,7 +19996,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -20057,7 +20038,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -20135,7 +20116,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         var child2 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -20177,7 +20158,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         var child3 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -20255,7 +20236,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -20387,7 +20368,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -20445,7 +20426,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 2,
               cachedFragment: null,
               hasRendered: false,
@@ -20490,7 +20471,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child1 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -20539,7 +20520,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child2 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 2,
               cachedFragment: null,
               hasRendered: false,
@@ -20584,7 +20565,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child3 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -20632,7 +20613,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -20751,7 +20732,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 2,
               cachedFragment: null,
               hasRendered: false,
@@ -20796,7 +20777,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child1 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -20845,7 +20826,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child2 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 2,
               cachedFragment: null,
               hasRendered: false,
@@ -20890,7 +20871,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child3 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -20938,7 +20919,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -21055,7 +21036,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -21237,7 +21218,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -21279,7 +21260,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -21357,7 +21338,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -21398,7 +21379,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -21453,7 +21434,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             var child0 = (function() {
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -21488,7 +21469,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             }());
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -21532,7 +21513,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             var child0 = (function() {
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -21567,7 +21548,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
             }());
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -21609,7 +21590,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -21662,7 +21643,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -21702,7 +21683,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -21761,7 +21742,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
     var child3 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -21803,7 +21784,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -21876,7 +21857,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -21911,7 +21892,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -21953,7 +21934,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -21995,7 +21976,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22037,7 +22018,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -22072,7 +22053,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22114,7 +22095,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -22156,7 +22137,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22197,7 +22178,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
     var child4 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22240,7 +22221,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
     var child5 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22285,7 +22266,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -22339,7 +22320,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -22424,7 +22405,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22464,7 +22445,7 @@ define('portia-web/templates/spider/topbar', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -22587,7 +22568,7 @@ define('portia-web/templates/template-items', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -22635,7 +22616,7 @@ define('portia-web/templates/template', ['exports'], function (exports) {
   exports['default'] = Ember.HTMLBars.template((function() {
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -22685,7 +22666,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -22727,7 +22708,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22768,7 +22749,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
     var child1 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -22818,7 +22799,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -22853,7 +22834,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
                   fragment = this.build(dom);
                 }
                 var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-                inline(env, morph0, context, "component", [get(env, context, "activeExtractionTool.component")], {"data": get(env, context, "anno"), "alldata": get(env, context, "activeExtractionTool.data.extracts"), "item": get(env, context, "scrapedItem"), "createField": "createField", "close": "hideFloatingAnnotationWidget", "edit": "editAnnotation", "document": get(env, context, "document"), "pluginState": get(env, context, "activeExtractionTool.pluginState"), "sprites": get(env, context, "activeExtractionTool.sprites"), "extractionFieldTypes": get(env, context, "extractionTypes"), "updatePluginData": "updatePluginField"});
+                inline(env, morph0, context, "component", [get(env, context, "activeExtractionTool.component")], {"data": get(env, context, "anno"), "alldata": get(env, context, "activeExtractionTool.data.extracts"), "item": get(env, context, "scrapedItem"), "createField": "createField", "close": "hideFloatingAnnotationWidget", "edit": "editAnnotation", "document": get(env, context, "document"), "pluginState": get(env, context, "activeExtractionTool.pluginState"), "sprites": get(env, context, "activeExtractionTool.sprites"), "extractionFieldTypes": get(env, context, "extractionTypes"), "updatePluginData": "updatePluginField", "dissmissAllSuggestions": "dissmissAllSuggestions"});
                 return fragment;
               }
             };
@@ -22862,7 +22843,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             var child0 = (function() {
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -22898,7 +22879,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             var child1 = (function() {
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -22933,7 +22914,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             }());
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -22981,7 +22962,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23037,7 +23018,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23078,7 +23059,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -23120,7 +23101,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23155,7 +23136,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -23227,7 +23208,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             var child0 = (function() {
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -23269,7 +23250,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
               var child0 = (function() {
                 return {
                   isHTMLBars: true,
-                  revision: "Ember@1.11.3",
+                  revision: "Ember@1.11.4",
                   blockParams: 0,
                   cachedFragment: null,
                   hasRendered: false,
@@ -23320,7 +23301,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
               }());
               return {
                 isHTMLBars: true,
-                revision: "Ember@1.11.3",
+                revision: "Ember@1.11.4",
                 blockParams: 0,
                 cachedFragment: null,
                 hasRendered: false,
@@ -23369,7 +23350,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             }());
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -23437,7 +23418,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23478,7 +23459,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         var child1 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23521,7 +23502,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
           var child0 = (function() {
             return {
               isHTMLBars: true,
-              revision: "Ember@1.11.3",
+              revision: "Ember@1.11.4",
               blockParams: 0,
               cachedFragment: null,
               hasRendered: false,
@@ -23572,7 +23553,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
           }());
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23629,7 +23610,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         var child3 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23670,7 +23651,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -23760,7 +23741,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         var child0 = (function() {
           return {
             isHTMLBars: true,
-            revision: "Ember@1.11.3",
+            revision: "Ember@1.11.4",
             blockParams: 0,
             cachedFragment: null,
             hasRendered: false,
@@ -23845,7 +23826,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
         }());
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -23943,7 +23924,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -24002,7 +23983,7 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
     var child3 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -24037,14 +24018,14 @@ define('portia-web/templates/template/toolbox', ['exports'], function (exports) 
             fragment = this.build(dom);
           }
           var morph0 = dom.createMorphAt(fragment,1,1,contextualElement);
-          inline(env, morph0, context, "component", [get(env, context, "activeExtractionTool.component")], {"data": get(env, context, "floatingAnnotation"), "mappedElement": get(env, context, "floatingElement"), "alldata": get(env, context, "activeExtractionTool.data.extracts"), "item": get(env, context, "scrapedItem"), "createField": "createField", "close": "hideFloatingAnnotationWidget", "edit": "editAnnotation", "document": get(env, context, "document"), "pluginState": get(env, context, "activeExtractionTool.pluginState"), "sprites": get(env, context, "activeExtractionTool.sprites"), "extractionFieldTypes": get(env, context, "extractionTypes"), "inDoc": true, "pos": get(env, context, "showFloatingAnnotationWidgetAt"), "updatePluginData": "updatePluginField"});
+          inline(env, morph0, context, "component", [get(env, context, "activeExtractionTool.component")], {"data": get(env, context, "floatingAnnotation"), "mappedElement": get(env, context, "floatingElement"), "alldata": get(env, context, "activeExtractionTool.data.extracts"), "item": get(env, context, "scrapedItem"), "createField": "createField", "close": "hideFloatingAnnotationWidget", "edit": "editAnnotation", "document": get(env, context, "document"), "pluginState": get(env, context, "activeExtractionTool.pluginState"), "sprites": get(env, context, "activeExtractionTool.sprites"), "extractionFieldTypes": get(env, context, "extractionTypes"), "inDoc": true, "pos": get(env, context, "showFloatingAnnotationWidgetAt"), "updatePluginData": "updatePluginField", "dissmissAllSuggestions": "dissmissAllSuggestions"});
           return fragment;
         }
       };
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -24108,7 +24089,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
     var child0 = (function() {
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -24152,7 +24133,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -24187,7 +24168,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -24229,7 +24210,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -24264,7 +24245,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -24306,7 +24287,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
       var child0 = (function() {
         return {
           isHTMLBars: true,
-          revision: "Ember@1.11.3",
+          revision: "Ember@1.11.4",
           blockParams: 0,
           cachedFragment: null,
           hasRendered: false,
@@ -24341,7 +24322,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
       }());
       return {
         isHTMLBars: true,
-        revision: "Ember@1.11.3",
+        revision: "Ember@1.11.4",
         blockParams: 0,
         cachedFragment: null,
         hasRendered: false,
@@ -24381,7 +24362,7 @@ define('portia-web/templates/template/topbar', ['exports'], function (exports) {
     }());
     return {
       isHTMLBars: true,
-      revision: "Ember@1.11.3",
+      revision: "Ember@1.11.4",
       blockParams: 0,
       cachedFragment: null,
       hasRendered: false,
@@ -26872,16 +26853,11 @@ define('portia-web/utils/suggest-annotations', ['exports'], function (exports) {
 
     var text = 'content';
 
-    function sum(numbers) {
-        return numbers.reduce(function (a, b) {
-            return a + b;
-        }, 0);
-    }
-
-    function nodeArea(node) {
-        return sum(Array.from(node.getClientRects()).map(function (rect) {
-            return rect.width * rect.height;
-        }));
+    function imageScore(img) {
+        var cr = img.getBoundingClientRect();
+        var area = cr.width * cr.height;
+        var penalization = cr.top > 1000 ? 500 / cr.top : 1; // Penalize images under the fold
+        return area * penalization;
     }
 
     function xpath(expr, ctx, type) {
@@ -26980,10 +26956,10 @@ define('portia-web/utils/suggest-annotations', ['exports'], function (exports) {
         // Wait for images to load
         setTimeout(function () {
             var biggest = images.reduce(function (a, b) {
-                return nodeArea(a) > nodeArea(b) ? a : b;
+                return imageScore(a) > imageScore(b) ? a : b;
             });
             return next([[field, biggest, 'src', 0.6]]);
-        }, 500);
+        }, 1500);
     }
 
     function suggestTitleAnnotation(document, fieldNames, next) {
@@ -27096,7 +27072,12 @@ define('portia-web/utils/suggest-annotations', ['exports'], function (exports) {
                 var _name2 = _step4.value;
 
                 var suggester = enabledSuggesters[_name2];
-                suggester(document, fieldNames, processSuggestions.bind(null, _name2));
+                try {
+                    suggester(document, fieldNames, processSuggestions.bind(null, _name2));
+                } catch (e) {
+                    console.error(e);
+                    processSuggestions(_name2, []);
+                }
             }
         } catch (err) {
             _didIteratorError4 = true;

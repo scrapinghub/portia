@@ -1,0 +1,21 @@
+16.01.1 - 2016-01-25
+Fix Unicode error when creating spiders
+Fix install packages
+Extract data from a list of urls `POST portia/projects/<PROJECT>/spec/extract/<SPIDER> {"urls": ["http://example.com"]}`
+Allow `.` to be used in spider and sample names
+Correctly handle Atom, RSS and XML sitemaps
+Automatically dismiss suggested annotations if user doesn't use them
+Correctly place annotations when page contains `<ins>` tags
+Use Qt5 for internal splash instance
+Fix scrolling page action
+Fix URL validation
+
+15.12.2 - 2015-12-30
+Fix issue when copying spiders that reference deleted extractors
+Fix issue with using srcdoc in IE
+Enable annotation suggestions and page actions by default
+
+15.12.1 - 2015-12-03
+Fix issue with overwritten JSON library in splash
+Fix error when merging samples modified in one or more branches
+Fix event passing in Safari
