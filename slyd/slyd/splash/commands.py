@@ -197,7 +197,7 @@ class ProjectData(ProjectModifier):
                 socket.open_spider(meta)
             uses_js = bool(socket.spider._filter_js_urls(sample['url']))
             if uses_js:
-                sample['original_body'] = socket.tab.html().decode('utf-8')
+                sample['original_body'] = socket.tab.html()
             else:
                 stated_encoding = socket.tab.evaljs('document.characterSet')
                 sample['original_body'] = self._decode(socket.tab.network_manager._raw_html,
