@@ -11,6 +11,10 @@ export default Ember.Route.extend({
         this.set('browser.url', model.get('startUrls.firstObject'));
     },
 
+    deactivate() {
+        this.set('browser.url', null);
+    },
+
     renderTemplate() {
         this.render('projects/project/spider/structure', {
             into: 'projects/project/structure',

@@ -3,26 +3,15 @@
 <div class="tool-bar">
     <div class="btn-group" role="group">
         <button type="button" class="btn btn-default {{if magicToolActive 'active'}}" {{action 'toggleMagicTool'}}>
-            <i class="fa fa-magic fa-flip-horizontal"></i>
+            {{icon-button icon='tool-magic'}}
         </button>
     </div>
 
     <div class="btn-group" role="group">
-        <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'select') 'active'}}" {{action (action (mut selectionMode) 'select')}}>
-            <div class="color-fill"></div>
-            <i class="fa fa-mouse-pointer"></i>
-        </button>
-        <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'add') 'active'}}" {{action (action (mut selectionMode) 'add')}}>
-            <div class="color-fill"></div>
-            <i class="fa fa-plus"></i>
-        </button>
-        <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'remove') 'active'}}" {{action (action (mut selectionMode) 'remove')}}>
-            <div class="color-fill"></div>
-            <i class="fa fa-minus"></i>
-        </button>
-        <button type="button" class="btn btn-default {{if (eq activeSelectionMode 'edit') 'active'}}" {{action (action (mut selectionMode) 'edit')}}>
-            <div class="color-fill"></div>
-            <i class="fa fa-th-large"></i>
-        </button>
+        {{#each-in selectionModeIcons as |mode icon|}}
+            <button type="button" class="btn btn-default {{if (eq activeSelectionMode mode) 'active'}}" {{action (action (mut selectionMode) mode)}}>
+                {{icon-button icon=icon}}
+            </button>
+        {{/each-in}}
     </div>
 </div>

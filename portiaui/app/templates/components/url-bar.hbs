@@ -6,11 +6,28 @@
         <button class="btn btn-default" type="button" disabled={{forwardDisabled}} {{action 'forward'}}>
             <span class="fa fa-arrow-right"></span>
         </button>
-        {{#if modeDescription}}
-            <button class="btn btn-default btn-mode btn-mode-{{browser.mode}}" type="button" disabled>
-                {{modeDescription}}
-            </button>
-        {{/if}}
+        {{#tooltip-container tooltipFor="mode-feedback-icon" tooltipContainer='body' placement='right' as |options|}}
+            {{#if (eq options.section 'tooltip')}}
+                {{#if (eq mode 'navigation')}}
+                    Browsing
+                    <p>
+                        You can interact with the web page in this mode.
+                    </p>
+                {{else if (eq mode 'data-annotation')}}
+                    Annotating
+                    <p>
+                        Click on elements in the sample to create data annotations.
+                    </p>
+                    <p>
+                        Close the sample to switch back to navigating mode.
+                    </p>
+                {{/if}}
+            {{else}}
+                <button id="mode-feedback-icon" class="btn btn-mode btn-mode-{{mode}}" type="button">
+                    {{icon-button icon=mode}}
+                </button>
+            {{/if}}
+        {{/tooltip-container}}
     </span>
     {{buffered-input placeholder="Enter a website address" value=(mut url) viewValue=(mut editedUrl) autofocus=autofocus autoSelect=true disabled=disabled spellcheck=false enter=(action 'submit')}}
     <span class="input-group-btn">

@@ -22,16 +22,25 @@
 
 
     .btn-mode {
-        width: 100px;
         z-index: 2;
         transition: background-color $animation-time $animation-easing, border-color $animation-time $animation-easing;
+        cursor: default;
+        @include box-shadow(none);
+
+        > i {
+            width: 1em;
+        }
     }
 
     .btn-mode-navigation {
-        @extend .btn-primary;
+          color: $btn-primary-color;
+          background-color: $btn-primary-bg;
+          border-color: $btn-primary-border;
     }
 
-    .btn-mode-annotation {
-        @extend .btn-success;
+    .btn-mode-data-annotation {
+          color: $btn-success-color;
+          background-color: $btn-success-bg;
+          border-color: $btn-success-border;
     }
 }

@@ -3,14 +3,9 @@ import { cleanUrl } from '../utils/utils';
 
 
 export const NAVIGATION_MODE = 'navigation';
-export const ANNOTATION_MODE = 'annotation';
+export const ANNOTATION_MODE = 'data-annotation';
 export const INTERACTION_MODES = new Set([ANNOTATION_MODE]);
 export const DEFAULT_MODE = NAVIGATION_MODE;
-
-export const MODE_DESCRIPTIONS = {
-    [NAVIGATION_MODE]: 'Browsing',
-    [ANNOTATION_MODE]: 'Annotating'
-};
 
 export default Ember.Service.extend({
     webSocket: Ember.inject.service(),
@@ -36,10 +31,6 @@ export default Ember.Service.extend({
     }),
     isInteractionMode: Ember.computed('mode', function() {
         return INTERACTION_MODES.has(this.get('mode'));
-    }),
-    modeDescription: Ember.computed('mode', function() {
-        const mode = this.get('mode');
-        return MODE_DESCRIPTIONS[mode];
     }),
     url: Ember.computed('_url', {
         get() {

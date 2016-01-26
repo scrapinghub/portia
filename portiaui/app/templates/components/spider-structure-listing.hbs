@@ -2,7 +2,7 @@
     {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text}}
-                Start URLs
+                Start pages
             {{/list-item-text}}
             {{list-item-icon icon='add' action=(action 'addStartUrl')}}
         {{else if (eq options.section "subtrees")}}

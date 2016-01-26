@@ -5,4 +5,9 @@
         margin: ($line-height-computed / 2) 0 0;
         text-align: left;
     }
+
+    em {
+        font-style: normal;
+        text-decoration: underline;
+    }
 }
