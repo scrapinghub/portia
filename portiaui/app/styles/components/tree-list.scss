@@ -31,7 +31,7 @@
     min-width: 0;
     color: $navbar-default-color;
 
-    > a {
+    > a:first-child {
         flex: 1 1 auto;
         display: block;
         outline: none;

@@ -1,7 +1,7 @@
 {{#tree-list}}
     {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
         {{#if (eq options.section "item")}}
-            {{#list-item-text}}
+            {{#list-item-text class="title"}}
                 Start pages
             {{/list-item-text}}
             {{list-item-icon icon='add' action=(action 'addStartUrl')}}
@@ -17,9 +17,31 @@
         {{/if}}
     {{/tree-list-item}}
 
+    {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Link crawling
+            {{/list-item-text}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item as |options|}}
+                {{#if (eq options.section "item")}}
+                    {{list-item-icon icon='link'}}
+                    {{list-item-link-crawling spider=spider}}
+                    {{#if (not-eq spider.linksToFollow 'none')}}
+                        {{#link-to 'projects.project.spider' bubbles=false}}
+                            {{#link-to 'projects.project.spider.link-options' bubbles=false class="ignore-active"}}
+                                {{list-item-icon icon='options'}}
+                            {{/link-to}}
+                        {{/link-to}}
+                    {{/if}}
+                {{/if}}
+            {{/tree-list-item}}
+        {{/if}}
+    {{/tree-list-item}}
+
     {{#tree-list-item hasChildren=spider.samples.length as |options|}}
         {{#if (eq options.section "item")}}
-            {{#list-item-text}}
+            {{#list-item-text class="title"}}
                 Samples
             {{/list-item-text}}
             {{list-item-icon icon='add' disabled=(not canAddSample) action=(action 'addSample')}}
