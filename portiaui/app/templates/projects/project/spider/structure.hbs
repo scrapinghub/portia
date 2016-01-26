@@ -1,8 +1,20 @@
 <h2>
-    {{list-item-icon icon='spider'}} {{model.name}}
-    {{#link-to 'projects.project'}}
-        {{list-item-icon icon='close'}}
-    {{/link-to}}
+    {{list-item-icon icon='spider'}}
+    {{#list-item-text}}
+        {{model.name}} {{model.name}} {{model.name}}
+    {{/list-item-text}}
+    {{#tooltip-container tooltipFor="spider-options-button" text="Advanced spider options" tooltipContainer='body'}}
+        {{#link-to 'projects.project.spider' id="spider-options-button" bubbles=false}}
+            {{#link-to 'projects.project.spider.options' bubbles=false class="ignore-active"}}
+                {{list-item-icon icon='options'}}
+            {{/link-to}}
+        {{/link-to}}
+    {{/tooltip-container}}
+    {{#tooltip-container tooltipFor="spider-close-button" text="Close spider" tooltipContainer='body'}}
+        {{#link-to 'projects.project' id="spider-close-button"}}
+            {{list-item-icon icon='close'}}
+        {{/link-to}}
+    {{/tooltip-container}}
 </h2>
 {{spider-structure-listing project=model.project spider=model}}
 {{outlet 'spider-structure'}}

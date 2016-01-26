@@ -12,9 +12,6 @@
                         {{#link-to 'projects.project.spider' spider}}
                             {{list-item-icon icon='spider'}}
                             {{list-item-editable value=(mut spider.name) editing=(mut spider.new) change=(action 'saveSpider' spider)}}
-                            {{#link-to 'projects.project.spider.options' spider bubbles=false class="ignore-active"}}
-                                {{list-item-icon icon='options'}}
-                            {{/link-to}}
                             {{list-item-icon icon='remove' action=(action 'removeSpider' spider) bubbles=false}}
                         {{/link-to}}
                     {{/if}}
