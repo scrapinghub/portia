@@ -19895,7 +19895,7 @@ define('portia-web/templates/spider/toolbox', ['exports'], function (exports) {
           var morph0 = dom.createMorphAt(fragment,0,0,contextualElement);
           dom.insertBoundary(fragment, null);
           dom.insertBoundary(fragment, 0);
-          block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "model.name"), "validation": "^[a-zA-Z0-9_-\\.]+$", "name": get(env, context, "model.name"), "action": "rename"}, child0, null);
+          block(env, morph0, context, "inline-editable-text-field", [], {"text": get(env, context, "model.name"), "validation": "^[a-zA-Z0-9_\\.-]+$", "name": get(env, context, "model.name"), "action": "rename"}, child0, null);
           return fragment;
         }
       };
