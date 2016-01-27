@@ -15,14 +15,36 @@ export default Ember.Route.extend({
         this.set('browser.url', null);
     },
 
+    setupController(controller) {
+        this._super(...arguments);
+        controller.activate();
+    },
+
+    resetController(controller, isExiting) {
+        controller.deactivate();
+        if (!isExiting) {
+            controller.activate();
+        }
+    },
+
     renderTemplate() {
         this.render('projects/project/spider/structure', {
             into: 'projects/project/structure',
             outlet: 'project-structure'
         });
 
+        this.render('projects/project/spider/overlays', {
+            into: 'projects/project',
+            outlet: 'browser-overlays'
+        });
+
         this.render('projects/project/spider/tools', {
             into: 'tool-panels',
+            outlet: 'tool-panels'
+        });
+
+        this.render('projects/project/spider/tools-show-links', {
+            into: 'projects/project/spider/tools',
             outlet: 'tool-panels'
         });
 

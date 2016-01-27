@@ -96,8 +96,10 @@ export default Ember.Service.extend({
                 deferred.resolve(data);
             }
         }
-        if (command in this.get('commands')) {
-            this.get('commands')[command](data);
+        if (command in this.commands) {
+            for (let handler of this.commands[command]) {
+                handler(data);
+            }
         } else {
             return logError('Received unknown command: ' + command);
         }
@@ -140,8 +142,8 @@ export default Ember.Service.extend({
         return this.get('reconnectTimeout');
     },
 
-    addCommand: function(command, func) {
-        this.get('commands')[command] = func;
+    addCommand: function(command, handler) {
+        (this.commands[command] || (this.commands[command] = [])).push(handler);
     },
 
     close:function(code, reason) {

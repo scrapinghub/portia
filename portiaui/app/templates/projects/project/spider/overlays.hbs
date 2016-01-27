@@ -1,0 +1,7 @@
+{{#if model.showLinks}}
+    <div class="none-hovered none-selected">
+        {{#each linkOverlayElements key="guid" as |overlay|}}
+            {{element-overlay viewPortElement=overlay.element color=overlay.color}}
+        {{/each}}
+    </div>
+{{/if}}
