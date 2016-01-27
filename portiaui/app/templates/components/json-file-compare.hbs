@@ -1,0 +1,53 @@
+{{#if isArray}}
+    [{{#each entries as |entry index|}}
+        {{#if entry.conflict}}
+           {{#each entries as |entry|}}
+                {{json-file-compare json=entry.json path=entry.path update="update" multi=true}}
+            {{/each}}
+        {{else}}
+            <span>{{entry.value}}<span class="comma">,</span></span>
+        {{/if}}
+    {{/each}}]
+{{else if isObject}}
+    {{#if isConflict}}
+        {{#if isResolved}}
+            <span style="color:#2d882d;font-weight:bold">RESOLVED</span>
+            <div {{action 'reset'}} style="margin:5px 0px 0px 40px;background:#AEA;" class="conflict-option">
+                <span style="font-weight:bold;color:#2d882d;margin:5px"> [CHANGE SELECTION] </span>
+                {{resolvedRepr}},
+            </div>
+        {{else}}
+            <span style="color:#ff3939;font-weight:bold">CONFLICT</span>
+            <div style="margin-left:40px;">
+                {{#each conflictValues as |value|}}
+                    <div class="conflict-option {{value.state}}">
+                        <span style="font-weight:bold" class="{{if value.accepted "green-label" ""}}">
+                            {{value.label}}:
+                            {{#unless value.accepted}}
+                            <span {{action 'conflictOptionSelected' value.key}} class="fa fa-icon fa-check green-label"></span>
+                            {{/unless}}
+                            {{#if multi}}
+                                {{#unless value.rejected}}
+                                    <span {{action 'conflictOptionRejected' value.key}} class="fa fa-icon fa-times red-label"></span>
+                                {{/unless}}
+                            {{/if}}
+                        </span>
+                        <span style="word-break:break-word">
+                            {{value.value}}
+                        </span>
+                    </div>
+                {{/each}}
+            </div>
+        {{/if}}
+    {{else}}
+        <div>
+            {{#each entries as |entry|}}
+                <div style="margin:5px 5px 0px 20px;">
+                    <span style="font-weight:bold">{{entry.key}}:</span>{{json-file-compare json=entry.json path=entry.path update="update"}}
+                </div>
+            {{/each}}
+        </div>
+    {{/if}}
+{{else}}
+    {{value}}
+{{/if}}

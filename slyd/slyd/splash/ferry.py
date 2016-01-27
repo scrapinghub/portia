@@ -17,7 +17,6 @@ from splash import defaults
 from splash.browser_tab import BrowserTab
 from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
-from splash import defaults
 
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
@@ -27,7 +26,7 @@ from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
                        delete_project_data, pause, resume, extract_items,
-                       save_html)
+                       save_html, log_event)
 from .css_utils import process_css, wrap_url
 import six
 text = six.text_type  # unicode in py2, str in py3

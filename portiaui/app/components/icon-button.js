@@ -7,6 +7,7 @@ export const ICON_CLASSES = {
     date: 'fa fa-calendar',
     edit: 'fa fa-pencil',
     error: 'structure-list-error fa fa-exclamation-circle',
+    file: 'fa fa-file',
     geopoint: 'fa fa-map-marker',
     image: 'fa fa-picture-o',
     list: 'fa fa-list',
