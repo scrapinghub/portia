@@ -1,7 +1,7 @@
 {{#tree-list}}
     {{#tree-list-item hasChildren=sample.items.length as |options|}}
         {{#if (eq options.section "item")}}
-            {{#list-item-text}}
+            {{#list-item-text class="title"}}
                 Items
             {{/list-item-text}}
             {{list-item-icon icon='add' action=(action 'addItem' sample)}}

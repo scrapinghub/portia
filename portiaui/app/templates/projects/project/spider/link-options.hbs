@@ -1,0 +1,11 @@
+{{#tool-group id="link-crawling-options-group" collapsible=false close=(action 'closeOptions') as |options|}}
+    {{#if (eq options.section "tabs")}}
+        {{#tool-tab toolId="link-crawling-options" group=options.group}}
+            Link crawling options
+        {{/tool-tab}}
+    {{else if (eq options.section "panels")}}
+        {{#tool-panel class="extracted-items container-fluid" toolId="link-crawling-options" group=options.group as |active|}}
+            {{link-crawling-options spider=model}}
+        {{/tool-panel}}
+    {{/if}}
+{{/tool-group}}

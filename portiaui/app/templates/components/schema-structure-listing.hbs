@@ -1,7 +1,7 @@
 {{#tree-list}}
     {{#tree-list-item hasChildren=schema.fields.length as |options|}}
         {{#if (eq options.section "item")}}
-            {{#list-item-text}}
+            {{#list-item-text class="title"}}
                 Fields
             {{/list-item-text}}
             {{list-item-icon icon='add' action=(action 'addField')}}

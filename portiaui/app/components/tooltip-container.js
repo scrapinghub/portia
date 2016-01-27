@@ -18,11 +18,13 @@ export default Ember.Component.extend({
     },
 
     didInsertElement() {
-        Ember.run.schedule('afterRender', this, 'createTooltip');
+        Ember.run.schedule('afterRender', this, this.createTooltip);
     },
 
     willDestroyElement() {
-        Ember.run.schedule('afterRender', this, 'destroyTooltip');
+        const selector = this.get('tooltipFor');
+        Ember.run.schedule('afterRender', this, this.destroyTooltip,
+            Ember.$(`#${selector}`).first());
     },
 
     createTooltip() {
@@ -44,8 +46,7 @@ export default Ember.Component.extend({
         });
     },
 
-    destroyTooltip() {
-        const selector = this.get('tooltipFor');
-        Ember.$(`#${selector}`).tooltip('destroy');
+    destroyTooltip($element) {
+        $element.tooltip('destroy');
     }
 });
