@@ -1,0 +1,3 @@
+<button type="button" class="btn btn-default" disabled={{not browser.url}} {{action "toggleStartUrl"}}>
+    <i class="fa fa-globe"></i> {{#if (not canAddStartUrl)}}Remove start URL{{else}}Add start URL{{/if}}
+</button>

@@ -5,7 +5,7 @@ slyd server. The command can be used with 'twistd slyd'.
 """
 from __future__ import absolute_import
 from os import listdir
-from os.path import join, dirname, isfile
+from os.path import join, dirname, isfile, abspath
 from twisted.python import usage
 from twisted.web.resource import Resource
 from twisted.web.static import File
@@ -13,7 +13,7 @@ from .resource import SlydJsonObjectResource
 from .server import Site, debugLogFormatter
 
 DEFAULT_PORT = 9001
-DEFAULT_DOCROOT = join(dirname(dirname(__file__)), 'dist')
+DEFAULT_DOCROOT = abspath(join(dirname(dirname(__file__)), '..', 'portiaui', 'dist'))
 
 
 class Options(usage.Options):
@@ -43,12 +43,17 @@ def create_root(config, settings_module):
     from .specmanager import SpecManager
     from .authmanager import AuthManager
     from .projectspec import create_project_resource
+    from slyd.api import APIResource
     from slyd.bot import create_bot_resource
     from slyd.projects import create_projects_manager_resource
 
     from slyd.splash.ferry import (FerryServerProtocol, FerryServerFactory,
                                    create_ferry_resource)
     from slyd.splash.proxy import ProxyResource
+
+    config = dict(config, **{
+        'docroot': DEFAULT_DOCROOT
+    })
 
     root = Resource()
     static = Resource()
@@ -74,6 +79,9 @@ def create_root(config, settings_module):
     # add projects manager at /projects
     projects = create_projects_manager_resource(spec_manager)
     root.putChild('projects', projects)
+
+    # # add json api routes
+    root.putChild('api', APIResource(spec_manager))
 
     # add crawler at /projects/PROJECT_ID/bot
     projects.putChild('bot', create_bot_resource(spec_manager))

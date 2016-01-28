@@ -1,0 +1,28 @@
+.full-page-content {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+
+    img[alt="Portia logo"] {
+        display: block;
+        width: 25%;
+        margin: 0 auto;
+    }
+
+    &:before,
+    &:after {
+        content: '';
+        display: block;
+    }
+
+    &:before {
+        flex: 1 1 auto;
+    }
+
+    &:after {
+        flex: 2 1 auto;
+    }
+}

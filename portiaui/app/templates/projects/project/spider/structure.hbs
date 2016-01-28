@@ -1,0 +1,8 @@
+<h2>
+    {{list-item-icon icon='spider'}} {{model.name}}
+    {{#link-to 'projects.project'}}
+        {{list-item-icon icon='close'}}
+    {{/link-to}}
+</h2>
+{{spider-structure-listing project=model.project spider=model}}
+{{outlet 'spider-structure'}}

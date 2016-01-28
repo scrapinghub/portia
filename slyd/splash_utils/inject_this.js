@@ -1,16 +1,5 @@
 MutationObserver._period = 500;
-
-// Keep a reference to some native methods, so we use the originals if
-// they are overridden by the page
-var Json = JSON;
-var JSONstringify = JSON.stringify;
-var arraySplice = Array.prototype.splice;
-var ArrayProto = Array.prototype;
-var ObjectProto = Object.prototype;
-var NumberProto = Number.prototype;
-var StringProto = String.prototype;
-var BooleanProto = Boolean.prototype;
-
+var portiaJSON = JSON;
 
 // Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
 

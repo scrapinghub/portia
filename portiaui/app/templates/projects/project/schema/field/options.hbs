@@ -1,0 +1,11 @@
+{{#tool-group id="field-options-group" collapsible=false close=(action 'closeOptions') as |options|}}
+    {{#if (eq options.section "tabs")}}
+        {{#tool-tab toolId="field-options" group=options.group}}
+            Field properties
+        {{/tool-tab}}
+    {{else if (eq options.section "panels")}}
+        {{#tool-panel class="extracted-items container-fluid" toolId="field-options" group=options.group as |active|}}
+            {{field-options field=model}}
+        {{/tool-panel}}
+    {{/if}}
+{{/tool-group}}

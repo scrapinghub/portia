@@ -1,0 +1,6 @@
+{{#if editing}}
+    {{buffered-input class="input-list-item" value=(mut value) focused=editing change=change autoSelect=true spellcheck=spellcheck}}
+{{else}}
+    <span>{{value}}</span>
+    <i class="fa fa-pencil" {{action 'startEditing' bubbles=false}}></i>
+{{/if}}

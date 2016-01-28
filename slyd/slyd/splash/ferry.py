@@ -17,7 +17,6 @@ from splash import defaults
 from splash.browser_tab import BrowserTab
 from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
-from splash import defaults
 
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
@@ -26,7 +25,8 @@ from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
-                       delete_project_data, pause, resume, log_event)
+                       delete_project_data, pause, resume, extract_items,
+                       save_html, log_event)
 from .css_utils import process_css, wrap_url
 import six
 text = six.text_type  # unicode in py2, str in py3
@@ -179,7 +179,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'resolve': resolve,
         'resume': resume,
         'log_event': log_event,
-        'pause': pause
+        'pause': pause,
+        'extract_items': extract_items,
+        'save_html': save_html
     }
     spec_manager = None
     settings = None
@@ -328,14 +330,16 @@ class FerryServerProtocol(WebSocketServerProtocol):
         main_frame = self.tab.web_page.mainFrame()
         main_frame.addToJavaScriptWindowObject('__portiaApi', self.js_api)
         self.tab.run_js_files(
-            os.path.join(self.assets, 'splash_content_scripts'),
+            os.path.join(self.assets, '..', '..', 'slyd', 'dist', 'splash_content_scripts'),
             handle_errors=False)
 
     def open_spider(self, meta):
-        if ('project' not in meta or 'spider' not in meta or
-                (self.user.authorized_projects is not None and
-                 meta['project'] not in self.user.authorized_projects and
-                 not self.user.staff)):
+        if ('project' not in meta or 'spider' not in meta):
+            return {'error': 4005, 'reason': 'No project specified'}
+
+        if (self.user.authorized_projects is not None and
+                meta['project'] not in self.user.authorized_projects and
+                not self.user.staff):
             return {'error': 4004,
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']

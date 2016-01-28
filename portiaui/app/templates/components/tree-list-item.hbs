@@ -1,0 +1,10 @@
+<div class="tree-list-item-row">
+    <div class="tree-list-item-content">
+        {{yield (hash section="item")}}
+    </div>
+</div>
+{{#if hasChildren}}
+    {{#tree-list}}
+        {{yield (hash section="subtrees")}}
+    {{/tree-list}}
+{{/if}}

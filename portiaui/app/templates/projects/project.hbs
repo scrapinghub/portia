@@ -1,0 +1,7 @@
+{{#browser-view-port clickHandler=(action "viewPortClick") as |options|}}
+    {{#if (eq options.section "toolbar")}}
+        {{outlet "browser-toolbar"}}
+    {{else if (eq options.section "overlays")}}
+        {{outlet "browser-overlays"}}
+    {{/if}}
+{{/browser-view-port}}

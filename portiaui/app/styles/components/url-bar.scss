@@ -1,0 +1,37 @@
+#url-bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    input {
+        flex: 1 1 auto;
+        z-index: 1;
+
+        &:focus {
+            z-index: 3;
+        }
+    }
+
+    .btn {
+        line-height: $line-height-computed;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+
+    .btn-mode {
+        width: 100px;
+        z-index: 2;
+        transition: background-color $animation-time $animation-easing, border-color $animation-time $animation-easing;
+    }
+
+    .btn-mode-navigation {
+        @extend .btn-primary;
+    }
+
+    .btn-mode-annotation {
+        @extend .btn-success;
+    }
+}

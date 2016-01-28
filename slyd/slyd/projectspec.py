@@ -8,7 +8,7 @@ from scrapy.http import HtmlResponse
 from twisted.web.resource import NoResource, ForbiddenResource
 from twisted.web.server import NOT_DONE_YET
 from jsonschema.exceptions import ValidationError
-from .resource import SlydJsonResource
+from .resource import SlydJsonObjectResource
 from .html import html4annotation
 from .errors import BaseHTTPError
 from .utils.projects import allowed_file_name, ProjectModifier
@@ -48,13 +48,9 @@ class ProjectSpec(object):
         }
 
     def list_spiders(self):
-        try:
-            for fname in os.listdir(join(self.project_dir, "spiders")):
-                if fname.endswith(".json"):
-                    yield splitext(fname)[0]
-        except OSError as ex:
-            if ex.errno != errno.ENOENT:
-                raise
+        for fname in os.listdir(join(self.project_dir, "spiders")):
+            if fname.endswith(".json"):
+                yield splitext(fname)[0]
 
     def spider_with_templates(self, spider):
         spider_spec = self.resource('spiders', spider)
@@ -69,28 +65,16 @@ class ProjectSpec(object):
 
     def spider_json(self, name):
         """Loads the spider spec for the given spider name."""
-        try:
-            return self.resource('spiders', name)
-        except IOError as ex:
-            if ex.errno == errno.ENOENT:
-                return({})
-            else:
-                raise
+        return self.resource('spiders', name)
 
     def template_json(self, spider_name, template_name):
         """Loads the given template.
 
         Also converts the annotated body of the template to be used by
         the annotation UI."""
-        try:
-            template = self.resource('spiders', spider_name, template_name)
-            convert_template(template)
-            return template
-        except IOError as ex:
-            if ex.errno == errno.ENOENT:
-                return({})
-            else:
-                raise
+        template = self.resource('spiders', spider_name, template_name)
+        convert_template(template)
+        return template
 
     def rename_spider(self, from_name, to_name):
         if to_name == from_name:
@@ -153,6 +137,9 @@ class ProjectSpec(object):
         extract_items(self, spider_name, urls, request)
 
     def resource(self, *resources):
+        print "for resource", resources, 'filename', self._rfilename(*resources)
+        with self._rfile(resources) as f:
+            print f.read()
         with self._rfile(resources) as f:
             return json.load(f)
 
@@ -163,13 +150,7 @@ class ProjectSpec(object):
 
         If the file does not exist, an empty dict is written
         """
-        try:
-            shutil.copyfileobj(self._rfile(resources), outf)
-        except IOError as ex:
-            if ex.errno == errno.ENOENT:
-                outf.write('{}')
-            else:
-                raise
+        shutil.copyfileobj(self._rfile(resources), outf)
 
     def savejson(self, obj, *resources):
         # convert to json in a way that will make sense in diffs
@@ -202,12 +183,12 @@ class ProjectSpec(object):
         out.write(json_template[last:])
 
 
-class ProjectResource(SlydJsonResource, ProjectModifier):
+class ProjectResource(SlydJsonObjectResource, ProjectModifier):
     isLeaf = True
     errors = slyd.errors
 
     def __init__(self, spec_manager):
-        SlydJsonResource.__init__(self)
+        SlydJsonObjectResource.__init__(self)
         self.spec_manager = spec_manager
 
     def render(self, request):
@@ -218,7 +199,7 @@ class ProjectResource(SlydJsonResource, ProjectModifier):
                     else ForbiddenResource
                 resource = resource_class("Bad path element %r." % pathelement)
                 return resource.render(request)
-        return SlydJsonResource.render(self, request)
+        return SlydJsonObjectResource.render(self, request)
 
     def render_GET(self, request):
         project_spec = self.spec_manager.project_spec(
@@ -228,22 +209,22 @@ class ProjectResource(SlydJsonResource, ProjectModifier):
             project_spec.json(request)
         elif len(rpath) == 1 and rpath[0] == 'spiders':
             spiders = project_spec.list_spiders()
-            request.write(json.dumps(list(spiders)))
+            return {"spiders": list(spiders)}
         else:
             try:
                 if rpath[0] == 'spiders' and len(rpath) == 2:
                     spider = project_spec.spider_json(rpath[1])
-                    request.write(json.dumps(spider))
+                    return {'spider': spider}
                 elif rpath[0] == 'spiders' and len(rpath) == 3:
                     template = project_spec.template_json(rpath[1], rpath[2])
                     template['original_body'] = ''
-                    request.write(json.dumps(template))
-                else:
-                    project_spec.writejson(request, *rpath)
+                    return {'sample': template}
+                elif len(rpath) == 1 and rpath[0] in project_spec.resources:
+                    return {rpath[0]: project_spec.resource(*rpath)}
             # Trying to access non existent path
             except (KeyError, IndexError, TypeError):
                 self.not_found()
-        return '\n'
+        self.not_found()
 
     def render_POST(self, request, merge=False):
         obj = self.read_json(request)

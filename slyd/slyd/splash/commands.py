@@ -18,10 +18,71 @@ from jsonschema.exceptions import ValidationError
 from splash.browser_tab import JsError
 
 from slyd.utils.projects import ProjectModifier
+from slyd.plugins.scrapely_annotations.annotations import Annotations
+from slyd.resources.utils import _load_sample
 from .utils import open_tab, extract_data, BaseWSError, BadRequest, NotFound
 
 
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
+
+
+def save_html(data, socket):
+    manager = socket.spec_manager.project_spec(data['project'],
+                                               socket.user.auth)
+    path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
+    sample = _load_sample(manager, *path)
+    stated_encoding = socket.tab.evaljs('document.characterSet')
+    sample['original_body'] = _decode(socket.tab._raw_html, stated_encoding)
+    sample['js_original_body'] = socket.tab.html().decode('utf-8')
+    _update_sample(data, socket, sample)
+
+
+def extract_items(data, socket):
+    """Use latest annotations to extract items from current page"""
+    url = socket.tab.evaljs('location.href')
+    html = socket.tab.html()
+    if (socket.spiderspec is None or
+            (data['spider'] and socket.spiderspec.name != data['spider'])):
+        socket.open_spider(data)
+    samples = socket.spiderspec.templates
+    sid = data.get('sample')
+    if sid:
+        samples = [_update_sample(data, socket)]
+    items, _ = extract_data(url, html, socket.spider, samples)
+    return items
+
+
+def _update_sample(data, socket, sample=None):
+    """Recompile sample with latest annotations"""
+    # TODO: Keep page parsed to speed up processing time?
+    # TODO: Keep hash of annotations so update only happens on change
+    spec = socket.spec_manager.project_spec(data['project'],
+                                            socket.user.auth)
+    if sample is None:
+        sample = spec.resource('spiders', data['spider'], data['sample'])
+    # TODO: Handle js enabled
+    try:
+        Annotations().save_extraction_data(
+            sample['plugins']['annotations-plugin'], sample,
+            options={'body': 'original_body'})
+    except StopIteration:
+        sample['annotated_body'] = sample.get('original_body', u'')
+    spec.savejson(sample, ['spiders', data['spider'], data['sample']])
+    return sample
+
+
+def _decode(html, default=None):
+    if default is None:
+        default = []
+    elif isinstance(default, six.string_types):
+        default = [default]
+    for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
+        try:
+            return html.decode(encoding)
+        except UnicodeDecodeError:
+            pass
+    encoding = chardet.detect(html).get('encoding')
+    return html.decode(encoding)
 
 
 @open_tab

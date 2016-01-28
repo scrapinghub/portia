@@ -1,0 +1,85 @@
+{{#if editing }}
+{{#if addingNew}}
+    <div class="form-group form-group-sm">
+        <label for="actionType" class="col-sm-4 control-label">Action type</label>
+        <div class="col-sm-7">
+            <select onchange={{action (mut editing.type) value="target.value"}}>
+                {{#each actionTypes as |type|}}
+                    <option value={{type}} selected={{eq type editing.type}}>{{type}}</option>
+                {{/each}}
+            </select>
+        </div>
+        <div class="btn-center">
+            <button {{action "addContinue"}} class="btn btn-primary fa fa-icon fa-plus">
+                Continue
+            </button>
+        </div>
+    </div>
+{{else}}
+<form class="form-horizontal">
+    {{#if (eq editing.type "wait")}}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Timeout (ms)</label>
+            <div class="col-sm-7">
+                {{input value=editing.timeout pattern="^[0-9]+$" class="form-control" }}
+            </div>
+        </div>
+    {{else}}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Selector</label>
+            <div class="col-sm-7">
+                {{input value=editing.selector class="form-control" }}
+            </div>
+        </div>
+    {{/if}}
+    {{#if (eq editing.type "set")}}
+        <div class="form-group form-group-sm">
+            <label for="actionType" class="col-sm-4 control-label">Value</label>
+            <div class="col-sm-7">
+                {{input value=editing.value class="form-control" }}
+            </div>
+        </div>
+    {{/if}}
+</form>
+    <div class="form-group form-group-sm">
+        <label for="actionType" class="control-label">Run only in pages matching</label>
+        {{input value=editing.accept class="form-control" }}
+    </div>
+    <div class="form-group form-group-sm">
+        <label for="actionType" class="control-label">Don't run in pages matching</label>
+        {{input value=editing.reject class="form-control" }}
+    </div>
+    <div class="btn-center">
+        <button {{action "back"}} class="btn btn-primary fa fa-icon fa-check">
+            Back
+        </button>
+    </div>
+{{/if}}
+{{else}}
+    {{#tree-list}}
+        {{#tree-list-item hasChildren=true childsReorderable=true reorder=(action "reorderPageAction") as |options|}}
+            {{#if (eq options.section "item")}}
+                {{#list-item-text}} OnLoad {{/list-item-text}}
+                {{list-item-icon icon='add' action=(action "addNew") }}
+            {{else if (eq options.section "subtrees")}}
+                {{#each pageActions as |action index|}}
+                    {{#tree-list-item classNames="page-action" as |options|}}
+                        {{reorder-handler}}
+                        {{list-item-icon icon=action.type}}
+                        {{#list-item-text}}
+                            {{#if action.selector}}<code>{{action.selector}}</code>{{/if}}
+                            {{#if action.value}} to <code>"{{action.value}}"</code>{{/if}}
+                            {{#if action.timeout}} for {{action.timeout}}ms{{/if}}
+                        {{/list-item-text}}
+                        {{list-item-icon icon='options' action=(action "editPageAction" action)}}
+                        {{list-item-icon icon='remove' action=(action "deletePageAction" index)}}
+                    {{/tree-list-item}}
+                {{else}}
+                    {{#tree-list-item}}
+                        {{#list-item-text}} No actions have been recorded yet{{/list-item-text}}
+                    {{/tree-list-item}}
+                {{/each}}
+            {{/if}}
+        {{/tree-list-item}}
+    {{/tree-list}}
+{{/if}}

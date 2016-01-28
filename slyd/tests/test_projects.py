@@ -58,11 +58,13 @@ class ProjectsTest(unittest.TestCase):
     @inlineCallbacks
     def test_list_projects(self):
         result = yield self.projectssite.get('projects')
-        self.assertEqual(json.loads(result.value()), [])
+        self.assertEqual(json.loads(result.value()), {'projects': []})
         self.post_command('create', 'project1')
         self.post_command('create', 'project2')
         result = yield self.projectssite.get('projects')
-        self.assertEqual(json.loads(result.value()), ['project1', 'project2'])
+
+        project_names = [p['name'] for p in json.loads(result.value())['projects']]
+        self.assertEqual(set(project_names), set([u'project1', u'project2']))
 
     def test_commands(self):
         self.post_command('rm', 'doesnotexist', expect=404)

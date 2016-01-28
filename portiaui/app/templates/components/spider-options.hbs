@@ -1,0 +1,85 @@
+<h3>Initialization</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="performLogin" checked=(mut spider.performLogin)}} Perform login
+        </label>
+    </div>
+    {{#if spider.performLogin}}
+        <div class="form-group">
+            <label for="loginUrl">Login URL</label>
+            {{input type="url" class="form-control" id="loginUrl" value=(mut spider.loginUrl)}}
+        </div>
+        <div class="form-group">
+            <label for="loginUser">Username</label>
+            {{input type="text" class="form-control" id="loginUser" value=(mut spider.loginUser)}}
+        </div>
+        <div class="form-group">
+            <label for="loginPassword">Password</label>
+            {{input type="text" class="form-control" id="loginPassword" value=(mut spider.loginPassword)}}
+        </div>
+    {{/if}}
+</form>
+
+<h3>Crawling</h3>
+<form {{action "save" on="change"}}>
+    <div class="form-group">
+        <label for="linksToFollow">Link crawling</label>
+        {{#select-box name="linksToFollow" value=(mut linksToFollow) valueAttribute='label' change=(action "save") as |select|}}
+            {{#each followPatternOptions as |option|}}
+                {{#dropdown-item menu=select.menu value=option action=(action select.setValueAndClose option)}}
+                    {{option.label}}
+                {{/dropdown-item}}
+            {{/each}}
+        {{/select-box}}
+    </div>
+    {{#if (eq spider.linksToFollow 'patterns')}}
+        <div>Follow links that match these patterns</div>
+        {{regex-pattern-list list=spider.followPatterns change=(action 'save')}}
+        <div>Exclude links that match these patterns</div>
+        {{regex-pattern-list list=spider.excludePatterns change=(action 'save')}}
+    {{/if}}
+    {{#if (not-eq spider.linksToFollow 'none')}}
+        <div class="checkbox">
+            <label>
+                {{input type="checkbox" name="respectNoFollow" checked=(mut spider.respectNoFollow)}} Respect the "nofollow" attribute
+            </label>
+        </div>
+    {{/if}}
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="showLinks" checked=(mut spider.showLinks)}} Overlay blocked links
+        </label>
+    </div>
+    {{#if spider.showLinks}}
+        <ul class="list-group">
+            <li class="list-group-item">
+                {{colored-badge color=colors.green value=" "}}
+                Followed
+            </li>
+            <li class="list-group-item">
+                {{colored-badge color=colors.blue value=" "}}
+                Followed when Javascript is enabled
+            </li>
+            <li class="list-group-item">
+                {{colored-badge color=colors.red value=" "}}
+                Not Followed
+            </li>
+        </ul>
+    {{/if}}
+</form>
+
+<h3>Javascript support</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="jsEnabled" checked=(mut spider.jsEnabled)}} Enable Javascript
+        </label>
+    </div>
+    {{#if spider.jsEnabled}}
+        <div>Enable Javascript for URLs that match these patterns</div>
+        {{regex-pattern-list list=spider.jsEnablePatterns change=(action 'save')}}
+        <div>Disable Javascript for URLs that match these patterns</div>
+        {{regex-pattern-list list=spider.jsDisablePatterns change=(action 'save')}}
+    {{/if}}
+</form>

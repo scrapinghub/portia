@@ -1,0 +1,10 @@
+.clickable,
+[data-ember-action] {
+    cursor: pointer;
+}
+
+.ignore-active {
+    &.active {
+       pointer-events: none;
+    }
+}

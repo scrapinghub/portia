@@ -1,0 +1,25 @@
+.dropdown-menu {
+    outline: 0;
+
+    > .focused:not(.active)
+    > a {
+        &,
+        &:hover,
+        &:focus {
+            text-decoration: none;
+            color: $dropdown-link-hover-color;
+            background-color: $dropdown-link-hover-bg;
+        }
+    }
+
+    .icon {
+        display: inline-block;
+        width: $tree-list-icon-width;
+        height: $line-height-computed;
+        margin-left: -6px;
+        margin-right: 10px;
+        line-height: $line-height-computed;
+        text-align: center;
+        vertical-align: middle;
+    }
+}

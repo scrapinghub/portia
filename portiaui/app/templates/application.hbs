@@ -1,0 +1,20 @@
+<section id="window">
+    <nav id="top-bar" class="navbar navbar-default navbar-static-top">
+        <div class="navbar-header navbar-left">
+            {{partial 'branding'}}
+        </div>
+        <div class="navbar-right">
+            {{outlet 'top-bar'}}
+        </div>
+    </nav>
+
+    <section>
+        {{notification-container}}
+        {{outlet 'side-bar'}}
+        {{#sliding-main}}
+            {{outlet 'options-panels'}}
+            {{outlet 'main'}}
+            {{outlet 'tool-panels'}}
+        {{/sliding-main}}
+    </section>
+</section>

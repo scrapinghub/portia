@@ -1,0 +1,27 @@
+.notifications {
+    $notification-top: $grid-gutter-width / 2;
+
+    position: absolute;
+    top: $notification-top;
+    width: 100%;
+    pointer-events: none;
+    z-index: 3;
+
+    .notification {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 800px;
+
+        &:first-of-type {
+            margin-top: -15px;
+            border-top: none;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        > button {
+            pointer-events: auto;
+            outline: 0;
+        }
+    }
+}

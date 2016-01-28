@@ -1,0 +1,20 @@
+@keyframes fadeOut {
+    99% {
+        display: block;
+        opacity: 0;
+    }
+}
+
+@keyframes hideDelay {
+    from {
+        display: inherit;
+    }
+
+    99% {
+        display: inherit;
+    }
+
+    to {
+        display: none;
+    }
+}

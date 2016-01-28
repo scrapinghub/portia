@@ -1,0 +1,45 @@
+{
+  "name": "portia-web",
+  "version": "2.0.0-alpha",
+  "description": "User interface for the Portia visual scraping tool",
+  "private": true,
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "ember server",
+    "build": "ember build",
+    "test": "ember test"
+  },
+  "repository": "",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "broccoli-asset-rev": "^2.0.2",
+    "ember-cli": "1.13.6",
+    "ember-cli-app-version": "0.4.0",
+    "ember-cli-autoprefixer": "^0.4.1",
+    "ember-cli-babel": "^5.0.0",
+    "ember-cli-content-security-policy": "0.4.0",
+    "ember-cli-dependency-checker": "^1.0.0",
+    "ember-cli-deprecation-workflow": "^0.1.5",
+    "ember-cli-htmlbars": "0.7.9",
+    "ember-cli-htmlbars-inline-precompile": "^0.1.1",
+    "ember-cli-ic-ajax": "0.2.1",
+    "ember-cli-qunit": "0.3.18",
+    "ember-cli-release": "0.2.3",
+    "ember-cli-sass": "^4.0.1",
+    "ember-cli-sri": "^1.0.1",
+    "ember-cli-uglify": "^1.0.1",
+    "ember-data": "2.1.0",
+    "ember-data-url-templates": "0.0.7",
+    "ember-disable-proxy-controllers": "^1.0.0",
+    "ember-export-application-global": "^1.0.3",
+    "ember-localforage-adapter": "2.0.0",
+    "ember-truth-helpers": "1.1.0"
+  }
+}

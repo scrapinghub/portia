@@ -17,15 +17,23 @@ class Annotations(object):
         data = {
             extracts: [
                 {
-                    annotatations: {"content": "Title"},
+                    annotations: {"content": "Title"},
                     id: "id-string",
                     required: [],
                     tagid: 12,
-                    variant: 0
+                    # All keys below are optional
+                    variant: 0,
+                    text-content: "name-of-text-content-field",
                     ignore: True,
                     ignore_beneath: True,
                     insert_after: True,
-                    slice: [2, 16]
+                    slice: [2, 16],
+                    item_container: True,
+                    container_id: "parent-id-string",
+                    schema_id: "schema-id-string",
+                    repeated: true,
+                    siblings: 2,
+                    field: "field-id-to-be-added-to-in-parent-container"
                 }
             ]
         }
@@ -34,7 +42,7 @@ class Annotations(object):
         data['extracts'] = annotation_data
         template['annotated_body'] = apply_annotations(
             annotation_data,
-            template['original_body'])
+            template[options.get('body', 'original_body')])
         return data
 
 
@@ -42,7 +50,8 @@ def _clean_annotation_data(data):
     result = []
     sticky_count, stickies = count(1), set()
     for ann in data:
-        if 'annotations' in ann and ann['annotations']:
+        if ('annotations' in ann and
+                (ann['annotations'] or ann.get('item_container'))):
             filtered_annotations = {}
             for k, v in ann['annotations'].items():
                 if not (v and v.strip()):
@@ -75,9 +84,16 @@ def _gen_annotation_info(annotation):
             'id': annotation.get('id', _gen_id()),
             'annotations': annotation.get('annotations', {}),
             'required': annotation.get('required', []),
+            'required_fields': annotation.get('required', []),
             'variant': int(annotation.get('variant', 0)),
             'generated': annotation.get('generated', False),
             'text-content': annotation.get('text-content', 'content'),
+            'item_container': annotation.get('item_container', False),
+            'container_id': annotation.get('container_id'),
+            'schema_id': annotation.get('schema_id'),
+            'repeated': annotation.get('repeated'),
+            'siblings': annotation.get('siblings'),
+            'field': annotation.get('field')
         }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):
@@ -230,7 +246,7 @@ def apply_annotations(annotations, target_page):
     filtered = defaultdict(list)
     for ann in annotations:
         if ann and ann.get('tagid') and (ann.get('annotations') or
-                ann.get('ignore')):
+                                         ann.get('ignore')):
             filtered[ann['tagid']].append(ann)
     dummy = [(1e9, [{}])]
     sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +

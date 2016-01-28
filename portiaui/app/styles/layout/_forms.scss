@@ -1,0 +1,5 @@
+.input-list-item {
+    $tree-list-caret-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
+    height: $tree-list-row-height - 4px;
+    padding: ($padding-base-vertical - $tree-list-caret-padding-y) $padding-xs-horizontal;
+}
