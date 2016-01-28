@@ -11,12 +11,12 @@ class PaginationExtractor(HtmlLinkExtractor):
     def _extract_links(self, response):
         self.visited.add(response.url)
         url_to_link = {
-            url: link
+            link.url: link
             for link in super(PaginationExtractor, self)._extract_links(response)
         }
         self.link_annotation.load(url_to_link)
         n_items = response.meta.get('n_items')
-        if pagination is not None:
+        if n_items is not None:
             self.link_annotation.mark_link(response.url, follow=(n_items > 0))
         best = self.link_annotation.best_links_to_follow()
         if best:
