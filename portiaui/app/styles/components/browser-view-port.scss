@@ -197,9 +197,7 @@
 
 .hover-overlay {
     z-index: 3;
-    transition-property: opacity, transform, height, width;
-    transition-duration: $animation-time, 100ms, 100ms, 100ms;
-    transition-timing-function: $animation-easing, $animation-easing-out, $animation-easing-out, $animation-easing-out;
+    transition: opacity $animation-time $animation-easing, transform 100ms $animation-easing-out, height 100ms $animation-easing-out, width 100ms $animation-easing-out;
 
     &.hide {
         display: block !important;
