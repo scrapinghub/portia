@@ -53,18 +53,22 @@ export default function treeMirrorDelegate(){
             var node = null;
             if(tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
                 node = document.createElement('NOSCRIPT');
-            } else if(tagName === 'FORM') {
-                node = document.createElement(tagName);
+            } else {
+                try {
+                    node = document.createElement(tagName);
+                } catch(e) {
+                    // Invalid tag name
+                    node = document.createElement('NOSCRIPT');
+                }
+            }
+            if(tagName === 'FORM') {
                 $(node).on('submit', ()=>false);
             } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
-                node = document.createElement(tagName);
                 // TODO: copy file to new UI
                 node.setAttribute('src', '/static/frames-not-supported.html');
             } else if (tagName === 'CANVAS') {
-                node = document.createElement(tagName);
                 paintCanvasMessage(node);
             } else if (tagName === 'OBJECT' || tagName === 'EMBED') {
-                node = document.createElement(tagName);
                 setTimeout(addEmbedBlockedMessage.bind(null, node), 100);
             }
             return node;
