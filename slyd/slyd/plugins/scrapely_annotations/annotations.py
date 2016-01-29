@@ -1,9 +1,10 @@
 import json
 
+from scrapy import Selector
 from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 
 from collections import defaultdict
-from itertools import tee, count
+from itertools import tee, count, chain
 from uuid import uuid4
 
 from slyd.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
@@ -50,8 +51,11 @@ def _clean_annotation_data(data):
     result = []
     sticky_count, stickies = count(1), set()
     for ann in data:
-        if ('annotations' in ann and
-                (ann['annotations'] or ann.get('item_container'))):
+        if ann.get('item_container'):
+            ann['annotations'] = {'#portia-content': '#dummy'}
+            ann['text-content'] = '#portia-content'
+            result.append(ann)
+        elif 'annotations' in ann:
             filtered_annotations = {}
             for k, v in ann['annotations'].items():
                 if not (v and v.strip()):
@@ -94,7 +98,7 @@ def _gen_annotation_info(annotation):
             'repeated': annotation.get('repeated'),
             'siblings': annotation.get('siblings'),
             'field': annotation.get('field')
-        }).replace('"', '&quot;')
+        })
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):
             data['data-scrapy-ignore-beneath'] = 'true'
@@ -192,7 +196,7 @@ def _generate_elem(annotation, text):
     annotation_info[GENERATEDTAGID] = annotation.get('id')
     attributes = []
     for key, value in annotation_info.items():
-        attributes.append('="'.join((key, value)) + '"')
+        attributes.append('="'.join((key, value.replace('"', '&quot;'))) + '"')
     sections.append(' '.join(attributes))
     if len(sections) > 1:
         sections[0] += ' '
@@ -233,9 +237,48 @@ def _annotation_key(a):
     return a.get('generated', False) + sum(a.get('slice', []))
 
 
+def _filter_annotations(annotations):
+    selector, tagid = [], []
+    for ann in annotations:
+        if ann:
+            if ann.get('accept_selectors'):
+                selector.append(ann)
+            elif ann.get('tagid') and (ann.get('annotations') or
+                                       ann.get('ignore')):
+                tagid.append(ann)
+    return selector, tagid
+
+
+def apply_selector_annotations(annotations, target_page):
+    page = Selector(text=target_page)
+    converted_annotations = []
+    for annotation in annotations:
+        accepted_elements = set(
+            chain(*[[elem._root for elem in page.css(sel)]
+                    for sel in annotation['accept_selectors'] if sel])
+        )
+        rejected_elements = set(
+            chain(*[[elem._root for elem in page.css(sel)]
+                    for sel in annotation.get('reject_selectors', []) if sel])
+        )
+        elements = accepted_elements - rejected_elements
+        if elements:
+            tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elements]
+            tagid = min(tagids)
+            if tagid is not None:
+                annotation['tagid'] = tagid
+                converted_annotations.append(annotation)
+    return converted_annotations
+
+
 def apply_annotations(annotations, target_page):
+    selector_annotations, tagid_annotations = _filter_annotations(annotations)
     inserts = defaultdict(list)
     numbered_html = add_tagids(target_page)
+    if selector_annotations:
+        converted_annotations = apply_selector_annotations(
+            selector_annotations, numbered_html)
+        tagid_annotations += converted_annotations
     target = parse_html(numbered_html)
     output, tag_stack = [], []
 
@@ -244,10 +287,8 @@ def apply_annotations(annotations, target_page):
     # XXX: A dummy element is added to the end so if the last annotation is
     #      generated it will be added to the output
     filtered = defaultdict(list)
-    for ann in annotations:
-        if ann and ann.get('tagid') and (ann.get('annotations') or
-                                         ann.get('ignore')):
-            filtered[ann['tagid']].append(ann)
+    for ann in tagid_annotations:
+        filtered[ann['tagid']].append(ann)
     dummy = [(1e9, [{}])]
     sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +
                                 dummy)

@@ -344,7 +344,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
         spec = self.spec_manager.project_spec(meta['project'], self.user.auth)
-
         spider = spec.spider_with_templates(spider_name)
         items = spec.resource('items')
         extractors = spec.resource('extractors')

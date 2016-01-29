@@ -135,13 +135,14 @@ def _split_annotations(annotations):
             a = a.copy()
         if a.get('item_container'):
             continue
-        _default = {'#portia-content': None}
+        _default = {'#portia-content': '#dummy'}
         attributes = a.get('annotations', _default)
         if not attributes:
             attributes = _default
         for attribute, field_id in attributes.items():
             if attribute:
                 a['id'] = '#'.join((a['id'], attribute))
+            a.pop('schema_id', None)
             a['attribute'] = attribute
             a['field'] = {'id': field_id}
             a['required'] = attribute in a.get('required', [])

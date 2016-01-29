@@ -49,7 +49,7 @@ def extract_items(data, socket):
     if sid:
         samples = [_update_sample(data, socket)]
     items, _ = extract_data(url, html, socket.spider, samples)
-    return items
+    return {'items': items}
 
 
 def _update_sample(data, socket, sample=None):
@@ -65,7 +65,7 @@ def _update_sample(data, socket, sample=None):
         Annotations().save_extraction_data(
             sample['plugins']['annotations-plugin'], sample,
             options={'body': 'original_body'})
-    except StopIteration:
+    except (StopIteration, KeyError):
         sample['annotated_body'] = sample.get('original_body', u'')
     spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample

@@ -8,7 +8,7 @@ from slybot.validation.schema import get_schema_validator
 from .models import (SampleSchema, HtmlSchema, ItemSchema, AnnotationSchema,
                      ItemAnnotationSchema)
 from .annotations import _group_annotations
-from .utils import _load_sample
+from .utils import _load_sample, _create_schema, _get_formatted_schema
 from ..errors import BadRequest
 from ..utils.projects import ctx, gen_id
 
@@ -31,15 +31,23 @@ def get_sample(manager, spider_id, sample_id, attributes=None):
 
 def create_sample(manager, spider_id, attributes):
     attributes = _check_sample_attributes(attributes, True)
+    schema, schema_id = _create_schema(manager,
+                                       {'name': attributes.get('name')})
+    attributes['scrapes'] = schema_id
     get_schema_validator('template').validate(attributes)
     spider = manager.resource('spiders', spider_id)
     sample_id = gen_id(disallow=spider['template_names'])
+    manager.savejson(attributes, ['spiders', spider_id, sample_id])
+    attributes = _load_sample(manager, spider_id, sample_id)
     manager.savejson(attributes, ['spiders', spider_id, sample_id])
     spider['template_names'].append(sample_id)
     manager.savejson(spider, ['spiders', spider_id])
     attributes['id'] = sample_id
     context = ctx(manager, spider_id=spider_id)
-    return SampleSchema(context=context).dump(attributes).data
+    sample = SampleSchema(context=context).dump(attributes).data
+    schema = _get_formatted_schema(manager, schema_id, schema, True)
+    sample['included'] = [schema['data']]
+    return sample
 
 
 def update_sample(manager, spider_id, sample_id, attributes):
@@ -83,6 +91,10 @@ def _process_sample(sample, manager, spider_id):
                                       item_id=y)
     items, annotations, item_annotations = _process_annotations(sample)
     sample['items'] = items
+    # Remove any html pages from sample
+    for key in sample.keys():
+        if '_body' in key:
+            sample.pop(key)
     data = SampleSchema(context=_ctx()).dump(sample).data
     items = [ItemSchema(context=_ctx(i['schema']['id'])).dump(i).data['data']
              for i in items]
