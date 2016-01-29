@@ -95,6 +95,7 @@ class Annotations(object):
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
         items, link_regions = self.extract_items(htmlpage)
+        htmlpage.headers['n_items'] = len(items)
         for item in items:
             yield item
         for request in self._process_link_regions(htmlpage, link_regions):
