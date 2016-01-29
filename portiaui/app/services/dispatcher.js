@@ -4,7 +4,8 @@ import ItemAnnotation from '../models/item-annotation';
 import {getAttributeList} from '../components/inspector-panel';
 import {ElementPath,
         findContainer, 
-        findRepeatedContainer} from '../utils/selectors';
+        findRepeatedContainer,
+        findCssSelector} from '../utils/selectors';
 
 
 export function computedCanAddSpider() {
@@ -134,25 +135,11 @@ export default Ember.Service.extend({
             spider
         });
         sample.save().then(() => {
-            const schema = store.createRecord('schema', {
-                name,
-                project: spider.get('project')
-            });
-            schema.save().then(() => {
-                const item = store.createRecord('item', {
-                    sample,
-                    schema
-                });
-                item.save();
-                this.get('webSocket')._sendPromise({
-                    _command: 'save_html',
-                    project: spider.get('project.id'),
-                    spider: spider.get('id'),
-                    sample: sample.get('id')
-                }).then(() => {
-                    sample.set('scrapes', schema.get('id'));
-                    sample.save();
-                });
+            this.get('webSocket')._sendPromise({
+                _command: 'save_html',
+                project: spider.get('project.id'),
+                spider: spider.get('id'),
+                sample: sample.get('id')
             });
 
             if (redirect) {
@@ -232,7 +219,7 @@ export default Ember.Service.extend({
         }
         const annotation = store.createRecord('annotation', {
             parent: item,
-            acceptSelectors: element ? [new ElementPath(element).uniquePathSelector] : []
+            acceptSelectors: element ? [new ElementPath(findCssSelector(element)).uniquePathSelector] : []
         });
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
@@ -242,7 +229,6 @@ export default Ember.Service.extend({
                 annotation.set('attribute', attributes[0].attribute);
             }
         }
-        annotation.set('tagid', element.getAttribute('data-tagid'));
         field.save().then(() => {
             annotation.set('field', field);
             annotation.save().then(() => {
@@ -254,8 +240,12 @@ export default Ember.Service.extend({
                 } else if (redirect) {
                     this.selectAnnotation(annotation);
                 }
+                Ember.run.next(this, () =>
+                    this.updateContainers(annotation.get('parent').get('itemAnnotation'))
+                );
             });
         });
+        this.updateContainers(annotation.get('parent').get('itemAnnotation'));
         return annotation;
     },
 
@@ -346,7 +336,12 @@ export default Ember.Service.extend({
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
-        item.destroyRecord();
+        const sample = item.get('sample');
+        item.destroyRecord().then(() => {
+            if (sample.get('items.length') === 0) {
+                this.addItem(sample);
+            }
+        })
     },
 
     removeItemAnnotation(itemAnnotation) {
@@ -364,7 +359,10 @@ export default Ember.Service.extend({
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
-        annotation.destroyRecord();
+        const parent = annotation.get('parent.itemAnnotation');
+        annotation.destroyRecord().then(() =>
+            this.updateContainers(parent)
+        );
     },
 
     selectAnnotation(annotation) {
@@ -399,25 +397,27 @@ export default Ember.Service.extend({
     },
 
     addElementToAnnotation(annotation, element) {
-        const selector = new ElementPath(element).uniquePathSelector;
+        const selector = new ElementPath(findCssSelector(element)).uniquePathSelector;
         const acceptSelectors = annotation.get('acceptSelectors');
         const rejectSelectors = annotation.get('rejectSelectors');
         acceptSelectors.addObject(selector);
         rejectSelectors.removeObject(selector);
-        annotation.save();
-        this.updateContainers(annotation.get('parent').get('itemAnnotation'));
         this.selectAnnotationElement(annotation, element);
+        annotation.save().then(() =>
+            this.updateContainers(annotation.get('parent').get('itemAnnotation'))
+        );
     },
 
     removeElementFromAnnotation(annotation, element) {
-        const selector = new ElementPath(element).uniquePathSelector;
+        const selector = new ElementPath(findCssSelector(element)).uniquePathSelector;
         const acceptSelectors = annotation.get('acceptSelectors');
         const rejectSelectors = annotation.get('rejectSelectors');
         acceptSelectors.removeObject(selector);
         rejectSelectors.addObject(selector);
-        annotation.save();
-        this.updateContainers(annotation.get('parent'));
         this.selectAnnotation(annotation);
+        annotation.save().then(() =>
+            this.updateContainers(annotation.get('parent').get('itemAnnotation'))
+        );
     },
 
     updateContainers(containerAnnotation) {
@@ -425,19 +425,22 @@ export default Ember.Service.extend({
             let elements = this.get('annotationStructure')._annotations(),
                 container = findContainer(elements),
                 [repeatedContainer, siblings] = findRepeatedContainer(elements, container),
-                containerId = '0',
-                repeatedContainerId = null;
+                containerPath = 'html',
+                repeatedContainerPath = null;
             if (container) {
-                containerId = container.getAttribute('data-tagid');
+                containerPath = findCssSelector(container);
+            } else {
+                return; // No elements highlighted
             }
-            if (repeatedContainer) {
-                repeatedContainerId = repeatedContainer.getAttribute('data-tagid');
+            if (!!repeatedContainer) {
+                repeatedContainerPath = findCssSelector(repeatedContainer);
                 containerAnnotation.set('repeated', true);
+                containerAnnotation.set('repeatedAcceptSelectors', [repeatedContainerPath]);
             }
-            containerAnnotation.set('tagid', containerId);
-            containerAnnotation.set('repeatedTagid', repeatedContainerId);
+            containerAnnotation.set('acceptSelectors', [containerPath]);
             containerAnnotation.set('siblings', siblings);
             containerAnnotation.save();
+            // Notify property change to trigger extraction
         });
     }
 });
