@@ -37,6 +37,7 @@
 }
 
 .browser-navigation {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -71,6 +72,7 @@
 
     @extend .alert;
     @extend .alert-warning;
+    flex: 0 0 auto;
     height: $browser-banner-height;
     margin-bottom: 0;
     border-radius: 0;
