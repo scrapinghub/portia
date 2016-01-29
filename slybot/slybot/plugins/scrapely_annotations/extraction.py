@@ -171,14 +171,9 @@ class BaseContainerExtractor(object):
         Group all annotations without a container.
         """
         # Get information about nested data
-        _containers = dict((x.annotation.metadata['id'], x)
-                           for x in extractors
-                           if x.annotation.metadata.get('item_container'))
-        containers = {}
-        for id, container in _containers.items():
-            if id.endswith('#parent') and id.strip('#parent') not in container:
-                id = id.strip('#parent')
-            containers[id] = container
+        containers = dict((x.annotation.metadata['id'], x)
+                          for x in extractors
+                          if x.annotation.metadata.get('item_container'))
         container_annos = defaultdict(list)
         non_container_annos = []
         for con_id, annotation in groupby(extractors, container_id):
@@ -649,7 +644,7 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
             extracted = extraction_tree.extract(extraction_page)
             correctly_extracted = []
             for item in extracted:
-                if u'_type' in item:
+                if u'_type' in item or not hasattr(self, 'validated'):
                     correctly_extracted.append(item)
                 else:
                     validated = self.validated[template_id]([item])
