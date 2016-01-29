@@ -234,7 +234,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                     code = 500
                     reason = "Internal Server Error"
 
-                failure = Failure(e)
+                failure = Failure()
                 log.err(failure)
                 event_id = getattr(failure, 'sentry_event_id', None)
                 if event_id:
