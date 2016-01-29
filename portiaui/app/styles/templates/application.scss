@@ -10,7 +10,8 @@
         display: flex;
         flex-direction: row;
         flex-wrap: nowrap;
-        overflow: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 }
 
