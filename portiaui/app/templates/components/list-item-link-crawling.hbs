@@ -1,4 +1,4 @@
-{{#list-item-selectable value=(mut linksToFollow) valueAttribute='label' change=(action 'saveSpider') menuContainer="body" menuAlign="left" as |select|}}
+{{#list-item-selectable value=(mut linksToFollow) valueAttribute='label' onChange=(action 'saveSpider') menuContainer="body" menuAlign="left" as |select|}}
     {{#dropdown-header}}
         Change how links are crawled
     {{/dropdown-header}}

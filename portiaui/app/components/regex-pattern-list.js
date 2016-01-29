@@ -1,7 +1,6 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-    //tagName: '',
     classNames: ['regex-pattern-list'],
 
     list: [],
@@ -16,18 +15,18 @@ export default Ember.Component.extend({
         return true;
     }),
 
-    change() {
-        if (this.attrs.change) {
-            this.attrs.change();
+    triggerChange() {
+        if (this.attrs.onChange) {
+            this.attrs.onChange();
         }
     },
 
     actions: {
         addPattern(pattern) {
-            if (this.get('newPatternCorrect')) {
+            if (this.get('newPattern') && this.get('newPatternCorrect')) {
                 this.set('newPattern', '');
                 this.get('list').addObject(pattern);
-                this.change();
+                this.triggerChange();
             }
         },
 
@@ -36,21 +35,22 @@ export default Ember.Component.extend({
         },
 
         changePattern(index, value) {
-            // TODO: change is a bad name for the event as it seems to catch the propagating event from the inner input
-            if (!(value instanceof Ember.$.Event)) {
-                const list = this.get('list');
-                const current = list.objectAt(index);
-                if (value !== current) {
-                    list.removeObject(value);
-                    list.replace(list.indexOf(current), 1, [value]);
-                    this.change();
-                }
+            const list = this.get('list');
+            const current = list.objectAt(index);
+            if (value !== current) {
+                list.removeObject(value);
+                list.replace(list.indexOf(current), 1, [value]);
+                this.triggerChange();
             }
         },
 
         removePattern(index) {
             this.get('list').removeAt(index);
-            this.change();
+            this.triggerChange();
+        },
+
+        stopPropagation($event) {
+            $event.stopPropagation();
         }
     }
 });

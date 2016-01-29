@@ -16,6 +16,7 @@ export default Ember.Component.extend({
             Ember.run.schedule('afterRender', () => {
                 this.send('startEditing');
             });
+            Ember.run.next(this, this.setInputFocus);
         }
     },
 
@@ -42,8 +43,22 @@ export default Ember.Component.extend({
         }
     }),
 
-    getInputElement() {
-        return Ember.$('#' + this.get('inputId'))[0];
+    updateInputFocus: Ember.observer('focused', function() {
+        Ember.run.scheduleOnce('afterRender', this, this.setInputFocus);
+    }),
+
+    setInputFocus() {
+        const inputElement = Ember.$('#' + this.get('inputId')).get(0);
+        if (this.get('focused')) {
+            inputElement.focus();
+            if (this.get('autoSelect')) {
+                inputElement.select();
+            }
+        } else {
+            if (!this.get('isDestroying')) {
+                inputElement.blur();
+            }
+        }
     },
 
     actions: {
@@ -52,48 +67,27 @@ export default Ember.Component.extend({
                 focused: true,
                 viewValue: this.get('value')
             });
-            Ember.run.schedule('afterRender', () => {
-                const input = this.getInputElement();
-                input.focus();
-                if (this.get('autoSelect')) {
-                    input.select();
-                }
-            });
         },
 
         cancelEditing() {
-            if (this.get('focused')) {
-                this.setProperties({
-                    focused: false,
-                    viewValue: null
-                });
-                Ember.run.schedule('afterRender', () => {
-                    if (!this.get('isDestroying')) {
-                        this.getInputElement().blur();
-                    }
-                });
-            }
+            this.setProperties({
+                focused: false,
+                viewValue: null
+            });
         },
 
         endEditing(reason) {
-            if (this.get('focused')) {
-                const value = this.get('viewValue');
-                this.setProperties({
-                    focused: false,
-                    value: value,
-                    viewValue: null
-                });
-                Ember.run.schedule('afterRender', () => {
-                    if (!this.get('isDestroying')) {
-                        this.getInputElement().blur();
-                    }
-                });
-                if (reason === 'enter' && this.attrs.enter) {
-                    this.attrs.enter();
-                }
-                if (this.attrs.change && this.attrs.change.call) {
-                    this.attrs.change(value);
-                }
+            const value = this.get('viewValue');
+            this.setProperties({
+                focused: false,
+                value: value,
+                viewValue: null
+            });
+            if (reason === 'enter' && this.attrs.onEnterPress && this.attrs.onEnterPress.call) {
+                this.attrs.onEnterPress(value);
+            }
+            if (this.attrs.onChange && this.attrs.onChange.call) {
+                this.attrs.onChange(value);
             }
         }
     }

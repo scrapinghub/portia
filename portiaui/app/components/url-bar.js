@@ -20,22 +20,29 @@ export default Ember.Component.extend({
         this.set('url', this.get('browser.url'));
     }),
 
-    submit() {
-        this.send('submit', ...arguments);
-        return false;
+    submit($event) {
+        // ignore form's submit event;
+        $event.stopPropagation();
+        $event.preventDefault();
     },
 
     actions: {
         back() {
-            this.get('browser').back();
+            if (!this.get('disabled')) {
+                this.get('browser').back();
+            }
         },
 
         forward() {
-            this.get('browser').forward();
+            if (!this.get('disabled')) {
+                this.get('browser').forward();
+            }
         },
 
-        submit() {
-            this.get('browser').go(this.get('url'));
+        submit(url) {
+            if (!this.get('disabled')) {
+                this.get('browser').go(url);
+            }
         }
     }
 });

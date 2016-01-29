@@ -30,8 +30,8 @@
     </div>
     {{#if spider.jsEnabled}}
         <div>Enable Javascript for URLs that match these patterns</div>
-        {{regex-pattern-list list=spider.jsEnablePatterns change=(action 'save')}}
+        {{regex-pattern-list list=spider.jsEnablePatterns onChange=(action 'save')}}
         <div>Disable Javascript for URLs that match these patterns</div>
-        {{regex-pattern-list list=spider.jsDisablePatterns change=(action 'save')}}
+        {{regex-pattern-list list=spider.jsDisablePatterns onChange=(action 'save')}}
     {{/if}}
 </form>

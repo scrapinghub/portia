@@ -11,7 +11,7 @@
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.spider' spider}}
                             {{list-item-icon icon='spider'}}
-                            {{list-item-editable value=(mut spider.name) editing=(mut spider.new) change=(action 'saveSpider' spider)}}
+                            {{list-item-editable value=(mut spider.name) editing=(mut spider.new) onChange=(action 'saveSpider' spider)}}
                             {{list-item-icon icon='remove' action=(action 'removeSpider' spider) bubbles=false}}
                         {{/link-to}}
                     {{/if}}
@@ -31,7 +31,7 @@
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.schema' schema}}
                             {{list-item-icon icon='schema'}}
-                            {{list-item-editable value=(mut schema.name) editing=(mut schema.new) change=(action 'saveSchema' schema)}}
+                            {{list-item-editable value=(mut schema.name) editing=(mut schema.new) onChange=(action 'saveSchema' schema)}}
                             {{list-item-icon icon='remove' disabled=(not (not schema.items.length)) action=(action 'removeSchema' schema bubbles=false)}}
                         {{/link-to}}
                     {{/if}}

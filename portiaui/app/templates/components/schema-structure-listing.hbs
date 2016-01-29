@@ -11,7 +11,7 @@
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.schema.field' field}}
                             {{list-item-icon icon=field.type}}
-                            {{list-item-editable value=(mut field.name) editing=(mut field.new) change=(action 'saveField' field)}}
+                            {{list-item-editable value=(mut field.name) editing=(mut field.new) onChange=(action 'saveField' field)}}
                             {{#list-item-field-type field=field}}
                                 Change field type
                             {{/list-item-field-type}}

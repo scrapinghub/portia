@@ -51,7 +51,7 @@
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.spider.sample' sample}}
                             {{list-item-icon icon='sample'}}
-                            {{list-item-editable value=(mut sample.name) editing=(mut sample.new) change=(action 'saveSample' sample)}}
+                            {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
                             {{list-item-icon icon='remove' action=(action 'removeSample' sample) bubbles=false}}
                         {{/link-to}}
                     {{/if}}

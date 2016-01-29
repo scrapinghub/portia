@@ -1,4 +1,4 @@
-{{#tool-group id="link-crawling-options-group" collapsible=false close=(action 'closeOptions') as |options|}}
+{{#tool-group id="link-crawling-options-group" collapsible=false onClose=(action 'closeOptions') as |options|}}
     {{#if (eq options.section "tabs")}}
         {{#tool-tab toolId="link-crawling-options" group=options.group}}
             Link crawling options

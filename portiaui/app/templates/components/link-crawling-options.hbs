@@ -6,9 +6,9 @@
         <div class="text-muted">Not following any links</div>
     {{else if (eq spider.linksToFollow 'patterns')}}
         <div>Follow links that match these patterns</div>
-        {{regex-pattern-list list=spider.followPatterns change=(action 'save')}}
+        {{regex-pattern-list list=spider.followPatterns onChange=(action 'save')}}
         <div>Exclude links that match these patterns</div>
-        {{regex-pattern-list list=spider.excludePatterns change=(action 'save')}}
+        {{regex-pattern-list list=spider.excludePatterns onChange=(action 'save')}}
     {{/if}}
 
     <div class="checkbox">

@@ -42,8 +42,8 @@ export default Ember.Component.extend({
                 value,
                 viewValue: value
             });
-            if (this.attrs.change) {
-                this.attrs.change();
+            if (this.attrs.onChange) {
+                this.attrs.onChange();
             }
         },
 
@@ -60,8 +60,8 @@ export default Ember.Component.extend({
                         open: false,
                         value: viewValue
                     });
-                    if (this.attrs.change) {
-                        this.attrs.change();
+                    if (this.attrs.onChange) {
+                        this.attrs.onChange();
                     }
                 }
             }

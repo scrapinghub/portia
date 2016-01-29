@@ -1,4 +1,4 @@
-{{#tool-group id="spider-options-group" collapsible=false close=(action 'closeOptions') as |options|}}
+{{#tool-group id="spider-options-group" collapsible=false onClose=(action 'closeOptions') as |options|}}
     {{#if (eq options.section "tabs")}}
         {{#tool-tab toolId="spider-options" group=options.group}}
             Spider properties

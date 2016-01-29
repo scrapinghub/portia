@@ -1,4 +1,4 @@
-{{#tool-group id="annotation-options-group" collapsible=false close=(action 'closeOptions') as |options|}}
+{{#tool-group id="annotation-options-group" collapsible=false onClose=(action 'closeOptions') as |options|}}
     {{#if (eq options.section "tabs")}}
         {{#tool-tab toolId="annotation-options" group=options.group}}
             Annotation properties

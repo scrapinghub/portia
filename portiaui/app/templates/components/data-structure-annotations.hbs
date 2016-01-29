@@ -1,10 +1,10 @@
-{{#tree-list-item hasChildren=item.annotations.length mouse-enter=(action 'enterItem' item) mouse-leave=(action 'leaveItem' item) as |options|}}
+{{#tree-list-item hasChildren=item.annotations.length onMouseEnter=(action 'enterItem' item) onMouseLeave=(action 'leaveItem' item) as |options|}}
     {{#if (eq options.section "item")}}
         {{yield}}
     {{else if (eq options.section "subtrees")}}
         {{#each item.annotations as |annotation|}}
             {{#if (eq annotation.constructor.modelName "annotation")}}
-                {{#tree-list-item mouse-enter=(action 'enterAnnotation' annotation) mouse-leave=(action 'leaveAnnotation' item) as |options|}}
+                {{#tree-list-item onMouseEnter=(action 'enterAnnotation' annotation) onMouseLeave=(action 'leaveAnnotation' item) as |options|}}
                     {{#if (eq options.section "item")}}
                         {{#link-to 'projects.project.spider.sample.data.annotation' annotation}}
                             {{list-item-icon icon=annotation.type}}
@@ -25,7 +25,7 @@
                     {{#link-to 'projects.project.spider.sample.data.item' annotation.item}}
                         {{list-item-icon icon='schema'}}
                         {{list-item-badge value=(matched-items annotation.item)}}
-                        {{list-item-editable value=(mut annotation.name) editing=(mut annotation.new) change=(action 'saveItemAnnotation' annotation)}}
+                        {{list-item-editable value=(mut annotation.name) editing=(mut annotation.new) onChange=(action 'saveItemAnnotation' annotation)}}
                         {{list-item-item-schema item=annotation.item}}
                         {{list-item-add-annotation-menu item=annotation.item}}
                         {{list-item-icon icon='remove' action=(action 'removeItemAnnotation' annotation) bubbles=false}}
