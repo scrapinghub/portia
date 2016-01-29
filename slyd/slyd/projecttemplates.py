@@ -59,7 +59,7 @@ default = slybot.settings
 
 _ITEMS_TEMPLATE = """\
 {
-    "default": {}
+    "default": {"fields": {}}
 }
 """
 
