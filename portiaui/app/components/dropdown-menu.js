@@ -1,5 +1,25 @@
 import Ember from 'ember';
-import {attrChanged, attrChangedTo} from '../utils/attrs';
+
+function computedItem(propertyName) {
+    let cache;
+
+    return Ember.computed(propertyName, 'items', {
+        get() {
+            const value = this.get(propertyName);
+            const items = this.get('items');
+            if (!cache || !items.includes(cache) || cache.get('value') !== value) {
+                cache = items.findBy('value', value);
+            }
+            return cache;
+        },
+
+        set(key, item) {
+            cache = item;
+            this.set(propertyName, item.get('value'));
+            return item;
+        }
+    });
+}
 
 export default Ember.Component.extend({
     tagName: 'ul',
@@ -7,89 +27,43 @@ export default Ember.Component.extend({
     classNames: ['dropdown-menu'],
 
     active: null,
-    activeQuery: null,
-    focusMenu: false,
     focused: null,
-    focusedQuery: null,
     keyNavigate: 'active',
-    matchQuery: null,
     tabindex: -1,
+
+    items: Ember.computed(function() {
+        if (!this.element) {
+            return [];
+        }
+        const items = [];
+        for (let child of this.element.children) {
+            const item = this.itemsMap.get(child.id);
+            if (item) {
+                items.push(item);
+            }
+        }
+        return items;
+    }).volatile(),
+
+    activeItem: computedItem('active'),
+    focusedItem: computedItem('focused'),
 
     init() {
         this._super();
-        this.items = new Map();
-        this.orderedItems = [];
-        this.setProperties({
-            activeItem: null,
-            focusedItem: null
-        });
-    },
-
-    didReceiveAttrs({oldAttrs, newAttrs}) {
-        if (attrChanged(oldAttrs, newAttrs, 'activeQuery')) {
-            Ember.run.schedule('sync', this, this.updateCurrentItemFromQuery, 'active');
-        } else if (attrChanged(oldAttrs, newAttrs, 'active')) {
-            Ember.run.schedule('sync', this, this.updateCurrentItem, 'active');
-        }
-        if (attrChanged(oldAttrs, newAttrs, 'focusedQuery')) {
-            Ember.run.schedule('sync', this, this.updateCurrentItemFromQuery, 'focused');
-        } else if (attrChanged(oldAttrs, newAttrs, 'focused')) {
-            Ember.run.schedule('sync', this, this.updateCurrentItem, 'focused');
-        }
-        if (attrChangedTo(oldAttrs, newAttrs, 'focusMenu', true)) {
-            Ember.run.next(() => {
-                this.element.focus();
+        this.itemsMap = new Map();
+        this.getWithDefault('events', this)
+            .on('menuKeyDown', this, this.keyDown)
+            .on('getMenuItems', result => {
+                result.push(...this.get('items'));
             });
-        }
     },
 
-    didInsertElement() {
-        const registerWith = this.get('register-with');
-        const registerAs = this.get('register-as') || 'dropdown';
-        if (registerWith) {
-            registerWith.set(registerAs, this);
-        }
-    },
-
-    willDestroyElement() {
-        const registerWith = this.get('register-with');
-        const registerAs = this.get('register-as') || 'dropdown';
-        if (registerWith) {
-            registerWith.set(registerAs, null);
-        }
-    },
-
-    updateCurrent(type) {
-        const item = this.get(`${type}Item`);
-        this.set(type, item && item.get('value'));
-    },
-
-    updateCurrentItem(type) {
-        const current = this.get(type);
-        const currentItem = this.orderedItems.findBy('value', current);
-        this.set(`${type}Item`, currentItem);
-    },
-
-    updateCurrentItemFromQuery(type) {
-        const currentQuery = this.get(`${type}Query`);
-        const matchQuery = this.get('matchQuery');
-        const currentItem = this.orderedItems.find(item => {
-            const value = item.get('value');
-            if (matchQuery) {
-                return matchQuery(value, currentQuery);
-            }
-            return value && value.includes && value.includes(currentQuery);
-        });
-
-        if (currentItem) {
-            this.set(`${type}Item`, currentItem);
-            this.updateCurrent(type);
-        }
-    },
 
     next(type) {
+        type = this.validateType(type);
+        const items = this.get('items');
         let item = this.get(`${type}Item`);
-        const startIndex = this.orderedItems.indexOf(item);
+        const startIndex = items.indexOf(item);
         let index = startIndex;
         do {
             if (!~index) {
@@ -97,18 +71,19 @@ export default Ember.Component.extend({
             } else {
                 index++;
             }
-            index = (index + this.orderedItems.length) % this.orderedItems.length;
-            item = this.orderedItems[index];
+            index = (index + items.length) % items.length;
+            item = items[index];
         } while (item.get('disabled') && index !== startIndex);
         if (index !== startIndex) {
             this.set(`${type}Item`, item);
-            this.updateCurrent(type);
         }
     },
 
     previous(type) {
+        type = this.validateType(type);
+        const items = this.get('items');
         let item = this.get(`${type}Item`);
-        const startIndex = this.orderedItems.indexOf(item);
+        const startIndex = items.indexOf(item);
         let index = startIndex;
         do {
             if (!~index) {
@@ -116,16 +91,16 @@ export default Ember.Component.extend({
             } else {
                 index--;
             }
-            index = (index + this.orderedItems.length) % this.orderedItems.length;
-            item = this.orderedItems[index];
+            index = (index + items.length) % items.length;
+            item = items[index];
         } while (item.get('disabled') && index !== startIndex);
         if (index !== startIndex) {
             this.set(`${type}Item`, item);
-            this.updateCurrent(type);
         }
     },
 
     triggerAction(type) {
+        type = this.validateType(type);
         const currentItem = this.get(`${type}Item`);
         if (currentItem) {
             currentItem.send('performAction');
@@ -141,14 +116,14 @@ export default Ember.Component.extend({
     },
 
     focusIn() {
-        if (this.attrs['focus-in']) {
-            this.attrs['focus-in'](...arguments);
+        if (this.attrs.onFocusIn) {
+            this.attrs.onFocusIn(...arguments);
         }
     },
 
     focusOut() {
-        if (this.attrs['focus-out']) {
-            this.attrs['focus-out'](...arguments);
+        if (this.attrs.onFocusOut) {
+            this.attrs.onFocusOut(...arguments);
         }
     },
 
@@ -157,36 +132,28 @@ export default Ember.Component.extend({
     },
 
     registerItem(item) {
-        this.items.set(item.get('elementId'), item);
+        this.itemsMap.set(item.get('elementId'), item);
         Ember.run.scheduleOnce('afterRender', this, this.updateItems);
     },
 
     unRegisterItem(item) {
-        this.items.delete(item.get('elementId'));
-        if (!this.get('isDestroying')) {
-            Ember.run.scheduleOnce('afterRender', this, this.updateItems);
-        }
+        this.itemsMap.delete(item.get('elementId'));
+        Ember.run.scheduleOnce('afterRender', this, this.updateItems);
     },
 
     updateItems() {
-        const domItems = this.$('.dropdown-item').toArray();
-        this.orderedItems = domItems.mapBy('id').map((id) => this.items.get(id));
-        this.updateCurrentItem('active');
-        this.updateCurrentItem('focused');
+        if (!this.get('isDestroying')) {
+            this.notifyPropertyChange('items');
+        }
     },
 
     actions: {
-        keyDown(event) {
+        keyDown($event) {
             const keyNavigate = this.get('keyNavigate');
             switch (event.keyCode) {
                 case 13:  // ENTER
                     if (!this.triggerAction(keyNavigate)) {
                         return;
-                    }
-                    break;
-                case 27:  // ESCAPE
-                    if (this.attrs.escape) {
-                        this.attrs.escape();
                     }
                     break;
                 case 38:  // UP
@@ -199,8 +166,8 @@ export default Ember.Component.extend({
                     return;
             }
 
-            event.preventDefault();
-            event.stopPropagation();
+            $event.preventDefault();
+            $event.stopPropagation();
         }
     }
 });
