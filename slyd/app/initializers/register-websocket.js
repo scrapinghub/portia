@@ -1,4 +1,5 @@
 import FerryWebsocket from '../utils/ferry-websocket';
+import Timer from '../utils/timer';
 
 export function initialize(container, application) {
     var websocket = new FerryWebsocket();
@@ -10,6 +11,7 @@ export function initialize(container, application) {
     application.inject('component', 'ws', 'websocket:slyd');
 
     websocket.connect();
+    container.register('websocket:timer', new Timer(websocket), { instantiate: false });
 }
 
 export default {

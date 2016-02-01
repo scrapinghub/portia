@@ -10,25 +10,23 @@ from autobahn.twisted.websocket import (WebSocketServerFactory,
 from weakref import WeakKeyDictionary, WeakValueDictionary
 from monotonic import monotonic
 from twisted.python import log
+from twisted.python.failure import Failure
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
-from splash import network_manager
 from splash.browser_tab import BrowserTab
+from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
-
-from PyQt4.QtCore import QObject
-from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtWebKit import QWebElement
 
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
 
+from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
                        delete_project_data, pause, resume, extract_items,
-                       save_html)
+                       save_html, log_event)
 from .css_utils import process_css, wrap_url
 import six
 text = six.text_type  # unicode in py2, str in py3
@@ -44,12 +42,25 @@ def create_ferry_resource(spec_manager, factory):
     return FerryWebSocketResource(spec_manager, factory)
 
 
-class PortiaBrowserTab(BrowserTab):
-    def set_content(self, data, callback, errback, mime_type=None,
-                    baseurl=None):
-        self._raw_html = str(data)
-        super(PortiaBrowserTab, self).set_content(data, callback, errback,
-                                                  mime_type, baseurl)
+class PortiaNetworkManager(SplashQNetworkAccessManager):
+    _raw_html = None
+
+    def createRequest(self, operation, request, outgoingData=None):
+        reply = super(PortiaNetworkManager, self).createRequest(operation, request, outgoingData)
+        try:
+            url = six.binary_type(request.url().toEncoded())
+            frame_url = six.binary_type(self.tab.web_page.mainFrame().requestedUrl().toEncoded())
+            if url == frame_url:
+                self._raw_html = ''
+                reply.readyRead.connect(self._ready_read)
+        except:
+            log.err()
+        finally:
+            return reply
+
+    def _ready_read(self):
+        reply = self.sender()
+        self._raw_html = self._raw_html + six.binary_type(reply.peek(reply.bytesAvailable()))
 
 
 class FerryWebSocketResource(WebSocketResource):
@@ -139,10 +150,13 @@ class PortiaJSApi(QObject):
     @pyqtSlot('QString')
     def sendMessage(self, message):
         message = text(message)
+        message = message.strip('\x00') # Allocation bug somewhere leaves null characters at the end.
         try:
             command, data = json.loads(message)
-        except ValueError:  # XXX: Possibly null terminated string
-            command, data = json.loads(message[:-1])
+        except ValueError as e:
+            return log.err(ValueError(
+                "%s JSON head: %r tail: %r" % (e.message, message[:100], message[-100:])
+            ))
         self.protocol.sendMessage({
             '_command': command,
             '_data': data
@@ -164,6 +178,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'rename': rename_project_data,
         'resolve': resolve,
         'resume': resume,
+        'log_event': log_event,
         'pause': pause,
         'extract_items': extract_items,
         'save_html': save_html
@@ -171,7 +186,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
     spec_manager = None
     settings = None
     assets = './'
-    storage = None
 
     @property
     def tab(self):
@@ -205,8 +219,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                  'parameters')
 
     def onMessage(self, payload, isbinary):
-        if isbinary:
-            payload = payload.decode('utf-8')
+        payload = payload.decode('utf-8')
         data = json.loads(payload)
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
@@ -214,12 +227,28 @@ class FerryServerProtocol(WebSocketServerProtocol):
             command = data['_command']
             try:
                 result = self._handlers[command](data, self)
-            except BaseHTTPError as e:
+            except Exception as e:
                 command = data.get('_callback') or command
-                return self.sendMessage({'error': e.status,
-                                         '_command': command,
-                                         'id': data.get('_meta', {}).get('id'),
-                                         'reason': e.title})
+                if isinstance(e, BaseHTTPError):
+                    code = e.status
+                    reason = e.title
+                else:
+                    code = 500
+                    reason = "Internal Server Error"
+
+                failure = Failure(e)
+                log.err(failure)
+                event_id = getattr(failure, 'sentry_event_id', None)
+                if event_id:
+                    reason = "%s (Event ID: %s)" % (reason, event_id)
+
+                return self.sendMessage({
+                    'error': code,
+                    '_command': command,
+                    'id': data.get('_meta', {}).get('id'),
+                    'reason': reason
+                })
+
             if result:
                 result.setdefault('_command', data.get('_callback', command))
                 self.sendMessage(result)
@@ -259,26 +288,29 @@ class FerryServerProtocol(WebSocketServerProtocol):
     def open_tab(self, meta=None):
         if meta is None:
             meta = {}
-        manager = network_manager.create_default()
+        manager = PortiaNetworkManager(
+            request_middlewares=[],
+            response_middlewares=[],
+            verbosity=defaults.VERBOSITY
+        )
+        manager.setCache(None)
 
         data = {}
         data['uid'] = id(data)
 
-        self.factory[self].tab = PortiaBrowserTab(
+        self.factory[self].tab = BrowserTab(
             network_manager=manager,
             splash_proxy_factory=None,
             verbosity=0,
             render_options=RenderOptions(data, defaults.MAX_TIMEOUT),
             visible=True,
         )
+        manager.tab = self.tab
         main_frame = self.tab.web_page.mainFrame()
         cookiejar = PortiaCookieJar(self.tab.web_page, self)
         self.tab.web_page.cookiejar = cookiejar
         if meta.get('cookies'):
             cookiejar.put_client_cookies(meta['cookies'])
-
-        if meta.get('storage'):
-            self.storage = meta['storage']
 
         main_frame.loadStarted.connect(self._on_load_started)
         self.js_api = PortiaJSApi(self)
@@ -300,18 +332,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.tab.run_js_files(
             os.path.join(self.assets, '..', '..', 'slyd', 'dist', 'splash_content_scripts'),
             handle_errors=False)
-
-        origin = self.tab.evaljs('location.origin')
-        storage = self.storage or {}
-
-        local_storage = storage.get('local', {}).get(origin, {})
-        session_storage = storage.get('session', {}).get(origin, {})
-
-        if local_storage or session_storage:
-            script = 'livePortiaPage.setLocalStorage(%s, %s)' % (
-                json.dumps(local_storage), json.dumps(session_storage)
-            )
-            main_frame.evaluateJavaScript(script)
 
     def open_spider(self, meta):
         if ('project' not in meta or 'spider' not in meta):

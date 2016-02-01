@@ -6,9 +6,9 @@ from twisted.internet.threads import deferToThread
 from twisted.internet.defer import CancelledError
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
+from twisted.python import log
 
-from PyQt4.QtNetwork import QNetworkRequest
-
+from .qtutils import QNetworkRequest, to_py
 from .ferry import User
 from .css_utils import process_css
 
@@ -36,19 +36,30 @@ class ProxyResource(Resource):
         cb = functools.partial(self.end_response, request, url, referer,
                                connection_status, tabid)
         if not user or not user.tab:
-            d = deferToThread(requests.get, url, headers={'referer': referer})
-            d.addCallback(cb)
-            d.addErrback(self._requestError, request)
-            request.notifyFinish().addErrback(self._requestDisconnect,
-                                              deferred=d)
-            return NOT_DONE_YET
+            # No browser session active, proxy resource instead
+            return self._load_resource_proxy(request, url, referer, cb)
 
         if request.auth_info['username'] != user.auth['username']:
             return self._error(request, 403, "You don't own that browser session")
 
         request.notifyFinish().addErrback(self._requestDisconnect, None,
                                           connection_status)
-        user.tab.http_client.get(url, cb, headers={'referer': referer})
+        try:
+            user.tab.http_client.get(url, cb, headers={'referer': referer})
+            return NOT_DONE_YET
+        except:
+            # Sometimes the browser frame has been freed and we get a
+            # "underlying C/C++ object has been deleted" error. Not sure if we
+            # can do something to avoid it, but if it happens we proxy the
+            # resource instead of recovering it from splash.
+            log.err()
+            return self._load_resource_proxy(request, url, referer, cb)
+
+    def _load_resource_proxy(self, request, url, referer, cb):
+        d = deferToThread(requests.get, url, headers={'referer': referer})
+        d.addCallback(cb)
+        d.addErrback(self._requestError, request)
+        request.notifyFinish().addErrback(self._requestDisconnect, deferred=d)
         return NOT_DONE_YET
 
     def _requestError(self, err, request):
@@ -70,7 +81,7 @@ class ProxyResource(Resource):
 
         if hasattr(reply, 'readAll'):
             content = str(reply.readAll())
-            status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute).toPyObject()
+            status_code = to_py(reply.attribute(QNetworkRequest.HttpStatusCodeAttribute))
             if status_code == 400:
                 return self._load_resource(request, original_url, referer)
             request.setResponseCode(status_code or 500)

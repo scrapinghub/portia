@@ -1,0 +1,12 @@
+{
+    "exclude_patterns": [], 
+    "follow_patterns": [
+        ".+MobileHomePark\\.php\\?key=\\d+"
+    ], 
+    "links_to_follow": "patterns", 
+    "respect_nofollow": true, 
+    "start_urls": [
+        "http://www.mhvillage.com/"
+    ], 
+    "templates": []
+}

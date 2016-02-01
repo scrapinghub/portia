@@ -3,7 +3,7 @@ import Ember from 'ember';
 import WebDocument from '../web-document';
 import interactionEvent from '../../utils/interaction-event';
 import utils from '../../utils/utils';
-
+import { predictCss, matchesExactly } from '../../utils/selector-prediction';
 
 function paintCanvasMessage(canvas) {
     var ctx = canvas.getContext('2d');
@@ -151,7 +151,6 @@ export default WebDocument.extend({
         }.bind(this));
 
         ws.addCommand('cookies', msg => this.saveCookies(msg._data));
-        ws.addCommand('storage', msg => this.saveStorage(msg._data));
     }.on('init'),
 
     /**
@@ -170,7 +169,6 @@ export default WebDocument.extend({
                 viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
                 cookies: this.cookies,
-                storage: this.storage,
             },
             _command: 'load',
             url: url,
@@ -183,13 +181,34 @@ export default WebDocument.extend({
     }.observes('ws.closed'),
 
     /**
-     * Set the content of the iframe. Can only be called in "select" mode
-     */
-    setIframeContent: function(doc) {
-        this.assertInMode('select');
-        var iframe = this.getIframeNode();
-        iframe.setAttribute('srcdoc', doc);
-        this.set('cssEnabled', true);
+        Displays a document by setting it as the content of the iframe.
+        readyCallback will be called when the document finishes rendering.
+
+        Only allowed in "select" mode
+    */
+    displayDocument: function(documentContents, readyCallback) {
+        Ember.run.next(() => {
+            this.assertInMode('select');
+            // We need to disable all interactions with the document we are loading
+            // until we trigger the callback.
+            this.blockInteractions('loadingDoc');
+            this.set('loadingDoc', true);
+            this.set('cssEnabled', true);
+
+            this.clearIframe().then(() => {
+                var iframeDoc = this.getIframe()[0];
+                iframeDoc.open('text/html', 'replace');
+                iframeDoc.write(documentContents);
+                iframeDoc.close();
+                this._updateEventHandlers();
+            }).finally(() => {
+                this.unblockInteractions('loadingDoc');
+                this.set('loadingDoc', false);
+                if (readyCallback) {
+                    readyCallback(this.getIframe());
+                }
+            });
+        });
     },
 
     clearIframe: function() {
@@ -248,7 +267,8 @@ export default WebDocument.extend({
     },
 
     postEvent: function(evt){
-        if(!evt.target || !evt.target.nodeid) {
+        var interaction =  interactionEvent(evt);
+        if(!interaction) {
             return;
         }
         this.get('ws').send({
@@ -257,12 +277,75 @@ export default WebDocument.extend({
                 project: this.get('slyd.project'),
             },
             _command: 'interact',
-            interaction: interactionEvent(evt)
+            interaction: interaction
         });
+        this.saveAction(interaction, evt);
+    },
+
+    saveAction: function (interactionEvent, nativeEvent) {
+        if(!this.get('recording')) {
+            return;
+        }
+        var pageActions = this.get('pageActions');
+        var type = interactionEvent.type;
+
+        let typemap = {
+            'click': 'click',
+            'input': 'set',
+            'change': 'set',
+            'scroll': 'scroll',
+        };
+
+        // Filter actions we are not interested in
+        if (!pageActions || !(type in typemap)) {
+            return null; // We don't record that kind of actions
+        }
+
+        let actionType = typemap[type];
+
+        var target = nativeEvent.target;
+        if(target.nodeType === Node.DOCUMENT_NODE){
+            target = target.documentElement;
+        }
+        if ((type === 'click' && $(target).is('option,select,input:text,body,textarea,html')) || // Ignore click events in some elements
+            (type === 'change' && !$(target).is('select'))){ // We only care about change events in select elements
+            return null;
+        }
+
+        var selector = predictCss(matchesExactly($(target)));
+
+        // If we are inputting more text into a field, or changing again a select make it only one interaction
+        if((actionType === 'set' || actionType === 'scroll') && pageActions.length){
+            var lastAction = pageActions[pageActions.length-1];
+
+            if(lastAction.type === actionType && lastAction.selector === selector && !lastAction._edited){
+                if(actionType === 'set') {
+                    Ember.set(lastAction, 'value', $(target).val());
+                } else if (actionType === 'scroll') {
+                    Ember.set(lastAction, 'percent', Math.max(lastAction.percent, interactionEvent.scrollTopPercent));
+                }
+                return;
+            }
+        }
+
+        // Record the action
+        var action = Ember.Object.create({
+            type: actionType,
+            selector: selector,
+            target: target
+        });
+        if(actionType === 'set'){
+            action.value = $(target).val();
+        } else if(actionType === 'scroll') {
+            action.percent = interactionEvent.scrollTopPercent;
+        }
+        pageActions.pushObject(action);
     },
 
     bindResizeEvent: function() {
-        Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        if (!Ember.testing){
+            Ember.$(window).on('resize', Ember.run.bind(this, this.handleResize));
+        }
     }.on('init'),
 
     handleResize: function() {
@@ -271,22 +354,6 @@ export default WebDocument.extend({
             size: this.iframeSize()
         });
     },
-
-    saveStorage: function(data) {
-        this.storage.local[data.origin] = data.local;
-        this.storage.session[data.origin] = data.session;
-        if(window.sessionStorage){
-            window.sessionStorage.portia_storage = JSON.stringify(this.storage);
-        }
-    },
-
-    loadStorage: function(){
-        if(window.sessionStorage && sessionStorage.portia_storage){
-            this.storage = JSON.parse(sessionStorage.portia_storage);
-        } else {
-            this.storage = { local: {}, session: {} };
-        }
-    }.on('init'),
 
     saveCookies: function(cookies){
         this.cookies = cookies;

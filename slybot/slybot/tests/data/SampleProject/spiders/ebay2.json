@@ -1,12 +1,12 @@
 {
     "templates": [], 
     "start_urls": [
-        "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc"
+        "http://www.ebay.com/sch/ebayadvsearch/?rt=nc"
     ], 
     "init_requests": [
         {
             "type": "form",
-            "form_url": "http://http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
+            "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             "xpath": "//form[@name='adv_search_from']",
             "fields": [
                 {

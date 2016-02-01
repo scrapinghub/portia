@@ -3,10 +3,18 @@
   "test_page": "tests/index.html?hidepassed",
   "disable_watching": true,
   "launch_in_ci": [
-    "PhantomJS"
+    "firefox"
   ],
   "launch_in_dev": [
-    "PhantomJS",
+    "firefox",
     "Chrome"
-  ]
+  ],
+  "proxies": {
+    "/projects": { "target": "http://localhost:8787" },
+    "/server_capabilities": { "target": "http://localhost:8787" },
+    "/static": { "target": "http://localhost:8787" },
+    "/fonts": { "target": "http://localhost:8787" },
+    "/proxy": { "target": "http://localhost:8787" },
+    "/testresources": { "target": "http://localhost:8788" }
+  }
 }

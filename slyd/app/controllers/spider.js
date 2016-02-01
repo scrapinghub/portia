@@ -82,6 +82,7 @@ export default BaseController.extend({
     addTemplateDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching', 'testing'),
     reloadDisabled: Ember.computed.or('noPageLoaded', 'ws.closed', 'isFetching'),
     haveItems: Ember.computed.notEmpty('extractedItems'),
+    pageActionsEnabled: Ember.computed.reads('model.js_enabled'),
 
     browseBackDisabled: function() {
         return this.get('ws.closed') || this.get('browseHistory').length <= 1;
@@ -317,11 +318,11 @@ export default BaseController.extend({
             return;
         }
         this.set('saving', true);
-        return this.get('ws').save('spider', this.get('model')).then(function() {
-            this.set('saving', false);
-        }.bind(this),function() {
-            this.set('saving', false);
-        }.bind(this));
+        return this.get('ws').save('spider', this.get('model')).finally(() => {
+            if(!this.isDestroying) {
+                this.set('saving', false);
+            }
+        });
     },
 
     testSpider: function() {
@@ -534,6 +535,10 @@ export default BaseController.extend({
                 }
             }
         },
+
+        toggleRecording: function() {
+            this.get('documentView').toggleProperty('recording');
+        }
     },
 
     documentActions: {
@@ -578,6 +583,7 @@ export default BaseController.extend({
             mode: 'browse',
             useBlankPlaceholder: false,
             listener: this,
+            pageActions: this.get('model.page_actions'),
         });
         this.get('browseHistory').clear();
         Ember.run.next(() => {

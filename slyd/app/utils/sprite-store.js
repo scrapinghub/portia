@@ -47,10 +47,11 @@ export default Ember.Object.extend({
         });
     }.property('_sprites.@each', '_ignores.@each'),
 
-    addSprite: function(element, text) {
+    addSprite: function(element, text, options={}) {
         var updated = false;
         this.get('_sprites').forEach(function(sprite) {
             if (Ember.$(sprite.element).get(0) === element) {
+                sprite.setProperties(options);
                 sprite.set('name', text);
                 updated = true;
             }
@@ -62,9 +63,9 @@ export default Ember.Object.extend({
                 name: text,
                 element: element,
                 highlight: false,
-                fillColor: this.get('fillColor'),
-                strokeColor: this.get('strokeColor'),
-                textColor: this.get('textColor')
+                fillColor: options.fillColor || this.get('fillColor'),
+                strokeColor: options.strokeColor || this.get('strokeColor'),
+                textColor: options.textColor || this.get('textColor')
             }));
         }
     },

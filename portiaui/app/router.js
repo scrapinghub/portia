@@ -26,6 +26,10 @@ Router.map(function() {
                 });
                 this.route('options');
             });
+
+            this.route("conflicts", function(){
+                this.route("conflict", {path: ':file_path'});
+            });
         });
     });
 });

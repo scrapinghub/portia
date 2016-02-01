@@ -4,12 +4,15 @@ import json, re, shutil, errno, os
 import slyd.errors
 
 from os.path import join, splitext
+from scrapy.http import HtmlResponse
 from twisted.web.resource import NoResource, ForbiddenResource
+from twisted.web.server import NOT_DONE_YET
 from jsonschema.exceptions import ValidationError
 from .resource import SlydJsonObjectResource
 from .html import html4annotation
 from .errors import BaseHTTPError
 from .utils.projects import allowed_file_name, ProjectModifier
+from .utils.extraction import extract_items
 
 
 def create_project_resource(spec_manager):
@@ -119,6 +122,20 @@ class ProjectSpec(object):
     def _rfile(self, resources, mode='rb'):
         return open(self._rfilename(*resources), mode)
 
+    def _process_extraction_urls(self, urls):
+        if hasattr(urls, 'get'):
+            urls = urls.get('urls', [])
+        if isinstance(urls, dict):
+            return urls.items()
+        return urls
+
+    def _process_extraction_response(self, url, html):
+        return [(url, HtmlResponse(url, body=html))]
+
+    def extract_data(self, spider_name, url_info, request):
+        urls = self._process_extraction_urls(url_info)
+        extract_items(self, spider_name, urls, request)
+
     def resource(self, *resources):
         print "for resource", resources, 'filename', self._rfilename(*resources)
         with self._rfile(resources) as f:
@@ -214,6 +231,10 @@ class ProjectResource(SlydJsonObjectResource, ProjectModifier):
         project_spec = self.spec_manager.project_spec(
             request.project, request.auth_info)
         resource = None
+        rpath = request.postpath
+        if rpath and rpath[0] == 'extract':
+            project_spec.extract_data(rpath[1], obj, request)
+            return NOT_DONE_YET
         try:
             # validate the request path and data
             obj = self.verify_data(request.postpath, obj, project_spec)

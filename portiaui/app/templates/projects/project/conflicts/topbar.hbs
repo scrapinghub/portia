@@ -1,0 +1,9 @@
+<div class="nav-container topbar-conflicts">
+    <span>Resolving <strong>{{model.file}}</strong></span>
+    {{#unless haveConflicts}}
+        <button type="button" class="btn btn-default" {{action 'saveFile'}}>
+            <i class="fa fa-icon fa-upload"></i>
+            Save File
+        </button>
+    {{/unless}}
+</div>

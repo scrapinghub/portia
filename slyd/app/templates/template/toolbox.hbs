@@ -13,8 +13,12 @@
 		{{#if activeExtractionTool.data.extracts}}
 			<div class="scrolling-container" {{bind-attr style="mid_box_style"}}>
 				{{#each anno in activeExtractionTool.data.extracts}}
-					{{component activeExtractionTool.component data=anno alldata=activeExtractionTool.data.extracts item=scrapedItem createField="createField" close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes updatePluginData="updatePluginField"}}
+					{{component activeExtractionTool.component data=anno alldata=activeExtractionTool.data.extracts item=scrapedItem createField="createField" close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes updatePluginData="updatePluginField" dissmissAllSuggestions="dissmissAllSuggestions"}}
 				{{/each}}
+				{{#if severalSuggestions}}
+					{{#bs-button clicked="acceptAllSuggestions" type="success" size="sm"}}Accept all suggestions{{/bs-button}}
+					{{#bs-button clicked="dissmissAllSuggestions" type="warning" size="sm"}}Dismiss all suggestions{{/bs-button}}
+				{{/if}}
 			</div>
 		{{else}}
 			<h5>No annotations have been created yet.</h5>
@@ -97,5 +101,5 @@
 {{/closable-accordion}}
 
 {{#if showFloatingAnnotationWidgetAt}}
-	{{component activeExtractionTool.component data=floatingAnnotation mappedElement=floatingElement alldata=activeExtractionTool.data.extracts item=scrapedItem createField="createField" close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes inDoc=true pos=showFloatingAnnotationWidgetAt updatePluginData="updatePluginField"}}
+	{{component activeExtractionTool.component data=floatingAnnotation mappedElement=floatingElement alldata=activeExtractionTool.data.extracts item=scrapedItem createField="createField" close="hideFloatingAnnotationWidget" edit="editAnnotation" document=document pluginState=activeExtractionTool.pluginState sprites=activeExtractionTool.sprites extractionFieldTypes=extractionTypes inDoc=true pos=showFloatingAnnotationWidgetAt updatePluginData="updatePluginField" dissmissAllSuggestions="dissmissAllSuggestions"}}
 {{/if}}

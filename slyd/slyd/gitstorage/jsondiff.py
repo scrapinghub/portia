@@ -68,7 +68,7 @@ class Conflict(object):
                 new_other.append(next(i_other))
             elif diff.startswith('+'):
                 new_mine.append(next(i_mine))
-            else:
+            elif diff.startswith(' '):
                 next(i_other)
                 result.append(next(i_mine))
         return result
@@ -104,7 +104,8 @@ def merge_lists(base, mine, other):
     last_conflict = False
     for i, (m, o, b) in enumerate(zip_longest(mine, other, base,
                                               fillvalue=_BLANK)):
-        if m == o and _BLANK not in (m, o):
+        if (m == o and _BLANK not in (m, o) or
+                isinstance(m, dict) and isinstance(o, dict)):
             result.append(m)
         else:  # Conflict
             if last_conflict:

@@ -1,0 +1,10 @@
+{
+    "template_names": ["template"],
+    "start_urls": [
+        "http://www.pinterest.com/pin/339740365610932893/"
+    ],
+    "exclude_patterns": [],
+    "follow_patterns": [],
+    "links_to_follow": "patterns",
+    "respect_nofollow": true
+}
