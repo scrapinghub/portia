@@ -95,7 +95,6 @@ export function createAdapter(adapterMembers) {
 
     var apiOptIn = true; //((localStorage && localStorage['use_api']) ||
                     //location.search.indexOf('use_api') >= 0);
-    console.log(apiOptIn);
     if(!Ember.testing && apiOptIn) {
         return SlydJSONAPIAdapter.extend({
             urlTemplate: adapterMembers.urlTemplate
