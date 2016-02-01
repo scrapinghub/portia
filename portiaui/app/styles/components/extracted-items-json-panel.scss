@@ -13,6 +13,14 @@
         font-weight: normal;
         display: inline-block;
         white-space: pre;
+        float: left;
+        word-spacing: 0px;
+        &.open-container {
+            white-space: normal;
+        }
+        &.new-line {
+            width: 100%;
+        }
     }
 }
 
@@ -21,11 +29,15 @@
     word-break: normal;
     display: inline-block;
     color: $text-color;
+    float: left;
+    text-indent: -1ch;
+    margin: 0 0 0 1ch;
 }
 
 .json-key {
     white-space: pre;
     display: inline-block;
+    float:left;
 }
 
 .json-array-spacing {

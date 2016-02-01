@@ -34,7 +34,8 @@ text = six.text_type  # unicode in py2, str in py3
 import txaio
 txaio.use_twisted()
 
-_DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
+_DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 '
+                       '(KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36')
 _DEFAULT_VIEWPORT = '1240x680'
 
 
@@ -319,8 +320,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         )
 
         self.tab.set_images_enabled(False)
-        self.tab.set_viewport(meta.get('viewport', _DEFAULT_VIEWPORT))
-        self.tab.set_user_agent(meta.get('user_agent', _DEFAULT_USER_AGENT))
+        self.tab.set_viewport(meta.get('viewport') or _DEFAULT_VIEWPORT)
+        self.tab.set_user_agent(meta.get('user_agent') or _DEFAULT_USER_AGENT)
         self.tab.loaded = False
 
     def _on_load_started(self):
@@ -330,7 +331,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         main_frame = self.tab.web_page.mainFrame()
         main_frame.addToJavaScriptWindowObject('__portiaApi', self.js_api)
         self.tab.run_js_files(
-            os.path.join(self.assets, '..', '..', 'slyd', 'dist', 'splash_content_scripts'),
+            os.path.join(self.assets, '..', '..', 'slyd', 'dist',
+                         'splash_content_scripts'),
             handle_errors=False)
 
     def open_spider(self, meta):

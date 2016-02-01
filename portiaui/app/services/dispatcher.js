@@ -245,7 +245,6 @@ export default Ember.Service.extend({
                 );
             });
         });
-        this.updateContainers(annotation.get('parent').get('itemAnnotation'));
         return annotation;
     },
 
@@ -440,7 +439,6 @@ export default Ember.Service.extend({
             containerAnnotation.set('acceptSelectors', [containerPath]);
             containerAnnotation.set('siblings', siblings);
             containerAnnotation.save();
-            // Notify property change to trigger extraction
         });
     }
 });
