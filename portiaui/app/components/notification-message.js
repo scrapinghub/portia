@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { attrChangedTo } from '../utils/attrs';
 
 export default Ember.Component.extend({
     classNames: ['alert', 'notification', 'fade'],
@@ -24,8 +25,8 @@ export default Ember.Component.extend({
         this.set('show', false);
     },
 
-    didReceiveAttrs({newAttrs}) {
-        if (newAttrs.fade) {
+    didReceiveAttrs({newAttrs, oldAttrs}) {
+        if (attrChangedTo(oldAttrs, newAttrs, 'fade', true)) {
             this.fadeOut();
         }
     },
