@@ -11,20 +11,20 @@ export default Ember.Route.extend({
         this.set('browser.url', model.get('startUrls.firstObject'));
     },
 
-    deactivate() {
-        this.set('browser.url', null);
-    },
-
     setupController(controller) {
         this._super(...arguments);
-        controller.activate();
+        Ember.run.next(function () {
+            controller.activate();
+        });
     },
 
     resetController(controller, isExiting) {
-        controller.deactivate();
-        if (!isExiting) {
-            controller.activate();
-        }
+        Ember.run.next(function () {
+            controller.deactivate();
+            if (!isExiting) {
+                controller.activate();
+            }
+        });
     },
 
     renderTemplate() {

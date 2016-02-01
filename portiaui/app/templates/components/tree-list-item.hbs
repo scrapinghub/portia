@@ -1,8 +1,6 @@
-<div class="tree-list-item-row">
-    <div class="tree-list-item-content">
-        {{yield (hash section="item")}}
-    </div>
-</div>
+{{#tree-list-item-row onMouseEnter=onMouseEnter onMouseLeave=onMouseLeave}}
+    {{yield (hash section="item")}}
+{{/tree-list-item-row}}
 {{#if hasChildren}}
     {{#tree-list}}
         {{yield (hash section="subtrees")}}

@@ -1,24 +1,24 @@
-{{#dropdown-widget class="combo-box" open=(mut open) focusMenu=false active=(mut viewValue) focused=value activeQuery=query matchQuery=matchQuery menuContainer=menuContainer menuClass=menuClass menuAlign=menuAlign on-close=(action 'menuClosed') as |options|}}
-    {{#if (eq options.section 'widget')}}
+{{#dropdown-widget class="combo-box" events=this open=(mut open) active=(mut viewValue) focused=value menuContainer=menuContainer menuClass=menuClass menuAlign=menuAlign onClose=(action 'menuClosed')  as |widget|}}
+    {{#if (eq widget.section 'widget')}}
         <div class="combo-input">
-            {{input id=inputId type="text" class=(concat "form-control dropdown-toggle " inputClass) value=queryOrValue escape-press=(action options.closeMenu 'escape') focus-in=(action (chain-actions options.openMenu options.focusIn)) focus-out=(action (chain-actions options.focusOut (action 'restoreFocus'))) spellcheck=spellcheck}}
-            <span class="caret-container" {{action options.closeMenu 'button'}}>
+            {{input id=inputId type="text" class=(concat "form-control dropdown-toggle " inputClass) value=query escape-press=(action widget.closeMenu 'escape') focus-in=(chain-actions widget.openMenu widget.focusIn) focus-out=(chain-actions widget.focusOut (action 'restoreFocus')) spellcheck=spellcheck}}
+            <span class="caret-container" {{action widget.toggleMenu 'button'}}>
                 <span class="caret"></span>
             </span>
         </div>
         {{currentValue}}
-    {{else if (eq options.section 'menu')}}
+    {{else if (eq widget.section 'menu')}}
         {{#if hasBlock}}
-            {{yield (hash menu=options.menu setValue=(action 'setValue') setViewValue=(action 'setViewValue') setValueAndClose=(action 'setValueAndClose') closeMenu=options.closeMenu)}}
+            {{yield (hash menu=widget.menu header=widget.header item=widget.item divider=widget.divider query=query setValue=(action 'setValue') setViewValue=(action 'setViewValue') setValueAndClose=(action 'setValueAndClose') closeMenu=widget.closeMenu)}}
         {{else}}
             {{#each choices as |choice|}}
-                {{#dropdown-item menu=options.menu value=choice action=(action 'setValueAndClose' choice)}}
+                {{#widget.item value=choice action=(action 'setValueAndClose' choice)}}
                     {{#if valueAttribute}}
                         {{get choice valueAttribute}}
                     {{else}}
                         {{choice}}
                     {{/if}}
-                {{/dropdown-item}}
+                {{/widget.item}}
             {{/each}}
         {{/if}}
     {{/if}}

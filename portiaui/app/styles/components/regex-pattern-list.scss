@@ -1,9 +1,11 @@
 .regex-pattern-list {
     .new-pattern {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
+        > div {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
 
         i {
             width: $tree-list-row-height;

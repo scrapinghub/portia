@@ -8,8 +8,17 @@
 
     img[alt="Portia logo"] {
         display: block;
+        flex: 0 0 auto;
         width: 25%;
         margin: 0 auto;
+    }
+
+    > h3 {
+        margin: 2em auto 0;
+    }
+
+    > p {
+        margin: 1em auto 0;
     }
 
     &:before,

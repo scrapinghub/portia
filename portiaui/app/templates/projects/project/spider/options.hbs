@@ -1,11 +1,11 @@
-{{#tool-group id="spider-options-group" collapsible=false close=(action 'closeOptions') as |options|}}
-    {{#if (eq options.section "tabs")}}
-        {{#tool-tab toolId="spider-options" group=options.group}}
+{{#tool-group id="spider-options-group" collapsible=false onClose=(action 'closeOptions') as |group|}}
+    {{#if (eq group.section "tabs")}}
+        {{#group.tab toolId="spider-options"}}
             Spider properties
-        {{/tool-tab}}
-    {{else if (eq options.section "panels")}}
-        {{#tool-panel class="extracted-items container-fluid" toolId="spider-options" group=options.group as |active|}}
+        {{/group.tab}}
+    {{else if (eq group.section "panels")}}
+        {{#group.panel class="extracted-items container-fluid" toolId="spider-options" as |active|}}
             {{spider-options spider=model}}
-        {{/tool-panel}}
+        {{/group.panel}}
     {{/if}}
 {{/tool-group}}

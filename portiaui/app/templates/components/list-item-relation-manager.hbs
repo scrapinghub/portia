@@ -1,23 +1,23 @@
-{{#list-item-combo value=(mut value) valueAttribute='name' matchQuery=matchQuery selecting=(mut selecting) change=change autoSelect=true menuContainer="body" as |options|}}
-    {{#dropdown-header}}
+{{#list-item-combo value=(mut value) valueAttribute='name' selecting=(mut selecting) onChange=onChange autoSelect=true menuContainer="body" as |combo|}}
+    {{#combo.header}}
         {{yield (hash section='choices')}}
-    {{/dropdown-header}}
+    {{/combo.header}}
     {{#each choices as |choice|}}
-        {{#dropdown-item menu=options.menu value=choice action=(action options.setValueAndClose choice)}}
+        {{#combo.item value=choice action=(action combo.setValueAndClose choice)}}
             {{yield (hash section='choice' choice=choice)}}
-        {{/dropdown-item}}
+        {{/combo.item}}
     {{/each}}
-    {{dropdown-divider}}
-    {{#dropdown-header}}
+    {{combo.divider}}
+    {{#combo.header}}
         {{yield (hash section='rename')}}
-    {{/dropdown-header}}
-    {{#dropdown-item menu=options.menu value=(hash special="rename" name=options.menu.activeQuery) disabled=(not options.menu.active.special) action=(chain-actions (action 'rename' options.menu.activeQuery) (action options.closeMenu 'escape'))}}
-        {{list-item-icon class="icon" icon="edit"}}Rename to {{options.menu.activeQuery}}
-    {{/dropdown-item}}
-    {{#dropdown-header}}
+    {{/combo.header}}
+    {{#combo.item value=(hash special="rename" name=combo.query) disabled=(not combo.menu.active.special) action=(chain-actions (action 'rename' combo.query) (action combo.closeMenu 'escape'))}}
+        {{list-item-icon class="icon" icon="edit"}}Rename to {{combo.query}}
+    {{/combo.item}}
+    {{#combo.header}}
         {{yield (hash section='add')}}
-    {{/dropdown-header}}
-    {{#dropdown-item menu=options.menu value=(hash special="add" name=options.menu.activeQuery) disabled=(not options.menu.active.special) action=(chain-actions (action 'add' options.menu.activeQuery) (action options.closeMenu 'escape'))}}
-        {{list-item-icon class="icon" icon="add"}}Add {{options.menu.activeQuery}}
-    {{/dropdown-item}}
+    {{/combo.header}}
+    {{#combo.item value=(hash special="add" name=combo.query) disabled=(not combo.menu.active.special) action=(chain-actions (action 'add' combo.query) (action combo.closeMenu 'escape'))}}
+        {{list-item-icon class="icon" icon="add"}}Add {{combo.query}}
+    {{/combo.item}}
 {{/list-item-combo}}

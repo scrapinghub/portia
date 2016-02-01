@@ -1,13 +1,13 @@
 {{#if model.showLinks}}
-    {{#tool-group id="show-links-legend-group" as |options|}}
-        {{#if (eq options.section "tabs")}}
-            {{#tool-tab toolId="show-links-legend" group=options.group}}
+    {{#tool-group id="show-links-legend-group" as |group|}}
+        {{#if (eq group.section "tabs")}}
+            {{#group.tab toolId="show-links-legend"}}
                 Followed links
-            {{/tool-tab}}
-        {{else if (eq options.section "panels")}}
-            {{#tool-panel id="show-links-legend" class="container-fluid" toolId="show-links-legend" group=options.group}}
+            {{/group.tab}}
+        {{else if (eq group.section "panels")}}
+            {{#group.panel id="show-links-legend" class="container-fluid" toolId="show-links-legend"}}
                 {{show-links-legend followedLinks=followedLinkElements.length jsLinks=jsLinkElements.length ignoredLinks=ignoredLinkElements.length}}
-            {{/tool-panel}}
+            {{/group.panel}}
         {{/if}}
     {{/tool-group}}
 {{/if}}

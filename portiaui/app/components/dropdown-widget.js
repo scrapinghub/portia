@@ -7,35 +7,47 @@ export default Ember.Component.extend({
     classNameBindings: ['open'],
 
     active: null,
-    activeQuery: null,
+    events: null,
     focused: null,
-    focusedQuery: null,
     focusMenu: false,
     keyNavigate: 'active',
-    matchQuery: null,
-    menu: null,
     menuAlign: 'left',
     menuClass: null,
     menuContainer: null,
     open: false,
 
     alignRight: Ember.computed.equal('menuAlign', 'right'),
+    menuClasses: Ember.computed('menuClass', 'menuContainer', 'open', 'alignRight', function() {
+        const classes = [this.get('menuClass')];
+        if (this.get('menuContainer')) {
+            classes.push('dropdown-menu-floating');
+            if (this.get('open')) {
+                classes.push('open');
+            }
+        }
+        if (this.get('alignRight')) {
+            classes.push('pull-right');
+        }
+        return classes.join(' ');
+    }),
 
     init() {
         this._super();
-        this.set('$menu', null);
+        if (!this.get('events')) {
+            this.set('events', this);
+        }
+        this.$menu = null;
         this.elementFocused = false;
         this.menuWidth = null;
+        this.menuHeight = null;
+        this.windowHeight = null;
     },
 
     didInsertElement() {
         const container = this.get('menuContainer');
         if (container) {
-            const menu = this.get('menu');
-            const $menu = menu && menu.$();
-
+            const $menu = this.$menu = this.$('.dropdown-menu');
             Ember.run.schedule('afterRender', () => {
-                this.set('$menu', $menu);
                 Ember.$(container).append($menu);
                 this.get('positionMonitor').registerElement(
                     this.element, this, this.updateMenuSize, this.updatePosition,
@@ -45,11 +57,12 @@ export default Ember.Component.extend({
     },
 
     willDestroyElement() {
-        const $menu = this.get('$menu');
+        const $menu = this.$menu;
         if ($menu) {
-            this.get('positionMonitor').unRegisterElement(
-                this.element, this, this.updateMenuSize, this.updatePosition);
-            Ember.run.schedule('afterRender', () => {
+            const element = this.element;
+            Ember.run.schedule('render', () => {
+                this.get('positionMonitor').unRegisterElement(
+                    element, this, this.updateMenuSize, this.updatePosition);
                 $menu.remove();
             });
         }
@@ -68,28 +81,30 @@ export default Ember.Component.extend({
     },
 
     updateMenuSize() {
-        const $menu = this.get('$menu');
+        const $menu = this.$menu;
         this.menuWidth = $menu.outerWidth();
-        this.menuHeight = $menu.outerHeight();
+        this.menuHeight = $menu.outerHeight(true);
+        this.windowHeight = window.innerHeight;
     },
 
     updatePosition(rect) {
-        const $menu = this.get('$menu');
-        const left = Math.round(rect.left);
-        const right = Math.round(rect.right);
         let positionLeft;
+        let positionTop;
         if (this.get('alignRight')) {
-            positionLeft = right - this.menuWidth;
+            positionLeft = Math.round(rect.right - this.menuWidth);
         } else {
-            positionLeft = left;
+            positionLeft = Math.round(rect.left);
         }
-        let overflows = (rect.bottom + this.menuHeight) > window.innerHeight;
-        // If it overflows under the screen, align top
-        let top =  overflows ? rect.top - this.menuHeight : rect.bottom;
-        $menu.css({
-            top: `${Math.round(top)}px`,
+        if (rect.bottom + this.menuHeight > this.windowHeight) {
+            // If it overflows under the screen, align top
+            positionTop = Math.round(rect.top - this.menuHeight);
+        } else {
+            positionTop = Math.round(rect.bottom);
+        }
+        this.$menu.css({
+            top: `${positionTop}px`,
             left: `${positionLeft}px`,
-            right: `auto`,
+            right: `auto`
         });
     },
 
@@ -99,8 +114,8 @@ export default Ember.Component.extend({
         },
 
         closeMenu(closeReason) {
-            if (this.attrs['on-close']) {
-                this.attrs['on-close'](closeReason || 'close');
+            if (this.attrs.onClose) {
+                this.attrs.onClose(closeReason || 'close');
             }
             this.set('open', false);
         },
@@ -129,7 +144,10 @@ export default Ember.Component.extend({
 
         keyDown(event) {
             if (this.get('open')){
-                this.get('menu').send('keyDown', event);
+                if (event.keyCode === 27) {  // ESCAPE
+                    this.send('closeMenu', 'escape');
+                }
+                this.get('events').trigger('menuKeyDown', ...arguments);
             }
         }
     }

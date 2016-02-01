@@ -29,9 +29,9 @@
             {{/if}}
         {{/tooltip-container}}
     </span>
-    {{buffered-input placeholder="Enter a website address" value=(mut url) viewValue=(mut editedUrl) autofocus=autofocus autoSelect=true disabled=disabled spellcheck=false enter=(action 'submit')}}
+    {{buffered-input placeholder="Enter a website address" value=(mut url) viewValue=(mut editedUrl) autofocus=autofocus autoSelect=true disabled=disabled spellcheck=false onEnterPress=(action 'submit')}}
     <span class="input-group-btn">
-        <button class="btn btn-default" type="submit" disabled={{disabled}}>
+        <button class="btn btn-default" type="button" disabled={{disabled}} {{action 'submit' url}}>
             <span class="fa {{if loading 'fa-spin fa-refresh' (if (not (eq (or (or editedUrl url) null) browser.url)) 'fa-arrow-right' 'fa-repeat')}}"></span>
         </button>
     </span>

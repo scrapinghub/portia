@@ -1,4 +1,4 @@
-{{#list-item-relation-manager value=(mut annotation.field) choices=annotation.field.schema.fields selecting=(mut selecting) change=(action 'changeField') create=(action 'addField') as |options|}}
+{{#list-item-relation-manager value=(mut annotation.field) choices=annotation.field.schema.fields selecting=(mut selecting) onChange=(action 'changeField') create=(action 'addField') as |options|}}
     {{#if (eq options.section 'choices')}}
         Select an existing field
     {{else if (eq options.section 'choice')}}

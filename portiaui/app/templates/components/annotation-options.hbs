@@ -7,13 +7,7 @@
     </div>
     <div class="form-group">
         <label for="selectionMode">Selection mode</label>
-        {{#select-box name="selectionMode" value=(mut selectionMode) valueAttribute='label' change=(action "save") as |select|}}
-            {{#each selectionModeOptions as |option|}}
-                {{#dropdown-item menu=select.menu value=option action=(action select.setValueAndClose option)}}
-                    {{option.label}}
-                {{/dropdown-item}}
-            {{/each}}
-        {{/select-box}}
+        {{select-box name="selectionMode" value=(mut selectionMode) valueAttribute='label' choices=selectionModeOptions onChange=(action "save")}}
     </div>
     {{#if (not-eq annotation.selectionMode 'auto')}}
         <div class="form-group">
@@ -23,12 +17,6 @@
     {{/if}}
     <div class="form-group">
         <label for="attribute">Source</label>
-        {{#select-box name="attribute" value=(mut attribute) valueAttribute='name' change=(action "save") as |select|}}
-            {{#each attributes as |option|}}
-                {{#dropdown-item menu=select.menu value=option action=(action select.setValueAndClose option)}}
-                    {{option.name}}
-                {{/dropdown-item}}
-            {{/each}}
-        {{/select-box}}
+        {{select-box name="attribute" value=(mut attribute) valueAttribute='name' choices=attributes onChange=(action "save")}}
     </div>
 </form>

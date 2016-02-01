@@ -4,18 +4,6 @@
     width: calc(100% - #{$sidebar-width * 2});
     margin: 0 auto;
     text-align: center;
-
-    > img {
-        flex-shrink: 0;
-    }
-
-    > h3 {
-        margin: 2em auto 0;
-    }
-
-    > p {
-        margin: 1em auto 0;
-    }
 }
 
 .project-list {

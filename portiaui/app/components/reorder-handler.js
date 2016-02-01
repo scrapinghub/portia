@@ -6,7 +6,6 @@ export default Ember.Component.extend({
         tagName: 'i',
         classNames: 'fa fa-icon fa-arrows reorder-handler',
         dragStart: function(event) {
-            console.log('dragStart!!');
             var dataTransfer = event.originalEvent.dataTransfer;
             dataTransfer.effectAllowed = "move";
             dataTransfer.setData('text/plain', "");

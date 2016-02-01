@@ -12,17 +12,39 @@ export default Ember.Component.extend({
     open: false,
     value: null,
     valueAttribute: null,
-    viewValue: null,
 
-    didInitAttrs() {
-        this.updateViewValue();
-    },
+    viewValue: Ember.computed('value', {
+        get() {
+            return this.get('value');
+        },
 
-    updateViewValue: Ember.observer('open', 'value', function() {
-        if (this.get('open')) {
-            this.set('viewValue', this.get('value'));
+        set(key, value) {
+            return value;
         }
     }),
+
+    didInsertElement() {
+        if (this.get('open')) {
+            Ember.run.next(this, this.setInputFocus);
+        }
+    },
+
+    inputId: Ember.computed('elementId', function() {
+        return this.get('elementId') + '-input';
+    }),
+
+    updateInputFocus: Ember.observer('open', function() {
+        Ember.run.scheduleOnce('afterRender', this, this.setInputFocus);
+    }),
+
+    setInputFocus() {
+        const inputElement = Ember.$('#' + this.get('inputId')).get(0);
+        if (this.get('open')) {
+            inputElement.focus();
+        } else if (!this.get('isDestroying')) {
+            inputElement.blur();
+        }
+    },
 
     actions: {
         setViewValue(value) {
@@ -39,11 +61,10 @@ export default Ember.Component.extend({
         setValueAndClose(value) {
             this.setProperties({
                 open: false,
-                value,
-                viewValue: value
+                value
             });
-            if (this.attrs.change) {
-                this.attrs.change();
+            if (this.attrs.onChange) {
+                this.attrs.onChange();
             }
         },
 
@@ -55,13 +76,12 @@ export default Ember.Component.extend({
                         viewValue: this.get('value')
                     });
                 } else {
-                    const viewValue = this.get('viewValue');
                     this.setProperties({
                         open: false,
-                        value: viewValue
+                        value: this.get('viewValue')
                     });
-                    if (this.attrs.change) {
-                        this.attrs.change();
+                    if (this.attrs.onChange) {
+                        this.attrs.onChange();
                     }
                 }
             }

@@ -31,9 +31,9 @@ export default Ember.Component.extend({
     },
 
     actions: {
-        performAction() {
+        performAction(value) {
             if (this.attrs.action && !this.get('disabled')) {
-                this.attrs.action(this.get('value'));
+                this.attrs.action(value);
             }
         }
     }

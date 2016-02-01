@@ -1,11 +1,11 @@
-{{#tool-group id="inspector-group-sample" as |options|}}
-    {{#if (eq options.section "tabs")}}
-        {{#tool-tab toolId="inspector" group=options.group}}
+{{#tool-group id="inspector-group-sample" as |group|}}
+    {{#if (eq group.section "tabs")}}
+        {{#group.tab toolId="inspector"}}
             Inspector
-        {{/tool-tab}}
-    {{else if (eq options.section "panels")}}
-        {{#tool-panel class="inspector container-fluid" toolId="inspector" group=options.group}}
+        {{/group.tab}}
+    {{else if (eq group.section "panels")}}
+        {{#group.panel class="inspector container-fluid" toolId="inspector"}}
             {{inspector-panel sample=model}}
-        {{/tool-panel}}
+        {{/group.panel}}
     {{/if}}
 {{/tool-group}}

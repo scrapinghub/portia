@@ -1,4 +1,4 @@
-export function initialize(container, application) {
+export function initialize(application) {
     application.inject('service:ui-state', 'router', 'router:main');
     application.inject('service:ui-state',
         'projectRoute', 'route:projects/project');
