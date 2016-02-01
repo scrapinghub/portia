@@ -17,26 +17,30 @@ export default Ember.Component.extend({
         padding: 0
     },
 
+    init() {
+        this._super();
+        this.$tooltipElement = null;
+    },
+
     didInsertElement() {
-        Ember.run.schedule('afterRender', this, this.createTooltip);
+        Ember.run.next(this, this.createTooltip);
     },
 
     willDestroyElement() {
-        const selector = this.get('tooltipFor');
-        Ember.run.schedule('afterRender', this, this.destroyTooltip,
-            Ember.$(`#${selector}`).first());
+        Ember.run.next(this, this.destroyTooltip);
     },
 
     createTooltip() {
         const selector = this.get('tooltipFor');
-        Ember.$(`#${selector}`).tooltip({
+        const $tooltipElement = this.$tooltipElement = Ember.$(`#${selector}`);
+        $tooltipElement.tooltip({
             /*
                 We pass in an existing element as the template. Bootstrap's
                 tooltip code will happily swallow this and insert it into the
                 DOM. Ember will keep this element updated as data changes.
              */
             template: Ember.$(`[data-tooltip-id="${this.elementId}"]`).detach(),
-            // title is check for truthiness by bootstrap
+            // title is checked for truthiness by bootstrap
             title: true,
             container: this.get('tooltipContainer'),
             delay: this.get('delay'),
@@ -46,7 +50,8 @@ export default Ember.Component.extend({
         });
     },
 
-    destroyTooltip($element) {
-        $element.tooltip('destroy');
+    destroyTooltip() {
+        this.$tooltipElement.tooltip('destroy');
+        this.$tooltipElement = null;
     }
 });
