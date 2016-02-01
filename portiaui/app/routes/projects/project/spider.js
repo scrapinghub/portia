@@ -17,14 +17,18 @@ export default Ember.Route.extend({
 
     setupController(controller) {
         this._super(...arguments);
-        controller.activate();
+        Ember.run.next(function () {
+            controller.activate();
+        });
     },
 
     resetController(controller, isExiting) {
-        controller.deactivate();
-        if (!isExiting) {
-            controller.activate();
-        }
+        Ember.run.next(function () {
+            controller.deactivate();
+            if (!isExiting) {
+                controller.activate();
+            }
+        });
     },
 
     renderTemplate() {
