@@ -13,25 +13,8 @@ export default Ember.Controller.extend({
     }),
 
     actions: {
-        saveFile: function(fileName) {
-            this.get('slyd').saveFile(
-                this.get('slyd.project'),
-                fileName,
-                this.resolveContent(this.get('model')[fileName])).then(() => {
-                    //delete this.get('model')[fileName];
-                    //this.notifyPropertyChange('model');
-                    if (Ember.isEmpty(this.get('conflictedFileNames'))) {
-                        //this.get('slyd').publishProject(this.get('slyd.project'), true);
-                        //this.showSuccessNotification(this.messages.get('conflicts_solved'));
-                        //this.transitionToRoute('projects');
-                    } else {
-                        //this.displayConflictedFile(this.get('conflictedFileNames')[0]);
-                    }
-                });
-        },
-
         publish: function() {
-            //this.get('slyd').publishProject(this.get('slyd.project'), true);
+            // TODO: Publish
         },
     },
 

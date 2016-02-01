@@ -30,7 +30,6 @@ function sortKeys(keys){
  */
 function applyPatches(obj, values) {
     var keys = sortKeys(Object.keys(values).map(key => key.split('.')));
-    console.log('ap', obj, values, keys);
     for(var key of keys) {
         patch(obj, key, values[key.join('.')]);
     }
@@ -43,9 +42,7 @@ function applyPatches(obj, values) {
 function patch(obj, path, value) {
     if(isArray(obj)) {
         var idx = parseInt(path[0]) + 1;
-        console.log(idx, obj);
         for (var i = 0, len = obj.length; i < len; i++) {
-            console.log(obj[i], 'conflict', isConflict(obj[i]));
             if(isConflict(obj[i])) {
                 idx--;
                 if(idx === 0) {
@@ -66,6 +63,8 @@ function patch(obj, path, value) {
 }
 
 export default Ember.Controller.extend({
+    projectController: Ember.inject.controller('projects.project'),
+
     init: function(){
         this.set('pendingPaths', []);
         this.set('resolvedValues', {}); // This is saved in flat format {'a.b.c.0': value}
@@ -93,6 +92,13 @@ export default Ember.Controller.extend({
             } else if (!this.get('pendingPaths').contains(path)) {
                 this.get('pendingPaths').pushObject(path);
             }
+        },
+
+        saveFile: function(){
+            var project = this.get('projectController.model.id');
+            var fileName = this.get('model.file');
+            var content = this.getResolvedTree();
+            // TODO call API to save file
         }
     }
 });

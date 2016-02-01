@@ -2,7 +2,6 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     model() {
-        console.log('conflictroute ::: model :::::::::::::::::::::::');
         return {
             "foo.js": {
                 hello: {
