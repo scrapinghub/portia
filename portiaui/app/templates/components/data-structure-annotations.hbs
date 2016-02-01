@@ -5,20 +5,18 @@
         {{#each item.annotations as |annotation|}}
             {{#if (eq annotation.constructor.modelName "annotation")}}
                 {{#tree-list-item onMouseEnter=(action 'enterAnnotation' annotation) onMouseLeave=(action 'leaveAnnotation' item) as |options|}}
-                    {{#if (eq options.section "item")}}
-                        {{#link-to 'projects.project.spider.sample.data.annotation' annotation}}
-                            {{list-item-icon icon=annotation.type}}
-                            {{list-item-badge value=(get (elements-for annotation) 'length') color=(array-get annotationColors annotation.orderedIndex)}}
-                            {{list-item-annotation-field annotation=annotation selecting=(mut annotation.new)}}
-                            {{#list-item-field-type field=annotation.field}}
-                                Change type of selected field
-                            {{/list-item-field-type}}
-                            {{#link-to 'projects.project.spider.sample.data.annotation.options' annotation bubbles=false class="ignore-active"}}
-                                {{list-item-icon icon='options'}}
-                            {{/link-to}}
-                            {{list-item-icon icon='remove' action=(action 'removeAnnotation' annotation) bubbles=false}}
+                    {{#link-to 'projects.project.spider.sample.data.annotation' annotation}}
+                        {{list-item-icon icon=annotation.type}}
+                        {{list-item-badge value=(get (elements-for annotation) 'length') color=(array-get annotationColors annotation.orderedIndex)}}
+                        {{list-item-annotation-field annotation=annotation selecting=(mut annotation.new)}}
+                        {{#list-item-field-type field=annotation.field}}
+                            Change type of selected field
+                        {{/list-item-field-type}}
+                        {{#link-to 'projects.project.spider.sample.data.annotation.options' annotation bubbles=false class="ignore-active"}}
+                            {{list-item-icon icon='options'}}
                         {{/link-to}}
-                    {{/if}}
+                        {{list-item-icon icon='remove' action=(action 'removeAnnotation' annotation) bubbles=false}}
+                    {{/link-to}}
                 {{/tree-list-item}}
             {{else if (eq annotation.constructor.modelName "item-annotation")}}
                 {{#data-structure-annotations sample=sample item=annotation.item annotationColors=annotationColors}}

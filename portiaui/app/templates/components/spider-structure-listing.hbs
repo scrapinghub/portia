@@ -24,16 +24,14 @@
             {{/list-item-text}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item as |options|}}
-                {{#if (eq options.section "item")}}
-                    {{list-item-icon icon='link'}}
-                    {{list-item-link-crawling spider=spider}}
-                    {{#if (not-eq spider.linksToFollow 'none')}}
-                        {{#link-to 'projects.project.spider' bubbles=false}}
-                            {{#link-to 'projects.project.spider.link-options' bubbles=false class="ignore-active"}}
-                                {{list-item-icon icon='options'}}
-                            {{/link-to}}
+                {{list-item-icon icon='link'}}
+                {{list-item-link-crawling spider=spider}}
+                {{#if (not-eq spider.linksToFollow 'none')}}
+                    {{#link-to 'projects.project.spider' bubbles=false}}
+                        {{#link-to 'projects.project.spider.link-options' bubbles=false class="ignore-active"}}
+                            {{list-item-icon icon='options'}}
                         {{/link-to}}
-                    {{/if}}
+                    {{/link-to}}
                 {{/if}}
             {{/tree-list-item}}
         {{/if}}
@@ -48,13 +46,11 @@
         {{else if (eq options.section "subtrees")}}
             {{#each spider.samples as |sample|}}
                 {{#tree-list-item class="has-submenu" as |options|}}
-                    {{#if (eq options.section "item")}}
-                        {{#link-to 'projects.project.spider.sample' sample}}
-                            {{list-item-icon icon='sample'}}
-                            {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
-                            {{list-item-icon icon='remove' action=(action 'removeSample' sample) bubbles=false}}
-                        {{/link-to}}
-                    {{/if}}
+                    {{#link-to 'projects.project.spider.sample' sample}}
+                        {{list-item-icon icon='sample'}}
+                        {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
+                        {{list-item-icon icon='remove' action=(action 'removeSample' sample) bubbles=false}}
+                    {{/link-to}}
                 {{/tree-list-item}}
             {{/each}}
         {{/if}}
