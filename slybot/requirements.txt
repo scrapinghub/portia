@@ -7,3 +7,4 @@ dateparser==0.2
 jsonschema==2.4.0
 six==1.5.2
 scrapyjs==0.1.1
+page_finder==0.1
