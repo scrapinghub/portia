@@ -231,3 +231,6 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
         last_commit = self._open_repo(id).refs['refs/heads/master']
         spiders = args[1] if len(args) > 1 and args[1] else []
         return (last_commit + '.' + '.'.join(spiders)).encode('utf-8')
+
+    def _schedule_info(self, **kwargs):
+        return {}
