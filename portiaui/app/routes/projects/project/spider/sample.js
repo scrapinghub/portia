@@ -18,7 +18,7 @@ export default Ember.Route.extend({
         });
 
         this.render('projects/project/spider/sample/tools', {
-            into: 'projects/project/spider/tools',
+            into: 'tool-panels',
             outlet: 'tool-panels'
         });
 
