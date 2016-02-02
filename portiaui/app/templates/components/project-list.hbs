@@ -1,0 +1,10 @@
+{{#if showSearch}}
+    {{input-with-clear update=(action "search") clear=(action "clear") placeholder="Search..."}}
+    {{#each filteredProjects as |project|}}
+        {{link-to project.name 'projects.project' project class="list-group-item"}}
+    {{/each}}
+{{else}}
+    {{#each projects as |project|}}
+        {{link-to project.name 'projects.project' project class="list-group-item"}}
+    {{/each}}
+{{/if}}

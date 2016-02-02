@@ -1,0 +1,19 @@
+.clear-input {
+    position: absolute;
+    right: 7px;
+    top: 0;
+    bottom: 0;
+    height: 14px;
+    margin: auto;
+    color: #ccc;
+    z-index: 3;
+}
+
+.project-list .input-group > .form-control {
+    border-radius: 4px 4px 0 0;
+    width: 300px;
+}
+
+.project-list .form-control {
+    padding-right: 20px
+}

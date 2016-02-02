@@ -5,8 +5,6 @@
     <p>Choose a project from the list below.</p>
 
     <div class="project-list list-group">
-        {{#each model as |project|}}
-            {{link-to project.name 'projects.project' project class="list-group-item"}}
-        {{/each}}
+        {{project-list projects=model}}
     </div>
 </div>
