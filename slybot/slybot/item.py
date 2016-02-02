@@ -14,13 +14,17 @@ class SlybotItem(DictItem):
     def __setitem__(self, name, value):
         self._values[name] = value
 
+    def display_name(self):
+        return self._display_name
+
     @classmethod
     def create_iblitem_class(cls, schema):
         class IblItem(cls):
             fields = defaultdict(dict)
             version_fields = []
+            cls._display_name = schema.get('name')
             for _name, _meta in schema['fields'].items():
-                name = _meta.get('display_name', _name)
+                name = _meta.get('name', _name)
                 fields[name] = Field(_meta)
                 if not _meta.get("vary", False):
                     version_fields.append(name)
@@ -33,7 +37,7 @@ def create_slybot_item_descriptor(schema, schema_name=""):
     descriptors = []
     for pname, pdict in schema['fields'].items():
         required = pdict['required']
-        pdisplay_name = pdict.get('display_name', pname)
+        pdisplay_name = pdict.get('name', pname)
         pclass = field_type_manager.type_processor_class(pdict['type'])
         processor = pclass()
         descriptor = SlybotFieldDescriptor(pname, pdisplay_name, processor,

@@ -10,6 +10,8 @@ import six
 import itertools
 from monotonic import monotonic
 
+from scrapy.settings import Settings
+
 import slyd.splash.utils
 
 from twisted.python import log
@@ -20,6 +22,7 @@ from splash.browser_tab import JsError
 from slyd.utils.projects import ProjectModifier
 from slyd.plugins.scrapely_annotations.annotations import Annotations
 from slyd.resources.utils import _load_sample
+from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
 from .utils import open_tab, extract_data, BaseWSError, BadRequest, NotFound
 
 
@@ -32,8 +35,8 @@ def save_html(data, socket):
     path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
     sample = _load_sample(manager, *path)
     stated_encoding = socket.tab.evaljs('document.characterSet')
-    sample['original_body'] = _decode(socket.tab._raw_html, stated_encoding)
-    sample['js_original_body'] = socket.tab.html().decode('utf-8')
+    sample['original_body'] = _decode(socket.tab.network_manager._raw_html, stated_encoding)
+    # sample['js_original_body'] = socket.tab.html().decode('utf-8')
     _update_sample(data, socket, sample)
 
 
@@ -44,12 +47,20 @@ def extract_items(data, socket):
     if (socket.spiderspec is None or
             (data['spider'] and socket.spiderspec.name != data['spider'])):
         socket.open_spider(data)
-    samples = socket.spiderspec.templates
+    sample_names = socket.spiderspec.templates
+    annotations = socket.spider.plugins['Annotations']
     sid = data.get('sample')
     if sid:
-        samples = [_update_sample(data, socket)]
-    items, _ = extract_data(url, html, socket.spider, samples)
-    return items
+        sample_names = [_update_sample(data, socket)]
+        spider = {k: sample_names if k == 'templates' else v
+                  for k, v in socket.spiderspec.spider.items()}
+        extraction = BotAnnotations()
+        extraction.setup_bot(Settings(), spider, socket.spiderspec.items,
+                             socket.spiderspec.extractors)
+        socket.spider.plugins['Annotations'] = extraction
+    items, links = extract_data(url, html, socket.spider, sample_names)
+    socket.spider.plugins['Annotations'] = annotations
+    return {'links': links, 'items': items}
 
 
 def _update_sample(data, socket, sample=None):
@@ -65,7 +76,7 @@ def _update_sample(data, socket, sample=None):
         Annotations().save_extraction_data(
             sample['plugins']['annotations-plugin'], sample,
             options={'body': 'original_body'})
-    except StopIteration:
+    except (StopIteration, KeyError):
         sample['annotated_body'] = sample.get('original_body', u'')
     spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample

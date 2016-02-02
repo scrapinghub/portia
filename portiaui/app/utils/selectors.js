@@ -1,5 +1,88 @@
 import Ember from 'ember';
 
+// findCssSelector and positionInNodeList functions from:
+// http://lxr.mozilla.org/mozilla-release/source/toolkit/devtools/styleinspector/css-logic.js
+/**
+ * Find the position of [element] in [nodeList].
+ * @returns an index of the match, or -1 if there is no match
+ */
+var positionInNodeList = function(element, nodeList) {
+  for (var i = 0; i < nodeList.length; i++) {
+    if (element === nodeList[i]) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Find a unique CSS selector for a given element
+ * @returns a string such that ele.ownerDocument.querySelector(reply) === ele
+ * and ele.ownerDocument.querySelectorAll(reply).length === 1
+ */
+export function findCssSelector(ele, depth = 0) {
+  var document = ele.ownerDocument;
+  if (!document || !document.contains(ele)) {
+    throw new Error('findCssSelector received element not inside document');
+  }
+
+  // document.querySelectorAll("#id") returns multiple if elements share an ID
+  if (ele.id && document.querySelectorAll('#' + CSS.escape(ele.id)).length === 1 && depth > 1) {
+    return '#' + CSS.escape(ele.id);
+  }
+
+  // Inherently unique by tag name
+  var tagName = ele.localName;
+  if (tagName === 'html') {
+    return 'html';
+  }
+  if (tagName === 'head') {
+    return 'head';
+  }
+  if (tagName === 'body') {
+    return 'body';
+  }
+
+  // We might be able to find a unique class name
+  var selector, index, matches;
+  if (ele.classList.length > 0) {
+    for (var i = 0; i < ele.classList.length; i++) {
+      // Is this className unique by itself?
+      selector = '.' + CSS.escape(ele.classList.item(i));
+      matches = document.querySelectorAll(selector);
+      if (matches.length === 1) {
+        return selector;
+      }
+      // Maybe it's unique with a tag name?
+      selector = tagName + selector;
+      matches = document.querySelectorAll(selector);
+      if (matches.length === 1) {
+        return selector;
+      }
+      // Maybe it's unique using a tag name and nth-child
+      index = positionInNodeList(ele, ele.parentNode.children) + 1;
+      selector = selector + ':nth-child(' + index + ')';
+      matches = document.querySelectorAll(selector);
+      if (matches.length === 1) {
+        return selector;
+      }
+    }
+  }
+
+  // Not unique enough yet.  As long as it's not a child of the document,
+  // continue recursing up until it is unique enough.
+  if (ele.parentNode !== document) {
+     index = positionInNodeList(ele, ele.parentNode.children) + 1;
+     if (tagName === 'thead' || tagName === 'tbody') {
+         selector = findCssSelector(ele.parentNode, depth + 1);
+     } else {
+         selector = findCssSelector(ele.parentNode, depth + 1) + ' > ' +
+                 tagName + ':nth-child(' + index + ')';
+     }
+   }
+   return selector;
+ };
+
 function combineIndices(accept, reject) {
     if (!reject.length && (!accept.length || accept.length > 1)) {
         return null;
@@ -22,14 +105,23 @@ export class ElementPath {
         if (typeof element === 'string') {
             this.paths = [element.split(/\s*>\s*/).map(part => {
                 const tagAndClasses = part.split(':')[0].split('.');
-                const tagName = tagAndClasses[0];
-                const classes = tagAndClasses.slice(1);
+                let tagName, classes, id;
+                if (part[0] === '.' || part[0] === '#') {
+                    tagName = null;
+                    if (part[0] === '#') {
+                        id = tagAndClasses[0];
+                    }
+                } else {
+                    [tagName, id] = tagAndClasses[0].split('#');
+                }
+                classes = tagAndClasses.slice(1);
                 classes.sort();
                 const match = part.match(/:nth\-child\((\d+)\)/);
 
                 return {
                     tagName,
                     classes,
+                    id,
                     acceptedIndices: match ? [match[1]] : [],
                     rejectedIndices: []
                 };
@@ -520,5 +612,6 @@ export function makeItemsFromGroups(groups) {
 export default {
     ElementPath: ElementPath,
     findContainer: findContainer,
-    findRepeatedContainer: findRepeatedContainer
+    findRepeatedContainer: findRepeatedContainer,
+    findCssSelector: findCssSelector
 };

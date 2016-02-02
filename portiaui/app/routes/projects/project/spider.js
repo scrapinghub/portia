@@ -43,11 +43,6 @@ export default Ember.Route.extend({
             outlet: 'tool-panels'
         });
 
-        this.render('projects/project/spider/tools-show-links', {
-            into: 'projects/project/spider/tools',
-            outlet: 'tool-panels'
-        });
-
         this.render('projects/project/spider/toolbar', {
             into: 'projects/project',
             outlet: 'browser-toolbar'

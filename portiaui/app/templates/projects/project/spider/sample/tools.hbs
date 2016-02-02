@@ -1,4 +1,4 @@
-{{#tool-group id="inspector-group-sample" as |group|}}
+{{#tool-group id="inspector-group" as |group|}}
     {{#if (eq group.section "tabs")}}
         {{#group.tab toolId="inspector"}}
             Inspector
@@ -9,3 +9,5 @@
         {{/group.panel}}
     {{/if}}
 {{/tool-group}}
+
+{{extracted-items-group}}

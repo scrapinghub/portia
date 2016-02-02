@@ -4,6 +4,7 @@ from slybot.validation.schema import get_schema_validator
 from .models import FieldSchema
 from ..errors import NotFound
 from ..utils.projects import gen_id, ctx
+from .utils import _read_schemas
 
 
 def list_fields(manager, schema_id, attributes=None):
@@ -76,17 +77,3 @@ def _check_field_attributes(attributes, include_defaults=False):
         attributes['_skip_relationships'] = True
         return FieldSchema().dump(attributes).data['data']['attributes']
     return attributes
-
-
-def _field_name(field, field_id):
-    return field.get('name', field.get('name', field_id))
-
-
-def _read_schemas(manager):
-    try:
-        schemas = manager.resource('items')
-        assert isinstance(schemas, dict)
-    except (AssertionError, TypeError):
-        manager.savejson({}, ['items'])
-        return {}
-    return schemas

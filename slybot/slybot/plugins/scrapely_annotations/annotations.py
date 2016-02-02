@@ -38,6 +38,8 @@ class Annotations(object):
         self.html_link_extractor = HtmlLinkExtractor()
         for schema_name, schema in items.items():
             if schema_name not in self.item_classes:
+                if not schema.get('name'):
+                    schema['name'] = schema_name
                 item_cls = SlybotItem.create_iblitem_class(schema)
                 self.item_classes[schema_name] = item_cls
 
@@ -93,7 +95,7 @@ class Annotations(object):
             if '_type' in processed_attributes:
                 _type = processed_attributes['_type']
                 item = self.item_classes[_type](processed_attributes)
-                item['_type'] = _type
+                item['_type'] = item.display_name()
             else:
                 item = item_cls(processed_attributes)
                 item['_type'] = item_cls_name

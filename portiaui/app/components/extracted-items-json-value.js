@@ -28,26 +28,29 @@ export default Ember.Component.extend({
     }),
 
     style: Ember.computed('value', 'depth', 'key', 'from', function () {
-        var textIndent = '', margin = '', marginLeft = 0,
+        var textIndent = '', margin = '', width = '', marginLeft = 0,
             characterTest = Ember.$('.json-character-size'),
             textWidth = characterTest.width(),
             extractedBox = Ember.$('.extracted-items-json'),
+            extractedBoxWidth = extractedBox.width(),
             key = this.get('key') || '',
             value = this.get('escapedValue'),
             depth = this.get('depth');
         if (this.get('isString') &&
-            ((depth + 1) * 2 + key.length + value.length + 4) * textWidth > extractedBox.width()) {
+            ((depth + 1) * 2 + key.length + value.length + 4) * textWidth > extractedBoxWidth) {
             var indent = key.length;
             if (this.get('fromArray')) {
                 indent = 2 * (depth + 1);
                 textIndent = `text-indent: -${indent}ch;`;
                 margin = `margin: 0 0 0 ${indent}ch;`;
+                width = extractedBoxWidth
             } else {
-                marginLeft = (depth + 1) * 2 + 2;
-                textIndent = `text-indent: ${indent}ch;`;
-                margin = `margin: -1.5em 0 0 ${marginLeft}ch;`;
+                textIndent = 'text-indent: -1ch;';
+                margin = 'margin: 0 0 0 1ch;';
+                width = extractedBoxWidth - (key.length + 4 + (depth + 1) * 2) * textWidth;
+                width = `width: ${width}px`;
             }
         }
-        return `${textIndent}${margin}`;
+        return Ember.String.htmlSafe(`${textIndent}${margin}${width}`);
     })
 });

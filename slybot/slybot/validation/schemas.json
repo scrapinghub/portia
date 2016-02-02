@@ -19,7 +19,7 @@
         "type": "object",
         "properties": {
             "fields": {"additionalProperties": {"$ref": "field"}, "required": true},
-            "display_name": {"type": "string", "required": false}
+            "name": {"type": "string", "required": false}
         }
     },
     {
@@ -29,7 +29,7 @@
             "type": {"type": "string", "required": true},
             "required": {"type": "boolean", "required": true},
             "vary": {"type": "boolean", "required": true},
-            "display_name": {"type": "string", "required": false}
+            "name": {"type": "string", "required": false}
         }
     },
     {
