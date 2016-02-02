@@ -51,6 +51,6 @@ export default Ember.Component.extend({
                 width = `width: ${width}px`;
             }
         }
-        return `${textIndent}${margin}${width}`;
+        return Ember.String.htmlSafe(`${textIndent}${margin}${width}`);
     })
 });
