@@ -5,6 +5,7 @@ from scrapy.utils.misc import load_object
 
 from .base import BaseLinkExtractor, ALLOWED_SCHEMES
 from .html import HtmlLinkExtractor
+from .pagination import PaginationExtractor
 from .xml import XmlLinkExtractor, RssLinkExtractor, SitemapLinkExtractor, AtomLinkExtractor
 from .regex import RegexLinkExtractor
 from .ecsv import CsvLinkExtractor
@@ -15,6 +16,7 @@ _TYPE_MAP = (
     ('xpath', XmlLinkExtractor, False),
     ('column', CsvLinkExtractor, False),
     ('html', HtmlLinkExtractor, True),
+    ('pagination', PaginationExtractor, True),
     ('rss', RssLinkExtractor, True),
     ('sitemap', SitemapLinkExtractor, True),
     ('atom', AtomLinkExtractor, True),

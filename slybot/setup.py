@@ -2,7 +2,7 @@ from slybot import __version__
 from setuptools import setup, find_packages
 
 install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema',
-                    'dateparser', 'scrapyjs']
+                    'dateparser', 'scrapyjs', 'page_finder']
 extras = {
     'tests': ['nose']
 }

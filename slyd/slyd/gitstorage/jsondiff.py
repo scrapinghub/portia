@@ -68,7 +68,7 @@ class Conflict(object):
                 new_other.append(next(i_other))
             elif diff.startswith('+'):
                 new_mine.append(next(i_mine))
-            else:
+            elif diff.startswith(' '):
                 next(i_other)
                 result.append(next(i_mine))
         return result
