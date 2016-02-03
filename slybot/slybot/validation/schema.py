@@ -93,6 +93,17 @@ def get_schema_validator(schema):
                 return False
         return True
 
+    # Workaround for https://github.com/Julian/jsonschema/pull/272
+    @FormatChecker.cls_checks('regex', (Exception))
+    def is_valid_re(re_source):
+        if not isinstance(re_source, six.string_types):
+            return False
+        if isinstance(re_source, six.binary_type):
+            re_source = re_source.decode('utf-8')
+
+        re.compile(re_source)
+        return True
+
     return SlybotJsonSchemaValidator(_SCHEMAS[schema], resolver=resolver,
                                      format_checker=FormatChecker())
 
