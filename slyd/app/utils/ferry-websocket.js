@@ -123,7 +123,7 @@ export default Ember.Object.extend({
                 }
             }
             if (data.error) {
-                NotificationManager.showErrorNotification(data.reason || data.error);
+                NotificationManager.showErrorNotification(data.reason || data.error, data.message);
                 console.error(data.reason || data.error);
             }else if (command in this.get('commands')) {
                 this.get('commands')[command](data);
