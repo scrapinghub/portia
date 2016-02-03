@@ -7,7 +7,34 @@
 }
 
 .project-list {
+    $project-list-max-width: 300px;
+
     margin: 3em auto 0;
-    max-width: 300px;
+    max-width: $project-list-max-width;
     min-height: 0;
+
+    input {
+        border-color: $list-group-border;
+    }
+
+    .input-group {
+        > .form-control {
+            width: $project-list-max-width;
+            border-radius: $list-group-border-radius $list-group-border-radius 0 0;
+        }
+    }
+
+    &.empty {
+        .form-control {
+            border-radius: $list-group-border-radius;
+        }
+    }
+
+    &.show-search {
+        > .list-group-item {
+            &:first-of-type {
+                border-top: none;
+            }
+        }
+    }
 }

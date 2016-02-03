@@ -1,9 +1,10 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+    classNames: ['input-group', 'input-with-clear'],
+
     type: 'text',
     value: '',
-    classNames: 'input-group',
 
     actions: {
         clear() {

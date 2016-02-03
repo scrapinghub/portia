@@ -1,10 +1,14 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-    minSearchableProjects: 8,
-    searchTerm: '',
-    projects: [],
     store: Ember.inject.service(),
+
+    classNames: ['project-list', 'list-group'],
+    classNameBindings: ['showSearch', 'filteredProjects.length::empty'],
+
+    minSearchableProjects: 8,
+    projects: [],
+    searchTerm: '',
 
     showSearch: Ember.computed('projects', function() {
         return this.get('projects.content.length') > this.get('minSearchableProjects');

@@ -1,2 +1,2 @@
 {{input class="form-control" value=(mut value) placeholder=placeholder keyUp=(action "keyUp" on="key-up")}}
-<span class="fa fa-times clear-input" {{action "clear" on="click"}}></span>
+{{icon-button class="clear-input" icon='close' action=(action 'clear')}}
