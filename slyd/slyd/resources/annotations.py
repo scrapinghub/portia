@@ -52,7 +52,7 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
         field_id = annotation['annotations'].pop(attribute, None)
         if relationships.get('field_id'):
             field_id = relationships['field_id']
-        annotation['annotations'][data] = field_id
+        annotation['annotations'][data['attribute']] = field_id
         required = set(annotation['required']) - {attribute}
         if data.get('required'):
             required += {data['attribute']}

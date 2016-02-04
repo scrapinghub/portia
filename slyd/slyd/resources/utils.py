@@ -50,6 +50,8 @@ def _create_default_item(manager, sample):
     schema_id, schemas = _get_schema(manager, sample)
     if not schema_id:
         name = sample.get('name', sample.get('id'))
+        if not name.strip():
+            name = sample.get('id')
         _, schema_id = _create_schema(manager, {'name': name}, schemas)
     item_annotation = _create_item_annotation(sample, schema_id)
     annotations.append(item_annotation)
@@ -125,7 +127,7 @@ def _recreate_parent_annotation(child, exists=True):
         'schema_id': child['schema_id'],
         'repeated': False,
         'id': id,
-        'accept_selectors': ['html'],
+        'accept_selectors': ['body'],
         'reject_selectors': [],
         'required': [],
         'annotations': {'#portia-content': '#dummy'},

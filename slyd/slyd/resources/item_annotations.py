@@ -58,6 +58,22 @@ def update_item_annotation(manager, spider_id, sample_id, annotation_id,
         repeated_container['container_id'] = container['id']
         repeated_container['siblings'] = attributes.pop('siblings', 0)
         repeated_container['accept_selectors'] = repeated_container_selectors
+    else:
+        repeated_container_id = container['id'].strip('#parent')
+        parent_container_id = '{}#parent'.format(repeated_container_id)
+        parent = [
+            a for a in sample['plugins']['annotations-plugin']['extracts']
+            if a.get('id') == parent_container_id
+        ]
+        if parent:
+            container = parent[0]
+            annotations = [
+                a for a in sample['plugins']['annotations-plugin']['extracts']
+                if a.get('id') != repeated_container_id
+            ]
+            container['id'] = repeated_container_id
+            sample['plugins']['annotations-plugin']['extracts'] = annotations
+
     # TODO: Allow assigning to parent field
     container['item_container'] = True
     manager.savejson(sample, ['spiders', spider_id, sample_id])
