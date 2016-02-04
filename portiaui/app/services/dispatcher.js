@@ -360,9 +360,7 @@ export default Ember.Service.extend({
         }
         const parent = annotation.get('parent.itemAnnotation');
         annotation.destroyRecord().then(() =>
-            Ember.run.next(this, () =>
-                this.updateContainers(parent)
-            )
+            Ember.run.next(this, this.updateContainers, parent)
         );
     },
 

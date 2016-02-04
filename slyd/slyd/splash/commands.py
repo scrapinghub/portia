@@ -35,8 +35,9 @@ def save_html(data, socket):
     path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
     sample = _load_sample(manager, *path)
     stated_encoding = socket.tab.evaljs('document.characterSet')
-    sample['original_body'] = _decode(socket.tab.network_manager._raw_html, stated_encoding)
-    # sample['js_original_body'] = socket.tab.html().decode('utf-8')
+    sample['original_body'] = _decode(socket.tab.network_manager._raw_html,
+                                      stated_encoding)
+    # sample['js_original_body'] = _decode(socket.tab.html() or '', 'utf-8')
     _update_sample(data, socket, sample)
 
 
@@ -59,6 +60,9 @@ def extract_items(data, socket):
                              socket.spiderspec.extractors)
         socket.spider.plugins['Annotations'] = extraction
     items, links = extract_data(url, html, socket.spider, sample_names)
+    if not items:
+        items, links = extract_data(url, socket.tab.network_manager._raw_html,
+                                    socket.spider, sample_names)
     socket.spider.plugins['Annotations'] = annotations
     return {'links': links, 'items': items}
 
