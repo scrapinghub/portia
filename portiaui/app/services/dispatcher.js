@@ -340,7 +340,7 @@ export default Ember.Service.extend({
             if (sample.get('items.length') === 0) {
                 this.addItem(sample);
             }
-        })
+        });
     },
 
     removeItemAnnotation(itemAnnotation) {
@@ -360,7 +360,9 @@ export default Ember.Service.extend({
         }
         const parent = annotation.get('parent.itemAnnotation');
         annotation.destroyRecord().then(() =>
-            this.updateContainers(parent)
+            Ember.run.next(this, () =>
+                this.updateContainers(parent)
+            )
         );
     },
 
@@ -424,7 +426,7 @@ export default Ember.Service.extend({
             let elements = this.get('annotationStructure')._annotations(),
                 container = findContainer(elements),
                 [repeatedContainer, siblings] = findRepeatedContainer(elements, container),
-                containerPath = 'html',
+                containerPath = 'body',
                 repeatedContainerPath = null;
             if (container) {
                 containerPath = findCssSelector(container);

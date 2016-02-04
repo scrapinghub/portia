@@ -397,6 +397,9 @@ export function findContainer(extractedElements) {
 
 export function findRepeatedContainer(extracted, container) {
     let groupedItems = groupItems(extracted, container);
+    if (groupedItems.length === 1) {
+        return [null, 0];
+    }
     let repeatedParents = groupedItems.map((item) => findContainers(item, container));
     let allEqualLength = true;
     for (let parents of repeatedParents) {

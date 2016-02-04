@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import json
 import os
+import traceback
 
 from six.moves.urllib_parse import urlparse
 
@@ -236,6 +237,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 else:
                     code = 500
                     reason = "Internal Server Error"
+                    traceback.print_exc()
 
                 failure = Failure(e)
                 log.err(failure)
@@ -347,8 +349,14 @@ class FerryServerProtocol(WebSocketServerProtocol):
         spider_name = meta['spider']
         spec = self.spec_manager.project_spec(meta['project'], self.user.auth)
         spider = spec.spider_with_templates(spider_name)
-        items = spec.resource('items')
-        extractors = spec.resource('extractors')
+        try:
+            items = spec.resource('items')
+        except TypeError:
+            items = {}
+        try:
+            extractors = spec.resource('extractors')
+        except TypeError:
+            extractors = {}
         if not self.settings.get('SPLASH_URL'):
             self.settings.set('SPLASH_URL', 'portia')
         self.factory[self].spider = IblSpider(spider_name, spider, items,
