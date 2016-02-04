@@ -8,14 +8,12 @@ const Sample = DS.Model.extend({
     pageType: DS.attr('string'),
     scrapes: DS.attr('string'),
     spider: DS.belongsTo(),
-    items: DS.hasMany({
-        async: true
-    }),
+    items: DS.hasMany(),
 
-    orderedAnnotations: Ember.computed('items.@each.orderedAnnotations', function() {
+    orderedAnnotations: Ember.computed('items.content.@each.orderedAnnotations', function() {
         return [].concat(...this.get('items').mapBy('orderedAnnotations'));
     }),
-    orderedChildren: Ember.computed('items.@each.orderedChildren', function() {
+    orderedChildren: Ember.computed('items.content.@each.orderedChildren', function() {
         return [].concat(...this.get('items').mapBy('orderedChildren'));
     })
 });
