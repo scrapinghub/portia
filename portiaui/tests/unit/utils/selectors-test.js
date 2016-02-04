@@ -17,18 +17,9 @@ var getElements = function(testCase, fields) {
         info: `${testCase} .info > span:nth-child(2)`
     };
 
-    let structure = [],
-        i = 0;
+    let structure = [];
     for (let field of fields) {
-        for (let element of Array.from(doc.querySelectorAll(selectors[field]))) {
-            structure.push({
-                context: {
-                    color: `#${i}${i}${i}`,
-                    element: element
-                }
-            });
-        }
-        i += 1;
+        structure.push(Array.from(doc.querySelectorAll(selectors[field])));
     }
     return structure;
 };
