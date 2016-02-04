@@ -20,15 +20,24 @@ export default Ember.Service.extend(Ember.Evented, {
     updateInterval: 100,
 
     register(selector, target, method) {
-        this.selectors.set(selector, []);
+        const elements = this.selectors.get(selector);
+        if (elements) {
+            if (method) {
+                method.call(target, elements);
+            } else {
+                target(elements);
+            }
+        } else {
+            this.selectors.set(selector, []);
+        }
         if (this.timerId === null) {
             this.scheduleUpdate(1);
         }
-        this.on(selector, target, method);
+        this.on(...arguments);
     },
 
-    unRegister(selector, target, method) {
-        this.off(selector, target, method);
+    unRegister(selector) {
+        this.off(...arguments);
         if (!this.has(selector)) {
             this.selectors.delete(selector);
             if (!this.selectors.size) {
@@ -46,7 +55,24 @@ export default Ember.Service.extend(Ember.Evented, {
         this.off('changed', target, method);
     },
 
+    query(selector) {
+        const $document = this.get('browser.$document');
+        if ($document) {
+            let elements = this.selectors.get(selector);
+            if (!elements) {
+                return $document.find(selector).toArray();
+            } else if (!elements.length) {
+                elements = $document.find(selector).toArray();
+                this.selectors.set(selector, elements);
+            }
+            return elements;
+        } else {
+            return [];
+        }
+    },
+
     scheduleUpdate(delay) {
+        Ember.run.cancel(this.timerId);
         this.timerId = Ember.run.later(this, this.update, delay);
     },
 
@@ -63,12 +89,10 @@ export default Ember.Service.extend(Ember.Evented, {
             });
 
             if (updates.length) {
-                Ember.run.scheduleOnce('sync', () => {
-                    updates.forEach(([selector, elements]) => {
-                        this.trigger(selector, elements);
-                    });
-                    this.trigger('changed', updates);
+                updates.forEach(([selector, elements]) => {
+                    this.trigger(selector, elements);
                 });
+                this.trigger('changed', updates);
             }
         }
         this.scheduleUpdate(this.updateInterval);

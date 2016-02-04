@@ -4,6 +4,7 @@ import LFAdapter from 'ember-localforage-adapter/adapters/localforage';
 import UrlTemplates from "ember-data-url-templates";
 
 var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
+    extractedItems: Ember.inject.service(),
     savingNotification: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
@@ -69,6 +70,7 @@ var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
         this.get('savingNotification').start();
         promise.finally(() => {
             this.get('savingNotification').end();
+            this.get('extractedItems').update();
         });
         return promise;
     },

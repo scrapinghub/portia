@@ -7,12 +7,12 @@
                 <td>
                     <div>
                         <div>
-                            <span>{{attribute.value}}</span>
+                            <span class="value">{{attribute.value}}</span>
                         </div>
-                        {{#with (attribute-annotation inspectedElement attribute.attribute) as |annotation|}}
+                        {{#with (attribute-annotation (get sample.dataStructure.annotations (guid inspectedElement)) attribute.name) as |annotation|}}
                             <div>
                             {{#if annotation.name}}
-                                {{annotation.name}}
+                                {{colored-badge value=annotation.name color=(array-get annotationColors annotation.orderedIndex)}}
                             {{else}}
                                 {{icon-button icon='add' action=(action 'addAnnotation' attribute.attribute) bubbles=false}}
                             {{/if}}

@@ -1,6 +1,6 @@
 import Ember from 'ember';
-import { findContainer, findRepeatedContainer } from '../../../utils/selectors';
-import { module, test } from 'qunit';
+import { findContainer, findRepeatedContainers } from '../../../utils/selectors';
+import { module, test, skip } from 'qunit';
 
 module('Unit | Utility | selectors');
 
@@ -27,70 +27,230 @@ var getElements = function(testCase, fields) {
 var runTest = function(assert, type, fields, expected) {
     let elements = getElements(type, fields),
         container = findContainer(elements),
-        [repeatedContainer, siblings] = findRepeatedContainer(elements, container);
+        [repeatedContainers, siblings] = findRepeatedContainers(elements, container);
     let containerId = '0';
     if (container) {
         containerId = container.getAttribute('data-tagid');
     }
-    let repeatedContainerId = null;
-    if (repeatedContainer) {
-        repeatedContainerId = repeatedContainer.getAttribute('data-tagid');
-    }
-    assert.deepEqual([containerId, repeatedContainerId, siblings], expected);
+    let repeatedContainerIds = repeatedContainers.map(
+        element => element.getAttribute('data-tagid'));
+    assert.deepEqual([containerId, repeatedContainerIds, siblings], expected);
 };
 
 test('regular', function(assert) {
-    runTest(assert, '#regular-structure', commonFields, ['5', '6', 0]);
+    runTest(assert, '#regular-structure', commonFields, [
+        '5',
+        [
+            '6',
+            '17',
+            '28',
+            '39',
+            '50',
+            '61',
+            '72',
+            '83',
+            '94'
+        ],
+        0
+    ]);
 });
 
 test('regular-with-unneeded-rows', function(assert) {
-    runTest(assert, '#regular-with-unneeded-rows', commonFields, ['107', '108', 0]);
+    runTest(assert, '#regular-with-unneeded-rows', commonFields, [
+        '107',
+        [
+            '108',
+            '121',
+            '134',
+            '147',
+            '160',
+            '173',
+            '186',
+            '199',
+            '212'
+        ],
+        0
+    ]);
 });
 
 test('nested-rows-and-columns', function(assert) {
-    runTest(assert, '#nested-rows-and-columns', commonFields, ['225', '227', 0]);
+    runTest(assert, '#nested-rows-and-columns', commonFields, [
+        '225',
+        [
+            '227',
+            '238',
+            '249',
+            '261',
+            '272',
+            '283',
+            '295',
+            '306',
+            '317'
+        ],
+        0
+    ]);
 });
 
 test('items-with-some-fields-missing', function(assert) {
-    runTest(assert, '#items-with-some-fields-missing', commonFields, ['330', '331', 0]);
+    runTest(assert, '#items-with-some-fields-missing', commonFields, [
+        '330',
+        [
+            '331',
+            '339',
+            '350',
+            '361',
+            '372',
+            '383',
+            '391',
+            '402',
+            '410'
+        ],
+        0
+    ]);
 });
 
 test('items-with-siblings', function(assert) {
     let fields = commonFields.slice(0, commonFields.length);
     fields.push('view');
-    runTest(assert, '#items-spread-across-siblings', fields, ['423', '424', 1]);
+    runTest(assert, '#items-spread-across-siblings', fields, [
+        '423',
+        [
+            '424',
+            '438',
+            '452',
+            '466',
+            '480',
+            '494',
+            '508',
+            '522',
+            '536'
+        ],
+        1
+    ]);
 });
 
 test('items-across-siblings-with-fields-missing', function(assert) {
     let fields = commonFields.slice(0, commonFields.length);
     fields.push('view');
-    runTest(assert, '#items-across-siblings-fields-missing', fields, ['552', '553', 1]);
+    runTest(assert, '#items-across-siblings-fields-missing', fields, [
+        '552',
+        [
+            '553',
+            '564',
+            '578',
+            '592',
+            '606',
+            '620',
+            '631',
+            '645',
+            '656'
+        ],
+        1
+    ]);
 });
 
 test('nested-items-with-siblings', function(assert) {
     let fields = commonFields.slice(0, commonFields.length);
     fields.push('view');
-    runTest(assert, '#nested-items-with-siblings', fields, ['771', '773', 1]);
+    runTest(assert, '#nested-items-with-siblings', fields, [
+        '771',
+        [
+            '773',
+            '787',
+            '801',
+            '816',
+            '830',
+            '844',
+            '859',
+            '873',
+            '887'
+        ],
+        1
+    ]);
 });
 
 test('items-with-field-missing-at-end', function(assert) {
-    runTest(assert, '#items-with-field-missing-at-end', commonFields, ['672', '673', 0]);
+    runTest(assert, '#items-with-field-missing-at-end', commonFields, [
+        '672',
+        [
+            '673',
+            '683',
+            '694',
+            '705',
+            '716',
+            '727',
+            '737',
+            '748',
+            '758'
+        ],
+        0
+    ]);
 });
 
 test('multiple-siblings', function(assert) {
     let fields = commonFields.slice(0, commonFields.length);
     fields.push('view');
-    runTest(assert, '#multiple-siblings', fields, ['903', '904', 1]);
+    runTest(assert, '#multiple-siblings', fields, [
+        '903',
+        [
+            '904',
+            '921',
+            '938',
+            '955',
+            '972',
+            '989',
+            '1006',
+            '1023',
+            '1040'
+        ],
+        1
+    ]);
 });
 
 test('multiple-siblings-skip-element', function(assert) {
     let fields = commonFields.slice(0, commonFields.length);
     fields.push('info');
-    runTest(assert, '#multiple-siblings', fields, ['903', '904', 2]);
+    runTest(assert, '#multiple-siblings', fields, [
+        '903',
+        [
+            '904',
+            '921',
+            '938',
+            '955',
+            '972',
+            '989',
+            '1006',
+            '1023',
+            '1040'
+        ],
+        2
+    ]);
+});
+
+skip('transposed-table', function(assert) {
+    runTest(assert, '#transposed-table-structure', commonFields, [
+        '1060',
+        [
+            '1062',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0'
+        ],
+        4
+    ]);
 });
 
 test('no-elements-found', function(assert) {
-    runTest(assert, '#doess-not-exist-in-page', commonFields, ['0', null, 0]);
+    runTest(assert, '#doess-not-exist-in-page', commonFields, [
+        '0',
+        [],
+        0
+    ]);
 });
 
 var testPage = `
@@ -1901,6 +2061,185 @@ var testPage = `
                 <span data-tagid="1056">January 05 2016</span>
             </div>
             
+        </div>
+    </div>
+    <h2 data-tagid="1057">Transposed Table Structure</h2>
+    <div data-tagid="1058" id="transposed-table-structure">
+        <div data-tagid="1059">
+            <table data-tagid="1060" class="table">
+                <tr data-tagid="1061">
+                    <td data-tagid="1062" class="image">
+                        <img src="/images/0.jpg" data-tagid="1063">
+                    </td>
+                    <td data-tagid="1064" class="image">
+                        <img src="/images/1.jpg" data-tagid="1065">
+                    </td>
+                    <td data-tagid="1066" class="image">
+                        <img src="/images/2.jpg" data-tagid="1067">
+                    </td>
+                    <td data-tagid="1068" class="image">
+                        <img src="/images/3.jpg" data-tagid="1069">
+                    </td>
+                    <td data-tagid="1070" class="image">
+                        <img src="/images/4.jpg" data-tagid="1071">
+                    </td>
+                    <td data-tagid="1072" class="image">
+                        <img src="/images/5.jpg" data-tagid="1073">
+                    </td>
+                    <td data-tagid="1074" class="image">
+                        <img src="/images/6.jpg" data-tagid="1075">
+                    </td>
+                    <td data-tagid="1076" class="image">
+                        <img src="/images/7.jpg" data-tagid="1077">
+                    </td>
+                    <td data-tagid="1078" class="image">
+                        <img src="/images/8.jpg" data-tagid="1079">
+                    </td>
+                </tr>
+                <tr data-tagid="1080">
+                    <td data-tagid="1081" class="title">
+                        <h3 data-tagid="1082">Luxury 3 Bed Apartment</h3>
+                    </td>
+                    <td data-tagid="1083" class="title">
+                        <h3 data-tagid="1084">Upscale Retirement Condo</h3>
+                    </td>
+                    <td data-tagid="1085" class="title">
+                        <h3 data-tagid="1086">Prestigious 3 Bed Home</h3>
+                    </td>
+                    <td data-tagid="1087" class="title">
+                        <h3 data-tagid="1088">Unique 5 Bed fixer upper</h3>
+                    </td>
+                    <td data-tagid="1089" class="title">
+                        <h3 data-tagid="1090">Splendid 2 Bed Duplex</h3>
+                    </td>
+                    <td data-tagid="1091" class="title">
+                        <h3 data-tagid="1092">Renovated 3 Bed Terrace</h3>
+                    </td>
+                    <td data-tagid="1093" class="title">
+                        <h3 data-tagid="1094">Bright Studio Apartment</h3>
+                    </td>
+                    <td data-tagid="1095" class="title">
+                        <h3 data-tagid="1096">Detatched 4 Bed Family Residence</h3>
+                    </td>
+                    <td data-tagid="1097" class="title">
+                        <h3 data-tagid="1098">Superbly designed modern Townhouse</h3>
+                    </td>
+                </tr>
+                <tr data-tagid="1099">
+                    <td data-tagid="1100" class="address">
+                        <span data-tagid="1101">978 Charles Street</span>
+                        <span data-tagid="1102">Barrington, IL 60010</span>
+                    </td>
+                    <td data-tagid="1103" class="address">
+                        <span data-tagid="1104">609 Prospect Street</span>
+                        <span data-tagid="1105">Rochester, NY 14606</span>
+                    </td>
+                    <td data-tagid="1106" class="address">
+                        <span data-tagid="1107">312 Route 29</span>
+                        <span data-tagid="1108">Hampton, VA 23666</span>
+                    </td>
+                    <td data-tagid="1109" class="address">
+                        <span data-tagid="1110">799 Briarwood Drive</span>
+                        <span data-tagid="1111">Shirley, NY 11967</span>
+                    </td>
+                    <td data-tagid="1112" class="address">
+                        <span data-tagid="1113">102 Tanglewood Drive</span>
+                        <span data-tagid="1114">East Meadow, NY 11554</span>
+                    </td>
+                    <td data-tagid="1115" class="address">
+                        <span data-tagid="1116">237 Myrtle Avenue</span>
+                        <span data-tagid="1117">Aliquippa, PA 15001</span>
+                    </td>
+                    <td data-tagid="1118" class="address">
+                        <span data-tagid="1119">117 5th Street North</span>
+                        <span data-tagid="1120">Copperas Cove, TX 76522</span>
+                    </td>
+                    <td data-tagid="1121" class="address">
+                        <span data-tagid="1122">46 Chestnut Street</span>
+                        <span data-tagid="1123">Whitestone, NY 11357</span>
+                    </td>
+                    <td data-tagid="1124" class="address">
+                        <span data-tagid="1125">354 Church Street South</span>
+                        <span data-tagid="1126">Eastlake, OH 44095</span>
+                    </td>
+                </tr>
+                <tr data-tagid="1127">
+                    <td data-tagid="1128" class="description">
+                        <p data-tagid="1129">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1130" class="description">
+                        <p data-tagid="1131">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1132" class="description">
+                        <p data-tagid="1133">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1134" class="description">
+                        <p data-tagid="1135">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1136" class="description">
+                        <p data-tagid="1137">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1138" class="description">
+                        <p data-tagid="1139">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1140" class="description">
+                        <p data-tagid="1141">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1142" class="description">
+                        <p data-tagid="1143">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                    <td data-tagid="1144" class="description">
+                        <p data-tagid="1145">
+                             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sit amet congue.
+                        </p>
+                    </td>
+                </tr>
+                <tr data-tagid="1146">
+                    <td data-tagid="1147" class="description">
+                        <span data-tagid="1148">$215000.00</span>
+                    </td>
+                    <td data-tagid="1149" class="description">
+                        <span data-tagid="1150">$353000.00</span>
+                    </td>
+                    <td data-tagid="1151" class="description">
+                        <span data-tagid="1152">$300000.00</span>
+                    </td>
+                    <td data-tagid="1153" class="description">
+                        <span data-tagid="1154">$428000.00</span>
+                    </td>
+                    <td data-tagid="1155" class="description">
+                        <span data-tagid="1156">$364000.00</span>
+                    </td>
+                    <td data-tagid="1157" class="description">
+                        <span data-tagid="1158">$418000.00</span>
+                    </td>
+                    <td data-tagid="1159" class="description">
+                        <span data-tagid="1160">$552000.00</span>
+                    </td>
+                    <td data-tagid="1161" class="description">
+                        <span data-tagid="1162">$586000.00</span>
+                    </td>
+                    <td data-tagid="1163" class="description">
+                        <span data-tagid="1164">$342000.00</span>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
 </body>

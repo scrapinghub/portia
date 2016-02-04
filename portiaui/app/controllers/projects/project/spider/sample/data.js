@@ -3,32 +3,69 @@ import {getColors} from '../../../../../utils/colors';
 import {ElementPath} from '../../../../../utils/selectors';
 
 export default Ember.Controller.extend({
-    annotationStructure: Ember.inject.service(),
-    browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
-    annotationSelectors: [],
-    overlayElements: [],
-    selectedModelElements: [],
     selectionModeIcons: {
         select: 'tool-select',
         add: 'tool-add',
         remove: 'tool-remove',
         edit: 'tool-multiple'
     },
+
     magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),
     hoveredElement: Ember.computed.readOnly('uiState.viewPort.hoveredElement'),
-    hoveredModels: Ember.computed.alias('uiState.viewPort.hoveredModels'),
     originalSelectedElement: Ember.computed.alias('uiState.viewPort.originalSelectedElement'),
     sample: Ember.computed.readOnly('model'),
-    selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),
     selectedModel: Ember.computed.alias('uiState.viewPort.selectedModel'),
     selectionMode: Ember.computed.alias('uiState.selectedTools.selectionMode'),
 
+    hoveredModels: Ember.computed(
+        'uiState.viewPort.hoveredModels', 'hoveredElement', 'sample.dataStructure.annotations', {
+            get(key) {
+                const hoveredModels = this.get('uiState.viewPort.hoveredModels');
+                if (hoveredModels !== this._hoveredModels) {
+                    return this.set(key, hoveredModels);
+                }
+                const hoveredElement = this.get('hoveredElement');
+                let models;
+                if (hoveredElement) {
+                    const annotations = this.get('sample.dataStructure.annotations');
+                    models = annotations && annotations.get(Ember.guidFor(hoveredElement));
+                }
+                models = (models || []).filterBy('constructor.modelName', 'annotation');
+                return this.set(key, models);
+            },
+
+            set(key, value) {
+                this._hoveredModels = value;
+                return this.set('uiState.viewPort.hoveredModels', value);
+            }
+        }),
+
+    selectedModelElements: Ember.computed('selectedModel.elements', function() {
+        return this.get('selectedModel.elements') || [];
+    }),
+
+    selectedElement: Ember.computed(
+        'uiState.viewPort.selectedElement', 'selectedModelElements.[]', {
+            get() {
+                const selectedElement = this.get('uiState.viewPort.selectedElement');
+                const selectedModelElements = this.get('selectedModelElements');
+                if (selectedElement && selectedModelElements.includes(selectedElement)) {
+                    return selectedElement;
+                }
+                return this.set('selectedElement', selectedModelElements[0]);
+            },
+
+            set(key, value) {
+                return this.set('uiState.viewPort.selectedElement', value);
+            }
+        }),
+
     activeSelectionMode: Ember.computed(
         'selectionMode', 'magicToolActive',
-        'hoveredElement', 'hoveredModels', 'selectedElement', 'selectedModel',
+        'hoveredElement', 'hoveredModels.[]', 'selectedElement', 'selectedModel',
         'selectedModelElements.length',
         'generalizableModel', function() {
             const selectedMode = this.get('selectionMode');
@@ -70,32 +107,25 @@ export default Ember.Controller.extend({
             return [];
         }),
     generalizableModel: Ember.computed(
-        'selectedModel', 'hoveredElement', 'annotationSelectors', function() {
+        'selectedModel', 'hoveredElement',
+        'sample.orderedAnnotations.@each.elementPath', function() {
             const selectedModel = this.get('selectedModel');
             const hoveredElement = this.get('hoveredElement');
             if (!hoveredElement) {
                 return;
             }
-            let annotationSelectors = this.get('annotationSelectors');
+            let annotations = this.get('sample.orderedAnnotations');
             if (selectedModel) {
-                annotationSelectors = annotationSelectors.filterBy('annotation', selectedModel)
-                    .concat(annotationSelectors);
+                annotations = [selectedModel].concat(annotations);
             }
-            for (let annotationSelector of annotationSelectors) {
-                const currentElementPath = annotationSelector.elementPath;
+            for (let annotation of annotations) {
+                const currentElementPath = annotation.get('elementPath');
                 const hoveredElementPath = new ElementPath(
                     // FIXME: this should be the same as new ElementPath(hoveredElement)
                     new ElementPath(hoveredElement).uniquePathSelector);
                 if (currentElementPath.differences(hoveredElementPath) <= 2) {
-                    return annotationSelector.annotation;
+                    return annotation;
                 }
-/*
-                hoveredElementPath.add(currentElementPath);
-                if (hoveredElementPath.uniquePathSelector.split(/\s*,\s*!/).length ===
-                    currentElementPath.uniquePathSelector.split(/\s*,\s*!/).length) {
-                    return annotationSelector.annotation;
-                }
-*/
             }
         }),
     hoverOverlayColor: Ember.computed(
@@ -115,7 +145,7 @@ export default Ember.Controller.extend({
                 }
             }
         }),
-    showHoverOverlay: Ember.computed.bool(
+    showHoverOverlay: Ember.computed(
         'hoveredElement', 'hoveredModels.[]', 'generalizableModel', 'selectedModel',
         'activeSelectionMode', function() {
             const activeSelectionMode = this.get('activeSelectionMode');
@@ -132,64 +162,6 @@ export default Ember.Controller.extend({
             }
             return false;
         }),
-
-    activate() {
-        this.get('browser').setAnnotationMode();
-        this.updateAnnotationDefinition();
-        this.get('annotationStructure').registerAnnotations(this, this.updateAnnotations);
-        this.get('annotationStructure').registerElements(this, this.updateAnnotationElements);
-    },
-
-    deactivate() {
-        this.get('browser').clearAnnotationMode();
-        this.get('annotationStructure').clearDefinition();
-        this.get('annotationStructure').unRegisterAnnotations(this, this.updateAnnotations);
-        this.get('annotationStructure').unRegisterElements(this, this.updateAnnotationElements);
-    },
-
-    updateAnnotations(annotations) {
-        this.set('annotationSelectors', annotations);
-    },
-
-    updateAnnotationDefinition: Ember.observer('sample.orderedAnnotations.[]', function() {
-        const selectorStructure = this.get('sample.items').filter((item) => !!item).map(item => ({
-            annotation: item,
-            children: item.get('annotations').map(function mapper(annotation) {
-                if (annotation.constructor.modelName === 'annotation') {
-                    return {
-                        annotation
-                    };
-                } else if (annotation.constructor.modelName === 'item-annotation') {
-                    return {
-                        annotation,
-                        children: (annotation.get('item.annotations') || []).map(mapper)
-                    };
-                }
-            })
-        }));
-        this.get('annotationStructure').setDefinition(selectorStructure);
-    }),
-
-    updateAnnotationElements(elements) {
-        this.set('overlayElements', elements);
-        this.updateHoveredModels();
-        this.updateSelectedModelElements();
-    },
-
-    updateHoveredModels: Ember.observer('hoveredElement', function() {
-        const models = this.get('annotationStructure').annotationsFor(
-                this.get('hoveredElement')) || [];
-        this.set('hoveredModels', models);
-    }),
-
-    updateSelectedModelElements: Ember.observer('selectedModel', function() {
-        const elements = this.get('annotationStructure').elementsFor(
-                this.get('selectedModel')) || [];
-        this.set('selectedModelElements', elements);
-        if (!this.get('selectedElement') && elements[0]) {
-            this.set('selectedElement', elements[0]);
-        }
-    }),
 
     actions: {
         toggleMagicTool() {
@@ -209,57 +181,59 @@ export default Ember.Controller.extend({
         },
 
         selectElement() {
+            const dispatcher = this.get('dispatcher');
             const magicToolActive = this.get('magicToolActive');
             const selectionMode = this.get('activeSelectionMode');
             const hoveredElement = this.get('hoveredElement');
             const hoveredModels = this.get('hoveredModels');
+            const selectedModel = this.get('selectedModel');
 
             switch (selectionMode) {
                 case 'select':
                     if (hoveredModels.length) {
                         const model = hoveredModels[0];
-                        this.get('dispatcher').selectAnnotationElement(
+                        dispatcher.selectAnnotationElement(
                             model, hoveredElement, /* redirect = */true);
                     } else {
-                        this.get('dispatcher').clearSelection();
+                        dispatcher.clearSelection();
                     }
                     break;
 
                 case 'add':
                     if (hoveredElement) {
-                        this.set('selectedElement', hoveredElement);
-                        this.set('originalSelectedElement', hoveredElement);
-                        this.get('dispatcher').addAnnotation(
+                        dispatcher.addAnnotation(
                             /* auto item */null, hoveredElement, undefined, /* redirect = */true);
                     } else {
-                        this.get('dispatcher').clearSelection();
+                        dispatcher.clearSelection();
                     }
                     break;
 
                 case 'remove':
-                    if (hoveredModels.length) {
-                        const annotation = hoveredModels[0];
-                        this.get('dispatcher').removeAnnotation(annotation);
+                    if (selectedModel) {
+                        dispatcher.removeAnnotation(selectedModel);
+                    } else if (hoveredModels.length) {
+                        dispatcher.removeAnnotation(hoveredModels[0]);
                     } else {
-                        this.get('dispatcher').clearSelection();
+                        dispatcher.clearSelection();
                     }
                     break;
 
                 case 'edit':
-                    const matchingModel = this.get('generalizableModel') ||
-                        this.get('selectedModel');
+                    const matchingModel = this.get('generalizableModel') || selectedModel;
                     if (!hoveredElement) {
-                        this.get('dispatcher').clearSelection();
+                        dispatcher.clearSelection();
                     } else if (matchingModel && !hoveredModels.includes(matchingModel)) {
-                        this.get('dispatcher').addElementToAnnotation(
-                            matchingModel, hoveredElement);
+                        dispatcher.addElementToAnnotation(matchingModel, hoveredElement);
                     } else if (hoveredModels.length) {
-                        const annotationStructure = this.get('annotationStructure');
-                        const model = hoveredModels.find(model =>
-                            (annotationStructure.elementsFor(model) || []).length > 1) ||
+                        let model;
+                        if (selectedModel) {
+                            model = selectedModel;
+                        } else {
+                            model = hoveredModels.find(model =>
+                                    (model.get('elements') || []).length > 1) ||
                                 hoveredModels[0];
-                        this.get('dispatcher').removeElementFromAnnotation(
-                            model, hoveredElement);
+                        }
+                        dispatcher.removeElementFromAnnotation(model, hoveredElement);
                     }
                     break;
             }

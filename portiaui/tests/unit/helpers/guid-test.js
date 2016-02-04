@@ -1,10 +1,10 @@
-import { elementsFor } from '../../../helpers/elements-for';
+import { guid } from '../../../helpers/guid';
 import { module, test } from 'qunit';
 
-module('Unit | Helper | elements for');
+module('Unit | Helper | guid');
 
 // Replace this with your real tests.
 test('it works', function(assert) {
-  var result = elementsFor(42);
+  let result = guid(42);
   assert.ok(result);
 });

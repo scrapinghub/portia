@@ -13,7 +13,7 @@ var positionInNodeList = function(element, nodeList) {
     }
   }
   return -1;
-}
+};
 
 /**
  * Find a unique CSS selector for a given element
@@ -79,9 +79,9 @@ export function findCssSelector(ele, depth = 0) {
          selector = findCssSelector(ele.parentNode, depth + 1) + ' > ' +
                  tagName + ':nth-child(' + index + ')';
      }
-   }
-   return selector;
- };
+  }
+  return selector;
+}
 
 function combineIndices(accept, reject) {
     if (!reject.length && (!accept.length || accept.length > 1)) {
@@ -387,36 +387,28 @@ export function findContainers(extractedElements, upto) {
 }
 
 export function findContainer(extractedElements) {
-    let elements = [];
-    for (let fields of extractedElements) {
-        elements = elements.concat(fields);
-    }
-    return findContainers(elements)[0];
+    return findContainers([].concat(...extractedElements))[0];
 }
 
-
-export function findRepeatedContainer(extracted, container) {
+export function findRepeatedContainers(extracted, container) {
     let groupedItems = groupItems(extracted, container);
     if (groupedItems.length === 1) {
-        return [null, 0];
+        return [[], 0];
     }
     let repeatedParents = groupedItems.map((item) => findContainers(item, container));
-    let allEqualLength = true;
-    for (let parents of repeatedParents) {
-        allEqualLength = repeatedParents[0].length === parents.length;
-    }
     if (repeatedParents.length === 0) {
-        return [null, 0];
+        return [[], 0];
     }
+    let allEqualLength = repeatedParents.isEvery('length', repeatedParents[0].length);
     if (allEqualLength &&
             new Set(repeatedParents.map((item) => item[0])).size === repeatedParents.length) {
-        return [repeatedParents[0].length ? repeatedParents[0][0] : null, 0];
+        return [repeatedParents[0].length ? repeatedParents.map(list => list[0]) : [], 0];
     } else {
         let shortest = Math.min(...repeatedParents.map(e => e.length));
         repeatedParents = repeatedParents.map(
             (item) => item.slice(item.length - shortest, item.length));
         if (new Set(repeatedParents.map((item) => item[0])).size === repeatedParents.length) {
-            return [repeatedParents[0].length ? repeatedParents[0][0] : null, 0];
+            return [repeatedParents[0].length ? repeatedParents.map(list => list[0]) : [], 0];
         }
     }
     return parentWithSiblings(groupedItems, container);
@@ -458,7 +450,7 @@ export function parentWithSiblings(groupedItems, container) {
         siblingDistance = Math.min(...siblings);
     // 5. Use the highest unshared parent of the highest field of the first item
     //    as the repeating container
-    return [itemParents[0][0][0], siblingDistance];
+    return [itemParents.map(lists => lists[0][0]), siblingDistance];
 }
 
 function getItemBounds(items, tagNumber=true) {
@@ -598,23 +590,21 @@ export function groupItems(extracted, upto) {
 }
 
 export function makeItemsFromGroups(groups) {
-    let i, items = [];
+    let items = [];
     for (let key of Object.keys(groups)) {
-        i = 0;
-        for (let item of groups[key]) {
+        for (let [i, item] of groups[key].entries()) {
             if (!items[i]) {
                 items[i] = [];
             }
             items[i].push(item);
-            i += 1;
         }
     }
     return items;
 }
 
 export default {
-    ElementPath: ElementPath,
-    findContainer: findContainer,
-    findRepeatedContainer: findRepeatedContainer,
-    findCssSelector: findCssSelector
+    ElementPath,
+    findContainer,
+    findRepeatedContainers,
+    findCssSelector
 };

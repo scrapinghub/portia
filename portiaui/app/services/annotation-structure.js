@@ -1,213 +1,224 @@
 import Ember from 'ember';
-import {ElementPath} from '../utils/selectors';
+import {
+    findContainer,
+    findCssSelector,
+    findRepeatedContainers,
+    ElementPath
+} from '../utils/selectors';
 
-const elementsMap = new Map();
-const nodeMap = new Map();
-
-function getElement(element) {
-    const guid = Ember.guidFor(element);
-    return elementsMap.get(guid);
-}
-
-function getOrCreateElement(element) {
-    const guid = Ember.guidFor(element);
-    if (!elementsMap.has(guid)) {
-        elementsMap.set(guid, {
-            guid,
-            element,
-            annotations: []
-        });
-    }
-    return elementsMap.get(guid);
-}
-
-class SelectorNode {
-    constructor(data) {
-        this._data = data;
-        this.elements = [];
-    }
-
-    get annotation() {
-        return this._data.annotation;
-    }
-
-    get acceptSelectors() {
-        return this._data.acceptSelectors;
-    }
-
-    get rejectSelectors() {
-        return this._data.rejectSelectors;
-    }
-
-    get elementPath() {
-        return this._data.elementPath;
-    }
-
-    get selector() {
-        return this.elementPath.uniquePathSelector;
-    }
-
-    updateElements(elements) {
-        this.elements.forEach(element => {
-            getOrCreateElement(element).annotations.removeObject(this.annotation);
-        });
-        elements.forEach(element => {
-            getOrCreateElement(element).annotations.addObject(this.annotation);
-        });
-        this.elements = elements;
-    }
-}
-
-function generalizeDefinitionSelectors(definition) {
-    definition.forEach(function generalize(element) {
-        if (element && element.annotation) {
-            const acceptSelectors = element.annotation.get('acceptSelectors');
-            const rejectSelectors = element.annotation.get('rejectSelectors');
-            element.acceptSelectors = acceptSelectors;
-            element.rejectSelectors = rejectSelectors;
-            if (element.children) {
-                element.children.forEach(generalize);
-                ElementPath.mergeMany(element.children.mapBy('elementPath'));
-            }
-            if (Array.isArray(acceptSelectors) &&
-                Array.isArray(rejectSelectors)) {
-                element.elementPath = ElementPath.fromAcceptedAndRejected(
-                    acceptSelectors, rejectSelectors);
-            }
-        }
-    });
-}
-
-export default Ember.Service.extend(Ember.Evented, {
-    selectorMatcher: Ember.inject.service(),
-
+const ElementStructure = Ember.Object.extend({
     definition: null,
-    _annotations: function() {
-        let annotations = [];
-        for (let nodes of this.selectorNodes) {
-            annotations.push(nodes.elements);
-        }
-        return annotations;
-    },
+    selectorMatcher: null,
 
     init() {
-        this._super();
-        this.selectorNodes = [];
-        this.get('selectorMatcher').watch(this, this.update);
+        this._super(...arguments);
+        this.addObservers();
     },
 
-    setDefinition(definition) {
-        this.clearDefinition();
+    destroy() {
+        this.removeObservers();
+        this._super(...arguments);
+    },
+
+    updateDefinition: Ember.observer('definition', function() {
+        this.removeObservers();
+        this.addObservers();
+    }),
+
+    addObservers() {
+        const allElements = [];
+        this.set('annotations', Ember.Object.create());
+        this.set('elements', Ember.Object.create({
+            all: allElements
+        }));
+
+        const bindings = this.bindings = [];
+        const definition = this.get('definition');
         const selectorMatcher = this.get('selectorMatcher');
-        const selectorNodes = this.selectorNodes;
-        generalizeDefinitionSelectors(definition);
-        const self = this;
-        definition.forEach(function mapper(element) {
-            if (element.annotation) {
-                if (element.elementPath) {
-                    const node = new SelectorNode(element);
-                    selectorNodes.push(node);
-                    nodeMap.set(node.annotation, node);
-                    if (node.selector) {
-                        selectorMatcher.register(node.selector, node, node.updateElements);
+
+        const setup = element => {
+            const annotation = element.annotation;
+            const children = element.children;
+            const guid = Ember.guidFor(annotation);
+
+            const setElements = elements => {
+                (annotation.get('elements') || []).forEach(element => {
+                    allElements.removeObject(element);
+                    const guid = Ember.guidFor(element);
+                    const annotations = this.get(`annotations.${guid}`);
+                    if (annotations) {
+                        annotations.removeObject(annotation);
+                        if (!annotations.length) {
+                            this.set(`annotations.${guid}`, undefined);
+                        }
                     }
-                    Ember.addObserver(
-                        node.annotation, 'acceptSelectors.[]', self, self.updateDefinition);
-                    Ember.addObserver(
-                        node.annotation, 'rejectSelectors.[]', self, self.updateDefinition);
-                    return node;
-                }
-                if (element.children) {
-                    element.children.forEach(mapper);
-                }
-            }
-        });
-        this.definition = definition;
-    },
+                });
+                elements.forEach(element => {
+                    allElements.addObject(element);
+                    const guid = Ember.guidFor(element);
+                    let annotations = this.get(`annotations.${guid}`);
+                    if (!annotations) {
+                        annotations = [];
+                        this.set(`annotations.${guid}`, annotations);
+                        this.notifyPropertyChange('annotations');
+                    }
+                    annotations.addObject(annotation);
+                });
+                annotation.set('elements', elements);
+                this.set(`elements.${guid}`, elements);
+                this.notifyPropertyChange('elements');
+            };
 
-    clearDefinition() {
-        const selectorMatcher = this.get('selectorMatcher');
-        this.selectorNodes.forEach(node => {
-            Ember.removeObserver(
-                node.annotation, 'acceptSelectors.[]', this, this.updateDefinition);
-            Ember.removeObserver(
-                node.annotation, 'rejectSelectors.[]', this, this.updateDefinition);
-            if (node.selector) {
-                selectorMatcher.unRegister(node.selector, node, node.updateElements);
+            if (children) {
+                children.forEach(setup);
+
+                bindings.push({
+                    annotation,
+                    observer() {
+                        const childElements = children.map(
+                            child => child.annotation.get('elements') || []);
+                        let elements;
+                        let containerPath = 'body';
+                        const container = findContainer(childElements);
+                        if (container) {
+                            containerPath = findCssSelector(container);
+                            elements = [container];
+                        } else {
+                            return; // No elements highlighted
+                        }
+                        const [repeatedContainers, siblings] = findRepeatedContainers(
+                            childElements, container);
+                        if (repeatedContainers.length) {
+                            const repeatedContainerPath = findCssSelector(repeatedContainers[0]);
+                            annotation.setProperties({
+                                repeated: true,
+                                repeatedAcceptSelectors: [repeatedContainerPath]
+                            });
+                            elements = repeatedContainers;
+                        }
+                        annotation.setProperties({
+                            acceptSelectors: [containerPath],
+                            siblings: siblings
+                        });
+                        setElements(elements);
+                    },
+                    observerPaths: ['item.annotations.content.@each.elements']
+                });
             } else {
-                node.updateElements([]);
+                let selector = null;
+                bindings.push({
+                    annotation,
+                    observer() {
+                        const acceptSelectors = annotation.get('acceptSelectors');
+                        const rejectSelectors = annotation.get('rejectSelectors');
+                        const elementPath = ElementPath.fromAcceptedAndRejected(
+                            acceptSelectors, rejectSelectors);
+                        if (selector) {
+                            selectorMatcher.unRegister(selector, setElements);
+                        }
+                        selector = elementPath.uniquePathSelector;
+                        annotation.setProperties({
+                            elementPath,
+                            selector
+                        });
+                        if (selector) {
+                            selectorMatcher.register(selector, setElements);
+                            setElements(selectorMatcher.query(selector));
+                        }
+                    },
+                    cleanupObserver() {
+                        selectorMatcher.unRegister(selector, setElements);
+                    },
+                    observerPaths: ['acceptSelectors.[]', 'rejectSelectors.[]']
+                });
             }
-        });
-        this.definition = null;
-        this.selectorNodes = [];
-        nodeMap.clear();
-        elementsMap.clear();
-        this.update();
+        };
+
+        definition.forEach(setup);
+
+        for (let {annotation, observer, observerPaths} of bindings) {
+            for (let path of observerPaths) {
+                Ember.addObserver(annotation, path, observer);
+            }
+            observer();
+        }
     },
 
-    updateDefinition() {
+    removeObservers() {
+        for (let {annotation, observer, observerPaths, cleanupObserver} of this.bindings) {
+            for (let path of observerPaths) {
+                Ember.removeObserver(annotation, path, observer);
+            }
+            if (cleanupObserver) {
+                cleanupObserver();
+            }
+        }
+        this.bindings = [];
+
+        for (let property of ['annotations', 'elements']) {
+            const object = this.get(property);
+            if (object) {
+                object.destroy();
+            }
+            this.set(property, null);
+        }
+    }
+});
+
+const DataElementStructure = ElementStructure.extend({
+    model: null,  // a sample
+
+    definition: Ember.computed('model.orderedAnnotations.[]', function() {
+        return this.get('model.items').filter(item => !!item).map(item => ({
+            annotation: item.get('itemAnnotation'),
+            children: item.get('annotations').map(function mapper(annotation) {
+                if (annotation.constructor.modelName === 'annotation') {
+                    return {
+                        annotation
+                    };
+                } else if (annotation.constructor.modelName === 'item-annotation') {
+                    return {
+                        annotation,
+                        children: (annotation.get('item.annotations') || []).map(mapper)
+                    };
+                }
+            })
+        }));
+    })
+});
+
+export default Ember.Service.extend({
+    selectorMatcher: Ember.inject.service(),
+
+    addStructure(model, attribute, Class) {
+        if (!model) {
+            return;
+        }
+
         const selectorMatcher = this.get('selectorMatcher');
-        this.selectorNodes.forEach(node => {
-            if (node.selector) {
-                selectorMatcher.unRegister(node.selector, node, node.updateElements);
-            }
-        });
-        generalizeDefinitionSelectors(this.definition);
-        this.selectorNodes.forEach(node => {
-            if (node.selector) {
-                selectorMatcher.register(node.selector, node, node.updateElements);
-            } else {
-                node.updateElements([]);
-            }
-        });
+        model.set(attribute, Class.create({
+            selectorMatcher,
+            model
+        }));
     },
 
-    update() {
-        const elements = Array.from(elementsMap.values());
-        this.trigger('elements', elements);
-        const annotations = Array.from(nodeMap.values());
-        this.trigger('annotations', annotations);
-        this.trigger('change');
+    removeStructure(model, attribute) {
+        if (!model) {
+            return;
+        }
+
+        const structure = model.get(attribute);
+        if (structure) {
+            structure.destroy();
+            model.set(attribute, null);
+        }
     },
 
-    register(event, target, method) {
-        this.on(event, target, method);
+    addDataStructure(sample) {
+        this.addStructure(sample, 'dataStructure', DataElementStructure);
     },
 
-    unRegister(event, target, method) {
-        this.off(event, target, method);
-    },
-
-    registerElements(target, method) {
-        this.on('elements', target, method);
-    },
-
-    unRegisterElements(target, method) {
-        this.off('elements', target, method);
-    },
-
-    registerAnnotations(target, method) {
-        this.on('annotations', target, method);
-    },
-
-    unRegisterAnnotations(target, method) {
-        this.off('annotations', target, method);
-    },
-
-    registerChange(target, method) {
-        this.on('change', target, method);
-    },
-
-    unRegisterChange(target, method) {
-        this.off('change', target, method);
-    },
-
-    elementsFor(model) {
-        const node = nodeMap.get(model);
-        return node && node.elements;
-    },
-
-    annotationsFor(element) {
-        return (getElement(element) || {}).annotations;
+    removeDataStructure(sample) {
+        this.removeStructure(sample, 'dataStructure');
     }
 });

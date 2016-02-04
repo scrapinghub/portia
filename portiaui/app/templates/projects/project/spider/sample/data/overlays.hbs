@@ -1,7 +1,9 @@
 <div class="{{unless hoveredElement 'none-hovered'}} {{unless selectedElement 'none-selected'}} {{if hoveredModels.length 'group-hovered'}} {{if selectedModel 'group-selected'}}">
-    {{#each overlayElements key="guid" as |overlay|}}
-        {{#each overlay.annotations as |annotation|}}
-            {{element-overlay class=(concat (if (eq overlay.element hoveredElement) 'hovered') (if (includes hoveredModels annotation) ' group-hovered') (if (and (eq overlay.element selectedElement) (eq selectedModel annotation)) ' selected') (if (eq selectedModel annotation) ' group-selected')) viewPortElement=overlay.element icon=(if (eq overlay.element hoveredElement) (get selectionModeIcons activeSelectionMode)) color=(array-get annotationColors annotation.orderedIndex)}}
+    {{#each sample.dataStructure.elements.all as |element|}}
+        {{#each (get sample.dataStructure.annotations (guid element)) as |annotation|}}
+            {{#if (eq annotation.constructor.modelName "annotation")}}
+                {{element-overlay class=(concat (if (eq element hoveredElement) 'hovered') (if (includes hoveredModels annotation) ' group-hovered') (if (and (eq element selectedElement) (eq selectedModel annotation)) ' selected') (if (eq selectedModel annotation) ' group-selected')) viewPortElement=element icon=(if (eq element hoveredElement) (get selectionModeIcons activeSelectionMode)) color=(array-get annotationColors annotation.orderedIndex)}}
+            {{/if}}
         {{/each}}
     {{/each}}
     {{element-overlay class=(concat 'hover-overlay' (unless showHoverOverlay ' hide')) viewPortElement=hoveredElement icon=(get selectionModeIcons activeSelectionMode) color=hoverOverlayColor}}
