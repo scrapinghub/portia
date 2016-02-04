@@ -11,7 +11,7 @@ from scrapely.extraction import InstanceBasedLearningExtractor
 from scrapely.htmlpage import HtmlPage, dict_to_page
 
 from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
-                                  RssLinkExtractor,)
+                                  PaginationExtractor, )
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
@@ -56,7 +56,10 @@ class Annotations(object):
         ), key=lambda pair: pair[0])
 
         self.itemcls_info = {}
-        self.html_link_extractor = HtmlLinkExtractor()
+        if settings.get('AUTO_PAGINATION'):
+            self.html_link_extractor = PaginationExtractor()
+        else:
+            self.html_link_extractor = HtmlLinkExtractor()
         for itemclass_name, triplets in groupby(_item_template_pages,
                                                 itemgetter(0)):
             page_extractors_pairs = map(itemgetter(1, 2), triplets)
@@ -92,6 +95,11 @@ class Annotations(object):
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
         items, link_regions = self.extract_items(htmlpage)
+        htmlpage.headers['n_items'] = len(items)
+        try:
+            response.meta['n_items'] = len(items)
+        except AttributeError:
+            pass # response not tied to any request
         for item in items:
             yield item
         for request in self._process_link_regions(htmlpage, link_regions):
