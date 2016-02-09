@@ -41,7 +41,8 @@ class PipelineExtractor:
 
 def apply_extractors(descriptor, template_extractors, extractors):
     field_type_manager = FieldTypeManager()
-
+    if isinstance(template_extractors, dict):
+        template_extractors = template_extractors.items()
     for field_name, field_extractors in template_extractors:
         equeue = []
         for eid in field_extractors:

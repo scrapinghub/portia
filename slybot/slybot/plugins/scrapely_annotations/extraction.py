@@ -26,6 +26,7 @@ from scrapely.extraction.similarity import (similar_region,
                                             longest_unique_subsequence,
                                             first_longest_subsequence)
 from scrapely.htmlpage import HtmlTagType, HtmlPageParsedRegion
+from scrapely.extraction.pageobjects import AnnotationText
 
 
 MAX_SEARCH_DISTANCE_MULTIPLIER = 3
@@ -73,10 +74,18 @@ class SlybotTemplatePageParser(TemplatePageParser):
     def to_template(self, descriptors=None):
         if descriptors is None:
             descriptors = {}
+        self._add_text_region_annotations()
         return SlybotTemplatePage(self.html_page, self.token_dict,
                                   self.token_list, self.annotations,
                                   self.html_page.page_id, self.ignored_regions,
                                   self.extra_required_attrs, descriptors)
+
+        def _add_text_region_annotations(self):
+            for annotation in self.annotations:
+                meta = annotation.metadata
+                if 'pre_text' in meta or 'post_text' in meta:
+                    annotation.annotation_text = AnnotationText(
+                        meta.get('pre_text', ''), meta.get('post_text', ''))
 
 
 class SlybotTemplatePage(TemplatePage):

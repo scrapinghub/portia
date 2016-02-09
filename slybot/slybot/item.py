@@ -22,7 +22,7 @@ class SlybotItem(DictItem):
         class IblItem(cls):
             fields = defaultdict(dict)
             version_fields = []
-            cls._display_name = schema.get('name')
+            _display_name = schema.get('name')
             for _name, _meta in schema['fields'].items():
                 name = _meta.get('name', _name)
                 fields[name] = Field(_meta)
@@ -44,7 +44,7 @@ def create_slybot_item_descriptor(schema, schema_name=""):
                                            required)
         descriptors.append(descriptor)
     return SlybotItemDescriptor(schema_name,
-                                schema.get('display_name', schema_name),
+                                schema.get('name', schema_name),
                                 descriptors)
 
 
