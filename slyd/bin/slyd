@@ -20,7 +20,7 @@ def make_server(*args, **kwargs):
                                          'docroot': root}))
 
 
-def add_args():
+def add_args(jupyter, argv):
     op = argparse.ArgumentParser()
     op.add_argument('-p', '--port', default=DEFAULT_PORTIA_PORT, type=int)
     op.add_argument('-r', '--root', default=DEFAULT_PORTIA_PORT,
@@ -29,7 +29,7 @@ def add_args():
     # XXX: Consume portia specific arguments
     portia_args, args = op.parse_known_args()
     sys.argv = [sys.argv[0]] + args
-    opts, _ = splash.server._parse_opts()
+    opts, _ = splash.server._parse_opts(jupyter, argv)
     opts._update_loose(portia_args._get_kwargs())
     return (opts, args)
 
