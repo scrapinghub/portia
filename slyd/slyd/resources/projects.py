@@ -1,11 +1,13 @@
 from __future__ import absolute_import
 import six
+import json
 
 from .models import (ProjectSchema, SchemaSchema, FieldSchema, ExtractorSchema,
                      SpiderSchema)
 from .schemas import _read_schemas
-from ..errors import BadRequest
+from ..errors import BadRequest, BaseError, NotFound
 from ..utils.projects import ctx, init_project
+NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
 
 
 def list_projects(manager, attributes=None):
@@ -54,6 +56,44 @@ def delete_project(manager, project_id, attributes=None):
     """Delete the request project"""
     manager.remove_project(project_id)
     return None
+
+
+def status(manager, attributes=None):
+    if not hasattr(manager.pm, '_changed_files'):
+        raise NotFound(NOT_AVAILABLE_ERROR)
+    project_id = manager.project_name
+    data = get_project(manager)
+    data['meta'] = {
+        'changed_files': json.loads(manager.pm._changed_files(project_id))
+    }
+    return data
+
+
+def merge(manager, attributes=None):
+    if not hasattr(manager.pm, 'publish_project'):
+        raise NotFound(NOT_AVAILABLE_ERROR)
+    project_id = manager.project_name
+    if not status(manager):
+        raise BadRequest('The project is up to date')
+    publish_status = json.loads(
+        manager.pm.publish_project(project_id, attributes.get('force', False)))
+    if publish_status['status'] == 'conflict':
+        raise BaseError(409, 'A conflict has occurred in this project',
+                        'You must resolve the conflict for the project to be'
+                        ' successfully published')
+    data = get_project(manager)
+    data['meta'] = manager.pm._schedule_data(project_id=project_id)
+    return data
+
+
+def reset(manager, attributes=None):
+    if not hasattr(manager.pm, 'discard_changes'):
+        raise NotFound(NOT_AVAILABLE_ERROR)
+    project_id = manager.project_name
+    if not status(manager):
+        raise BadRequest('There are no changes to discard')
+    manager.pm.discard_changes(project_id)
+    return get_project(manager)
 
 
 def _check_project_attributes(manager, attributes):

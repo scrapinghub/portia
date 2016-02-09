@@ -9,7 +9,7 @@ from marshmallow.exceptions import ValidationError as mwValidationError
 from parse import compile
 
 from .resources import routes
-from .errors import BadRequest, NotFound, BaseHTTPError, InternalServerError
+from .errors import BadRequest, NotFound, BaseError, InternalServerError
 
 
 class APIResource(object):
@@ -19,6 +19,8 @@ class APIResource(object):
 
     def __init__(self, spec_manager):
         self.spec_manager = spec_manager
+        if getattr(spec_manager, 'api_routes', None):
+            self.children = spec_manager.api_routes
         self.routes = self._build_routes()
 
     def _build_routes(self):
@@ -71,7 +73,7 @@ class APIResource(object):
                                      BadRequest('The input data was not valid.'
                                                 ' Validation failed with the '
                                                 'error: %s.' % str(ex)))
-        except BaseHTTPError as ex:
+        except BaseError as ex:
             return self.format_error(request, ex)
         except Exception as ex:
             return self.format_error(request,
@@ -99,7 +101,7 @@ class APIResource(object):
         id = getattr(error, 'id', None)
         if id is not None:
             data['id'] = id
-        return json.dumps(data)
+        return json.dumps({'errors': [data]})
 
     def _handle_uncaught_exception(self, ex):
         # TODO: log and return traceback
@@ -108,6 +110,8 @@ class APIResource(object):
 
 def load_attributes(request):
     try:
-        return json.loads(request.content.read())
+        data = json.loads(request.content.read())
     except ValueError:
-        return None
+        data = {}
+    data['arguments'] = request.args
+    return data

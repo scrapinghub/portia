@@ -147,6 +147,10 @@ class ProjectArchiver(object):
             if template is None:
                 continue
             template_extractors = template.get('extractors', {})
+            if not isinstance(template_extractors, dict):
+                template_extractors = {e.get('field'): e.get('id')
+                                       for e in template_extractors
+                                       if 'field' in e and e['field']}
             for field, eids in template_extractors.items():
                 existing[field] = [eid for eid in eids
                                    if eid in extractors]

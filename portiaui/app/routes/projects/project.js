@@ -51,6 +51,17 @@ export default Ember.Route.extend({
     actions: {
         error: function() {
             this.transitionTo('projects');
+        },
+
+        conflict() {
+            this.transitionTo('projects.project.conflicts');
+        },
+
+        reload() {
+            this.transitionTo('projects.project');
+            this.store.unloadAll('spider');
+            this.store.unloadAll('schema');
+            this.refresh();
         }
     }
 });

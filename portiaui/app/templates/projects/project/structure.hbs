@@ -10,6 +10,7 @@
             {{/link-to}}
         {{/tooltip-container}}
     </h2>
+    {{project-commands project=model reload="reload" conflict="conflict"}}
     {{project-structure-listing project=model}}
     {{outlet 'project-structure'}}
 </nav>

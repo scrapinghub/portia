@@ -7,7 +7,7 @@ from .items import (list_items, get_item, create_item, update_item,
                     delete_item)
 from .item_annotations import update_item_annotation
 from .projects import (list_projects, get_project, create_project,
-                       update_project, delete_project)
+                       update_project, delete_project, status, merge, reset)
 from .spiders import (list_spiders, get_spider, create_spider, update_spider,
                       delete_spider)
 from .samples import (list_samples, get_sample, create_sample, update_sample,
@@ -90,6 +90,18 @@ project = Route(
     patch=update_project,
     delete=delete_project
 )
+project_publish = Route(
+    'projects/{project_id}/publish',
+    patch=merge
+)
+project_status = Route(
+    'projects/{project_id}/status',
+    patch=status
+)
+project_reset = Route(
+    'projects/{project_id}/reset',
+    patch=reset
+)
 spiders_list = Route(
     'projects/{project_id}/spiders',
     get=list_spiders,
@@ -138,6 +150,9 @@ routes = [
     item_annotations,
     projects_list,
     project,
+    project_publish,
+    project_reset,
+    project_status,
     samples_list,
     sample,
     sample_html,

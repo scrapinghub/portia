@@ -37,12 +37,14 @@ def save_html(data, socket):
     stated_encoding = socket.tab.evaljs('document.characterSet')
     sample['original_body'] = _decode(socket.tab.network_manager._raw_html,
                                       stated_encoding)
-    # sample['js_original_body'] = _decode(socket.tab.html() or '', 'utf-8')
+    sample['js_original_body'] = socket.tab.html().decode('utf-8')
     _update_sample(data, socket, sample)
 
 
 def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
+    if not socket.tab:
+        return []
     url = socket.tab.evaljs('location.href')
     html = socket.tab.html()
     if (socket.spiderspec is None or
