@@ -98,7 +98,10 @@ export default Ember.Controller.extend({
             var project = this.get('projectController.model.id');
             var fileName = this.get('model.file');
             var content = this.getResolvedTree();
-            // TODO call API to save file
+            var url = '/projects/' + project + '/spec/' + fileName.replace(/\.json$/, '');
+            $.post(url, JSON.stringify(content)).then(() => {
+                this.transitionTo('projects.project.conflicts');
+            });
         }
     }
 });

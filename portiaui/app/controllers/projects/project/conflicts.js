@@ -1,6 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.Controller.extend({
+    projectController: Ember.inject.controller('projects.project'),
     currentFileName: null,
 
     conflictedKeyPaths: {},
@@ -11,11 +12,4 @@ export default Ember.Controller.extend({
             encodedName: btoa(name),
         }));
     }),
-
-    actions: {
-        publish: function() {
-            // TODO: Publish
-        },
-    },
-
 });
