@@ -32,6 +32,13 @@ export default Ember.Route.extend({
         error() {
             this.transitionTo('projects.project.spider',
                 this.modelFor('projects.project.spider'));
-        }
+        },
+
+        deactivate() {
+            let sample = this.get('currentModel');
+            if(sample) {
+                sample.set('_autoCreatedSchema', null);
+            }
+        },
     }
 });
