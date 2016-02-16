@@ -1,3 +1,17 @@
+16.02.2 - 2016-02-16
+
+Fix incompatability with latest splash
+Fix error with next page link following
+Log traceback if error occurs in websocket
+
+16.02.1 - 2016-02-09
+Add automatic next page link extractor to slybot
+Show errors to user instead of event id
+Fix bug where items are not initialized correctly
+Log websocket errors
+Fix regex validation
+Fix conflicts resolution errors
+
 16.01.1 - 2016-01-25
 Fix Unicode error when creating spiders
 Fix install packages
