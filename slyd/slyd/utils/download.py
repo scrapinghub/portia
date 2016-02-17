@@ -65,14 +65,14 @@ class ProjectArchiver(object):
                 path, contents, added = self._add_spider(file_path,
                                                          spider_templates,
                                                          extractors)
-                seen_files.update(added)
                 if contents is not None:
                     self._add_file(file_path, contents, now)
             else:
                 self._add_file(file_path, self.read_file(file_path), now)
-                seen_files.add(file_path)
-        missing = (set(self.file_templates) & self.required_files) - seen_files
-        for file_path in missing:
+        file_list = set(f.filename for f in self._archive.filelist)
+        for file_path in self.required_files:
+            if file_path in file_list:
+                continue
             self._add_file(file_path, self.file_templates[file_path], now)
 
     def _add_file(self, filename, contents, tstamp):
