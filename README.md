@@ -5,7 +5,7 @@ Portia is a tool that allows you to visually scrape websites without any program
 
 # Try it out
 
-To try Portia without needing to install anything sign up for an account at [scrapinghub](https://portia.scrapinghub.com/) and you can use our hosted version.
+To try Portia for free without needing to install anything sign up for an account at [scrapinghub](https://portia.scrapinghub.com/) and you can use our hosted version.
 
 # Running Portia
 
