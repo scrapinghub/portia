@@ -25,7 +25,7 @@
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item as |options|}}
                 {{list-item-icon icon='link'}}
-                {{list-item-link-crawling spider=spider}}
+                {{list-item-link-crawling spider=spider openLinkOptions="openLinkOptions"}}
                 {{#if (not-eq spider.linksToFollow 'none')}}
                     {{#link-to 'projects.project.spider' bubbles=false}}
                         {{#link-to 'projects.project.spider.link-options' bubbles=false class="ignore-active"}}

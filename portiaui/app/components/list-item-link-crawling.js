@@ -33,7 +33,11 @@ export default Ember.Component.extend({
 
     actions: {
         saveSpider() {
-            this.get('spider').save();
+            this.get('spider').save().then(() => {
+                if (this.get('linksToFollow') !== 'none') {
+                    this.sendAction('openLinkOptions');
+                }
+            });
         }
     }
 });

@@ -44,6 +44,14 @@ export default Ember.Component.extend({
 
         saveSample(sample) {
             sample.save();
+        },
+
+        openLinkOptions() {
+            this.sendAction('openLinkOptions');
+        },
+
+        closeLinkOptions() {
+            this.sendAction('closeLinkOptions');
         }
     }
 });

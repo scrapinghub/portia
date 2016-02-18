@@ -54,5 +54,9 @@ export default Ember.Route.extend({
             this.transitionTo('projects.project',
                 this.modelFor('projects.project'));
         }
+
+        openLinkOptions() {
+            this.transitionTo('projects.project.spider.link-options');
+        }
     }
 });
