@@ -143,6 +143,7 @@ export default Ember.Service.extend({
             });
 
             if (redirect) {
+                sample.set('_autoCreatedSchema', sample.get('scrapes'));
                 sample.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.spider.sample', [spider, sample], {}, true);
@@ -320,8 +321,17 @@ export default Ember.Service.extend({
         spider.save();
     },
 
+    deleteAutoCreatedSchema(sample) {
+        if(sample.get('_autoCreatedSchema')) {
+            this.get('store').findRecord('schema', sample.get('_autoCreatedSchema'))
+                .then(s => this.removeSchema(s));
+            sample.set('_autoCreatedSchema', null);
+        }
+    },
+
     removeSample(sample) {
         const currentSample = this.get('uiState.models.sample');
+        this.deleteAutoCreatedSchema(sample);
         if (sample === currentSample) {
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider', [], {}, true);

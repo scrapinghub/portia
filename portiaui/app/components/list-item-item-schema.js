@@ -20,6 +20,12 @@ export default Ember.Component.extend({
 
         changeSchema() {
             const item = this.get('item');
+            const sample = item.get('sample');
+            if(sample.get('_autoCreatedSchema') &&
+               sample.get('items.length') === 1 &&
+               item.get('schema.id') !== sample.get('_autoCreatedSchema')) {
+                this.get('dispatcher').deleteAutoCreatedSchema(sample);
+            }
             item.save();
         }
     }
