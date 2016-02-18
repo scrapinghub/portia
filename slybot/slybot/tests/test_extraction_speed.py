@@ -16,6 +16,7 @@ def _next_3(iterable):
     i = iter(iterable[1:-3])
     while True:
         yield SelectorList((next(i), next(i), next(i)))
+ITERATIONS = 15
 Extractor = namedtuple('Extractor', ['containers', 'selectors', 'group'])
 parsel_extractors = {
     'daft': Extractor('//div[@class="box"]',
@@ -85,23 +86,23 @@ for template_name in ('daft_ie', 'hn', 'patchofland'):
 
 class TestExtractionSpeed(TestCase):
     def test_parsel_parse_and_extract(self):
-        for i in range(15):
+        for i in range(ITERATIONS):
             for name, page in ibl_pages.items():
                 s = Selector(text=page.body)
                 extract(parsel_extractors[name], s)
 
     def test_slybot_parse_and_extract(self):
-        for i in range(15):
+        for i in range(ITERATIONS):
             for name, page in ibl_pages.items():
                 extraction_page = HtmlPage(body=page.body)
                 ibl_extractors[name].extract(extraction_page)
 
     def test_parsel_extract(self):
-        for i in range(15):
+        for i in range(ITERATIONS):
             for name, page in ibl_pages.items():
                 extract(parsel_extractors[name], selector_pages[name])
 
     def test_slybot_extract(self):
-        for i in range(15):
+        for i in range(ITERATIONS):
             for name, page in ibl_pages.items():
                 ibl_extractors[name].extract(page)

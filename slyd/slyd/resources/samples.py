@@ -96,8 +96,17 @@ def _process_sample(sample, manager, spider_id):
         if '_body' in key:
             sample.pop(key)
     data = SampleSchema(context=_ctx()).dump(sample).data
-    items = [ItemSchema(context=_ctx(i['schema']['id'])).dump(i).data['data']
-             for i in items]
+    return _add_items_and_annotations(data, items, annotations,
+                                      item_annotations, _ctx)
+
+
+def _add_items_and_annotations(data, items, annotations, item_annotations,
+                               _ctx):
+    built_items = []
+    for i in items:
+        context = _ctx(i['schema']['id'])
+        item = ItemSchema(context=context).dump(i).data['data']
+        built_items.append(item)
     annos = []
     for a in annotations:
         if a.get('item_container'):
@@ -107,10 +116,10 @@ def _process_sample(sample, manager, spider_id):
         annos.append(dumper.dump(a).data['data'])
     item_annos = []
     for a in item_annotations:
-        context = _ctx(a['schema_id'], a['id'].split('#')[0])
+        context = _ctx(a['schema_id'])
         dumper = ItemAnnotationSchema(context=context)
         item_annos.append(dumper.dump(a).data['data'])
-    data['included'] = items + annos + item_annos
+    data['included'] = built_items + annos + item_annos
     return data
 
 
@@ -118,29 +127,27 @@ def _process_annotations(sample):
     annotation_info = sample.get('plugins', {}).get('annotations-plugin', {})
     annotations = annotation_info.get('extracts', [])
     containers, grouped, remaining = _group_annotations(annotations)
-    scrapes = sample['scrapes']  # TODO: handle default scraped item
-    if remaining:
-        containers['metacontainer'] = {
-            'annotatations': {}, 'id': 'metacontainer', 'required': [],
-            'tagid': 1, 'item_container': True, 'schema_id': scrapes
-        }
-        for r in remaining:
-            r['container_id'] = 'metacontainer'
-            r['schema_id'] = scrapes
-        grouped['metacontainer'] = remaining
-    items = []
+    items, item_annotations = [], []
+    processed_items = set()
+    scrapes = sample.get('scrapes')  # TODO: Handle default item
     for id, container in containers.items():
-        if 'schema_id' not in container:
+        item_id = id.split('#')[0]
+        if 'schema_id' not in container and scrapes:
             container['schema_id'] = scrapes
         item = {
-            'id': id.split('#')[0],
+            'id': item_id,
             'sample': sample,
             'schema': {'id': container['schema_id']},
             'item_annotation': container,
             'annotations': grouped.get(id, [])
         }
-        items.append(item)
+        container_id = container.get('container_id')
+        if container_id and container_id.split('#')[0] != item_id:
+            container['parent'] = {'id': container_id}
+        if item_id not in processed_items:
+            items.append(item)
+            processed_items.add(item['id'])
+        item_annotations.append(container)
     annotations = [i for i in chain(*grouped.values())
                    if not i.get('item_container')]
-    item_annotations = list(containers.values())
     return items, annotations, item_annotations

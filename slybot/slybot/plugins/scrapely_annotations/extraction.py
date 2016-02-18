@@ -21,20 +21,30 @@ from scrapely.extraction.regionextract import (RecordExtractor,
                                                TraceExtractor,
                                                TemplatePageExtractor,
                                                RepeatedDataExtractor,
-                                               AdjacentVariantExtractor)
+                                               AdjacentVariantExtractor,
+                                               TextRegionDataExtractor,
+                                               labelled_element,
+                                               _compose)
 from scrapely.extraction.similarity import (similar_region,
                                             longest_unique_subsequence,
                                             first_longest_subsequence)
-from scrapely.htmlpage import HtmlTagType, HtmlPageParsedRegion
-from scrapely.extraction.pageobjects import AnnotationText
+from scrapely.htmlpage import HtmlTagType, HtmlPageParsedRegion, HtmlPageRegion
+from scrapy.utils.spider import arg_to_iter
+from slybot.fieldtypes import FieldTypeManager
+from slybot.item import SlybotFieldDescriptor
 
 
 MAX_SEARCH_DISTANCE_MULTIPLIER = 3
 MIN_TOKEN_LENGTH_BEFORE_TRUNCATE = 3
 MIN_JUMP_DISTANCE = 0.7
 MAX_RELATIVE_SEPARATOR_MULTIPLIER = 0.7
+_DEFAULT_EXTRACTOR = FieldTypeManager().type_processor_class('text')()
 Region = namedtuple('Region', ['score', 'start_index', 'end_index'])
 container_id = lambda x: x.annotation.metadata.get('container_id')
+
+
+class MissingRequiredError(Exception):
+    pass
 
 
 def group_tree(tree, container_annotations):
@@ -51,7 +61,7 @@ def group_tree(tree, container_annotations):
 
 
 def parse_template(token_dict, template_html, descriptors):
-    """Create an TemplatePage object by parsing the annotated html"""
+    """Create an TemplatePage object by parsing the annotated html."""
     parser = SlybotTemplatePageParser(token_dict)
     parser.feed(template_html)
     return parser.to_template(descriptors)
@@ -74,27 +84,20 @@ class SlybotTemplatePageParser(TemplatePageParser):
     def to_template(self, descriptors=None):
         if descriptors is None:
             descriptors = {}
-        self._add_text_region_annotations()
         return SlybotTemplatePage(self.html_page, self.token_dict,
                                   self.token_list, self.annotations,
                                   self.html_page.page_id, self.ignored_regions,
                                   self.extra_required_attrs, descriptors)
 
-        def _add_text_region_annotations(self):
-            for annotation in self.annotations:
-                meta = annotation.metadata
-                if 'pre_text' in meta or 'post_text' in meta:
-                    annotation.annotation_text = AnnotationText(
-                        meta.get('pre_text', ''), meta.get('post_text', ''))
-
 
 class SlybotTemplatePage(TemplatePage):
-    __slots__ = ('descriptors')
+    __slots__ = ('descriptors', 'modifiers')
 
     def __init__(self, htmlpage, token_dict, page_tokens, annotations,
                  template_id=None, ignored_regions=None, extra_required=None,
                  descriptors=None):
         self.descriptors = descriptors
+        self.modifiers = getattr(descriptors, 'extractors', {})
         super(SlybotTemplatePage, self).__init__(
             htmlpage, token_dict, page_tokens, annotations, template_id,
             ignored_regions, extra_required)
@@ -104,6 +107,43 @@ class SlybotTemplatePage(TemplatePage):
             descriptor_name = '#default'
         return self.descriptors.get(descriptor_name, {})
 
+
+class BaseExtractor(BasicTypeExtractor):
+    def __init__(self, annotation, attribute_descriptors=None):
+        self.annotation = annotation
+        if annotation.surrounds_attribute:
+            self.content_validate = lambda x: x
+            self.extract = self._extract_content
+
+        if annotation.tag_attributes:
+            self.tag_data = []
+            for (tag_attr, extraction_attr) in annotation.tag_attributes:
+                self.tag_data.append((lambda x: x, tag_attr, extraction_attr))
+            self.extract = self._extract_both if \
+                annotation.surrounds_attribute else self._extract_attribute
+
+    @classmethod
+    def _create_basic_extractor(cls, annotation, attribute_descriptors):
+        return cls(annotation, attribute_descriptors)
+
+class SlybotRecordExtractor(RecordExtractor):
+    def extract(self, page, start_index=0, end_index=None, ignored_regions=None, **kwargs):
+        """extract data from an extraction page
+
+        The region in the page to be extracted from may be specified using
+        start_index and end_index
+        """
+        if ignored_regions is None:
+            ignored_regions = []
+        extractors = sorted(self.extractors + ignored_regions,
+                            key=lambda x: labelled_element(x).start_index)
+        _, _, attributes = self._doextract(page, extractors, start_index,
+                                           end_index, **kwargs)
+        # collect variant data, maintaining the order of variants
+        items = []
+        for k, v in attributes:
+            items.append((k, v))
+        return items
 
 class BaseContainerExtractor(object):
     _extractor_classes = [
@@ -120,6 +160,7 @@ class BaseContainerExtractor(object):
         if hasattr(self, 'annotation'):
             schema_name = self.annotation.metadata.get('schema_id')
         self.schema = template.descriptor(schema_name).copy()
+        self.modifiers = template.modifiers
         extra_requires = getattr(self, 'extra_requires', [])
         self.extra_requires = extra_requires
         if hasattr(self.schema, '_required_attributes'):
@@ -154,8 +195,8 @@ class BaseContainerExtractor(object):
                     extractors = extractor_cls.apply(template, extractors)
                 new_extractors.extend(extractors)
             else:
-                new_extractors.extend(RecordExtractor.apply(template,
-                                                            extractors))
+                new_extractors.extend(SlybotRecordExtractor.apply(template,
+                                                                  extractors))
         else:
             for container_name, container_data in extractors.items():
                 annotation = self._find_annotation(template, container_name)
@@ -176,6 +217,7 @@ class BaseContainerExtractor(object):
     def _get_container_data(extractors):
         """
         Find information about all containers.
+
         Group all annotations by container.
         Group all annotations without a container.
         """
@@ -187,8 +229,9 @@ class BaseContainerExtractor(object):
         non_container_annos = []
         for con_id, annotation in groupby(extractors, container_id):
             annotation = list(annotation)
-            if (con_id and str(con_id).endswith('#parent')
-                    and con_id not in containers):
+            # XXX: Handle repeated container deletion but not parent container
+            if (con_id and str(con_id).endswith('#parent') and
+                    con_id not in containers):
                 con_id = con_id.strip('#parent')
             if con_id and con_id in containers:
                 container_annos[con_id].extend(annotation)
@@ -277,37 +320,97 @@ class BaseContainerExtractor(object):
         required fields are extracted, adapted and fields are renamed if
         necessary.
         """
-        if not hasattr(self.schema, '_item_validates') or u'_type' in item:
+        if u'_type' in item:
             return item
-        if not self.schema._item_validates(item):
-            return {}
         for k in self.extra_requires:
             if k not in item:
                 return {}
             if k.startswith('_sticky'):
-                item.pop(k)
-        new_item = {}
-        for k, v in item.items():
-            field_descriptor = self.schema.attribute_map.get(k)
-            if field_descriptor:
-                values = []
-                for value in v:
-                    if isinstance(value, HtmlPageParsedRegion):
-                        value = field_descriptor.extractor(value)
-                    if value:
-                        values.append(value)
-                if hasattr(field_descriptor, 'adapt'):
-                    if hasattr(htmlpage, 'htmlpage'):
-                        htmlpage = htmlpage.htmlpage
-                    v = [field_descriptor.adapt(x, htmlpage) for x in values
-                         if x and not isinstance(x, dict)]
-                else:
-                    v = list(filter(bool, values))
-                if field_descriptor.name != field_descriptor.description:
-                    k = field_descriptor.description
+                del item[k]
+        new_item = defaultdict(list)
+        if isinstance(item, dict):
+            item = item.items()
+        elif item and not isinstance(item[0], tuple):
+            item = [item]
+        for k, v in item:
+            if hasattr(k, 'startswith') and k.startswith('_'):
+                new_item[k] = v
+                continue
+            try:
+                for k, v in self._process_fields(k, v, htmlpage):
+                    new_item[k].extend(v)
+            except MissingRequiredError:
+                return {}
             new_item[k] = v
-        new_item[u'_type'] = self.schema.description
+        if (hasattr(self.schema, '_item_validates') and
+                not self.schema._item_validates(new_item)):
+            return {}
+        type = getattr(self.schema, 'description', None)
+        if type:
+            new_item[u'_type'] = type
         return new_item
+
+    def _process_fields(self, annotations, regions, htmlpage):
+        for annotation in arg_to_iter(annotations):
+            if isinstance(annotation, dict):
+                field = annotation['field']
+                try:
+                    field_extraction = self.schema.attribute_map.get(field)
+                except AttributeError:
+                    field_extraction = None
+                if field_extraction is None:
+                    field_extraction = SlybotFieldDescriptor(
+                        '', '', _DEFAULT_EXTRACTOR)
+                if annotation.get('pre_text') or annotation.get('post_text'):
+                    text_extractor = TextRegionDataExtractor(
+                        annotation.get('pre_text', ''),
+                        annotation.get('post_text', ''))
+                    field_extraction.extractor = _compose(
+                        field_extraction.extractor, text_extractor)
+                extracted = self._process_values(
+                    regions, htmlpage, field_extraction
+                )
+                for extractor in annotation.get('extractors', []):
+                    custom_extractor_func = self.modifiers.get(extractor)
+                    if custom_extractor_func and extracted:
+                        extracted = custom_extractor_func(extracted)
+                if annotation.get('required') and not extracted:
+                    raise MissingRequiredError()
+                if field_extraction.name != field_extraction.description:
+                    field = field_extraction.description
+                yield (field, extracted)
+            else:
+                # Legacy spiders have per attribute pipline extractors
+                try:
+                    extraction_func = self.schema.attribute_map.get(annotation)
+                except AttributeError:
+                    extraction_func = None
+                if extraction_func is None:
+                    extraction_func = SlybotFieldDescriptor(
+                        '', '', _DEFAULT_EXTRACTOR)
+                values = self._process_values(regions, htmlpage,
+                                              extraction_func)
+                if extraction_func.name != extraction_func.description:
+                    annotation = extraction_func.description
+                yield (annotation, values)
+
+    def _process_values(self, regions, htmlpage, extraction_func):
+        values = []
+        for value in arg_to_iter(regions):
+            if (isinstance(value, HtmlPageParsedRegion) and
+                    hasattr(extraction_func, 'extractor')):
+                value = extraction_func.extractor(value)
+            if value:
+                values.append(value)
+        if hasattr(extraction_func, 'adapt'):
+            if hasattr(htmlpage, 'htmlpage'):
+                htmlpage = htmlpage.htmlpage
+            values = [extraction_func.adapt(x, htmlpage) for x in values
+                      if x and not isinstance(x, dict)]
+        else:
+            values = list(filter(bool, values))
+        return values
+
 
     def __str__(self):
         stream = StringIO()
@@ -414,9 +517,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                 page, index, peek, ignored_regions,
                                 suffix_max_length=suffixlen)
                             if items:
-                                extracted.extend([
-                                    self._validate_and_adapt_item(item, page)
-                                    for item in items])
+                                extracted.extend([self._validate_and_adapt_item(items, page)])
                             index = max(peek, index) - 1
                         break
             index += 1
@@ -576,7 +677,8 @@ class TemplatePageMultiItemExtractor(TemplatePageExtractor):
                                           self.template.ignored_regions)
             for item in extracted:
                 if item:
-                    item[u'_template'] = self.template.id
+                    if isinstance(item, dict):
+                        item[u'_template'] = self.template.id
             items.extend(filter(bool, extracted))
         return items
 
@@ -612,10 +714,8 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
 
     def build_extraction_tree(self, template, type_descriptor=None,
                               trace=False):
-        """Build a tree of region extractors corresponding to the
-        template
-        """
-        basic_extractors = BasicTypeExtractor.create(template.annotations)
+        """Build a tree of region extractors corresponding to the template."""
+        basic_extractors = BaseExtractor.create(template.annotations)
         if trace:
             basic_extractors = TraceExtractor.apply(template, basic_extractors)
         basic_extractors = ContainerExtractor.apply(template, basic_extractors)
@@ -636,7 +736,7 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
         return TemplatePageMultiItemExtractor(template, extractors)
 
     def extract(self, html, pref_template_id=None):
-        """extract data from an html page
+        """Extract data from an html page.
 
         If pref_template_url is specified, the template with that url will be
         used first.

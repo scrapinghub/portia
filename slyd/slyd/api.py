@@ -35,17 +35,22 @@ class APIResource(object):
                                key=lambda x: len(x[0]._format.split('/')))
                 for method, info in groupby(routes, itemgetter(0))}
 
+    def _parse(self, route, path):
+        path = '/'.join(path).strip('/')
+        if len(path.split('/')) > len(route._format.split('/')):
+            raise NotFound('No route found for path "/api/%s"' % path)
+        return route.parse(path)
+
     def render(self, request):
         method = request.method.upper()
         method = self.method_map.get(method, method)
-        # TODO (SPEC): get content-type/accept and return error is it has media
+        # TODO (SPEC): get content-type/accept and return error if it has media
         #              extensions
         try:
             for i in range(1):
                 # TODO (SPEC): Check content-type and raise error when needed
-                path = '/'.join(request.postpath).strip('/')
                 for route, callback in self.routes[method]:
-                    parsed = route.parse(path)
+                    parsed = self._parse(route, request.postpath)
                     if parsed:
                         if 'project_id' in parsed.named:
                             manager = self.spec_manager.project_spec(

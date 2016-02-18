@@ -24,6 +24,15 @@ def create_regex_extractor(pattern):
     _extractor.__name__ = "Regex: %s" % pattern.encode("utf-8")
     return _extractor
 
+def create_type_extractor(type):
+    fieldtypes = FieldTypeManager()
+    extractor = types.type_processor_class(type)()
+    def _extractor(txt):
+        data = extractor.extractor()
+        if data:
+            return extractor.adapt()
+    _extractor.__name__ = "Type Extractor: %s" % type
+    return _extractor
 
 class PipelineExtractor:
     def __init__(self, *extractors):
@@ -62,3 +71,14 @@ def apply_extractors(descriptor, template_extractors, extractors):
         if equeue:
             equeue.insert(0, descriptor.attribute_map[field_name].extractor)
             descriptor.attribute_map[field_name].extractor = PipelineExtractor(*equeue)
+
+def add_extractors_to_descriptors(descriptors, extractors):
+    new_extractors = {}
+    for id, data in extractors.items():
+        if "regular_expression" in data:
+            extractor = create_regex_extractor(data['regular_expression'])
+        else:
+            extractor = create_type_extractor(data['type_extractor'])
+        new_extractors[id] = extractor
+    for descriptor in descriptors.values():
+        descriptor.extractors = new_extractors

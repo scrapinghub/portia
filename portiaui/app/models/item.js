@@ -14,8 +14,12 @@ export default DS.Model.extend({
     }),
     itemAnnotation: DS.belongsTo({
         inverse: 'item',
-        async: false
+        async: true
     }),
+    parent: DS.belongsTo('item', {
+        async: true
+    }),
+
 
     orderedAnnotations: Ember.computed(
         'annotations', 'annotations.@each.orderedAnnotations', function() {

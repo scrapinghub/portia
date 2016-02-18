@@ -50,8 +50,8 @@ class SlydSchema(Schema):
                 item[id] = getattr(self, id)
             else:
                 self.context[id] = item[id]
-            if item.get(attr) is None:
-                item[attr] = {'id': getattr(self, id)}
+            if item.get(attr) is None and item[id]:
+                item[attr] = {'id': item[id]}
         return item
 
 
@@ -219,12 +219,37 @@ class BaseAnnotationSchema(SlydSchema):
         type_='samples',
         include_data=True
     )
+    parent = fields.Relationship(
+        related_url_kwargs={'project_id': '<project_id>',
+                            'spider_id': '<spider_id>',
+                            'sample_id': '<sample_id>',
+                            'item_id': '<parent_id>'},
+        type_='items', include_data=True
+    )
 
-
-class AnnotationSchema(BaseAnnotationSchema):
     @property
     def parent_id(self):
         return self.context.get('container_id', self.item_id)
+
+    @pre_dump
+    def _dump_parent_id(self, item):
+        parent_id = None
+        if 'parent' in item:
+            parent_id = item['parent']['id']
+        if not parent_id:
+            parent_id = item.get('container_id', self.parent_id) or ''
+        if (item['id'].split('#')[0] == parent_id or
+                parent_id.split('#')[0] == item['id']):
+            item.pop('parent', None)
+            item.pop('parent_id', None)
+            return
+        if parent_id:
+            item['parent'] = {'id': parent_id}
+        if parent_id and item.get('parent_id') is None:
+            item['parent_id'] = parent_id
+
+
+class AnnotationSchema(BaseAnnotationSchema):
 
     required = fields.Boolean(default=False)
     ignore = fields.Boolean(default=False)
@@ -240,23 +265,6 @@ class AnnotationSchema(BaseAnnotationSchema):
                             'field_id': '<field_id>'},
         type_='fields', include_data=True
     )
-    parent = fields.Relationship(
-        related_url='/api/projects/{project_id}/spiders/{spider_id}/samples/'
-                    '{sample_id}/items/{item_id}',
-        related_url_kwargs={'project_id': '<project_id>',
-                            'spider_id': '<spider_id>',
-                            'sample_id': '<sample_id>',
-                            'item_id': '<parent_id>'},
-        type_='items', include_data=True
-    )
-
-    @pre_dump
-    def _dump_parent_id(self, item):
-        parent_id = item.get('container_id', self.parent_id)
-        if parent_id and item.get('parent_id') is None:
-            item['parent_id'] = parent_id
-        if parent_id and item.get('parent') is None:
-            item['parent'] = {'id': parent_id}
 
     class Meta:
         type_ = 'annotations'
@@ -276,15 +284,6 @@ class ItemAnnotationSchema(BaseAnnotationSchema):
                             'schema_id': '<schema_id>'},
         type_='schemas', include_data=True
     )
-    item = fields.Relationship(
-        related_url='/api/projects/{project_id}/spiders/{spider_id}/samples/'
-                    '{sample_id}/items/{item_id}',
-        related_url_kwargs={'project_id': '<project_id>',
-                            'spider_id': '<spider_id>',
-                            'sample_id': '<sample_id>',
-                            'item_id': '<id>'},
-        type_='items', include_data=True
-    )
 
     class Meta:
         type_ = 'item_annotations'
@@ -294,6 +293,21 @@ class ExtractorSchema(SlydSchema):
     id = fields.Str()
     type = fields.Str()
     value = fields.Str()
+    project = fields.Relationship(
+        related_url='/api/projects/{project_id}',
+        related_url_kwargs={'project_id': '<project_id>'},
+        type_='projects',
+        include_data=True
+    )
+
+    @pre_dump
+    def _dump_extractor_attributes(self, item):
+        if 'type' not in item:
+            item['type'] = 'type' if 'type_extractor' in item else 'regex'
+        if 'value' not in item:
+            item['value'] = item['type_extractor'] if item['type'] == 'type' \
+                else item['regular_expression']
+        return item
 
     class Meta:
         type_ = 'extractors'
@@ -308,7 +322,7 @@ class HtmlSchema(SlydSchema):
 
 
 class ItemSchema(SlydSchema):
-    """Instance of a schema. Meta item built from sample"""
+    """Instance of a schema. Meta item built from sample."""
     id = fields.Str()
     sample = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'

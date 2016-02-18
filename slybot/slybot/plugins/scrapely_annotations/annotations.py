@@ -92,13 +92,15 @@ class Annotations(object):
         item_cls_name = descriptor.name if descriptor is not None else ''
         item_cls = self.item_classes.get(item_cls_name)
         for processed_attributes in extracted_data or []:
-            if '_type' in processed_attributes:
+            if processed_attributes.get('_type') in self.item_classes:
                 _type = processed_attributes['_type']
                 item = self.item_classes[_type](processed_attributes)
                 item['_type'] = item.display_name()
-            else:
+            elif item_cls:
                 item = item_cls(processed_attributes)
                 item['_type'] = item_cls_name
+            else:
+                item = dict(processed_attributes)
             item['url'] = htmlpage.url
             item['_template'] = str(template.id)
             items.append(item)

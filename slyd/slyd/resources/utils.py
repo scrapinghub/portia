@@ -16,8 +16,6 @@ def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
     if 'plugins' in sample:
         annotations = sample['plugins']['annotations-plugin']['extracts']
         if any(a.get('item_container') for a in annotations):
-            _recreate_missing_item_annotations(manager, spider_id, sample_id,
-                                               sample)
             return sample
         sample = port_sample(sample)
         sample['version'] = SLYBOT_VERSION
@@ -92,8 +90,16 @@ def _create_item_annotation(sample, schema_id):
 
 
 def _read_schemas(manager):
+    return _read_resource(manager, 'items')
+
+
+def _read_extractors(manager):
+    return _read_resource(manager, 'extractors')
+
+
+def _read_resource(manager, resource):
     try:
-        schemas = manager.resource('items')
+        schemas = manager.resource(resource)
         assert isinstance(schemas, dict)
     except (AssertionError, TypeError):
         manager.savejson({}, ['items'])
@@ -102,6 +108,7 @@ def _read_schemas(manager):
 
 
 def _recreate_missing_item_annotations(manager, spider_id, sample_id, sample):
+    # TODO: See if this is still needed and remove if not
     annotations = sample['plugins']['annotations-plugin']['extracts']
     container_ids = {a['id'] for a in annotations if a.get('item_container')}
     new_annotations = []
