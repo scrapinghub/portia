@@ -1,6 +1,5 @@
 import Ember from 'ember';
 import {getColors} from '../../../../../utils/colors';
-import {ElementPath} from '../../../../../utils/selectors';
 
 export default Ember.Controller.extend({
     dispatcher: Ember.inject.service(),
@@ -108,22 +107,37 @@ export default Ember.Controller.extend({
         }),
     generalizableModel: Ember.computed(
         'selectedModel', 'hoveredElement',
-        'sample.orderedAnnotations.@each.elementPath', function() {
+        'sample.orderedAnnotations.@each.selectorGenerator', function() {
             const selectedModel = this.get('selectedModel');
             const hoveredElement = this.get('hoveredElement');
             if (!hoveredElement) {
                 return;
             }
-            let annotations = this.get('sample.orderedAnnotations');
+
             if (selectedModel) {
-                annotations = [selectedModel].concat(annotations);
+                const selectorGenerator = selectedModel.get('selectorGenerator');
+                if (selectorGenerator) {
+                    const distance = selectorGenerator.generalizationDistance(hoveredElement);
+                    if (distance < Infinity) {
+                        return selectedModel;
+                    }
+                }
             }
-            for (let annotation of annotations) {
-                const currentElementPath = annotation.get('elementPath');
-                const hoveredElementPath = new ElementPath(
-                    // FIXME: this should be the same as new ElementPath(hoveredElement)
-                    new ElementPath(hoveredElement).uniquePathSelector);
-                if (currentElementPath.differences(hoveredElementPath) <= 2) {
+
+            const annotations = this.get('sample.orderedAnnotations');
+            if (annotations.length) {
+                const possibilities = annotations.map(annotation => {
+                    const selectorGenerator = annotation.get('selectorGenerator');
+                    const distance = selectorGenerator ?
+                        selectorGenerator.generalizationDistance(hoveredElement) :
+                        Infinity;
+                    return {
+                        annotation,
+                        distance
+                    };
+                }).sortBy('distance');
+                const {annotation, distance} = possibilities[0];
+                if (distance < Infinity) {
                     return annotation;
                 }
             }
@@ -140,8 +154,8 @@ export default Ember.Controller.extend({
                 } else if (activeSelectionMode === 'select' || activeSelectionMode === 'remove') {
                     return colors[this.get('hoveredModels.firstObject.orderedIndex')];
                 } else if (activeSelectionMode === 'edit') {
-                    return colors[this.get('generalizableModel.orderedIndex')] ||
-                        colors[this.get('selectedModel.orderedIndex')];
+                    return colors[this.get('selectedModel.orderedIndex')] ||
+                        colors[this.get('generalizableModel.orderedIndex')];
                 }
             }
         }),
@@ -151,14 +165,16 @@ export default Ember.Controller.extend({
             const activeSelectionMode = this.get('activeSelectionMode');
             const hoveredElement = this.get('hoveredElement');
             const hoveredModels = this.get('hoveredModels');
-            if (activeSelectionMode === 'add' && hoveredElement) {
-                return true;
-            } else if ((activeSelectionMode === 'select' || activeSelectionMode === 'remove') &&
-                    hoveredElement && hoveredModels.length) {
-                return true;
-            } else if (activeSelectionMode === 'edit' &&
-                    (this.get('generalizableModel') || this.get('selectedModel'))) {
-                return true;
+            if (hoveredElement) {
+                if (activeSelectionMode === 'add') {
+                    return true;
+                } else if ((activeSelectionMode === 'select' || activeSelectionMode === 'remove') &&
+                        hoveredModels.length) {
+                    return true;
+                } else if (activeSelectionMode === 'edit' &&
+                        (this.get('selectedModel') || this.get('generalizableModel'))) {
+                    return true;
+                }
             }
             return false;
         }),
@@ -219,7 +235,7 @@ export default Ember.Controller.extend({
                     break;
 
                 case 'edit':
-                    const matchingModel = this.get('generalizableModel') || selectedModel;
+                    const matchingModel = selectedModel || this.get('generalizableModel');
                     if (!hoveredElement) {
                         dispatcher.clearSelection();
                     } else if (matchingModel && !hoveredModels.includes(matchingModel)) {

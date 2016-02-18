@@ -1,8 +1,8 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 import {
-    ElementPath,
-    findCssSelector
+    elementPath,
+    smartSelector
 } from '../utils/selectors';
 
 export default DS.Model.extend({
@@ -37,6 +37,8 @@ export default DS.Model.extend({
             return [];
         }
     }),
+    selector: DS.attr('string'),
+    xpath: DS.attr('string'),
 
     name: Ember.computed.readOnly('field.name'),
     type: Ember.computed.readOnly('field.type'),
@@ -46,35 +48,104 @@ export default DS.Model.extend({
     }),
     sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample'),
 
+    updateSelectors: Ember.observer('', function() {
+        const selectionMode = this.get('selectionMode');
+        switch (selectionMode) {
+            case 'auto':
+                this.setProperties({
+                    acceptSelectors: (this.get('elements') || []).map(smartSelector),
+                    rejectSelectors: []
+                });
+                break;
+            case 'css':
+                const selector = this.get('selector');
+                this.setProperties({
+                    acceptSelectors: selector ? [selector] : [],
+                    rejectSelectors: []
+                });
+                break;
+            case 'xpath':
+                // TODO:
+                break;
+        }
+    }),
+
     addElement(element) {
-        const selector = new ElementPath(findCssSelector(element)).uniquePathSelector;
-        const acceptSelectors = this.get('acceptSelectors');
-        const rejectSelectors = this.get('rejectSelectors');
-        acceptSelectors.addObject(selector);
-        rejectSelectors.removeObject(selector);
+        this.moveElement(element, 'acceptSelectors', 'rejectSelectors');
     },
 
     removeElement(element) {
-        const selector = new ElementPath(findCssSelector(element)).uniquePathSelector;
-        const acceptSelectors = this.get('acceptSelectors');
-        const rejectSelectors = this.get('rejectSelectors');
-        acceptSelectors.removeObject(selector);
-        rejectSelectors.addObject(selector);
+        this.moveElement(element, 'rejectSelectors', 'acceptSelectors');
+    },
+
+    moveElement(element, toProperty, fromProperty) {
+        // run this in it's own run loop so that all computed properties sync before this method
+        // returns, since a save call will follow.
+        Ember.run(() => {
+            const toSelectors = this.get(toProperty);
+            const fromSelectors = this.get(fromProperty);
+
+            const path = elementPath(element);
+            const root = path[0];
+            const selector = smartSelector(element);
+
+            const addSelectors = [];
+            const removeSelectors = [];
+
+            // a selector may match more than one element, we only want to remove the single element
+            for (let fromSelector of fromSelectors) {
+                const elements = Array.from(root.querySelectorAll(fromSelector));
+                if (elements.includes(element)) {
+                    removeSelectors.addObject(fromSelector);
+                    elements.removeObject(element);
+                    for (let addElement of elements) {
+                        addSelectors.addObject(smartSelector(addElement));
+                    }
+                }
+            }
+
+            fromSelectors.removeObjects(removeSelectors);
+            fromSelectors.addObjects(addSelectors);
+            toSelectors.addObject(selector);
+        });
+
+        const selectionMode = this.get('selectionMode');
+        if (selectionMode === 'css') {
+            this.setSelector(this.get('selector'));
+        }
+    },
+
+    setSelector(selector) {
+        Ember.run(() => {
+            this.setProperties({
+                acceptSelectors: selector ? [selector] : [],
+                rejectSelectors: []
+            });
+        });
     },
 
     save() {
+        // starting another save while one hasn't been completed by the adapter causes an error
+        if (this.get('isSaving') && this._savePromise) {
+            if (this._savePromise._saveQueued) {
+                return this._savePromise;
+            }
+            this._savePromise._saveQueued = true;
+            return this._savePromise.finally(() => this.save());
+        }
+
         const currentParent = this.get('parent.itemAnnotation');
-        return this._super(...arguments).then(result => {
+        const promise = this._super(...arguments).then(result => {
             const newParent = this.get('parent.itemAnnotation');
             const promises = [];
             if (currentParent && currentParent !== newParent) {
-                const promise = this.syncParent(currentParent);
+                const promise = this.syncRelative(currentParent);
                 if (promise) {
                     promises.push(promise);
                 }
             }
             if (newParent) {
-                const promise = this.syncParent(newParent);
+                const promise = this.syncRelative(newParent);
                 if (promise) {
                     promises.push(promise);
                 }
@@ -83,14 +154,16 @@ export default DS.Model.extend({
                 return result;
             });
         });
+        this._savePromise = promise;
+        return promise;
     },
 
-    syncParent(parent) {
-        const changed = parent.changedAttributes();
+    syncRelative(relative) {
+        const changed = relative.changedAttributes();
         for (let key of Object.keys(changed)) {
             const [oldValue, newValue] = changed[key];
             if (Ember.compare(oldValue, newValue) !== 0) {
-                return parent.save();
+                return relative.save();
             }
         }
     }

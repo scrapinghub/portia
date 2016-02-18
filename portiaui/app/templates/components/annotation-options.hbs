@@ -10,9 +10,14 @@
         {{select-box name="selectionMode" value=(mut selectionMode) valueAttribute='label' choices=selectionModeOptions onChange=(action "save")}}
     </div>
     {{#if (not-eq annotation.selectionMode 'auto')}}
-        <div class="form-group">
+        <div class="form-group{{if invalidSelector ' has-error'}}">
             <label for="selector">Selector</label>
-            {{input type="text" name="selector" class="form-control" value=annotation.selector readonly=true}}
+            {{#if (eq annotation.selectionMode 'css')}}
+                {{buffered-input type="text" name="selector" class="form-control" value=(mut cssSelector) viewValue=(mut editedCssSelector) onChange=(action 'save')}}
+                <span class="help-block{{if (not invalidSelector) ' hide'}}">The input value is not a valid CSS selector.</span>
+            {{else}}
+                {{input type="text" name="selector" class="form-control" value=(get annotation annotation.selectionMode) readonly=true}}
+            {{/if}}
         </div>
     {{/if}}
     <div class="form-group">

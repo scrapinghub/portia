@@ -1,9 +1,7 @@
 import Ember from 'ember';
 import {
-    findContainer,
-    findCssSelector,
-    findRepeatedContainers,
-    ElementPath
+    AnnotationSelectorGenerator,
+    ContainerSelectorGenerator
 } from '../utils/selectors';
 
 const ElementStructure = Ember.Object.extend({
@@ -72,62 +70,150 @@ const ElementStructure = Ember.Object.extend({
             if (children) {
                 children.forEach(setup);
 
-                bindings.push({
-                    annotation,
-                    observer() {
-                        const childElements = children.map(
-                            child => child.annotation.get('elements') || []);
-                        let elements;
-                        let containerPath = 'body';
-                        const container = findContainer(childElements);
-                        if (container) {
-                            containerPath = findCssSelector(container);
-                            elements = [container];
-                        } else {
-                            return; // No elements highlighted
-                        }
-                        const [repeatedContainers, siblings] = findRepeatedContainers(
-                            childElements, container);
-                        if (repeatedContainers.length) {
-                            const repeatedContainerPath = findCssSelector(repeatedContainers[0]);
-                            annotation.setProperties({
-                                repeated: true,
-                                repeatedAcceptSelectors: [repeatedContainerPath]
-                            });
-                            elements = repeatedContainers;
-                        }
-                        annotation.setProperties({
-                            acceptSelectors: [containerPath],
-                            siblings: siblings
-                        });
-                        setElements(elements);
-                    },
-                    observerPaths: ['item.annotations.content.@each.elements']
-                });
-            } else {
                 let selector = null;
+                const observer = () => {
+                    if (selector) {
+                        selectorMatcher.unRegister(selector, setElements);
+                    }
+                    selector = annotation.get('selectorGenerator.selector');
+                    const containerSelector = annotation.get(
+                        'selectorGenerator.containerSelector');
+                    const siblings = annotation.get('selectorGenerator.siblings');
+                    if (selector) {
+                        selectorMatcher.register(selector, setElements);
+                        const element = selectorMatcher.query(selector);
+                        setElements(element);
+
+                        if (!element.length) {
+                            annotation.setProperties({
+                                acceptSelectors: [],
+                                siblings: 0,
+                                repeated: false,
+                                repeatedAcceptSelectors: []
+                            });
+                        }
+                        if (element.length > 1) {
+                            annotation.setProperties({
+                                acceptSelectors: [containerSelector],
+                                siblings,
+                                repeated: true,
+                                repeatedAcceptSelectors: [selector]
+                            });
+                        } else {
+                            annotation.setProperties({
+                                acceptSelectors: [selector],
+                                siblings,
+                                repeated: false,
+                                repeatedAcceptSelectors: []
+                            });
+                        }
+                    }
+                };
+
+                let scheduledObserver = null;
                 bindings.push({
                     annotation,
-                    observer() {
-                        const acceptSelectors = annotation.get('acceptSelectors');
-                        const rejectSelectors = annotation.get('rejectSelectors');
-                        const elementPath = ElementPath.fromAcceptedAndRejected(
-                            acceptSelectors, rejectSelectors);
+                    setup() {
+                        const selectorGenerator = ContainerSelectorGenerator.create({});
+                        selectorGenerator.addChildren(
+                            children.map(child => child.annotation.get('selectorGenerator')));
+                        annotation.set('selectorGenerator', selectorGenerator);
+                    },
+                    teardown() {
+                        Ember.run.cancel(scheduledObserver);
                         if (selector) {
                             selectorMatcher.unRegister(selector, setElements);
                         }
-                        selector = elementPath.uniquePathSelector;
+                        annotation.get('selectorGenerator').destroy();
                         annotation.setProperties({
-                            elementPath,
-                            selector
+                            selectorGenerator: undefined,
+                            elements: undefined
                         });
+                    },
+                    observer() {
+                        // allow the bindings to sync first
+                        scheduledObserver = Ember.run.scheduleOnce('sync', observer);
+                    },
+                    observerPaths: ['selectorGenerator.selector']
+                });
+            } else {
+                let selector = null;
+                const observer = () => {
+                    if (selector) {
+                        selectorMatcher.unRegister(selector, setElements);
+                    }
+                    selector = annotation.get('selectorGenerator.selector');
+                    annotation.setProperties({
+                        selector,
+                        xpath: annotation.get('selectorGenerator.xpath')
+                    });
+                    if (selector) {
+                        selectorMatcher.register(selector, setElements);
+                        setElements(selectorMatcher.query(selector));
+                    }
+                };
+
+                let scheduledObserver = null;
+                bindings.push({
+                    annotation,
+                    setup() {
+                        annotation.set('selectorGenerator', AnnotationSelectorGenerator.create({
+                            selectorMatcher,
+                            annotation
+                        }));
+                    },
+                    teardown() {
+                        Ember.run.cancel(scheduledObserver);
                         if (selector) {
-                            selectorMatcher.register(selector, setElements);
-                            setElements(selectorMatcher.query(selector));
+                            selectorMatcher.unRegister(selector, setElements);
+                        }
+                        annotation.get('selectorGenerator').destroy();
+                        annotation.setProperties({
+                            selectorGenerator: undefined,
+                            elements: undefined
+                        });
+                    },
+                    observer() {
+                        // allow the bindings to sync first
+                        scheduledObserver = Ember.run.scheduleOnce('sync', observer);
+                    },
+                    observerPaths: ['selectorGenerator.selector']
+                });
+
+                // force a re-computation if the elements matched by acceptSelectors or
+                // rejectSelectors change (when the page is loading).
+                // TODO: remove when the selector will be synced with the backend
+                let watchSelector = null;
+                const triggerUpdate = () => {
+                    annotation.notifyPropertyChange('acceptSelectors');
+                    annotation.notifyPropertyChange('rejectSelectors');
+                };
+                const stopWatching = () => {
+                    if (watchSelector) {
+                        selectorMatcher.unRegister(watchSelector, triggerUpdate);
+                        watchSelector = null;
+                    }
+                };
+                bindings.push({
+                    annotation,
+                    setup() {
+                        watchSelector = [].concat(
+                            annotation.get('acceptSelectors'),
+                            annotation.get('rejectSelectors')).join(', ');
+                        if (watchSelector) {
+                            selectorMatcher.register(watchSelector, triggerUpdate);
                         }
                     },
-                    cleanupObserver() {
-                        selectorMatcher.unRegister(selector, setElements);
+                    teardown: stopWatching,
+                    observer() {
+                        if (watchSelector) {
+                            const newWatchSelector = [].concat(
+                                annotation.get('acceptSelectors'),
+                                annotation.get('rejectSelectors')).join(', ');
+                            if (newWatchSelector !== watchSelector) {
+                                stopWatching();
+                            }
+                        }
                     },
                     observerPaths: ['acceptSelectors.[]', 'rejectSelectors.[]']
                 });
@@ -136,21 +222,30 @@ const ElementStructure = Ember.Object.extend({
 
         definition.forEach(setup);
 
-        for (let {annotation, observer, observerPaths} of bindings) {
-            for (let path of observerPaths) {
-                Ember.addObserver(annotation, path, observer);
+        for (let {setup} of bindings) {
+            if (setup) {
+                setup();
             }
-            observer();
+        }
+        for (let {annotation, observer, observerPaths} of bindings) {
+            if (observer) {
+                for (let path of observerPaths) {
+                    Ember.addObserver(annotation, path, observer);
+                }
+                observer();
+            }
         }
     },
 
     removeObservers() {
-        for (let {annotation, observer, observerPaths, cleanupObserver} of this.bindings) {
-            for (let path of observerPaths) {
-                Ember.removeObserver(annotation, path, observer);
+        for (let {annotation, observer, observerPaths, teardown} of this.bindings) {
+            if (observer) {
+                for (let path of observerPaths) {
+                    Ember.removeObserver(annotation, path, observer);
+                }
             }
-            if (cleanupObserver) {
-                cleanupObserver();
+            if (teardown) {
+                teardown();
             }
         }
         this.bindings = [];

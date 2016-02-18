@@ -1,8 +1,326 @@
 import Ember from 'ember';
-import { findContainer, findRepeatedContainers } from '../../../utils/selectors';
+import SelectorMatcher from '../../../services/selector-matcher';
+import {
+    findContainer,
+    findRepeatedContainers,
+    BaseSelectorGenerator,
+    ContainerSelectorGenerator,
+    AnnotationSelectorGenerator
+} from '../../../utils/selectors';
 import { module, test, skip } from 'qunit';
 
 module('Unit | Utility | selectors');
+
+class MockBrowser {
+    constructor(documentRoot) {
+        this.$document = Ember.$(documentRoot);
+    }
+}
+
+test('BaseSelectorGenerator computes paths for all elements', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selector = BaseSelectorGenerator.create({
+        elements: $elements.find('#div2, #li1, #li2, #li3').toArray()
+    });
+    const idPaths = selector.get('paths').map(
+        path => path.map(
+            element => element.id));
+    assert.deepEqual(idPaths, [
+        ['main', 'div1', 'div2'],
+        ['main', 'div1', 'ul1', 'li1'],
+        ['main', 'div1', 'ul1', 'li2'],
+        ['main', 'div1', 'ul1', 'li3']
+    ]);
+});
+
+test('BaseSelectorGenerator groups paths for all elements', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selector = BaseSelectorGenerator.create({
+        elements: $elements.find('#div2, #li1, #li2, #li3').toArray()
+    });
+    const groupedIdPaths = selector.get('groupedPaths').map(
+        group => group.map(
+            path => path.map(
+                element => element.id)));
+    assert.deepEqual(groupedIdPaths, [
+        [
+            ['main', 'div1', 'div2']
+        ],
+        [
+            ['main', 'div1', 'ul1', 'li1'],
+            ['main', 'div1', 'ul1', 'li2'],
+            ['main', 'div1', 'ul1', 'li3']
+        ]
+    ]);
+});
+
+test('BaseSelectorGenerator generates selectors for groups of elements', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selector = BaseSelectorGenerator.create({
+        elements: $elements.find('#div2, #li1, #li2, #li3').toArray()
+    });
+    assert.deepEqual(selector.get('selectors'), [
+        ['#div2'],
+        ['li']
+    ]);
+    assert.equal(selector.get('selector'), '#div2, li');
+});
+
+test('BaseSelectorGenerator nesting generates correct selectors', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selectorParent = BaseSelectorGenerator.create({
+        elements: $elements.find('#div1, #li1, #li2, #li3').toArray()
+    });
+    const selector = BaseSelectorGenerator.create({
+        parent: selectorParent,
+        elements: $elements.find('#div2, #li1').toArray()
+    });
+    assert.deepEqual(selector.get('selectors'), [
+        ['#div1 > div'],
+        ['li']
+    ]);
+    assert.equal(selector.get('selector'), '#div1 > div, li');
+});
+
+test('ContainerSelectorGenerator propagates groups to child selectors', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1">' +
+        '<li id="li1"><span id="span1-1"></span><span id="span1-2"></span><span id="span1-3"></span></li>' +
+        '<li id="li2"><span id="span2-1"></span><span id="span2-2"></span><span id="span2-3"></span></li>' +
+        '<li id="li3"><span id="span3-1"></span><span id="span3-2"></span><span id="span3-3"></span></li>' +
+        '</ul></div></main>');
+    const selectorParent = ContainerSelectorGenerator.create({});
+    const selector1 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-1').toArray()
+    });
+    const selector2 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-2, #span2-2, #span3-2').toArray()
+    });
+    const selector3 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-3').toArray()
+    });
+    selectorParent.addChildren([selector1, selector2, selector3]);
+    assert.equal(selector1.get('selector'), 'li > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li > span:nth-child(3)');
+});
+
+test('ContainerSelectorGenerator propagates groups to disjoint child selectors', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1">' +
+        '<li id="li1"><span id="span1-1"></span><span id="span1-2"></span><span id="span1-3"></span></li>' +
+        '<li id="li2"><span id="span2-1"></span><span id="span2-2"></span><span id="span2-3"></span></li>' +
+        '<li id="li3"><span id="span3-1"></span><span id="span3-2"></span><span id="span3-3"></span></li>' +
+        '</ul></div></main>');
+    const selectorParent = ContainerSelectorGenerator.create({});
+    const selector1 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-1').toArray()
+    });
+    const selector2 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-2, #span2-2, #span3-2').toArray()
+    });
+    const selector3 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span2-3').toArray()
+    });
+    selectorParent.addChildren([selector1, selector2, selector3]);
+    assert.equal(selector1.get('selector'), 'li > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li > span:nth-child(3)');
+});
+
+skip('ContainerSelectorGenerator propagates groups to child selectors with additional trees', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1">' +
+        '<li id="li1"><span id="span1-1"></span><span id="span1-2"></span><span id="span1-3"></span></li>' +
+        '<li id="li2"><span id="span2-1"></span><span id="span2-2"></span><span id="span2-3"></span></li>' +
+        '<li id="li3"><span id="span3-1"></span><span id="span3-2"></span><span id="span3-3"></span></li>' +
+        '</ul></div></main>');
+    const selectorParent = ContainerSelectorGenerator.create({});
+    const selector1 = BaseSelectorGenerator.create({
+        elements: $elements.find('#div2, #span1-1').toArray()
+    });
+    const selector2 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-2, #span2-2, #span3-2').toArray()
+    });
+    const selector3 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span2-3').toArray()
+    });
+    selectorParent.addChildren([selector1, selector2, selector3]);
+    assert.equal(selector1.get('selector'), '#div2, li > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li > span:nth-child(3)');
+});
+
+test('ContainerSelectorGenerator propagates changes in a child selector to other children', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1">' +
+        '<li id="li1"><span id="span1-1"></span><span id="span1-2"></span><span id="span1-3"></span></li>' +
+        '<li id="li2"><span id="span2-1"></span><span id="span2-2"></span><span id="span2-3"></span></li>' +
+        '<li id="li3"><span id="span3-1"></span><span id="span3-2"></span><span id="span3-3"></span></li>' +
+        '</ul></div></main>');
+    const selectorParent = ContainerSelectorGenerator.create({});
+    const selector1 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-1').toArray()
+    });
+    const selector2 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span1-2, #span2-2').toArray()
+    });
+    const selector3 = BaseSelectorGenerator.create({
+        elements: $elements.find('#span2-3').toArray()
+    });
+    selectorParent.addChildren([selector1, selector2, selector3]);
+    assert.equal(selector1.get('selector'), 'li:nth-child(-n+2) > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li:nth-child(-n+2) > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li:nth-child(-n+2) > span:nth-child(3)');
+
+    selector2.set('elements', $elements.find('#span1-2, #span2-2, #span3-2').toArray());
+    assert.equal(selector1.get('selector'), 'li > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li > span:nth-child(3)');
+});
+
+test('AnnotationSelectorGenerator generates selectors for groups of elements', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selectorMatcher = SelectorMatcher.create({
+        browser: new MockBrowser($elements)
+    });
+    const selector = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            acceptSelectors: ["#div2", "#li1", "#li2", "#li3"],
+            rejectSelectors: []
+        })
+    });
+    assert.equal(selector.get('generalizedSelector'), '#div2, #ul1 > li');
+    assert.deepEqual(selector.get('selectors'), [
+        ['#div2'],
+        ['li']
+    ]);
+    assert.equal(selector.get('selector'), '#div2, li');
+});
+
+test('AnnotationSelectorGenerator generates generalized selectors', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selectorMatcher = SelectorMatcher.create({
+        browser: new MockBrowser($elements)
+    });
+    const selector2 = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            acceptSelectors: ["#div2", "#li1", "#li2"],
+            rejectSelectors: []
+        })
+    });
+    assert.equal(selector2.get('generalizedSelector'), '#div2, #ul1 > li');
+    assert.equal(selector2.get('selector'), '#div2, li');
+});
+
+test('AnnotationSelectorGenerator supports rejecting selectors', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selectorMatcher = SelectorMatcher.create({
+        browser: new MockBrowser($elements)
+    });
+    const selector = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            acceptSelectors: ["#div2", "#li1", "#li2"],
+            rejectSelectors: ["#li3"]
+        })
+    });
+    assert.equal(selector.get('generalizedSelector'), '#div2, li:nth-child(-n+2)');
+    assert.equal(selector.get('selector'), '#div2, li:nth-child(-n+2)');
+});
+
+test('AnnotationSelectorGenerator changes get propagated to siblings', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1">' +
+        '<li id="li1"><span id="span1-1"></span><span id="span1-2"></span><span id="span1-3"></span></li>' +
+        '<li id="li2"><span id="span2-1"></span><span id="span2-2"></span><span id="span2-3"></span></li>' +
+        '<li id="li3"><span id="span3-1"></span><span id="span3-2"></span><span id="span3-3"></span></li>' +
+        '</ul></div></main>');
+    const selectorMatcher = SelectorMatcher.create({
+        browser: new MockBrowser($elements)
+    });
+    const selectorParent = ContainerSelectorGenerator.create({});
+    const selector1 = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            id: 1,
+            acceptSelectors: ['#span1-1'],
+            rejectSelectors: []
+        })
+    });
+    const selector2 = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            id: 2,
+            acceptSelectors: ['#span1-2'],
+            rejectSelectors: []
+        })
+    });
+    const selector3 = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            id: 3,
+            acceptSelectors: ['#span2-3'],
+            rejectSelectors: []
+        })
+    });
+    selectorParent.addChildren([selector1, selector2, selector3]);
+    assert.equal(selector1.get('selector'), '#ul1 > li:nth-child(1) > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), '#ul1 > li:nth-child(1) > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), '#ul1 > li:nth-child(2) > span:nth-child(3)');
+
+    selector2.get('annotation.acceptSelectors').pushObject('#span2-2');
+    assert.equal(selector1.get('selector'), 'li > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li > span:nth-child(3)');
+
+    selector2.get('annotation.rejectSelectors').pushObject('#span3-2');
+    assert.equal(selector1.get('selector'), 'li:nth-child(-n+2) > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li:nth-child(-n+2) > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li:nth-child(-n+2) > span:nth-child(3)');
+});
+
+test('Nested AnnotationSelectorGenerator supports rejecting elements', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1">' +
+        '<li id="li1"><span id="span1-1"></span><span id="span1-2"></span><span id="span1-3"></span></li>' +
+        '<li id="li2"><span id="span2-1"></span><span id="span2-2"></span><span id="span2-3"></span></li>' +
+        '<li id="li3"><span id="span3-1"></span><span id="span3-2"></span><span id="span3-3"></span></li>' +
+        '</ul></div></main>');
+    const selectorMatcher = SelectorMatcher.create({
+        browser: new MockBrowser($elements)
+    });
+    const selectorParent = ContainerSelectorGenerator.create({});
+    const selector1 = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            id: 1,
+            acceptSelectors: ['#span1-1'],
+            rejectSelectors: []
+        })
+    });
+    const selector2 = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            id: 2,
+            acceptSelectors: ['#span1-2', '#span2-2', '#span3-2'],
+            rejectSelectors: []
+        })
+    });
+    const selector3 = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            id: 3,
+            acceptSelectors: ['#span2-3'],
+            rejectSelectors: []
+        })
+    });
+    selectorParent.addChildren([selector1, selector2, selector3]);
+    assert.equal(selector1.get('selector'), 'li > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li > span:nth-child(3)');
+
+    selector3.get('annotation.rejectSelectors').pushObject('#span1-3');
+    assert.equal(selector1.get('selector'), 'li > span:nth-child(1)');
+    assert.equal(selector2.get('selector'), 'li > span:nth-child(2)');
+    assert.equal(selector3.get('selector'), 'li:nth-child(n+2) > span:nth-child(3)');
+});
 
 var commonFields = 'image title address area description price'.split(' ');
 var getElements = function(testCase, fields) {
