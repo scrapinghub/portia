@@ -103,9 +103,9 @@ class APIResource(object):
             'title': error.title,
             'detail': error.body,
         }
-        id = getattr(error, 'id', None)
-        if id is not None:
-            data['id'] = id
+        _id = getattr(error, 'id', None)
+        if _id is not None:
+            data['id'] = _id
         return json.dumps({'errors': [data]})
 
     def _handle_uncaught_exception(self, ex):

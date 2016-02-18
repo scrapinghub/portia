@@ -16,7 +16,7 @@ def create_regex_extractor(pattern):
     """
     ereg = re.compile(pattern, re.S)
 
-    def _extractor(txt):
+    def _extractor(txt, htmlpage=None):
         m = ereg.search(txt)
         if m:
             return htmlregion(u"".join([g for g in m.groups() or m.group() if g]))
@@ -25,12 +25,12 @@ def create_regex_extractor(pattern):
     return _extractor
 
 def create_type_extractor(type):
-    fieldtypes = FieldTypeManager()
+    types = FieldTypeManager()
     extractor = types.type_processor_class(type)()
-    def _extractor(txt):
-        data = extractor.extractor()
+    def _extractor(txt, htmlpage=None):
+        data = extractor.extractor(txt)
         if data:
-            return extractor.adapt()
+            return extractor.adapt(data, htmlpage)
     _extractor.__name__ = "Type Extractor: %s" % type
     return _extractor
 
@@ -74,11 +74,11 @@ def apply_extractors(descriptor, template_extractors, extractors):
 
 def add_extractors_to_descriptors(descriptors, extractors):
     new_extractors = {}
-    for id, data in extractors.items():
+    for _id, data in extractors.items():
         if "regular_expression" in data:
             extractor = create_regex_extractor(data['regular_expression'])
         else:
             extractor = create_type_extractor(data['type_extractor'])
-        new_extractors[id] = extractor
+        new_extractors[_id] = extractor
     for descriptor in descriptors.values():
         descriptor.extractors = new_extractors

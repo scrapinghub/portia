@@ -352,9 +352,9 @@ def update_project_data(data, socket):
         raise BadRequest('Unknown option "%s" received' % option)
     else:
         resp = {'saved': {option: command(data, socket)}}
-    id = meta.get('id')
-    if id:
-        resp['id'] = id
+    _id = meta.get('id')
+    if _id:
+        resp['id'] = _id
     resp.update(extract(socket))
     return resp
 

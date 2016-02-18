@@ -24,10 +24,10 @@ def gen_id(disallow=None):
         disallow = set(disallow)
     else:
         disallow = []
-    id = short_guid()
-    while id in disallow:
-        id = short_guid()
-    return id
+    _id = short_guid()
+    while _id in disallow:
+        _id = short_guid()
+    return _id
 
 
 def init_project(func):

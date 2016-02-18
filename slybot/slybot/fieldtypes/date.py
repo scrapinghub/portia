@@ -21,7 +21,7 @@ class DateTimeFieldTypeProcessor(TextFieldTypeProcessor):
     def extract(self, htmlregion):
         return super(DateTimeFieldTypeProcessor, self).extract(htmlregion)
 
-    def adapt(self, text, htmlpage):
+    def adapt(self, text, htmlpage=None):
         try:
             return DateDataParser().get_date_data(text)['date_obj']
         except ValueError:

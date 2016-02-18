@@ -24,16 +24,16 @@ def get_extractor(manager, extractor_id, attributes=None):
 
 def create_extractor(manager, attributes):
     extractors = _read_extractors(manager)
-    id = gen_id(disallow=set(extractors.keys()))
+    _id = gen_id(disallow=set(extractors.keys()))
     attrs = attributes.get('data', {}).get('attributes', {})
     if 'type' not in attrs:
         attrs['type'] = 'type'
     if 'value' not in attrs:
         attrs['value'] = 'text'
-    extractor = _build_extractor(manager, attrs, id)
-    extractors[id] = extractor
+    extractor = _build_extractor(manager, attrs, _id)
+    extractors[_id] = extractor
     manager.savejson(extractors, ['extractors'])
-    return ExtractorSchema(context=ctx(manager)).dump(extractors[id]).data
+    return ExtractorSchema(context=ctx(manager)).dump(extractors[_id]).data
 
 
 def update_extractor(manager, extractor_id, attributes):

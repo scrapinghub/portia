@@ -272,8 +272,8 @@ def _add_annotation_data(annotation, sample):
     existing_ids = {i for a in annotations for i in a.get('data', [])}
     annotation['data'] = {}
     for attribute, field in annotation.get('annotation', {}).items():
-        id = gen_id(disallow=existing_ids)
-        annotation['data'][id] = {
+        _id = gen_id(disallow=existing_ids)
+        annotation['data'][_id] = {
             'attribute': attribute,
             'field': field,
             'required': field in annotation.get('required', []),

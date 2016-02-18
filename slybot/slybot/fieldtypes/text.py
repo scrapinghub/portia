@@ -11,7 +11,7 @@ class _BaseTextProcessor(object):
         """Matches and extracts any string, as it is"""
         return text
     
-    def adapt(self, text, htmlpage):
+    def adapt(self, text, htmlpage=None):
         return text
     
 class RawFieldTypeProcessor(_BaseTextProcessor):

@@ -45,13 +45,13 @@ class SlydSchema(Schema):
         if getattr(self, '_skip_relationships', False):
             return item
         for attr in self._properties:
-            id = '_'.join((attr, 'id'))
-            if id not in item or item['id'] is None:
-                item[id] = getattr(self, id)
+            _id = '_'.join((attr, 'id'))
+            if _id not in item or item['id'] is None:
+                item[_id] = getattr(self, _id)
             else:
-                self.context[id] = item[id]
-            if item.get(attr) is None and item[id]:
-                item[attr] = {'id': item[id]}
+                self.context[_id] = item[_id]
+            if item.get(attr) is None and item[_id]:
+                item[attr] = {'id': item[_id]}
         return item
 
 

@@ -56,12 +56,12 @@ def _clean_annotation_data(data):
             ann['annotations'] = {'#portia-content': '#dummy'}
             ann['text-content'] = '#portia-content'
         elif 'data' in ann:
-            modified_annotaions = {}
+            modified_annotations = {}
             grp = itemgetter('attribute')
             sorted_annotations = sorted(ann['data'].values(), key=grp)
             for attribute, annotations in groupby(sorted_annotations, grp):
-                modified_annotaions[attribute] = list(annotations)
-            ann['annotations'] = modified_annotaions
+                modified_annotations[attribute] = list(annotations)
+            ann['annotations'] = modified_annotations
         elif 'annotations' in ann:
             filtered_annotations = {}
             for k, v in ann['annotations'].items():

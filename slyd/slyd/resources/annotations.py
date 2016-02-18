@@ -23,7 +23,7 @@ def list_annotations(manager, spider_id, sample_id, attributes=None):
 
 def get_annotation(manager, spider_id, sample_id, annotation_id,
                    attributes=None):
-    aid, id = _split_annotation_id(annotation_id)
+    aid, _id = _split_annotation_id(annotation_id)
     anno, _ = _get_annotation(manager, spider_id, sample_id, aid)
     split_annotations = _split_annotations([anno])
     anno = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
@@ -45,10 +45,10 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
                       attributes):
     relationships = _load_relationships(attributes['data'])
     data = attributes['data'].get('attributes', {})
-    anno_id, id = _split_annotation_id(annotation_id)
+    anno_id, _id = _split_annotation_id(annotation_id)
     annotation, sample = _get_annotation(manager, spider_id, sample_id,
                                          anno_id)
-    annotation_data = annotation['data'][id]
+    annotation_data = annotation['data'][_id]
     field_id = annotation_data['field']
     if relationships.get('field_id'):
         field_id = relationships['field_id']
@@ -83,10 +83,10 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
 
 def delete_annotation(manager, spider_id, sample_id, annotation_id,
                       attributes=None):
-    annotation_id, id = _split_annotation_id(annotation_id)
+    annotation_id, _id = _split_annotation_id(annotation_id)
     annotation, sample = _get_annotation(manager, spider_id, sample_id,
                                          annotation_id)
-    del annotation['data'][id]
+    del annotation['data'][_id]
     annotations = sample['plugins']['annotations-plugin']['extracts']
     if not annotation['data']:
         sample['plugins']['annotations-plugin']['extracts'] = [
@@ -115,10 +115,10 @@ def _group_annotations(annotations):
     and un contained annotations."""
     extractors = [Extractor(Annotation(a)) for a in annotations]
     data = extraction.BaseContainerExtractor._get_container_data(extractors)
-    containers = {id: c.annotation.metadata for id, c in data[0].items()}
+    containers = {_id: c.annotation.metadata for _id, c in data[0].items()}
     contained_annotations = {}
-    for id, annos in data[1].items():
-        contained_annotations[id] = _split_annotations(annos)
+    for _id, annos in data[1].items():
+        contained_annotations[_id] = _split_annotations(annos)
     remaining_annotations = _split_annotations(data[2])
     return containers, contained_annotations, remaining_annotations
 
@@ -164,8 +164,8 @@ def _split_annotations(annotations):
         attributes = a.get('data', _default)
         if not attributes:
             attributes = _default
-        for id, annotation in attributes.items():
-            a['id'] = '#'.join((a['id'], id))
+        for _id, annotation in attributes.items():
+            a['id'] = '#'.join((a['id'], _id))
             a.pop('schema_id', None)
             a['attribute'] = annotation['attribute']
             a['field'] = {'id': annotation['field']}
@@ -175,9 +175,9 @@ def _split_annotations(annotations):
     return split_annotations
 
 
-def _split_annotation_id(id):
+def _split_annotation_id(_id):
     """Split annotations from <annotation_id>#<field_id>."""
-    split_annotation_id = unquote(id).split('#')
+    split_annotation_id = unquote(_id).split('#')
     annotation_id = split_annotation_id[0]
     try:
         field_id = split_annotation_id[1]
@@ -200,13 +200,13 @@ def _create_annotation(sample, attributes):
     attributes = attributes['data']['attributes']
     annotations = sample['plugins']['annotations-plugin']['extracts']
     aid = gen_id(disallow=[a['id'] for a in annotations if a.get('id')])
-    id = gen_id(disallow={i for a in annotations for i in a.get('data', [])})
+    _id = gen_id(disallow={i for a in annotations for i in a.get('data', [])})
     annotation = {
         'id': aid,
         'container_id': relationships['parent_id'].split('#')[0],
         # TODO: default to most likely attribute
         'data': {
-            id: {
+            _id: {
                 'attribute': 'content',
                 'field': relationships['field_id'],
                 'required': False,

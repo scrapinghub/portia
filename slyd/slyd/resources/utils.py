@@ -123,13 +123,13 @@ def _recreate_missing_item_annotations(manager, spider_id, sample_id, sample):
 
 
 def _recreate_parent_annotation(child, exists=True):
-    id = child['id']
+    _id = child['id']
     if exists:
-        id = '%s#parent' % id
+        _id = '%s#parent' % _id
     return {
         'schema_id': child['schema_id'],
         'repeated': False,
-        'id': id,
+        'id': _id,
         'accept_selectors': ['body'],
         'reject_selectors': [],
         'required': [],

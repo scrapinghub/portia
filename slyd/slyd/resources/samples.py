@@ -130,8 +130,8 @@ def _process_annotations(sample):
     items, item_annotations = [], []
     processed_items = set()
     scrapes = sample.get('scrapes')  # TODO: Handle default item
-    for id, container in containers.items():
-        item_id = id.split('#')[0]
+    for _id, container in containers.items():
+        item_id = _id.split('#')[0]
         if 'schema_id' not in container and scrapes:
             container['schema_id'] = scrapes
         item = {
@@ -139,7 +139,7 @@ def _process_annotations(sample):
             'sample': sample,
             'schema': {'id': container['schema_id']},
             'item_annotation': container,
-            'annotations': grouped.get(id, [])
+            'annotations': grouped.get(_id, [])
         }
         container_id = container.get('container_id')
         if container_id and container_id.split('#')[0] != item_id:

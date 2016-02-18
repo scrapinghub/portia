@@ -139,11 +139,7 @@ class SlybotRecordExtractor(RecordExtractor):
                             key=lambda x: labelled_element(x).start_index)
         _, _, attributes = self._doextract(page, extractors, start_index,
                                            end_index, **kwargs)
-        # collect variant data, maintaining the order of variants
-        items = []
-        for k, v in attributes:
-            items.append((k, v))
-        return items
+        return list(attributes)
 
 class BaseContainerExtractor(object):
     _extractor_classes = [
@@ -229,7 +225,7 @@ class BaseContainerExtractor(object):
         non_container_annos = []
         for con_id, annotation in groupby(extractors, container_id):
             annotation = list(annotation)
-            # XXX: Handle repeated container deletion but not parent container
+            # Handle repeated container deletion but not parent container
             if (con_id and str(con_id).endswith('#parent') and
                     con_id not in containers):
                 con_id = con_id.strip('#parent')
@@ -373,7 +369,7 @@ class BaseContainerExtractor(object):
                 for extractor in annotation.get('extractors', []):
                     custom_extractor_func = self.modifiers.get(extractor)
                     if custom_extractor_func and extracted:
-                        extracted = custom_extractor_func(extracted)
+                        extracted = custom_extractor_func(extracted, htmlpage)
                 if annotation.get('required') and not extracted:
                     raise MissingRequiredError()
                 if field_extraction.name != field_extraction.description:
