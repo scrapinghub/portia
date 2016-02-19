@@ -10,7 +10,7 @@ EXTRACTOR_TYPES = set(FieldTypeManager._TYPEMAP.keys())
 
 @init_project
 def list_extractors(manager, attributes=None):
-    extractors = [e for id, e in _read_extractors(manager).items()]
+    extractors = [e for _id, e in _read_extractors(manager).items()]
     context = ctx(manager)
     return ExtractorSchema(many=True, context=context).dump(extractors).data
 

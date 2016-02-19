@@ -138,7 +138,7 @@ def find_common_parent(a, b):
     if b in a_parents_set:
         return b
     if a in b_parents_set:
-        return b
+        return a
     if len(a_parents) < len(b_parents):
         for elem in a_parents:
             if elem == b or elem in b_parents_set:

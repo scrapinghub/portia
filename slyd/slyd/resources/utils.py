@@ -72,7 +72,8 @@ def _create_schema(manager, schema=None, schemas=None):
     new_schema.update(schema)
     get_schema_validator('item').validate(new_schema)
     schemas[schema_id] = new_schema
-    manager.savejson(schemas, ['items'])
+    if manager:
+        manager.savejson(schemas, ['items'])
     return new_schema, schema_id
 
 

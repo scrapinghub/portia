@@ -57,10 +57,7 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
     if data.get('attribute'):
         attribute = data['attribute']
     annotation_data['attribute'] = attribute
-    if data.get('required'):
-        annotation_data['required'] = True
-    else:
-        annotation_data['required'] = False
+    annotation_data['required'] = bool(data.get('required', False))
     extractors = relationships.get('extractors', [])
     if extractors:
         if isinstance(extractors, dict) and 'id' in extractors:
@@ -182,7 +179,7 @@ def _split_annotation_id(_id):
     try:
         field_id = split_annotation_id[1]
     except IndexError:
-        field_id = 'content'  # TODO: Should this be None?
+        field_id = None
     return annotation_id, field_id
 
 

@@ -1,6 +1,7 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+    routing: Ember.inject.service('-routing'),
     tagName: '',
 
     spider: null,
@@ -34,8 +35,11 @@ export default Ember.Component.extend({
     actions: {
         saveSpider() {
             this.get('spider').save().then(() => {
-                if (this.get('linksToFollow') !== 'none') {
-                    this.sendAction('openLinkOptions');
+                if (this.get('linksToFollow.value') === 'patterns') {
+                    this.get('routing').transitionTo('projects.project.spider.link-options');
+                } else if (this.get('linksToFollow.value') === 'none' &&
+                        this.get('routing.currentRouteName').endsWith('link-options')) {
+                    this.get('routing').transitionTo('projects.project.spider');
                 }
             });
         }
