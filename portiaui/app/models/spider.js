@@ -36,6 +36,11 @@ const Spider = DS.Model.extend({
             return [];
         }
     }),
+    nofollowExamples: DS.attr('array', {
+        defaultValue() {
+            return [];
+        }
+    }),
     showLinks: DS.attr('boolean'),
     respectNoFollow: DS.attr('boolean', {
         defaultValue: true

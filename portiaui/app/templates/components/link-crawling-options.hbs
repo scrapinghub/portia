@@ -9,6 +9,17 @@
         {{regex-pattern-list list=spider.followPatterns onChange=(action 'save')}}
         <div>Exclude links that match these patterns</div>
         {{regex-pattern-list list=spider.excludePatterns onChange=(action 'save')}}
+    {{else if (eq spider.linksToFollow 'examples')}}
+        Portia will URLs similar to the ones in the start pages.
+
+        <div>Portia won't follow links similar to this ones:</div>
+        Select links in the page
+
+        {{#each spider.nofollowExamples key="@index" as |url|}}
+            <div>
+                {{url}}
+            </div>
+        {{/each}}
     {{/if}}
 
     <div class="checkbox">
