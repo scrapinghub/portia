@@ -60,7 +60,7 @@ class SelectorNode {
 
 function generalizeDefinitionSelectors(definition) {
     definition.forEach(function generalize(element) {
-        if (element.annotation) {
+        if (element && element.annotation) {
             const acceptSelectors = element.annotation.get('acceptSelectors');
             const rejectSelectors = element.annotation.get('rejectSelectors');
             element.acceptSelectors = acceptSelectors;

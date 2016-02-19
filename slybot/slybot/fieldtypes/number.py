@@ -28,6 +28,6 @@ class NumberTypeProcessor(object):
         """Only matches and extracts strings with at least one number"""
         return contains_any_numbers(htmlregion.text_content)
         
-    def adapt(self, text, htmlpage):
+    def adapt(self, text, htmlpage=None):
         return extract_number(text)
 

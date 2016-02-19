@@ -174,26 +174,21 @@ export default Ember.Service.extend({
     addItemAnnotation(item, redirect = false) {
         const store = this.get('store');
         const project = item.get('schema.project');
+        const sample =  item.get('sample')
         const schema = store.createRecord('schema', {
             name: `schema${project.get('schemas.length') + 1}`,
             project
         });
-        const newItem = store.createRecord('item', {});
-        const itemAnnotation = store.createRecord('item-annotation', {
+        const newItem = store.createRecord('item', {
             name: `subitem${item.get('annotations.length') + 1}`,
-            parent: item
+            parent: item,
+            sample
         });
         schema.save().then(() => {
             newItem.set('schema', schema);
-            newItem.save().then(() => {
-                itemAnnotation.set('item', newItem);
-                itemAnnotation.save();
-                if (redirect) {
-                    itemAnnotation.set('new', true);
-                }
-            });
+            newItem.save();
         });
-        return itemAnnotation;
+        return newItem;
     },
 
     addAnnotation(item, element, attribute, redirect = false) {
@@ -354,12 +349,13 @@ export default Ember.Service.extend({
     },
 
     removeItemAnnotation(itemAnnotation) {
-        const currentAnnotation = this.get('uiState.models.annotation');
+        const currentAnnotation = this.get('uiState.models.annotation'),
+              parentItem = itemAnnotation.get('item.content');
         if (itemAnnotation.get('orderedAnnotations').includes(currentAnnotation)) {
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
-        itemAnnotation.destroyRecord();
+        itemAnnotation.destroyRecord().then(() => parentItem.unloadRecord());
     },
 
     removeAnnotation(annotation) {
@@ -431,6 +427,9 @@ export default Ember.Service.extend({
 
     updateContainers(containerAnnotation) {
         Ember.run.next(this, function() {
+            if ('content' in containerAnnotation) {
+                containerAnnotation = containerAnnotation.content;
+            }
             let elements = this.get('annotationStructure')._annotations(),
                 container = findContainer(elements),
                 [repeatedContainer, siblings] = findRepeatedContainer(elements, container),

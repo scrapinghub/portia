@@ -1,6 +1,6 @@
 {
     "default": {
-        "display_name": "default_item",
+        "name": "default_item",
         "fields": {
             "required": {
                 "required": true,

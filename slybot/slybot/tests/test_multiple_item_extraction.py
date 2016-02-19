@@ -114,8 +114,8 @@ class ContainerExtractorTest(TestCase):
                                                        extractors)
         data = ibl_extractor.extract(extraction_page)
         self.assertEqual(len(data), 95)
-        self.assertEqual({tuple(i.keys()) for i in data},
-                         {(u'date', u'text', '_template', u'url', u'title')})
+        self.assertEqual({tuple(sorted(i.keys())) for i in data},
+                         {('_template', u'date', u'text', u'title', u'url')})
         self.assertDictEqual(data[0], {
             u'_template': u'stack_overflow_test',
             u'date': [u'2015-08-07 10:09:32Z'],

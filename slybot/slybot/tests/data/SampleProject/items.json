@@ -30,7 +30,7 @@
                 "required": false, 
                 "vary": false, 
                 "type": "price",
-                "display_name": "price"
+                "name": "price"
             },
             "lifecycle": {
                 "required": false, 

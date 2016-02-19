@@ -20,8 +20,8 @@ from jsonschema.exceptions import ValidationError
 from splash.browser_tab import JsError
 
 from slyd.utils.projects import ProjectModifier
-from slyd.plugins.scrapely_annotations.annotations import Annotations
 from slyd.resources.utils import _load_sample
+from slybot.plugins.scrapely_annotations.builder import Annotations
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
 from .utils import open_tab, extract_data, BaseWSError, BadRequest, NotFound
 
@@ -35,10 +35,12 @@ def save_html(data, socket):
     path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
     sample = _load_sample(manager, *path)
     stated_encoding = socket.tab.evaljs('document.characterSet')
-    sample['original_body'] = _decode(socket.tab.network_manager._raw_html,
-                                      stated_encoding)
-    sample['js_original_body'] = socket.tab.html().decode('utf-8')
-    _update_sample(data, socket, sample)
+    try:
+        sample['original_body'] = _decode(socket.tab.network_manager._raw_html,
+                                          stated_encoding)
+    except AttributeError:
+        sample['original_body'] = socket.tab.html().decode('utf-8')
+    _update_sample(data, socket, sample, save=True)
 
 
 def extract_items(data, socket):
@@ -69,10 +71,8 @@ def extract_items(data, socket):
     return {'links': links, 'items': items}
 
 
-def _update_sample(data, socket, sample=None):
+def _update_sample(data, socket, sample=None, save=False):
     """Recompile sample with latest annotations"""
-    # TODO: Keep page parsed to speed up processing time?
-    # TODO: Keep hash of annotations so update only happens on change
     spec = socket.spec_manager.project_spec(data['project'],
                                             socket.user.auth)
     if sample is None:
@@ -84,7 +84,8 @@ def _update_sample(data, socket, sample=None):
             options={'body': 'original_body'})
     except (StopIteration, KeyError):
         sample['annotated_body'] = sample.get('original_body', u'')
-    spec.savejson(sample, ['spiders', data['spider'], data['sample']])
+    if save:
+        spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample
 
 
@@ -351,9 +352,9 @@ def update_project_data(data, socket):
         raise BadRequest('Unknown option "%s" received' % option)
     else:
         resp = {'saved': {option: command(data, socket)}}
-    id = meta.get('id')
-    if id:
-        resp['id'] = id
+    _id = meta.get('id')
+    if _id:
+        resp['id'] = _id
     resp.update(extract(socket))
     return resp
 

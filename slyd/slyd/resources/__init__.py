@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 from .annotations import (list_annotations, get_annotation, create_annotation,
                           update_annotation, delete_annotation)
+from .extractors import (list_extractors, get_extractor, create_extractor,
+                         update_extractor, delete_extractor)
 from .fields import (list_fields, get_field, create_field, update_field,
                      delete_field)
 from .items import (list_items, get_item, create_item, update_item,
-                    delete_item)
+                    get_item_sub_annotations, delete_item)
 from .item_annotations import update_item_annotation
 from .projects import (list_projects, get_project, create_project,
                        update_project, delete_project, status, merge, reset)
@@ -51,6 +53,17 @@ annotation = Route(
     patch=update_annotation,
     delete=delete_annotation
 )
+extractors_list = Route(
+    'projects/{project_id}/extractors',
+    get=list_extractors,
+    post=create_extractor
+)
+extractor = Route(
+    'projects/{project_id}/extractors/{extractor_id}',
+    get=get_extractor,
+    patch=update_extractor,
+    delete=delete_extractor
+)
 fields_list = Route(
     'projects/{project_id}/schemas/{schema_id}/fields',
     get=list_fields,
@@ -76,8 +89,14 @@ item = Route(
 )
 item_annotations = Route(
     'projects/{project_id}/spiders/{spider_id}/samples/{sample_id}/'
-    'item_annotations/{annotation_id}',
-    patch=update_item_annotation
+    'item_annotations/{item_id}',
+    patch=update_item_annotation,
+    delete=delete_item
+)
+item_sub_annotations = Route(
+    'projects/{project_id}/spider/{spider_id}/samples/{sample_id}/items/'
+    '{item_id}/annotations',
+    get=get_item_sub_annotations,
 )
 projects_list = Route(
     'projects',
@@ -143,11 +162,14 @@ schema = Route(
 routes = [
     annotations_list,
     annotation,
+    extractors_list,
+    extractor,
     fields_list,
     field,
     items_list,
     item,
     item_annotations,
+    item_sub_annotations,
     projects_list,
     project,
     project_publish,

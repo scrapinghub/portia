@@ -22,8 +22,11 @@ def iter_unique_scheme_hostname(urls):
 
 def open_project_from_dir(project_dir):
     specs = {"spiders": {}}
-    with open(os.path.join(project_dir, "project.json")) as f:
-        specs["project"] = json.load(f)
+    try:
+        with open(os.path.join(project_dir, "project.json")) as f:
+            specs["project"] = json.load(f)
+    except IOError:
+        specs["project"] = {}
     with open(os.path.join(project_dir, "items.json")) as f:
         specs["items"] = json.load(f)
     with open(os.path.join(project_dir, "extractors.json")) as f:
@@ -57,7 +60,16 @@ def load_external_templates(spec_base, spider_name, template_names):
     """
     for name in template_names:
         with open(os.path.join(spec_base, spider_name, name + ".json")) as f:
-            yield json.load(f)
+            sample = json.load(f)
+            yield _build_sample(sample)
+
+
+def _build_sample(sample):
+    from slybot.plugins.scrapely_annotations.builder import Annotations
+    data = sample.get('plugins', {}).get('annotations-plugin')
+    if data:
+        Annotations.save_extraction_data(data, sample)
+    return sample
 
 
 def htmlpage_from_response(response):

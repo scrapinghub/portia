@@ -11,6 +11,6 @@ class PriceTypeProcessor(object):
     def extract(self, htmlregion):
         return extractors.contains_any_numbers(htmlregion.text_content)
 
-    def adapt(self, text, htmlpage):
+    def adapt(self, text, htmlpage=None):
         return extractors.extract_price(text)
 

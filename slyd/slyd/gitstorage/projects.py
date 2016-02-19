@@ -214,8 +214,8 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
                 request.setHeader('Content-Type', 'application/json')
         except (TypeError, ValueError):
             try:
-                id = request_data.get('args')[0]
-                name = self._get_project_name(id).encode('utf-8')
+                _id = request_data.get('args')[0]
+                name = self._get_project_name(_id).encode('utf-8')
             except (TypeError, ValueError, IndexError):
                 name = 'archive'
             request.setHeader('ETag', self._gen_etag(request_data))
@@ -227,8 +227,8 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
 
     def _gen_etag(self, request_data):
         args = request_data.get('args')
-        id = args[0]
-        last_commit = self._open_repo(id).refs['refs/heads/master']
+        _id = args[0]
+        last_commit = self._open_repo(_id).refs['refs/heads/master']
         spiders = args[1] if len(args) > 1 and args[1] else []
         return (last_commit + '.' + '.'.join(spiders)).encode('utf-8')
 

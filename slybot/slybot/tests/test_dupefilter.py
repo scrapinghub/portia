@@ -34,9 +34,8 @@ class DupeFilterTest(TestCase):
         for item2 in result2:
             if isinstance(item2, DictItem):
                 break
-       
+
         self.assertEqual(item1, dupefilter.process_item(item1, spider))
         self.assertEqual(item2, dupefilter.process_item(item2, spider))
 
         self.assertRaises(DropItem, dupefilter.process_item, item1, spider)
-

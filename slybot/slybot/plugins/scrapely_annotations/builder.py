@@ -4,11 +4,12 @@ from scrapy import Selector
 from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 
 from collections import defaultdict
-from itertools import tee, count, chain
+from itertools import tee, count, chain, groupby
+from operator import itemgetter
 from uuid import uuid4
 
-from slyd.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
-                        OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
+from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
+                    OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
 
 
 class Annotations(object):
@@ -54,11 +55,17 @@ def _clean_annotation_data(data):
         if ann.get('item_container'):
             ann['annotations'] = {'#portia-content': '#dummy'}
             ann['text-content'] = '#portia-content'
-            result.append(ann)
+        elif 'data' in ann:
+            modified_annotations = {}
+            grp = itemgetter('attribute')
+            sorted_annotations = sorted(ann['data'].values(), key=grp)
+            for attribute, annotations in groupby(sorted_annotations, grp):
+                modified_annotations[attribute] = list(annotations)
+            ann['annotations'] = modified_annotations
         elif 'annotations' in ann:
             filtered_annotations = {}
             for k, v in ann['annotations'].items():
-                if not (v and v.strip()):
+                if not v:
                     continue
                 if v == '#sticky':
                     next_sticky = '_sticky%s' % next(sticky_count)
@@ -69,14 +76,16 @@ def _clean_annotation_data(data):
             ann['annotations'] = filtered_annotations
             ann['required'] = list((set(ann.get('required', [])) | stickies) &
                                    set(filtered_annotations.values()))
-            result.append(ann)
         elif "ignore" in ann or "ignore_beneath" in ann:
-            result.append(ann)
+            pass
+        else:
+            continue
+        result.append(ann)
     return result
 
 
 def _get_data_id(annotation):
-    """gets id (a str) of an annotation"""
+    """Get id (a str) of an annotation."""
     if isinstance(annotation, HtmlTag):
         return annotation.attributes[TAGID]
 

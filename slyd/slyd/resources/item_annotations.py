@@ -6,9 +6,9 @@ from .models import ItemAnnotationSchema
 from ..utils.projects import ctx
 
 
-def update_item_annotation(manager, spider_id, sample_id, annotation_id,
+def update_item_annotation(manager, spider_id, sample_id, item_id,
                            attributes=None):
-    annotation_id = annotation_id.strip('#')
+    annotation_id = item_id.strip('#')
     sample = _load_sample(manager, spider_id, sample_id)
     annotations = sample['plugins']['annotations-plugin']['extracts']
     containers, _, _ = _group_annotations(annotations)
@@ -16,6 +16,7 @@ def update_item_annotation(manager, spider_id, sample_id, annotation_id,
                                containers.get(annotation_id.strip('#parent')))
     if container is None:
         raise KeyError('No annotation with id "%s" found' % annotation_id)
+    relationships = attributes.get('data', {}).get('relationships', {})
     attributes = attributes.get('data', {}).get('attributes', {})
     container['accept_selectors'] = attributes.get('accept_selectors')
     repeated_container_selectors = [
@@ -74,12 +75,18 @@ def update_item_annotation(manager, spider_id, sample_id, annotation_id,
             container['id'] = repeated_container_id
             sample['plugins']['annotations-plugin']['extracts'] = annotations
 
-    # TODO: Allow assigning to parent field
+    try:
+        parent_container_id = relationships['item-annotation']['data']['id']
+    except KeyError:
+        parent_container_id = None
+    field = attributes.get('field')
+    if field:
+        container['field'] = field
     container['item_container'] = True
+    container['container_id'] = parent_container_id
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
                   item_id=annotation_id.split('#')[0])
     container['repeated_container_selectors'] = repeated_container_selectors
-    container['siblings'] = attributes.get('siblings', 0)
     container['id'] = annotation_id
     return ItemAnnotationSchema(context=context).dump(container).data
