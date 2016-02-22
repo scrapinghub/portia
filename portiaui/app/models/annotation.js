@@ -9,6 +9,8 @@ export default DS.Model.extend({
     field: DS.belongsTo({
         async: false
     }),
+    extractors: DS.hasMany(),
+
     attribute: DS.attr('string'),
     tagid: DS.attr('string'),
     required: DS.attr('boolean'),

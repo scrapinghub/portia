@@ -1,0 +1,14 @@
+.extractor-options {
+    &.tree-list {
+        > .tree-list-item {
+            > .tree-list-item-row {
+                margin-top: $line-height-computed;
+                margin-bottom: ($line-height-computed / 2);
+            }
+
+            > .tree-list {
+                padding-left: 0;
+            }
+        }
+    }
+}

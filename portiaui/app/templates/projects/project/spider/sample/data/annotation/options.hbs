@@ -7,6 +7,7 @@
         {{#group.panel class="extracted-items container-fluid" toolId="annotation-options" as |active|}}
             {{annotation-options annotation=model}}
             {{field-options field=model.field}}
+            {{extractor-options annotation=model}}
         {{/group.panel}}
     {{/if}}
 {{/tool-group}}

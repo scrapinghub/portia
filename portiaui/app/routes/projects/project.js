@@ -10,6 +10,7 @@ export default Ember.Route.extend({
         Ember.run.next(this, function() {
             this.store.findAll('schema');
             this.store.findAll('spider');
+            this.store.findAll('extractor');
             //this.store.findAll('item');
             //this.store.findAll('item-annotation');
             //this.store.findAll('annotation');

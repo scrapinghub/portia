@@ -19,6 +19,7 @@ export const ICON_CLASSES = {
     price: 'fa fa-dollar',
     project: 'fa fa-folder',
     'raw html': 'fa fa-code',
+    'regular expression': 'portia-icon portia-icon-regex',
     remove: 'structure-list-remove fa fa-minus-circle',
     'safe html': 'portia-icon portia-icon-safe-html',
     sample: 'fa fa-file',
