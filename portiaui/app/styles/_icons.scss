@@ -48,6 +48,7 @@
 }
 
 .portia-icon-number,
+.portia-icon-regex,
 .portia-icon-text {
     position: relative;
 
@@ -72,6 +73,15 @@
 
     &:before {
         content: '123';
+    }
+}
+
+.portia-icon-regex {
+    width: 2.1ch;
+
+    &:before {
+        content: '\\d*';
+        transform: scaleX(0.8);
     }
 }
 

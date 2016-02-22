@@ -244,6 +244,51 @@ export default Ember.Service.extend({
         return annotation;
     },
 
+    addAnnotationTypeExtractor(annotation, type) {
+        const store = this.get('store');
+        const project = annotation.get('sample.spider.project');
+        return project.get('extractors').then(extractors => {
+            const existing = extractors.find(extractor => {
+                return extractor.get('type') === 'type' && extractor.get('value') === type;
+            });
+            let extractorPromise;
+            if (existing) {
+                extractorPromise = Ember.RSVP.resolve(existing);
+            } else {
+                const extractor = store.createRecord('extractor', {
+                    project,
+                    type: 'type',
+                    value: type
+                });
+                extractorPromise = extractor.save();
+            }
+            return extractorPromise.then(extractor => {
+                annotation.get('extractors').pushObject(extractor);
+                return annotation.save().then(() => extractor);
+            });
+        });
+    },
+
+    addAnnotationRegexExtractor(annotation, extractor) {
+        annotation.get('extractors').pushObject(extractor);
+        return annotation.save().then(() => extractor);
+    },
+
+    addNewAnnotationRegexExtractor(annotation) {
+        const store = this.get('store');
+        const project = annotation.get('sample.spider.project');
+        const extractor = store.createRecord('extractor', {
+            project,
+            type: 'regex',
+            value: '(.*)'
+        });
+        return extractor.save().then(extractor => {
+            extractor.set('new', true);
+            annotation.get('extractors').pushObject(extractor);
+            return annotation.save().then(() => extractor);
+        });
+    },
+
     changeAnnotationSource(annotation, attribute) {
         if (annotation) {
             annotation.set('attribute', attribute);
@@ -368,6 +413,11 @@ export default Ember.Service.extend({
         annotation.destroyRecord().then(() =>
             Ember.run.next(this, this.updateContainers, parent)
         );
+    },
+
+    removeAnnotationExtractor(annotation, extractor) {
+        annotation.get('extractors').removeObject(extractor);
+        annotation.save();
     },
 
     selectAnnotation(annotation) {
