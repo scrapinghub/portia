@@ -1,16 +1,11 @@
 from __future__ import absolute_import
-from collections import namedtuple
 from urllib import unquote
 
-import slybot.plugins.scrapely_annotations.extraction as extraction
-
 from .models import AnnotationSchema
-from .utils import _load_sample
+from .utils import (_load_sample, extraction, Extractor, Annotation,
+                    _split_annotations)
 from ..errors import NotFound
 from ..utils.projects import gen_id, ctx
-
-Extractor = namedtuple('Extractor', ['annotation'])
-Annotation = namedtuple('Annotation', ['metadata'])
 
 
 def list_annotations(manager, spider_id, sample_id, attributes=None):
@@ -26,7 +21,6 @@ def get_annotation(manager, spider_id, sample_id, annotation_id,
     aid, _id = _split_annotation_id(annotation_id)
     anno, _ = _get_annotation(manager, spider_id, sample_id, annotation_id)
     split_annotations = _split_annotations([anno])
-    print(split_annotations)
     anno = filter(lambda x: x['id'] == _id, split_annotations)[0]
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
     return AnnotationSchema(context=context).dump(anno).data
@@ -108,19 +102,6 @@ def _check_annotation_attributes(attributes, include_defaults=False):
     return attributes
 
 
-def _group_annotations(annotations):
-    """Group annotations into container/item annotations, contained annotations
-    and un contained annotations."""
-    extractors = [Extractor(Annotation(a)) for a in annotations]
-    data = extraction.BaseContainerExtractor._get_container_data(extractors)
-    containers = {_id: c.annotation.metadata for _id, c in data[0].items()}
-    contained_annotations = {}
-    for _id, annos in data[1].items():
-        contained_annotations[_id] = _split_annotations(annos)
-    remaining_annotations = _split_annotations(data[2])
-    return containers, contained_annotations, remaining_annotations
-
-
 def _nested_containers(annotations):
     extractors = [Extractor(Annotation(a)) for a in annotations]
     info = extraction.BaseContainerExtractor._get_container_data(extractors)
@@ -139,38 +120,6 @@ def _find_annotation_paths(tree, nested, parents=None):
             nested.add(tuple(parents))
             continue
         _find_annotation_paths(v, nested, parents[:] + [k])
-
-
-def _split_annotations(annotations):
-    """Split annotations into one extracted attribtue per annotation."""
-    split_annotations = []
-    for a in annotations:
-        if isinstance(a, Extractor):
-            a = a.annotation.metadata.copy()
-        else:
-            a = a.copy()
-        if a.get('item_container'):
-            continue
-        _default = {
-            'default': {
-                'field': '#dummy',
-                'required': False,
-                'extractors': [],
-                'attribute': '#portia-content'
-            }
-        }
-        attributes = a.get('data', _default)
-        if not attributes:
-            attributes = _default
-        for _id, annotation in attributes.items():
-            a['id'] = '|'.join((a['id'], _id))
-            a.pop('schema_id', None)
-            a['attribute'] = annotation['attribute']
-            a['field'] = {'id': annotation['field']}
-            a['required'] = annotation.get('required', False)
-            a['extractors'] = [{'id': e} for e in annotation['extractors']]
-            split_annotations.append(a)
-    return split_annotations
 
 
 def _split_annotation_id(_id):

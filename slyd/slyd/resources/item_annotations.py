@@ -1,7 +1,6 @@
 import copy
 
-from .annotations import _group_annotations
-from .samples import _load_sample
+from .utils import _load_sample, _group_annotations
 from .models import ItemAnnotationSchema
 from ..utils.projects import ctx
 

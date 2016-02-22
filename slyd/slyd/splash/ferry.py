@@ -349,6 +349,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         spider_name = meta['spider']
         spec = self.spec_manager.project_spec(meta['project'], self.user.auth)
         spider = spec.spider_with_templates(spider_name)
+        for template in spider.get('templates', []):
+            template.setdefault('annotated_body', u'')
         try:
             items = spec.resource('items')
         except TypeError:

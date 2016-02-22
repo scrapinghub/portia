@@ -152,7 +152,7 @@ export default Ember.Controller.extend({
     },
 
     updateAnnotationDefinition: Ember.observer('sample.orderedAnnotations.[]', function() {
-        const selectorStructure = this.get('sample.items').map(item => ({
+        const selectorStructure = this.get('sample.items').filter((item) => !!item).map(item => ({
             annotation: item,
             children: item.get('annotations').map(function mapper(annotation) {
                 if (annotation.constructor.modelName === 'annotation') {

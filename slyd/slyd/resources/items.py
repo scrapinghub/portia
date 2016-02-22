@@ -2,8 +2,8 @@ from __future__ import absolute_import
 from .annotations import (_split_annotations, _load_relationships,
                           _nested_containers)
 from .models import ItemSchema, AnnotationSchema, ItemAnnotationSchema
-from .samples import _process_annotations, _add_items_and_annotations
-from .utils import _load_sample, _create_schema
+from .utils import (_load_sample, _create_schema, _process_annotations,
+                    _add_items_and_annotations)
 from ..errors import NotFound
 from ..utils.projects import ctx, gen_id
 

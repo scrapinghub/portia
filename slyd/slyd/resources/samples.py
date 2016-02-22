@@ -1,14 +1,12 @@
-from itertools import chain
-
 from scrapy.http.request import Request
 from scrapy.utils.request import request_fingerprint
 
 from slybot.validation.schema import get_schema_validator
 
-from .models import (SampleSchema, HtmlSchema, ItemSchema, AnnotationSchema,
-                     ItemAnnotationSchema)
-from .annotations import _group_annotations
-from .utils import _load_sample, _create_schema, _get_formatted_schema
+from .models import SampleSchema, HtmlSchema
+from .items import create_item
+from .utils import (_load_sample, _create_schema, _get_formatted_schema,
+                    _process_annotations, _add_items_and_annotations)
 from ..errors import BadRequest
 from ..utils.projects import ctx, gen_id
 
@@ -46,7 +44,9 @@ def create_sample(manager, spider_id, attributes):
     context = ctx(manager, spider_id=spider_id)
     sample = SampleSchema(context=context).dump(attributes).data
     schema = _get_formatted_schema(manager, schema_id, schema, True)
-    sample['included'] = [schema['data']]
+    rel = {'data': {'relationships': {'schema': {'id': schema_id}}}}
+    item = create_item(manager, spider_id, sample_id, rel)
+    sample['included'] = [schema['data']] + item['included'] + [item['data']]
     return sample
 
 
@@ -98,56 +98,3 @@ def _process_sample(sample, manager, spider_id):
     data = SampleSchema(context=_ctx()).dump(sample).data
     return _add_items_and_annotations(data, items, annotations,
                                       item_annotations, _ctx)
-
-
-def _add_items_and_annotations(data, items, annotations, item_annotations,
-                               _ctx):
-    built_items = []
-    for i in items:
-        context = _ctx(i['schema']['id'])
-        item = ItemSchema(context=context).dump(i).data['data']
-        built_items.append(item)
-    annos = []
-    for a in annotations:
-        if a.get('item_container'):
-            continue
-        context = _ctx(None, a['container_id'])
-        dumper = AnnotationSchema(context=context)
-        annos.append(dumper.dump(a).data['data'])
-    item_annos = []
-    for a in item_annotations:
-        context = _ctx(a['schema_id'])
-        dumper = ItemAnnotationSchema(context=context)
-        item_annos.append(dumper.dump(a).data['data'])
-    data['included'] = built_items + annos + item_annos
-    return data
-
-
-def _process_annotations(sample):
-    annotation_info = sample.get('plugins', {}).get('annotations-plugin', {})
-    annotations = annotation_info.get('extracts', [])
-    containers, grouped, remaining = _group_annotations(annotations)
-    items, item_annotations = [], []
-    processed_items = set()
-    scrapes = sample.get('scrapes')  # TODO: Handle default item
-    for _id, container in containers.items():
-        item_id = _id.split('#')[0]
-        if 'schema_id' not in container and scrapes:
-            container['schema_id'] = scrapes
-        item = {
-            'id': item_id,
-            'sample': sample,
-            'schema': {'id': container['schema_id']},
-            'item_annotation': container,
-            'annotations': grouped.get(_id, [])
-        }
-        container_id = container.get('container_id')
-        if container_id and container_id.split('#')[0] != item_id:
-            container['parent'] = {'id': container_id}
-        if item_id not in processed_items:
-            items.append(item)
-            processed_items.add(item['id'])
-        item_annotations.append(container)
-    annotations = [i for i in chain(*grouped.values())
-                   if not i.get('item_container')]
-    return items, annotations, item_annotations

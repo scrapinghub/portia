@@ -183,9 +183,10 @@ def port_variants(variant_annotations, sel):
             del annotation['variant']
         annotations.extend(first)
         annotations.append(_create_container(container, container_id,
-                                             field='variants'))
+                                             field='variants', selector=sel))
         annotations.append(_create_container(repeated_container, container_id,
-                                             repeated=True, siblings=siblings))
+                                             repeated=True, siblings=siblings,
+                                             selector=sel))
     return variant_annotations
 
 
@@ -244,10 +245,10 @@ def _get_highest(annotations, upto, sel):
 
 
 def _create_container(element, container_id, repeated=False, siblings=0,
-                      field=None):
+                      field=None, selector=None):
     data = {
         'id': '%s%s' % (container_id, '' if repeated else '#parent'),
-        'accept_selectors': [find_css_selector(element)],
+        'accept_selectors': [find_css_selector(element, selector)],
         'reject_selectors': [],
         'item_container': True,
         'repeated': repeated,
@@ -379,7 +380,7 @@ def find_generated_annotation(elem):
         else:
             node = previous.getnext()
         while node:
-            nodes.push(node)
+            nodes.append(node)
             node = node.getnext()
             if node is None or node.tag.lower() == 'ins':
                 break
