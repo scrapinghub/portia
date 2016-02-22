@@ -24,9 +24,10 @@ def list_annotations(manager, spider_id, sample_id, attributes=None):
 def get_annotation(manager, spider_id, sample_id, annotation_id,
                    attributes=None):
     aid, _id = _split_annotation_id(annotation_id)
-    anno, _ = _get_annotation(manager, spider_id, sample_id, aid)
+    anno, _ = _get_annotation(manager, spider_id, sample_id, annotation_id)
     split_annotations = _split_annotations([anno])
-    anno = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
+    print(split_annotations)
+    anno = filter(lambda x: x['id'] == _id, split_annotations)[0]
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
     return AnnotationSchema(context=context).dump(anno).data
 
@@ -69,7 +70,7 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
     # Check if annotation has been moved to new container
     if ('parent_id' in relationships and
             relationships['parent_id'] != annotation.get('container_id')):
-        data['container_id'] = relationships['parent_id'].split('#')[0]
+        data['container_id'] = relationships['parent_id'].split('|')[0]
 
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
@@ -162,7 +163,7 @@ def _split_annotations(annotations):
         if not attributes:
             attributes = _default
         for _id, annotation in attributes.items():
-            a['id'] = '#'.join((a['id'], _id))
+            a['id'] = '|'.join((a['id'], _id))
             a.pop('schema_id', None)
             a['attribute'] = annotation['attribute']
             a['field'] = {'id': annotation['field']}
@@ -173,8 +174,8 @@ def _split_annotations(annotations):
 
 
 def _split_annotation_id(_id):
-    """Split annotations from <annotation_id>#<field_id>."""
-    split_annotation_id = unquote(_id).split('#')
+    """Split annotations from <annotation_id>#<sub_annotation_id>."""
+    split_annotation_id = unquote(_id).split('|')
     annotation_id = split_annotation_id[0]
     try:
         field_id = split_annotation_id[1]
@@ -188,7 +189,8 @@ def _load_relationships(attributes):
     relationships = {}
     for key, value in attributes['relationships'].items():
         relationships[key] = value.get('data') or {}
-        relationships['%s_id' % key] = relationships[key].get('id')
+        if hasattr(relationships[key], 'get'):
+            relationships['%s_id' % key] = relationships[key].get('id')
     return relationships
 
 
@@ -200,7 +202,7 @@ def _create_annotation(sample, attributes):
     _id = gen_id(disallow={i for a in annotations for i in a.get('data', [])})
     annotation = {
         'id': aid,
-        'container_id': relationships['parent_id'].split('#')[0],
+        'container_id': relationships['parent_id'].split('|')[0],
         # TODO: default to most likely attribute
         'data': {
             _id: {
