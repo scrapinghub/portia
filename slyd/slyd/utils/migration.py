@@ -272,7 +272,9 @@ def _add_annotation_data(annotation, sample):
     annotations = sample['plugins']['annotations-plugin']['extracts']
     existing_ids = {i for a in annotations for i in a.get('data', [])}
     annotation['data'] = {}
-    for attribute, field in annotation.get('annotation', {}).items():
+    for attribute, field in annotation.get('annotations', {}).items():
+        if field == '#dummy':
+            continue
         _id = gen_id(disallow=existing_ids)
         annotation['data'][_id] = {
             'attribute': attribute,
