@@ -134,9 +134,11 @@ export default DS.Model.extend({
             return this._savePromise.finally(() => this.save());
         }
 
-        const currentParent = this.get('parent.itemAnnotation');
-        const promise = this._super(...arguments).then(result => {
-            const newParent = this.get('parent.itemAnnotation');
+        const currentParentPromise = this.get('parent.itemAnnotation');
+        const promise = this._super(...arguments).then(result => Ember.RSVP.all([
+            currentParentPromise,
+            this.get('parent.itemAnnotation')
+        ]).then(([currentParent, newParent]) => {
             const promises = [];
             if (currentParent && currentParent !== newParent) {
                 const promise = this.syncRelative(currentParent);
@@ -150,10 +152,9 @@ export default DS.Model.extend({
                     promises.push(promise);
                 }
             }
-            return Ember.RSVP.all(promises).then(() => {
-                return result;
-            });
-        });
+            return Ember.RSVP.all(promises).then(() => result);
+        }));
+
         this._savePromise = promise;
         return promise;
     },
