@@ -29,13 +29,13 @@ def get_sample(manager, spider_id, sample_id, attributes=None):
 
 
 def create_sample(manager, spider_id, attributes):
-    attributes = _check_sample_attributes(attributes, True)
-    schema, schema_id = _create_schema(manager,
-                                       {'name': attributes.get('name')})
-    attributes['scrapes'] = schema_id
-    get_schema_validator('template').validate(attributes)
     spider = manager.resource('spiders', spider_id)
     sample_id = gen_id(disallow=spider['template_names'])
+    attributes = _check_sample_attributes(attributes, True)
+    name = attributes.get('name') or sample_id
+    schema, schema_id = _create_schema(manager, {'name': name})
+    attributes['scrapes'] = schema_id
+    get_schema_validator('template').validate(attributes)
     if 'version' not in attributes:
         attributes['version'] = SLYBOT_VERSION
     manager.savejson(attributes, ['spiders', spider_id, sample_id])

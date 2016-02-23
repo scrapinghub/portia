@@ -204,15 +204,6 @@ export default Ember.Service.extend({
             }
         }
         const store = this.get('store');
-        const schema = item.get('schema');
-        const field = store.createRecord('field', {
-            name: `field${schema.get('fields.length') + 1}`,
-            type: 'text',
-            schema
-        });
-        if (element && element.tagName.toLowerCase() === 'img') {
-            field.set('type', 'image');
-        }
         let accept = element ? [new ElementPath(findCssSelector(element)).uniquePathSelector] : [];
         const annotation = store.createRecord('annotation', {
             parent: item,
@@ -226,21 +217,18 @@ export default Ember.Service.extend({
                 annotation.set('attribute', attributes[0].attribute);
             }
         }
-        field.save().then(() => {
-            annotation.set('field', field);
-            annotation.save().then(() => {
-                if (redirect) {
-                    annotation.set('new', true);
-                }
-                if (element) {
-                    this.selectAnnotationElement(annotation, element, redirect);
-                } else if (redirect) {
-                    this.selectAnnotation(annotation);
-                }
-                Ember.run.next(this, () =>
-                    this.updateContainers(annotation.get('parent').get('itemAnnotation'))
-                );
-            });
+        annotation.save().then(() => {
+            if (redirect) {
+                annotation.set('new', true);
+            }
+            if (element) {
+                this.selectAnnotationElement(annotation, element, redirect);
+            } else if (redirect) {
+                this.selectAnnotation(annotation);
+            }
+            Ember.run.next(this, () =>
+                this.updateContainers(annotation.get('parent').get('itemAnnotation'))
+            );
         });
         return annotation;
     },

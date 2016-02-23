@@ -7,7 +7,6 @@ export default DS.Model.extend({
         async: false
     }),
     field: DS.belongsTo({
-        async: false
     }),
     extractors: DS.hasMany(),
 

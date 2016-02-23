@@ -282,7 +282,7 @@ def _add_annotation_data(annotation, sample):
             'attribute': attribute,
             'field': field,
             'required': field in annotation.get('required', []),
-            'extractor': sample.get('extractors', {}).get(field, [])
+            'extractors': sample.get('extractors', {}).get(field, [])
         }
     return annotation
 

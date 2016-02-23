@@ -20,7 +20,7 @@ def list_fields(manager, schema_id, attributes=None):
 def get_field(manager, schema_id, field_id, attributes=None):
     items = _read_schemas(manager)
     if schema_id not in items:
-        raise NotFound('No item with id "%s" found' % schema_id)
+        raise NotFound('No schema with id "%s" found' % schema_id)
     item = items[schema_id]
     field = item['fields'][field_id]
     field['id'] = field_id
@@ -35,7 +35,8 @@ def create_field(manager, schema_id, attributes):
               for f in schema.get('fields', [])}
     schema = schemas[schema_id]
     field_id = gen_id(disallow=fields)
-    attributes['name'] = attributes.pop('name', field_id)
+    default_field_name = 'field%s' % (len(schema['fields']) + 1)
+    attributes['name'] = attributes.pop('name', default_field_name)
     get_schema_validator('field').validate(attributes)
     schema['fields'][field_id] = attributes
     manager.savejson(schemas, ['items'])

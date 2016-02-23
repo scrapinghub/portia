@@ -3,13 +3,12 @@ from collections import namedtuple
 
 import slybot
 import slybot.plugins.scrapely_annotations.extraction as extraction
-import slybot.plugins.scrapely_annotations.builder as builder
 
 from slybot.validation.schema import get_schema_validator
 
 from .models import (SchemaSchema, FieldSchema, ItemSchema, AnnotationSchema,
                      ItemAnnotationSchema)
-from ..utils.projects import gen_id, add_plugin_data, ctx
+from ..utils.projects import gen_id, ctx
 from ..utils.migration import port_sample, load_annotations
 
 SLYBOT_VERSION = slybot.__version__
@@ -35,9 +34,6 @@ def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
         return sample
     annotations = load_annotations(sample.get('annotated_body', u''))
     sample['plugins'] = annotations
-    if annotations['annotations-plugin']['extracts']:
-        add_plugin_data(sample, [builder.Annotations()])
-    sample = port_sample(sample)
     _, sample = _create_default_item(manager, sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     return sample

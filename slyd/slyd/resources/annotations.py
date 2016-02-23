@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from urllib import unquote
 
 from .models import AnnotationSchema
+from .fields import create_field
 from .utils import (_load_sample, extraction, Extractor, Annotation,
                     _split_annotations)
 from ..errors import NotFound
@@ -28,12 +29,16 @@ def get_annotation(manager, spider_id, sample_id, annotation_id,
 
 def create_annotation(manager, spider_id, sample_id, attributes):
     sample = _load_sample(manager, spider_id, sample_id)
-    attributes = _create_annotation(sample, attributes)
+    annotation = _create_annotation(sample, attributes)
+    field = _create_field_for_annotation(manager, annotation, sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    sample = manager.resource('spiders', spider_id, sample_id)
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
-    return AnnotationSchema(context=context).dump(
-        _split_annotations([attributes])[0]).data
+    annotation = AnnotationSchema(context=context).dump(
+        _split_annotations([annotation])[0]).data
+    if field:
+        field['data']['relationships']['schema']['data']['type'] = 'schemas'
+        annotation['included'] = [field['data']]
+    return annotation
 
 
 def update_annotation(manager, spider_id, sample_id, annotation_id,
@@ -169,3 +174,22 @@ def _create_annotation(sample, attributes):
     }
     annotations.append(annotation)
     return annotation
+
+
+def _create_field_for_annotation(manager, annotation, sample):
+    field, parent, container_id = None, None, annotation['container_id']
+    for a in sample['plugins']['annotations-plugin']['extracts']:
+        if a['id'].startswith(container_id):
+            if not parent:
+                parent = a
+            if len(a['id']) > len(parent['id']):
+                parent = a
+    if parent:
+        field = create_field(manager, parent['schema_id'],
+                             {'data': {'attributes': {'type': 'text'},
+                              'type': 'fields'}})
+        field_id = field['data']['id']
+        for anno in annotation['data'].values():
+            if anno['field'] is None:
+                anno['field'] = field_id
+    return field['data']
