@@ -171,10 +171,10 @@ export default Ember.Service.extend({
         return item;
     },
 
-    addItemAnnotation(item, redirect = false) {
+    addItemAnnotation(item /*, redirect = false */) {
         const store = this.get('store');
         const project = item.get('schema.project');
-        const sample =  item.get('sample')
+        const sample =  item.get('sample');
         const schema = store.createRecord('schema', {
             name: `schema${project.get('schemas.length') + 1}`,
             project
@@ -213,9 +213,10 @@ export default Ember.Service.extend({
         if (element && element.tagName.toLowerCase() === 'img') {
             field.set('type', 'image');
         }
+        let accept = element ? [new ElementPath(findCssSelector(element)).uniquePathSelector] : [];
         const annotation = store.createRecord('annotation', {
             parent: item,
-            acceptSelectors: element ? [new ElementPath(findCssSelector(element)).uniquePathSelector] : []
+            acceptSelectors: accept
         });
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
@@ -378,12 +379,21 @@ export default Ember.Service.extend({
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider', [], {}, true);
         }
-        this.get('store').unloadAll('item');
-        this.get('store').unloadAll('item-annotation');
-        this.get('store').unloadAll('annotation');
+        for (let item of sample.get('items.content').currentState) {
+            let itemAnnotation = item.record.get('itemAnnotation.content');
+            let parent = item.record.get('parent.content');
+            if (parent) {
+                parent.unloadRecord();
+            }
+            for (let annotation of item.record.get('annotations.content').currentState) {
+                annotation.record.unloadRecord();
+            }
+            itemAnnotation.unloadRecord();
+            item.unloadRecord();
+        }
         sample.destroyRecord().then(() => {
             this.deleteAutoCreatedSchema(sample);
-        })
+        });
     },
 
     removeItem(item) {
