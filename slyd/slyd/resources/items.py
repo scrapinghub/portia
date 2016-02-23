@@ -62,6 +62,7 @@ def create_item(manager, spider_id, sample_id, attributes):
     annotation = {
         'id': aid,
         'accept_selectors': ['body'],
+        'selector': 'body',
         'field': attributes.get('field'),
         'annotations': {'#portia-content': '#dummy'},
         'required': [],

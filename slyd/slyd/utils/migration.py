@@ -246,10 +246,12 @@ def _get_highest(annotations, upto, sel):
 
 def _create_container(element, container_id, repeated=False, siblings=0,
                       field=None, selector=None):
+    s = find_css_selector(element, selector)
     data = {
         'id': '%s%s' % (container_id, '' if repeated else '#parent'),
-        'accept_selectors': [find_css_selector(element, selector)],
+        'accept_selectors': [s],
         'reject_selectors': [],
+        'selector': s,
         'item_container': True,
         'repeated': repeated,
         'required': [],
@@ -325,6 +327,7 @@ def port_standard(standard_annotations, sel, sample):
         if not selector:
             continue
         annotation['accept_selectors'] = [selector]
+        annotation['selector'] = selector
         annotation['reject_selectors'] = []
         annotation = _add_annotation_data(annotation, sample)
         new_annotations.append(annotation)

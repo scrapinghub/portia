@@ -163,6 +163,7 @@ def _create_annotation(sample, attributes):
         },
         'accept_selectors': attributes.get('accept_selectors', []),
         'reject_selectors': attributes.get('reject_selectors', []),
+        'selector': attributes.get('selector'),
         'required': [],
         'tagid': attributes.get('tagid', '1')
     }

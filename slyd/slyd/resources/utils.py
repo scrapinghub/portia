@@ -3,6 +3,7 @@ from collections import namedtuple
 
 import slybot
 import slybot.plugins.scrapely_annotations.extraction as extraction
+import slybot.plugins.scrapely_annotations.builder as builder
 
 from slybot.validation.schema import get_schema_validator
 
@@ -35,7 +36,7 @@ def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
     annotations = load_annotations(sample.get('annotated_body', u''))
     sample['plugins'] = annotations
     if annotations['annotations-plugin']['extracts']:
-        add_plugin_data(sample, manager.plugins)
+        add_plugin_data(sample, [builder.Annotations()])
     sample = port_sample(sample)
     _, sample = _create_default_item(manager, sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
@@ -140,6 +141,7 @@ def _recreate_parent_annotation(child, exists=True):
         'id': _id,
         'accept_selectors': ['body'],
         'reject_selectors': [],
+        'selector': 'body',
         'required': [],
         'annotations': {'#portia-content': '#dummy'},
         'text-content': '#portia-content',

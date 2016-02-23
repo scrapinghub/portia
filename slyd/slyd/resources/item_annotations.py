@@ -17,7 +17,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
         raise KeyError('No annotation with id "%s" found' % annotation_id)
     relationships = attributes.get('data', {}).get('relationships', {})
     attributes = attributes.get('data', {}).get('attributes', {})
-    container['accept_selectors'] = attributes.get('accept_selectors')
+    container['accept_selectors'] = attributes.get('accept_selectors', [])
     repeated_container_selectors = [
         s for s in attributes.pop('repeated_accept_selectors', []) if s
     ]
@@ -58,6 +58,8 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
         repeated_container['container_id'] = container['id']
         repeated_container['siblings'] = attributes.pop('siblings', 0)
         repeated_container['accept_selectors'] = repeated_container_selectors
+        if repeated_container_selectors:
+            repeated_container['selector'] = repeated_container_selectors[0]
     else:
         repeated_container_id = container['id'].strip('#parent')
         parent_container_id = '{}#parent'.format(repeated_container_id)
@@ -83,6 +85,8 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
         container['field'] = field
     container['item_container'] = True
     container['container_id'] = parent_container_id
+    if container['accept_selectors']:
+        container['selector'] = container['accept_selectors'][0]
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
                   item_id=annotation_id.split('#')[0])

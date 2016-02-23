@@ -209,6 +209,7 @@ class BaseAnnotationSchema(SlydSchema):
     reject_selectors = fields.List(fields.Str(), default=[])
     tagid = fields.Integer(required=True)
     text_content = fields.Str()
+    selector = fields.Str()
 
     sample = fields.Relationship(
         related_url='/api/projects/{project_id}/spiders/{spider_id}/samples/'
