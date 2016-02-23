@@ -63,7 +63,7 @@ def _get_schema(manager, sample):
     return None, schemas
 
 
-def _create_schema(manager, schema=None, schemas=None):
+def _create_schema(manager, schema=None, schemas=None, autoincrement=False):
     if schemas is None:
         schemas = _read_schemas(manager)
     if schema is None:
@@ -74,6 +74,12 @@ def _create_schema(manager, schema=None, schemas=None):
         'fields': {}
     }
     new_schema.update(schema)
+    if autoincrement:
+        names = {s['name'] for s in schemas.values() if s.get('name')}
+        counter, name = 1, new_schema['name']
+        while new_schema['name'] in names:
+            new_schema['name'] = '%s%s' % (name, counter)
+            counter += 1
     get_schema_validator('item').validate(new_schema)
     schemas[schema_id] = new_schema
     if manager:

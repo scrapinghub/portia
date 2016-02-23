@@ -33,7 +33,8 @@ def create_sample(manager, spider_id, attributes):
     sample_id = gen_id(disallow=spider['template_names'])
     attributes = _check_sample_attributes(attributes, True)
     name = attributes.get('name') or sample_id
-    schema, schema_id = _create_schema(manager, {'name': name})
+    schema, schema_id = _create_schema(manager, {'name': name},
+                                       autoincrement=True)
     attributes['scrapes'] = schema_id
     get_schema_validator('template').validate(attributes)
     if 'version' not in attributes:

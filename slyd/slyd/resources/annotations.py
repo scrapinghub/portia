@@ -36,7 +36,6 @@ def create_annotation(manager, spider_id, sample_id, attributes):
     annotation = AnnotationSchema(context=context).dump(
         _split_annotations([annotation])[0]).data
     if field:
-        field['data']['relationships']['schema']['data']['type'] = 'schemas'
         annotation['included'] = [field['data']]
     return annotation
 
