@@ -6,7 +6,8 @@ from slybot.validation.schema import get_schema_validator
 from .models import SampleSchema, HtmlSchema
 from .items import create_item
 from .utils import (_load_sample, _create_schema, _get_formatted_schema,
-                    _process_annotations, _add_items_and_annotations)
+                    _process_annotations, _add_items_and_annotations,
+                    SLYBOT_VERSION)
 from ..errors import BadRequest
 from ..utils.projects import ctx, gen_id
 
@@ -35,6 +36,8 @@ def create_sample(manager, spider_id, attributes):
     get_schema_validator('template').validate(attributes)
     spider = manager.resource('spiders', spider_id)
     sample_id = gen_id(disallow=spider['template_names'])
+    if 'version' not in attributes:
+        attributes['version'] = SLYBOT_VERSION
     manager.savejson(attributes, ['spiders', spider_id, sample_id])
     attributes = _load_sample(manager, spider_id, sample_id)
     manager.savejson(attributes, ['spiders', spider_id, sample_id])

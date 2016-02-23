@@ -19,11 +19,14 @@ def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
     if not sample.get('name'):
         sample['name'] = sample_id
     sample['id'] = sample_id
+    if 'version' not in sample or sample['version'] < '0.13.0':
+        sample = port_sample(sample)
+        sample['version'] = SLYBOT_VERSION
+        manager.savejson(sample, ['spiders', spider_id, sample_id])
     if 'plugins' in sample:
         annotations = sample['plugins']['annotations-plugin']['extracts']
         if any(a.get('item_container') for a in annotations):
             return sample
-        sample = port_sample(sample)
         sample['version'] = SLYBOT_VERSION
         if create_missing_item:
             _, sample = _create_default_item(manager, sample)
@@ -35,8 +38,6 @@ def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
         add_plugin_data(sample, manager.plugins)
     sample = port_sample(sample)
     _, sample = _create_default_item(manager, sample)
-    if 'version' not in sample:
-        sample['version'] = SLYBOT_VERSION
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     return sample
 

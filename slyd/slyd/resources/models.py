@@ -240,8 +240,8 @@ class BaseAnnotationSchema(SlydSchema):
             parent_id = item.get('container_id', self.parent_id) or ''
         if (item['id'].split('#')[0] == parent_id or
                 parent_id.split('#')[0] == item['id']):
-            del item['parent']
-            del item['parent_id']
+            item.pop('parent', None)
+            item.pop('parent_id', None)
             return
         if parent_id:
             item['parent'] = {'id': parent_id}

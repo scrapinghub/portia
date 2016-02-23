@@ -59,9 +59,9 @@ def extract_items(data, socket):
         sample_names = [_update_sample(data, socket)]
         spider = {k: sample_names if k == 'templates' else v
                   for k, v in socket.spiderspec.spider.items()}
+        items, extractors = _load_items_and_extractors(data, socket)
         extraction = BotAnnotations()
-        extraction.setup_bot(Settings(), spider, socket.spiderspec.items,
-                             socket.spiderspec.extractors)
+        extraction.setup_bot(Settings(), spider, items, extractors)
         socket.spider.plugins['Annotations'] = extraction
     items, links = extract_data(url, html, socket.spider, sample_names)
     if not items:
@@ -79,6 +79,10 @@ def _update_sample(data, socket, sample=None, save=False):
         sample = spec.resource('spiders', data['spider'], data['sample'])
     # TODO: Handle js enabled
     try:
+        sample['original_body'] = socket.tab.html()
+    except (TypeError, ValueError):
+        pass
+    try:
         Annotations().save_extraction_data(
             sample['plugins']['annotations-plugin'], sample,
             options={'body': 'original_body'})
@@ -87,6 +91,20 @@ def _update_sample(data, socket, sample=None, save=False):
     if save:
         spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample
+
+
+def _load_items_and_extractors(data, socket):
+    spec = socket.spec_manager.project_spec(data['project'],
+                                            socket.user.auth)
+    try:
+        items = spec.resource('items')
+    except TypeError:
+        items = {}
+    try:
+        extractors = spec.resource('extractors')
+    except TypeError:
+        extractors = {}
+    return items, extractors
 
 
 def _decode(html, default=None):
