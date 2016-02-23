@@ -9,12 +9,13 @@ Homepage: https://github.com/scrapinghub/portia
 Package: python-slybot
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends},
- scrapy-0.18 | scrapy-0.20 | scrapy-0.22 | scrapy-0.24 | scrapy-0.25,
+ scrapy (>= 1.0.3.post6),
  python-scrapely,
  python-loginform,
  python-lxml,
  python-dateparser,
- python-scrapyjs
+ python-scrapyjs,
+ python-page-finder
 Description: A web crawler implemented in Python.
  Slybot is a Python web crawler for doing web scraping. It's implemented on top
  of the Scrapy web crawling framework and the Scrapely extraction library.
