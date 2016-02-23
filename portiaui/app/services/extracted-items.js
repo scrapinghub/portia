@@ -32,7 +32,6 @@ export default Ember.Service.extend({
             200, false);
     },
     _setItems: function(data) {
-        //console.log(JSON.stringify(data.items));
         this.set('items', data.items);
     }
 });

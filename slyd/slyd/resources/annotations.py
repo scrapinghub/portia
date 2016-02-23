@@ -191,4 +191,5 @@ def _create_field_for_annotation(manager, annotation, sample):
         for anno in annotation['data'].values():
             if anno['field'] is None:
                 anno['field'] = field_id
-    return field['data']
+    if field:
+        return field['data']

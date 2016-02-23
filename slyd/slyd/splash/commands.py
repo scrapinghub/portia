@@ -68,6 +68,7 @@ def extract_items(data, socket):
         items, links = extract_data(url, socket.tab.network_manager._raw_html,
                                     socket.spider, sample_names)
     socket.spider.plugins['Annotations'] = annotations
+    items = _process_items(items)
     return {'links': links, 'items': items}
 
 
@@ -432,3 +433,18 @@ def rename_project_data(data, socket):
             if socket.spiderspec:
                 socket.open_spider(meta)
     return {'id': meta.get('id')}
+
+
+def _process_items(items):
+    for i, item in enumerate(items):
+        if isinstance(item, dict):
+            new = {}
+            for key, value in item.items():
+                if key.startswith('_'):
+                    continue
+                new[key] = _process_items(value) if isinstance(value, list) \
+                    else value
+            items[i] = new
+        elif isinstance(item, list):
+            items[i] = _process_items(value)
+    return items
