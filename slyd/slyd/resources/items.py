@@ -138,8 +138,6 @@ def _item(sample, schema, item_annotation, annotations=None, context=None):
     container_id = item_annotation.get('container_id')
     if container_id and item_annotation['id'].split('#')[0] != container_id:
         item_annotation['parent'] = {'id': container_id}
-    else:
-        item_annotation['parent'] = {'id': None}
     item = ItemSchema(context=context).dump({
         'id': item_id,
         'sample': sample,

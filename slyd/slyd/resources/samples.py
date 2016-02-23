@@ -41,12 +41,9 @@ def create_sample(manager, spider_id, attributes):
     spider['template_names'].append(sample_id)
     manager.savejson(spider, ['spiders', spider_id])
     attributes['id'] = sample_id
-    context = ctx(manager, spider_id=spider_id)
-    sample = SampleSchema(context=context).dump(attributes).data
     schema = _get_formatted_schema(manager, schema_id, schema, True)
-    rel = {'data': {'relationships': {'schema': {'id': schema_id}}}}
-    item = create_item(manager, spider_id, sample_id, rel)
-    sample['included'] = [schema['data']] + item['included'] + [item['data']]
+    sample = _process_sample(attributes, manager, spider_id)
+    sample['included'].append(schema['data'])
     return sample
 
 

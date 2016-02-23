@@ -328,6 +328,9 @@ export default Ember.Service.extend({
             const routing = this.get('routing');
             routing.transitionTo('projects.project', [], {}, true);
         }
+        for (let field of schema.get('fields.content').currentState) {
+            field.unloadRecord();
+        }
         schema.destroyRecord();
     },
 
@@ -371,12 +374,16 @@ export default Ember.Service.extend({
 
     removeSample(sample) {
         const currentSample = this.get('uiState.models.sample');
-        this.deleteAutoCreatedSchema(sample);
         if (sample === currentSample) {
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider', [], {}, true);
         }
-        sample.destroyRecord();
+        this.get('store').unloadAll('item');
+        this.get('store').unloadAll('item-annotation');
+        this.get('store').unloadAll('annotation');
+        sample.destroyRecord().then(() => {
+            this.deleteAutoCreatedSchema(sample);
+        })
     },
 
     removeItem(item) {
