@@ -1,0 +1,17 @@
+{{#tree-list-item hasChildren=urls.length as |options|}}
+    {{#if (eq options.section "item")}}
+        {{#list-item-text class="title"}}
+            {{yield}}
+        {{/list-item-text}}
+        {{list-item-icon icon='add' action=(action 'addUrl')}}
+    {{else if (eq options.section "subtrees")}}
+        {{#each urls key="@index" as |url|}}
+            {{#if (or (not newUrl) (not-eq urlValue url))}}
+                {{project-structure-spider-url url=url saveUrl='saveUrl'}}
+            {{/if}}
+        {{/each}}
+        {{#if newUrl}}
+            {{project-structure-spider-url url=urlValue urlAdded=(mut newUrl) saveUrl='saveUrl'}}
+        {{/if}}
+    {{/if}}
+{{/tree-list-item}}

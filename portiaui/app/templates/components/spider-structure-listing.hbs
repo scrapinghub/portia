@@ -1,21 +1,7 @@
 {{#tree-list}}
-    {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
-        {{#if (eq options.section "item")}}
-            {{#list-item-text class="title"}}
-                Start pages
-            {{/list-item-text}}
-            {{list-item-icon icon='add' action=(action 'addStartUrl')}}
-        {{else if (eq options.section "subtrees")}}
-            {{#each spider.startUrls key="@index" as |url|}}
-                {{#if (or (not newUrl) (not-eq urlValue url))}}
-                    {{project-structure-spider-url spider=spider url=url}}
-                {{/if}}
-            {{/each}}
-            {{#if newUrl}}
-                {{project-structure-spider-url spider=spider url=urlValue urlAdded=(mut newUrl)}}
-            {{/if}}
-        {{/if}}
-    {{/tree-list-item}}
+    {{#url-list-editor urls=spider.startUrls saveUrl='saveStartUrl'}}
+        Start Pages
+    {{/url-list-editor}}
 
     {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
         {{#if (eq options.section "item")}}

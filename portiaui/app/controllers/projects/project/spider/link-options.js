@@ -140,7 +140,6 @@ export default Ember.Controller.extend({
     'selectedLink', 'allLinks', 'model.startUrls',
     'model.nofollowExamples', function(){
         if(this.get('model.linksToFollow') === 'examples') {
-            const start = new Date();
             const hover = this.get('selectedLink');
 
             const startUrls = this.get('model.startUrls');
@@ -162,8 +161,6 @@ export default Ember.Controller.extend({
                 }
             }
             const followDomainsAfter = hostnames(startUrlsAfter);
-            //console.log({hoveredUrl: hover && hover.href, followDomains, startUrls, nofollowUrls,
-            //            followDomainsAfter,    startUrlsAfter, nofollowUrlsAfter});
 
             const res = this.get('allLinks').map(l => ({
                 guid: Ember.guidFor(l),
@@ -171,7 +168,6 @@ export default Ember.Controller.extend({
                 color: linkColor(l, followDomains, startUrls, nofollowUrls,
                                     followDomainsAfter, startUrlsAfter, nofollowUrlsAfter),
             }));
-            console.log('updateLinks took', new Date() - start);
             return res;
         } else {
             return this.get('spiderController.linkOverlayElements');
