@@ -350,7 +350,7 @@ export default Ember.Service.extend({
 
     deleteAutoCreatedSchema(sample) {
         if(sample.get('_autoCreatedSchema')) {
-            this.get('store').findRecord('schema', sample.get('_autoCreatedSchema'))
+            this.get('store').findRecord('schema', sample.get('_autoCreatedSchema'), {reload: true})
                 .then(s => this.removeSchema(s));
             sample.set('_autoCreatedSchema', null);
         }
