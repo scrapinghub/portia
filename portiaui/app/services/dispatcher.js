@@ -212,6 +212,7 @@ export default Ember.Service.extend({
                 annotation.set('attribute', attributes[0].attribute);
             }
         }
+        // FIXME: annotation.selector is null at this point
         annotation.save().then(() => {
             if (redirect) {
                 annotation.set('new', true);
