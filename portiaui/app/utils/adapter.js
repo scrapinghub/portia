@@ -24,7 +24,8 @@ var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
         if (relationships[model] && relationships[model].inverseRecord) {
             return relationships[model].inverseRecord.id;
         }
-        if (relationships[model] && relationships[model].record) {
+        if (relationships[model] && relationships[model].record &&
+            relationships[model].record.modelName === model) {
             return relationships[model].record.id;
         }
         for (let key of Object.keys(relationships)) {

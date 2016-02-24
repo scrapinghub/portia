@@ -10,9 +10,11 @@ export function computedCanAddSpider() {
 }
 
 export function computedCanAddSample(spiderPropertyName) {
-    return Ember.computed('browser.url', `${spiderPropertyName}.samples.@each.url`, function() {
+    return Ember.computed('browser.url', `${spiderPropertyName}.samples.@each.url`,
+                          'browser.loading', function() {
         const url = this.get('browser.url');
-        return url && !this.get(`${spiderPropertyName}.samples`).isAny('url', url);
+        return (url && !this.get('browser.loading') &&
+                !this.get(`${spiderPropertyName}.samples`).isAny('url', url));
     });
 }
 
@@ -348,7 +350,7 @@ export default Ember.Service.extend({
 
     deleteAutoCreatedSchema(sample) {
         if(sample.get('_autoCreatedSchema')) {
-            this.get('store').findRecord('schema', sample.get('_autoCreatedSchema'))
+            this.get('store').findRecord('schema', sample.get('_autoCreatedSchema'), {reload: true})
                 .then(s => this.removeSchema(s));
             sample.set('_autoCreatedSchema', null);
         }
