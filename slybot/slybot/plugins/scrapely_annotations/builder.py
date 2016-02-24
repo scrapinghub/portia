@@ -250,7 +250,7 @@ def _filter_annotations(annotations):
     selector, tagid = [], []
     for ann in annotations:
         if ann:
-            if ann.get('accept_selectors'):
+            if ann.get('selector') or ann.get('accept_selectors'):
                 selector.append(ann)
             elif ann.get('tagid') and (ann.get('annotations') or
                                        ann.get('ignore')):
@@ -262,17 +262,22 @@ def apply_selector_annotations(annotations, target_page):
     page = Selector(text=target_page)
     converted_annotations = []
     for annotation in annotations:
-        accepted_elements = set(
-            chain(*[[elem._root for elem in page.css(sel)]
-                    for sel in annotation['accept_selectors'] if sel])
-        )
-        rejected_elements = set(
-            chain(*[[elem._root for elem in page.css(sel)]
-                    for sel in annotation.get('reject_selectors', []) if sel])
-        )
-        elements = accepted_elements - rejected_elements
-        if elements:
-            tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elements]
+        if annotation.get('selector'):
+            accepted_elements = set(
+                chain(*[[elem._root for elem in page.css(sel)]
+                        for sel in annotation.get('accept_selectors', [])
+                        if sel])
+            )
+            rejected_elements = set(
+                chain(*[[elem._root for elem in page.css(sel)]
+                        for sel in annotation.get('reject_selectors', [])
+                        if sel])
+            )
+            elems = accepted_elements - rejected_elements
+        else:
+            elems = [elem._root for elem in page.css(annotation['selector'])]
+        if elems:
+            tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
             tagid = min(tagids)
             if tagid is not None:
                 annotation['tagid'] = tagid

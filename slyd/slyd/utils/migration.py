@@ -51,7 +51,7 @@ def port_sample(sample):
     for a in annotations:
         if a.get('generated'):
             generated_annos.append(a)
-        elif a.get('variant', 0) > 0:
+        elif a.get('variants', 0) > 0:
             variant_annos.append(a)
         else:
             standard_annos.append(a)
