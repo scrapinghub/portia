@@ -5,7 +5,7 @@
         {{/group.tab}}
     {{else if (eq group.section "panels")}}
         {{#group.panel class="inspector container-fluid" toolId="inspector"}}
-            {{inspector-panel sample=model}}
+            {{inspector-panel sample=model annotationColors=annotationColors}}
         {{/group.panel}}
     {{/if}}
 {{/tool-group}}

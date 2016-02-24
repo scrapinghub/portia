@@ -20,7 +20,7 @@ def list_annotations(manager, spider_id, sample_id, attributes=None):
 def get_annotation(manager, spider_id, sample_id, annotation_id,
                    attributes=None):
     aid, _id = _split_annotation_id(annotation_id)
-    anno, _ = _get_annotation(manager, spider_id, sample_id, annotation_id)
+    anno, _ = _get_annotation(manager, spider_id, sample_id, aid)
     split_annotations = _split_annotations([anno])
     anno = filter(lambda x: x['id'] == _id, split_annotations)[0]
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
@@ -36,7 +36,7 @@ def create_annotation(manager, spider_id, sample_id, attributes):
     annotation = AnnotationSchema(context=context).dump(
         _split_annotations([annotation])[0]).data
     if field:
-        annotation['included'] = [field['data']]
+        annotation['included'] = [field]
     return annotation
 
 
@@ -69,6 +69,12 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
     if ('parent_id' in relationships and
             relationships['parent_id'] != annotation.get('container_id')):
         data['container_id'] = relationships['parent_id'].split('|')[0]
+
+    annotation['accept_selectors'] = data.get('accept_selectors',
+                                              annotation['accept_selectors'])
+    annotation['reject_selectors'] = data.get('reject_selectors',
+                                              annotation['reject_selectors'])
+    annotation['selector'] = data.get('selector', annotation['selector'])
 
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)

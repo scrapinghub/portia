@@ -7,6 +7,7 @@ export default Ember.Component.extend({
     tagName: '',
 
     annotation: null,
+    invalidSelector: false,
 
     selectionModeOptions: [
         {
@@ -44,6 +45,54 @@ export default Ember.Component.extend({
         set(key, value) {
             this.set('annotation.selectionMode', value.value);
             return value;
+        }
+    }),
+    cssSelector: Ember.computed({
+        get() {
+            return this.get('annotation.selector');
+        },
+
+        set(key, value) {
+            if (this.get('invalidSelector')) {
+                return this.get('cssSelector');
+            } else {
+                const annotation = this.get('annotation');
+                annotation.setSelector(value);
+                return value;
+            }
+        }
+    }),
+    editedCssSelector: Ember.computed({
+        get() {
+            return null;
+        },
+
+        set(key, value) {
+            const annotation = this.get('annotation');
+            if (value === null) {
+                this.set('invalidSelector', false);
+                annotation.setSelector(this.get('cssSelector'));
+            } else {
+                let invalidSelector = false;
+
+                try {
+                    document.querySelectorAll(value);
+                } catch (e) {
+                    invalidSelector = true;
+                }
+
+                this.set('invalidSelector', invalidSelector);
+                if (!invalidSelector) {
+                    annotation.setSelector(value);
+                }
+            }
+            return value;
+        }
+    }),
+
+    updateCssSelector: Ember.observer('annotation.selector', function() {
+        if (this.get('editedCssSelector') === null) {
+            this.set('cssSelector', this.get('annotation.selector'));
         }
     }),
 

@@ -21,5 +21,22 @@ export default Annotation.extend({
     rejectSelectors: DS.attr('array'),
 
     orderedAnnotations: Ember.computed.readOnly('item.orderedAnnotations'),
-    orderedChildren: Ember.computed.readOnly('item.orderedChildren')
+    orderedChildren: Ember.computed.readOnly('item.orderedChildren'),
+
+    save() {
+        return this._super(...arguments).then(result => {
+            return this.get('item.annotations').then(children => {
+                const promises = [];
+                children.forEach(child => {
+                    const promise = this.syncRelative(child);
+                    if (promise) {
+                        promises.push(promise);
+                    }
+                });
+                return Ember.RSVP.all(promises).then(() => {
+                    return result;
+                });
+            });
+        });
+    }
 });

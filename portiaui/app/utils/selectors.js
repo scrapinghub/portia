@@ -1,331 +1,573 @@
-import Ember from 'ember';
+import Ember from "ember";
 
-// findCssSelector and positionInNodeList functions from:
-// http://lxr.mozilla.org/mozilla-release/source/toolkit/devtools/styleinspector/css-logic.js
-/**
- * Find the position of [element] in [nodeList].
- * @returns an index of the match, or -1 if there is no match
- */
-var positionInNodeList = function(element, nodeList) {
-  for (var i = 0; i < nodeList.length; i++) {
-    if (element === nodeList[i]) {
-      return i;
+const IMPLICIT_TAGS = new Set(['tbody']);
+
+export function elementPath(element) {
+    const elements = [element];
+    while (element.parentElement &&
+            !element.parentElement.isEqualNode(document.documentElement)) {
+        element = element.parentElement;
+        elements.unshift(element);
     }
-  }
-  return -1;
+    return elements;
 }
 
-/**
- * Find a unique CSS selector for a given element
- * @returns a string such that ele.ownerDocument.querySelector(reply) === ele
- * and ele.ownerDocument.querySelectorAll(reply).length === 1
- */
-export function findCssSelector(ele, depth = 0) {
-  var document = ele.ownerDocument;
-  if (!document || !document.contains(ele)) {
-    throw new Error('findCssSelector received element not inside document');
-  }
-
-  // document.querySelectorAll("#id") returns multiple if elements share an ID
-  if (ele.id && document.querySelectorAll('#' + CSS.escape(ele.id)).length === 1 && depth > 1) {
-    return '#' + CSS.escape(ele.id);
-  }
-
-  // Inherently unique by tag name
-  var tagName = ele.localName;
-  if (tagName === 'html') {
-    return 'html';
-  }
-  if (tagName === 'head') {
-    return 'head';
-  }
-  if (tagName === 'body') {
-    return 'body';
-  }
-
-  // We might be able to find a unique class name
-  var selector, index, matches;
-  if (ele.classList.length > 0) {
-    for (var i = 0; i < ele.classList.length; i++) {
-      // Is this className unique by itself?
-      selector = '.' + CSS.escape(ele.classList.item(i));
-      matches = document.querySelectorAll(selector);
-      if (matches.length === 1) {
-        return selector;
-      }
-      // Maybe it's unique with a tag name?
-      selector = tagName + selector;
-      matches = document.querySelectorAll(selector);
-      if (matches.length === 1) {
-        return selector;
-      }
-      // Maybe it's unique using a tag name and nth-child
-      index = positionInNodeList(ele, ele.parentNode.children) + 1;
-      selector = selector + ':nth-child(' + index + ')';
-      matches = document.querySelectorAll(selector);
-      if (matches.length === 1) {
-        return selector;
-      }
-    }
-  }
-
-  // Not unique enough yet.  As long as it's not a child of the document,
-  // continue recursing up until it is unique enough.
-  if (ele.parentNode !== document) {
-     index = positionInNodeList(ele, ele.parentNode.children) + 1;
-     if (tagName === 'thead' || tagName === 'tbody') {
-         selector = findCssSelector(ele.parentNode, depth + 1);
-     } else {
-         selector = findCssSelector(ele.parentNode, depth + 1) + ' > ' +
-                 tagName + ':nth-child(' + index + ')';
-     }
-   }
-   return selector;
- };
-
-function combineIndices(accept, reject) {
-    if (!reject.length && (!accept.length || accept.length > 1)) {
-        return null;
-    }
-    return accept;
+function positionInParent(element) {
+    return Array.prototype.indexOf.call(element.parentNode.children, element) + 1;
 }
 
-export class ElementPath {
-    constructor(element) {
-        if (!element) {
-            this.paths = [];
-            return;
-        }
+export function pathSelector(element) {
+    const path = elementPath(element);
+    return path.map(pathElement => pathElement.tagName.toLowerCase()).join(' > ');
+}
 
-        if (Array.isArray(element)) {
-            this.paths = [element];
-            return;
+export function uniquePathSelector(element) {
+    const path = elementPath(element);
+    return path.map((pathElement, index) => {
+        const tag = pathElement.tagName.toLowerCase();
+        if (index === 0) {
+            return tag;
         }
+        const parentIndex = positionInParent(pathElement);
+        return `${tag}:nth-child(${parentIndex})`;
+    }).join(' > ');
+}
 
-        if (typeof element === 'string') {
-            this.paths = [element.split(/\s*>\s*/).map(part => {
-                const tagAndClasses = part.split(':')[0].split('.');
-                let tagName, classes, id;
-                if (part[0] === '.' || part[0] === '#') {
-                    tagName = null;
-                    if (part[0] === '#') {
-                        id = tagAndClasses[0];
+export function smartSelector(element) {
+    const generator = BaseSelectorGenerator.create({
+        elements: [element]
+    });
+    const selector = generator.get('selector');
+    generator.destroy();
+    return selector;
+}
+
+export function cssToXpath(selector) {
+    // css-to-xpath on github fails on nth-child(an+b) selectors :(
+    // this is mini version that supports only the css generated by BaseSelectorGenerator
+    // rules from: https://en.wikibooks.org/wiki/XPath/CSS_Equivalents
+    // TODO: support CSS escaped identifiers
+    const alternateSelectors = selector.split(', ');
+    const alternateXPaths = [];
+
+    for (let alternateSelector of alternateSelectors) {
+        const selectorParts = alternateSelector.split(' > ');
+        const xPathParts = [];
+
+        for (let selectorPart of selectorParts) {
+            const selectorSiblingParts = selectorPart.split(' + ');
+            const xPathSiblingParts = [];
+
+            for (let part of selectorSiblingParts) {
+                // cases we need to support
+                if (part === '*') {
+                    xPathSiblingParts.push('*[1]');
+                // id selector
+                } else if (part.startsWith('#')) {
+                    xPathSiblingParts.push(`*[@id="${part.slice(1)}"]`);
+                } else {
+                    let match;
+                    match = part.match(/^([a-z]+)?(?:\.((?:.(?!:nth-child))+.))?(?::nth-child\((\d+)\))?(?::nth-child\((\d*)n\+(\d+)\))?(?::nth-child\(-(\d*)n\+(\d+)\))?$/);  // jshint ignore:line
+                    if (match) {
+                        let conditions = '';
+
+                        // simple :nth-child selectors
+                        if (match[3]) {
+                            conditions += `[${match[3]}]`;
+                        }
+
+                        // complex :nth-child selectors
+                        if (match[5] || match[7]) {
+                            const delta = match[4] === undefined ? match[6] : match[4];
+                            const start = match[5];
+                            const end = match[7];
+                            const modulus = (start === undefined ? end : start) % delta;
+                            let condition = `position() mod ${delta} = ${modulus}`;
+                            if (start && start > delta) {
+                                condition += ` and position() >= ${start}`;
+                            }
+                            if (end) {
+                                condition += ` and position() <= ${end}`;
+                            }
+                            conditions += `[${condition}]`;
+                        }
+
+                        // class selector
+                        if (match[2]) {
+                            conditions += `[contains(concat(" ", @class, " "), " ${match[2]} ")]`;
+                        }
+
+                        xPathSiblingParts.push(`${match[1] || '*'}${conditions}`);
                     }
-                } else {
-                    [tagName, id] = tagAndClasses[0].split('#');
                 }
-                classes = tagAndClasses.slice(1);
-                classes.sort();
-                const match = part.match(/:nth\-child\((\d+)\)/);
+            }
+            xPathParts.push(xPathSiblingParts.join('/following-sibling::'));
+        }
+        alternateXPaths.push('//' + xPathParts.join('/'));
+    }
 
-                return {
-                    tagName,
-                    classes,
-                    id,
-                    acceptedIndices: match ? [match[1]] : [],
-                    rejectedIndices: []
-                };
-            })];
-            return;
+    return alternateXPaths.join(' | ');
+}
+
+export const BaseSelectorGenerator = Ember.Object.extend({
+    parent: null,
+    elements: [],
+    siblings: null,
+
+    paths: Ember.computed.map('elements', elementPath),
+    groupedPaths: Ember.computed('paths', function() {
+        const paths = this.get('paths');
+        return this.groupPaths(paths);
+    }),
+    parentMap: Ember.computed(
+        'parent', 'parent.groupedPaths', 'parent.selectors', 'parent.siblings', function() {
+            if (!this.get('parent')) {
+                return null;
+            }
+
+            const parentGroupedPaths = this.get('parent.groupedPaths') || [];
+            const parentSelectors = this.get('parent.selectors') || [];
+            const parentSiblings = this.get('parent.siblings') || 0;
+
+            const parentMap = new Map();
+            for (let [index, paths] of parentGroupedPaths.entries()) {
+                const pathSelectors = parentSelectors[index];
+                const siblingSelectors = [pathSelectors];
+                for (let i = 0; i < parentSiblings; i++) {
+                    siblingSelectors.push(
+                        siblingSelectors[siblingSelectors.length - 1].map(
+                            selector => `${selector} + *`));
+                }
+                for (let path of paths) {
+                    let element = path[path.length - 1];
+                    parentMap.set(element, pathSelectors);
+                    for (let i = 0; i < parentSiblings; i++) {
+                        element = element.nextElementSibling;
+                        if (!element) {
+                            break;
+                        }
+                        parentMap.set(element, siblingSelectors[i + 1]);
+                    }
+                }
+            }
+
+            return parentMap;
+        }),
+    selectors: Ember.computed('groupedPaths', 'parentMap', function() {
+        const groupedPaths = this.get('groupedPaths');
+        const parentMap = this.get('parentMap');
+        return this.createSelectors(groupedPaths, parentMap);
+    }),
+    selector: Ember.computed('selectors', function() {
+        return this.mergeSelectors(this.get('selectors'));
+    }),
+    xpath: Ember.computed('selector', function() {
+        const selector = this.get('selector');
+        return cssToXpath(selector);
+    }),
+
+    groupPaths(paths) {
+        const groupedPaths = new Map();
+        for (let path of paths) {
+            // group by full path of tags names, and root element
+            const tagPath = [Ember.guidFor(path[0])].concat(path.map(element => element.tagName))
+                                                    .join(' ').toLowerCase();
+            const list = groupedPaths.get(tagPath) || [];
+            groupedPaths.set(tagPath, list);
+            list.push(path);
+        }
+        return Array.from(groupedPaths.values());
+    },
+
+    createSelectors(groupedPaths, parentMap) {
+        return groupedPaths.map(group => this.createGroupSelectors(group, parentMap));
+    },
+
+    createGroupSelectors(group, parentMap, generalize = false) {
+        const root = group && group[0] && group[0][0];
+        let parentIndex = 0;
+        let parentElements = null;
+        let selectors = [root.tagName.toLowerCase()];
+
+        const pathLength = group[0].length;
+        if (parentMap) {
+            for (let i = 1; i < pathLength; i++) {
+                if (parentMap.has(group[0][i])) {
+                    parentIndex = i;
+                }
+            }
         }
 
-        // else DOM element
-        const elements = [element].concat(Ember.$(element).parents().not('html').toArray());
-        this.paths = [elements.reverse().map((element, index) => {
-            const tagName = element.tagName.toLowerCase();
-            let classes = [];
-            const acceptedIndices = [];
-            const rejectedIndices = [];
-            if (index > 0) {
-                classes = Array.from(new Set(element.className.trim().split(/\s+/g)));
-                if (classes.length === 1 && classes[0] === '') {
-                    classes.pop();
-                } else {
-                    classes.sort();
-                }
-                acceptedIndices.push(
-                    Array.prototype.indexOf.call(element.parentNode.children, element) + 1);
-            }
-            return {
-                tagName,
-                classes,
-                acceptedIndices,
-                rejectedIndices
-            };
-        })];
-    }
-
-    static fromAcceptedAndRejected(acceptedSelectors, rejectedSelectors) {
-        if (acceptedSelectors) {
-            const result = new ElementPath(acceptedSelectors[0]);
-            for (let accepted of acceptedSelectors.slice(1)) {
-                result.add(new ElementPath(accepted));
-            }
-            if (rejectedSelectors) {
-                for (let rejected of rejectedSelectors.slice(1)) {
-                    result.remove(new ElementPath(rejected));
-                }
-            }
-            return result;
+        if (parentIndex) {
+            const elements = Array.from(new Set(group.map(path => path[parentIndex])));
+            parentElements = elements;
+            selectors = parentMap.get(elements[0]);
         }
-        return new ElementPath();
-    }
 
-    static mergeMany(elementPaths) {
-        // TODO: merge these objects
-    }
+        let skippedTag = null;
+        indexloop: for (let i = parentIndex + 1; i < pathLength; i++) {
+            const elements = this.getGroupElementsAtIndex(group, i);
+            const testSelectorLists = [];
 
-    get pathSelector() {
-        return this.paths.map(path =>
-            path.map(element => element.tagName).join(' > ')).join(', ');
-    }
-
-    get pathAndClassSelector() {
-        return this.paths.map(path => path.map(element => {
-            let part = element.tagName;
-            if (element.classes) {
-                part = [part].concat(element.classes).join('.');
+            // check id selector
+            if (elements.length === 1) {
+                const id = elements[0].id;
+                if (id && !parentElements) {
+                    testSelectorLists.push(['#' + CSS.escape(id)]);
+                }
             }
-            return part;
-        }).join(' > ')).join(', ');
-    }
 
-    get uniquePathSelector() {
-        return this.paths.map(path => {
-            let selectors = [];
-            for (let [index, element] of path.entries()) {
-                const indices = combineIndices(element.acceptedIndices, element.rejectedIndices);
-                let part = element.tagName;
-                if (element.classes) {
-                    part = [part].concat(element.classes).join('.');
+            const tagName = elements[0].tagName.toLowerCase();
+            const classSelectors = this.getElementClassSelectors(elements);
+            const allClassesSelector = tagName + classSelectors.join('');
+
+            if (!generalize) {
+                // check class selectors
+                for (let classSelector of classSelectors) {
+                    testSelectorLists.push([classSelector]);
                 }
-                let parts;
-                if (index === 0 || !indices) {
-                    parts = [part];
-                } else {
-                    parts = indices.map(index => `${part}:nth-child(${index})`);
+
+                // check tag selector
+                if (!IMPLICIT_TAGS.has(tagName)) {
+                    testSelectorLists.push([tagName]);
                 }
-                if (!selectors.length) {
-                    selectors = parts;
-                } else {
-                    const prefixes = selectors;
-                    selectors = [];
-                    for (let part of parts) {
-                        for (let prefix of prefixes) {
-                            selectors.push(`${prefix} > ${part}`);
+
+                // check tag + class selector
+                for (let classSelector of classSelectors) {
+                    testSelectorLists.push([tagName + classSelector]);
+                }
+            }
+
+            if (!IMPLICIT_TAGS.has(tagName)) {
+                // nth-child
+                const indices = this.getElementIndices(elements);
+
+                if (indices.length > 1 && !generalize) {
+                    // try to create an nth-child formula
+                    let delta = indices[1] - indices[0];
+                    let regularIndex = true;
+                    for (let i = 2; i < indices.length; i++) {
+                        if (indices[i] - indices[i - 1] !== delta) {
+                            regularIndex = false;
+                        }
+                    }
+                    if (regularIndex) {
+                        const firstIndex = indices[0];
+                        const lastIndex = indices[indices.length - 1];
+
+                        if (delta === 1) {
+                            delta = '';
+                        }
+                        testSelectorLists.push(
+                            [`${tagName}:nth-child(${delta}n+${firstIndex})`],
+                            [`${tagName}:nth-child(-${delta}n+${lastIndex})`],
+                            [`${tagName}:nth-child(${delta}n+${firstIndex}):nth-child(-${delta}n+${lastIndex})`]);  // jshint ignore:line
+                        for (let classSelector of classSelectors) {
+                            testSelectorLists.push(
+                                [`${classSelector}:nth-child(${delta}n+${firstIndex})`],
+                                [`${classSelector}:nth-child(-${delta}n+${lastIndex})`],
+                                [`${classSelector}:nth-child(${delta}n+${firstIndex}):nth-child(-${delta}n+${lastIndex})`]);  // jshint ignore:line
+                            testSelectorLists.push(
+                                [`${tagName}${classSelector}:nth-child(${delta}n+${firstIndex})`],
+                                [`${tagName}${classSelector}:nth-child(-${delta}n+${lastIndex})`],
+                                [`${tagName}${classSelector}:nth-child(${delta}n+${firstIndex}):nth-child(-${delta}n+${lastIndex})`]);  // jshint ignore:line
+                        }
+                    }
+                }
+
+                if (!generalize) {
+                    // fail-safe explicitly listing all indices
+
+                    let indexSelectors = [];
+                    for (let index of indices) {
+                        indexSelectors.push(`${tagName}:nth-child(${index})`);
+                    }
+                    testSelectorLists.push(indexSelectors);
+
+                    for (let classSelector of classSelectors) {
+                        let classIndexSelectors = [];
+                        let tagIndexSelectors = [];
+                        for (let index of indices) {
+                            const classIndexSelector = `${classSelector}:nth-child(${index})`;
+                            classIndexSelectors.push(classIndexSelector);
+                            tagIndexSelectors.push(`${tagName}${classIndexSelector}`);
+                        }
+                        testSelectorLists.push(classIndexSelectors);
+                        testSelectorLists.push(tagIndexSelectors);
+                    }
+                }
+
+                if (generalize && indices.length === 1) {
+                    testSelectorLists.push([`${allClassesSelector}:nth-child(${indices[0]})`]);
+                }
+            }
+
+            if (generalize) {
+                // fail-safe for generalized case
+                testSelectorLists.push([allClassesSelector]);
+            }
+
+            if (!parentElements) {
+                if (!generalize || elements.length === 1) {
+                    for (let testSelectorList of testSelectorLists) {
+                        const matches = root.querySelectorAll(testSelectorList.join(', '));
+                        if (matches.length === elements.length) {
+                            selectors = testSelectorList;
+                            continue indexloop;
                         }
                     }
                 }
             }
-            return selectors.join(', ');
-        }).join(', ');
-    }
 
-    get pathMap() {
-        return new Map(this.paths.map(path => {
-            return [new ElementPath(path).pathSelector, path];
-        }));
-    }
-
-    get pathAndClassMap() {
-        return new Map(this.paths.map(path => {
-            return [new ElementPath(path).pathAndClassSelector, path];
-        }));
-    }
-
-    differences(other) {
-        let count = 0;
-        //const pathMap = this.pathMap;
-        const pathMap = this.pathAndClassMap;
-
-        for (let otherElements of other.paths) {
-            //const elements = pathMap.get(new ElementPath(otherElements).pathSelector);
-            const elements = pathMap.get(new ElementPath(otherElements).pathAndClassSelector);
-            if (!elements) {
-                count += otherElements.length;
-                continue;
-            }
-
-            for (let [index, element] of elements.entries()) {
-                const otherElement = otherElements[index];
-                if (element.tagName !== otherElement.tagName) {
-                    count += 1;
-                    continue;
+            for (let testSelectorList of testSelectorLists) {
+                const concatSelectorList = [];
+                for (let selector of selectors) {
+                    for (let testSelector of testSelectorList) {
+                        concatSelectorList.push(`${selector} > ${testSelector}`);
+                    }
                 }
-                if (Ember.compare(element.classes, otherElement.classes) !== 0) {
-                    count += 1;
-                    continue;
+                if (skippedTag) {
+                    // since we can't know in browser if the skipped tag was present in the source
+                    // markup we have at create a selector for both options like:
+                    //     prefix > suffix, prefix > skipped > suffix
+                    for (let selector of selectors) {
+                        for (let testSelector of testSelectorList) {
+                            concatSelectorList.push(
+                                `${selector} > ${skippedTag} > ${testSelector}`);
+                        }
+                    }
                 }
-                if (Ember.compare(element.acceptedIndices, otherElement.acceptedIndices) !== 0) {
-                    count += 1;
-                    continue;
+                const testSelector = concatSelectorList.join(', ');
+                let matches;
+                if (parentElements) {
+                    matches = new Set();
+                    for (let parentElement of parentElements) {
+                        for (let element of parentElement.querySelectorAll(testSelector)) {
+                            matches.add(element);
+                        }
+                    }
+                    matches = Array.from(matches);
+                } else {
+                    matches = root.querySelectorAll(testSelector);
                 }
-                if (Ember.compare(element.rejectedIndices, otherElement.rejectedIndices) !== 0) {
-                    count += 1;
+                if (generalize || matches.length === elements.length) {
+                    selectors = concatSelectorList;
+                    skippedTag = null;
+                    continue indexloop;
                 }
             }
+
+            // we're here because we skipped a possibly implicitly added tag
+            skippedTag = tagName;
         }
 
-        return count;
-    }
-
-    add(other) {
-        const pathMap = this.pathAndClassMap;
-
-        for (let otherElements of other.paths) {
-            const elements = pathMap.get(new ElementPath(otherElements).pathAndClassSelector);
-            if (!elements) {
-                this.paths.push(otherElements);
-                continue;
-            }
-
-            for (let [index, element] of elements.entries()) {
-                const otherElement = otherElements[index];
-                if (element.tagName !== otherElement.tagName) {
-                    element.tagName = '*';
-                }
-                const missingClasses = element.classes.slice();
-                missingClasses.removeObjects(otherElement.classes);
-                element.classes.removeObjects(missingClasses);
-                element.classes.sort();
-                element.acceptedIndices.addObjects(otherElement.acceptedIndices);
-                element.acceptedIndices.sort();
-                element.rejectedIndices.addObjects(otherElement.rejectedIndices);
-                element.rejectedIndices.sort();
-            }
+        // the final tag was skipped, we need to append it now
+        if (skippedTag) {
+            selectors = selectors.concat(...selectors.map(
+                selector => `${selector} > ${skippedTag}`));
         }
 
-        return this;
-    }
+        return selectors;
+    },
 
-    remove(other) {
-        const pathMap = this.pathAndClassMap;
+    mergeSelectors(selectors) {
+        return selectors.map(groupSelectors => groupSelectors.join(', ')).join(', ');
+    },
 
-        for (let otherElements of other.paths) {
-            const elements = pathMap.get(new ElementPath(otherElements).pathAndClassSelector);
-            if (!elements) {
-                continue;
+    getGroupElementsAtIndex(group, index) {
+        return Array.from(new Set(group.map(path => path[index])));
+    },
+
+    getElementClassSelectors(elements) {
+        const classNameMap = new Map();
+        const classSelectors = [];
+        for (let element of elements) {
+            if (!element.classList.length) {
+                classNameMap.clear();
+                break;
             }
 
-            for (let [index, element] of elements.entries()) {
-                const otherElement = otherElements[index];
-                if (element.tagName !== otherElement.tagName && element.tagName !== '*') {
-                    continue;
-                }
-                element.classes.removeObjects(otherElement.classes);
-                element.classes.sort();
-                element.acceptedIndices.removeObjects(otherElement.acceptedIndices);
-                element.acceptedIndices.sort();
-                if (!combineIndices(element.acceptedIndices, element.rejectedIndices)) {
-                    element.rejectedIndices.addObjects(otherElement.acceptedIndices);
-                    element.rejectedIndices.sort();
-                }
+            for (let className of element.classList) {
+                classNameMap.set(className, (classNameMap.get(className) || 0) + 1);
             }
         }
+        for (let [className, count] of classNameMap.entries()) {
+            if (count === elements.length) {
+                classSelectors.push('.' + CSS.escape(className));
+            }
+        }
+        return classSelectors;
+    },
 
-        return this;
+    getElementIndices(elements) {
+        return Array.from(new Set(elements.map(positionInParent))).sort((a, b) => a - b);
     }
-}
+});
+
+export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
+    selectorMatcher: null,
+    annotation: null,
+
+    acceptElements: Ember.computed('annotation.acceptSelectors.[]', function() {
+        const acceptSelectors = this.get('annotation.acceptSelectors');
+        return this.get('selectorMatcher').query(acceptSelectors.join(', '));
+    }),
+    rejectElements: Ember.computed('annotation.rejectSelectors.[]', function() {
+        const rejectSelectors = this.get('annotation.rejectSelectors');
+        return this.get('selectorMatcher').query(rejectSelectors.join(', '));
+    }),
+    generalizedSelector: Ember.computed(
+        'annotation.selectionMode', 'annotation.acceptSelectors.[]',
+        'acceptElements.[]', 'rejectElements.[]', function() {
+            if (this.get('annotation.selectionMode') === 'css') {
+                const acceptSelectors = this.get('annotation.acceptSelectors');
+                return this.mergeSelectors([acceptSelectors]);
+            }
+
+            const acceptElements = this.get('acceptElements');
+            const paths = acceptElements.map(elementPath);
+            const groupedPaths = this.groupPaths(paths);
+            const selectors = this.createGeneralizedSelectors(groupedPaths);
+            return this.mergeSelectors(selectors);
+        }),
+    elements: Ember.computed('generalizedSelector', function() {
+        const selector = this.get('generalizedSelector');
+        return this.get('selectorMatcher').query(selector);
+    }),
+    selector: Ember.computed(
+        'selectors', 'annotation.selectionMode',
+        'annotation.acceptSelectors.[]', 'acceptElements.[]', 'rejectElements.[]', function() {
+            if (this.get('annotation.selectionMode') === 'css') {
+                const acceptSelectors = this.get('annotation.acceptSelectors');
+                if (acceptSelectors.length === 1) {
+                    return this.mergeSelectors([acceptSelectors]);
+                }
+
+                const acceptElements = this.get('acceptElements');
+                const acceptPaths = acceptElements.map(elementPath);
+                const acceptGroupedPaths = this.groupPaths(acceptPaths);
+                const newAcceptSelectors = this.createSelectors(acceptGroupedPaths);
+                return this.mergeSelectors(newAcceptSelectors);
+            }
+
+            const selectors = this.get('selectors');
+            const filteredSelectors = this.filterRejectedSelectors(selectors);
+            return this.mergeSelectors(filteredSelectors);
+        }),
+
+    createGeneralizedSelectors(groupedPaths) {
+        const selectors = groupedPaths.map(group => this.createGroupSelectors(group, null, true));
+        return this.filterRejectedSelectors(selectors);
+    },
+
+    filterRejectedSelectors(selectors) {
+        const selectorMatcher = this.get('selectorMatcher');
+        const rejectElements = new Set(this.get('rejectElements'));
+        return selectors.map(selectors => {
+            // if the generalized selector contains a rejected element, create a new selector
+            // that matches only the other elements
+            const elements = Array.from(selectorMatcher.query(selectors.join(', ')));
+            const allowedElements = elements.filter(element => !rejectElements.has(element));
+            if (elements.length === allowedElements.length) {
+                return selectors;
+            }
+            const paths = allowedElements.map(elementPath);
+            const allowedSelectors = this.createSelectors([paths]);
+            return allowedSelectors[0];
+        });
+    },
+
+    generalizationDistance(element) {
+        const paths = this.get('paths');
+        const groupedPaths = this.get('groupedPaths');
+        const newPath = elementPath(element);
+        const newGroupedPaths = this.groupPaths([newPath].concat(paths));
+
+        if (newGroupedPaths.length > groupedPaths.length) {
+            return Infinity;
+        }
+
+        const group = newGroupedPaths.find(group => group[0] === newPath);
+        const pathLength = group[0].length;
+        let distance = 0;
+        let i = 0;
+        const rejectElements = element => element === newPath[i];
+        for (i = 0; i < pathLength; i++) {
+            const elements = this.getGroupElementsAtIndex(group, i);
+            const newClassSelectors = this.getElementClassSelectors(elements);
+            const currentClassSelectors = this.getElementClassSelectors(
+                elements.reject(rejectElements));
+            if (currentClassSelectors.length > newClassSelectors.length) {
+                return Infinity;
+            }
+            if (elements.length > 1) {
+                distance++;
+            }
+        }
+        return distance;
+    }
+});
+
+export const ContainerSelectorGenerator = BaseSelectorGenerator.extend({
+    init() {
+        this._super(...arguments);
+        this.set('children', []);
+    },
+
+    destroy() {
+        for (let child of this.get('children')) {
+            child.set('parent', null);
+        }
+        this.set('children', null);
+        this._super(...arguments);
+    },
+
+    childElements: Ember.computed.mapBy('children', 'elements'),
+    container: Ember.computed('childElements', function() {
+        const childElements = this.get('childElements');
+        return findContainer(childElements);
+    }),
+    containerSelector: Ember.computed('container', function() {
+        const container = this.get('container');
+        if (container) {
+            const selectors = this.createSelectors([[elementPath(container)]]);
+            return this.mergeSelectors(selectors);
+        }
+        return 'body';
+    }),
+    repeatedContainersAndSiblings: Ember.computed('childElements', 'container', function() {
+        const childElements = this.get('childElements');
+        const container = this.get('container');
+        // TODO: support separated trees
+        return findRepeatedContainers(childElements, container);
+    }),
+    repeatedContainers: Ember.computed.readOnly('repeatedContainersAndSiblings.firstObject'),
+    siblings: Ember.computed.readOnly('repeatedContainersAndSiblings.lastObject'),
+    elements: Ember.computed('container', 'repeatedContainers', function() {
+        const container = this.get('container');
+        const repeatedContainers = this.get('repeatedContainers');
+        if (repeatedContainers.length) {
+            return repeatedContainers;
+        }
+        if (container) {
+            return [container];
+        }
+        return [];
+    }),
+
+    addChild(childGenerator) {
+        this.get('children').addObject(childGenerator);
+        childGenerator.set('parent', this);
+    },
+
+    addChildren(childGenerators) {
+        const children = this.get('children');
+        children.addObjects(childGenerators);
+        for (let childGenerator of childGenerators) {
+            childGenerator.set('parent', this);
+        }
+    }
+});
 
 export function setIntersection(a, b) {
     return new Set([...a].filter(x => b.has(x)));
@@ -387,36 +629,28 @@ export function findContainers(extractedElements, upto) {
 }
 
 export function findContainer(extractedElements) {
-    let elements = [];
-    for (let fields of extractedElements) {
-        elements = elements.concat(fields);
-    }
-    return findContainers(elements)[0];
+    return findContainers([].concat(...extractedElements))[0];
 }
 
-
-export function findRepeatedContainer(extracted, container) {
+export function findRepeatedContainers(extracted, container) {
     let groupedItems = groupItems(extracted, container);
     if (groupedItems.length === 1) {
-        return [null, 0];
+        return [[], 0];
     }
     let repeatedParents = groupedItems.map((item) => findContainers(item, container));
-    let allEqualLength = true;
-    for (let parents of repeatedParents) {
-        allEqualLength = repeatedParents[0].length === parents.length;
-    }
     if (repeatedParents.length === 0) {
-        return [null, 0];
+        return [[], 0];
     }
+    let allEqualLength = repeatedParents.isEvery('length', repeatedParents[0].length);
     if (allEqualLength &&
             new Set(repeatedParents.map((item) => item[0])).size === repeatedParents.length) {
-        return [repeatedParents[0].length ? repeatedParents[0][0] : null, 0];
+        return [repeatedParents[0].length ? repeatedParents.map(list => list[0]) : [], 0];
     } else {
         let shortest = Math.min(...repeatedParents.map(e => e.length));
         repeatedParents = repeatedParents.map(
             (item) => item.slice(item.length - shortest, item.length));
         if (new Set(repeatedParents.map((item) => item[0])).size === repeatedParents.length) {
-            return [repeatedParents[0].length ? repeatedParents[0][0] : null, 0];
+            return [repeatedParents[0].length ? repeatedParents.map(list => list[0]) : [], 0];
         }
     }
     return parentWithSiblings(groupedItems, container);
@@ -445,9 +679,9 @@ export function parentWithSiblings(groupedItems, container) {
         }
     }
     let i = 0;
+    const filterNotShared = e => !sharedParents.has(e);
     for (let [highest, lowest] of itemParents) {
-        itemParents[i] = [highest.filter((e) => !sharedParents.has(e)),
-                          lowest.filter((e) => !sharedParents.has(e))];
+        itemParents[i] = [highest.filter(filterNotShared), lowest.filter(filterNotShared)];
         i += 1;
     }
     // TODO: Check if not siblings
@@ -458,7 +692,7 @@ export function parentWithSiblings(groupedItems, container) {
         siblingDistance = Math.min(...siblings);
     // 5. Use the highest unshared parent of the highest field of the first item
     //    as the repeating container
-    return [itemParents[0][0][0], siblingDistance];
+    return [itemParents.map(lists => lists[0][0]), siblingDistance];
 }
 
 function getItemBounds(items, tagNumber=true) {
@@ -598,23 +832,26 @@ export function groupItems(extracted, upto) {
 }
 
 export function makeItemsFromGroups(groups) {
-    let i, items = [];
+    let items = [];
     for (let key of Object.keys(groups)) {
-        i = 0;
-        for (let item of groups[key]) {
+        for (let [i, item] of groups[key].entries()) {
             if (!items[i]) {
                 items[i] = [];
             }
             items[i].push(item);
-            i += 1;
         }
     }
     return items;
 }
 
 export default {
-    ElementPath: ElementPath,
-    findContainer: findContainer,
-    findRepeatedContainer: findRepeatedContainer,
-    findCssSelector: findCssSelector
+    BaseSelectorGenerator,
+    AnnotationSelectorGenerator,
+    ContainerSelectorGenerator,
+    pathSelector,
+    uniquePathSelector,
+    smartSelector,
+    cssToXpath,
+    findContainer,
+    findRepeatedContainers
 };

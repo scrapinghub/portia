@@ -1,25 +1,24 @@
 import Ember from 'ember';
 
 export default Ember.Helper.extend({
-    annotationStructure: Ember.inject.service(),
+    compute([annotations, attribute]) {
+        this.setProperties({
+            annotations,
+            attribute
+        });
 
-    model: null,
-
-    init() {
-        this._super();
-        this.get('annotationStructure').registerChange(this, this.recompute);
+        return this.get('content');
     },
 
-    willDestroy() {
-        this._super();
-        this.get('annotationStructure').unRegisterChange(this, this.recompute);
-    },
-
-    compute([element, attribute]) {
-        const structure = this.get('annotationStructure');
-        const annotations =  structure.annotationsFor(element) || [];
-        return annotations.find(annotation =>
-            (structure.elementsFor(annotation) || []).includes(element) &&
+    annotations: null,
+    attribute: null,
+    content: Ember.computed('annotations.[]', 'attribute', function() {
+        const attribute = this.get('attribute');
+        return this.getWithDefault('annotations', []).find(annotation =>
             annotation.getWithDefault('attribute', null) === attribute) || {};
-    }
+    }),
+
+    contentDidChange: Ember.observer('content', function () {
+        this.recompute();
+    })
 });

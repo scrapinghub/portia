@@ -2,11 +2,6 @@ import Ember from 'ember';
 import Sample from '../models/sample';
 import ItemAnnotation from '../models/item-annotation';
 import {getAttributeList} from '../components/inspector-panel';
-import {ElementPath,
-        findContainer, 
-        findRepeatedContainer,
-        findCssSelector} from '../utils/selectors';
-
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -43,7 +38,6 @@ export default Ember.Service.extend({
     routing: Ember.inject.service('-routing'),
     store: Ember.inject.service(),
     uiState: Ember.inject.service(),
-    annotationStructure: Ember.inject.service(),
     webSocket: Ember.inject.service(),
 
     addSchema(project, redirect = false) {
@@ -204,11 +198,12 @@ export default Ember.Service.extend({
             }
         }
         const store = this.get('store');
-        let accept = element ? [new ElementPath(findCssSelector(element)).uniquePathSelector] : [];
         const annotation = store.createRecord('annotation', {
-            parent: item,
-            acceptSelectors: accept
+            parent: item
         });
+        if (element) {
+            annotation.addElement(element);
+        }
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
         } else if (element) {
@@ -217,6 +212,7 @@ export default Ember.Service.extend({
                 annotation.set('attribute', attributes[0].attribute);
             }
         }
+        // FIXME: annotation.selector is null at this point
         annotation.save().then(() => {
             if (redirect) {
                 annotation.set('new', true);
@@ -226,9 +222,6 @@ export default Ember.Service.extend({
             } else if (redirect) {
                 this.selectAnnotation(annotation);
             }
-            Ember.run.next(this, () =>
-                this.updateContainers(annotation.get('parent').get('itemAnnotation'))
-            );
         });
         return annotation;
     },
@@ -414,10 +407,7 @@ export default Ember.Service.extend({
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
-        const parent = annotation.get('parent.itemAnnotation');
-        annotation.destroyRecord().then(() =>
-            Ember.run.next(this, this.updateContainers, parent)
-        );
+        annotation.destroyRecord();
     },
 
     removeAnnotationExtractor(annotation, extractor) {
@@ -457,52 +447,14 @@ export default Ember.Service.extend({
     },
 
     addElementToAnnotation(annotation, element) {
-        const selector = new ElementPath(findCssSelector(element)).uniquePathSelector;
-        const acceptSelectors = annotation.get('acceptSelectors');
-        const rejectSelectors = annotation.get('rejectSelectors');
-        acceptSelectors.addObject(selector);
-        rejectSelectors.removeObject(selector);
+        annotation.addElement(element);
         this.selectAnnotationElement(annotation, element);
-        annotation.save().then(() =>
-            this.updateContainers(annotation.get('parent').get('itemAnnotation'))
-        );
+        annotation.save();
     },
 
     removeElementFromAnnotation(annotation, element) {
-        const selector = new ElementPath(findCssSelector(element)).uniquePathSelector;
-        const acceptSelectors = annotation.get('acceptSelectors');
-        const rejectSelectors = annotation.get('rejectSelectors');
-        acceptSelectors.removeObject(selector);
-        rejectSelectors.addObject(selector);
+        annotation.removeElement(element);
         this.selectAnnotation(annotation);
-        annotation.save().then(() =>
-            this.updateContainers(annotation.get('parent').get('itemAnnotation'))
-        );
-    },
-
-    updateContainers(containerAnnotation) {
-        Ember.run.next(this, function() {
-            if ('content' in containerAnnotation) {
-                containerAnnotation = containerAnnotation.content;
-            }
-            let elements = this.get('annotationStructure')._annotations(),
-                container = findContainer(elements),
-                [repeatedContainer, siblings] = findRepeatedContainer(elements, container),
-                containerPath = 'body',
-                repeatedContainerPath = null;
-            if (container) {
-                containerPath = findCssSelector(container);
-            } else {
-                return; // No elements highlighted
-            }
-            if (!!repeatedContainer) {
-                repeatedContainerPath = findCssSelector(repeatedContainer);
-                containerAnnotation.set('repeated', true);
-                containerAnnotation.set('repeatedAcceptSelectors', [repeatedContainerPath]);
-            }
-            containerAnnotation.set('acceptSelectors', [containerPath]);
-            containerAnnotation.set('siblings', siblings);
-            containerAnnotation.save();
-        });
+        annotation.save();
     }
 });
