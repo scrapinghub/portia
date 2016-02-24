@@ -113,7 +113,7 @@ def _read_resource(manager, resource):
         schemas = manager.resource(resource)
         assert isinstance(schemas, dict)
     except (AssertionError, TypeError):
-        manager.savejson({}, ['items'])
+        manager.savejson({}, [resource])
         return {}
     return schemas
 
