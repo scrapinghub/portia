@@ -458,12 +458,20 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
         if region.score < 1:
             return []
         for extractor in self.extractors:
-            item = extractor.extract(page, region.start_index,
-                                     region.end_index, ignored_regions,
-                                     **kwargs)
-            if not isinstance(item, (list, tuple)):
-                item = [item]
-            items.extend(item)
+            try:
+                item = extractor.extract(page, region.start_index,
+                                         region.end_index, ignored_regions,
+                                         **kwargs)
+            except TypeError:
+                ex = SlybotRecordExtractor(extractor.extractors,
+                                           extractor.template_tokens)
+                item = ex.extract(page, region.start_index, region.end_index,
+                                  ignored_regions, **kwargs)
+            if (isinstance(extractor, RepeatedContainerExtractor) or
+                    isinstance(item, list)):
+                items.extend(item)
+            else:
+                items.append(item)
         items = [self._validate_and_adapt_item(i, page) for i in items]
         return items
 
