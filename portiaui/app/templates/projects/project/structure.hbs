@@ -1,17 +1,5 @@
 <nav id="side-bar">
-    <h2>
-        {{list-item-icon icon='project'}}
-        {{#list-item-text}}
-            {{model.name}}
-        {{/list-item-text}}
-        {{#tooltip-container tooltipFor="project-close-button" text="Close project" tooltipContainer='body'}}
-            {{#link-to 'projects' id="project-close-button"}}
-                {{list-item-icon icon='close'}}
-            {{/link-to}}
-        {{/tooltip-container}}
-    </h2>
-    {{project-commands project=model reload="reload" conflict="conflict"}}
+    {{project-listing project=model reload="reload" conflict="conflict"}}
     {{project-structure-listing project=model}}
     {{outlet 'project-structure'}}
-    <ul id="browser-url-overlay-spacer"></ul>
 </nav>

@@ -35,10 +35,12 @@
     }
 }
 
-.structure-list-add {
+.structure-list-add,
+.structure-list-publish {
     color: $brand-success !important;
 }
 
+.structure-list-discard,
 .structure-list-error,
 .structure-list-remove {
     color: $brand-danger !important;

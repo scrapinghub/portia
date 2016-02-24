@@ -1,17 +1,19 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-    store: Ember.inject.service(),
     notificationManager: Ember.inject.service(),
-    classNames: 'project-commands',
+
+    tagName: '',
+    
+    project: null,
 
     actions: {
         publish() {
-            this.get('project').publish().then((data) => {
+            this.get('project').publish().then(data => {
                 // Show user message and allow them to schedule spider
                 this.get('notificationManager').showNotification(
                     data.meta.title);
-            }, (data) => {
+            }, data => {
                 let error = data.errors[0];
                 if (error.status > 499) {
                     throw data;
@@ -24,9 +26,9 @@ export default Ember.Component.extend({
         },
 
         discard() {
-            this.get('project').reset().then((data) => {
+            this.get('project').reset().then(() => {
                 this.sendAction('reload');
-            }, (data) => {
+            }, data => {
                 let error = data.errors[0];
                 if (error.status > 499) {
                     throw data;
