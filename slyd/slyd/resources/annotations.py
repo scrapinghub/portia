@@ -70,6 +70,12 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
             relationships['parent_id'] != annotation.get('container_id')):
         data['container_id'] = relationships['parent_id'].split('|')[0]
 
+    annotation['accept_selectors'] = data.get('accept_selectors',
+                                              annotation['accept_selectors'])
+    annotation['reject_selectors'] = data.get('reject_selectors',
+                                              annotation['reject_selectors'])
+    annotation['selector'] = data.get('selector', annotation['selector'])
+
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
     split_annotations = _split_annotations([annotation])
