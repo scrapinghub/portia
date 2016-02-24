@@ -264,21 +264,22 @@ const DataElementStructure = ElementStructure.extend({
     model: null,  // a sample
 
     definition: Ember.computed('model.orderedAnnotations.[]', function() {
-        return this.get('model.items').filter(item => !!item).map(item => ({
-            annotation: item.get('itemAnnotation'),
-            children: item.get('annotations').map(function mapper(annotation) {
-                if (annotation.constructor.modelName === 'annotation') {
-                    return {
-                        annotation
-                    };
-                } else if (annotation.constructor.modelName === 'item-annotation') {
-                    return {
-                        annotation,
-                        children: (annotation.get('item.annotations') || []).map(mapper)
-                    };
-                }
-            })
-        }));
+        return this.get('model.items').filter(
+            item => !!item && !!item.get('itemAnnotation.content')).map(item => ({
+                annotation: item.get('itemAnnotation'),
+                children: item.get('annotations').map(function mapper(annotation) {
+                    if (annotation.constructor.modelName === 'annotation') {
+                        return {
+                            annotation
+                        };
+                    } else if (annotation.constructor.modelName === 'item-annotation') {
+                        return {
+                            annotation,
+                            children: (annotation.get('item.annotations') || []).map(mapper)
+                        };
+                    }
+                })
+            }));
     })
 });
 
