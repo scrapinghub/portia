@@ -91,8 +91,7 @@ const ElementStructure = Ember.Object.extend({
                                 repeated: false,
                                 repeatedAcceptSelectors: []
                             });
-                        }
-                        if (element.length > 1) {
+                        } else if (element.length > 1) {
                             annotation.setProperties({
                                 acceptSelectors: [containerSelector],
                                 siblings,
