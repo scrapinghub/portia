@@ -68,7 +68,7 @@ def _build_sample(sample):
     from slybot.plugins.scrapely_annotations.builder import Annotations
     data = sample.get('plugins', {}).get('annotations-plugin')
     if data:
-        Annotations.save_extraction_data(data, sample)
+        Annotations().save_extraction_data(data, sample)
     return sample
 
 
