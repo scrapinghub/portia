@@ -27,7 +27,7 @@ from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
                        delete_project_data, pause, resume, extract_items,
-                       save_html, log_event)
+                       save_html, log_event, _update_sample)
 from .css_utils import process_css, wrap_url
 import six
 text = six.text_type  # unicode in py2, str in py3
@@ -338,7 +338,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             handle_errors=False)
 
     def open_spider(self, meta):
-        if ('project' not in meta or 'spider' not in meta):
+        if not (meta.get('project') and meta.get('spider')):
             return {'error': 4005, 'reason': 'No project specified'}
 
         if (self.user.authorized_projects is not None and
@@ -349,8 +349,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
         spider_name = meta['spider']
         spec = self.spec_manager.project_spec(meta['project'], self.user.auth)
         spider = spec.spider_with_templates(spider_name)
-        for template in spider.get('templates', []):
-            template.setdefault('annotated_body', u'')
+        spider.setdefault('templates', [])
+        spider['templates'] = [_update_sample(meta, self, s)
+                               for s in spider.get('templates', [])]
         try:
             items = spec.resource('items')
         except TypeError:

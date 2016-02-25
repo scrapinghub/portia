@@ -134,7 +134,7 @@ export default Ember.Object.extend({
             if (this.get('promiseQueue').length) {
                 this.send(this.get('promiseQueue').unshift());
             }
-        }.bind(this);
+        }.bind(this));
         ws.onopen = function() {
             Ember.Logger.log('<Opened Websocket>');
             this.set('closed', false);

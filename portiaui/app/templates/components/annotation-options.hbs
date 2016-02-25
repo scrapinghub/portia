@@ -3,6 +3,9 @@
     <div class="checkbox">
         <label>
             {{input type="checkbox" name="required" checked=(mut annotation.required)}} Required
+            {{#help-icon}}
+                Only extract items that have this annotation. Only this sample will be affected
+            {{/help-icon}}
         </label>
     </div>
     <div class="form-group">

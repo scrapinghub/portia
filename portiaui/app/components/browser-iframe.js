@@ -8,6 +8,7 @@ import { NAVIGATION_MODE } from '../services/browser';
 const BrowserIFrame = Ember.Component.extend({
     browser: Ember.inject.service(),
     webSocket: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     tagName: 'iframe',
 
@@ -97,7 +98,9 @@ const BrowserIFrame = Ember.Component.extend({
                 id: shortGuid(),
                 viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
-                cookies: this.cookies
+                cookies: this.cookies,
+                project: this.get('uiState.models.project.id'),
+                spider: this.get('uiState.models.spider.id'),
             },
             _command: 'load',
             url: url,

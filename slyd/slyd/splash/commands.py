@@ -38,8 +38,10 @@ def save_html(data, socket):
     try:
         sample['original_body'] = _decode(socket.tab.network_manager._raw_html,
                                           stated_encoding)
-    except AttributeError:
-        sample['original_body'] = socket.tab.html().decode('utf-8')
+        # XXX: Some pages only show a 301 page. Load the browser html instead
+        assert len(sample['original_body']) > 500
+    except (AttributeError, AssertionError):
+        sample['original_body'] = socket.tab.html()
     _update_sample(data, socket, sample, save=True)
 
 
@@ -145,7 +147,7 @@ def load_page(data, socket):
     headers = {}
     if "user_agent" in meta:
         headers['User-Agent'] = meta['user_agent']
-
+    socket.open_spider(meta)
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda err=None: on_complete(True, err),
@@ -431,7 +433,7 @@ def _process_items(items):
         if isinstance(item, dict):
             new = {}
             for key, value in item.items():
-                if key.startswith('_'):
+                if key and key.startswith('_'):
                     continue
                 new[key] = _process_items(value) if isinstance(value, list) \
                     else value

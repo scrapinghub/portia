@@ -14,8 +14,10 @@ export default Ember.Component.extend({
             const project = item.get('schema.project');
             const schema = this.get('dispatcher').addNamedSchema(
                 project, name, /* redirect = */false);
-            item.set('schema', schema);
-            item.save();
+            item.then(item => {
+                item.set('schema', schema);
+                item.save();
+            });
         },
 
         changeSchema() {
@@ -26,7 +28,7 @@ export default Ember.Component.extend({
                item.get('schema.id') !== sample.get('_autoCreatedSchema')) {
                 this.get('dispatcher').deleteAutoCreatedSchema(sample);
             }
-            item.save();
+            item.then(item => item.save());
         }
     }
 });

@@ -17,8 +17,10 @@ export default Ember.Component.extend({
 
         rename(name) {
             const model = this.get('value');
-            model.set('name', name);
-            model.save();
+            model.then((item) => {
+                item.set('name', name);
+                item.save();
+            });
         }
     }
 });

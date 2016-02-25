@@ -8,7 +8,6 @@ import {
 export default DS.Model.extend({
     parent: DS.belongsTo('item', {
         inverse: 'annotations',
-        async: false
     }),
     field: DS.belongsTo({
     }),

@@ -3,11 +3,17 @@
     <div class="checkbox">
         <label>
             {{input type="checkbox" name="required" checked=(mut field.required)}} Required
+            {{#help-icon}}
+                Only extract items that have this annotation
+            {{/help-icon}}
         </label>
     </div>
     <div class="checkbox">
         <label>
             {{input type="checkbox" name="vary" checked=(mut field.vary)}} Vary
+            {{#help-icon}}
+                Fields with different values for this field will be considered the same
+            {{/help-icon}}
         </label>
     </div>
 </form>

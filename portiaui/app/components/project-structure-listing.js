@@ -12,6 +12,16 @@ export default Ember.Component.extend({
     currentSpider: Ember.computed.readOnly('uiState.models.spider'),
     currentSchema: Ember.computed.readOnly('uiState.models.schema'),
 
+    addSpiderTooltipText: Ember.computed('canAddSpider', {
+        get() {
+            if (this.get('canAddSpider')) {
+                return 'Create a new Spider';
+            } else {
+                return 'You must visit a website before you can create a Spider';
+            }
+        }
+    }),
+
     actions: {
         addSchema() {
             this.get('dispatcher').addSchema(this.get('project'), /* redirect = */true);
