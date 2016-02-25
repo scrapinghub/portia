@@ -18,8 +18,8 @@
         "id": "item",
         "type": "object",
         "properties": {
-            "fields": {"type": "object", "additionalProperties": {"$ref": "field"}, "required": true},
-            "display_name": {"type": "string", "required": false}
+            "fields": {"additionalProperties": {"$ref": "field"}, "required": true},
+            "name": {"type": "string", "required": false}
         }
     },
     {
@@ -28,7 +28,8 @@
         "properties": {
             "type": {"type": "string", "required": true},
             "required": {"type": "boolean", "required": true},
-            "vary": {"type": "boolean", "required": true}
+            "vary": {"type": "boolean", "required": true},
+            "name": {"type": "string", "required": false}
         }
     },
     {
@@ -48,7 +49,7 @@
         "type": "object",
         "properties": {
             "start_urls": {"type": "array", "items": {"type": "string", "format": "url"}, "required": true},
-            "links_to_follow": {"type": "string", "enum": ["none", "patterns"], "required": true},
+            "links_to_follow": {"type": "string", "enum": ["none", "patterns", "all"], "required": true},
             "follow_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "exclude_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "js_enabled": {"type": "boolean"},

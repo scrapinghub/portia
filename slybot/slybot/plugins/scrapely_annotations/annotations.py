@@ -2,8 +2,7 @@ from __future__ import absolute_import
 
 import re
 
-from itertools import groupby
-from operator import itemgetter
+from collections import OrderedDict
 
 from scrapy.http import Request
 
@@ -11,33 +10,14 @@ from scrapely.extraction import InstanceBasedLearningExtractor
 from scrapely.htmlpage import HtmlPage, dict_to_page
 
 from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
-                                  PaginationExtractor, )
+                                  PaginationExtractor)
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
 from slybot.utils import htmlpage_from_response
 XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
 
-
-def _process_extracted_data(extracted_data, item_descriptor, htmlpage):
-    processed_data = []
-    for exdict in extracted_data or ():
-        processed_attributes = []
-        for key, value in exdict.items():
-            if key == "variants":
-                processed_attributes.append(
-                    ("variants", _process_extracted_data(value,
-                                                         item_descriptor,
-                                                         htmlpage))
-                )
-            elif not key.startswith("_sticky"):
-                field_descriptor = item_descriptor.attribute_map.get(key)
-                if field_descriptor:
-                    value = [field_descriptor.adapt(x, htmlpage)
-                             for x in value]
-                processed_attributes.append((key, value))
-        processed_data.append(processed_attributes)
-    return [dict(p) for p in processed_data]
+from .extraction import SlybotIBLExtractor
 
 
 class Annotations(object):
@@ -50,36 +30,34 @@ class Annotations(object):
         Perform any initialization needed for crawling using this plugin
         """
         _item_template_pages = sorted((
-            [t['scrapes'], dict_to_page(t, 'annotated_body'),
+            [t.get('scrapes'), dict_to_page(t, 'annotated_body'),
              t.get('extractors', [])]
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
-        ), key=lambda pair: pair[0])
+        ))
+        self.item_classes = {}
+        self.html_link_extractor = HtmlLinkExtractor()
+        for schema_name, schema in items.items():
+            if schema_name not in self.item_classes:
+                if not schema.get('name'):
+                    schema['name'] = schema_name
+                item_cls = SlybotItem.create_iblitem_class(schema)
+                self.item_classes[schema_name] = item_cls
 
-        self.itemcls_info = {}
-        if settings.get('AUTO_PAGINATION'):
-            self.html_link_extractor = PaginationExtractor()
-        else:
-            self.html_link_extractor = HtmlLinkExtractor()
-        for itemclass_name, triplets in groupby(_item_template_pages,
-                                                itemgetter(0)):
-            page_extractors_pairs = map(itemgetter(1, 2), triplets)
-            schema = items[itemclass_name]
-            item_cls = SlybotItem.create_iblitem_class(schema)
-
-            page_descriptor_pairs = []
-            for page, template_extractors in page_extractors_pairs:
-                item_descriptor = create_slybot_item_descriptor(schema)
+        # Create descriptors and apply additional extractors to fields
+        page_descriptor_pairs = []
+        for default, template, template_extractors in _item_template_pages:
+            descriptors = OrderedDict()
+            for schema_name, schema in items.items():
+                item_descriptor = create_slybot_item_descriptor(schema,
+                                                                schema_name)
                 apply_extractors(item_descriptor, template_extractors,
                                  extractors)
-                page_descriptor_pairs.append((page, item_descriptor))
+                descriptors[schema_name] = item_descriptor
+            descriptor = descriptors.values() or [{}]
+            descriptors['#default'] = descriptors.get(default, descriptor[0])
+            page_descriptor_pairs.append((template, descriptors))
 
-            extractor = InstanceBasedLearningExtractor(page_descriptor_pairs)
-
-            self.itemcls_info[itemclass_name] = {
-                'class': item_cls,
-                'descriptor': item_descriptor,
-                'extractor': extractor,
-            }
+        self.extractors = SlybotIBLExtractor(page_descriptor_pairs)
 
         # generate ibl extractor for links pages
         _links_pages = [dict_to_page(t, 'annotated_body')
@@ -107,36 +85,28 @@ class Annotations(object):
 
     def extract_items(self, htmlpage):
         """This method is also called from UI webservice to extract items"""
-        items = []
-        link_regions = []
-        for item_cls_name, info in self.itemcls_info.items():
-            item_descriptor = info['descriptor']
-            extractor = info['extractor']
-            extracted, _link_regions = self._do_extract_items_from(
-                htmlpage,
-                item_descriptor,
-                extractor,
-                item_cls_name,
-            )
-            items.extend(extracted)
-            link_regions.extend(_link_regions)
-        return items, link_regions
+        return self._do_extract_items_from(htmlpage, self.extractors)
 
-    def _do_extract_items_from(self, htmlpage, item_descriptor, extractor,
-                               item_cls_name):
+    def _do_extract_items_from(self, htmlpage, extractor):
         extracted_data, template = extractor.extract(htmlpage)
         link_regions = []
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
-        processed_data = _process_extracted_data(extracted_data,
-                                                 item_descriptor,
-                                                 htmlpage)
+        descriptor = template.descriptor() if template is not None else None
         items = []
-        item_cls = self.itemcls_info[item_cls_name]['class']
-        for processed_attributes in processed_data:
-            item = item_cls(processed_attributes)
+        item_cls_name = descriptor.name if descriptor is not None else ''
+        item_cls = self.item_classes.get(item_cls_name)
+        for processed_attributes in extracted_data or []:
+            if processed_attributes.get('_type') in self.item_classes:
+                _type = processed_attributes['_type']
+                item = self.item_classes[_type](processed_attributes)
+                item['_type'] = item.display_name()
+            elif item_cls:
+                item = item_cls(processed_attributes)
+                item['_type'] = item_cls_name
+            else:
+                item = dict(processed_attributes)
             item['url'] = htmlpage.url
-            item['_type'] = item_cls_name
             item['_template'] = str(template.id)
             items.append(item)
 

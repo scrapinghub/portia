@@ -9,6 +9,6 @@ class GeoPointFieldTypeProcessor(object):
     def extract(self, value):
         return value
 
-    def adapt(self, value, htmlpage):
+    def adapt(self, value, htmlpage=None):
         return value
 
