@@ -13,7 +13,9 @@ class UrlFieldTypeProcessor(object):
     def extract(self, text):
         return text
 
-    def adapt(self, text, htmlpage):
+    def adapt(self, text, htmlpage=None):
+        if htmlpage is None:
+            return text
         text = text.encode(htmlpage.encoding)
         joined = urljoin(get_base_url(htmlpage).encode(htmlpage.encoding), text)
         return safe_download_url(unquote_markup(joined, encoding=htmlpage.encoding))
