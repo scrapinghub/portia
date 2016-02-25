@@ -1,16 +1,20 @@
 .select-box {
     .btn-default {
-        display: inline-flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        justify-content: space-between;
         text-align: left;
         color: $input-color !important;
         background-color: $input-bg !important;
 
+        .value {
+            float: left;
+            max-width: calc(100% - 20px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .caret {
-            margin-left: $padding-base-horizontal;
+            float: right;
+            margin: (($line-height-computed - $caret-width-base) / 2) 0;
         }
     }
 
