@@ -1,6 +1,7 @@
 from six.moves.urllib_parse import urlparse
 import os
 import json
+import re
 
 from collections import OrderedDict
 
@@ -113,6 +114,25 @@ def load_plugin_names(settings):
         return [generate_name(path) for path in settings['PLUGINS']]
     else:
         return ['Annotations']
+
+
+def include_exclude_filter(include_patterns, exclude_patterns):
+    filterf = None
+    includef = None
+    if include_patterns:
+        pattern = include_patterns[0] if len(include_patterns) == 1 else \
+            "(?:%s)" % '|'.join(include_patterns)
+        includef = re.compile(pattern).search
+        filterf = includef
+    if exclude_patterns:
+        pattern = exclude_patterns[0] if len(exclude_patterns) == 1 else \
+            "(?:%s)" % '|'.join(exclude_patterns)
+        excludef = re.compile(pattern).search
+        if not includef:
+            filterf = lambda x: not excludef(x)
+        else:
+            filterf = lambda x: includef(x) and not excludef(x)
+    return filterf if filterf else bool
 
 
 class IndexedDict(OrderedDict):

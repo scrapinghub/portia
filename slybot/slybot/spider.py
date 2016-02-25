@@ -16,7 +16,7 @@ from scrapy.spiders.sitemap import SitemapSpider
 from loginform import fill_login_form
 
 from slybot.utils import (iter_unique_scheme_hostname, load_plugins,
-                          load_plugin_names, IndexedDict)
+                          load_plugin_names, IndexedDict, include_exclude_filter)
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.generic_form import GenericForm
 STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
@@ -231,22 +231,7 @@ class IblSpider(SitemapSpider):
             return lambda x: None
         enable_patterns = spec.get('js_enable_patterns')
         disable_patterns = spec.get('js_disable_patterns')
-        filterf = None
-        enablef = None
-        if enable_patterns:
-            pattern = enable_patterns[0] if len(enable_patterns) == 1 else \
-                "(?:%s)" % '|'.join(enable_patterns)
-            enablef = re.compile(pattern).search
-            filterf = enablef
-        if disable_patterns:
-            pattern = disable_patterns[0] if len(disable_patterns) == 1 else \
-                "(?:%s)" % '|'.join(disable_patterns)
-            disablef = re.compile(pattern).search
-            if not enablef:
-                filterf = lambda x: not disablef(x)
-            else:
-                filterf = lambda x: enablef(x) and not disablef(x)
-        return filterf if filterf else lambda x: x
+        return include_exclude_filter(enable_patterns, disable_patterns)
 
     def _add_splash_meta(self, request):
         if self.js_enabled and self._filter_js_urls(request.url):
