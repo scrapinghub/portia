@@ -72,7 +72,6 @@ export default Ember.Controller.extend({
 
     msgMetadata(data) {
         this.set('followedLinks', data.links);
-        this.set('extractedItems.items', data.items);
     },
 
     updateLinkElements(elements) {

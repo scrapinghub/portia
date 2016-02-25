@@ -131,7 +131,13 @@ def _find_annotation_paths(tree, nested, parents=None):
         if v is None:
             nested.add(tuple(parents))
             continue
-        _find_annotation_paths(v, nested, parents[:] + [k])
+        if isinstance(v, list):
+            for ex in v:
+                anno = ex.annotation.metadata
+                if anno.get('item_container'):
+                    _find_annotation_paths(anno, nested, parents[:] + [k])
+        elif isinstance(v, dict):
+            _find_annotation_paths(v, nested, parents[:] + [k])
 
 
 def _split_annotation_id(_id):

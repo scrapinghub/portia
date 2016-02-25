@@ -5,12 +5,13 @@ export default Ember.Service.extend({
     webSocket: Ember.inject.service(),
 
     items: [],
-    links: [],
+    links: {},
 
     init() {
         this._super();
         let ws = this.get('webSocket');
         ws.addCommand('extract_items', this._setItems.bind(this));
+        ws.addCommand('metadata', this._setItems.bind(this));
     },
 
     update() {
