@@ -19,7 +19,7 @@
 {{/tree-list}}
 
 {{#tree-list class=(if (and currentSample) "hide")}}
-    {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
+    {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
                 Link crawling
