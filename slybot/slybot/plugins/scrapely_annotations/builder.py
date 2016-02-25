@@ -262,7 +262,7 @@ def apply_selector_annotations(annotations, target_page):
     page = Selector(text=target_page)
     converted_annotations = []
     for annotation in annotations:
-        if annotation.get('selector'):
+        if not annotation.get('selector'):
             accepted_elements = set(
                 chain(*[[elem._root for elem in page.css(sel)]
                         for sel in annotation.get('accept_selectors', [])
