@@ -3,39 +3,26 @@
 import splash.server
 import splash.defaults
 import argparse
-import sys
 
 
 DEFAULT_PORTIA_PORT = 9001
 DEFAULT_PORTIA_ROOT = './dist'
 splash.defaults.SPLASH_PORT = DEFAULT_PORTIA_PORT
 
+def parse_args():
+    op = argparse.ArgumentParser()
+    op.add_argument('-p', '--port', default=DEFAULT_PORTIA_PORT, type=int)
+    op.add_argument('-r', '--root', default=DEFAULT_PORTIA_ROOT,
+                    help='Location of Portia webserver assets')
+    return op.parse_args()
+
 
 def make_server(*args, **kwargs):
     from slyd.tap import makeService
     from twisted.internet import reactor
-    port = kwargs.get('portnum', DEFAULT_PORTIA_PORT)
-    root = kwargs.get('proxy_portnum', DEFAULT_PORTIA_ROOT)
-    reactor.listenTCP(port, makeService({'port': port,
-                                         'docroot': root}))
-
-
-def add_args():
-    op = argparse.ArgumentParser()
-    op.add_argument('-p', '--port', default=DEFAULT_PORTIA_PORT, type=int)
-    op.add_argument('-r', '--root', default=DEFAULT_PORTIA_PORT,
-                    dest='proxy_portnum',
-                    help='Location of Portia webserver assets')
-    # XXX: Consume portia specific arguments
-    portia_args, args = op.parse_known_args()
-    sys.argv = [sys.argv[0]] + args
-    opts, _ = splash.server._parse_opts()
-    opts._update_loose(portia_args._get_kwargs())
-    return (opts, args)
-
-splash.server._parse_opts = splash.server.parse_opts
-splash.server.parse_opts = add_args
-splash.server.splash_server = make_server
+    opts = parse_args()
+    reactor.listenTCP(opts.port, makeService({'port': opts.port,
+                                              'docroot': opts.root}))
 
 if __name__ == '__main__':
-    splash.server.main()
+    splash.server.main(server_factory=make_server, argv=[])

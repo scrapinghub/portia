@@ -263,7 +263,6 @@ _valid_params = {
 def log_event(data, socket):
     event = data.get('event')
     param = data.get('param')
-    print 'le', event, param
 
     if event not in _valid_params or param not in _valid_params[event]:
         return
@@ -274,7 +273,6 @@ def log_event(data, socket):
                 'command': '%s.%s' % (event, param)}
     msg = (u'Stat: id=%(session)s t=%(session_time)s '
            u'user=%(user)s command=%(command)s' % (msg_data))
-    print msg
     log.err(msg)
 
 
@@ -333,15 +331,8 @@ class ProjectData(ProjectModifier):
         except BaseWSError as ex:
             print(('Other: %s' % ex))
             raise ex
-        except Exception as ex:
-            # XXX: Catch any other errors and log them leaving Websocket open
-            log.err(traceback.format_exc(ex))
         else:
-            try:
-                spec.savejson(obj, [s.encode('utf-8') for s in path])
-            except Exception as ex:
-                # XXX: Catch errors in saving to the backend
-                log.err(traceback.format_exc(ex))
+            spec.savejson(obj, [s.encode('utf-8') for s in path])
             socket.update_spider(meta, **{type: obj})
             return obj
 
