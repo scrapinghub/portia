@@ -10,6 +10,7 @@ export const ICON_CLASSES = {
     error: 'structure-list-error fa fa-exclamation-circle',
     file: 'fa fa-file',
     geopoint: 'fa fa-map-marker',
+    help: 'icon-button-help fa fa-question-circle',
     image: 'fa fa-picture-o',
     link: 'fa fa-link',
     list: 'fa fa-list',
