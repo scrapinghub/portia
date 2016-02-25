@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import re
+import page_finder
 
 from collections import OrderedDict
 
@@ -9,8 +10,7 @@ from scrapy.http import Request
 from scrapely.extraction import InstanceBasedLearningExtractor
 from scrapely.htmlpage import HtmlPage, dict_to_page
 
-from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
-                                  PaginationExtractor, )
+from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor)
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors
@@ -35,10 +35,9 @@ class Annotations(object):
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
         ))
         self.item_classes = {}
-        if settings.get('AUTO_PAGINATION'):
-            self.html_link_extractor = PaginationExtractor()
-        else:
-            self.html_link_extractor = HtmlLinkExtractor()
+        self.html_link_extractor = HtmlLinkExtractor()
+        self.auto_paginate = bool(settings.get('AUTO_PAGINATION'))
+        self.link_annotation = None
         for schema_name, schema in items.items():
             if schema_name not in self.item_classes:
                 if not schema.get('name'):
@@ -76,11 +75,9 @@ class Annotations(object):
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
         items, link_regions = self.extract_items(htmlpage)
-        htmlpage.headers['n_items'] = len(items)
-        try:
-            response.meta['n_items'] = len(items)
-        except AttributeError:
-            pass # response not tied to any request
+        if self.auto_paginate and self.link_annotation:
+            self.link_annotation.mark_link(
+                response.url, follow=(len(items) > 0))
         for item in items:
             yield item
         for request in self._process_link_regions(htmlpage, link_regions):
@@ -121,6 +118,13 @@ class Annotations(object):
         patterns = spec.get('follow_patterns')
         if spec.get("links_to_follow") == "none":
             url_filterf = lambda x: False
+        elif spec.get("links_to_follow") == "examples":
+            self.link_annotation = page_finder.LinkAnnotation()
+            for url in spec.get('start_urls', []):
+                self.link_annotation.mark_link(url, True)
+            for url in spec.get('nofollow_examples', []):
+                self.link_annotation.mark_link(url, False)
+            url_filterf = lambda l: self.link_annotation.is_follow_link(l.url)
         elif patterns:
             pattern = patterns[0] if len(patterns) == 1 \
                 else "(?:%s)" % '|'.join(patterns)
@@ -134,6 +138,7 @@ class Annotations(object):
             url_filterf = lambda x: not x.nofollow
         else:
             url_filterf = bool
+
         # apply exclude patterns
         excludes = spec.get('exclude_patterns')
         if excludes:
@@ -189,7 +194,10 @@ class Annotations(object):
 
     def _request_to_follow_from_region(self, htmlregion):
         seen = set()
-        for link in self.html_link_extractor.links_to_follow(htmlregion):
+        links_to_follow = list(self.html_link_extractor.links_to_follow(htmlregion))
+        if self.link_annotation:
+            self.link_annotation.load([lnk.url for lnk in links_to_follow])
+        for link in links_to_follow:
             request = self._filter_link(link, seen)
             if request is not None:
                 yield request
