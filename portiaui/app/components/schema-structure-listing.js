@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import ensurePromise from '../utils/ensure-promise';
+
 
 export default Ember.Component.extend({
     dispatcher: Ember.inject.service(),
@@ -15,7 +17,7 @@ export default Ember.Component.extend({
         },
 
         saveField(field) {
-            field.save();
+            ensurePromise(field).then(field => field.save());
         }
     }
 });

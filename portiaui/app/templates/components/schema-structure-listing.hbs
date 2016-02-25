@@ -4,7 +4,9 @@
             {{#list-item-text class="title"}}
                 Fields
             {{/list-item-text}}
-            {{list-item-icon id="add-field-button" icon='add' action=(action 'addField')}}
+            {{#tooltip-container tooltipFor="add-field-button" text="Add field" tooltipContainer='body'}}
+                {{list-item-icon id="add-field-button" icon='add' action=(action 'addField')}}
+            {{/tooltip-container}}
         {{else if (eq options.section "subtrees")}}
             {{#each schema.fields as |field|}}
                 {{#tree-list-item as |options|}}

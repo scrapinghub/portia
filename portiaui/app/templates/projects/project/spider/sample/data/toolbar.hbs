@@ -19,8 +19,8 @@
 
     <div class="btn-group" role="group">
         {{#each-in selectionModeIcons as |mode icon|}}
-            {{#tooltip-container tooltipFor=(object-get selectionModeIds mode) tooltipContainer='body' text=(object-get selectionModeText mode) }}
-                <button id={{object-get selectionModeIds mode}} type="button" class="btn btn-default {{if (eq activeSelectionMode mode) 'active'}}" {{action (action (mut selectionMode) mode)}}>
+            {{#tooltip-container tooltipFor=(get selectionModeIds mode) tooltipContainer='body' text=(get selectionModeText mode) }}
+                <button id={{get selectionModeIds mode}} type="button" class="btn btn-default {{if (eq activeSelectionMode mode) 'active'}}" {{action (action (mut selectionMode) mode)}}>
                     {{icon-button icon=icon}}
                 </button>
             {{/tooltip-container}}

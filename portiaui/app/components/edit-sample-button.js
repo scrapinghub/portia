@@ -29,11 +29,9 @@ export default Ember.Component.extend({
         if (!urlDomain) {
             return true;
         }
-        console.log(urlDomain);
-        console.log(this.get('startUrlDomains'))
+        const startUrlDomains = this.get('startUrlDomains');
         for (let d of urlDomain) {
-            if (this.get('startUrlDomains').has(d)) {
-                console.log(d)
+            if (startUrlDomains.has(d)) {
                 return true;
             }
         }
