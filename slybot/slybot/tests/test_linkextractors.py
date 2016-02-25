@@ -1,5 +1,6 @@
 from unittest import TestCase
 from scrapy.http import TextResponse, HtmlResponse
+from slybot.utils import htmlpage_from_response
 
 from slybot.linkextractor import (
         create_linkextractor_from_specs,
@@ -210,4 +211,17 @@ class Test_HtmlLinkExtractor(TestCase):
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[0].text, 'Click here')
+
+class Test_PaginationExtractor(TestCase):
+    def test_simple(self):
+        specs = {"type": "pagination", "value": None}
+        lextractor = create_linkextractor_from_specs(specs)
+        html_page = htmlpage_from_response(
+            HtmlResponse(url='http://www.example.com/', body=html))
+        html_page.headers['n_items'] = 1
+        links = list(lextractor.links_to_follow(html_page))
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0].url, 'http://www.example.com/path')
+        self.assertEqual(links[0].text, 'Click here')
+
 

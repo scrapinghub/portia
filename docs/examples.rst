@@ -37,8 +37,8 @@ Scraping multiple items from a single page
 
 You'll often need to retrieve several items from a single page. You can do this using :ref:`samples-variants` with the following steps:
 
-- Annotate the *first* item and map its fields to the Base.
-- Annotate the *last* item and map its fields to variant #1.
+- Annotate the *first* item and map its fields to variant #1.
+- Annotate the *last* item and map its fields to variant #2.
 - Enable the *Split Variants* extension.
 
 If the items are in a list (``<ul>`` or ``<ol>`` block), Portia will detect the items in between the first and last and create variants for each. Note that sometimes you will need to annotate each item and link to variants manually.
@@ -47,12 +47,12 @@ The *Split Variants* add on will create separate items for each variant during t
 
 Revisiting the `timerberlandonline.co.uk <http://www.timberlandonline.co.uk>`_ spider, let's demonstrate this process by annotating shoes on the category page.
 
-Start by annotating the first item and mapping its fields to the Base:
+Start by annotating the first item and mapping its fields to the variant #1:
 
 .. image:: _static/portia-multi-first.png
 	:alt: Start URLs
 
-Then do the same with the last item, only this time mapping to variant #1:
+Then do the same with the last item, only this time mapping to variant #2:
 
 .. image:: _static/portia-multi-last.png
 	:alt: Start URLs
