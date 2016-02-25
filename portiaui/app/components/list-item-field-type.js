@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import { FIELD_TYPES } from '../models/field';
+import ensurePromise from '../utils/ensure-promise';
 
 export default Ember.Component.extend({
     tagName: '',
@@ -11,7 +12,7 @@ export default Ember.Component.extend({
     actions: {
         saveField() {
             const field = this.get('field');
-            field.save();
+            ensurePromise(field).then(field => field.save());
         }
     }
 });

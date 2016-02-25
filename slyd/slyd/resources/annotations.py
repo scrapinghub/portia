@@ -20,9 +20,11 @@ def list_annotations(manager, spider_id, sample_id, attributes=None):
 def get_annotation(manager, spider_id, sample_id, annotation_id,
                    attributes=None):
     aid, _id = _split_annotation_id(annotation_id)
+    if not _id:
+        raise NotFound('No annotation with the id "%s" found.' % annotation_id)
     anno, _ = _get_annotation(manager, spider_id, sample_id, aid)
     split_annotations = _split_annotations([anno])
-    anno = filter(lambda x: x['id'] == _id, split_annotations)[0]
+    anno = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
     return AnnotationSchema(context=context).dump(anno).data
 
@@ -129,7 +131,13 @@ def _find_annotation_paths(tree, nested, parents=None):
         if v is None:
             nested.add(tuple(parents))
             continue
-        _find_annotation_paths(v, nested, parents[:] + [k])
+        if isinstance(v, list):
+            for ex in v:
+                anno = ex.annotation.metadata
+                if anno.get('item_container'):
+                    _find_annotation_paths(anno, nested, parents[:] + [k])
+        elif isinstance(v, dict):
+            _find_annotation_paths(v, nested, parents[:] + [k])
 
 
 def _split_annotation_id(_id):

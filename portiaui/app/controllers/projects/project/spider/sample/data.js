@@ -11,6 +11,18 @@ export default Ember.Controller.extend({
         remove: 'tool-remove',
         edit: 'tool-multiple'
     },
+    selectionModeText: {
+        select: 'Select an element',
+        add: 'Add a new element',
+        remove: 'Remove an element',
+        edit: 'Add a repeating element'
+    },
+    selectionModeIds: {
+        select: 'tool-select-button',
+        add: 'tool-add-button',
+        remove: 'tool-remove-button',
+        edit: 'tool-multiple-button'
+    },
 
     magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),
     hoveredElement: Ember.computed.readOnly('uiState.viewPort.hoveredElement'),

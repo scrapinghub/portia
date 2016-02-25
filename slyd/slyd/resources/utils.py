@@ -167,9 +167,9 @@ def _process_schema(schema_id, schema):
 def _get_formatted_schema(manager, schema_id, schema, include_fields=False):
     schema = _process_schema(schema_id, schema)
     data = SchemaSchema(context=ctx(manager)).dump(schema).data
-    if include_fields:
+    if include_fields and schema['fields']:
         included = FieldSchema(many=True).dump(schema['fields']).data
-        data['included'] = included
+        data['included'] = included['data']
     return data
 
 

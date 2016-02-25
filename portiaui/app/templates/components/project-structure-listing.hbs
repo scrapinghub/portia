@@ -4,7 +4,9 @@
             {{#list-item-text class="title"}}
                 {{if currentSpider "Spider" "Spiders"}}
             {{/list-item-text}}
-            {{list-item-icon icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}}
+            {{#tooltip-container tooltipFor="add-spider-button" text=addSpiderTooltipText tooltipContainer='body'}}
+                {{list-item-icon id="add-spider-button" icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}}
+            {{/tooltip-container}}
         {{else if (eq options.section "subtrees")}}
             {{#each project.spiders as |spider|}}
                 {{#tree-list-item class=(if (and currentSpider (not-eq spider currentSpider)) "hide") as |options|}}
@@ -37,7 +39,9 @@
             {{#list-item-text class="title"}}
                 {{if currentSchema "Data Format" "Data Formats"}}
             {{/list-item-text}}
-            {{list-item-icon icon='add' action=(action 'addSchema')}}
+            {{#tooltip-container tooltipFor="add-schema-button" text="Create a new Schema" tooltipContainer='body'}}
+                {{list-item-icon id="add-schema-button" icon='add' action=(action 'addSchema')}}
+            {{/tooltip-container}}
         {{else if (eq options.section "subtrees")}}
             {{#each project.schemas as |schema|}}
                 {{#tree-list-item class=(if (and currentSchema (not-eq schema currentSchema)) "hide") as |options|}}
