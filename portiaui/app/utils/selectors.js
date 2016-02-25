@@ -494,13 +494,23 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
         const rejectElements = element => element === newPath[i];
         for (i = 0; i < pathLength; i++) {
             const elements = this.getGroupElementsAtIndex(group, i);
-            const newClassSelectors = this.getElementClassSelectors(elements);
-            const currentClassSelectors = this.getElementClassSelectors(
-                elements.reject(rejectElements));
-            if (currentClassSelectors.length > newClassSelectors.length) {
-                return Infinity;
+            if (elements.length === 1) {
+                continue;
             }
-            if (elements.length > 1) {
+            const currentElements = elements.reject(rejectElements);
+            const newClassSelectors = this.getElementClassSelectors(elements);
+            const currentClassSelectors = this.getElementClassSelectors(currentElements);
+            if (currentClassSelectors.length > newClassSelectors.length) {
+                if (newClassSelectors.length >= 1 &&
+                        (currentClassSelectors.length - newClassSelectors.length === 1)) {
+                    distance++;
+                } else {
+                    return Infinity;
+                }
+            }
+            const newIndices = this.getElementIndices(elements);
+            const currentIndices = this.getElementIndices(currentElements);
+            if (currentIndices.length < newIndices.length) {
                 distance++;
             }
         }

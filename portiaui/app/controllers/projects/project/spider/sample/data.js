@@ -106,27 +106,31 @@ export default Ember.Controller.extend({
             return [];
         }),
     generalizableModel: Ember.computed(
-        'selectedModel', 'hoveredElement',
+        'selectionMode', 'selectedModel', 'hoveredElement',
         'sample.orderedAnnotations.@each.selectorGenerator', function() {
+            const isEditMode = this.get('selectionMode') === 'edit';
             const selectedModel = this.get('selectedModel');
             const hoveredElement = this.get('hoveredElement');
             if (!hoveredElement) {
                 return;
             }
 
-            if (selectedModel) {
-                const selectorGenerator = selectedModel.get('selectorGenerator');
-                if (selectorGenerator) {
-                    const distance = selectorGenerator.generalizationDistance(hoveredElement);
-                    if (distance < Infinity) {
-                        return selectedModel;
-                    }
-                }
+            // if user has manually chosen the edit tool, and selected an annotation, use that ...
+            if (selectedModel && isEditMode) {
+                return selectedModel;
             }
 
+            // ... otherwise fine best match
             const annotations = this.get('sample.orderedAnnotations');
             if (annotations.length) {
-                const possibilities = annotations.map(annotation => {
+                const annotationsToMatch = annotations.slice();
+                // if an annotation is selected prefer it
+                // add it to the start of the list, sorting preserves order
+                if (selectedModel) {
+                    annotationsToMatch.removeObject(selectedModel);
+                    annotationsToMatch.unshift(selectedModel);
+                }
+                const possibilities = annotationsToMatch.map(annotation => {
                     const selectorGenerator = annotation.get('selectorGenerator');
                     const distance = selectorGenerator ?
                         selectorGenerator.generalizationDistance(hoveredElement) :
@@ -137,7 +141,10 @@ export default Ember.Controller.extend({
                     };
                 }).sortBy('distance');
                 const {annotation, distance} = possibilities[0];
-                if (distance < Infinity) {
+
+                // if user has manually chosen the edit tool return the best match, otherwise use
+                // a distance cutoff
+                if (isEditMode || distance < (selectedModel ? 4 : 2)) {
                     return annotation;
                 }
             }
@@ -154,8 +161,8 @@ export default Ember.Controller.extend({
                 } else if (activeSelectionMode === 'select' || activeSelectionMode === 'remove') {
                     return colors[this.get('hoveredModels.firstObject.orderedIndex')];
                 } else if (activeSelectionMode === 'edit') {
-                    return colors[this.get('selectedModel.orderedIndex')] ||
-                        colors[this.get('generalizableModel.orderedIndex')];
+                    return colors[this.get('generalizableModel.orderedIndex')] ||
+                        colors[this.get('selectedModel.orderedIndex')];
                 }
             }
         }),
@@ -172,7 +179,7 @@ export default Ember.Controller.extend({
                         hoveredModels.length) {
                     return true;
                 } else if (activeSelectionMode === 'edit' &&
-                        (this.get('selectedModel') || this.get('generalizableModel'))) {
+                        (this.get('generalizableModel') || this.get('selectedModel'))) {
                     return true;
                 }
             }
@@ -235,7 +242,7 @@ export default Ember.Controller.extend({
                     break;
 
                 case 'edit':
-                    const matchingModel = selectedModel || this.get('generalizableModel');
+                    const matchingModel = this.get('generalizableModel') || selectedModel;
                     if (!hoveredElement) {
                         dispatcher.clearSelection();
                     } else if (matchingModel && !hoveredModels.includes(matchingModel)) {
