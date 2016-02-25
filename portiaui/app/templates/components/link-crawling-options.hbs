@@ -9,6 +9,16 @@
         {{regex-pattern-list list=spider.followPatterns onChange=(action 'save')}}
         <div>Exclude links that match these patterns</div>
         {{regex-pattern-list list=spider.excludePatterns onChange=(action 'save')}}
+    {{else if (eq spider.linksToFollow 'examples')}}
+        Portia will follow URLs similar to the ones in the start pages and won't follow URLs similar to those on the ignored pages.
+
+        You can select links on the page to add them to the start / ignored pages.
+
+        {{#tree-list}}
+            {{#url-list-editor urls=spider.nofollowExamples saveUrl='saveIgnoredUrl'}}
+                Ignored Pages
+            {{/url-list-editor}}
+        {{/tree-list}}
     {{/if}}
 
     <div class="checkbox">

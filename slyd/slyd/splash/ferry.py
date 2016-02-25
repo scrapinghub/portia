@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 import json
 import os
-import traceback
 
 from six.moves.urllib_parse import urlparse
 
@@ -232,24 +231,24 @@ class FerryServerProtocol(WebSocketServerProtocol):
             except Exception as e:
                 command = data.get('_callback') or command
                 if isinstance(e, BaseHTTPError):
-                    code = e.status
-                    reason = e.title
+                    code, reason, message = e.status, e.title, e.body
                 else:
                     code = 500
                     reason = "Internal Server Error"
-                    traceback.print_exc()
+                    message = "An unexpected error has occurred."
 
-                failure = Failure(e)
+                failure = Failure()
                 log.err(failure)
                 event_id = getattr(failure, 'sentry_event_id', None)
                 if event_id:
-                    reason = "%s (Event ID: %s)" % (reason, event_id)
+                    message = "%s (Event ID: %s)" % (message, event_id)
 
                 return self.sendMessage({
                     'error': code,
                     '_command': command,
                     'id': data.get('_meta', {}).get('id'),
-                    'reason': reason
+                    'reason': reason,
+                    'message': message,
                 })
 
             if result:

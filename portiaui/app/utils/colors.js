@@ -69,6 +69,11 @@ export const COLORS = [
         shadow: '#b71c1c'
     },
     {
+        name: 'light red',
+        main: '#ff655a',
+        shadow: '#e23d3d'
+    },
+    {
         name: 'pink',
         main: '#e91e63',
         shadow: '#880e4f'

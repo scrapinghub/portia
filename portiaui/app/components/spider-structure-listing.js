@@ -12,26 +12,18 @@ export default Ember.Component.extend({
 
     canAddSample: computedCanAddSample('spider'),
 
-    init() {
-        this._super();
-        this.set('newUrl', false);
-    },
-
     actions: {
-        addStartUrl() {
+        saveStartUrl(oldUrl, newUrl) {
             const spider = this.get('spider');
-            let newUrl = this.get('browser.url') || '';
-            const urls = spider.get('startUrls');
-            if (newUrl && urls.includes(newUrl)) {
-                newUrl = '';
+            if (oldUrl !== newUrl) {
+                if (!newUrl) {
+                    this.get('dispatcher').removeStartUrl(spider, oldUrl);
+                } else if (!oldUrl) {
+                    this.get('dispatcher').addStartUrl(spider, newUrl);
+                } else {
+                    this.get('dispatcher').replaceStartUrl(spider, oldUrl, newUrl);
+                }
             }
-            if (newUrl) {
-                this.get('dispatcher').addStartUrl(spider, newUrl);
-            }
-            this.setProperties({
-                newUrl: true,
-                urlValue: newUrl
-            });
         },
 
         addSample() {

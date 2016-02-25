@@ -150,7 +150,7 @@ export default Ember.Component.extend({
     actions: {
         keyDown($event) {
             const keyNavigate = this.get('keyNavigate');
-            switch (event.keyCode) {
+            switch ($event.keyCode) {
                 case 13:  // ENTER
                     if (!this.triggerAction(keyNavigate)) {
                         return;

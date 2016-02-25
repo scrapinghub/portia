@@ -18,7 +18,11 @@ export default Ember.Component.extend({
         {
             value: 'patterns',
             label: 'Configure url patterns'
-        }
+        },
+        {
+            value: 'examples',
+            label: 'Select followed links'
+        },
     ],
 
     linksToFollow: Ember.computed('spider.linksToFollow', {

@@ -44,7 +44,5 @@ def make_server(*args, **kwargs):
     reactor.listenTCP(port, site)
     test_resource_server()
 
-splash.server.splash_server = make_server
-
 if __name__ == '__main__':
-    splash.server.main()
+    splash.server.main(server_factory=make_server, argv=[])

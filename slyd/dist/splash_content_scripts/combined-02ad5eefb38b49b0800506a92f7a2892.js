@@ -354,7 +354,7 @@ var arraySliceApply = apply.bind(array_slice);
 var strSlice = call.bind(StringPrototype.slice);
 var strSplit = call.bind(StringPrototype.split);
 var strIndexOf = call.bind(StringPrototype.indexOf);
-var push = call.bind(array_push);
+var pushCall = call.bind(array_push);
 var isEnum = call.bind(ObjectPrototype.propertyIsEnumerable);
 var arraySort = call.bind(ArrayPrototype.sort);
 
@@ -510,7 +510,7 @@ defineProperties(ArrayPrototype, {
             if (i in self) {
                 value = self[i];
                 if (typeof T === 'undefined' ? callbackfn(value, i, object) : callbackfn.call(T, value, i, object)) {
-                    push(result, value);
+                    pushCall(result, value);
                 }
             }
         }
@@ -765,7 +765,7 @@ defineProperties(ArrayPrototype, {
         if (arguments.length > 0 && typeof deleteCount !== 'number') {
             args = arraySlice(arguments);
             if (args.length < 2) {
-                push(args, this.length - start);
+                pushCall(args, this.length - start);
             } else {
                 args[1] = ES.ToInteger(deleteCount);
             }
@@ -1053,14 +1053,14 @@ defineProperties($Object, {
         var skipProto = hasProtoEnumBug && isFn;
         if ((isStr && hasStringEnumBug) || isArgs) {
             for (var i = 0; i < object.length; ++i) {
-                push(theKeys, $String(i));
+                pushCall(theKeys, $String(i));
             }
         }
 
         if (!isArgs) {
             for (var name in object) {
                 if (!(skipProto && name === 'prototype') && owns(object, name)) {
-                    push(theKeys, $String(name));
+                    pushCall(theKeys, $String(name));
                 }
             }
         }
@@ -1070,7 +1070,7 @@ defineProperties($Object, {
             for (var j = 0; j < dontEnumsLength; j++) {
                 var dontEnum = dontEnums[j];
                 if (!(skipConstructor && dontEnum === 'constructor') && owns(object, dontEnum)) {
-                    push(theKeys, dontEnum);
+                    pushCall(theKeys, dontEnum);
                 }
             }
         }
@@ -1102,6 +1102,190 @@ defineProperties($Object, {
 // ====
 //
 
+var hasNegativeMonthYearBug = new Date(-3509827329600292).getUTCMonth() !== 0;
+var aNegativeTestDate = new Date(-1509842289600292);
+var aPositiveTestDate = new Date(1449662400000);
+var hasToUTCStringFormatBug = aNegativeTestDate.toUTCString() !== 'Mon, 01 Jan -45875 11:59:59 GMT';
+var hasToDateStringFormatBug;
+var hasToStringFormatBug;
+var timeZoneOffset = aNegativeTestDate.getTimezoneOffset();
+if (timeZoneOffset < -720) {
+    hasToDateStringFormatBug = aNegativeTestDate.toDateString() !== 'Tue Jan 02 -45875';
+    hasToStringFormatBug = !(/^Thu Dec 10 2015 \d\d:\d\d:\d\d GMT[-\+]\d\d\d\d(?: |$)/).test(aPositiveTestDate.toString());
+} else {
+    hasToDateStringFormatBug = aNegativeTestDate.toDateString() !== 'Mon Jan 01 -45875';
+    hasToStringFormatBug = !(/^Wed Dec 09 2015 \d\d:\d\d:\d\d GMT[-\+]\d\d\d\d(?: |$)/).test(aPositiveTestDate.toString());
+}
+
+var originalGetFullYear = call.bind(Date.prototype.getFullYear);
+var originalGetMonth = call.bind(Date.prototype.getMonth);
+var originalGetDate = call.bind(Date.prototype.getDate);
+var originalGetUTCFullYear = call.bind(Date.prototype.getUTCFullYear);
+var originalGetUTCMonth = call.bind(Date.prototype.getUTCMonth);
+var originalGetUTCDate = call.bind(Date.prototype.getUTCDate);
+var originalGetUTCDay = call.bind(Date.prototype.getUTCDay);
+var originalGetUTCHours = call.bind(Date.prototype.getUTCHours);
+var originalGetUTCMinutes = call.bind(Date.prototype.getUTCMinutes);
+var originalGetUTCSeconds = call.bind(Date.prototype.getUTCSeconds);
+var originalGetUTCMilliseconds = call.bind(Date.prototype.getUTCMilliseconds);
+var dayName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+var monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+var daysInMonth = function daysInMonth(month, year) {
+    return originalGetDate(new Date(year, month, 0));
+};
+
+defineProperties(Date.prototype, {
+    getFullYear: function getFullYear() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var year = originalGetFullYear(this);
+        if (year < 0 && originalGetMonth(this) > 11) {
+            return year + 1;
+        }
+        return year;
+    },
+    getMonth: function getMonth() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var year = originalGetFullYear(this);
+        var month = originalGetMonth(this);
+        if (year < 0 && month > 11) {
+            return 0;
+        }
+        return month;
+    },
+    getDate: function getDate() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var year = originalGetFullYear(this);
+        var month = originalGetMonth(this);
+        var date = originalGetDate(this);
+        if (year < 0 && month > 11) {
+            if (month === 12) {
+                return date;
+            }
+            var days = daysInMonth(0, year + 1);
+            return (days - date) + 1;
+        }
+        return date;
+    },
+    getUTCFullYear: function getUTCFullYear() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var year = originalGetUTCFullYear(this);
+        if (year < 0 && originalGetUTCMonth(this) > 11) {
+            return year + 1;
+        }
+        return year;
+    },
+    getUTCMonth: function getUTCMonth() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var year = originalGetUTCFullYear(this);
+        var month = originalGetUTCMonth(this);
+        if (year < 0 && month > 11) {
+            return 0;
+        }
+        return month;
+    },
+    getUTCDate: function getUTCDate() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var year = originalGetUTCFullYear(this);
+        var month = originalGetUTCMonth(this);
+        var date = originalGetUTCDate(this);
+        if (year < 0 && month > 11) {
+            if (month === 12) {
+                return date;
+            }
+            var days = daysInMonth(0, year + 1);
+            return (days - date) + 1;
+        }
+        return date;
+    }
+}, hasNegativeMonthYearBug);
+
+defineProperties(Date.prototype, {
+    toUTCString: function toUTCString() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var day = originalGetUTCDay(this);
+        var date = originalGetUTCDate(this);
+        var month = originalGetUTCMonth(this);
+        var year = originalGetUTCFullYear(this);
+        var hour = originalGetUTCHours(this);
+        var minute = originalGetUTCMinutes(this);
+        var second = originalGetUTCSeconds(this);
+        return dayName[day] + ', ' +
+            (date < 10 ? '0' + date : date) + ' ' +
+            monthName[month] + ' ' +
+            year + ' ' +
+            (hour < 10 ? '0' + hour : hour) + ':' +
+            (minute < 10 ? '0' + minute : minute) + ':' +
+            (second < 10 ? '0' + second : second) + ' GMT';
+    }
+}, hasNegativeMonthYearBug || hasToUTCStringFormatBug);
+
+// Opera 12 has `,`
+defineProperties(Date.prototype, {
+    toDateString: function toDateString() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var day = this.getDay();
+        var date = this.getDate();
+        var month = this.getMonth();
+        var year = this.getFullYear();
+        return dayName[day] + ' ' +
+            monthName[month] + ' ' +
+            (date < 10 ? '0' + date : date) + ' ' +
+            year;
+    }
+}, hasNegativeMonthYearBug || hasToDateStringFormatBug);
+
+// can't use defineProperties here because of toString enumeration issue in IE <= 8
+if (hasNegativeMonthYearBug || hasToStringFormatBug) {
+    Date.prototype.toString = function toString() {
+        if (!this || !(this instanceof Date)) {
+            throw new TypeError('this is not a Date object.');
+        }
+        var day = this.getDay();
+        var date = this.getDate();
+        var month = this.getMonth();
+        var year = this.getFullYear();
+        var hour = this.getHours();
+        var minute = this.getMinutes();
+        var second = this.getSeconds();
+        var timezoneOffset = this.getTimezoneOffset();
+        var hoursOffset = Math.floor(Math.abs(timezoneOffset) / 60);
+        var minutesOffset = Math.floor(Math.abs(timezoneOffset) % 60);
+        return dayName[day] + ' ' +
+            monthName[month] + ' ' +
+            (date < 10 ? '0' + date : date) + ' ' +
+            year + ' ' +
+            (hour < 10 ? '0' + hour : hour) + ':' +
+            (minute < 10 ? '0' + minute : minute) + ':' +
+            (second < 10 ? '0' + second : second) + ' GMT' +
+            (timezoneOffset > 0 ? '-' : '+') +
+            (hoursOffset < 10 ? '0' + hoursOffset : hoursOffset) +
+            (minutesOffset < 10 ? '0' + minutesOffset : minutesOffset);
+    };
+    if (supportsDescriptors) {
+        $Object.defineProperty(Date.prototype, 'toString', {
+            configurable: true,
+            enumerable: false,
+            writable: true
+        });
+    }
+}
+
 // ES5 15.9.5.43
 // http://es5.github.com/#x15.9.5.43
 // This function returns a String value represent the instance in time
@@ -1116,39 +1300,33 @@ var hasSafari51DateBug = Date.prototype.toISOString && new Date(-1).toISOString(
 
 defineProperties(Date.prototype, {
     toISOString: function toISOString() {
-        var result, length, value, year, month;
         if (!isFinite(this)) {
             throw new RangeError('Date.prototype.toISOString called on non-finite value.');
         }
 
-        year = this.getUTCFullYear();
+        var year = originalGetUTCFullYear(this);
 
-        month = this.getUTCMonth();
+        var month = originalGetUTCMonth(this);
         // see https://github.com/es-shims/es5-shim/issues/111
         year += Math.floor(month / 12);
         month = (month % 12 + 12) % 12;
 
         // the date time string format is specified in 15.9.1.15.
-        result = [month + 1, this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()];
+        var result = [month + 1, originalGetUTCDate(this), originalGetUTCHours(this), originalGetUTCMinutes(this), originalGetUTCSeconds(this)];
         year = (
             (year < 0 ? '-' : (year > 9999 ? '+' : '')) +
             strSlice('00000' + Math.abs(year), (0 <= year && year <= 9999) ? -4 : -6)
         );
 
-        length = result.length;
-        while (length--) {
-            value = result[length];
-            // pad months, days, hours, minutes, and seconds to have two
-            // digits.
-            if (value < 10) {
-                result[length] = '0' + value;
-            }
+        for (var i = 0; i < result.length; ++i) {
+          // pad months, days, hours, minutes, and seconds to have two digits.
+          result[i] = strSlice('00' + result[i], -2);
         }
         // pad milliseconds to have three digits.
         return (
             year + '-' + arraySlice(result, 0, 2).join('-') +
             'T' + arraySlice(result, 2).join(':') + '.' +
-            strSlice('000' + this.getUTCMilliseconds(), -3) + 'Z'
+            strSlice('000' + originalGetUTCMilliseconds(this), -3) + 'Z'
         );
     }
 }, hasNegativeDateBug || hasSafari51DateBug);
@@ -1626,7 +1804,7 @@ if (
                 // `separatorCopy.lastIndex` is not reliable cross-browser
                 lastIndex = match.index + match[0].length;
                 if (lastIndex > lastLastIndex) {
-                    push(output, strSlice(string, lastLastIndex, match.index));
+                    pushCall(output, strSlice(string, lastLastIndex, match.index));
                     // Fix browsers whose `exec` methods don't consistently return `undefined` for
                     // nonparticipating capturing groups
                     if (!compliantExecNpcg && match.length > 1) {
@@ -1656,10 +1834,10 @@ if (
             }
             if (lastLastIndex === string.length) {
                 if (lastLength || !separatorCopy.test('')) {
-                    push(output, '');
+                    pushCall(output, '');
                 }
             } else {
-                push(output, strSlice(string, lastLastIndex));
+                pushCall(output, strSlice(string, lastLastIndex));
             }
             return output.length > splitLimit ? strSlice(output, 0, splitLimit) : output;
         };
@@ -1682,7 +1860,7 @@ var str_replace = StringPrototype.replace;
 var replaceReportsGroupsCorrectly = (function () {
     var groups = [];
     'x'.replace(/x(.)?/g, function (match, group) {
-        push(groups, group);
+        pushCall(groups, group);
     });
     return groups.length === 1 && typeof groups[0] === 'undefined';
 }());
@@ -1700,7 +1878,7 @@ if (!replaceReportsGroupsCorrectly) {
                 searchValue.lastIndex = 0;
                 var args = searchValue.exec(match) || [];
                 searchValue.lastIndex = originalLastIndex;
-                push(args, arguments[length - 2], arguments[length - 1]);
+                pushCall(args, arguments[length - 2], arguments[length - 1]);
                 return replaceValue.apply(this, args);
             };
             return str_replace.call(this, searchValue, wrappedReplaceValue);
@@ -1745,6 +1923,7 @@ defineProperties(StringPrototype, {
         return $String(this).replace(trimBeginRegexp, '').replace(trimEndRegexp, '');
     }
 }, hasTrimWhitespaceBug);
+var trim = call.bind(String.prototype.trim);
 
 var hasLastIndexBug = StringPrototype.lastIndexOf && 'abcあい'.lastIndexOf('あい', 2) !== -1;
 defineProperties(StringPrototype, {
@@ -1785,11 +1964,23 @@ if (parseInt(ws + '08') !== 8 || parseInt(ws + '0x16') !== 22) {
     parseInt = (function (origParseInt) {
         var hexRegex = /^[\-+]?0[xX]/;
         return function parseInt(str, radix) {
-            var string = $String(str).trim();
+            var string = trim(str);
             var defaultedRadix = $Number(radix) || (hexRegex.test(string) ? 16 : 10);
             return origParseInt(string, defaultedRadix);
         };
     }(parseInt));
+}
+
+// https://es5.github.io/#x15.1.2.3
+if (1 / parseFloat('-0') !== -Infinity) {
+    /* global parseFloat: true */
+    parseFloat = (function (origParseFloat) {
+        return function parseFloat(string) {
+            var inputString = trim(string);
+            var result = origParseFloat(inputString);
+            return result === 0 && strSlice(inputString, 0, 1) === '-' ? -0 : result;
+        };
+    }(parseFloat));
 }
 
 if (String(new RangeError('test')) !== 'RangeError: test') {
@@ -4489,86 +4680,6 @@ var TreeMirrorClient = (function () {
     return TreeMirrorClient;
 })();
 
-;(function(){
-    function makeStorage(valueSizeLimit, keyNumberLimit){
-        var keys = [];
-
-        var storage = Object.create(Object, {
-            getItem: {value: function(k) {
-                if(this.hasOwnProperty(k)) {
-                    return this[k];
-                }
-            }},
-            setItem: {value: function(k, v) {
-                v = String(v);
-                if(v.length <= valueSizeLimit && keys.length <= keyNumberLimit) {
-                    this[k] = v;
-                    update();
-                }
-            }},
-            removeItem: {value: function(k) {
-                if(this.hasOwnProperty(k)) {
-                    delete this[k];
-                }
-                update();
-            }},
-            clear: {value: function(){
-                for(var k in this){
-                    if(this.hasOwnProperty(k)) {
-                        delete this[k];
-                    }
-                }
-                keys.splice(0, keys.length);
-            }},
-            key: {value: function(i) {
-                return keys[i];
-            }},
-            length: {get: function(){
-                return keys.length;
-            }}
-        });
-
-        var update = function() {
-            keys.splice(0, keys.length);
-            for(var k in storage){
-                if(storage.hasOwnProperty(k)){
-                    if(typeof storage[k] !== 'string'){
-                        storage[k] = String(storage[k]);
-                    }
-                    if(storage[k].length > valueSizeLimit || keys.length > keyNumberLimit) {
-                        delete storage[k];
-                    } else {
-                        keys.push(k);
-                    }
-                }
-            }
-            if(window.livePortiaPage) {
-                try{
-                    livePortiaPage.localStorageUpdated(local.storage, session.storage);
-                }catch(e){}
-            }
-        };
-
-        return {
-            storage: storage,
-            update: update
-        };
-    }
-
-    var local = makeStorage(2000, 100);
-    var session = makeStorage(2000, 100);
-
-    window.__defineGetter__('localStorage', function(){
-        local.update();
-        return local.storage;
-    });
-
-    window.__defineGetter__('sessionStorage', function(){
-        session.update();
-        return session.storage;
-    });
-})();
-
 MutationObserver._period = 500;
 
 // Keep a reference to some native methods, so we use the originals if
@@ -4584,29 +4695,6 @@ var BooleanProto = Boolean.prototype;
 
 
 // Note: Variables here are not leaked to the global scope because the compiler wraps it in a function
-function hashString(string, seed) { // Non cryptographic hash of an string
-    var hash = seed || 0;
-    for (var i = 0, len = string.length; i < len; i++) {
-        var chr = string.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash;
-}
-
-/**
- * Returns a non-cryptographic hash of a shallow object
- * > hashObject({a: '1', b: '2'}) === hashObject({b: '2', a: '1'})
- * > hashObject({a: '1', b: '2', c:1}) !== hashObject({b: '2', a: '1'})
- */
-function hashObject(obj, seed) {
-    var keys = Object.keys(obj).sort();
-    var hash = seed || 0;
-    for (var i = 0, len = keys.length; i < len; i++) {
-        hash = hashString(keys[i] + '\n' + obj[keys[i]] + '\n', hash);
-    }
-    return hash;
-}
 
 var MAX_DIALOGS = 15;  // Maximum number of dialogs (alert, confirm, prompt) before throwing an exception
 
@@ -4745,50 +4833,6 @@ PortiaPage.prototype.sendEvent = function(data) {
 
 PortiaPage.prototype.getByNodeId = function(nodeId){
     return this.mirrorClient.knownNodes.byId[nodeId];
-};
-
-function cloneStorage(s){
-    var n = Object.create(null);
-    for(var k in s) {
-        if(s.hasOwnProperty(k)){
-            n[k] = s[k];
-        }
-    }
-    return n;
-}
-
-PortiaPage.prototype.localStorageUpdated = function(local, session) {
-    if(this._localStorageLoading) {
-        return;
-    }
-    var hash = hashObject(local, 1) + hashObject(session, 2);
-    if(hash !== this._prevStorageHash) {
-        this.sendMessage('storage', {
-            local: cloneStorage(local),
-            session: cloneStorage(session),
-            origin: location.origin,
-        });
-        this._prevStorageHash = hash;
-    }
-};
-
-PortiaPage.prototype.setLocalStorage = function(localData, sessionData){
-    this._localStorageLoading = true;
-    var local = window.localStorage;
-    var session = window.sessionStorage;
-    for(var k in localData) {
-        if(localData.hasOwnProperty(k)){
-            local[k] = localData[k];
-        }
-    }
-    for(k in sessionData) {
-        if(sessionData.hasOwnProperty(k)){
-            session[k] = sessionData[k];
-        }
-    }
-
-    this._prevStorageHash = hashObject(local, 1) + hashObject(session, 2);
-    this._localStorageLoading = false;
 };
 
 PortiaPage.prototype.pyGetByNodeId = function(nodeId){

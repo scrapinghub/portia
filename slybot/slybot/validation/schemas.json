@@ -18,7 +18,7 @@
         "id": "item",
         "type": "object",
         "properties": {
-            "fields": {"additionalProperties": {"$ref": "field"}, "required": true},
+            "fields": {"type": "object", "additionalProperties": {"$ref": "field"}, "required": true},
             "name": {"type": "string", "required": false}
         }
     },
@@ -49,9 +49,10 @@
         "type": "object",
         "properties": {
             "start_urls": {"type": "array", "items": {"type": "string", "format": "url"}, "required": true},
-            "links_to_follow": {"type": "string", "enum": ["none", "patterns", "all"], "required": true},
+            "links_to_follow": {"type": "string", "enum": ["none", "patterns", "examples", "all"], "required": true},
             "follow_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "exclude_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
+            "nofollow_examples": {"type": "array", "items": {"type": "string", "format": "url"}},
             "js_enabled": {"type": "boolean"},
             "js_enable_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "js_disable_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
