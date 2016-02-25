@@ -1,0 +1,30 @@
+{{#tree-list}}
+    {{#tree-list-item hasChildren=project.spiders.length as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Project
+            {{/list-item-text}}
+            {{!-- {{list-item-icon icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}} --}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item}}
+                {{#link-to 'projects.project' project}}
+                    {{list-item-icon icon='project'}}
+                    {{#list-item-text}}
+                        {{project.name}}
+                    {{/list-item-text}}
+                    {{#tooltip-container tooltipFor="project-publish-button" text="Publish project" tooltipContainer='body'}}
+                        {{list-item-icon id="project-publish-button" icon='publish' action=(action 'publish')}}
+                    {{/tooltip-container}}
+                    {{#tooltip-container tooltipFor="project-discard-button" text="Discard changes" tooltipContainer='body'}}
+                        {{list-item-icon id="project-discard-button" icon='rollback' action=(action 'discard')}}
+                    {{/tooltip-container}}
+                    {{#tooltip-container tooltipFor="project-close-button" text="Close project" tooltipContainer='body'}}
+                        {{#link-to 'projects' id="project-close-button"}}
+                            {{list-item-icon icon='close'}}
+                        {{/link-to}}
+                    {{/tooltip-container}}
+                {{/link-to}}
+            {{/tree-list-item}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}

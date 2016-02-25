@@ -3,6 +3,7 @@
     "document",
     "window",
     "$",
+    "moment",
     "URI",
     "TreeMirror",
     "-Promise"

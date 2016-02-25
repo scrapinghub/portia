@@ -4,6 +4,7 @@ import {computedCanAddSample} from '../services/dispatcher';
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     tagName: '',
 
@@ -11,6 +12,7 @@ export default Ember.Component.extend({
     spider: null,
 
     canAddSample: computedCanAddSample('spider'),
+    currentSample: Ember.computed.readOnly('uiState.models.sample'),
 
     init() {
         this._super();

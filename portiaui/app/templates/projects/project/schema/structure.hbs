@@ -1,12 +1,1 @@
-<h2>
-    {{list-item-icon icon='schema'}}
-    {{#list-item-text}}
-        {{model.name}}
-    {{/list-item-text}}
-    {{#tooltip-container tooltipFor="schema-close-button" text="Close schema" tooltipContainer='body'}}
-        {{#link-to 'projects.project' id="schema-close-button"}}
-            {{list-item-icon icon='close'}}
-        {{/link-to}}
-    {{/tooltip-container}}
-</h2>
 {{schema-structure-listing schema=model}}

@@ -1,25 +1,24 @@
 import { moduleForComponent, test } from 'ember-qunit';
 import hbs from 'htmlbars-inline-precompile';
 
-moduleForComponent('project-commands', 'Integration | Component | project commands', {
+moduleForComponent('save-status', 'Integration | Component | save status', {
   integration: true
 });
 
 test('it renders', function(assert) {
-  assert.expect(2);
-
+  
   // Set any properties with this.set('myProperty', 'value');
-  // Handle any actions with this.on('myAction', function(val) { ... });
+  // Handle any actions with this.on('myAction', function(val) { ... });" + EOL + EOL +
 
-  this.render(hbs`{{project-commands}}`);
+  this.render(hbs`{{save-status}}`);
 
   assert.equal(this.$().text().trim(), '');
 
-  // Template block usage:
+  // Template block usage:" + EOL +
   this.render(hbs`
-    {{#project-commands}}
+    {{#save-status}}
       template block text
-    {{/project-commands}}
+    {{/save-status}}
   `);
 
   assert.equal(this.$().text().trim(), 'template block text');

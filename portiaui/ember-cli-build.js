@@ -10,6 +10,7 @@ module.exports = function(defaults) {
 
     app.import('bower_components/bootstrap-sass/assets/javascripts/bootstrap/tooltip.js');
     app.import('bower_components/jquery-color/jquery.color.js');
+    app.import('bower_components/moment/min/moment.min.js');
     app.import('bower_components/uri.js/src/URI.min.js');
     app.import('vendor/tree-mirror.js');
 
