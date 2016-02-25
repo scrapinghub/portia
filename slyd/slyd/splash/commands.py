@@ -39,7 +39,7 @@ def save_html(data, socket):
         sample['original_body'] = _decode(socket.tab.network_manager._raw_html,
                                           stated_encoding)
     except AttributeError:
-        sample['original_body'] = socket.tab.html().decode('utf-8')
+        sample['original_body'] = socket.tab.html()
     _update_sample(data, socket, sample, save=True)
 
 

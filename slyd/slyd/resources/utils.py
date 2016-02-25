@@ -169,7 +169,7 @@ def _get_formatted_schema(manager, schema_id, schema, include_fields=False):
     data = SchemaSchema(context=ctx(manager)).dump(schema).data
     if include_fields:
         included = FieldSchema(many=True).dump(schema['fields']).data
-        data['included'] = included
+        data['included'] = included['data']
     return data
 
 
