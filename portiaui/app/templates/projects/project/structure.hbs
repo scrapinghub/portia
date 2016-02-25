@@ -1,4 +1,5 @@
 <nav id="side-bar">
+    {{save-status}}
     {{project-listing project=model reload="reload" conflict="conflict"}}
     {{project-structure-listing project=model}}
     {{outlet 'project-structure'}}
