@@ -1,0 +1,14 @@
+{{#if portiaStableUrl}}
+    <li>
+        <a href="{{portiaStableUrl}}{{if currentProject (concat '/#/projects/' currentProject.id)}}">
+            Switch to previous Portia UI
+        </a>
+    </li>
+{{/if}}
+{{#if dashUrl}}
+    <li>
+        <a href="{{dashUrl}}{{if currentProject (concat '/p/' currentProject.id '/jobs/')}}">
+            Scrapinghub Dashboard
+        </a>
+    </li>
+{{/if}}
