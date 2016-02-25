@@ -3,6 +3,7 @@
     "document",
     "window",
     "$",
+    "cookie",
     "moment",
     "URI",
     "TreeMirror",
