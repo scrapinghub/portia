@@ -1,22 +1,5 @@
 #top-bar {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: space-between;
     margin-bottom: 0;
-
-    .navbar-left {
-        flex: 1 0 25%;
-    }
-
-    .navbar-form {
-        flex: 0 1 50%;
-    }
-
-    .navbar-right {
-        margin-right: 0;
-        flex: 1 0 25%;
-    }
 
     &:before,
     &:after {
