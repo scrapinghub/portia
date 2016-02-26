@@ -53,14 +53,14 @@ export default Ember.Service.extend({
             name,
             project
         });
-        schema.save().then(() => {
+        return schema.save().then(() => {
             if (redirect) {
                 schema.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.schema', [schema], {}, true);
             }
+            return schema;
         });
-        return schema;
     },
 
     addField(schema, type, redirect = false) {
