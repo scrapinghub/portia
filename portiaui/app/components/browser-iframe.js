@@ -179,8 +179,8 @@ const BrowserIFrame = Ember.Component.extend({
                 this.clickHandlerBrowse(e);
             } else {
                 this.click();
+                return false;
             }
-            return false;
         });
         this.addFrameEventListener('focus', this.postEvent.bind(this), true);
         this.addFrameEventListener('blur', this.postEvent.bind(this), true);
