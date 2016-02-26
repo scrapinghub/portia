@@ -7,10 +7,13 @@ import { NAVIGATION_MODE } from '../services/browser';
 
 const BrowserIFrame = Ember.Component.extend({
     browser: Ember.inject.service(),
+    overlays: Ember.inject.service(),
     webSocket: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
     tagName: 'iframe',
+    classNames: ['browser-iframe'],
+    classNameBindings: ['overlays.hasOverlays:has-overlays'],
 
     splashUrl: null,
 
