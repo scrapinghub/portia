@@ -1,21 +1,34 @@
+var eventCategories = {
+    "keyup": "keyboard",
+  "keydown": "keyboard",
+ "keypress": "keyboard",
+"mousedown": "mouse",
+  "mouseup": "mouse",
+    "click": "mouse",
+   "scroll": "scroll",
+    "focus": "focus",
+     "blur": "focus",
+    "input": "simple",
+   "change": "simple",
+};
+
 function getEventCategory (evt) {
-    switch (evt.constructor.name) {
-        case 'MouseEvent': return 'mouse';
-        case 'KeyboardEvent': return 'keyboard';
-        case 'UIEvent': return 'scroll';
-        case 'FocusEvent': return 'focus';
-        case 'Event': case 'InputEvent': return 'simple';
-        default: return 'unknown';
+    if(evt.type in eventCategories) {
+        return eventCategories[evt.type];
     }
+    throw new Error("Can't serialize event of type " + evt.type);
 }
 
 var interactionEvent = function(evt) {
     var target = evt.target;
     var doc = target.ownerDocument;
 
-    if(target.nodeType === Node.DOCUMENT_NODE){
+    if(target && target.nodeType === Node.DOCUMENT_NODE){
         doc = target;
         target = doc.documentElement;
+    }
+    if(!target || !target.nodeid) {
+        return null;
     }
 
     var data = {
@@ -41,10 +54,12 @@ var interactionEvent = function(evt) {
         }
         if (scrollTarget) {
             data.scrollTop = scrollTarget.scrollTop;
+            data.scrollTopPercent = scrollTarget.scrollTopMax && Math.round(scrollTarget.scrollTop * 100 / scrollTarget.scrollTopMax);
             data.scrollLeft  = scrollTarget.scrollLeft;
         } else {
             data.scrollTop = 0;
             data.scrollLeft  = 0;
+            data.scrollTopPercent = 0;
         }
     }
 
