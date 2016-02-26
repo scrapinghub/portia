@@ -2,6 +2,7 @@ import Ember from 'ember';
 import {attrChanged, attrValue} from '../utils/attrs';
 
 export default Ember.Component.extend({
+    overlays: Ember.inject.service(),
     positionMonitor: Ember.inject.service(),
 
     classNames: ['overlay'],
@@ -18,6 +19,22 @@ export default Ember.Component.extend({
         const color = this.get('color.shadow');
         return Ember.String.htmlSafe(color ? `text-shadow: 0 1px 1px ${color};` : '');
     }),
+
+    didInsertElement() {
+        Ember.run.scheduleOnce('afterRender', this, this.notifyAddOverlay);
+    },
+
+    willDestroyElement() {
+        Ember.run.scheduleOnce('afterRender', this, this.notifyRemoveOverlay);
+    },
+
+    notifyAddOverlay() {
+        this.get('overlays').add();
+    },
+
+    notifyRemoveOverlay() {
+        this.get('overlays').remove();
+    },
 
     didReceiveAttrs({oldAttrs, newAttrs}) {
         if (attrChanged(oldAttrs, newAttrs, 'viewPortElement')) {

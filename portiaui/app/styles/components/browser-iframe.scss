@@ -1,0 +1,14 @@
+.browser-iframe {
+    filter: none;
+    opacity: 1;
+    transition: filter ($animation-time * 2) $animation-easing, opacity ($animation-time * 2) $animation-easing;
+
+    &.has-overlays {
+        opacity: .5;
+
+        @supports (filter: grayscale(100%)) {
+            filter: grayscale(100%);
+            opacity: 1;
+        }
+    }
+}
