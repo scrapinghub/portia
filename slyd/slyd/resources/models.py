@@ -357,6 +357,15 @@ class ItemSchema(SlydSchema):
                             'item_id': '<id>'},
         include_data=True, type_='item_annotations'
     )
+    parent = fields.Relationship(type_='items', include_data=True)
+
+    @pre_dump
+    def _dump_parent_id(self, item):
+        parent_id = item.get('container_id') or ''
+        if parent_id:
+            item['parent'] = {'id': parent_id}
+        if parent_id and item.get('parent_id') is None:
+            item['parent_id'] = parent_id
 
     class Meta:
         type_ = 'items'

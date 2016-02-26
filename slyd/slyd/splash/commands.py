@@ -58,7 +58,7 @@ def extract_items(data, socket):
     annotations = socket.spider.plugins['Annotations']
     sid = data.get('sample')
     if sid:
-        sample_names = [_update_sample(data, socket)]
+        sample_names = [_update_sample(data, socket, use_live=True)]
         spider = {k: sample_names if k == 'templates' else v
                   for k, v in socket.spiderspec.spider.items()}
         items, extractors = _load_items_and_extractors(data, socket)
@@ -74,17 +74,18 @@ def extract_items(data, socket):
     return {'links': links, 'items': items}
 
 
-def _update_sample(data, socket, sample=None, save=False):
+def _update_sample(data, socket, sample=None, save=False, use_live=False):
     """Recompile sample with latest annotations"""
     spec = socket.spec_manager.project_spec(data['project'],
                                             socket.user.auth)
     if sample is None:
         sample = spec.resource('spiders', data['spider'], data['sample'])
     # TODO: Handle js enabled
-    try:
-        sample['original_body'] = socket.tab.html()
-    except (TypeError, ValueError):
-        pass
+    if use_live:
+        try:
+            sample['original_body'] = socket.tab.html()
+        except (TypeError, ValueError):
+            pass
     try:
         Annotations().save_extraction_data(
             sample['plugins']['annotations-plugin'], sample,

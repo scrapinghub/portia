@@ -77,6 +77,8 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
     annotation['reject_selectors'] = data.get('reject_selectors',
                                               annotation['reject_selectors'])
     annotation['selector'] = data.get('selector', annotation['selector'])
+    if annotation['selector'] is None:
+        annotation['selector'] = ', '.join(annotation['accept_selectors'])
 
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
@@ -185,6 +187,8 @@ def _create_annotation(sample, attributes):
         'required': [],
         'tagid': attributes.get('tagid', '1')
     }
+    if annotation['selector'] is None:
+        annotation['selector'] = ', '.join(annotation['accept_selectors'])
     annotations.append(annotation)
     return annotation
 

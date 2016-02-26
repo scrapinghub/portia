@@ -1,5 +1,6 @@
 import copy
 
+from .annotations import _load_relationships
 from .utils import _load_sample, _group_annotations
 from .models import ItemAnnotationSchema
 from ..utils.projects import ctx
@@ -15,7 +16,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
                                containers.get(annotation_id.strip('#parent')))
     if container is None:
         raise KeyError('No annotation with id "%s" found' % annotation_id)
-    relationships = attributes.get('data', {}).get('relationships', {})
+    relationships = _load_relationships(attributes.get('data', {}))
     attributes = attributes.get('data', {}).get('attributes', {})
     container['accept_selectors'] = attributes.get('accept_selectors', [])
     repeated_container_selectors = [
@@ -76,10 +77,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
             container['id'] = repeated_container_id
             sample['plugins']['annotations-plugin']['extracts'] = annotations
 
-    try:
-        parent_container_id = relationships['item-annotation']['data']['id']
-    except KeyError:
-        parent_container_id = None
+    parent_container_id = relationships.get('parent_id')
     field = attributes.get('field')
     if field:
         container['field'] = field

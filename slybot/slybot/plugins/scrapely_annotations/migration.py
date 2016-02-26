@@ -204,8 +204,6 @@ def port_variants(variant_annotations, sel):
         annotations.append(_create_container(repeated_container, container_id,
                                              repeated=True, siblings=siblings,
                                              selector=sel))
-    if variant_annotations:
-        print('Has Variants')
     return variant_annotations
 
 

@@ -60,6 +60,7 @@ export default Ember.Controller.extend({
     init() {
         let ws = this.get('webSocket');
         ws.addCommand('metadata', this.msgMetadata.bind(this));
+        ws.addCommand('load', () => null);
     },
 
     activate() {

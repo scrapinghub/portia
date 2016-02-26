@@ -9,7 +9,8 @@ from slybot.validation.schema import get_schema_validator
 from .models import (SchemaSchema, FieldSchema, ItemSchema, AnnotationSchema,
                      ItemAnnotationSchema)
 from ..utils.projects import gen_id, ctx
-from ..utils.migration import port_sample, load_annotations
+from slybot.plugins.scrapely_annotations.migration import (port_sample,
+                                                           load_annotations)
 
 SLYBOT_VERSION = slybot.__version__
 
@@ -185,7 +186,7 @@ def _add_items_and_annotations(data, items, annotations, item_annotations,
                                _ctx):
     built_items = []
     for i in items:
-        context = _ctx(i['schema']['id'])
+        context = _ctx(i['schema']['id'], i.get('container_id'))
         item = ItemSchema(context=context).dump(i).data['data']
         built_items.append(item)
     annos = []
@@ -223,7 +224,7 @@ def _process_annotations(sample):
             'annotations': grouped.get(_id, [])
         }
         container_id = container.get('container_id')
-        if container_id and container_id.split('#')[0] != item_id:
+        if container_id:
             container['parent'] = {'id': container_id}
         if item_id not in processed_items:
             items.append(item)

@@ -17,7 +17,7 @@ export function getAttributeList(element) {
     if (textContent) {
         attributeList.push({
             name: $element.attr('content') ? 'text content' : 'content',
-            attribute: null,
+            attribute: $element.attr('content') ? 'text-content' : 'content',
             value: textContent
         });
     }

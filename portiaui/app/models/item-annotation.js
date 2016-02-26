@@ -25,7 +25,11 @@ export default Annotation.extend({
 
     save() {
         return this._super(...arguments).then(result => {
-            return this.get('item.annotations').then(children => {
+            const annotations = this.get('item.annotations');
+            if (!annotations) {
+                return;
+            } 
+            return annotations.then(children => {
                 const promises = [];
                 children.forEach(child => {
                     const promise = this.syncRelative(child);

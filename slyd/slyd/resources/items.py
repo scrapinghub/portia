@@ -73,7 +73,8 @@ def create_item(manager, spider_id, sample_id, attributes):
     }
     annotations.append(annotation)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
+                  item_id=annotation['container_id'])
     return _item(sample, {'id': schema_id}, annotation, context=context)
 
 
@@ -86,14 +87,16 @@ def update_item(manager, spider_id, sample_id, item_id, attributes):
     annotations = filter(lambda x: x.get('id') in ids, annotations)
     if not annotations:
         raise NotFound('No item with the id "%s" could be found' % item_id)
+    relationships = _load_relationships(attributes['data'])
     for annotation in annotations:
-        relationships = _load_relationships(attributes['data'])
         schema_id = relationships.get('schema_id')
         if schema_id is not None:
             annotation['schema_id'] = schema_id
+    annotation['container_id'] = relationships.get('parent_id')
     annotation = sorted(annotations, key=lambda x: x['id'], reverse=True)[0]
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
+                  item_id=annotation.get('container_id'))
     return _item(sample, {'id': schema_id}, annotation, context=context)
 
 
@@ -137,15 +140,17 @@ def _item(sample, schema, item_annotation, annotations=None, context=None):
         context = {}
     item_id = item_annotation['id'].rsplit('#', 1)[0]
     container_id = item_annotation.get('container_id')
-    if container_id and item_annotation['id'].split('#')[0] != container_id:
-        item_annotation['parent'] = {'id': container_id}
-    item = ItemSchema(context=context).dump({
+    item = {
         'id': item_id,
         'sample': sample,
         'schema': schema,
         'item_annotation': item_annotation,
         'annotations': annotatations
-    }).data
+    }
+    if container_id and item_annotation['id'].split('#')[0] != container_id:
+        item_annotation['parent'] = {'id': container_id}
+        item['parent'] = {'id': container_id}
+    item = ItemSchema(context=context).dump(item).data
     item_annotation_s = ItemAnnotationSchema(context=context)
     item_annotation = item_annotation_s.dump(item_annotation).data['data']
     dumped_annotations = []
