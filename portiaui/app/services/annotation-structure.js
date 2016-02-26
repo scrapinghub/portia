@@ -123,7 +123,10 @@ const ElementStructure = Ember.Object.extend({
                         if (selector) {
                             selectorMatcher.unRegister(selector, setElements);
                         }
-                        annotation.get('selectorGenerator').destroy();
+                        const selectorGenerator = annotation.get('selectorGenerator');
+                        if(selectorGenerator) {
+                            selectorGenerator.destroy();
+                        }
                         annotation.setProperties({
                             selectorGenerator: undefined,
                             elements: undefined
@@ -166,7 +169,10 @@ const ElementStructure = Ember.Object.extend({
                         if (selector) {
                             selectorMatcher.unRegister(selector, setElements);
                         }
-                        annotation.get('selectorGenerator').destroy();
+                        const selectorGenerator = annotation.get('selectorGenerator');
+                        if(selectorGenerator) {
+                            selectorGenerator.destroy();
+                        }
                         annotation.setProperties({
                             selectorGenerator: undefined,
                             elements: undefined
