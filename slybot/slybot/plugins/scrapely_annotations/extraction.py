@@ -341,9 +341,9 @@ class BaseContainerExtractor(object):
         if (hasattr(self.schema, '_item_validates') and
                 not self.schema._item_validates(new_item)):
             return {}
-        type = getattr(self.schema, 'description', None)
-        if type:
-            new_item[u'_type'] = type
+        _type = getattr(self.schema, 'description', None)
+        if _type:
+            new_item[u'_type'] = _type
         return new_item
 
     def _process_fields(self, annotations, regions, htmlpage):
@@ -469,7 +469,10 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
                                   ignored_regions, **kwargs)
             if (isinstance(extractor, RepeatedContainerExtractor) or
                     isinstance(item, list)):
-                items.extend(item)
+                if item and isinstance(item[0], dict):
+                    items.extend(item)
+                else:
+                    items.append(item)
             else:
                 items.append(item)
         items = [self._validate_and_adapt_item(i, page) for i in items]
