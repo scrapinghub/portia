@@ -293,14 +293,12 @@ export default Ember.Service.extend({
             const type = annotation.get('type');
             let field = fieldsMap.get(name);
             if (field && field.get('type') === type) {
-                if (field && field.get('type') === type) {
-                    let newAnnotation = annotation.toJSON();
-                    newAnnotation.parent = item;
-                    newAnnotation.field = field;
-                    newAnnotation.extractors = annotation.get('extractors');
-                    annotationsToMigrate.push(newAnnotation);
-                    this.removeAnnotation(annotation);
-                }
+                let newAnnotation = annotation.toJSON();
+                newAnnotation.parent = item;
+                newAnnotation.field = field;
+                newAnnotation.extractors = annotation.get('extractors');
+                annotationsToMigrate.push(newAnnotation);
+                this.removeAnnotation(annotation);
             }
         });
 
