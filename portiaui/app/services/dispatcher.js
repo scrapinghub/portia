@@ -53,14 +53,14 @@ export default Ember.Service.extend({
             name,
             project
         });
-        schema.save().then(() => {
+        return schema.save().then(() => {
             if (redirect) {
                 schema.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.schema', [schema], {}, true);
             }
+            return schema;
         });
-        return schema;
     },
 
     addField(schema, type, redirect = false) {
@@ -283,27 +283,32 @@ export default Ember.Service.extend({
     changeItemSchema(item, schema) {
         const fieldsMap = new Map(
             schema.get('fields').map(field => [field.get('name'), field]));
-        item.get('annotations').forEach(annotation => {
+
+        let annotationsToMigrate = [];
+        item.get('annotations').forEach((annotation) => {
             if (annotation instanceof ItemAnnotation) {
                 return;
             }
-
             const name = annotation.get('name');
             const type = annotation.get('type');
             let field = fieldsMap.get(name);
             if (field && field.get('type') === type) {
-                annotation.set('field', field);
-                annotation.save();
-            } else {
-                field = this.addField(schema, type, /*redirect = */false);
-                field.save().then(() => {
-                    annotation.set('field', field);
-                    annotation.save();
-                });
+                let newAnnotation = annotation.toJSON();
+                newAnnotation.parent = item;
+                newAnnotation.field = field;
+                newAnnotation.extractors = annotation.get('extractors');
+                annotationsToMigrate.push(newAnnotation);
+                this.removeAnnotation(annotation);
             }
         });
+
         item.set('schema', schema);
-        item.save();
+        item.save().then(() => {
+            annotationsToMigrate.forEach(newAnnotation => {
+                newAnnotation = this.get('store').createRecord('annotation', newAnnotation);
+                newAnnotation.save();
+            });
+        });
     },
 
     removeSchema(schema) {

@@ -12,9 +12,8 @@ export default Ember.Component.extend({
         addSchema(name) {
             const item = this.get('item');
             const project = item.get('schema.project');
-            const schema = this.get('dispatcher').addNamedSchema(
-                project, name, /* redirect = */false);
-            item.then(item => {
+            this.get('dispatcher').addNamedSchema(
+                project, name, /* redirect = */false).then((schema) => {
                 item.set('schema', schema);
                 item.save();
             });
@@ -28,7 +27,9 @@ export default Ember.Component.extend({
                item.get('schema.id') !== sample.get('_autoCreatedSchema')) {
                 this.get('dispatcher').deleteAutoCreatedSchema(sample);
             }
-            item.then(item => item.save());
+
+            // Map fields to the old schema to the new one
+            this.get('dispatcher').changeItemSchema(item, item.get('schema'));
         }
     }
 });
