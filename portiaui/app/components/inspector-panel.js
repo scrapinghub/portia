@@ -24,15 +24,16 @@ export function getAttributeList(element) {
     var mappedAttributes = {};
     for (var i = 0; i < element.attributes.length; i++) {
         var attrib = element.attributes[i];
-        if (attrib.name.startsWith('_portia_')) {
-            var originalName = attrib.name.slice(8);
+        if (attrib.name.startsWith('data-portia-')) {
+            var originalName = attrib.name.slice('data-portia-'.length);
             if (!mappedAttributes[originalName]) {
-                mappedAttributes[originalName] = element.getAttribute(originalName).value;
+                mappedAttributes[originalName] = attrib.value;
             }
         }
     }
+    console.log(mappedAttributes);
     Array.prototype.slice.call(element.attributes).forEach(function(attribute) {
-        if (!attribute.nodeName.startsWith('_portia_') &&
+        if (!attribute.nodeName.startsWith('data-portia-') &&
                 !IGNORED_ATTRIBUTES.has(attribute.nodeName) &&
                 attribute.value) {
             attributeList.push({
