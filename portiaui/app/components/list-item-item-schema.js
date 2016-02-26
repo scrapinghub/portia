@@ -27,7 +27,9 @@ export default Ember.Component.extend({
                item.get('schema.id') !== sample.get('_autoCreatedSchema')) {
                 this.get('dispatcher').deleteAutoCreatedSchema(sample);
             }
-            item.save();
+
+            // Map fields to the old schema to the new one
+            this.get('dispatcher').changeItemSchema(item, item.get('schema'));
         }
     }
 });
