@@ -64,9 +64,10 @@ descriptors = {'#default': create_slybot_item_descriptor(items['default'],
 
 
 class FakeContainer(BaseContainerExtractor):
-    def __init__(self, schema):
+    def __init__(self, schema, legacy=False):
         self.schema = schema
         self.extra_requires = []
+        self.legacy = legacy
 
 
 schema = FakeContainer(descriptors['#default'])
@@ -80,7 +81,8 @@ for template_name in ('daft_ie', 'hn', 'patchofland'):
         html_page = HtmlPage(body=f.read().decode('utf-8'))
         name = _names_map.get(template_name, template_name)
         ibl_pages[name] = html_page
-        ibl_extractors[name] = SlybotIBLExtractor([(html_page, descriptors)])
+        ibl_extractors[name] = SlybotIBLExtractor([(html_page, descriptors,
+                                                    '0.13.0')])
         selector_pages[name] = Selector(text=html_page.body)
 
 

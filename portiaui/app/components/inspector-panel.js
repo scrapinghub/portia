@@ -31,7 +31,6 @@ export function getAttributeList(element) {
             }
         }
     }
-    console.log(mappedAttributes);
     Array.prototype.slice.call(element.attributes).forEach(function(attribute) {
         if (!attribute.nodeName.startsWith('data-portia-') &&
                 !IGNORED_ATTRIBUTES.has(attribute.nodeName) &&

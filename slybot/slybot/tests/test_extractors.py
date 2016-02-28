@@ -17,7 +17,7 @@ class ExtractorTest(TestCase):
 <th class="item-key">Gender</th>
 <td >Male</td></tr>
 </table>"""
-    _target =  u"""
+    _target = u"""
 <table>
 <tr>
 <th class="item-key">Gender</th>
@@ -30,7 +30,7 @@ class ExtractorTest(TestCase):
 <td >John</td></tr>
 <span data-scrapy-annotate="{&quot;required&quot;: [], &quot;variant&quot;: 0, &quot;annotations&quot;: {&quot;content&quot;: &quot;gender&quot;}}">Male</span>
 </table>"""
-    _target2 =  u"""
+    _target2 = u"""
 <body>
 <tr>
 <th class="item-key">Name</th><td>Olivia</td></tr>
@@ -60,12 +60,13 @@ class ExtractorTest(TestCase):
             }
         }
         descriptor = create_slybot_item_descriptor(schema)
-        extractors =  {1: {
-                        "regular_expression": "Gender.*(<td\s*>(?:Male|Female)</td>)"
-        }}
+        extractors = {
+            1: {"regular_expression": "Gender.*(<td\s*>(?:Male|Female)</td>)"}
+        }
         apply_extractors(descriptor, {"gender": [1]}, extractors)
 
-        ibl_extractor = SlybotIBLExtractor([(self.template, {'#default': descriptor})])
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'<td >Male</td>'])
 
     def test_negative_hit_w_regex(self):
@@ -79,14 +80,13 @@ class ExtractorTest(TestCase):
             }
         }
         descriptor = create_slybot_item_descriptor(schema)
-        extractors =  {1: {
-                        "regular_expression": "Gender\\s+(Male|Female)"
-        }}
+        extractors = {1: {"regular_expression": "Gender\\s+(Male|Female)"}}
         apply_extractors(descriptor, {"gender": [1]}, extractors)
-        
-        ibl_extractor = SlybotIBLExtractor([(self.template, {'#default': descriptor})])
+
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [])
-      
+
     def test_text_type_w_regex(self):
         schema = {
             "fields": {
@@ -98,12 +98,11 @@ class ExtractorTest(TestCase):
             }
         }
         descriptor = create_slybot_item_descriptor(schema)
-        extractors =  {1: {
-                        "regular_expression": "Gender\\s+(Male|Female)"
-        }}
+        extractors = {1: {"regular_expression": "Gender\\s+(Male|Female)"}}
         apply_extractors(descriptor, {"gender": [1]}, extractors)
-        
-        ibl_extractor = SlybotIBLExtractor([(self.template, {'#default': descriptor})])
+
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Male'])
 
     def test_type_extractor(self):
@@ -117,17 +116,14 @@ class ExtractorTest(TestCase):
             }
         }
         descriptor = create_slybot_item_descriptor(schema)
-        extractors =  {
-                    1: {
-                        "type_extractor": "text"
-                    },
-                    2: {
-                        "regular_expression": "Gender\\s+(Male|Female)"
-                    }
+        extractors = {
+            1: {"type_extractor": "text"},
+            2: {"regular_expression": "Gender\\s+(Male|Female)"}
         }
         apply_extractors(descriptor, {"gender": [1, 2]}, extractors)
-        
-        ibl_extractor = SlybotIBLExtractor([(self.template, {'#default': descriptor})])
+
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Male'])
 
     def test_default_type_extractor(self):
@@ -135,14 +131,13 @@ class ExtractorTest(TestCase):
             'fields': {}
         }
         descriptor = create_slybot_item_descriptor(schema)
-        extractors =  {
-                    1: {
-                        "regular_expression": "Gender\\s+(Male|Female)"
-                    }
+        extractors = {
+            1: {"regular_expression": "Gender\\s+(Male|Female)"}
         }
         apply_extractors(descriptor, {"gender": [1]}, extractors)
-        
-        ibl_extractor = SlybotIBLExtractor([(self.template, {'#default': descriptor})])
+
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Male'])
 
     def test_text_type_w_regex_and_no_groups(self):
@@ -156,12 +151,13 @@ class ExtractorTest(TestCase):
             }
         }
         descriptor = create_slybot_item_descriptor(schema)
-        extractors =  {1: {
-                        "regular_expression": "Gender"
-        }}
+        extractors = {
+            1: {"regular_expression": "Gender"}
+        }
         apply_extractors(descriptor, {"gender": [1]}, extractors)
-        
-        ibl_extractor = SlybotIBLExtractor([(self.template, {'#default': descriptor})])
+
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Gender'])
 
     def test_extractor_w_empty_string_extraction(self):
@@ -180,13 +176,13 @@ class ExtractorTest(TestCase):
             }
         }
         descriptor = create_slybot_item_descriptor(schema)
-        extractors =  {
-                    1: {
-                        "regular_expression": "([0-9]+)"
-                    }
+        extractors = {
+            1: {
+                "regular_expression": "([0-9]+)"
+            }
         }
         apply_extractors(descriptor, {"gender": [1]}, extractors)
-        
-        ibl_extractor = SlybotIBLExtractor([(self.template2, {'#default': descriptor})])
+
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template2, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target2)[0][0]['name'], [u'Name Olivia'])
-        

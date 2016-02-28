@@ -151,7 +151,7 @@ class BaseContainerExtractor(object):
         RecordExtractor,
     ]
 
-    def __init__(self, extractors, template):
+    def __init__(self, extractors, template, legacy=False):
         schema_name = None
         if hasattr(self, 'annotation'):
             schema_name = self.annotation.metadata.get('schema_id')
@@ -159,12 +159,13 @@ class BaseContainerExtractor(object):
         self.modifiers = template.modifiers
         extra_requires = getattr(self, 'extra_requires', [])
         self.extra_requires = extra_requires
+        self.legacy = legacy
         if hasattr(self.schema, '_required_attributes'):
             requires = list(extra_requires) + self.schema._required_attributes
             self.schema._required_attributes = requires
 
     @classmethod
-    def apply(cls, template, extractors):
+    def apply(cls, template, extractors, legacy=False):
         # Group containers and get container info
         container_info = cls._get_container_data(extractors)
         containers, container_annos, non_container_annos = container_info
@@ -174,11 +175,11 @@ class BaseContainerExtractor(object):
 
         # Build containerized extractors
         container_extractors = cls._build_containerized_extractors(
-            containers, container_annos, template, tree)
+            containers, container_annos, template, tree, legacy)
         return non_container_annos + container_extractors
 
     def _build_extractors(self, extractors, containers, container_contents,
-                          template):
+                          template, legacy=False):
         new_extractors = []
         annotation = None
         if isinstance(extractors, list):  # Bottom of extraction tree
@@ -201,7 +202,7 @@ class BaseContainerExtractor(object):
                 if annotation.metadata.get('item_container'):
                     self._add_new_container(
                         annotation, new_extractors, container_data, template,
-                        containers, container_contents)
+                        containers, container_contents, legacy)
         self.annotation = None
         if annotation:
             self.annotation = annotation
@@ -261,7 +262,7 @@ class BaseContainerExtractor(object):
 
     @classmethod
     def _build_containerized_extractors(cls, containers, container_annos,
-                                        template, tree):
+                                        template, tree, legacy):
         """
         Convert container annotation trees into container extractors.
         """
@@ -278,12 +279,12 @@ class BaseContainerExtractor(object):
             if containers:
                 cls._add_new_container(
                     annotation, container_extractors, container_data,
-                    template, container_annos, containers)
+                    template, container_annos, containers, legacy)
         return container_extractors
 
     @staticmethod
     def _add_new_container(annotation, extractors, container_data, template,
-                           containers, container_contents):
+                           containers, container_contents, legacy):
         """
         Create a new container from the provided container information.
         """
@@ -292,7 +293,8 @@ class BaseContainerExtractor(object):
                 RepeatedContainerExtractor(
                     container_data, template,
                     containers=containers,
-                    container_contents=container_contents)
+                    container_contents=container_contents,
+                    legacy=legacy)
             )
         else:
             extractors.append(
@@ -300,7 +302,9 @@ class BaseContainerExtractor(object):
                     container_data, template,
                     annotation=annotation,
                     containers=containers,
-                    container_contents=container_contents))
+                    container_contents=container_contents,
+                    legacy=legacy)
+            )
 
     def _find_annotation(self, template, annotation_id):
         """
@@ -344,7 +348,7 @@ class BaseContainerExtractor(object):
         _type = getattr(self.schema, 'description', None)
         if _type:
             new_item[u'_type'] = _type
-        return new_item
+        return dict(new_item)
 
     def _process_fields(self, annotations, regions, htmlpage):
         for annotation in arg_to_iter(annotations):
@@ -377,6 +381,9 @@ class BaseContainerExtractor(object):
                 yield (field, extracted)
             else:
                 # Legacy spiders have per attribute pipline extractors
+                if self.legacy and annotation == 'variants':
+                    yield (annotation, regions)
+                    continue
                 try:
                     extraction_func = self.schema.attribute_map.get(annotation)
                 except AttributeError:
@@ -393,7 +400,7 @@ class BaseContainerExtractor(object):
     def _process_values(self, regions, htmlpage, extraction_func):
         values = []
         for value in arg_to_iter(regions):
-            if (isinstance(value, HtmlPageParsedRegion) and
+            if (isinstance(value, (HtmlPageParsedRegion, HtmlPageRegion)) and
                     hasattr(extraction_func, 'extractor')):
                 value = extraction_func.extractor(value)
             if value:
@@ -406,7 +413,6 @@ class BaseContainerExtractor(object):
         else:
             values = list(filter(bool, values))
         return values
-
 
     def __str__(self):
         stream = StringIO()
@@ -430,12 +436,12 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
         self.template_tokens = template.page_tokens
         self.template_token_dict = template.token_dict
         self.extractors = self._build_extractors(
-            extractors, containers, container_contents, template)
+            extractors, containers, container_contents, template, legacy)
         self.content_validate = lambda x: x
         self.best_match = longest_unique_subsequence
         if annotation:
             self.annotation = annotation
-        BaseContainerExtractor.__init__(self, extractors, template)
+        BaseContainerExtractor.__init__(self, extractors, template, legacy)
         if required_fields:
             self.extra_requires = set(required_fields) | self.extra_requires
 
@@ -494,9 +500,9 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         self.prefix, self.suffix = self._find_prefix_suffix(
             extractors, container_contents, containers, template)
         self.extractors = self._build_extractors(
-            extractors, containers, container_contents, template)
+            extractors, containers, container_contents, template, legacy)
         self.best_match = first_longest_subsequence
-        BaseContainerExtractor.__init__(self, extractors, template)
+        BaseContainerExtractor.__init__(self, extractors, template, legacy)
 
     def extract(self, page, start_index=0, end_index=None,
                 ignored_regions=None, **kwargs):
@@ -524,7 +530,9 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                 page, index, peek, ignored_regions,
                                 suffix_max_length=suffixlen)
                             if items:
-                                extracted.extend([self._validate_and_adapt_item(items, page)])
+                                extracted.extend([
+                                    self._validate_and_adapt_item(items, page)
+                                ])
                             index = max(peek, index) - 1
                         break
             index += 1
@@ -697,9 +705,11 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
                  apply_extrarequired=True):
         self.token_dict = TokenDict()
         parsed_templates = []
-        for template, descriptors in template_descriptor_pairs:
+        template_versions = []
+        for template, descriptors, version in template_descriptor_pairs:
             parsed = parse_template(self.token_dict, template, descriptors)
             parsed_templates.append(parsed)
+            template_versions.append(version)
             if _annotation_count(parsed):
                 parse_extraction_page(self.token_dict, template)
 
@@ -715,17 +725,19 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
         parsed_templates.sort(key=_annotation_count,
                               reverse=True)
         self.extraction_trees = list(sorted([
-            self.build_extraction_tree(p, None, trace)
-            for p in parsed_templates
+            self.build_extraction_tree(p, None, trace,
+                                       legacy=v < '0.13.0')
+            for p, v in zip(parsed_templates, template_versions)
         ], key=_count_annotations, reverse=True))
 
     def build_extraction_tree(self, template, type_descriptor=None,
-                              trace=False):
+                              trace=False, legacy=False):
         """Build a tree of region extractors corresponding to the template."""
         basic_extractors = BaseExtractor.create(template.annotations)
         if trace:
             basic_extractors = TraceExtractor.apply(template, basic_extractors)
-        basic_extractors = ContainerExtractor.apply(template, basic_extractors)
+        basic_extractors = ContainerExtractor.apply(template, basic_extractors,
+                                                    legacy=legacy)
         item_containers, extractors = [], []
         for extractor in basic_extractors:
             if (isinstance(extractor, BaseContainerExtractor) and
