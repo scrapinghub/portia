@@ -209,7 +209,8 @@ var TreeMirrorClient = (function () {
         var tagName = node.tagName;
 
         if(value === null) {
-            return; // Attribute was removed
+            obj[attr] = null; // Attribute was removed
+            obj['data-portia-' + attr] = null;
         } else if(attr === "style"){
             obj[attr] = __portiaApi.processCss(value, node.baseURI);
             obj['data-portia-' + attr] = value;
