@@ -11,13 +11,13 @@
     {{#combo.header}}
         {{yield (hash section='rename')}}
     {{/combo.header}}
-    {{#combo.item value=(hash special="rename" name=combo.query) disabled=(not combo.menu.active.special) action=(chain-actions (action 'rename' combo.query) (action combo.closeMenu 'escape'))}}
+    {{#combo.item value=(hash special="rename" name=combo.query onMenuClosed=(action 'rename' combo.query)) disabled=(not combo.menu.active.special) action=(chain-actions (action 'rename' combo.query) (action combo.closeMenu 'escape'))}}
         {{list-item-icon class="icon" icon="edit"}}Rename to {{combo.query}}
     {{/combo.item}}
     {{#combo.header}}
         {{yield (hash section='add')}}
     {{/combo.header}}
-    {{#combo.item value=(hash special="add" name=combo.query) disabled=(not combo.menu.active.special) action=(chain-actions (action 'add' combo.query) (action combo.closeMenu 'escape'))}}
+    {{#combo.item value=(hash special="add" name=combo.query onMenuClosed=(action 'add' combo.query)) disabled=(not combo.menu.active.special) action=(chain-actions (action 'add' combo.query) (action combo.closeMenu 'escape'))}}
         {{list-item-icon class="icon" icon="add"}}Add {{combo.query}}
     {{/combo.item}}
 {{/list-item-combo}}
