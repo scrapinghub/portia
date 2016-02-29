@@ -3,29 +3,42 @@
     background-color: $sidebar-background-color;
     border-right: 1px solid $navbar-default-border;
     padding: $navbar-padding-horizontal $navbar-padding-horizontal ($navbar-padding-horizontal + 10px);
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     z-index: 1;
 
-    > .tree-list {
-        padding-bottom: ($tree-list-row-height / 2);
-        overflow: hidden;
+    > div {
+        position: relative;
 
-        &:last-child {
-            padding-bottom: 0;
-        }
-
-        > li {
-            //padding-bottom: ($tree-list-row-height / 2);
+        > .tree-list {
+            margin-bottom: ($tree-list-row-height / 2);
 
             &:last-child {
-                //padding-bottom: 0;
+                margin-bottom: 0;
+            }
+
+            > .animation-content {
+                > .tree-list-item {
+                    > .animation-content {
+                        > .tree-list {
+                            > .animation-content {
+                                width: 100%;
+                            }
+                        }
+                    }
+                }
             }
         }
+    }
 
-        > .tree-list-item {
-            > .tree-list {
-                padding-left: 0;
-            }
+    .icon {
+        &.animation-container {
+            width: $tree-list-icon-width;
+            height: $tree-list-row-height;
+        }
+
+        a {
+            display: inline-block;
         }
     }
 }

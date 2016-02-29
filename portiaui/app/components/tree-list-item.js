@@ -1,8 +1,10 @@
 import Ember from 'ember';
+import AnimationContainer from './animation-container';
 
-export default Ember.Component.extend({
+export default AnimationContainer.extend({
     tagName: 'li',
     classNames: ['tree-list-item'],
 
+    setWidth: false,
     hasChildren: false
 });

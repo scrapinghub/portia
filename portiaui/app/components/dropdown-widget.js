@@ -46,12 +46,13 @@ export default Ember.Component.extend({
     didInsertElement() {
         const container = this.get('menuContainer');
         if (container) {
+            const positionMonitor = this.get('positionMonitor');
             const $menu = this.$menu = this.$('.dropdown-menu');
             Ember.run.schedule('afterRender', () => {
                 Ember.$(container).append($menu);
-                this.get('positionMonitor').registerElement(
-                    this.element, this, this.updateMenuSize, this.updatePosition,
-                    /*forceUpdate = */true);
+                positionMonitor.registerElement(
+                    this.element, this, this.updateMenuSize, this.updatePosition);
+                Ember.run.scheduleOnce('afterRender', positionMonitor, positionMonitor.update);
             });
         }
     },

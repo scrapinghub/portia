@@ -4,7 +4,7 @@ export default Ember.Service.extend({
     elements: [],
     timerId: null,
 
-    registerElement(element, context, readCallback, writeCallback, forceUpdate = false) {
+    registerElement(element, context, readCallback, writeCallback) {
         const options = {
             element,
             context,
@@ -15,8 +15,6 @@ export default Ember.Service.extend({
         this.elements.push(options);
         if (this.timerId === null) {
             this.update();
-        } else if (forceUpdate) {
-            this.update([options]);
         }
     },
 
