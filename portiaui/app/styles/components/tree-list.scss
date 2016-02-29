@@ -1,19 +1,25 @@
 .tree-list {
     display: block;
-    position: relative;
-    padding-left: 0;
     margin-bottom: 0;
     z-index: 0;
 
-    > .tree-list-item {
-        display: block;
+    > .animation-content {
+        padding-left: 0;
+        width: 100%;
+        left: auto;
+        right: 0;
 
-        > .tree-list {
-            position: static;
-            padding-left: $tree-list-icon-width / 2;
-            list-style: none;
-            z-index: auto;
+        & & {
+            width: calc(100% - #{$tree-list-icon-width / 2});
         }
+    }
+}
+
+.tree-list-item {
+    display: block;
+
+    > .animation-content {
+        width: 100%;
     }
 }
 

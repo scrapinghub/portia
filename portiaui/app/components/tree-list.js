@@ -1,12 +1,15 @@
 import Ember from 'ember';
+import AnimationContainer from './animation-container';
 
 const $ = Ember.$;
 
-export default Ember.Component.extend({
-    tagName: 'ul',
+export default AnimationContainer.extend({
+    tagName: 'div',
     classNames: ['tree-list'],
     reorderable: false,
     classNameBindings: ['reorderable:reorderable-list'],
+    
+    setWidth: false,
 
     drop: function(event) {
         if(this.get('reorderable')){

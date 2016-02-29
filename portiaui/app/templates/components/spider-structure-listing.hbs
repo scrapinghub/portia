@@ -1,4 +1,4 @@
-{{#tree-list class=(if (and currentSample) "hide")}}
+{{#tree-list hide=currentSample}}
     {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
@@ -20,7 +20,7 @@
     {{/tree-list-item}}
 {{/tree-list}}
 
-{{#tree-list class=(if (and currentSample) "hide")}}
+{{#tree-list hide=currentSample}}
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
@@ -53,16 +53,20 @@
             {{/tooltip-container}}
         {{else if (eq options.section "subtrees")}}
             {{#each spider.samples as |sample|}}
-                {{#tree-list-item class="has-submenu" as |options|}}
+                {{#tree-list-item hide=(and currentSample (not-eq sample currentSample)) as |options|}}
                     {{#link-to 'projects.project.spider.sample' sample}}
                         {{list-item-icon icon='sample'}}
                         {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
-                        {{list-item-icon icon='remove' action=(action 'removeSample' sample) bubbles=false}}
-                        {{#tooltip-container tooltipFor=(concat "sample-close-button" (guid sample)) text="Close sample" tooltipContainer='body'}}
-                            {{#link-to 'projects.project.spider' id=(concat "sample-close-button" (guid sample)) class=(if (not-eq sample currentSample) "hide") bubbles=false}}
-                                {{list-item-icon icon='close'}}
-                            {{/link-to}}
-                        {{/tooltip-container}}
+                        {{#animation-container class="icon" setWidth=false setHeight=false}}
+                            {{list-item-icon icon='remove' action=(action 'removeSample' sample) bubbles=false}}
+                        {{/animation-container}}
+                        {{#animation-container class="icon" hide=(not-eq sample currentSample) setWidth=false setHeight=false}}
+                            {{#tooltip-container tooltipFor=(concat "sample-close-button" (guid sample)) text="Close sample" tooltipContainer='body'}}
+                                {{#link-to 'projects.project.spider' id=(concat "sample-close-button" (guid sample)) bubbles=false}}
+                                    {{list-item-icon icon='close'}}
+                                {{/link-to}}
+                            {{/tooltip-container}}
+                        {{/animation-container}}
                     {{/link-to}}
                 {{/tree-list-item}}
             {{/each}}

@@ -1,10 +1,9 @@
 {{#tree-list}}
-    {{#tree-list-item hasChildren=project.spiders.length as |options|}}
+    {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
                 Project
             {{/list-item-text}}
-            {{!-- {{list-item-icon icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}} --}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item}}
                 {{#link-to 'projects.project' project}}
