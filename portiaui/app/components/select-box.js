@@ -76,10 +76,15 @@ export default Ember.Component.extend({
                         viewValue: this.get('value')
                     });
                 } else {
-                    this.setProperties({
-                        open: false,
-                        value: this.get('viewValue')
-                    });
+                    const viewValue = this.get('viewValue');
+                    if (viewValue.onMenuClosed && viewValue.onMenuClosed.call) {
+                        viewValue.onMenuClosed();
+                    } else {
+                        this.setProperties({
+                            open: false,
+                            value: viewValue
+                        });
+                    }
                     if (this.attrs.onChange) {
                         this.attrs.onChange();
                     }
