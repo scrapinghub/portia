@@ -382,7 +382,8 @@ class BaseContainerExtractor(object):
             else:
                 # Legacy spiders have per attribute pipline extractors
                 if self.legacy and annotation == 'variants':
-                    yield (annotation, regions)
+                    yield (annotation, self._process_variants(regions,
+                                                              htmlpage))
                     continue
                 try:
                     extraction_func = self.schema.attribute_map.get(annotation)
@@ -396,6 +397,15 @@ class BaseContainerExtractor(object):
                 if extraction_func.name != extraction_func.description:
                     annotation = extraction_func.description
                 yield (annotation, values)
+
+    def _process_variants(self, data, htmlpage):
+        variants = []
+        for item in data:
+            item = self._validate_and_adapt_item(item, htmlpage)
+            if item:
+                item.pop('_type', None)
+                variants.append(item)
+        return variants
 
     def _process_values(self, regions, htmlpage, extraction_func):
         values = []

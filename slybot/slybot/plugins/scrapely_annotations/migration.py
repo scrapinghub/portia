@@ -365,7 +365,8 @@ def load_annotations(body):
     for elem in sel.xpath('//*[@data-scrapy-annotate]'):
         attributes = elem._root.attrib
         annotation = json.loads(unquote(attributes['data-scrapy-annotate']))
-        if isinstance(elem, _Element) and elem._root.tag.lower() == 'ins':
+        if (isinstance(elem._root, _Element) and
+                elem._root.tag.lower() == 'ins'):
             annotation.update(find_generated_annotation(elem))
         else:
             annotation['tagid'] = attributes.get('data-tagid')
@@ -405,12 +406,13 @@ def find_generated_annotation(elem):
             insert_after = False
             node = previous.getchildren()[0]
         else:
-            node = previous.getnext()
+            node = previous
         while node is not None:
             nodes.append(node)
             node = node.getnext()
             if (node is None or
                     isinstance(node, _Element) and node.tag.lower() == 'ins'):
+                nodes.append(node)
                 break
     annotation = {
         'tagid': previous.attrib.get('data-tagid'),
