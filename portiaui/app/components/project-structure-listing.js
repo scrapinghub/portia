@@ -55,13 +55,6 @@ export default Ember.Component.extend({
             return true;
         },
 
-        loadSpider(spider) {
-            // Using link-to was problematic because it interpreted an enter in
-            // the input field as intention to follow the link (rather than
-            // saving the value)
-            this.get('routing').transitionTo('projects.project.spider', [spider], {}, true);
-        },
-
         saveSpiderName(spider) {
             // HACK: Renaming the spider will change it's ID, changing the ID
             // of a record is not supported in Ember data, so we return a new
