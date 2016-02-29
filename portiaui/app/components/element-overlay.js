@@ -7,6 +7,8 @@ export default Ember.Component.extend({
 
     classNames: ['overlay'],
 
+    positionMode: 'size',  // or 'edges'
+
     backgroundStyle: Ember.computed('color.main', function() {
         const color = this.get('color.main');
         return Ember.String.htmlSafe(color ? `background-color: ${color};` : '');
@@ -56,13 +58,27 @@ export default Ember.Component.extend({
         if (!this.element) {
             return;
         }
+
         const left = Math.round(rect.left);
         const top = Math.round(rect.top);
-        const width = Math.round(rect.width);
-        const height = Math.round(rect.height);
-        this.element.setAttribute(
-            'style',
-            `transform: translate(${left}px, ${top}px); width: ${width}px; height: ${height}px;`
-        );
+        let style = '';
+
+        switch (this.get('positionMode')) {
+            case 'size':
+                const width = Math.round(rect.width);
+                const height = Math.round(rect.height);
+                style = `transform: translate(${left}px, ${top}px);
+                         width: ${width}px; height: ${height}px;`;
+                break;
+
+            case 'edges':
+                // container is positioned in top left, and has zero width and height
+                const right = -left + -Math.round(rect.width);
+                const bottom = -top + -Math.round(rect.height);
+                style = `left: ${left}px; right: ${right}px; top: ${top}px; bottom: ${bottom}px;`;
+                break;
+        }
+
+        this.element.setAttribute('style', style);
     }
 });

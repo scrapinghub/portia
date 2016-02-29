@@ -6,5 +6,5 @@
             {{/if}}
         {{/each}}
     {{/each}}
-    {{element-overlay class=(concat 'hover-overlay' (unless showHoverOverlay ' hide')) viewPortElement=hoveredElement icon=(get selectionModeIcons activeSelectionMode) color=hoverOverlayColor}}
+    {{element-overlay class=(concat 'hover-overlay' (unless showHoverOverlay ' hide')) positionMode='edges' viewPortElement=hoveredElement icon=(get selectionModeIcons activeSelectionMode) color=hoverOverlayColor}}
 </div>
