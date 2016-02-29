@@ -18,6 +18,9 @@ export default Ember.Component.extend({
             });
             Ember.run.next(this, this.setInputFocus);
         }
+        // Prevent default / bubbling of keypress event when pressing enter
+        Ember.$('#' + this.get('inputId'))
+             .keypress((e) => e.which !== 13);
     },
 
     inputId: Ember.computed('elementId', function() {
@@ -78,6 +81,9 @@ export default Ember.Component.extend({
 
         endEditing(reason) {
             const value = this.get('viewValue');
+            if (typeof this.attrs.validate === 'function' && !this.attrs.validate(value)) {
+                return Ember.run.next(this, this.setInputFocus);
+            }
             this.setProperties({
                 focused: false,
                 value: value,

@@ -5,6 +5,8 @@ export default Ember.Component.extend({
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
+    notificationManager: Ember.inject.service(),
+    routing: Ember.inject.service('-routing'),
 
     tagName: '',
 
@@ -43,8 +45,25 @@ export default Ember.Component.extend({
             this.get('dispatcher').removeSpider(spider);
         },
 
-        saveSpider(spider) {
-            spider.save();
+        validateSpiderName(name) {
+            const nm = this.get('notificationManager');
+            if(!/^[a-zA-Z0-9][a-zA-Z0-9_\.-]*$/.test(name)) {
+                nm.showWarningNotification(`Invalid spider name.
+                    Only letters, numbers, underscores, dashes and dots are allowed.`);
+                return false;
+            }
+            return true;
+        },
+
+        saveSpiderName(spider) {
+            // HACK: Renaming the spider will change it's ID, changing the ID
+            // of a record is not supported in Ember data, so we return a new
+            // record from the server and mark the original as deleted.
+            spider.save().then(() => {
+                if(spider.get('name') === '_deleted') {
+                    spider.unloadRecord();
+                }
+            });
         }
     }
 });

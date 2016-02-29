@@ -1,4 +1,5 @@
 import json
+import re
 
 from os.path import join
 from .repoman import Repoman
@@ -23,6 +24,9 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
     def rename_spider(self, from_name, to_name):
         if to_name == from_name:
             return
+        if not re.match('^[a-zA-Z0-9][a-zA-Z0-9_\.-]*$', to_name):
+            raise BadRequest('Bad Request', 'Invalid spider name')
+
         if to_name in self.list_spiders():
             raise BadRequest('Bad Request', 'A spider already exists with the '
                              'name, "%s".' % to_name)

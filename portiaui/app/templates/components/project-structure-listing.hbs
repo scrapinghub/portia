@@ -12,7 +12,11 @@
                 {{#tree-list-item hide=(and currentSpider (not-eq spider currentSpider)) as |options|}}
                     {{#link-to 'projects.project.spider' spider}}
                         {{list-item-icon icon='spider'}}
-                        {{list-item-editable value=(mut spider.name) editing=(mut spider.new) onChange=(action 'saveSpider' spider)}}
+                        {{#if currentSpider}}
+                            {{#list-item-text}}{{spider.name}}{{/list-item-text}}
+                        {{else}}
+                            {{list-item-editable value=(mut spider.name) onChange=(action 'saveSpiderName' spider) validate=(action 'validateSpiderName')}}
+                        {{/if}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}
                             {{list-item-icon icon='remove' action=(action 'removeSpider' spider) bubbles=false}}
                         {{/animation-container}}

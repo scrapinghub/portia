@@ -38,7 +38,9 @@ def update_spider(manager, spider_id, attributes):
     spider = manager.spider_json(spider_id)
     spider.update(attributes)
     get_schema_validator('spider').validate(spider)
-    if spider.get('name') and spider_id != spider['name']:
+    rename = spider.get('name') and spider_id != spider['name']
+    original_id = spider_id
+    if rename:
         manager.rename_spider(spider_id, spider['name'].encode('utf-8'))
         spider_id = spider['name']
         spider['id'] = spider_id
@@ -46,7 +48,15 @@ def update_spider(manager, spider_id, attributes):
     manager.savejson(spider, ['spiders', spider_id.encode('utf-8')])
     spider['samples'] = [{'id': name} for name in spider['template_names']]
     context = ctx(manager, spider_id=spider_id)
-    return SpiderSchema(context=context).dump(spider).data
+    response = SpiderSchema(context=context).dump(spider).data
+    if rename:
+        # HACK: Ember doesn't allow changing IDs, so return a "new" spider
+        # and mark the original as deleted.
+        new_spider = SpiderSchema(context=context).dump(spider).data
+        response['included'] = [new_spider['data']]
+        response['data']['attributes']['name'] = "_deleted"
+        response['data']['id'] = original_id
+    return response
 
 
 def delete_spider(manager, spider_id, attributes=None):
