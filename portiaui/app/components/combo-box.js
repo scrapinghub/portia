@@ -39,8 +39,13 @@ export default SelectBox.extend({
 
     updateViewValue() {
         const query = this.get('query');
-        const items = [];
+        let items = [];
         this.trigger('getMenuItems', items);
+
+        if (this.orderItemsForSearch) {
+            items = this.orderItemsForSearch(items);
+        }
+
         const currentValue = this.getValueAttribute(this.get('viewValue'));
         if (currentValue !== query) {
             let item = items.find(item => {

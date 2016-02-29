@@ -8,6 +8,30 @@ export default Ember.Component.extend({
     selecting: false,
     value: null,
 
+    choicesOrdering: ['name'],
+    sortedChoices: Ember.computed.sort('choices', 'choicesOrdering'),
+
+    orderItemsForSearch(items) {
+        function sortPriority(item) {
+            switch (item.get('value.special')) {
+                case 'rename':
+                    return 1;
+                case 'add':
+                    return 2;
+                default:
+                    return 0;
+            }
+        }
+
+        return items.sort((a, b) => sortPriority(a) - sortPriority(b));
+    },
+
+    valuesEqual(a, b) {
+        const aValue = a && (a.get ? a.get('name') : a.name);
+        const bValue = b && (b.get ? b.get('name') : b.name);
+        return aValue === bValue;
+    },
+
     actions: {
         add(name) {
             if (typeof this.attrs.validate === 'function' && !this.attrs.validate(name)) {
