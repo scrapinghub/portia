@@ -175,7 +175,7 @@ def _create_annotation(sample, attributes):
         # TODO: default to most likely attribute
         'data': {
             _id: {
-                'attribute': 'content',
+                'attribute': attributes.get('attribute', 'content'),
                 'field': relationships['field_id'],
                 'required': False,
                 'extractors': []
