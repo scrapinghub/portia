@@ -10,12 +10,18 @@ export default Ember.Component.extend({
 
     actions: {
         add(name) {
+            if (typeof this.attrs.validate === 'function' && !this.attrs.validate(name)) {
+                return;
+            }
             if (this.attrs.create) {
                 this.attrs.create(name);
             }
         },
 
         rename(name) {
+            if (typeof this.attrs.validate === 'function' && !this.attrs.validate(name)) {
+                return;
+            }
             const model = this.get('value');
             model.then((item) => {
                 item.set('name', name);
