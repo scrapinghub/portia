@@ -310,7 +310,8 @@ export const BaseSelectorGenerator = Ember.Object.extend({
             if (!parentElements) {
                 if (!generalize || elements.length === 1) {
                     for (let testSelectorList of testSelectorLists) {
-                        const matches = root.querySelectorAll(testSelectorList.join(', '));
+                        const matches = root.querySelectorAll(
+                            this.mergeSelectors(testSelectorList));
                         if (matches.length === elements.length) {
                             selectors = testSelectorList;
                             continue indexloop;
@@ -337,7 +338,7 @@ export const BaseSelectorGenerator = Ember.Object.extend({
                         }
                     }
                 }
-                const testSelector = concatSelectorList.join(', ');
+                const testSelector = this.mergeSelectors(concatSelectorList);
                 let matches;
                 if (parentElements) {
                     matches = new Set();
@@ -371,7 +372,10 @@ export const BaseSelectorGenerator = Ember.Object.extend({
     },
 
     mergeSelectors(selectors) {
-        return selectors.map(groupSelectors => groupSelectors.join(', ')).join(', ');
+        while (Array.isArray(selectors)) {
+            selectors = selectors.join(', ');
+        }
+        return selectors;
     },
 
     getGroupElementsAtIndex(group, index) {
@@ -410,11 +414,11 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
 
     acceptElements: Ember.computed('annotation.acceptSelectors.[]', function() {
         const acceptSelectors = this.get('annotation.acceptSelectors');
-        return this.get('selectorMatcher').query(acceptSelectors.join(', '));
+        return this.get('selectorMatcher').query(this.mergeSelectors(acceptSelectors));
     }),
     rejectElements: Ember.computed('annotation.rejectSelectors.[]', function() {
         const rejectSelectors = this.get('annotation.rejectSelectors');
-        return this.get('selectorMatcher').query(rejectSelectors.join(', '));
+        return this.get('selectorMatcher').query(this.mergeSelectors(rejectSelectors));
     }),
     generalizedSelector: Ember.computed(
         'annotation.selectionMode', 'annotation.acceptSelectors.[]',
@@ -466,7 +470,7 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
         return selectors.map(selectors => {
             // if the generalized selector contains a rejected element, create a new selector
             // that matches only the other elements
-            const elements = Array.from(selectorMatcher.query(selectors.join(', ')));
+            const elements = Array.from(selectorMatcher.query(this.mergeSelectors(selectors)));
             const allowedElements = elements.filter(element => !rejectElements.has(element));
             if (elements.length === allowedElements.length) {
                 return selectors;
@@ -702,7 +706,10 @@ export function parentWithSiblings(groupedItems, container) {
         siblingDistance = Math.min(...siblings);
     // 5. Use the highest unshared parent of the highest field of the first item
     //    as the repeating container
-    return [itemParents.map(lists => lists[0][0]), siblingDistance];
+    const containers = itemParents.map(lists => lists[0][0])
+        // remove undefined
+        .filter(containers => !!containers);
+    return [containers, siblingDistance];
 }
 
 function getItemBounds(items, tagNumber=true) {
