@@ -6,6 +6,7 @@ export default Ember.Component.extend({
 
     editing: false,
     onChange: null,
+    validate: null,
     spellcheck: true,
     value: null,
 

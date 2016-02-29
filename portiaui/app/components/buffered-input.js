@@ -78,6 +78,9 @@ export default Ember.Component.extend({
 
         endEditing(reason) {
             const value = this.get('viewValue');
+            if (typeof this.attrs.validate === 'function' && !this.attrs.validate(value)) {
+                return Ember.run.next(this, this.setInputFocus);
+            }
             this.setProperties({
                 focused: false,
                 value: value,
