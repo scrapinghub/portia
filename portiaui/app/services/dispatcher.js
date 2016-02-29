@@ -75,14 +75,14 @@ export default Ember.Service.extend({
             type: type || 'text',
             schema
         });
-        field.save().then(() => {
+        return field.save().then((field) => {
             if (redirect) {
                 field.set('new', true);
                 const routing = this.get('routing');
                 routing.transitionTo('projects.project.schema.field', [field], {}, true);
             }
+            return field;
         });
-        return field;
     },
 
     addSpider(project, redirect = false) {
@@ -215,6 +215,10 @@ export default Ember.Service.extend({
         annotation.save().then(() => {
             if (redirect) {
                 annotation.set('new', true);
+                annotation.get('field').then(f => {
+                    annotation.set('_autoCreatedField', f);
+                    f.set('_autoCreatedBy', annotation);
+                });
             }
             if (element) {
                 this.selectAnnotationElement(annotation, element, redirect);

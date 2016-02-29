@@ -81,7 +81,12 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
         annotation['selector'] = ', '.join(annotation['accept_selectors'])
 
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
+    schema_id = annotation.get('schema_id')
+    if not schema_id:
+        container = _find_container(annotation, sample)
+        if container:
+            schema_id = container.get('schema_id')
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id, schema_id=schema_id, field_id=field_id)
     split_annotations = _split_annotations([annotation])
     a = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
     return AnnotationSchema(context=context).dump(a).data
@@ -191,6 +196,15 @@ def _create_annotation(sample, attributes):
         annotation['selector'] = ', '.join(annotation['accept_selectors'])
     annotations.append(annotation)
     return annotation
+
+
+def _find_container(annotation, sample):
+    container_id = annotation.get('container_id')
+    if container_id:
+        for a in sample['plugins']['annotations-plugin']['extracts']:
+            if a["id"] == container_id:
+                return a
+    return None
 
 
 def _create_field_for_annotation(manager, annotation, sample):
