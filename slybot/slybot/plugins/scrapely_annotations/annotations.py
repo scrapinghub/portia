@@ -31,7 +31,7 @@ class Annotations(object):
         """
         _item_template_pages = sorted((
             [t.get('scrapes'), dict_to_page(t, 'annotated_body'),
-             t.get('extractors', [])]
+             t.get('extractors', []), t.get('version', '0.12.0')]
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
         ))
         self.item_classes = {}
@@ -45,7 +45,7 @@ class Annotations(object):
 
         # Create descriptors and apply additional extractors to fields
         page_descriptor_pairs = []
-        for default, template, template_extractors in _item_template_pages:
+        for default, template, template_extractors, v in _item_template_pages:
             descriptors = OrderedDict()
             for schema_name, schema in items.items():
                 item_descriptor = create_slybot_item_descriptor(schema,
@@ -55,7 +55,7 @@ class Annotations(object):
                 descriptors[schema_name] = item_descriptor
             descriptor = descriptors.values() or [{}]
             descriptors['#default'] = descriptors.get(default, descriptor[0])
-            page_descriptor_pairs.append((template, descriptors))
+            page_descriptor_pairs.append((template, descriptors, v))
 
         self.extractors = SlybotIBLExtractor(page_descriptor_pairs)
 

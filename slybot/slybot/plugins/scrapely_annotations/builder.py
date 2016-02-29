@@ -137,7 +137,7 @@ def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
                 tagid = node.attributes.get(TAGID, '').strip()
                 if tagid:
                     tag_stack.append(tagid)
-            elif node.tag_type == CLOSE_TAG:
+            elif node.tag_type == CLOSE_TAG and tag_stack:
                 insert_after_tag = tag_stack.pop()
         elif (isinstance(node, HtmlDataFragment) and len(tag_stack) == 1):
             text = html_body[node.start:node.end]
@@ -293,9 +293,8 @@ def apply_annotations(annotations, target_page):
         converted_annotations = apply_selector_annotations(
             selector_annotations, numbered_html)
         tagid_annotations += converted_annotations
-    target = parse_html(numbered_html)
+    target = iter(parse_html(numbered_html))
     output, tag_stack = [], []
-
     element = next(target)
     last_id = 0
     # XXX: A dummy element is added to the end so if the last annotation is
@@ -310,7 +309,7 @@ def apply_annotations(annotations, target_page):
         for aid, annotation_data in sorted_annotations:
             # Move target until replacement/insertion point
             while True:
-                while not isinstance(element, HtmlTag) or element.tag=='ins':
+                while not isinstance(element, HtmlTag) or element.tag == 'ins':
                     output.append(numbered_html[element.start:element.end])
                     element = next(target)
                 if element.tag_type in {OPEN_TAG, UNPAIRED_TAG}:
@@ -318,6 +317,7 @@ def apply_annotations(annotations, target_page):
                     tag_stack.append(last_id)
                 if element.tag_type in {CLOSE_TAG, UNPAIRED_TAG} and tag_stack:
                     if ('__added' not in element.attributes and
+                            last_id is not None and aid is not None and
                             int(last_id) < int(aid)):
                         output.append(numbered_html[element.start:element.end])
                         element.attributes['__added'] = True
@@ -337,7 +337,8 @@ def apply_annotations(annotations, target_page):
                             if isinstance(element, HtmlTag):
                                 break
                         continue
-                if last_id is not None and int(last_id) < int(aid):
+                if (last_id is not None and aid is not None and
+                        int(last_id) < int(aid)):
                     if '__added' not in element.attributes:
                         output.append(numbered_html[element.start:element.end])
                         element.attributes['__added'] = True

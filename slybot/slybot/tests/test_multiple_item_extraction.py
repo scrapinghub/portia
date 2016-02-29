@@ -116,13 +116,24 @@ class ContainerExtractorTest(TestCase):
         self.assertEqual(len(data), 95)
         self.assertEqual({tuple(sorted(i.keys())) for i in data},
                          {('_template', u'date', u'text', u'title', u'url')})
+        b = {
+            u'_template': u'stack_overflow_test',
+            u'date': [u'2015-08-07 10:09:32Z'],
+            u'text': [u"Bootstrap navbar doesn't open - mobile view"],
+            u'title': [u'I have a sticky nav with this code (Which is not mine'
+                       u') // Create a clone of the menu, right next to '
+                       u'original. ...'],
+            u'url': [u'https://stackoverflow.com/questions/31875193/bootstrap-'
+                     u'navbar-doesnt-open-mobile-view']
+        }
+        print({k: v if b[k] != v else False for k, v in data[0].items()})
         self.assertDictEqual(data[0], {
             u'_template': u'stack_overflow_test',
             u'date': [u'2015-08-07 10:09:32Z'],
             u'text': [u"Bootstrap navbar doesn't open - mobile view"],
             u'title': [u'I have a sticky nav with this code (Which is not mine'
-                       u')\n\n// Create a clone of the menu, right next to '
-                       u'original.\n...'],
+                       u') // Create a clone of the menu, right next to '
+                       u'original. ...'],
             u'url': [u'https://stackoverflow.com/questions/31875193/bootstrap-'
                      u'navbar-doesnt-open-mobile-view']
         })
@@ -133,7 +144,7 @@ class ContainerExtractorTest(TestCase):
             u'title': [u"Last days i'm trying to put my rails app in "
                        u"production with apache and passenger(no rvm), but "
                        u"still nothing. In my browser i get an error like "
-                       u"this:\n\nWe're sorry, but something went wrong.\n"
+                       u"this: We're sorry, but something went wrong. "
                        u"We've been ..."],
             u'url': [u'https://stackoverflow.com/questions/31874997/rails-in-'
                      u'production-with-apachepassenger-error']
@@ -144,8 +155,8 @@ class ContainerExtractorTest(TestCase):
             u'text': [u'pylab cannot find reference for its modules'],
             u'title': [u"I have a mac OS X Yosimite and I'm using python "
                        u"2.7.10 and Pycharm as my IDLE. I have pylab installed"
-                       u" properly but I cannot use any of its modules.\n\n"
-                       u"When a try:\nfrom pylab import show (or any module) "
+                       u" properly but I cannot use any of its modules. "
+                       u"When a try: from pylab import show (or any module) "
                        u"..."],
             u'url': [u'https://stackoverflow.com/questions/31872881/pylab-'
                      u'cannot-find-reference-for-its-modules']
