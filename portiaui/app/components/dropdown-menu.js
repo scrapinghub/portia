@@ -1,20 +1,22 @@
 import Ember from 'ember';
 
 function computedItem(propertyName) {
-    let cache;
+    const cachePropertyName = `_${propertyName}Cache`;
 
     return Ember.computed(propertyName, 'items', {
         get() {
+            let cachedValue = this[cachePropertyName];
             const value = this.get(propertyName);
             const items = this.get('items');
-            if (!cache || !items.includes(cache) || cache.get('value') !== value) {
-                cache = items.findBy('value', value);
+            if (!cachedValue || !items.includes(cachedValue) ||
+                    cachedValue.get('value') !== value) {
+                this[cachePropertyName] = cachedValue = items.findBy('value', value);
             }
-            return cache;
+            return cachedValue;
         },
 
         set(key, item) {
-            cache = item;
+            this[cachePropertyName] = item;
             this.set(propertyName, item.get('value'));
             return item;
         }

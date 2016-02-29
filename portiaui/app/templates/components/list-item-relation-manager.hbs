@@ -1,4 +1,4 @@
-{{#list-item-combo value=(mut value) valueAttribute='name' selecting=(mut selecting) onChange=onChange autoSelect=true menuContainer="body" as |combo|}}
+{{#list-item-combo value=(mut value.content) valueAttribute='name' selecting=(mut selecting) onChange=onChange autoSelect=true menuContainer="body" as |combo|}}
     {{#combo.header}}
         {{yield (hash section='choices')}}
     {{/combo.header}}
