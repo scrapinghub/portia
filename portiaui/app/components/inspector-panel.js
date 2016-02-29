@@ -45,6 +45,26 @@ export function getAttributeList(element) {
     return attributeList;
 }
 
+export function getDefaultAttribute(element) {
+    // TODO: Remove attributes that have been already annotated
+    const attrList = getAttributeList(element);
+
+    if (attrList.length === 1 && attrList[0].attribute) {
+        // Only one possible attribute
+        return attrList[0].attribute;
+    }
+
+    if (attrList.findBy('attribute', 'content')) {
+        return 'content';
+    } else if (element.tagName === 'IMG' && attrList.findBy('attribute', 'src')) {
+        return 'src';
+    } else if (element.tagName === 'A' && attrList.findBy('attribute', 'href')) {
+        return 'href';
+    }
+
+    return null;
+}
+
 export default Ember.Component.extend({
     dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),

@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
 import ItemAnnotation from '../models/item-annotation';
-import {getAttributeList} from '../components/inspector-panel';
+import {getDefaultAttribute} from '../components/inspector-panel';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -205,14 +205,11 @@ export default Ember.Service.extend({
         });
         if (element) {
             annotation.addElement(element);
+            attribute = attribute || getDefaultAttribute(element);
         }
+
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
-        } else if (element) {
-            const attributes = getAttributeList(element);
-            if (attributes.length === 1 && attributes[0].attribute) {
-                annotation.set('attribute', attributes[0].attribute);
-            }
         }
         // FIXME: annotation.selector is null at this point
         annotation.save().then(() => {
