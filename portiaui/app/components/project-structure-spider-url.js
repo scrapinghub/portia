@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { cleanUrl } from '../utils/utils';
 
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
@@ -39,10 +40,13 @@ export default Ember.Component.extend({
             if (oldUrl !== newUrl) {
                 if (!newUrl) {
                     this.get('dispatcher').removeStartUrl(spider, oldUrl);
-                } else if (!oldUrl) {
-                    this.get('dispatcher').addStartUrl(spider, newUrl);
                 } else {
-                    this.get('dispatcher').replaceStartUrl(spider, oldUrl, newUrl);
+                    newUrl = cleanUrl(newUrl);
+                    if (!oldUrl) {
+                        this.get('dispatcher').addStartUrl(spider, newUrl);
+                    } else {
+                        this.get('dispatcher').replaceStartUrl(spider, oldUrl, newUrl);
+                    }
                 }
             }
         }
