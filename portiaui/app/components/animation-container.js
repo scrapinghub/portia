@@ -20,7 +20,16 @@ export default Ember.Component.extend({
                     hidden: true
                 });
             } else if (!attrValue(oldAttrs.hide)) {
-                this.set('fade', true);
+                // if hide is toggled quickly enough, and the opacity hasn't yet changed, then the
+                // transitionend event will not fire to set hidden = true.
+                if ((+this.$().css('opacity') === 0)) {
+                    this.setProperties({
+                        fade: true,
+                        hidden: true
+                    });
+                } else {
+                    this.set('fade', true);
+                }
             }
         } else {
             if (!oldAttrs) {
