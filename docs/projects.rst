@@ -1,12 +1,13 @@
 .. _projects:
 
+========
 Projects
 ========
 
 Projects in Portia consist of one or more :ref:`spiders <spiders>` and can be deployed to any `scrapyd`_ instance.
 
 Versioning
-----------
+==========
 
 .. _project-deployment:
 
@@ -63,7 +64,7 @@ When this env variable is set the database can be initialized by running the bin
 .. note:: The MySQL backend only stores project data. Data generated during crawl is still stored locally.
 
 Deployment
-----------
+==========
 
 Portia projects can be deployed using `scrapyd`_. You can deploy a Portia project by going into ``slyd/data/projects/PROJECT_NAME`` and adding your target to ``scrapy.cfg``. You can then run ``scrapyd-deploy`` to deploy your project using the default deploy target, or specify a target and project using the following::
 

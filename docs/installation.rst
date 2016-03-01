@@ -1,10 +1,11 @@
 .. _installation:
 
+============
 Installation
 ============
 
 Vagrant (recommended)
----------------------
+=====================
 
 Checkout the repository::
 
@@ -19,7 +20,7 @@ Run the following in Portia's directory::
 This will launch an Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:9001``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 Docker
-------
+======
 
 Checkout the repository::
 
@@ -43,10 +44,10 @@ To run `portiacrawl` add `/app/slybot/bin/portiacrawl <PROJECT_PATH> [SPIDER] [O
 .. warning:: For Windows the `<PROJECT_FOLDER>` path must be of the form `/<DRIVE_LETTER/<PATH>`
 
 Debian
-------
+======
 
 Running Portia Locally
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 **These instructions are only valid for a Debian based OS**
 
