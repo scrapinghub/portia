@@ -2,13 +2,22 @@
 
 <div class="tool-bar">
     <div class="btn-group" role="group">
-        {{#tooltip-container tooltipFor="magic-tool-button" tooltipContainer='body' as |options| }}
+        {{#tooltip-container tooltipFor="magic-tool-button" placement='left' tooltipContainer='body' as |options| }}
             {{#if (eq options.section 'tooltip')}}
-                {{#if magicToolActive}}
-                    Manually select the tool you want to use
-                {{else}}
-                    Select appropriate tool automatically
-                {{/if}}
+                Magic tool selector
+                <p>
+                    When the magic tool selector is enabled, it will attempt to choose the most
+                    useful tool for you automatically, based on the element you are pointing at in
+                    the web page.
+                </p>
+                <p>
+                    You can see which tool is being selected for you by looking at enabled tool
+                    selection button, and at the icon visible on the element under the cursor.
+                </p>
+                <p>
+                    If you need, you can manually change the tool for the next click, by switching
+                    to it using the tool selection buttons.
+                </p>
             {{else}}
                 <button id="magic-tool-button" type="button" class="btn btn-default {{if magicToolActive 'active'}}" {{action 'toggleMagicTool'}}>
                     {{icon-button icon='tool-magic'}}

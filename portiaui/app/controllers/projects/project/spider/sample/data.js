@@ -12,10 +12,10 @@ export default Ember.Controller.extend({
         edit: 'tool-multiple'
     },
     selectionModeText: {
-        select: 'Select an element',
-        add: 'Add a new element',
-        remove: 'Remove an element',
-        edit: 'Add a repeating element'
+        select: 'Select an existing annotation',
+        add: 'Add a new annotation',
+        remove: 'Remove an annotation',
+        edit: 'Add/remove extra elements from an existing annotation'
     },
     selectionModeIds: {
         select: 'tool-select-button',
