@@ -144,6 +144,7 @@ class Annotations(object):
                 item = dict(processed_attributes)
             item['url'] = htmlpage.url
             item['_template'] = str(template.id)
+            item.setdefault('_type', item_cls_name)
             if not isinstance(item, SlybotItem):
                 item = SlybotItem(**item)
             items.append(item)

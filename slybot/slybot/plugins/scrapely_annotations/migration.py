@@ -23,6 +23,8 @@ Handle generated annotations
 """
 import json
 
+import slybot
+
 from itertools import chain, groupby
 from operator import itemgetter
 from urllib import unquote
@@ -32,6 +34,7 @@ from lxml.etree import _Element
 from scrapy import Selector
 
 from slybot.plugins.scrapely_annotations.utils import add_tagids
+SLYBOT_VERSION = slybot.__version__
 IGNORE_ATTRIBUTES = ['data-scrapy-ignore', 'data-scrapy-ignore-beneath']
 
 
@@ -79,6 +82,7 @@ def port_sample(sample):
 
     # Update annotations
     sample['plugins']['annotations-plugin']['extracts'] = new_annotations
+    sample['version'] = SLYBOT_VERSION
     return sample
 
 
