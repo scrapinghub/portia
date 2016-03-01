@@ -114,6 +114,11 @@ class BaseExtractor(BasicTypeExtractor):
         if annotation.surrounds_attribute:
             self.content_validate = lambda x: x
             self.extract = self._extract_content
+            if annotation.annotation_text:
+                start = annotation.annotation_text.start_text
+                end = annotation.annotation_text.follow_text
+                self.content_validate = TextRegionDataExtractor(
+                    start, end).extract
 
         if annotation.tag_attributes:
             self.tag_data = []
@@ -732,13 +737,13 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
                 parsed.descriptors['#default'] = descriptor
 
         # templates with more attributes are considered first
-        parsed_templates.sort(key=_annotation_count,
-                              reverse=True)
-        self.extraction_trees = list(sorted([
-            self.build_extraction_tree(p, None, trace,
-                                       legacy=v < '0.13.0')
+        parsed_templates = sorted(
+            parsed_templates, key=_annotation_count, reverse=True
+        )
+        self.extraction_trees = [
+            self.build_extraction_tree(p, None, trace, legacy=v < '0.13.0')
             for p, v in zip(parsed_templates, template_versions)
-        ], key=_count_annotations, reverse=True))
+        ]
 
     def build_extraction_tree(self, template, type_descriptor=None,
                               trace=False, legacy=False):
@@ -776,7 +781,6 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
             extraction_trees = sorted(
                 self.extraction_trees,
                 key=lambda x: x.template.id != pref_template_id)
-
         for extraction_tree in extraction_trees:
             template_id = extraction_tree.template.id
             extracted = extraction_tree.extract(extraction_page)
