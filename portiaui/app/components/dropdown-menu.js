@@ -1,18 +1,23 @@
 import Ember from 'ember';
 
 function computedItem(propertyName) {
-    const cachePropertyName = `_${propertyName}Cache`;
+    const cachePropertyName = `_${propertyName}ItemCache`;
 
     return Ember.computed(propertyName, 'items', {
         get() {
-            let cachedValue = this[cachePropertyName];
+            let cachedItem = this[cachePropertyName];
             const value = this.get(propertyName);
-            const items = this.get('items');
-            if (!cachedValue || !items.includes(cachedValue) ||
-                    cachedValue.get('value') !== value) {
-                this[cachePropertyName] = cachedValue = items.findBy('value', value);
+            let items = this.get('items');
+            if (!cachedItem || !items.includes(cachedItem) ||
+                    cachedItem.get('value') !== value) {
+                if (this.orderItemsForSearch) {
+                    items = this.orderItemsForSearch(items);
+                }
+                const equalityFn = this.valuesEqual || Ember.isEqual;
+                this[cachePropertyName] = cachedItem =
+                    items.find(item => equalityFn(item.get('value'), value));
             }
-            return cachedValue;
+            return cachedItem;
         },
 
         set(key, item) {
@@ -147,6 +152,14 @@ export default Ember.Component.extend({
         if (!this.get('isDestroying')) {
             this.notifyPropertyChange('items');
         }
+    },
+
+    orderItemsForSearch(items) {
+        return items;
+    },
+
+    valuesEqual(a, b) {
+        return Ember.isEqual(a, b);
     },
 
     actions: {
