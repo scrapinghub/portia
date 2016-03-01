@@ -31,8 +31,9 @@ export default Ember.Component.extend({
             this.get('dispatcher').removeField(field);
         },
 
-        validateFieldName(name) {
-            const error = validateFieldName(name, this.get('schema.fields'));
+        validateFieldName(field, name) {
+            const fields = this.get('schema.fields').reject(f => f === field);
+            const error = validateFieldName(name, fields);
             if(error) {
                 this.get('notificationManager').showWarningNotification(error);
                 return false;
