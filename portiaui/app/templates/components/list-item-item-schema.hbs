@@ -1,11 +1,11 @@
 {{#list-item-relation-manager value=(mut item.schema) choices=item.sample.spider.project.schemas selecting=(mut selecting) onChange=(action 'changeSchema') create=(action 'addSchema') as |options|}}
     {{#if (eq options.section 'choices')}}
-        Select an existing schema
+        Select an existing data format
     {{else if (eq options.section 'choice')}}
         {{list-item-icon class="icon" icon='schema'}}{{options.choice.name}}
     {{else if (eq options.section 'rename')}}
-        Rename the selected schema
+        Rename the selected data format
     {{else if (eq options.section 'add')}}
-        Create a new schema
+        Create a new data format
     {{/if}}
 {{/list-item-relation-manager}}
