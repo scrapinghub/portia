@@ -6,51 +6,61 @@ Getting Started
 
 .. note:: If you don't have Portia running yet, please read the :ref:`Installation guide <installation>` first. If you're using a hosted version of Portia on a platform like `Scrapinghub <http://scrapinghub.com>`_, you don't need to install anything.
 
-This tutorial will briefly cover how to create a new spider and begin extracting data with Portia.
+This tutorial will briefly cover how to scrape amazon.com_ with Portia. Your goal here is to extract the name and the price from Amazon.com_ products.
 
-Creating a spider
+.. _amazon.com: http://example.com/
+
+
+
+Creating a Spider
 =================
+Go to Portia and feed it with the amazon.com_ URL:
 
-Let's start by creating a project. Enter a URL in the navigation bar and click ``New Spider``. We should see the page rendered like below:
+.. image:: _static/getting-started-1.png
+    :alt: Portia start page
 
-.. image:: _static/portia-new-project.png
-    :alt: Newly created project
+You will see a page like this after doing so:
 
-We can configure the spider on the left. You may notice the URL we entered has been added as a start page. Start pages act as seeds for the crawl and the spider will visit these first. If the site we're using requires JavaScript, we can enable by clicking the cog to the right of the spider in the list and then ticking 'Enable JavaScript'.
+.. image:: _static/getting-started-2.png
+    :alt: Portia internal browser
 
-Now that we've created our spider, we need to define the data we want to extract. We do this using :ref:`samples <samples>`.
+Now, click on the ``New spider`` button to start creating your Portia spider. In the next step you'll create a **sample** from a page.
 
-Creating a sample
+
+Creating a Sample
 =================
+A sample is like a template describing which data you want to extract from a page. This sample will be used by Portia to extract data from pages who have different contents but similar structure.
 
-Portia acts like a web browser, so we can navigate between pages as we would normally. Let's navigate to a page we want to extract data from and click ``New sample`` to create a sample.
+To create a sample, you should navigate to a random product page and click on the ``New sample`` button. Once you are editing the sample, you just have to click in the elements that you want to scrape and give them a proper name and data type in the **left sidebar**.
 
-.. image:: _static/portia-annotation.png
-    :alt: Annotating the page
 
-A sample is a template of a page that consists of :ref:`annotations <what-are-annotations>`. An annotation links a piece of data on the page (an element) to one or more item fields. We'll come back to annotations in a moment, but first we need to create our item.
+.. image:: _static/getting-started-3.png
+    :alt: Creating a sample
 
-Items
-=====
+As you can see, the **right sidebar** shows a preview of the items that Portia would collect from that page, given the sample that you are creating.
 
-An :ref:`item <items>` in Portia is a record of data e.g. a product or a listing that's extracted during the crawl. We want to define the schema for the item we're going to be extracting. A field is simply an item's attribute, so for example a book would have a `title` field, an `author` field etc.
+Once you selected all the elements that you want to scrape (in this case, title and price), you have to click the ``Close sample`` button.
 
-Let's define the fields for data we want to extract before annotating. We can do this through the item editor.
 
-.. image:: _static/portia-item-editor.png
-    :alt: Items editor
+Now, your spider is ready to run. But you might want to follow the next section to learn how define which pages Portia will crawl.
 
-We need to think about the data we want to extract, and add the relevant fields. We can mark fields as required and Portia will discard any items that are missing them. Marking fields as vary means they won't be taken into account when checking for duplicates, more on that :ref:`here <items>`.
 
-Now that we've defined the item we want to extract, let's get back to annotating.
+Configuring the Crawling
+========================
+Portia crawls a website starting from the URLs defined on ``START PAGES``. You can easily add more start pages (also called as **seed URLs**) to your spider, if you need so:
 
-Annotating
-==========
+.. image:: _static/getting-started-4.png
+    :alt: Adding start pages
 
-To create an annotation, use the wand (|icon-wand|) or select the appropriate tool and click an element on the page. We can access the annotation settings by clicking the gear icon right of the mapped field. Here we can change the attribute we want to extract in the ``Source`` field. Most of the time we'll want the ``content``, but for images the ``src`` attribute is selected by default. We can preview the value that'll be extracted to the right.
 
-If we want to extract data that isn't visible in the body, such as data within the ``head`` element, we can click the ``CSS`` button located in the top bar to toggle styling. This will usually force the data to be displayed on the page. If not we can click the grey cog icon to the open the settings and navigate to parent or child elements manually. We can delete an annotation by clicking the red minus button next to it.
+By default, Portia follows all the in-domain URLs that it finds while crawling. However, sometimes you don't want it to follow every link. For example, some pages on amazon doesn't match the sample you just created (categories pages, help pages, etc).
 
-We can ensure our annotations work by making sure the correct data is shown in the ``Extracted items`` list on the right. We may want to visit similar pages to ensure those work too. If our sample works on a few pages but not others, it's likely the other pages have a different layout or fields missing. For these sites, we should create several samples. Take a look at :ref:`Multiple samples <multiple-samples>` for more details.
+In this case, you might want to change the default link crawling policy, setting Portia to follow only links from product pages (ie, pages whose URL contains ``/gp/``). To do so, you can change the crawling policy to ``Configure URL patterns`` and add ``/gp/`` as the URL pattern in the crawling rules:
 
-Once we've confirmed our spider works and extracts data properly, it's now ready to :ref:`run <running-spider>`.
+.. image:: _static/getting-started-5.png
+    :alt: Configuring the crawling
+
+
+Next
+====
+Now that you created the sample and defined the crawling rules, it's time to :ref:`run <running-spider>` your spider.
