@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { storageFor } from 'ember-local-storage';
 
 function computedActiveRoutes(mapping) {
     const properties = Object.keys(mapping);
@@ -53,12 +54,8 @@ export default Ember.Service.extend({
         field: 'fieldRoute'
     }),
     slideMain: false,
-    selectedTools: {
-        magicToolActive: true,
-        selectionMode: null
-    },
-    collapsedPanels: {
-    },
+    selectedTools: storageFor('uiStateSelectedTools'),
+    collapsedPanels: storageFor('uiStateCollapsedPanels'),
     viewPort: {
         hoveredElement: null,
         hoveredModels: [],
