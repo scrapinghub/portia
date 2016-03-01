@@ -4,7 +4,7 @@
         <label>
             {{input type="checkbox" name="required" checked=(mut field.required)}} Required
             {{#help-icon}}
-                Only extract items that have this field. All samples using this schema will be affected
+                Only extract items that have this field. All samples using this data format will be affected
             {{/help-icon}}
         </label>
     </div>
@@ -12,7 +12,7 @@
         <label>
             {{input type="checkbox" name="vary" checked=(mut field.vary)}} Vary
             {{#help-icon}}
-                Fields with different values for this field will be considered the same
+                The value of this field will be ignored when checking for duplicate items
             {{/help-icon}}
         </label>
     </div>

@@ -31,6 +31,16 @@
         }
     }
 
+    .title {
+        line-height: $tree-list-row-height;
+
+        .animation-container {
+            &.inline {
+                vertical-align: bottom;
+            }
+        }
+    }
+
     .icon {
         &.animation-container {
             width: $tree-list-icon-width;
@@ -39,6 +49,20 @@
 
         a {
             display: inline-block;
+        }
+    }
+
+    .help {
+        .tree-list-item-row {
+            height: auto;
+        }
+
+        .alert {
+            @extend .small;
+            @extend .text-justify;
+
+            margin: 0;
+            width: 100%;
         }
     }
 }
