@@ -136,17 +136,22 @@ class Annotations(object):
             elif unprocessed:
                 item = self._process_attributes(processed_attributes,
                                                 descriptor, htmlpage)
-                item['_type'] = item_cls_name
+                if item_cls:
+                    item = item_cls(item)
             elif item_cls:
                 item = item_cls(processed_attributes)
-                item['_type'] = item_cls_name
             else:
                 item = dict(processed_attributes)
             item['url'] = htmlpage.url
             item['_template'] = str(template.id)
             item.setdefault('_type', item_cls_name)
             if not isinstance(item, SlybotItem):
-                item = SlybotItem(**item)
+                default_meta = {'type': 'text', 'required': False,
+                                'vary': False}
+                item_cls = SlybotItem.create_iblitem_class(
+                    {'fields': {k: default_meta for k in item}}
+                )
+                item = item_cls(**item)
             items.append(item)
 
         return items, link_regions
