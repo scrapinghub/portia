@@ -15,50 +15,21 @@ Field types
 
 You can set a field's type to ensure it will only match that kind of data. The following field types are available:
 
-.. raw:: html
-
-    <table>
-        <tbody>
-            <tr>
-                <td>text</td>
-                <td>Plain text. Any markup is stripped and text within nested elements is also extracted.</td>
-            </tr>
-            <tr>
-                <td>number</td>
-                <td>A numeric value e.g. 7, 9.59</td>
-            </tr>
-            <tr>
-                <td>image</td>
-                <td>An image URL. In most cases you will want to map an ``img`` element's ``src`` attribute.</td>
-            </tr>
-            <tr>
-                <td>price</td>
-                <td>The same as ``number``, a numeric value.</td>
-            </tr>
-            <tr>
-                <td>raw html</td>
-                <td>Non-sanitized HTML.</td>
-            </tr>
-            <tr>
-                <td>safe html</td>
-                <td>Sanitized HTML. See below for more details.</td>
-            </tr>
-            <tr>
-                <td>geopoint</td>
-                <td>The same as ``text``.</td>
-            </tr>
-            <tr>
-                <td>url</td>
-                <td>A URL.</td>
-            </tr>
-            <tr>
-                <td>date</td>
-                <td>A date value parsed by [dateparser](https://github.com/scrapinghub/dateparser). This won't work if the annotated element includes non-date text, in which case you should use partial annotations.</td>
-            </tr>
-        </tbody>
-    </table>
+========= ===========
+type      description
+========= ===========
+text      Plain text. Any markup is stripped and text within nested elements is also extracted.
+number    A numeric value e.g. 7, 9.59.
+image     An image URL. In most cases you will want to map an ``img`` element's ``src`` attribute.
+price     The same as ``number``, a numeric value.
+raw html  Non-sanitized HTML.
+safe html Sanitized HTML. See below for more details.
+geopoint  The same as ``text``.
+url       A URL.
+date      A date value parsed by `dateparser <https://github.com/scrapinghub/dateparser>`_. Won't work if the annotated element has non-date text.
+========= ===========
 
 
 The ``safe html`` field type keeps the following elements: ``br``, ``p``, ``big``, ``em``, ``small``, ``strong``, ``sub``, ``sup``, ``ins``, ``del``, ``code``, ``kbd``, ``samp``, ``tt``, ``var``, ``pre``, ``listing``, ``plaintext``, ``abbr``, ``acronym``, ``address``, ``bdo``, ``blockquote``, ``q``, ``cite``, ``dfn``, ``table``, ``tr``, ``th``, ``td``, ``tbody``, ``ul``, ``ol``, ``li``, ``dl``, ``dd``, ``dt``.
 
-All elements are discarded, with the exception of header tags (``h1``, ``h2`` ... ``h6``) and ``b`` which are replaced with ``strong``, and ``i`` which is replaced with ``em``. Whitelisted elements contained within non-whitelisted elements will still be retained, with the exception of elements contained within a ``script``, ``img`` or ``input`` element. For example, ``<div><code>example</code></div>`` would extract to ``<code>example</code>``, whereas ``<script><code>example</code></script>`` would be discarded completely.
+All other elements are discarded, with the exception of header tags (``h1``, ``h2`` ... ``h6``) and ``b`` which are replaced with ``strong``, and ``i`` which is replaced with ``em``. Whitelisted elements contained within non-whitelisted elements will still be retained, with the exception of elements contained within a ``script``, ``img`` or ``input`` element. For example, ``<div><code>example</code></div>`` would extract to ``<code>example</code>``, whereas ``<script><code>example</code></script>`` would be discarded completely.
