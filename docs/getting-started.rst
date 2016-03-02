@@ -8,58 +8,63 @@ Getting Started
 
 This tutorial will briefly cover how to scrape amazon.com_ with Portia. Your goal here is to extract the name and the price from Amazon.com_ products.
 
-.. _amazon.com: http://example.com/
+.. _amazon.com: http://amazon.com/
 
+First, you have to create a Portia project, open it and then provide the URL that you want to scrape.
 
+.. image:: _static/portia-landing-page.png
+    :alt: Portia landing page
 
-Creating a Spider
-=================
-Go to Portia and feed it with the amazon.com_ URL:
+After doing so, Portia will load the URL you asked into its browser and you should see a page like this:
 
-.. image:: _static/getting-started-1.png
-    :alt: Portia start page
+.. image:: _static/portia-main-page.png
+    :alt: Portia main page
 
-You will see a page like this after doing so:
+Now, you have to **create a Spider**, clicking in the ``New spider`` button, and then you will see the page below:
 
-.. image:: _static/getting-started-2.png
-    :alt: Portia internal browser
+.. image:: _static/portia-new-spider.png
+    :alt: Newly created spider
 
-Now, click on the ``New spider`` button to start creating your Portia spider. In the next step you'll create a **sample** from a page.
+You can configure the spider on the left sidebar. You may notice the URL you entered has been added as a **start page**. Start pages act as seeds for the crawl and the spider will visit these first.
+
+Now that you've created your spider, you need to define the data you want to extract. You'll do this using :ref:`samples <samples>`.
 
 
 Creating a Sample
 =================
-A sample is like a template describing which data you want to extract from a page. This sample will be used by Portia to extract data from pages who have different contents but similar structure.
 
-To create a sample, you should navigate to a random product page and click on the ``New sample`` button. Once you are editing the sample, you just have to click in the elements that you want to scrape and give them a proper name and data type in the **left sidebar**.
+A **sample** is a template describing which data you want to extract from a page. This sample will be used by Portia to extract data from other pages who may have different contents but similar structure.
 
+Portia acts like a web browser, so you can navigate between pages as you would normally. You have to navigate to a page you want to extract data from and click ``New sample`` to start creating a sample. (any product page works for this tutorial)
 
-.. image:: _static/getting-started-3.png
-    :alt: Creating a sample
+Now, you have to :ref:`annotate <what-are-annotations>` the page, by clicking in the elements you want to scrape and setting a proper field name and data type in the left sidebar. Portia will create an :ref:`item <items>` schema from the elements that you annotated and will use it as the data format for the scraped :ref:`items <items>`.
 
-As you can see, the **right sidebar** shows a preview of the items that Portia would collect from that page, given the sample that you are creating.
+.. image:: _static/portia-annotation.png
+    :alt: Annotating a page
 
-Once you selected all the elements that you want to scrape (in this case, title and price), you have to click the ``Close sample`` button.
+You can see a preview with the items that Portia would collect from that page in the right sidebar, given the sample that you are creating.
 
+Once you have selected all the elements that you want to scrape (in this case, title and price), you have to close the sample by clicking in ``Close sample``. 
 
-Now, your spider is ready to run. But you might want to follow the next section to learn how define which pages Portia will crawl.
+The sample is everything that Portia needs in order to know which data you want to extract and how to extract them from the web pages.
+
+Your spider is ready to run. But you might want to follow the next section to learn how to define which pages Portia will crawl.
 
 
 Configuring the Crawling
 ========================
 Portia crawls a website starting from the URLs defined on ``START PAGES``. You can easily add more start pages (also called as **seed URLs**) to your spider, if you need so:
 
-.. image:: _static/getting-started-4.png
+.. image:: _static/portia-add-start-pages.png
     :alt: Adding start pages
 
 
-By default, Portia follows all the in-domain URLs that it finds while crawling. However, sometimes you don't want it to follow every link. For example, some pages on amazon doesn't match the sample you just created (categories pages, help pages, etc).
+By default, Portia follows all the in-domain URLs that it finds while crawling. However, sometimes you don't want it to follow every link. For example, some pages on amazon have a completely different structure (categories pages, help pages, etc), so they don't match the sample you just created.
 
-In this case, you might want to change the default link crawling policy, setting Portia to follow only links from product pages (ie, pages whose URL contains ``/gp/``). To do so, you can change the crawling policy to ``Configure URL patterns`` and add ``/gp/`` as the URL pattern in the crawling rules:
+In this case, you might want to change the default link crawling policy, setting Portia to follow only links from product pages (ie, pages whose URL contains ``/dp/``). To do so, you can change the crawling policy to ``Configure URL patterns`` and add ``/dp/`` as the URL pattern in the crawling rules:
 
-.. image:: _static/getting-started-5.png
+.. image:: _static/portia-configuring-crawling.png
     :alt: Configuring the crawling
-
 
 Next
 ====
