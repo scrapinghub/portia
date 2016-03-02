@@ -9690,7 +9690,13 @@ define('portia-web/routes/project/index', ['exports', 'portia-web/routes/base-ro
         afterModel: function afterModel() {
             if (this.get('capabilities.version_control')) {
                 var controller = this.controllerFor('project.index');
-                return this.get('slyd').changedFiles(this.get('slyd.project')).then(function (changes) {
+                console.log('After model now');
+                this.get('slyd').hasTag(this.get('slyd.project'), 'portia_2.0').then(function (hasTag) {
+                    console.log('Set HAS Portia2 tag');
+                    console.log(hasTag);
+                    controller.set('hasPortia2', hasTag);
+                });
+                this.get('slyd').changedFiles(this.get('slyd.project')).then(function (changes) {
                     controller.set('changedFiles', changes);
                 });
             }
@@ -24952,7 +24958,7 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
                     }
                 }
                 if (data.error) {
-                    NotificationManager['default'].showErrorNotification(data.reason || data.error);
+                    NotificationManager['default'].showErrorNotification(data.reason || data.error, data.message);
                     console.error(data.reason || data.error);
                 } else if (command in this.get('commands')) {
                     this.get('commands')[command](data);
@@ -26528,6 +26534,18 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             hash.data = { cmd: 'changes', args: [projectName] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to load changed files';
+                throw err;
+            });
+        },
+
+        hasTag: function hasTag(projectName, tag_name) {
+            var hash = {};
+            hash.type = 'POST';
+            hash.url = this.getApiUrl();
+            hash.data = { cmd: 'has_tag', args: [projectName, tag_name] };
+            console.log(hash);
+            return this.makeAjaxCall(hash)['catch'](function (err) {
+                err.title = 'Failed to load tags';
                 throw err;
             });
         },
