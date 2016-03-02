@@ -49,17 +49,31 @@ You can create annotations by clicking an element on the page with the appropria
 Extractors
 ----------
 
-.. image:: _static/portia-extractors.png
-    :alt: Field extractors
-
 You can also add extractors to annotations. Extractors let you use regular expressions or a pre-defined type to further refine data extracted from a page.
 
 For example, assume there's an element that contains a phone number, but it has additional text that you don't need. In this scenario you could add an extractor to retrieve only the phone number instead of the full text.
 
+You can define the extractor for a particular field by clicking in the gear icon right after the field type:
+
+.. image:: _static/portia-goto-extractors.png
+    :alt: Field extractors
+
+And then you can select use any built-in extractors or create your own extractor via regular expressions:
+
+.. image:: _static/portia-extractors.png
+    :alt: Field extractors
+
 Multiple fields
 ---------------
 
-It's possible to extract multiple fields using a single annotation if there are several properties you want to extract from an element. For example, if there was an anchor link on the page, you could map the ``href`` attribute containing the URL to one field, and you could map the text to another. You can view a particular annotation's settings by either clicking the cog in the annotation pop-up window or by clicking the cog beside the annotation in the ``Annotations`` section of the sample configuration. Within this context there is an ``Attribute mappings`` section where you can define additional mappings for the selected annotation should you want to map other attributes.
+It's possible to extract multiple fields using a single annotation if there are several properties you want to extract from an element. For example, if there was an image on the page, you could map the ``src`` attribute containing the image URL to one field, and you could map the ``alt`` attribute to another.
+
+You can do it in the ``Inspector`` panel in the top left of the screen:
+
+.. image:: _static/portia-sample-multiple-fields.png
+    :alt: Multiple fields from one element
+
+Just click the ``+`` button right after an attribute to add a new field based on the same annotation.
 
 .. _multiple-samples:
 

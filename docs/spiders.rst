@@ -13,13 +13,18 @@ Spider properties
 
 You can access your spider's properties by clicking the gear icon located right of your spider in the list on the left.
 
-Configuring login details
-=========================
+.. image:: _static/portia-spider-properties.png
+    :alt: Spider properties
 
-If you need to log into a site, you can configure login details by ticking 'Perform login' in the :ref:`spider properties <spider-properties>` menu. Here you can set the login URL, username and password.
+
+Configuring login details
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you need to log into a site, you can configure login details by ticking 'Perform login' in the :ref:`spider properties <spider-properties>` menu. Then you can set the login URL, username and password.
+
 
 Enabling JavaScript
-===================
+^^^^^^^^^^^^^^^^^^^
 
 You can enable JavaScript in your spider by ticking ``Enable JavaScript`` in the :ref:`spider properties <spider-properties>` menu. Note that you'll need to set the ``SPLASH_URL`` Scrapy setting to your Splash endpoint URL for JavaScript to work during the crawl.
 
@@ -29,6 +34,10 @@ Start pages and link crawling
 Start pages are the initial URLs that Portia will visit to start the crawl. You can add and remove start pages on the left menu.
 
 You can choose how Portia will follow links under ``Link Crawling``.
+
+.. image:: _static/portia-spider-link-crawling.png
+    :alt: Link crawling properties
+
 
 * Follow all in-domain links - follow all links under the same domain and subdomain.
 * Don't follow links - only visit start URLs.
