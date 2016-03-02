@@ -153,11 +153,14 @@ class ProjectArchiver(object):
                 annotations = template['plugins']['annotations-plugin']
                 apply_annotations(annotations, template)
             template_extractors = template.get('extractors', {})
-            for field, eids in template_extractors.items():
-                existing[field] = [eid for eid in eids
-                                   if eid in extractors]
-            template['extractors'] = existing
-            templates.append(template)
+            try:
+                for field, eids in template_extractors.items():
+                    existing[field] = [eid for eid in eids
+                                       if eid in extractors]
+                template['extractors'] = existing
+                templates.append(template)
+            except AttributeError:
+                template['extractors'] = {}
         return templates, added
 
     def _spider_name(self, file_path):
