@@ -13,7 +13,7 @@ export default BaseRoute.extend({
             this.get('slyd').hasTag(this.get('slyd.project'), 'portia_2.0').then(function(hasTag) {
                 this.set('slyd.hasPortia2', hasTag.status);
             }.bind(this));
-            this.get('slyd').changedFiles(this.get('slyd.project')).then(function(changes) {
+            return this.get('slyd').changedFiles(this.get('slyd.project')).then(function(changes) {
                 controller.set('changedFiles', changes);
             });
         }
