@@ -32,13 +32,14 @@ export default Ember.Component.extend({
         },
 
         validateFieldName(field, name) {
-            const fields = this.get('schema.fields').reject(f => f === field);
-            const error = validateFieldName(name, fields);
-            if(error) {
-                this.get('notificationManager').showWarningNotification(error);
-                return false;
-            }
-            return true;
+            return this.get('schema.fields').then(fields => {
+                fields = fields.reject(f => f === field);
+                const error = validateFieldName(name, fields);
+                if (error) {
+                    this.get('notificationManager').showWarningNotification(error);
+                }
+                return !error;
+            });
         },
 
         saveField(field) {
