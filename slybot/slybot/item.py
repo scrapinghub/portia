@@ -23,7 +23,7 @@ class SlybotItem(DictItem):
             fields = defaultdict(dict)
             version_fields = []
             _display_name = schema.get('name')
-            for _name, _meta in schema['fields'].items():
+            for _name, _meta in schema.get('fields', {}).items():
                 name = _meta.get('name', _name)
                 fields[name] = Field(_meta)
                 if not _meta.get("vary", False):
@@ -35,7 +35,7 @@ class SlybotItem(DictItem):
 def create_slybot_item_descriptor(schema, schema_name=""):
     field_type_manager = FieldTypeManager()
     descriptors = []
-    for pname, pdict in schema['fields'].items():
+    for pname, pdict in schema.get('fields', {}).items():
         required = pdict['required']
         pdisplay_name = pdict.get('name', pname)
         pclass = field_type_manager.type_processor_class(pdict['type'])
