@@ -9,6 +9,7 @@ from six import StringIO
 from datetime import datetime
 
 from slyd.projecttemplates import templates
+from slybot.plugins.scrapely_annotations.builder import Annotations
 import six
 
 REQUIRED_FILES = {'setup.py', 'scrapy.cfg', 'extractors.json', 'items.json',
@@ -22,6 +23,7 @@ FILE_TEMPLATES = {
     'spiders/__init__.py': '',
     'spiders/settings.py': templates['SETTINGS']
 }
+apply_annotations = Annotations().save_extraction_data
 
 
 class ProjectArchiver(object):
@@ -146,6 +148,10 @@ class ProjectArchiver(object):
             template = self.read_file(template_path, deserialize=True)
             if template is None:
                 continue
+            if template.get('version', '') >= '0.13.0':
+                # Update `annotated_body`
+                annotations = template['plugins']['annotations-plugin']
+                apply_annotations(annotations, template)
             template_extractors = template.get('extractors', {})
             for field, eids in template_extractors.items():
                 existing[field] = [eid for eid in eids
