@@ -46,6 +46,13 @@ def open_project_from_dir(project_dir):
                                                             spider_name,
                                                             template_names)
                         spec.setdefault("templates", []).extend(templates)
+                    else:
+                        templates = []
+                        for template in spec.get('templates', []):
+                            if template.get('version') < '0.13.0':
+                                templates.append(template)
+                            else:
+                                templates.append(_build_sample(template))
                     specs["spiders"][spider_name] = spec
                 except ValueError as e:
                     raise ValueError(
