@@ -162,7 +162,7 @@ class SampleSchema(SlydSchema):
     page_id = fields.Str()
     page_type = fields.Str(default='item')
     scrapes = fields.Str()
-    extractors = fields.Dict(fields.Str(), default={})
+    extractors = fields.Dict(default={})
     original_body = fields.Str(default='')
     annotated_body = fields.Str(default='')
     project = fields.Relationship(
