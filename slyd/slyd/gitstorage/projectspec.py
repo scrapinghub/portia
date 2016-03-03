@@ -8,7 +8,6 @@ from slyd.errors import BadRequest
 
 
 class GitProjectSpec(GitProjectMixin, ProjectSpec):
-
     @classmethod
     def setup(cls, storage_backend, location, **kwargs):
         Repoman.setup(storage_backend, location)

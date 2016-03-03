@@ -9690,7 +9690,10 @@ define('portia-web/routes/project/index', ['exports', 'portia-web/routes/base-ro
         afterModel: function afterModel() {
             if (this.get('capabilities.version_control')) {
                 var controller = this.controllerFor('project.index');
-                return this.get('slyd').changedFiles(this.get('slyd.project')).then(function (changes) {
+                this.get('slyd').hasTag(this.get('slyd.project'), 'portia_2.0').then((function (hasTag) {
+                    this.set('slyd.hasPortia2', hasTag.status);
+                }).bind(this));
+                this.get('slyd').changedFiles(this.get('slyd.project')).then(function (changes) {
                     controller.set('changedFiles', changes);
                 });
             }
@@ -24952,7 +24955,7 @@ define('portia-web/utils/ferry-websocket', ['exports', 'ember', 'portia-web/conf
                     }
                 }
                 if (data.error) {
-                    NotificationManager['default'].showErrorNotification(data.reason || data.error);
+                    NotificationManager['default'].showErrorNotification(data.reason || data.error, data.message);
                     console.error(data.reason || data.error);
                 } else if (command in this.get('commands')) {
                     this.get('commands')[command](data);
@@ -26528,6 +26531,39 @@ define('portia-web/utils/slyd-api', ['exports', 'ember', 'ic-ajax', 'portia-web/
             hash.data = { cmd: 'changes', args: [projectName] };
             return this.makeAjaxCall(hash)['catch'](function (err) {
                 err.title = 'Failed to load changed files';
+                throw err;
+            });
+        },
+
+        hasTag: function hasTag(projectName, tagName) {
+            var hash = {};
+            hash.type = 'POST';
+            hash.url = this.getApiUrl();
+            hash.data = { cmd: 'has_tag', args: [projectName, tagName] };
+            return this.makeAjaxCall(hash)['catch'](function (err) {
+                err.title = 'Failed to load tags';
+                throw err;
+            });
+        },
+
+        addTag: function addTag(tagName) {
+            var hash = {};
+            hash.type = 'POST';
+            hash.url = this.getApiUrl() + '/' + this.get('project') + '/spec/spiders';
+            hash.data = { cmd: 'add_tag', args: [tagName] };
+            return this.makeAjaxCall(hash)['catch'](function (err) {
+                err.title = 'Failed to add tag: "' + tagName + '"';
+                throw err;
+            });
+        },
+
+        rollbackToTag: function rollbackToTag(tagName) {
+            var hash = {};
+            hash.type = 'POST';
+            hash.url = this.getApiUrl() + '/' + this.get('project') + '/spec/spiders';
+            hash.data = { cmd: 'checkout_tag', args: [tagName, true] };
+            return this.makeAjaxCall(hash)['catch'](function (err) {
+                err.title = 'Failed rollback to "' + tagName + '"';
                 throw err;
             });
         },

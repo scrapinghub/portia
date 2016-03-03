@@ -10,6 +10,9 @@ export default BaseRoute.extend({
     afterModel: function() {
         if (this.get('capabilities.version_control')) {
             var controller = this.controllerFor('project.index');
+            this.get('slyd').hasTag(this.get('slyd.project'), 'portia_2.0').then(function(hasTag) {
+                this.set('slyd.hasPortia2', hasTag.status);
+            }.bind(this));
             return this.get('slyd').changedFiles(this.get('slyd.project')).then(function(changes) {
                 controller.set('changedFiles', changes);
             });
