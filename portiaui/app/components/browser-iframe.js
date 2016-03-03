@@ -26,11 +26,6 @@ const BrowserIFrame = Ember.Component.extend({
         this._super();
         this.loadCookies();
         this.frameEventListeners = [];
-        let ws = this.get('webSocket');
-        ws.addCommand('loadStarted', this.msgLoadStarted.bind(this));
-        ws.addCommand('metadata', this.msgMetadata.bind(this));
-        ws.addCommand('cookies', this.msgCookies.bind(this));
-        ws.addCommand('mutation', this.msgMutation.bind(this));
     },
 
     click() {
@@ -51,6 +46,12 @@ const BrowserIFrame = Ember.Component.extend({
             throw new Error('The can be only one browser-iframe instance!');
         }
         BrowserIFrame.instances++;
+        const ws = this.get('webSocket');
+        ws.connect();
+        ws.addCommand('loadStarted', this, this.msgLoadStarted);
+        ws.addCommand('metadata', this, this.msgMetadata);
+        ws.addCommand('cookies', this, this.msgCookies);
+        ws.addCommand('mutation', this, this.msgMutation);
     },
 
     didInsertElement() {
@@ -64,6 +65,13 @@ const BrowserIFrame = Ember.Component.extend({
     },
 
     willDestroyElement() {
+        const ws = this.get('webSocket');
+        ws.removeCommand('loadStarted', this, this.msgLoadStarted);
+        ws.removeCommand('metadata', this, this.msgMetadata);
+        ws.removeCommand('cookies', this, this.msgCookies);
+        ws.removeCommand('mutation', this, this.msgMutation);
+        ws.close();
+
         this.setProperties({
             disabled: true,
             document: null

@@ -62,7 +62,9 @@ const ElementStructure = Ember.Object.extend({
                     }
                     annotations.addObject(annotation);
                 });
-                annotation.set('elements', elements);
+                if (!annotation.get('isDeleted')) {
+                    annotation.set('elements', elements);
+                }
                 this.set(`elements.${guid}`, elements);
                 this.notifyPropertyChange('elements');
             };
@@ -84,27 +86,29 @@ const ElementStructure = Ember.Object.extend({
                         const element = selectorMatcher.query(selector);
                         setElements(element);
 
-                        if (!element.length) {
-                            annotation.setProperties({
-                                acceptSelectors: [],
-                                siblings: 0,
-                                repeated: false,
-                                repeatedAcceptSelectors: []
-                            });
-                        } else if (element.length > 1) {
-                            annotation.setProperties({
-                                acceptSelectors: [containerSelector],
-                                siblings,
-                                repeated: true,
-                                repeatedAcceptSelectors: [selector]
-                            });
-                        } else {
-                            annotation.setProperties({
-                                acceptSelectors: [selector],
-                                siblings,
-                                repeated: false,
-                                repeatedAcceptSelectors: []
-                            });
+                        if (!annotation.get('isDeleted')) {
+                            if (!element.length) {
+                                annotation.setProperties({
+                                    acceptSelectors: [],
+                                    siblings: 0,
+                                    repeated: false,
+                                    repeatedAcceptSelectors: []
+                                });
+                            } else if (element.length > 1) {
+                                annotation.setProperties({
+                                    acceptSelectors: [containerSelector],
+                                    siblings,
+                                    repeated: true,
+                                    repeatedAcceptSelectors: [selector]
+                                });
+                            } else {
+                                annotation.setProperties({
+                                    acceptSelectors: [selector],
+                                    siblings,
+                                    repeated: false,
+                                    repeatedAcceptSelectors: []
+                                });
+                            }
                         }
                     }
                 };
@@ -145,10 +149,12 @@ const ElementStructure = Ember.Object.extend({
                         selectorMatcher.unRegister(selector, setElements);
                     }
                     selector = annotation.get('selectorGenerator.selector');
-                    annotation.setProperties({
-                        selector,
-                        xpath: annotation.get('selectorGenerator.xpath')
-                    });
+                    if (!annotation.get('isDeleted')) {
+                        annotation.setProperties({
+                            selector,
+                            xpath: annotation.get('selectorGenerator.xpath')
+                        });
+                    }
                     if (selector) {
                         selectorMatcher.register(selector, setElements);
                         setElements(selectorMatcher.query(selector));

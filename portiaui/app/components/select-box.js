@@ -77,7 +77,7 @@ export default Ember.Component.extend({
                     });
                 } else {
                     const viewValue = this.get('viewValue');
-                    if (viewValue.onMenuClosed && viewValue.onMenuClosed.call) {
+                    if (viewValue && viewValue.onMenuClosed && viewValue.onMenuClosed.call) {
                         viewValue.onMenuClosed();
                     } else {
                         this.setProperties({

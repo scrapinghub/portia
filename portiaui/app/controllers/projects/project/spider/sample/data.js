@@ -85,7 +85,7 @@ export default Ember.Controller.extend({
                 return selectedMode;
             } else if (magicToolActive) {
                 const hoveredElement = this.get('hoveredElement');
-                const hoveredModels = this.get('hoveredModels');
+                const hoveredModels = this.getWithDefault('hoveredModels', []);
                 const selectedModel = this.get('selectedModel');
                 if (hoveredModels.length) {
                     if (hoveredModels.includes(selectedModel)) {

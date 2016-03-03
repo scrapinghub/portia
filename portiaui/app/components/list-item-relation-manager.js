@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { ensurePromise } from '../utils/promises';
 
 export default Ember.Component.extend({
     tagName: '',
@@ -32,24 +33,30 @@ export default Ember.Component.extend({
         return aValue === bValue;
     },
 
+    validateName(name) {
+        return typeof this.attrs.validate !== 'function' || this.attrs.validate(name);
+    },
+
     actions: {
         add(name) {
-            if (typeof this.attrs.validate === 'function' && !this.attrs.validate(name)) {
-                return;
-            }
-            if (this.attrs.create) {
-                this.attrs.create(name);
-            }
+            ensurePromise(this.validateName(name)).then(isValid => {
+                if (isValid) {
+                    if (this.attrs.create) {
+                        this.attrs.create(name);
+                    }
+                }
+            });
         },
 
         rename(name) {
-            if (typeof this.attrs.validate === 'function' && !this.attrs.validate(name)) {
-                return;
-            }
-            const model = this.get('value');
-            model.then((item) => {
-                item.set('name', name);
-                item.save();
+            ensurePromise(this.validateName(name)).then(isValid => {
+                if (isValid) {
+                    const model = this.get('value');
+                    model.then(item => {
+                        item.set('name', name);
+                        item.save();
+                    });
+                }
             });
         }
     }

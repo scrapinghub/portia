@@ -10,10 +10,13 @@ export function computedCanAddSpider() {
 }
 
 export function computedCanAddSample(spiderPropertyName) {
-    return Ember.computed('browser.url', `${spiderPropertyName}.samples.@each.url`,
+    return Ember.computed('browser.url', 'browser.document', 'browser.loading',
+                          `${spiderPropertyName}.samples.@each.url`,
                           'browser.loading', function() {
         const url = this.get('browser.url');
-        return (url && !this.get('browser.loading') &&
+        const document = this.get('browser.document');
+        const loading = this.get('browser.loading');
+        return (url && document && !loading &&
                 !this.get(`${spiderPropertyName}.samples`).isAny('url', url));
     });
 }
@@ -119,7 +122,9 @@ export default Ember.Service.extend({
 
     addSample(spider, redirect = false) {
         const url = this.get('browser.url');
-        if (!url) {
+        const document = this.get('browser.document');
+        const loading = this.get('browser.loading');
+        if (!url || !document || loading) {
             return;
         }
 

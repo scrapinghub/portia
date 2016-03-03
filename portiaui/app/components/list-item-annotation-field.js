@@ -12,12 +12,17 @@ export default Ember.Component.extend({
 
     actions: {
         validateFieldName(name) {
-            const fields = this.get('annotation.field.schema.fields');
-            const error = validateFieldName(name, fields);
-            if (error) {
-                this.get('notificationManager').showWarningNotification(error);
-            }
-            return !error;
+            return Ember.RSVP.all([
+                this.get('annotation.field'),
+                this.get('annotation.field.schema.fields')
+            ]).then(([currentField, fields]) => {
+                fields = fields.reject(f => f === currentField);
+                const error = validateFieldName(name, fields);
+                if (error) {
+                    this.get('notificationManager').showWarningNotification(error);
+                }
+                return !error;
+            });
         },
 
         addField(name) {

@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { ensurePromise } from '../utils/promises';
 
 export default Ember.Component.extend({
     tagName: '',
@@ -64,6 +65,10 @@ export default Ember.Component.extend({
         }
     },
 
+    validateName(name) {
+        return typeof this.attrs.validate !== 'function' || this.attrs.validate(name);
+    },
+
     actions: {
         startEditing() {
             this.setProperties({
@@ -81,20 +86,24 @@ export default Ember.Component.extend({
 
         endEditing(reason) {
             const value = this.get('viewValue');
-            if (typeof this.attrs.validate === 'function' && !this.attrs.validate(value)) {
-                return Ember.run.next(this, this.setInputFocus);
-            }
-            this.setProperties({
-                focused: false,
-                value: value,
-                viewValue: null
+            ensurePromise(this.validateName(value)).then(isValid => {
+                if (!isValid) {
+                    Ember.run.next(this, this.setInputFocus);
+                } else {
+                    this.setProperties({
+                        focused: false,
+                        value: value,
+                        viewValue: null
+                    });
+                    if (reason === 'enter' && this.attrs.onEnterPress &&
+                            this.attrs.onEnterPress.call) {
+                        this.attrs.onEnterPress(value);
+                    }
+                    if (this.attrs.onChange && this.attrs.onChange.call) {
+                        this.attrs.onChange(value);
+                    }
+                }
             });
-            if (reason === 'enter' && this.attrs.onEnterPress && this.attrs.onEnterPress.call) {
-                this.attrs.onEnterPress(value);
-            }
-            if (this.attrs.onChange && this.attrs.onChange.call) {
-                this.attrs.onChange(value);
-            }
         }
     }
 });
