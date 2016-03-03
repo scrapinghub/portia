@@ -15,7 +15,7 @@ var defaultUrl = function() {
     return URI.build(uri);
 };
 
-export default Ember.Service.extend({
+export default Ember.Service.extend(Ember.Evented, {
 
     closed: true,
     opened: Ember.computed.not('closed'),
@@ -25,7 +25,6 @@ export default Ember.Service.extend({
     nextConnect: null,
     reconnectTimeout: DEFAULT_RECONNECT_TIMEOUT,
     deferreds: {},
-    commands: {},
     url: defaultUrl(),
     secondsUntilReconnect: 0,
     reconnectImminent: Ember.computed.lt('secondsUntilReconnect', 2),
@@ -38,7 +37,6 @@ export default Ember.Service.extend({
                 this.close(APPLICATION_UNLOADING_CODE);
             }
         });
-        this.connect();
     },
 
     connect: function() {
@@ -96,10 +94,8 @@ export default Ember.Service.extend({
                 deferred.resolve(data);
             }
         }
-        if (command in this.commands) {
-            for (let handler of this.commands[command]) {
-                handler(data);
-            }
+        if (this.has(command)) {
+            this.trigger(command, data);
         } else {
             return logError('Received unknown command: ' + command);
         }
@@ -142,8 +138,12 @@ export default Ember.Service.extend({
         return this.get('reconnectTimeout');
     },
 
-    addCommand: function(command, handler) {
-        (this.commands[command] || (this.commands[command] = [])).push(handler);
+    addCommand: function(/*command, target, method*/) {
+        this.on(...arguments);
+    },
+
+    removeCommand: function(/*command, target, method*/) {
+        this.off(...arguments);
     },
 
     close:function(code, reason) {

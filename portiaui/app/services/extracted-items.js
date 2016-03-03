@@ -10,8 +10,8 @@ export default Ember.Service.extend({
     init() {
         this._super();
         let ws = this.get('webSocket');
-        ws.addCommand('extract_items', this._setItems.bind(this));
-        ws.addCommand('metadata', this._setItems.bind(this));
+        ws.addCommand('extract_items', this, this._setItems);
+        ws.addCommand('metadata', this, this._setItems);
     },
 
     update() {
