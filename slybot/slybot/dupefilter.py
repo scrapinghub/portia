@@ -20,7 +20,7 @@ class DupeFilterPipeline(object):
     def process_item(self, item, spider):
         """Checks whether a scrapy item is a dupe, based on version (not vary)
         fields of the item class"""
-        if not hasattr(item, 'version_fields'):
+        if not hasattr(item, 'version_fields') or not item.version_fields:
             return item
         version = create_item_version(item)
         if version in self._itemversion_cache:
