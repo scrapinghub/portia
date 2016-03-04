@@ -72,7 +72,7 @@
             "scrapes": {"type": "string", "required": true},
             "url": {"type": "string", "format": "url", "required": true},
             "extractors": {"additionalProperties": {"type": "array", "items": {"type": "string"}}, "required": true},
-            "annotated_body": {"type": "string", "required": true},
+            "annotated_body": {"type": "string", "required": false},
             "original_body": {"type": "string", "required": true},
             "selectors": {
                 "type": "object",

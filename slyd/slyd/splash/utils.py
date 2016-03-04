@@ -46,6 +46,13 @@ def _get_template_name(template_id, templates):
             return template['name']
 
 
+def _should_load_sample(sample):
+    a = sample.get('plugins', {}).get('annotations-plugin', {}).get('extracts')
+    if (sample.get('annotated_body', '').count('data-scrapy') or
+            (sample.get('original_body') and a)):
+        return True
+    return False
+
 class BaseWSError(BaseHTTPError):
     @property
     def status(self):
