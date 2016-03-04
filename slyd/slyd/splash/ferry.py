@@ -29,6 +29,7 @@ from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        delete_project_data, pause, resume, extract_items,
                        save_html, log_event, _update_sample)
 from .css_utils import process_css, wrap_url
+from .utils import _should_load_sample
 import six
 text = six.text_type  # unicode in py2, str in py3
 
@@ -357,7 +358,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
         spider.setdefault('templates', [])
         spider['templates'] = [_update_sample(meta, self, s)
-                               for s in spider.get('templates', [])]
+                               for s in spider.get('templates', [])
+                               if _should_load_sample(s)]
         try:
             items = spec.resource('items')
         except TypeError:

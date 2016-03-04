@@ -117,7 +117,13 @@ class Annotations(object):
         unprocessed = False
         if template is not None and hasattr(template, 'descriptor'):
             descriptor = template.descriptor()
-            item_cls_name = descriptor.name if descriptor is not None else ''
+            if hasattr(descriptor, 'name'):
+                item_cls_name = descriptor.name
+            elif hasattr(descriptor, 'get'):
+                item_cls_name = descriptor.get('name',
+                                               descriptor.get('display_name'))
+            else:
+                item_cls_name = ''
         else:
             unprocessed = True
             try:
