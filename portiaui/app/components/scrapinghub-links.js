@@ -13,9 +13,10 @@ export default Ember.Component.extend({
 
     actions: {
         setPreference() {
+            const cookieName = this.get('capabilities.custom.version_cookie_name');
             const cookieDomain = this.get('capabilities.custom.cookie_domain');
-            if (cookieDomain) {
-                cookie.set('portia-ui-preference', 'stable', {
+            if (cookieName && cookieDomain) {
+                cookie.set(cookieName, 'stable', {
                     expires: 365,
                     domain: cookieDomain
                 });
