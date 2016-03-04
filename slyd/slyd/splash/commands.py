@@ -48,12 +48,14 @@ def save_html(data, socket):
 def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
     if not socket.tab:
-        return []
+        return {}
     url = socket.tab.evaljs('location.href')
     html = socket.tab.html()
     if (socket.spiderspec is None or
             (data['spider'] and socket.spiderspec.name != data['spider'])):
-        socket.open_spider(data)
+        result = socket.open_spider(data)
+        if result and result.get('error'):
+            return {}
     sample_names = socket.spiderspec.templates
     annotations = socket.spider.plugins['Annotations']
     sid = data.get('sample')

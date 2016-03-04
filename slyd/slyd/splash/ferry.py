@@ -348,7 +348,13 @@ class FerryServerProtocol(WebSocketServerProtocol):
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
         spec = self.spec_manager.project_spec(meta['project'], self.user.auth)
-        spider = spec.spider_with_templates(spider_name)
+
+        try:
+            spider = spec.spider_with_templates(spider_name)
+        except TypeError:
+            return {'error': 4003,
+                    'reason': 'Spider "%s" not found' % spider_name}
+
         spider.setdefault('templates', [])
         spider['templates'] = [_update_sample(meta, self, s)
                                for s in spider.get('templates', [])]
