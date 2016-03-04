@@ -196,7 +196,11 @@ class Repoman(object):
 
     def list_files_for_branch(self, branch_name):
         '''Returns a list containing all file names for the given branch.'''
-        return self.list_files(self.get_branch(branch_name))
+        try:
+            revision = self.get_branch(branch_name)
+        except KeyError:
+            return []
+        return self.list_files(revision)
 
     def list_files(self, revision):
         '''Returns a list containing all file names for the given revision.'''
