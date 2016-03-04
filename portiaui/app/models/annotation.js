@@ -123,14 +123,26 @@ export default DS.Model.extend({
         });
     },
 
+    set() {
+        this.cancelPendingDelete();
+        this._super(...arguments);
+    },
+
+    setProperties() {
+        this.cancelPendingDelete();
+        this._super(...arguments);
+    },
+
     save() {
         // starting another save while one hasn't been completed by the adapter causes an error
         if (this.get('isSaving') && this._savePromise) {
-            if (this._savePromise._saveQueued) {
-                return this._savePromise;
+            // upgrade to destroy if saving directly after delete
+            if (this._savePromise._queuedAction === 'delete') {
+                this._savePromise._queuedAction = 'destroy';
+            } else {
+                this._savePromise._queuedAction = 'save';
             }
-            this._savePromise._saveQueued = true;
-            return this._savePromise.finally(() => this.save());
+            return this._savePromise;
         }
 
         const currentParentPromise = this.get('parent.itemAnnotation');
@@ -152,10 +164,38 @@ export default DS.Model.extend({
                 }
             }
             return Ember.RSVP.all(promises).then(() => result);
-        }));
+        })).finally(() => {
+            switch (this._savePromise._queuedAction) {
+                case 'save':
+                    return this.save();
+                case 'delete':
+                    this.deleteRecord();
+                    return;
+                case 'destroy':
+                    return this.destroyRecord();
+            }
+        });
 
         this._savePromise = promise;
         return promise;
+    },
+
+    deleteRecord() {
+        // deleting during a save is not allowed, queue it
+        if (this.get('isSaving') && this._savePromise) {
+            this._savePromise._queuedAction = 'delete';
+            return;
+        }
+        this._super();
+    },
+
+    cancelPendingDelete() {
+        // ignore pending delete if an attribute is set on the model
+        if (this.get('isSaving') && this._savePromise) {
+            if (this._savePromise._queuedAction === 'delete') {
+                delete this._savePromise._queuedAction;
+            }
+        }
     },
 
     syncRelative(relative) {
