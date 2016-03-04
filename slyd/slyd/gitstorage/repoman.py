@@ -6,7 +6,7 @@ from itertools import chain
 
 from scrapy.utils.misc import load_object
 
-from dulwich.objects import Blob, Tree, Commit, parse_timezone
+from dulwich.objects import Blob, Tree, Commit, Tag, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
 from dulwich.mysqlconnection import retry_operation
 
@@ -81,7 +81,7 @@ class Repoman(object):
 
     @classmethod
     def repo_exists(cls, repo_name):
-        '''Returns true iff a repository named repo_name can be opened.'''
+        '''Returns true if a repository named repo_name can be opened.'''
         return cls.storage.repo_exists(repo_name)
 
     @classmethod
@@ -123,7 +123,7 @@ class Repoman(object):
         del self._repo.refs['refs/heads/%s' % branch_name]
 
     def has_branch(self, branch_name):
-        '''Returns true iff the specified branch exists in this repo.'''
+        '''Returns true if the specified branch exists in this repo.'''
         return 'refs/heads/%s' % branch_name in self._repo.refs
 
     def get_branch(self, branch_name):
@@ -363,6 +363,27 @@ class Repoman(object):
         self._repo.object_store.delete_objects(
             list(b_blob_ids | b_tree_ids) + b_commit_ids)
         self.delete_branch(branch_name)
+
+    def add_tag(self, tag_name):
+        commit = self._repo['refs/heads/master']
+        tag = Tag()
+        tag.name = tag_name
+        tag.message = 'Tagged %s as %s' % (commit.id, tag_name)
+        tag.tagger = self._author
+        tag.object = (Commit, commit.id)
+        tag.tag_time = int(time())
+        tag.tag_timezone = self._time_zone
+        self._update_store(tag)
+        self._repo.refs['refs/tags/%s' % tag_name] = tag.id
+
+    def checkout_tag(self, tag_name, remove=False):
+        if ('refs/tags/%s' % tag_name) not in self._repo.refs:
+            raise ValueError('No tag "{}" found'.format(tag_name))
+        tag_ref = self._repo.refs['refs/tags/%s' % tag_name]
+        tag = self._repo[tag_ref]
+        self._advance_branch('master', self._repo.get_object(tag.object[1]))
+        if remove:
+            del self._repo.refs['refs/tags/%s' % tag_name]
 
     def _merge_branches(self, base, mine, other, take_mine=False):
 
