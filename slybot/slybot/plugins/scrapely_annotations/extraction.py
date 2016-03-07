@@ -97,7 +97,9 @@ class SlybotTemplatePage(TemplatePage):
                  template_id=None, ignored_regions=None, extra_required=None,
                  descriptors=None):
         self.descriptors = descriptors
-        self.modifiers = getattr(descriptors, 'extractors', {})
+        self.modifiers = {}
+        for descriptor in descriptors.values():
+            self.modifiers.update(getattr(descriptor, 'extractors', {}))
         super(SlybotTemplatePage, self).__init__(
             htmlpage, token_dict, page_tokens, annotations, template_id,
             ignored_regions, extra_required)
@@ -346,10 +348,13 @@ class BaseContainerExtractor(object):
                     new_item[k].extend(v)
             except MissingRequiredError:
                 return {}
-            new_item[k] = v
+        new_item_fields = {getattr(f, 'name', str(f)): v
+                           for f, v in new_item.items() if v}
         if (hasattr(self.schema, '_item_validates') and
-                not self.schema._item_validates(new_item)):
+                not self.schema._item_validates(new_item_fields)):
             return {}
+        new_item = {getattr(f, 'description', str(f)): v
+                    for f, v in new_item.items()}
         _type = getattr(self.schema, 'description', None)
         if _type:
             new_item[u'_type'] = _type
@@ -378,12 +383,11 @@ class BaseContainerExtractor(object):
                 for extractor in annotation.get('extractors', []):
                     custom_extractor_func = self.modifiers.get(extractor)
                     if custom_extractor_func and extracted:
-                        extracted = custom_extractor_func(extracted, htmlpage)
+                        extracted = [custom_extractor_func(s, htmlpage)
+                                     for s in extracted]
                 if annotation.get('required') and not extracted:
                     raise MissingRequiredError()
-                if field_extraction.name != field_extraction.description:
-                    field = field_extraction.description
-                yield (field, extracted)
+                yield (field_extraction, extracted)
             else:
                 # Legacy spiders have per attribute pipline extractors
                 if self.legacy and annotation == 'variants':
@@ -396,12 +400,10 @@ class BaseContainerExtractor(object):
                     extraction_func = None
                 if extraction_func is None:
                     extraction_func = SlybotFieldDescriptor(
-                        '', '', _DEFAULT_EXTRACTOR)
+                        annotation, annotation, _DEFAULT_EXTRACTOR)
                 values = self._process_values(regions, htmlpage,
                                               extraction_func)
-                if extraction_func.name != extraction_func.description:
-                    annotation = extraction_func.description
-                yield (annotation, values)
+                yield (extraction_func, values)
 
     def _process_variants(self, data, htmlpage):
         variants = []

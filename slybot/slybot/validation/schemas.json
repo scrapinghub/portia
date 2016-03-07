@@ -56,7 +56,7 @@
             "js_enable_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "js_disable_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "respect_nofollow": {"type": "boolean", "required": true},
-            "allowed_domains": {"type": "array", "items": {"type": "string"}},
+            "allowed_domains": {"type": ["array", "null"], "items": {"type": "string"}},
             "templates": {"type": "array", "items": {"$ref": "template"}},
             "template_names": {"type": "array", "items": {"type": "string"}},
             "page_actions": {"type": "array", "items": {"$ref": "action"}},

@@ -97,7 +97,7 @@ def find_element(tagid, sel):
         return elements[0]._root
 
 
-def find_css_selector(elem, sel, depth=0):
+def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     """Find a unique selector for an element.
 
     Adapted from mozilla findCssSelector in css-logic.js
@@ -138,10 +138,12 @@ def find_css_selector(elem, sel, depth=0):
     if elem.getparent() is not None:
         index = elem.getparent().getchildren().index(elem) + 1
         if tag_name in ('thead', 'tbody'):
-            selector = find_css_selector(elem.getparent(), sel, depth + 1)
+            selector = find_css_selector(elem.getparent(), sel, depth + 1,
+                                         True)
         else:
-            selector = '%s > %s:nth-child(%s)' % (
+            selector = '%s%s %s:nth-child(%s)' % (
                 find_css_selector(elem.getparent(), sel, depth + 1),
+                '' if previous_tbody or tag_name == 'tr' else ' >',
                 tag_name,
                 index
             )

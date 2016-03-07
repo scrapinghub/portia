@@ -27,15 +27,15 @@ def create_regex_extractor(pattern):
     return _extractor
 
 
-def create_type_extractor(type):
+def create_type_extractor(_type):
     types = FieldTypeManager()
-    extractor = types.type_processor_class(type)()
+    extractor = types.type_processor_class(_type)()
 
     def _extractor(txt, htmlpage=None):
         data = extractor.extractor(txt)
         if data:
             return extractor.adapt(data, htmlpage)
-    _extractor.__name__ = "Type Extractor: %s" % type
+    _extractor.__name__ = ("Type Extractor: %s" % _type).encode('utf-8')
     return _extractor
 
 

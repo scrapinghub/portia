@@ -3,7 +3,7 @@
     "start_urls": [
         "http://www.ebay.com/"
     ], 
-    "allowed_domains": [],
+    "allowed_domains": null,
     "exclude_patterns": [], 
     "respect_nofollow": true, 
     "follow_patterns": [], 
