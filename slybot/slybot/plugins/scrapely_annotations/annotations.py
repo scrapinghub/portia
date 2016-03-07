@@ -15,7 +15,7 @@ from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
                                   PaginationExtractor)
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.item import SlybotItem, create_slybot_item_descriptor
-from slybot.extractors import apply_extractors
+from slybot.extractors import apply_extractors, add_extractors_to_descriptors
 from slybot.utils import htmlpage_from_response, include_exclude_filter
 XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
 
@@ -62,6 +62,7 @@ class Annotations(object):
             descriptors['#default'] = descriptors.get(default, descriptor[0])
             self.schema_descriptors[template.page_id] = descriptors['#default']
             page_descriptor_pairs.append((template, descriptors, v))
+            add_extractors_to_descriptors(descriptors, extractors)
 
         grouped = itertools.groupby(sorted(page_descriptor_pairs,
                                            key=operator.itemgetter(2)),

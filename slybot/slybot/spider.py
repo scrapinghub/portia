@@ -66,12 +66,10 @@ class IblSpider(SitemapSpider):
         self.generic_form = GenericForm(**kw)
         self._create_init_requests(spec.get("init_requests", []))
         self._process_start_urls(spec)
-        self.allowed_domains = spec.get('allowed_domains')
-        if not self.allowed_domains:
+        self.allowed_domains = spec.get('allowed_domains', [])
+        if self.allowed_domains is not None and not self.allowed_domains:
             self.allowed_domains = self._get_allowed_domains(self._templates)
         self.page_actions = spec.get('page_actions', [])
-        if not self.allowed_domains:
-            self.allowed_domains = None
 
     def _process_start_urls(self, spec):
         self.start_urls = spec.get('start_urls')
