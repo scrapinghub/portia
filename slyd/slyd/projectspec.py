@@ -267,4 +267,4 @@ class ProjectResource(SlydJsonResource, ProjectModifier):
             self.error(ex.status, ex.title, ex.body)
         else:
             project_spec.savejson(obj, request.postpath)
-            return ''
+            return '{}'

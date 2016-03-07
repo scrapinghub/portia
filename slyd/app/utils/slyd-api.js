@@ -553,6 +553,39 @@ export var SlydApi = Ember.Object.extend({
         });
     },
 
+    hasTag: function(projectName, tagName) {
+        var hash = {};
+        hash.type = 'POST';
+        hash.url = this.getApiUrl();
+        hash.data = { cmd: 'has_tag', args: [projectName, tagName] };
+        return this.makeAjaxCall(hash).catch(function(err) {
+            err.title = 'Failed to load tags';
+            throw err;
+        });
+    },
+
+    addTag: function(tagName) {
+        var hash = {};
+        hash.type = 'POST';
+        hash.url = this.getApiUrl() + '/' + this.get('project') + '/spec/spiders';
+        hash.data = { cmd: 'add_tag', args: [tagName] };
+        return this.makeAjaxCall(hash).catch(function(err) {
+            err.title = 'Failed to add tag: "' + tagName + '"';
+            throw err;
+        });
+    },
+
+    rollbackToTag: function(tagName) {
+        var hash = {};
+        hash.type = 'POST';
+        hash.url = this.getApiUrl() + '/' + this.get('project') + '/spec/spiders';
+        hash.data = { cmd: 'checkout_tag', args: [tagName, true] };
+        return this.makeAjaxCall(hash).catch(function(err) {
+            err.title = 'Failed rollback to "' + tagName + '"';
+            throw err;
+        });
+    },
+
     publishProject: function(projectName, force) {
         var hash = {};
         hash.type = 'POST';
