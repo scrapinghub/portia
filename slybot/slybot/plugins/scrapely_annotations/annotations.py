@@ -166,14 +166,15 @@ class Annotations(object):
     def _process_attributes(self, item, descriptor, htmlpage):
         new_item = {}
         attr_map = descriptor.attribute_map
+        page = getattr(htmlpage, 'htmlpage', htmlpage)
         for field, value in item.items():
             if field.startswith('_sticky'):
                 continue
             if field == 'variants':
-                value = [self._process_attributes(v, descriptor, htmlpage)
+                value = [self._process_attributes(v, descriptor, page)
                          for v in value]
             elif field in attr_map:
-                value = [attr_map[field].adapt(v, htmlpage) for v in value]
+                value = [attr_map[field].adapt(v, page) for v in value]
             new_item[field] = value
         return new_item
 

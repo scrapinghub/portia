@@ -1,4 +1,5 @@
 import json
+import os
 from os.path import dirname
 from collections import namedtuple
 from unittest import TestCase
@@ -16,7 +17,7 @@ def _next_3(iterable):
     i = iter(iterable[1:-3])
     while True:
         yield SelectorList((next(i), next(i), next(i)))
-ITERATIONS = 15
+ITERATIONS = os.environ.get('SLYBOT_SPEED_TEST_ITERATIONS', 1)
 Extractor = namedtuple('Extractor', ['containers', 'selectors', 'group'])
 parsel_extractors = {
     'daft': Extractor('//div[@class="box"]',
