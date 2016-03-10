@@ -258,9 +258,32 @@ def _filter_annotations(annotations):
     return selector, tagid
 
 
+def _merge_annotations_by_selector(annotations):
+    def grouper(x):
+        return x.get('selector', x.get('accept_selectors', [None])[0])
+    annotations.sort(key=grouper)
+    new_annotations = []
+    for sel, annos in groupby(annotations, key=grouper):
+        annos = list(annos)
+        anno = annos[0]
+        if len(annos) == 1:
+            new_annotations.append(anno)
+            continue
+        for other_anno in annos[1:]:
+            # TODO: Handle annotations pointing to different containers
+            for attribute, data in other_anno['annotations'].items():
+                if attribute in anno['annotations']:
+                    anno['annotations'][attribute].extend(data)
+                else:
+                    anno['annotations'][attribute] = data
+        new_annotations.append(anno)
+    return new_annotations
+
+
 def apply_selector_annotations(annotations, target_page):
     page = Selector(text=target_page)
     converted_annotations = []
+    annotations = _merge_annotations_by_selector(annotations)
     for annotation in annotations:
         if not annotation.get('selector'):
             accepted_elements = set(
