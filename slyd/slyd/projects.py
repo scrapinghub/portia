@@ -210,3 +210,9 @@ class ProjectsManager(object):
                           'filename="%s.zip"' % name)
         request.setHeader('Content-Length', len(body))
         return body
+
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__.__name__, str(self))
+
+    def __str__(self):
+        return '%s' % self.username

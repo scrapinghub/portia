@@ -182,6 +182,12 @@ class ProjectSpec(object):
             last = match.end()
         out.write(json_template[last:])
 
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__.__name__, str(self))
+
+    def __str__(self):
+        return '%s, %s' % (self.project_name, self.username)
+
 
 class ProjectResource(SlydJsonObjectResource, ProjectModifier):
     isLeaf = True

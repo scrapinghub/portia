@@ -183,6 +183,11 @@ def resolve(data, socket):
 
 
 def metadata(socket, extra={}):
+    if not socket.tab:
+        return {
+            '_command': 'metadata',
+            'loaded': False
+        }
     socket.tab.loaded = True
     res = {
         '_command': 'metadata',

@@ -1,6 +1,12 @@
 import Ember from "ember";
 
 const IMPLICIT_TAGS = new Set(['tbody']);
+let escapeCSS = CSS.escape;
+if (!escapeCSS) {
+    escapeCSS = function(string) {
+        return ''+string;
+    }
+}
 
 export function elementPath(element) {
     const elements = [element];
@@ -213,7 +219,7 @@ export const BaseSelectorGenerator = Ember.Object.extend({
             if (elements.length === 1) {
                 const id = elements[0].id;
                 if (id && !parentElements) {
-                    testSelectorLists.push(['#' + CSS.escape(id)]);
+                    testSelectorLists.push(['#' + escapeCSS(id)]);
                 }
             }
 
@@ -391,13 +397,13 @@ export const BaseSelectorGenerator = Ember.Object.extend({
                 break;
             }
 
-            for (let className of element.classList) {
+            for (let className of Array.from(element.classList)) {
                 classNameMap.set(className, (classNameMap.get(className) || 0) + 1);
             }
         }
         for (let [className, count] of classNameMap.entries()) {
             if (count === elements.length) {
-                classSelectors.push('.' + CSS.escape(className));
+                classSelectors.push('.' + escapeCSS(className));
             }
         }
         return classSelectors;

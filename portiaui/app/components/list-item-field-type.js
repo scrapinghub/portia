@@ -12,7 +12,11 @@ export default Ember.Component.extend({
     actions: {
         saveField() {
             const field = this.get('field');
-            ensurePromise(field).then(field => field.save());
+            ensurePromise(field).then(field => {
+                if (!!field) {
+                    field.save()
+                }
+            });
         }
     }
 });
