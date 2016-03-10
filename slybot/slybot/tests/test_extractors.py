@@ -3,10 +3,14 @@ from unittest import TestCase
 from scrapely.htmlpage import HtmlPage
 from scrapely.extraction import InstanceBasedLearningExtractor
 
-from slybot.extractors import create_regex_extractor, apply_extractors
+from slybot.extractors import (create_regex_extractor, apply_extractors,
+                               add_extractors_to_descriptors)
 from slybot.fieldtypes import TextFieldTypeProcessor
 from slybot.item import create_slybot_item_descriptor
 from slybot.plugins.scrapely_annotations.extraction import SlybotIBLExtractor
+from slybot.plugins.scrapely_annotations.builder import (
+    apply_annotations, _clean_annotation_data
+)
 
 
 class ExtractorTest(TestCase):
@@ -37,10 +41,53 @@ class ExtractorTest(TestCase):
 <span></span>
 </body>"""
 
+    annotations = _clean_annotation_data([{
+        'id': 'annotation',
+        'selector': 'td > a',
+        'container_id': 'parent',
+        'data': {
+            1: {
+                'attribute': 'content',
+                'field': 'title',
+                'required': False,
+                'extractors': []
+            },
+            2: {
+                'attribute': 'content',
+                'field': 'name',
+                'required': False,
+                'extractors': ['3']
+            },
+            3: {
+                'attribute': 'href',
+                'field': 'url',
+                'required': False,
+                'extractors': ['1', '2']
+            }
+        }
+    }, {
+        'id': 'parent',
+        'item_container': True,
+        'selector': 'body'
+    }])
+    target3 = u"""
+    <html>
+    <body>
+    <tr>
+        <th class="item-key">Name</th>
+        <td>
+            <a href="/olivia.html">Name: Olivia</a>
+        </td>
+    </tr><span></span>
+    </body></html>"""
+
     template = HtmlPage(url="http://www.test.com/", body=annotated)
     target = HtmlPage(url="http://www.test.com/", body=_target)
     template2 = HtmlPage(url="http://www.test.com/", body=annotated2)
     target2 = HtmlPage(url="http://www.test.com/a", body=_target2)
+    template3 = HtmlPage(url="http://www.test.com/a",
+                         body=apply_annotations(annotations, target3))
+    target3 = HtmlPage(url="http://www.test.com/a", body=target3)
 
     def test_regex_extractor(self):
         extractor = create_regex_extractor("(\d+).*(\.\d+)")
@@ -186,3 +233,40 @@ class ExtractorTest(TestCase):
         ibl_extractor = SlybotIBLExtractor([
             (self.template2, {'#default': descriptor}, '0.12.0')])
         self.assertEqual(ibl_extractor.extract(self.target2)[0][0]['name'], [u'Name Olivia'])
+
+    def test_per_annotation_extractors(self):
+        schema = {
+            'fields': {
+                'url': {
+                    'required': False,
+                    'type': 'text',
+                    'vary': False,
+                },
+                'name': {
+                    'required': True,
+                    'type': 'text',
+                    'vary': False,
+                }
+            }
+        }
+        extractors = {
+            '1': {
+                'type_extractor': 'url'
+            },
+            '2': {
+                'regular_expression': '(.*)\.html'
+            },
+            '3': {
+                'regular_expression': 'Name: (.*)'
+            }
+        }
+        descriptors = {'#default': create_slybot_item_descriptor(schema)}
+        add_extractors_to_descriptors(descriptors, extractors)
+        ibl_extractor = SlybotIBLExtractor([
+            (self.template3, descriptors, '0.13.0')
+        ])
+        result = {'name': [u'Olivia'], 'url': [u'http://www.test.com/olivia'],
+                  'title': [u'Name: Olivia']}
+        data = ibl_extractor.extract(self.target3)[0][0]
+        del data['_template']
+        self.assertEqual(data, result)

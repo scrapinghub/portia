@@ -24,3 +24,18 @@ class FieldTypesUrlEncoding(TestCase):
         for text, url in zip(urls, results):
             self.assertEqual(img_p.adapt(img_p.extract(text), htmlpage), url)
             self.assertEqual(url_p.adapt(url_p.extract(text), htmlpage), url)
+
+    def test_uri_with_illegal_html_entities(self):
+        urls = [u'&#9;&#10 image.jpg ', u"    '/&#11;&#0;data.jpg'",
+                u'&#15;\n\t"&#14;file.jpg"\n\t\t']
+        results = ['http://www.example.com/images/image.jpg',
+                   'http://www.example.com/data.jpg',
+                   'http://www.example.com/images/file.jpg']
+        htmlpage = HtmlPage(url=u"http://www.example.com/images/",
+                            body=u'<html><body></body></html>',
+                            encoding='utf-8')
+        url_p = UrlFieldTypeProcessor()
+        img_p = ImagesFieldTypeProcessor()
+        for text, url in zip(urls, results):
+            self.assertEqual(img_p.adapt(img_p.extract(text), htmlpage), url)
+            self.assertEqual(url_p.adapt(url_p.extract(text), htmlpage), url)

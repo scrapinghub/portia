@@ -1,10 +1,16 @@
+# -*- coding: utf-8 -*-
 import json
 from os.path import dirname
 from unittest import TestCase
 from slybot.plugins.scrapely_annotations.extraction import (
     parse_template, BaseContainerExtractor, group_tree, ContainerExtractor,
-    RepeatedContainerExtractor, TemplatePageMultiItemExtractor)
+    RepeatedContainerExtractor, TemplatePageMultiItemExtractor,
+    SlybotIBLExtractor)
+from slybot.extractors import add_extractors_to_descriptors
 from slybot.item import create_slybot_item_descriptor
+from slybot.plugins.scrapely_annotations.builder import (
+    apply_annotations, _clean_annotation_data
+)
 from scrapely.extraction.pageobjects import TokenDict
 from scrapely.htmlpage import HtmlPage
 from scrapely.extraction.regionextract import BasicTypeExtractor
@@ -28,6 +34,29 @@ uncontained_annotation = basic_extractors[0]
 root_container = basic_extractors[1]
 child_container = basic_extractors[2]
 child_annotations = basic_extractors[3:]
+
+with open('%s/data/templates/411_list.json' % _PATH) as f:
+    sample = json.load(f)
+annotations = sample['plugins']['annotations-plugin']['extracts']
+annotated = apply_annotations(_clean_annotation_data(annotations),
+                              sample['original_body'])
+sample_411 = HtmlPage(url=sample['url'], body=annotated)
+page_411 = HtmlPage(url=sample['url'],
+                    body=sample['original_body'])
+with open('%s/data/templates/daft_list.json' % _PATH) as f:
+    sample = json.load(f)
+annotations = sample['plugins']['annotations-plugin']['extracts']
+annotated = apply_annotations(_clean_annotation_data(annotations),
+                              sample['original_body'])
+sample_daft = HtmlPage(url=sample['url'], body=annotated)
+page_daft = HtmlPage(url=sample['url'],
+                     body=sample['original_body'])
+for annotation in annotations:
+    for attribute in annotation.get('data', {}).values():
+        attribute['required'] = False
+annotated = apply_annotations(_clean_annotation_data(annotations),
+                              sample['original_body'])
+sample_daft_no_requireds = HtmlPage(url=sample['url'], body=annotated)
 
 
 def _annotation_tag_to_dict(tag):
@@ -116,17 +145,6 @@ class ContainerExtractorTest(TestCase):
         self.assertEqual(len(data), 95)
         self.assertEqual({tuple(sorted(i.keys())) for i in data},
                          {('_template', u'date', u'text', u'title', u'url')})
-        b = {
-            u'_template': u'stack_overflow_test',
-            u'date': [u'2015-08-07 10:09:32Z'],
-            u'text': [u"Bootstrap navbar doesn't open - mobile view"],
-            u'title': [u'I have a sticky nav with this code (Which is not mine'
-                       u') // Create a clone of the menu, right next to '
-                       u'original. ...'],
-            u'url': [u'https://stackoverflow.com/questions/31875193/bootstrap-'
-                     u'navbar-doesnt-open-mobile-view']
-        }
-        print({k: v if b[k] != v else False for k, v in data[0].items()})
         self.assertDictEqual(data[0], {
             u'_template': u'stack_overflow_test',
             u'date': [u'2015-08-07 10:09:32Z'],
@@ -161,3 +179,42 @@ class ContainerExtractorTest(TestCase):
             u'url': [u'https://stackoverflow.com/questions/31872881/pylab-'
                      u'cannot-find-reference-for-its-modules']
         })
+
+    def test_extract_single_attribute_to_multiple_fields(self):
+        extractors = {'1': {'regular_expression': '(.*)\s'},
+                      '2': {'regular_expression': '\s(.*)'}}
+        descriptors = {'#default': create_slybot_item_descriptor({'fields': {
+            'full_name': {'type': 'text', 'required': False, 'vary': False},
+            'first_name': {'type': 'text', 'required': False, 'vary': False,
+                           'name': u'prénom'},
+            'last_name': {'type': 'text', 'required': False, 'vary': False,
+                          'name': 'nom'},
+            'address': {'type': 'text', 'required': False, 'vary': False}}})}
+        add_extractors_to_descriptors(descriptors, extractors)
+        extractor = SlybotIBLExtractor([(sample_411, descriptors, '0.13.0')])
+        data = extractor.extract(page_411)[0]
+        self.assertEqual(data[1]['full_name'], [u'Joe Smith'])
+        self.assertEqual(data[1][u'prénom'], [u'Joe'])
+        self.assertEqual(data[1]['nom'], [u'Smith'])
+
+    def test_extract_missing_schema(self):
+        extractor = SlybotIBLExtractor([(sample_411, {}, '0.13.0')])
+        data = extractor.extract(page_411)[0]
+        self.assertEqual(data[1]['full_name'], [u'Joe Smith'])
+        self.assertEqual(data[1]['first_name'], [u'Joe Smith'])
+        self.assertEqual(data[1]['last_name'], [u'Joe Smith'])
+
+    def test_required_annotation(self):
+        extractor = SlybotIBLExtractor([(sample_daft, {}, '0.13.0')])
+        data = extractor.extract(page_daft)[0]
+        self.assertEqual(len(data), 5)
+        assert all('ber' in house for house in data)
+        assert all('address' in house for house in data)
+        assert all('price_change' in house for house in data)
+        extractor = SlybotIBLExtractor([(sample_daft_no_requireds, {},
+                                         '0.13.0')])
+        data = extractor.extract(page_daft)[0]
+        self.assertEqual(len(data), 8)
+        assert all('ber' in house for house in data)
+        assert all('address' in house for house in data)
+        assert any('price_change' not in house for house in data)

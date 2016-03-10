@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 import json
-import re
+import six
 
-from operator import itemgetter
 from copy import deepcopy
 import itertools
 from six.moves.urllib_parse import urlparse
@@ -10,14 +9,17 @@ from six.moves.urllib_parse import urlparse
 from w3lib.http import basic_auth_header
 
 from scrapy.http import Request, HtmlResponse, XmlResponse, FormRequest
-import six
 from scrapy.spiders.sitemap import SitemapSpider
+from scrapy.utils.spider import arg_to_iter
 
 from loginform import fill_login_form
 
-from slybot.utils import (iter_unique_scheme_hostname, load_plugins,
-                          load_plugin_names, IndexedDict, include_exclude_filter)
+from slybot.utils import (
+    iter_unique_scheme_hostname, load_plugins, load_plugin_names, IndexedDict,
+    include_exclude_filter
+)
 from slybot.linkextractor import create_linkextractor_from_specs
+from slybot.starturls import StartUrls, UrlGenerator
 from slybot.generic_form import GenericForm
 STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
                'allowed_domains', 'js_enabled', 'js_enable_patterns',
@@ -25,61 +27,53 @@ STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
 
 
 class IblSpider(SitemapSpider):
-
     def __init__(self, name, spec, item_schemas, all_extractors, settings=None,
                  **kw):
+        self.start_url_generators = {
+            'start_urls': StartUrls(),
+            'generated_urls': UrlGenerator(settings, kw)
+        }
+        self.generic_form = GenericForm(**kw)
         super(IblSpider, self).__init__(name, **kw)
-        self._job_id = settings.get('JOB', '')
         spec = deepcopy(spec)
-        for key, val in kw.items():
+        self._add_spider_args_to_spec(spec, kw)
+        self.plugins = self._configure_plugins(
+            settings, spec, item_schemas, all_extractors)
+        self._configure_js(spec, settings)
+        self.login_requests, self.form_requests = [], []
+        self._start_requests = []
+        self._create_init_requests(spec)
+        self._process_start_urls(spec)
+        self._add_allowed_domains(spec)
+        self.page_actions = spec.get('page_actions', [])
+
+    def _add_spider_args_to_spec(self, spec, args):
+        for key, val in args.items():
             if isinstance(val, six.string_types) and key in STRING_KEYS:
                 val = val.splitlines()
             spec[key] = val
 
-        self._item_template_pages = sorted(
-            ((t['scrapes'], t) for t in spec['templates']
-             if t.get('page_type', 'item') == 'item'), key=itemgetter(0))
-
-        self._templates = [templ for _, templ in self._item_template_pages]
-
-        self.plugins = IndexedDict()
-        for plugin_class, plugin_name in zip(load_plugins(settings),
-                                             load_plugin_names(settings)):
-            instance = plugin_class()
-            instance.setup_bot(settings, spec, item_schemas, all_extractors)
-            self.plugins[plugin_name] = instance
-
-        self.js_enabled = False
-        self.SPLASH_HOST = None
-        if settings.get('SPLASH_URL'):
-            self.SPLASH_HOST = urlparse(settings.get('SPLASH_URL')).hostname
-            self.js_enabled = spec.get('js_enabled', False)
-        if self.js_enabled and (settings.get('SPLASH_PASS') is not None or
-                                settings.get('SPLASH_USER') is not None):
-            self.splash_auth = basic_auth_header(
-                settings.get('SPLASH_USER', ''),
-                settings.get('SPLASH_PASS', ''))
-        self._filter_js_urls = self._build_js_url_filter(spec)
-        self.login_requests = []
-        self.form_requests = []
-        self._start_requests = []
-        self.generic_form = GenericForm(**kw)
-        self._create_init_requests(spec.get("init_requests", []))
-        self._process_start_urls(spec)
-        self.allowed_domains = spec.get('allowed_domains', [])
-        if self.allowed_domains is not None and not self.allowed_domains:
-            self.allowed_domains = self._get_allowed_domains(self._templates)
-        self.page_actions = spec.get('page_actions', [])
-
     def _process_start_urls(self, spec):
-        self.start_urls = spec.get('start_urls')
-        for url in self.start_urls:
+        for url in self._create_start_urls(spec):
             request = Request(url, callback=self.parse, dont_filter=True)
             self._add_splash_meta(request)
             self._start_requests.append(request)
 
+    def _create_start_urls(self, spec):
+        _type = spec.get('start_urls_type', 'start_urls')
+        generator = self.start_url_generators[_type]
+        generated = (generator(data) for data in arg_to_iter(spec[_type]))
+        for url in itertools.chain(*(arg_to_iter(g) for g in generated)):
+            yield url
+
+    def _add_allowed_domains(self, spec):
+        self.allowed_domains = spec.get('allowed_domains', [])
+        if self.allowed_domains is not None and not self.allowed_domains:
+            self.allowed_domains = self._get_allowed_domains(spec['templates'])
+
     def _create_init_requests(self, spec):
-        for rdata in spec:
+        init_requests = spec.get('init_requests', [])
+        for rdata in init_requests:
             if rdata["type"] == "login":
                 request = Request(url=rdata.pop("loginurl"), meta=rdata,
                                   callback=self.parse_login_page,
@@ -199,6 +193,15 @@ class IblSpider(SitemapSpider):
         )
         return []
 
+    def _configure_plugins(self, settings, spec, schemas, extractors):
+        plugins = IndexedDict()
+        for plugin_class, plugin_name in zip(load_plugins(settings),
+                                             load_plugin_names(settings)):
+            instance = plugin_class()
+            instance.setup_bot(settings, spec, schemas, extractors)
+            plugins[plugin_name] = instance
+        return plugins
+
     def _plugin_hook(self, name, *args):
         results = []
         for plugin in self.plugins.values():
@@ -222,6 +225,20 @@ class IblSpider(SitemapSpider):
 
     def handle_html(self, response):
         return self._handle('handle_html', response)
+
+    def _configure_js(self, spec, settings):
+        self._job_id = settings.get('JOB', '')
+        self.js_enabled = False
+        self.SPLASH_HOST = None
+        if settings.get('SPLASH_URL'):
+            self.SPLASH_HOST = urlparse(settings.get('SPLASH_URL')).hostname
+            self.js_enabled = spec.get('js_enabled', False)
+        if self.js_enabled and (settings.get('SPLASH_PASS') is not None or
+                                settings.get('SPLASH_USER') is not None):
+            self.splash_auth = basic_auth_header(
+                settings.get('SPLASH_USER', ''),
+                settings.get('SPLASH_PASS', ''))
+        self._filter_js_urls = self._build_js_url_filter(spec)
 
     def _build_js_url_filter(self, spec):
         if not self.js_enabled:
