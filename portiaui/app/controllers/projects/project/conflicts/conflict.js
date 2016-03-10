@@ -1,6 +1,9 @@
 import Ember from 'ember';
 import { isObject, isArray } from '../../../../utils/types';
-import { isConflict } from '../../../../components/json-file-compare';
+
+function isConflict(obj) {
+    return isObject(obj) && '__CONFLICT' in obj;
+}
 
 /**
  * Sort keys so that indexes in the same array are in descending order.

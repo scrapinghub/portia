@@ -16,6 +16,9 @@ export default Ember.Component.extend({
                 this.get('annotation.field'),
                 this.get('annotation.field.schema.fields')
             ]).then(([currentField, fields]) => {
+                if (!fields) {
+                    return true;
+                }
                 fields = fields.reject(f => f === currentField);
                 const error = validateFieldName(name, fields);
                 if (error) {

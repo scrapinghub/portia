@@ -13,9 +13,8 @@
                             <div>
                             {{#if annotation.name}}
                                 {{colored-badge value=annotation.name color=(array-get annotationColors annotation.orderedIndex)}}
-                            {{else}}
-                                {{icon-button icon='add' action=(action 'addAnnotation' attribute.attribute) bubbles=false}}
                             {{/if}}
+                            {{icon-button icon='add' action=(action 'addAnnotation' attribute.attribute) bubbles=false}}
                             </div>
                         {{/with}}
                     </div>

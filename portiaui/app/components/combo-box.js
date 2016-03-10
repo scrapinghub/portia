@@ -19,7 +19,7 @@ export default SelectBox.extend({
 
     setInputFocus(ignoreAutoSelect = false) {
         const inputElement = Ember.$('#' + this.get('inputId')).get(0);
-        if (this.get('open')) {
+        if (inputElement && this.get('open')) {
             inputElement.focus();
             if (!ignoreAutoSelect && this.get('autoSelect')) {
                 inputElement.select();

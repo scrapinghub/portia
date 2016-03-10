@@ -52,6 +52,7 @@ def delete_schema(manager, schema_id, attributes):
         raise NotFound('No item with id "%s" found' % schema_id)
     schemas.pop(schema_id)
     manager.savejson(schemas, ['items'])
+    return {}
 
 
 def _check_schema_attributes(attributes):

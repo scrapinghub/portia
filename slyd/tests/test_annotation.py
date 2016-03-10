@@ -3,12 +3,12 @@ import unittest
 
 from scrapely.htmlpage import HtmlPage, HtmlTag
 from slyd.utils import add_tagids, TAGID
-from slyd.plugins.scrapely_annotations import Annotations
+from slybot.plugins.scrapely_annotations.builder import Annotations
 
 
 # Test page extracted from:
 # https://wanqu.co/2016-01-06-how-we-got-off-the-addiction-to-venture-capital-and-created-our-own-way-to-profits-skift.html
-TEST_PAGE=ur"""
+TEST_PAGE = ur"""
 <!DOCTYPE html>
 <html xmlns:og="http://opengraphprotocol.org/schema/" xmlns:fb="http://www.facebook.com/2008/fbml" xmlns:wb="http://open.weibo.com/wb" lang="en"><!--
 

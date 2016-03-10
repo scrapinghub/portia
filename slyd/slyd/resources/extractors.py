@@ -56,6 +56,7 @@ def delete_extractor(manager, extractor_id, attributes=None):
     extractors = _read_extractors(manager)
     del extractors[extractor_id]
     manager.savejson(extractors, ['extractors'])
+    return {}
 
 
 def _build_extractor(manager, attributes, extractor_id, add_default=False):
