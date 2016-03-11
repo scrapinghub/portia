@@ -275,7 +275,13 @@ def _merge_annotations_by_selector(annotations):
             # TODO: Handle annotations pointing to different containers
             for attribute, data in other_anno['annotations'].items():
                 if attribute in anno['annotations']:
-                    anno['annotations'][attribute].extend(data)
+                    attr_data = anno['annotations'][attribute]
+                    if isinstance(attr_data, list):
+                        attr_data.extend(data)
+                    else:
+                        current = {'field': attr_data, 'attribute': attribute,
+                                   'required': False, 'extractors': []}
+                        attr_data = [current, data]
                 else:
                     anno['annotations'][attribute] = data
         new_annotations.append(anno)
