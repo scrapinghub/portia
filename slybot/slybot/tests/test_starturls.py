@@ -1,7 +1,10 @@
 from unittest import TestCase
 from datetime import datetime
+from jsonschema import ValidationError
 from scrapy.settings import Settings
 from slybot.starturls import StartUrls, UrlGenerator
+from slybot.validation.schema import get_schema_validator
+
 
 class StartUrlGenerators(TestCase):
     github_start_urls = [
@@ -19,14 +22,8 @@ class StartUrlGenerators(TestCase):
         'https://www.donedeal.ie/kitchens-for-sale/i/1',
         'https://www.donedeal.ie/kitchens-for-sale/i/2'
     ]
-
-    def test_start_urls(self):
-        self.assertEqual(self.github_start_urls,
-                         StartUrls()(self.github_start_urls))
-
-    def test_generate_start_urls_from_defaults(self):
-        genny = UrlGenerator()
-        spec = [{
+    specs = {
+        'defaults': [{
             "template": "https://github.com/{}",
             "paths": [{
                 "type": "default",
@@ -34,13 +31,8 @@ class StartUrlGenerators(TestCase):
             }],
             "params": [],
             "params_template": {}
-        }]
-        self.assertEqual(["https://github.com/scrapinghub"],
-                         list(genny(spec[0])))
-
-    def test_generate_start_urls_from_options(self):
-        genny = UrlGenerator()
-        spec = [{
+        }],
+        'options': [{
             "template": "https://github.com/{}",
             "paths": [{
                 "type": "options",
@@ -48,13 +40,8 @@ class StartUrlGenerators(TestCase):
             }],
             "params": [],
             "params_template": {}
-        }]
-        self.assertEqual(self.github_start_urls, list(genny(spec[0])))
-
-    def test_generate_start_urls_from_date(self):
-        now = datetime.now()
-        genny = UrlGenerator()
-        spec = [{
+        }],
+        'dates': [{
             "template": "http://www.commitstrip.com/{}/{}/{}",
             "paths": [{
                 "type": "default",
@@ -68,14 +55,8 @@ class StartUrlGenerators(TestCase):
             }],
             "params": [],
             "params_template": {}
-        }]
-        url = "http://www.commitstrip.com/en/{}/{:02}".format(now.year,
-                                                              now.month)
-        self.assertEqual([url], list(genny(spec[0])))
-
-    def test_generate_start_urls_from_range(self):
-        genny = UrlGenerator()
-        spec = [{
+        }],
+        'range': [{
             "template": "https://www.donedeal.ie/{}/{}/{}",
             "paths": [{
                 "type": "default",
@@ -89,14 +70,8 @@ class StartUrlGenerators(TestCase):
             }],
             "params": [],
             "params_template": {}
-        }]
-        urls = ["https://www.donedeal.ie/cars-for-sale/i/%s" % i
-                for i in range(100000010, 100000000, -1)]
-        self.assertEqual(urls, list(genny(spec[0])))
-
-    def test_generate_start_urls_from_params_range(self):
-        genny = UrlGenerator()
-        spec = [{
+        }],
+        'params_range': [{
             "template": "http://www.smbc-comics.com/{}",
             "paths": [{
                 "type": "default",
@@ -112,17 +87,8 @@ class StartUrlGenerators(TestCase):
                 "values": ['comic']
             }],
             "params_template": {}
-        }]
-        urls = ["http://www.smbc-comics.com/index.php?p=%s&q=comic" % i
-                for i in range(20, 30, 5)]
-        self.assertEqual(urls, list(genny(spec[0])))
-
-    def test_generate_start_urls_from_spider_arg(self):
-        genny = UrlGenerator(spider_args={
-            'categories': ['cars-for-sale', 'houses-for-sale'],
-            'sections': ['pets-for-sale', 'kitchens-for-sale']
-        })
-        spec = [{
+        }],
+        'spider_args': [{
             "template": "https://www.donedeal.ie/{}/{}/{}",
             "paths": [{
                 "type": "spider_args",
@@ -136,15 +102,8 @@ class StartUrlGenerators(TestCase):
             }],
             "params": [],
             "params_template": {}
-        }]
-        self.assertEqual(self.donedeal_start_urls, list(genny(spec[0])))
-
-    def test_generate_start_urls_from_setting(self):
-        genny = UrlGenerator(Settings(values={
-            'categories': 'cars-for-sale,houses-for-sale',
-            'sections': ['pets-for-sale', 'kitchens-for-sale']
-        }))
-        spec = [{
+        }],
+        'settings': [{
             "template": "https://www.donedeal.ie/{}/{}/{}",
             "paths": [{
                 "type": "settings",
@@ -158,12 +117,8 @@ class StartUrlGenerators(TestCase):
             }],
             "params": [],
             "params_template": {}
-        }]
-        self.assertEqual(self.donedeal_start_urls, list(genny(spec[0])))
-
-    def test_generate_start_urls_from_params(self):
-        genny = UrlGenerator()
-        spec = [{
+        }],
+        'params': [{
             "template": "https://encrypted.google.com/search",
             "paths": [],
             "params": [{
@@ -180,6 +135,76 @@ class StartUrlGenerators(TestCase):
                 ("q", "python unittest")
             ]
         }]
+    }
+
+    def test_schema_format(self):
+        validator = get_schema_validator('spider')
+        spider = {
+            'start_urls_type': 'generated_urls',
+            'start_urls': [],
+            'links_to_follow': 'none',
+            'respect_nofollow': True
+        }
+        for spec in self.specs.values():
+            spider['generated_urls'] = spec
+            validator.validate(spider)
+
+    def test_start_urls(self):
+        self.assertEqual(self.github_start_urls,
+                         StartUrls()(self.github_start_urls))
+
+    def test_generate_start_urls_from_defaults(self):
+        genny = UrlGenerator()
+        spec = self.specs['defaults']
+        self.assertEqual(["https://github.com/scrapinghub"],
+                         list(genny(spec[0])))
+
+    def test_generate_start_urls_from_options(self):
+        genny = UrlGenerator()
+        spec = self.specs['options']
+        self.assertEqual(self.github_start_urls, list(genny(spec[0])))
+
+    def test_generate_start_urls_from_date(self):
+        now = datetime.now()
+        genny = UrlGenerator()
+        spec = self.specs['dates']
+        url = "http://www.commitstrip.com/en/{}/{:02}".format(now.year,
+                                                              now.month)
+        self.assertEqual([url], list(genny(spec[0])))
+
+    def test_generate_start_urls_from_range(self):
+        genny = UrlGenerator()
+        spec = self.specs['range']
+        urls = ["https://www.donedeal.ie/cars-for-sale/i/%s" % i
+                for i in range(100000010, 100000000, -1)]
+        self.assertEqual(urls, list(genny(spec[0])))
+
+    def test_generate_start_urls_from_params_range(self):
+        genny = UrlGenerator()
+        spec = self.specs['params_range']
+        urls = ["http://www.smbc-comics.com/index.php?p=%s&q=comic" % i
+                for i in range(20, 30, 5)]
+        self.assertEqual(urls, list(genny(spec[0])))
+
+    def test_generate_start_urls_from_spider_arg(self):
+        genny = UrlGenerator(spider_args={
+            'categories': ['cars-for-sale', 'houses-for-sale'],
+            'sections': ['pets-for-sale', 'kitchens-for-sale']
+        })
+        spec = self.specs['spider_args']
+        self.assertEqual(self.donedeal_start_urls, list(genny(spec[0])))
+
+    def test_generate_start_urls_from_setting(self):
+        genny = UrlGenerator(Settings(values={
+            'categories': 'cars-for-sale,houses-for-sale',
+            'sections': ['pets-for-sale', 'kitchens-for-sale']
+        }))
+        spec = self.specs['settings']
+        self.assertEqual(self.donedeal_start_urls, list(genny(spec[0])))
+
+    def test_generate_start_urls_from_params(self):
+        genny = UrlGenerator()
+        spec = self.specs['params']
         base = "https://encrypted.google.com/search?hl=en&q=%s&location=%s"
         n, t, d, c = "nosetests", "tox", "dublin", "cork"
         arg = [(n, d), (n, c), (t, d), (t, c)]

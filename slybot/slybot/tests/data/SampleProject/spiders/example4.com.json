@@ -7,7 +7,8 @@
             "paths": [{
                 "type": "options",
                 "values": ["about_us", "contact"]
-            }]
+            }],
+            "params": []
         }, {
             "template": "http://www.example.com/{}/{}",
             "paths": [{
@@ -16,7 +17,8 @@
             }, {
                 "type": "range",
                 "values": [2, 5]
-            }]
+            }],
+            "params": []
         }],
     "exclude_patterns": [], 
     "follow_patterns": [], 

@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+from datetime import datetime
+
 from scrapely.htmlpage import HtmlPage
 from scrapely.extraction import InstanceBasedLearningExtractor
 
@@ -66,6 +68,24 @@ class ExtractorTest(TestCase):
             }
         }
     }, {
+        'id': 'annotation',
+        'selector': 'span',
+        'container_id': 'parent',
+        'data': {
+            1: {
+                'attribute': 'content',
+                'field': 'price',
+                'required': False,
+                'extractors': ['8', '4', '5', '6']
+            },
+            2: {
+                'attribute': 'content',
+                'field': 'date',
+                'required': False,
+                'extractors': ['4', '7']
+            }
+        }
+    }, {
         'id': 'parent',
         'item_container': True,
         'selector': 'body'
@@ -78,7 +98,7 @@ class ExtractorTest(TestCase):
         <td>
             <a href="/olivia.html">Name: Olivia</a>
         </td>
-    </tr><span></span>
+    </tr><span>2016-03-17 20:25</span>
     </body></html>"""
 
     template = HtmlPage(url="http://www.test.com/", body=annotated)
@@ -258,6 +278,21 @@ class ExtractorTest(TestCase):
             },
             '3': {
                 'regular_expression': 'Name: (.*)'
+            },
+            '4': {
+                'type_extractor': 'text'
+            },
+            '5': {
+                'type_extractor': 'price'
+            },
+            '6': {
+                'type_extractor': 'number'
+            },
+            '7': {
+                'type_extractor': 'date'
+            },
+            '8': {
+                'regular_expression': '(\d+)-'
             }
         }
         descriptors = {'#default': create_slybot_item_descriptor(schema)}
@@ -266,7 +301,8 @@ class ExtractorTest(TestCase):
             (self.template3, descriptors, '0.13.0')
         ])
         result = {'name': [u'Olivia'], 'url': [u'http://www.test.com/olivia'],
-                  'title': [u'Name: Olivia']}
+                  'title': [u'Name: Olivia'], 'price': [u'2016'],
+                  'date': [datetime(2016, 3, 17, 20, 25)]}
         data = ibl_extractor.extract(self.target3)[0][0]
         del data['_template']
         self.assertEqual(data, result)
