@@ -216,9 +216,10 @@ def _create_field_for_annotation(manager, annotation, sample):
                 parent = a
             if len(a['id']) > len(parent['id']):
                 parent = a
+    field_type = _get_field_type_from_annotation(annotation)
     if parent:
         field = create_field(manager, parent['schema_id'],
-                             {'data': {'attributes': {'type': 'text'},
+                             {'data': {'attributes': {'type': field_type},
                               'type': 'fields'}})
         field_id = field['data']['id']
         for anno in annotation['data'].values():
@@ -226,3 +227,13 @@ def _create_field_for_annotation(manager, annotation, sample):
                 anno['field'] = field_id
     if field:
         return field['data']
+
+
+def _get_field_type_from_annotation(annotation):
+    annotation.setdefault('data', {'1': {'attribute': 'content'}})
+    attribute = annotation['data'].values()[0]['attribute']
+    if attribute == 'src':
+        return 'image'
+    if attribute == 'href':
+        return 'url'
+    return 'text'

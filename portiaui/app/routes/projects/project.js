@@ -5,7 +5,7 @@ export default Ember.Route.extend({
         return this.store.findRecord('project', params.project_id);
     },
 
-    afterModel(model) {
+    afterModel() {
         // XXX: Need to wait for project id to be loaded
         Ember.run.next(this, function() {
             this.store.findAll('schema');

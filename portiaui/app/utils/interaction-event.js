@@ -54,7 +54,8 @@ var interactionEvent = function(evt) {
         }
         if (scrollTarget) {
             data.scrollTop = scrollTarget.scrollTop;
-            data.scrollTopPercent = scrollTarget.scrollTopMax && Math.round(scrollTarget.scrollTop * 100 / scrollTarget.scrollTopMax);
+            data.scrollTopPercent = scrollTarget.scrollTopMax &&
+                Math.round(scrollTarget.scrollTop * 100 / scrollTarget.scrollTopMax);
             data.scrollLeft  = scrollTarget.scrollLeft;
         } else {
             data.scrollTop = 0;
