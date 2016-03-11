@@ -1,6 +1,7 @@
 import re
 
 from scrapely.extractors import htmlregion
+from scrapely.htmlpage import HtmlPageRegion
 
 from slybot.fieldtypes import FieldTypeManager
 from slybot.item import SlybotFieldDescriptor, SlybotItemDescriptor
@@ -36,8 +37,10 @@ def create_type_extractor(_type):
     def _extractor(txt, htmlpage=None):
         if txt is None:
             return
-        data = extractor.extract(txt)
         page = getattr(htmlpage, 'htmlpage', htmlpage)
+        if not hasattr(txt, 'text_content'):
+            txt = HtmlPageRegion(page, txt)
+        data = extractor.extract(txt)
         if data:
             return extractor.adapt(data, page)
     _extractor.__name__ = ("Type Extractor: %s" % _type).encode('utf-8')
