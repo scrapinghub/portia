@@ -168,7 +168,7 @@ export var SlydApi = Ember.Object.extend({
         hash.url = this.get('projectSpecUrl') + 'spiders/' + (spiderName || this.get('spider'));
         return this.makeAjaxCall(hash).then(function(spiderData) {
             spiderData['name'] = (spiderName || this.get('spider'));
-            spiderData['templates'] = spiderData['templates'].map(function(template) {
+            spiderData.templates = (spiderData.templates || []).map(function(template) {
                 // Assign a name to templates. This is needed as Autoscraping templates
                 // are not named.
                 if (Ember.isEmpty(template['name'])) {
