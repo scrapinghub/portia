@@ -57,7 +57,7 @@ def clean_spider(obj):
         obj['start_urls'] = list(ODict([(x, 1) for x in obj['start_urls']]))
     # XXX: Need id to keep track of renames for deploy and export
     if 'id' not in obj:
-        obj['id'] = short_guid()
+        obj['id'] = obj.get('name') or short_guid()
 
 
 def add_plugin_data(obj, plugins):

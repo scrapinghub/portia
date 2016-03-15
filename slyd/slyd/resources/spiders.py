@@ -43,7 +43,7 @@ def update_spider(manager, spider_id, attributes):
     if rename:
         manager.rename_spider(spider_id, spider['name'].encode('utf-8'))
         spider_id = spider['name']
-        spider['id'] = spider_id
+    spider['id'] = spider_id
     clean_spider(spider)
     manager.savejson(spider, ['spiders', spider_id.encode('utf-8')])
     spider['samples'] = [{'id': name} for name in spider['template_names']]
