@@ -91,7 +91,7 @@ const BrowserIFrame = Ember.Component.extend({
      */
     loadUrl: Ember.observer('url', 'webSocket.closed', function() {
         const url = this.get('url');
-        let spider, baseurl;  //???
+        let baseurl;  //???
 
         if (!url || !url.includes('://') || !cleanUrl(url)) {
             return;

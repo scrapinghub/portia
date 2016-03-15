@@ -47,13 +47,13 @@ export function toType(obj) {
 export function captureMessage(msg, params) {
     Ember.Logger.log(msg);
     if (window.Raven) {
-        Raven.captureMessage(msg, params);
+        window.Raven.captureMessage(msg, params);
     }
 }
 export function logError(err, params) {
     Ember.Logger.error(err);
     if (window.Raven) {
-        Raven.captureException(err, params);
+        window.Raven.captureException(err, params);
     }
 }
 

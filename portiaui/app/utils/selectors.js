@@ -5,7 +5,7 @@ let escapeCSS = CSS.escape;
 if (!escapeCSS) {
     escapeCSS = function(string) {
         return ''+string;
-    }
+    };
 }
 
 export function elementPath(element) {

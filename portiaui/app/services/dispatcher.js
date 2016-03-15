@@ -97,9 +97,9 @@ export default Ember.Service.extend({
         const matches = url.match('//([a-zA-Z0-9\._-]*)');
         const store = this.get('store');
         if (matches && matches.length) {
-            name = matches.slice(-1)[0]
+            name = matches.slice(-1)[0];
         } else {
-            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '')
+            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '');
         }
         const spider = store.createRecord('spider', {
             name: name,

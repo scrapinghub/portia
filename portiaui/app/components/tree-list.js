@@ -1,7 +1,5 @@
-import Ember from 'ember';
 import AnimationContainer from './animation-container';
 
-const $ = Ember.$;
 
 export default AnimationContainer.extend({
     tagName: 'div',
@@ -46,7 +44,9 @@ export default AnimationContainer.extend({
         var container = this.$()[0];
         if(event.target === container){ return [null, null]; }
 
-        var overTarget = event.target.parentNode === container ? event.target: $(event.target).parentsUntil(this.$()).get(-1);
+        var overTarget = event.target.parentNode === container ?
+            event.target :
+            $(event.target).parentsUntil(this.$()).get(-1);
 
         var clientRect = overTarget.getBoundingClientRect();
         var targetY = event.clientY - clientRect.top;
