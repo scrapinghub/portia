@@ -5,6 +5,10 @@ module.exports = function(defaults) {
     var app = new EmberApp(defaults, {
         babel: {
             includePolyfill: true
+        },
+        sourcemaps: {
+            enabled: true,
+            extensions: ['js']
         }
     });
 
