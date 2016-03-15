@@ -7,7 +7,7 @@ Samples
 What are samples?
 =================
 
-When the crawler visits a page, the page is matched against each sample and samples with more annotations take precedence over those with less. If the page matches a sample, data will be extracted using the sample's annotations to yield an item (assuming all required fields are filled). Samples exist within the context of a spider and are made up of annotations which define the elements you wish to extract from a page. Within the sample you define the item you want to extract as well as mark any fields that are required for that item.
+When the crawler visits a page, it matches the page against each sample. Samples with more annotations take precedence over those with less. If the page matches a sample, it will use the sample's annotations to extract data. Assuming all required fields are filled, it will yield an item. Spiders consist of one or more samples and each sample is made up of annotations that define the elements you wish to extract. Within the sample you define the item you want to extract and mark required fields for that item.
 
 .. _what-are-annotations:
 
@@ -66,7 +66,7 @@ And then you can select use any built-in extractors or create your own extractor
 Multiple fields
 ---------------
 
-It's possible to extract multiple fields using a single annotation if there are several properties you want to extract from an element. For example, if there was an image on the page, you could map the ``src`` attribute containing the image URL to one field, and you could map the ``alt`` attribute to another.
+It's possible to extract multiple fields using a single annotation if there are several properties you want to extract from an element. For example, if there was an image you wanted, you could map the ``src`` attribute that contains the image URL to one field, and the ``alt`` attribute to another.
 
 You can do it in the ``Inspector`` panel in the top left of the screen:
 
@@ -80,11 +80,17 @@ Just click the ``+`` button right after an attribute to add a new field based on
 Multiple samples
 ================
 
-It's often necessary to use multiple samples within one spider, even if you're only extracting one item type. Some pages containing the same item type may have a different layout or fields missing, and you will need to accommodate those pages by creating a sample for each layout variation.
+It's often necessary to use multiple samples within one spider, even if you're only extracting one item type. Some pages containing the same item type may have a different layout or fields missing, and you will need to accommodate for those pages by creating a sample for each variation in layout.
+
+Sample precedence
+-----------------
 
 The more annotations a sample has, the more specific the data being extracted and therefore less chance of a false positive. For this reason, samples with more annotations take precedence over those with less annotations. If a subset of samples contains equal number of annotations per sample, then within that subset samples will be tried in the order they were created from first to last. In other words, samples are tried sequentially in order of number of annotations first, and age second.
 
 If you are working with a large number of samples, it may be difficult to ensure the correct sample is applied to the right page. It's best to keep samples as strict as possible to avoid any false matches. It's useful to take advantage of the ``-just required-`` option and annotate elements that will always appear on matching pages to reduce the number of false positives.
+
+Example
+-------
 
 Consider the following example:
 

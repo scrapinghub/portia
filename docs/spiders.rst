@@ -4,7 +4,7 @@
 Spiders
 =======
 
-Spiders are web crawlers that consist of one or more :ref:`samples <samples>`.
+Spiders are web crawlers that use :ref:`samples <samples>` to extract data from the pages it visits.
 
 .. _spider-properties:
 
@@ -18,13 +18,13 @@ You can access your spider's properties by clicking the gear icon located right 
 
 
 Configuring login details
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
-If you need to log into a site, you can configure login details by ticking 'Perform login' in the :ref:`spider properties <spider-properties>` menu. Then you can set the login URL, username and password.
+If you need to log into a site, you can configure login details by ticking 'Perform login' in the :ref:`spider properties <spider-properties>` menu. Here you can set the login URL, username and password.
 
 
 Enabling JavaScript
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 You can enable JavaScript in your spider by ticking ``Enable JavaScript`` in the :ref:`spider properties <spider-properties>` menu. Note that you'll need to set the ``SPLASH_URL`` Scrapy setting to your Splash endpoint URL for JavaScript to work during the crawl.
 
@@ -33,7 +33,7 @@ Start pages and link crawling
 
 Start pages are the initial URLs that Portia will visit to start the crawl. You can add and remove start pages on the left menu.
 
-You can choose how Portia will follow links under ``Link Crawling``.
+You can choose how Portia will follow links under ``LINK CRAWLING``.
 
 .. image:: _static/portia-spider-link-crawling.png
     :alt: Link crawling properties
@@ -43,14 +43,14 @@ You can choose how Portia will follow links under ``Link Crawling``.
 * Don't follow links - only visit start URLs.
 * Configure url patterns - use regular expressions to choose which URLs to follow.
 
-When using the ``Configure url patterns`` option, you can define the follow/exclude patterns and choose whether to respect the ``nofollow`` attribute. Click the gear icon to show the link crawling options where you can set the follow/exclude patterns.
+The ``Configure url patterns`` option lets you set follow and exclude patterns as well as choose whether to respect the ``nofollow`` attribute. Click the gear icon to show the link crawling options where you can set the follow/exclude patterns.
 
 .. _running-spider:
 
 Running a spider
 ================
 
-Projects you have created in Portia will reside in ``slyd/data/projects``. You can use ``portiacrawl`` to run a spider from one of your projects::
+Portia will save your projects in ``slyd/data/projects``. You can use ``portiacrawl`` to run a spider::
 
     portiacrawl PROJECT_PATH SPIDER_NAME
 

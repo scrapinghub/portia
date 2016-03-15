@@ -6,7 +6,7 @@ Items
 
 An item refers to a single item of data scraped from the target website. A common example of an item would be a product for sale on an e-commerce website. It's important to differentiate **item** and **item definition**. In Portia, an item definition or item type refers to the schema of an item rather than the item itself. For example, ``book`` would be an item definition, and a specific book scraped from the website would be an item. An item definition consists of multiple fields, so using the example of a product you might have fields named ``name``, ``price``, ``manufacturer`` and so on. We use annotations to extract data from the page into each of these fields.
 
-To ensure certain fields are extracted, you can set the **Required** flag on each required field and Portia will discard an item if any required fields are missing. Portia will also remove any duplicate items by default.
+To ensure certain fields are extracted, you can set the **Required** flag on each required field. Portia will discard an item if any required fields are missing. Portia will also remove any duplicate items by default.
 
 In some cases you may have fields where the value can vary despite being the same item, in which case you can mark them as **Vary**. This will ignore the field when checking for duplicates. It’s important to only use **Vary** when necessary, as misuse could easily lead to duplicate items being stored. The ``url`` field is a good example of where **Vary** is useful, as the same item may have multiple URLs. If the ``url`` field wasn’t marked as **Vary**, each duplicate item would be seen as unique because its URL would be different.
 

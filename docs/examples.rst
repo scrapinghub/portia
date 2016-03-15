@@ -11,7 +11,7 @@ Most e-commerce sites use pagination to spread results across multiple pages.
 
 When crawling these sites with Portia, there are some best practices you should follow:
 
-	* Use the target categories as the start URL.
+	* Use the target categories as start pages.
 	* Use follow patterns to limit Portia to only visit category and article pages.
 
 This will prevent Portia from visiting unnecessary pages so you can crawl the items a lot faster.
@@ -26,9 +26,11 @@ To ensure the spider only visits relevant pages, you'll need to limit crawling t
 .. image:: _static/portia-follow-patterns.png
 	:alt: Follow patterns
 
-You can use follow patterns to filter URLs with `regular expressions <https://en.wikipedia.org/Regular_expressions>`_. You can see which links will be followed by clicking the |link-symbol| button (toggle highlighting) to the right of Portia's URL bar. Followed links will be highlighted in green and excluded links in red.
+You can use follow patterns to filter URLs with `regular expressions <https://en.wikipedia.org/Regular_expressions>`_. You can see which links will be followed by clicking the |icon-toggle-links| button (toggle highlighting) to the right of Portia's URL bar. Followed links will be highlighted in green and excluded links in red.
 
-.. |link-symbol| unicode:: 0x1F517
+.. |icon-toggle-links| image:: _static/portia-icon-add-repeat.png
+    :width: 16px
+    :height: 16px
 
 As you can see above, the spider will now only visit the boots and shoes category pages and their product listings. To ensure that only products belonging to the target categories are visited, we filter against the ``catID`` parameter value in the URL.
 
@@ -49,7 +51,7 @@ This way, you can tweak your selections, making them more or less specific, for 
 Extracting a single attribute to multiple fields
 ================================================
 
-You can extract an element's attribute to multiple fields by creating an annotation for each field.
+Portia supports multiple annotations for the same attribute. You can take advantage of this to extract an attribute to multiple fields by simply creating an annotation for each field.
 
 Scraping multiple items from a single page
 ==========================================
@@ -58,14 +60,9 @@ You'll often need to retrieve several items from a single page. You can do this 
 
 Let's revisit the `timerberlandonline.co.uk <http://www.timberlandonline.co.uk>`_ spider and demonstrate this process by annotating a couple of pairs of shoes.
 
-Click the tiles icon to select the repeating element tool:
-
-.. image:: _static/portia-multi-first.png
-	:alt: Start URLs
-
-Then click an element, and Portia will find all similar elements and link them to the same field:
+Click the tiles icon to select the repeating element tool and then click an element, and Portia will find all similar elements and link them to the same field:
 
 .. image:: _static/portia-multi-preview.png
 	:alt: Start URLs
 
-Now it's just a matter of doing the same for every other field you need, and voilà!
+Now you just need to do same for the other fields, and you're done!
