@@ -106,7 +106,11 @@ def _read_schemas(manager):
 
 
 def _read_extractors(manager):
-    return _read_resource(manager, 'extractors')
+    extractors = _read_resource(manager, 'extractors')
+    for _id, extractor in extractors.items():
+        if _id not in extractor:
+            extractor['id'] = _id
+    return extractors
 
 
 def _read_resource(manager, resource):
