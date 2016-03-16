@@ -266,6 +266,11 @@ class AnnotationSchema(BaseAnnotationSchema):
                             'field_id': '<field_id>'},
         type_='fields', include_data=True
     )
+    extractors = fields.Relationship(
+        related_url='/api/projects/{project_id}/extractors',
+        related_url_kwargs={'project_id': '<project_id>'},
+        many=True, include_data=True, type_='extractors'
+    )
 
     class Meta:
         type_ = 'annotations'

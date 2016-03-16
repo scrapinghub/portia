@@ -86,7 +86,8 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
         container = _find_container(annotation, sample)
         if container:
             schema_id = container.get('schema_id')
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id, schema_id=schema_id, field_id=field_id)
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
+                  schema_id=schema_id, field_id=field_id)
     split_annotations = _split_annotations([annotation])
     a = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
     return AnnotationSchema(context=context).dump(a).data
