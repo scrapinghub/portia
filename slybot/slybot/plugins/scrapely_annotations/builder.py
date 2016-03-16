@@ -58,6 +58,8 @@ def _clean_annotation_data(data):
         elif 'data' in ann:
             modified_annotations = {}
             grp = itemgetter('attribute')
+            for _id, value in ann['data'].items():
+                value['id'] = '%s|%s' % (ann['id'], _id)
             sorted_annotations = sorted(ann['data'].values(), key=grp)
             for attribute, annotations in groupby(sorted_annotations, grp):
                 modified_annotations[attribute] = list(annotations)
