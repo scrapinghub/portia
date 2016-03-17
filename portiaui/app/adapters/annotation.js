@@ -1,5 +1,6 @@
-import ApplicationAdapter from './application';
+import SlydJSONAPIAdapter from '../utils/adapter';
 
-export default ApplicationAdapter.extend({
-    urlTemplate: '{+host}/api/projects/{project_id}/spiders/{spider_id}/samples/{sample_id}/annotations{/id}'
+export default SlydJSONAPIAdapter.extend({
+    urlTemplate: '{+host}/api/projects/{project_id}/spiders/{spider_id}/samples/{sample_id}' +
+                 '/annotations{/id}'
 });

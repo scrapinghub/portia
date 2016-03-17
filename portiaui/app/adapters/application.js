@@ -1,3 +1,3 @@
-import { createAdapter } from '../utils/adapter';
+import SlydJSONAPIAdapter from '../utils/adapter';
 
-export default createAdapter({});
+export default SlydJSONAPIAdapter.extend({});
