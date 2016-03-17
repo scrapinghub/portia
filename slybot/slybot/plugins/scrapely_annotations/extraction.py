@@ -191,13 +191,17 @@ class SlybotRecordExtractor(RecordExtractor):
                     nested_regions, ignored_regions, **kwargs
                 )
             extracted_data += following_data
-        if (not extracted_data and hasattr(first_extractor, 'annotation') and
+        if (hasattr(first_extractor, 'annotation') and
                 first_extractor.annotation):
             annotation = first_extractor.annotation or []
             content = annotation.surrounds_attribute or []
             attributes = annotation.tag_attributes
             attrs = chain(content, *(a for _, a in attributes))
-            if (any(isinstance(k, dict) and k.get('required') for k in attrs)):
+            extracted_ids = {a['id'] for annos, _ in extracted_data
+                             for a in annos
+                             if isinstance(a, dict) and 'id' in a}
+            if (any(isinstance(k, dict) and k.get('required') and
+                    k.get('id') not in extracted_ids for k in attrs)):
                 raise MissingRequiredError()
         return pindex, sindex, extracted_data
 
@@ -606,7 +610,8 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                         try:
                             for extractor in self.extractors:
                                 items = extractor.extract(
-                                    page, index, peek, ignored_regions,
+                                    page, index, peek + self.offset,
+                                    ignored_regions,
                                     suffix_max_length=suffixlen)
                                 if items:
                                     extracted.extend([
@@ -647,7 +652,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                           template)
         suffix_tokens.reverse()
         suffix_tokens = self._trim_prefix(suffix_tokens, prefix_tokens,
-                                          template, 2)
+                                          template, 3)
         tokens = template.page_tokens[child.start_index + 1:
                                       child.end_index][::-1]
         max_separator = int(len(tokens) * MAX_RELATIVE_SEPARATOR_MULTIPLIER)
@@ -661,7 +666,8 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                       child.end_index + max_separator][::-1]
         tokens = self._find_tokens(tokens,
                                    (htt.OPEN_TAG, htt.UNPAIRED_TAG),
-                                   template)
+                                   template, prefix_tokens[0])
+        self.offset = 1 if not tokens else 0
         suffix_tokens = self._trim_prefix(suffix_tokens + tokens,
                                           prefix_tokens,
                                           template, 3, True)
@@ -749,15 +755,18 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         return new_prefix
 
     @staticmethod
-    def _find_tokens(tokens, token_types, template):
+    def _find_tokens(tokens, token_types, template, upto=None):
         """
         Find a consecutive list tokens marching the supplied token types.
         Possibly remove the final token as this may reduce the number of
         regions that can be found.
         """
         result_tokens = []
+        token_type = template.token_dict.token_type
         for token in reversed(tokens):
-            if template.token_dict.token_type(token) in token_types:
+            if token == upto:
+                break
+            if token_type(token) in token_types:
                 result_tokens.append(token)
             else:
                 break
