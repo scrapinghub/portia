@@ -26,7 +26,7 @@ If you need to log into a site, you can configure login details by ticking 'Perf
 Enabling JavaScript
 -------------------
 
-You can enable JavaScript in your spider by ticking ``Enable JavaScript`` in the :ref:`spider properties <spider-properties>` menu. Note that you'll need to set the ``SPLASH_URL`` Scrapy setting to your Splash endpoint URL for JavaScript to work during the crawl.
+You can enable JavaScript in your spider by ticking ``Enable JavaScript`` in the :ref:`spider properties <spider-properties>` menu. Note that you'll need to set the ``SPLASH_URL`` Scrapy setting to your [Splash](https://github.com/scrapinghub/splash) endpoint URL for JavaScript to work during the crawl.
 
 Start pages and link crawling
 =============================

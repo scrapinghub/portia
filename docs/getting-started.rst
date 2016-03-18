@@ -35,7 +35,7 @@ Portia works like a web browser, so you can navigate between pages as you would 
 .. image:: _static/portia-new-spider.png
     :alt: Newly created sample
 
-Now that you've created the sample, you can begin :ref:`annotating <what-are-annotations>` the page. Annotations link a piece of data n the page to an item field. You'll notice that you can highlight elements on the page, if you click on it will create a new field to which the element will be extracted. 
+Now that you've created the sample, you can begin :ref:`annotating <what-are-annotations>` the page. Annotations link a piece of data in the page to an item field. You'll notice that you can highlight elements on the page, if you click on it will create a new field to which the element will be extracted. 
 
 Portia will create an :ref:`item <items>` schema from the elements that you annotated and will use it as the data format for the scraped :ref:`items <items>`.
 
@@ -58,7 +58,7 @@ Portia follows all in-domain URLs by default. In many cases you'll want to limit
 
 To do this, you can set follow and exclude patterns that whitelist and blacklist URLs respectively. These can be configured by changing the crawling policy to ``Configure URL patterns``. 
 
-Every Amazon product URL contains ``/dp/``, so you can add that as a follow pattern and Portia will know to only follow such URLs.
+For example, Amazon products' URLs contain ``/gp/``, so you can add this as a follow pattern and Portia will know to only follow such URLs.
 
 .. image:: _static/portia-configuring-crawling.png
     :alt: Configuring the crawling
@@ -67,3 +67,5 @@ What's next?
 ============
 
 Once you've created your samples and configured crawling behavior, it's time to :ref:`run <running-spider>` your spider.
+
+Check out the :ref:`examples` to learn a few tips to be more productive with Portia.

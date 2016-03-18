@@ -87,51 +87,6 @@ Sample precedence
 
 The more annotations a sample has, the more specific the data being extracted and therefore less chance of a false positive. For this reason, samples with more annotations take precedence over those with less annotations. If a subset of samples contains equal number of annotations per sample, then within that subset samples will be tried in the order they were created from first to last. In other words, samples are tried sequentially in order of number of annotations first, and age second.
 
-If you are working with a large number of samples, it may be difficult to ensure the correct sample is applied to the right page. It's best to keep samples as strict as possible to avoid any false matches. It's useful to take advantage of the ``-just required-`` option and annotate elements that will always appear on matching pages to reduce the number of false positives.
+If you are working with a large number of samples, it may be difficult to ensure the correct sample is applied to the right page. It's best to keep samples as strict as possible to avoid any false matches. It's useful to take advantage of the ``Required`` option from item fields and annotate elements that will always appear on matching pages to reduce the number of false positives.
 
-Example
--------
-
-Consider the following example:
-
-We have an item type with the fields ``name``, ``price``, ``description`` and ``manufacturer``, where ``name`` and ``price`` are required fields. We have created a sample with annotations for each of those fields. Upon running the spider, many items are correctly scraped; however, there are a large number of items where the manufacturer field contains the description, and the description field is empty. This has been caused by some pages having a different layout:
-
-Layout A:
-
-.. code-block:: html
-
-    <table>
-        <tbody>
-            <tr>
-                <td>name</td>
-                <td>price</td>
-            </tr>
-            <tr>
-                <td colspan="2">manufacturer</td>
-            <tr>
-            <tr>
-                <td colspan="2">description</td>
-            </tr>
-        </tbody>
-    </table>
-
-Layout B:
-
-.. code-block:: html
-
-    <table>
-        <tbody>
-            <tr>
-                <td>name</td>
-                <td>price</td>
-            </tr>
-            <tr>
-                <td colspan="2">description</td>
-            </tr>
-        </tbody>
-    </table>
-
-As you can see, the problem lies with the fact that in layout B the description is where manufacturer would be, and with ``description`` not being a required field it means that the sample created for layout A will match layout B. Creating a new sample for layout B won't be enough to fix the problem, as layout A's sample would contain more annotation and be matched against first.
-
-Instead we need to modify layout A's sample, and mark the ``description`` annotation as **Required**. With this added constraint, items displayed with layout B will not be matched against with layout A's sample due to the missing ``description`` field, so the spider will proceed onto layout B's sample which will extract the data successfully.
-
+**Check this example** to learn how to do it: :ref:`multiple-samples-example`.
