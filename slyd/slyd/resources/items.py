@@ -124,7 +124,7 @@ def delete_item(manager, spider_id, sample_id, item_id, attributes=None):
                 a.get('container_id') in longest_path)
     ]
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    return {}
+    return ItemSchema.empty_data()
 
 
 def _get_item(items, item_id):

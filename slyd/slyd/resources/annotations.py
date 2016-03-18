@@ -105,7 +105,7 @@ def delete_annotation(manager, spider_id, sample_id, annotation_id,
             a for a in annotations if a['id'] != annotation_id
         ]
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    return {}
+    return AnnotationSchema.empty_data()
 
 
 def _get_annotation(manager, spider_id, sample_id, annotation_id):
