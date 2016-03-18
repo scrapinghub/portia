@@ -10,7 +10,7 @@ class SlydSchema(Schema):
     @staticmethod
     def empty_data():
         return {
-            'data': {}
+            'meta': {}
         }
 
     def __init__(self, *args, **kwargs):
