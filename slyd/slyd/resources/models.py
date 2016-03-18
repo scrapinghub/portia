@@ -7,6 +7,12 @@ from marshmallow import pre_dump
 class SlydSchema(Schema):
     _properties = ('project', 'spider', 'schema', 'item', 'sample', 'field')
 
+    @staticmethod
+    def empty_data():
+        return {
+            'data': {}
+        }
+
     def __init__(self, *args, **kwargs):
         self._skip_relationships = kwargs.pop('skip_relationships', False)
         if self._skip_relationships:

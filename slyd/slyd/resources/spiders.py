@@ -61,7 +61,7 @@ def update_spider(manager, spider_id, attributes):
 
 def delete_spider(manager, spider_id, attributes=None):
     manager.remove_spider(spider_id)
-    return {}
+    return SpiderSchema.empty_data()
 
 
 def _check_spider_attributes(attributes, include_defaults=False):
