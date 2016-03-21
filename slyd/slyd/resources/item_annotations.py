@@ -13,7 +13,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     annotations = sample['plugins']['annotations-plugin']['extracts']
     containers, _, _ = _group_annotations(annotations)
     container = containers.get(annotation_id,
-                               containers.get(annotation_id.strip('#parent')))
+                               containers.get(_strip_parent(annotation_id)))
     if container is None:
         raise KeyError('No annotation with id "%s" found' % annotation_id)
     relationships = _load_relationships(attributes.get('data', {}))
@@ -23,7 +23,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
         s for s in attributes.pop('repeated_accept_selectors', []) if s
     ]
     if attributes.get('repeated'):
-        repeated_container_id = container['id'].strip('#parent')
+        repeated_container_id = _strip_parent(container['id'])
         repeated_container = containers.get(repeated_container_id)
         container_id = repeated_container_id + '#parent'
         if container == repeated_container:
@@ -62,7 +62,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
         if repeated_container_selectors:
             repeated_container['selector'] = repeated_container_selectors[0]
     else:
-        repeated_container_id = container['id'].strip('#parent')
+        repeated_container_id = _strip_parent(container['id'])
         parent_container_id = '{}#parent'.format(repeated_container_id)
         parent = [
             a for a in sample['plugins']['annotations-plugin']['extracts']
@@ -91,3 +91,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     container['repeated_container_selectors'] = repeated_container_selectors
     container['id'] = annotation_id
     return ItemAnnotationSchema(context=context).dump(container).data
+
+
+def _strip_parent(id_):
+    return id_[:-len('#parent')] if id_.endswith('#parent') else id_

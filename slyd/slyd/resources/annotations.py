@@ -32,9 +32,10 @@ def get_annotation(manager, spider_id, sample_id, annotation_id,
 def create_annotation(manager, spider_id, sample_id, attributes):
     sample = _load_sample(manager, spider_id, sample_id)
     annotation = _create_annotation(sample, attributes)
+    schema_id = _find_schema_id(annotation, sample)
     field = _create_field_for_annotation(manager, annotation, sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id, schema_id=schema_id)
     annotation = AnnotationSchema(context=context).dump(
         _split_annotations([annotation])[0]).data
     if field:
@@ -81,11 +82,7 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
         annotation['selector'] = ', '.join(annotation['accept_selectors'])
 
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    schema_id = annotation.get('schema_id')
-    if not schema_id:
-        container = _find_container(annotation, sample)
-        if container:
-            schema_id = container.get('schema_id')
+    schema_id = _find_schema_id(annotation, sample)
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
                   schema_id=schema_id, field_id=field_id)
     split_annotations = _split_annotations([annotation])
@@ -200,30 +197,21 @@ def _create_annotation(sample, attributes):
     return annotation
 
 
-def _find_container(annotation, sample):
-    container_id = annotation.get('container_id')
-    if container_id:
-        for a in sample['plugins']['annotations-plugin']['extracts']:
-            if a["id"] == container_id:
-                return a
-    return None
+def _find_schema_id(annotation, sample):
+    annotations = dict((a['id'], a) for a in sample['plugins']['annotations-plugin']['extracts'])
+    while annotation and 'schema_id' not in annotation:
+        container_id = annotation.get('container_id')
+        annotation = annotations.get(container_id)
+    return annotation and annotation.get('schema_id')
 
 
 def _create_field_for_annotation(manager, annotation, sample):
-    field, parent, container_id = None, None, annotation['container_id']
-    for a in sample['plugins']['annotations-plugin']['extracts']:
-        if a['id'].startswith(container_id):
-            if not parent:
-                parent = a
-            if len(a['id']) > len(parent['id']):
-                parent = a
-    if parent:
-        field = create_field(manager, parent['schema_id'],
-                             {'data': {'attributes': {'type': 'text'},
-                              'type': 'fields'}})
-        field_id = field['data']['id']
-        for anno in annotation['data'].values():
-            if anno['field'] is None:
-                anno['field'] = field_id
-    if field:
-        return field['data']
+    schema_id = _find_schema_id(annotation, sample)
+    field = create_field(manager, schema_id,
+                         {'data': {'attributes': {'type': 'text'},
+                          'type': 'fields'}})
+    field_id = field['data']['id']
+    for anno in annotation['data'].values():
+        if anno['field'] is None:
+            anno['field'] = field_id
+    return field['data']

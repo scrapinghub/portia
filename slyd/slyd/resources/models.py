@@ -269,7 +269,7 @@ class AnnotationSchema(BaseAnnotationSchema):
                     '{field_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>',
-                            'field_id': '<field_id>'},
+                            'field_id': '<field.id>'},
         type_='fields', include_data=True
     )
     extractors = fields.Relationship(
