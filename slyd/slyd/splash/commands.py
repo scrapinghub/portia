@@ -188,7 +188,6 @@ def metadata(socket, extra={}):
             '_command': 'metadata',
             'loaded': False
         }
-    socket.tab.loaded = True
     res = {
         '_command': 'metadata',
         'loaded': socket.tab.loaded

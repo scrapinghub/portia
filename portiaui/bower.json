@@ -19,7 +19,8 @@
     "uri.js": "~1.16.0",
     "fetch": "~0.10.1",
     "es6-promise": "~3.0.2",
-    "uri-templates": "~0.1.9"
+    "uri-templates": "~0.1.9",
+    "css-escape": "~1.5.0"
   },
   "private": true
 }

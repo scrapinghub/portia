@@ -2,11 +2,6 @@ import Ember from "ember";
 
 const IMPLICIT_TAGS = new Set(['tbody']);
 let escapeCSS = CSS.escape;
-if (!escapeCSS) {
-    escapeCSS = function(string) {
-        return ''+string;
-    }
-}
 
 export function elementPath(element) {
     const elements = [element];
