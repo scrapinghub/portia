@@ -74,8 +74,8 @@
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
-                Sample Page{{#animation-container class="inline" hide=currentSample}}s{{/animation-container}}
-                {{#animation-container class="inline"}}
+                Sample Page{{#animation-container class="inline" hide=currentSample setHeight=false}}s{{/animation-container}}
+                {{#animation-container class="inline" setHeight=false}}
                     {{#help-icon}}
                         Sample Pages
                         <p>
