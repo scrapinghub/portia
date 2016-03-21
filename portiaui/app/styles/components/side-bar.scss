@@ -43,6 +43,7 @@
 
     .icon {
         &.animation-container {
+            flex: 0 0 auto;
             width: $tree-list-icon-width;
             height: $tree-list-row-height;
         }
