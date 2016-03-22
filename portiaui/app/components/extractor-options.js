@@ -38,7 +38,9 @@ export default Ember.Component.extend({
         },
 
         saveExtractor(extractor) {
-            extractor.save();
+            extractor.save().then(null, () => {
+                extractor.rollbackAttributes();
+            });
         }
     }
 });
