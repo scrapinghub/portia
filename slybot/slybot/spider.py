@@ -238,6 +238,7 @@ class IblSpider(SitemapSpider):
             self.splash_auth = basic_auth_header(
                 settings.get('SPLASH_USER', ''),
                 settings.get('SPLASH_PASS', ''))
+        self.splash_wait = settings.getint('SPLASH_WAIT', 5)
         self._filter_js_urls = self._build_js_url_filter(spec)
 
     def _build_js_url_filter(self, spec):
@@ -254,7 +255,7 @@ class IblSpider(SitemapSpider):
             request.meta['splash'] = {
                 'endpoint': 'render.html?job_id=%s' % self._job_id,
                 'args': {
-                    'wait': 5,
+                    'wait': self.splash_wait,
                     'images': 0,
                     'url': request.url,
                     'baseurl': cleaned_url
