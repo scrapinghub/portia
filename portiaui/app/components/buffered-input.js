@@ -53,7 +53,7 @@ export default Ember.Component.extend({
 
     setInputFocus() {
         const inputElement = Ember.$('#' + this.get('inputId')).get(0);
-        if (this.get('focused')) {
+        if (inputElement && this.get('focused')) {
             inputElement.focus();
             if (this.get('autoSelect')) {
                 inputElement.select();

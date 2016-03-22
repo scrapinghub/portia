@@ -60,6 +60,7 @@ export default Ember.Controller.extend({
     init() {
         let ws = this.get('webSocket');
         ws.addCommand('metadata', this, this.msgMetadata);
+        ws.addCommand('update_spider', this, this.msgMetadata);
     },
 
     activate() {

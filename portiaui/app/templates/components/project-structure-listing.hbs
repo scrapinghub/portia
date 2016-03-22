@@ -2,8 +2,8 @@
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
-                Spider{{#animation-container class="inline" hide=currentSpider}}s{{/animation-container}}
-                {{#animation-container class="inline"}}
+                Spider{{#animation-container class="inline" hide=currentSpider setHeight=false}}s{{/animation-container}}
+                {{#animation-container class="inline" setHeight=false}}
                     {{#help-icon}}
                         Spiders
                         <p>
@@ -76,8 +76,8 @@
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
-                Data Format{{#animation-container class="inline" hide=currentSchema}}s{{/animation-container}}
-                {{#animation-container class="inline"}}
+                Data Format{{#animation-container class="inline" hide=currentSchema setHeight=false}}s{{/animation-container}}
+                {{#animation-container class="inline" setHeight=false}}
                     {{#help-icon}}
                         Data Formats
                         <p>

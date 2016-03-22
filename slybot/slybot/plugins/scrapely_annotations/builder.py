@@ -58,6 +58,8 @@ def _clean_annotation_data(data):
         elif 'data' in ann:
             modified_annotations = {}
             grp = itemgetter('attribute')
+            for _id, value in ann['data'].items():
+                value['id'] = '%s|%s' % (ann['id'], _id)
             sorted_annotations = sorted(ann['data'].values(), key=grp)
             for attribute, annotations in groupby(sorted_annotations, grp):
                 modified_annotations[attribute] = list(annotations)
@@ -258,9 +260,38 @@ def _filter_annotations(annotations):
     return selector, tagid
 
 
+def _merge_annotations_by_selector(annotations):
+    def grouper(x):
+        return x.get('selector', x.get('accept_selectors', [None])[0])
+    annotations.sort(key=grouper)
+    new_annotations = []
+    for sel, annos in groupby(annotations, key=grouper):
+        annos = list(annos)
+        anno = annos[0]
+        if len(annos) == 1:
+            new_annotations.append(anno)
+            continue
+        for other_anno in annos[1:]:
+            # TODO: Handle annotations pointing to different containers
+            for attribute, data in other_anno['annotations'].items():
+                if attribute in anno['annotations']:
+                    attr_data = anno['annotations'][attribute]
+                    if isinstance(attr_data, list):
+                        attr_data.extend(data)
+                    else:
+                        current = {'field': attr_data, 'attribute': attribute,
+                                   'required': False, 'extractors': []}
+                        attr_data = [current, data]
+                else:
+                    anno['annotations'][attribute] = data
+        new_annotations.append(anno)
+    return new_annotations
+
+
 def apply_selector_annotations(annotations, target_page):
     page = Selector(text=target_page)
     converted_annotations = []
+    annotations = _merge_annotations_by_selector(annotations)
     for annotation in annotations:
         if not annotation.get('selector'):
             accepted_elements = set(

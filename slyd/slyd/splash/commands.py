@@ -99,6 +99,17 @@ def _update_sample(data, socket, sample=None, save=False, use_live=False):
     return sample
 
 
+def update_spider(data, socket, spider=None):
+    if not socket.spider:
+        return
+    spec = socket.spec_manager.project_spec(data['project'],
+                                            socket.user.auth)
+    if spider is None:
+        spider = spec.resource('spiders', data['spider'])
+    socket.spider.plugins['Annotations'].build_url_filter(spider)
+    return extract(socket)
+
+
 def _load_items_and_extractors(data, socket):
     spec = socket.spec_manager.project_spec(data['project'],
                                             socket.user.auth)
@@ -183,7 +194,11 @@ def resolve(data, socket):
 
 
 def metadata(socket, extra={}):
-    socket.tab.loaded = True
+    if not socket.tab:
+        return {
+            '_command': 'metadata',
+            'loaded': False
+        }
     res = {
         '_command': 'metadata',
         'loaded': socket.tab.loaded

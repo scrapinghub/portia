@@ -62,7 +62,7 @@ def update_sample(manager, spider_id, sample_id, attributes):
 
 def delete_sample(manager, spider_id, sample_id, attributes=None):
     manager.remove_template(spider_id, sample_id)
-
+    return SampleSchema.empty_data()
 
 def get_sample_html(manager, spider_id, sample_id):
     sample = manager.resource('spiders', spider_id, sample_id)

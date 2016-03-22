@@ -4,7 +4,7 @@ import copy
 
 from collections import defaultdict, namedtuple
 from cStringIO import StringIO
-from itertools import groupby
+from itertools import groupby, chain
 from operator import itemgetter
 
 from numpy import array
@@ -14,20 +14,17 @@ from scrapely.extraction import (InstanceBasedLearningExtractor,
                                  _annotation_count)
 from scrapely.extraction.pageparsing import (parse_extraction_page,
                                              TemplatePageParser)
-from scrapely.extraction.pageobjects import (TokenDict, TemplatePage,
-                                             AnnotationTag)
-from scrapely.extraction.regionextract import (RecordExtractor,
-                                               BasicTypeExtractor,
-                                               TraceExtractor,
-                                               TemplatePageExtractor,
-                                               RepeatedDataExtractor,
-                                               AdjacentVariantExtractor,
-                                               TextRegionDataExtractor,
-                                               labelled_element,
-                                               _compose)
-from scrapely.extraction.similarity import (similar_region,
-                                            longest_unique_subsequence,
-                                            first_longest_subsequence)
+from scrapely.extraction.pageobjects import (
+    TokenDict, TemplatePage, AnnotationTag, PageRegion
+)
+from scrapely.extraction.regionextract import (
+    RecordExtractor, BasicTypeExtractor, TraceExtractor,
+    TemplatePageExtractor, RepeatedDataExtractor, AdjacentVariantExtractor,
+    TextRegionDataExtractor, labelled_element, _compose
+)
+from scrapely.extraction.similarity import (
+    similar_region, longest_unique_subsequence, first_longest_subsequence
+)
 from scrapely.htmlpage import HtmlTagType, HtmlPageParsedRegion, HtmlPageRegion
 from scrapy.utils.spider import arg_to_iter
 from slybot.fieldtypes import FieldTypeManager
@@ -133,8 +130,10 @@ class BaseExtractor(BasicTypeExtractor):
     def _create_basic_extractor(cls, annotation, attribute_descriptors):
         return cls(annotation, attribute_descriptors)
 
+
 class SlybotRecordExtractor(RecordExtractor):
-    def extract(self, page, start_index=0, end_index=None, ignored_regions=None, **kwargs):
+    def extract(self, page, start_index=0, end_index=None,
+                ignored_regions=None, **kwargs):
         """extract data from an extraction page
 
         The region in the page to be extracted from may be specified using
@@ -147,6 +146,65 @@ class SlybotRecordExtractor(RecordExtractor):
         _, _, attributes = self._doextract(page, extractors, start_index,
                                            end_index, **kwargs)
         return list(attributes)
+
+    def _doextract(self, page, extractors, start_index, end_index,
+                   nested_regions=None, ignored_regions=None, **kwargs):
+        # reorder extractors leaving nested ones for the end and separating
+        # ignore regions
+        nested_regions = nested_regions or []
+        ignored_regions = ignored_regions or []
+        first_extractor, following_extractors = extractors[0], extractors[1:]
+        lelem = labelled_element
+        extracted_data = []
+        # end_index is inclusive, but similar_region treats it as exclusive
+        end_region = None if end_index is None else end_index + 1
+        labelled = lelem(first_extractor)
+        score, pindex, sindex = \
+            similar_region(
+                page.page_tokens, self.template_tokens, labelled, start_index,
+                end_region, self.best_match, **kwargs)
+        if score > 0:
+            if isinstance(labelled, AnnotationTag):
+                similar_ignored_regions = []
+                start = pindex
+                for i in ignored_regions:
+                    s, p, e = similar_region(
+                        page.page_tokens, self.template_tokens, i, start,
+                        sindex, self.best_match, **kwargs)
+                    if s > 0:
+                        similar_ignored_regions.append(PageRegion(p, e))
+                        start = e or start
+                extracted_data = first_extractor.extract(
+                    page, pindex, sindex, similar_ignored_regions, **kwargs)
+            if following_extractors:
+                _, _, following_data = self._doextract(
+                    page, following_extractors, sindex or start_index,
+                    end_index, **kwargs)
+                extracted_data += following_data
+
+        elif following_extractors:
+            end_index, _, following_data = self._doextract(
+                page, following_extractors, start_index, end_index, **kwargs)
+            if end_index is not None:
+                pindex, sindex, extracted_data = self._doextract(
+                    page, [first_extractor], start_index, end_index - 1,
+                    nested_regions, ignored_regions, **kwargs
+                )
+            extracted_data += following_data
+        if (hasattr(first_extractor, 'annotation') and
+                first_extractor.annotation):
+            annotation = first_extractor.annotation or []
+            content = annotation.surrounds_attribute or []
+            attributes = annotation.tag_attributes
+            attrs = chain(content, *(a for _, a in attributes))
+            extracted_ids = {a['id'] for annos, _ in extracted_data
+                             for a in annos
+                             if isinstance(a, dict) and 'id' in a}
+            if (any(isinstance(k, dict) and k.get('required') and
+                    k.get('id') not in extracted_ids for k in attrs)):
+                raise MissingRequiredError()
+        return pindex, sindex, extracted_data
+
 
 class BaseContainerExtractor(object):
     _extractor_classes = [
@@ -199,8 +257,8 @@ class BaseContainerExtractor(object):
                     extractors = extractor_cls.apply(template, extractors)
                 new_extractors.extend(extractors)
             else:
-                new_extractors.extend(SlybotRecordExtractor.apply(template,
-                                                                  extractors))
+                new_extractors.extend(
+                    SlybotRecordExtractor.apply(template, extractors))
         else:
             for container_name, container_data in extractors.items():
                 annotation = self._find_annotation(template, container_name)
@@ -348,12 +406,12 @@ class BaseContainerExtractor(object):
                     new_item[k].extend(v)
             except MissingRequiredError:
                 return {}
-        new_item_fields = {getattr(f, 'name', str(f)): v
+        new_item_fields = {getattr(f, 'name', f): v
                            for f, v in new_item.items() if v}
         if (hasattr(self.schema, '_item_validates') and
                 not self.schema._item_validates(new_item_fields)):
             return {}
-        new_item = {getattr(f, 'description', str(f)): v
+        new_item = {getattr(f, 'description', f): v
                     for f, v in new_item.items()}
         _type = getattr(self.schema, 'description', None)
         if _type:
@@ -370,7 +428,7 @@ class BaseContainerExtractor(object):
                     field_extraction = None
                 if field_extraction is None:
                     field_extraction = SlybotFieldDescriptor(
-                        '', '', _DEFAULT_EXTRACTOR)
+                        field, field, _DEFAULT_EXTRACTOR)
                 if annotation.get('pre_text') or annotation.get('post_text'):
                     text_extractor = TextRegionDataExtractor(
                         annotation.get('pre_text', ''),
@@ -482,14 +540,21 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
             return []
         for extractor in self.extractors:
             try:
-                item = extractor.extract(page, region.start_index,
-                                         region.end_index, ignored_regions,
-                                         **kwargs)
-            except TypeError:
-                ex = SlybotRecordExtractor(extractor.extractors,
-                                           extractor.template_tokens)
-                item = ex.extract(page, region.start_index, region.end_index,
-                                  ignored_regions, **kwargs)
+                try:
+                    item = extractor.extract(
+                        page, region.start_index, region.end_index,
+                        ignored_regions, **kwargs
+                    )
+                except TypeError:
+                    ex = SlybotRecordExtractor(
+                        extractor.extractors, extractor.template_tokens
+                    )
+                    item = ex.extract(
+                        page, region.start_index, region.end_index,
+                        ignored_regions, **kwargs
+                    )
+            except MissingRequiredError:
+                return []
             if (isinstance(extractor, RepeatedContainerExtractor) or
                     isinstance(item, list)):
                 if item and isinstance(item[0], dict):
@@ -542,15 +607,20 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                 for peek in xrange(prefix_end + self.min_jump, max_index + 1):
                     if (page.page_tokens[peek:peek + suffixlen]
                             == self.suffix).all():
-                        for extractor in self.extractors:
-                            items = extractor.extract(
-                                page, index, peek, ignored_regions,
-                                suffix_max_length=suffixlen)
-                            if items:
-                                extracted.extend([
-                                    self._validate_and_adapt_item(items, page)
-                                ])
-                            index = max(peek, index) - 1
+                        try:
+                            for extractor in self.extractors:
+                                items = extractor.extract(
+                                    page, index, peek + self.offset,
+                                    ignored_regions,
+                                    suffix_max_length=suffixlen)
+                                if items:
+                                    extracted.extend([
+                                        self._validate_and_adapt_item(items,
+                                                                      page)
+                                    ])
+                                index = max(peek, index) - 1
+                        except MissingRequiredError:
+                            pass
                         break
             index += 1
         if self.parent_annotation.metadata.get('field'):
@@ -582,7 +652,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                           template)
         suffix_tokens.reverse()
         suffix_tokens = self._trim_prefix(suffix_tokens, prefix_tokens,
-                                          template, 2)
+                                          template, 3)
         tokens = template.page_tokens[child.start_index + 1:
                                       child.end_index][::-1]
         max_separator = int(len(tokens) * MAX_RELATIVE_SEPARATOR_MULTIPLIER)
@@ -596,7 +666,8 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                       child.end_index + max_separator][::-1]
         tokens = self._find_tokens(tokens,
                                    (htt.OPEN_TAG, htt.UNPAIRED_TAG),
-                                   template)
+                                   template, prefix_tokens[0])
+        self.offset = 1 if not tokens else 0
         suffix_tokens = self._trim_prefix(suffix_tokens + tokens,
                                           prefix_tokens,
                                           template, 3, True)
@@ -684,15 +755,18 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         return new_prefix
 
     @staticmethod
-    def _find_tokens(tokens, token_types, template):
+    def _find_tokens(tokens, token_types, template, upto=None):
         """
         Find a consecutive list tokens marching the supplied token types.
         Possibly remove the final token as this may reduce the number of
         regions that can be found.
         """
         result_tokens = []
+        token_type = template.token_dict.token_type
         for token in reversed(tokens):
-            if template.token_dict.token_type(token) in token_types:
+            if token == upto:
+                break
+            if token_type(token) in token_types:
                 result_tokens.append(token)
             else:
                 break

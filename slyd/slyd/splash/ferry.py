@@ -27,7 +27,7 @@ from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, update_project_data, rename_project_data,
                        delete_project_data, pause, resume, extract_items,
-                       save_html, log_event, _update_sample)
+                       save_html, log_event, _update_sample, update_spider)
 from .css_utils import process_css, wrap_url
 from .utils import _should_load_sample
 import six
@@ -184,7 +184,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'log_event': log_event,
         'pause': pause,
         'extract_items': extract_items,
-        'save_html': save_html
+        'save_html': save_html,
+        'update_spider': update_spider
     }
     spec_manager = None
     settings = None

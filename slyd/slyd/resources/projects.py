@@ -55,7 +55,7 @@ def update_project(manager, project_id, attributes):
 def delete_project(manager, project_id, attributes=None):
     """Delete the request project"""
     manager.remove_project(project_id)
-    return None
+    return ProjectSchema.empty_data()
 
 
 def status(manager, attributes=None):

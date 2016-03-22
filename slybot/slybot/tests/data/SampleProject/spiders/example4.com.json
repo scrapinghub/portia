@@ -1,0 +1,27 @@
+{
+    "templates": [],
+    "start_urls": ["http://www.example.com/index.html"],
+    "start_urls_type": "generated_urls",
+    "generated_urls": [{
+            "template": "http://www.example.com/{}",
+            "paths": [{
+                "type": "options",
+                "values": ["about_us", "contact"]
+            }],
+            "params": []
+        }, {
+            "template": "http://www.example.com/{}/{}",
+            "paths": [{
+                "type": "default",
+                "values": ["p"]
+            }, {
+                "type": "range",
+                "values": [2, 5]
+            }],
+            "params": []
+        }],
+    "exclude_patterns": [], 
+    "follow_patterns": [], 
+    "links_to_follow": "patterns", 
+    "respect_nofollow": true
+}

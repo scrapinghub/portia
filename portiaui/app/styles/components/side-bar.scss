@@ -32,7 +32,12 @@
     }
 
     .title {
+        display: flex;
         line-height: $tree-list-row-height;
+
+        .help-icon {
+            margin-left: $space-width;
+        }
 
         .animation-container {
             &.inline {
@@ -43,6 +48,7 @@
 
     .icon {
         &.animation-container {
+            flex: 0 0 auto;
             width: $tree-list-icon-width;
             height: $tree-list-row-height;
         }

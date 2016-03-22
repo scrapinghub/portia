@@ -1,9 +1,8 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-import LFAdapter from 'ember-localforage-adapter/adapters/localforage';
 import UrlTemplates from "ember-data-url-templates";
 
-var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
+const SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
     extractedItems: Ember.inject.service(),
     savingNotification: Ember.inject.service(),
     uiState: Ember.inject.service(),
@@ -89,22 +88,4 @@ var SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
     }
 });
 
-export function createAdapter(adapterMembers) {
-    // Usage of the real API is disabled by default while finishing the new UI backend.
-    // To activate:
-    // localStorage['use_api'] = 1
-    // Or add ?use_api to the URL
-    // TODO: enable by default when backend is ready
-
-    var apiOptIn = true; //((localStorage && localStorage['use_api']) ||
-                    //location.search.indexOf('use_api') >= 0);
-    if(!Ember.testing && apiOptIn) {
-        return SlydJSONAPIAdapter.extend({
-            urlTemplate: adapterMembers.urlTemplate
-        });
-    } else {
-        return LFAdapter.extend({
-            namespace: 'portia'
-        });
-    }
-}
+export default SlydJSONAPIAdapter;

@@ -93,10 +93,16 @@ export default Ember.Service.extend({
         if (!url) {
             return;
         }
-
+        let name = url;
+        const matches = url.match('//([a-zA-Z0-9\._-]*)');
         const store = this.get('store');
+        if (matches && matches.length) {
+            name = matches.slice(-1)[0]
+        } else {
+            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '')
+        }
         const spider = store.createRecord('spider', {
-            name: url.match('//([a-zA-Z0-9\._-]*)').slice(-1)[0],
+            name: name,
             startUrls: [url],
             project
         });
@@ -221,8 +227,10 @@ export default Ember.Service.extend({
             if (redirect) {
                 annotation.set('new', true);
                 annotation.get('field').then(f => {
-                    annotation.set('_autoCreatedField', f);
-                    f.set('_autoCreatedBy', annotation);
+                    if (!!f) {
+                        annotation.set('_autoCreatedField', f);
+                        f.set('_autoCreatedBy', annotation);
+                    }
                 });
             }
             if (element) {

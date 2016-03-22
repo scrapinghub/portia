@@ -48,7 +48,9 @@
         "id": "spider",
         "type": "object",
         "properties": {
+            "start_urls_type": {"type": "string", "enum": ["start_urls", "generated_urls"]},
             "start_urls": {"type": "array", "items": {"type": "string", "format": "url"}, "required": true},
+            "generated_urls": {"type": "array", "items": {"$ref": "generated_url"}},
             "links_to_follow": {"type": "string", "enum": ["none", "patterns", "all"], "required": true},
             "follow_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "exclude_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
@@ -61,6 +63,32 @@
             "template_names": {"type": "array", "items": {"type": "string"}},
             "page_actions": {"type": "array", "items": {"$ref": "action"}},
             "init_requests": {"type": "array", "items": {"$ref": "request"}}
+        }
+    },
+    {
+        "id": "generated_url",
+        "type": "object",
+        "properties": {
+            "template": {"type": "string", "required": true},
+            "paths": {"type": "array", "items": {"$ref": "generated_path_url_component"}, "required": true},
+            "params": {"type": "array", "items": {"$ref": "generated_param_url_component"}, "required": true}
+        }
+    },
+    {
+        "id": "generated_path_url_component",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "required": true},
+            "values": {"type": "array", "required": true}
+        }
+    },
+    {
+        "id": "generated_param_url_component",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "required": true},
+            "values": {"type": "array", "required": true},
+            "name": {"type": "string", "required": true}
         }
     },
     {

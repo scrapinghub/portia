@@ -1,3 +1,5 @@
+from jsonschema import ValidationError
+
 from slybot.fieldtypes import FieldTypeManager
 from slybot.validation.schema import get_schema_validator
 
@@ -56,6 +58,7 @@ def delete_extractor(manager, extractor_id, attributes=None):
     extractors = _read_extractors(manager)
     del extractors[extractor_id]
     manager.savejson(extractors, ['extractors'])
+    return ExtractorSchema.empty_data()
 
 
 def _build_extractor(manager, attributes, extractor_id, add_default=False):
@@ -65,7 +68,18 @@ def _build_extractor(manager, attributes, extractor_id, add_default=False):
             '"%s" is not an acceptable type. Use one of the following types: '
             '"%s"' % (value, '", "'.join(sorted(EXTRACTOR_TYPES))))
     extractor = _attributes_to_extractor(attributes, extractor_id)
-    get_schema_validator('extractor').validate(extractor)
+    try:
+        get_schema_validator('extractor').validate(extractor)
+    except ValidationError:
+        if 'regular_expression' in extractor:
+            regex = extractor['regular_expression']
+            raise BadRequest(
+                '%s is not a valid regular expression' % regex, ''
+            )
+        else:
+            raise BadRequest(
+                '%s is not a valid type' % extractor['type_extractor'], ''
+            )
     return extractor
 
 

@@ -39,7 +39,7 @@ export default Ember.Component.extend({
 
     setInputFocus() {
         const inputElement = Ember.$('#' + this.get('inputId')).get(0);
-        if (this.get('open')) {
+        if (inputElement && this.get('open')) {
             inputElement.focus();
         } else if (!this.get('isDestroying')) {
             inputElement.blur();

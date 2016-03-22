@@ -74,8 +74,8 @@
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
-                Sample Page{{#animation-container class="inline" hide=currentSample}}s{{/animation-container}}
-                {{#animation-container class="inline"}}
+                Sample Page{{#animation-container class="inline" hide=currentSample setHeight=false}}s{{/animation-container}}
+                {{#animation-container class="inline" setHeight=false}}
                     {{#help-icon}}
                         Sample Pages
                         <p>
@@ -93,8 +93,8 @@
                     {{/help-icon}}
                 {{/animation-container}}
             {{/list-item-text}}
-            {{#tooltip-container tooltipFor="add-spider-button" text=addSpiderTooltipText tooltipContainer='body'}}
-                {{list-item-icon text="Create a new sample from the current page" icon='add' disabled=(not canAddSample) action=(action 'addSample')}}
+            {{#tooltip-container tooltipFor="add-sample-button" text="Create a new sample from the current page" tooltipContainer='body'}}
+                {{list-item-icon id="add-sample-button" icon='add' disabled=(not canAddSample) action=(action 'addSample')}}
             {{/tooltip-container}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item hide=(or spider.samples.isPending spider.samples.length) as |options|}}

@@ -1,9 +1,10 @@
 import re
 
 from scrapely.extractors import htmlregion
+from scrapely.htmlpage import HtmlPageRegion
 
 from slybot.fieldtypes import FieldTypeManager
-from slybot.item import SlybotFieldDescriptor
+from slybot.item import SlybotFieldDescriptor, SlybotItemDescriptor
 
 
 def create_regex_extractor(pattern):
@@ -18,6 +19,8 @@ def create_regex_extractor(pattern):
     ereg = re.compile(pattern, re.S)
 
     def _extractor(txt, htmlpage=None):
+        if txt is None:
+            return
         m = ereg.search(txt)
         if m:
             return htmlregion(u"".join([g for g in m.groups() or m.group()
@@ -32,9 +35,14 @@ def create_type_extractor(_type):
     extractor = types.type_processor_class(_type)()
 
     def _extractor(txt, htmlpage=None):
-        data = extractor.extractor(txt)
+        if txt is None:
+            return
+        page = getattr(htmlpage, 'htmlpage', htmlpage)
+        if not hasattr(txt, 'text_content'):
+            txt = HtmlPageRegion(page, txt)
+        data = extractor.extract(txt)
         if data:
-            return extractor.adapt(data, htmlpage)
+            return extractor.adapt(data, page)
     _extractor.__name__ = ("Type Extractor: %s" % _type).encode('utf-8')
     return _extractor
 
@@ -94,4 +102,5 @@ def add_extractors_to_descriptors(descriptors, extractors):
             extractor = create_type_extractor(data['type_extractor'])
         new_extractors[_id] = extractor
     for descriptor in descriptors.values():
-        descriptor.extractors = new_extractors
+        if isinstance(descriptor, SlybotItemDescriptor):
+            descriptor.extractors = new_extractors

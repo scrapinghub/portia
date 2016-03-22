@@ -1,11 +1,17 @@
 from itertools import chain
 
 from marshmallow_jsonapi import Schema, fields
-from marshmallow import pre_dump
+from marshmallow import pre_dump, post_load
 
 
 class SlydSchema(Schema):
     _properties = ('project', 'spider', 'schema', 'item', 'sample', 'field')
+
+    @staticmethod
+    def empty_data():
+        return {
+            'meta': {}
+        }
 
     def __init__(self, *args, **kwargs):
         self._skip_relationships = kwargs.pop('skip_relationships', False)
@@ -136,7 +142,9 @@ class SpiderSchema(SlydSchema):
     js_disable_patterns = fields.List(fields.Str(), default=[])
     respect_nofollow = fields.Boolean(default=True)
     allowed_domains = fields.List(fields.Str(), default=[])
-    init_requests = fields.List(fields.Dict(), default=[])
+    login_url = fields.Str()
+    login_user = fields.Str()
+    login_password = fields.Str()
     template_names = fields.List(fields.Str(), default=[])
     samples = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples',
@@ -150,6 +158,30 @@ class SpiderSchema(SlydSchema):
         type_='projects',
         include_data=True
     )
+
+    @pre_dump
+    def _dump_login_data(self, item):
+        init_requests = item.pop('init_requests', None)
+        if init_requests:
+            login_request = init_requests[0]
+            item['login_url'] = login_request['loginurl']
+            item['login_user'] = login_request['username']
+            item['login_password'] = login_request['password']
+        return item
+
+    @post_load
+    def _load_login_data(self, item):
+        fields = ('login_url', 'login_user', 'login_password')
+        if all(field in item and item[field] for field in fields):
+            item['init_requests'] = [{
+                'type': 'login',
+                'loginurl': item.pop('login_url'),
+                'username': item.pop('login_user'),
+                'password': item.pop('login_password')
+            }]
+        for field in fields:
+            item.pop(field, None)
+        return item
 
     class Meta:
         type_ = 'spiders'
@@ -263,8 +295,13 @@ class AnnotationSchema(BaseAnnotationSchema):
                     '{field_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>',
-                            'field_id': '<field_id>'},
+                            'field_id': '<field.id>'},
         type_='fields', include_data=True
+    )
+    extractors = fields.Relationship(
+        related_url='/api/projects/{project_id}/extractors',
+        related_url_kwargs={'project_id': '<project_id>'},
+        many=True, include_data=True, type_='extractors'
     )
 
     class Meta:

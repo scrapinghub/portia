@@ -36,6 +36,8 @@ def create_spider(manager, attributes):
 def update_spider(manager, spider_id, attributes):
     attributes = SpiderSchema().load(attributes).data
     spider = manager.spider_json(spider_id)
+    # init_requests are populated through the SpiderSchema
+    spider.pop('init_requests', None)
     spider.update(attributes)
     get_schema_validator('spider').validate(spider)
     rename = spider.get('name') and spider_id != spider['name']
@@ -43,24 +45,30 @@ def update_spider(manager, spider_id, attributes):
     if rename:
         manager.rename_spider(spider_id, spider['name'].encode('utf-8'))
         spider_id = spider['name']
-        spider['id'] = spider_id
+    spider['id'] = spider_id
     clean_spider(spider)
     manager.savejson(spider, ['spiders', spider_id.encode('utf-8')])
     spider['samples'] = [{'id': name} for name in spider['template_names']]
     context = ctx(manager, spider_id=spider_id)
-    response = SpiderSchema(context=context).dump(spider).data
     if rename:
         # HACK: Ember doesn't allow changing IDs, so return a "new" spider
         # and mark the original as deleted.
+        if 'samples' in spider:
+            del spider['samples']
+        response = SpiderSchema(context=context).dump(spider).data
+        spider = _populate_relationships(spider)
         new_spider = SpiderSchema(context=context).dump(spider).data
         response['included'] = [new_spider['data']]
         response['data']['attributes']['name'] = "_deleted"
         response['data']['id'] = original_id
+    else:
+        response = SpiderSchema(context=context).dump(spider).data
     return response
 
 
 def delete_spider(manager, spider_id, attributes=None):
     manager.remove_spider(spider_id)
+    return SpiderSchema.empty_data()
 
 
 def _check_spider_attributes(attributes, include_defaults=False):
@@ -76,9 +84,7 @@ def _check_spider_attributes(attributes, include_defaults=False):
 def _load_spider(manager, spider_id, include_samples=False):
     spider = manager.spider_json(spider_id)
     spider['id'] = spider_id
-    if not spider.get('name'):
-        spider['name'] = spider_id
-    spider['samples'] = [{'id': name} for name in spider['template_names']]
+    spider = _populate_relationships(spider)
     if include_samples:
         samples = []
         for name in spider['template_names']:
@@ -86,4 +92,12 @@ def _load_spider(manager, spider_id, include_samples=False):
             sample['id'] = name
             samples.append(sample)
         spider['samples'] = samples
+    return spider
+
+def _populate_relationships(spider):
+    if not spider.get('name'):
+        spider['name'] = spider_id
+    spider['samples'] = [
+        {'id': name} for name in spider.get('template_names', [])
+    ]
     return spider

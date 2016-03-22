@@ -70,6 +70,7 @@ def delete_field(manager, schema_id, field_id, attributes=None):
         raise NotFound('No field with id "%s" found' % field_id)
     item['fields'].pop(field_id)
     manager.savejson(items, ['items'])
+    return FieldSchema.empty_data()
 
 
 def _check_field_attributes(attributes, include_defaults=False):
