@@ -115,7 +115,7 @@ project_publish = Route(
 )
 project_status = Route(
     'projects/{project_id}/status',
-    patch=status
+    get=status
 )
 project_reset = Route(
     'projects/{project_id}/reset',
