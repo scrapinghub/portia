@@ -38,8 +38,7 @@ export default Ember.Service.extend({
         },
 
         set(key, value) {
-            this.go(value);
-            return value;
+            return this.go(value);
         }
     }),
     $document: Ember.computed('document', function() {
@@ -65,6 +64,7 @@ export default Ember.Service.extend({
             this.set('forwardBuffer', []);
             this.endPropertyChanges();
         }
+        return url;
     },
 
     back() {
