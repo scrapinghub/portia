@@ -22,13 +22,6 @@ export default Ember.Component.extend({
     }),
 
     actions: {
-        loadStartUrl() {
-            const url = this.get('url');
-            if (url) {
-                this.set('browser.url', url);
-            }
-        },
-
         removeStartUrl() {
             const spider = this.get('spider');
             const url = this.get('url');
