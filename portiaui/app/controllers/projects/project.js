@@ -6,7 +6,7 @@ export default Ember.Controller.extend({
     queryParams: ['url', 'baseurl'],
 
     url: Ember.computed.alias('browser.url'),
-    baseurl: null,
+    baseurl: Ember.computed.alias('browser.baseurl'),
     clickHandler: null,
 
     setClickHandler(fn) {

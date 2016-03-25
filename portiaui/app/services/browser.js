@@ -17,6 +17,7 @@ export default Ember.Service.extend({
     mode: DEFAULT_MODE,
     _disabled: true,
     _url: null,
+    baseurl: null,
 
     disabled: Ember.computed('_disabled', 'webSocket.closed', 'mode', {
         get() {
@@ -48,7 +49,10 @@ export default Ember.Service.extend({
 
     resetUrl: Ember.observer('document', function() {
         if (!this.get('document')) {
-            this.set('_url', null);
+            this.setProperties({
+                '_url': null,
+                'baseurl': null
+            });
         }
     }),
 
@@ -71,7 +75,10 @@ export default Ember.Service.extend({
         if (this.get('backBuffer.length')) {
             this.beginPropertyChanges();
             this.get('forwardBuffer').pushObject(this.get('_url'));
-            this.set('_url', this.get('backBuffer').popObject());
+            this.setProperties({
+                '_url': this.get('backBuffer').popObject(),
+                'baseurl': null
+            });
             this.endPropertyChanges();
         }
     },
@@ -80,7 +87,10 @@ export default Ember.Service.extend({
         if (this.get('forwardBuffer.length')) {
             this.beginPropertyChanges();
             this.get('backBuffer').pushObject(this.get('_url'));
-            this.set('_url', this.get('forwardBuffer').popObject());
+            this.setProperties({
+                '_url': this.get('forwardBuffer').popObject(),
+                'baseurl': null
+            });
             this.endPropertyChanges();
         }
     },
