@@ -9,7 +9,6 @@ export default Ember.Route.extend({
     },
 
     afterModel(model) {
-        this.set('browser.url', model.get('url'));
         this.get('extractedItems').update();
     },
 
