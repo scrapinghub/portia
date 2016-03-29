@@ -1,6 +1,8 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+    browser: Ember.inject.service(),
+
     model(params) {
         return this.store.findRecord('project', params.project_id);
     },
@@ -20,6 +22,10 @@ export default Ember.Route.extend({
     setupController: function(controller, model) {
         this._super(controller, model);
         controller.set('projects', this.controllerFor('projects'));
+    },
+
+    deactivate() {
+        this.set('browser.url', null);
     },
 
     renderTemplate() {

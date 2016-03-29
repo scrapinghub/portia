@@ -21,6 +21,7 @@ const BrowserIFrame = Ember.Component.extend({
     document: Ember.computed.alias('browser.document'),
     loading: Ember.computed.alias('browser.loading'),
     url: Ember.computed.readOnly('browser.url'),
+    baseurl: Ember.computed.readOnly('browser.baseurl'),
 
     init() {
         this._super();
@@ -89,9 +90,13 @@ const BrowserIFrame = Ember.Component.extend({
      * Loads and displays a url interactively
      * Can only be called in "browse" mode.
      */
-    loadUrl: Ember.observer('url', 'webSocket.closed', function() {
+    loadUrl: Ember.observer('url', 'baseurl', 'webSocket.closed', function() {
+        Ember.run.scheduleOnce('sync', this, this._loadUrl);
+    }),
+
+    _loadUrl() {
         const url = this.get('url');
-        let spider, baseurl;  //???
+        let baseurl = this.get('baseurl');
 
         if (!url || !url.includes('://') || !cleanUrl(url)) {
             return;
@@ -119,7 +124,7 @@ const BrowserIFrame = Ember.Component.extend({
             url: url,
             baseurl: baseurl
         });
-    }),
+    },
 
     msgLoadStarted() {
         this.set('loading', true);

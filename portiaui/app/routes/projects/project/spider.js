@@ -7,10 +7,6 @@ export default Ember.Route.extend({
         return this.store.findRecord('spider', params.spider_id);
     },
 
-    afterModel(model) {
-        this.set('browser.url', model.get('startUrls.firstObject'));
-    },
-
     setupController(controller) {
         this._super(...arguments);
         Ember.run.next(function () {

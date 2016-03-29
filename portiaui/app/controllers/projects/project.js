@@ -1,6 +1,12 @@
 import Ember from 'ember';
 
 export default Ember.Controller.extend({
+    browser: Ember.inject.service(),
+
+    queryParams: ['url', 'baseurl'],
+
+    url: Ember.computed.alias('browser.url'),
+    baseurl: Ember.computed.alias('browser.baseurl'),
     clickHandler: null,
 
     setClickHandler(fn) {

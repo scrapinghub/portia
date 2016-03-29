@@ -41,7 +41,10 @@ export default Ember.Component.extend({
 
         submit(url) {
             if (!this.get('disabled')) {
-                this.get('browser').go(url);
+                this.setProperties({
+                    'browser.url': url,
+                    'browser.baseurl': null
+                });
             }
         }
     }
