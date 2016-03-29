@@ -299,12 +299,16 @@ class Repoman(object):
                 break
         return branch_checkpoints
 
-    def get_branch_changed_files(self, branch_name):
+    def get_branch_changed_entries(self, branch_name):
         '''Returns the name of all changed files within the branch.'''
         master_tree = self._get_tree(self.get_branch('master'))
         branch_tree = self._get_tree(self.get_branch(branch_name))
-        changes = tree_changes(
+        return tree_changes(
             self._repo.object_store, branch_tree.id, master_tree.id)
+
+    def get_branch_changed_files(self, branch_name):
+        '''Returns the name of all changed files within the branch.'''
+        changes = self.get_branch_changed_entries(branch_name)
         return [entry.new.path or entry.old.path for entry in changes]
 
     def get_branch_conflicted_files(self, branch_name):

@@ -5,6 +5,7 @@ import json
 from .models import (ProjectSchema, SchemaSchema, FieldSchema, ExtractorSchema,
                      SpiderSchema)
 from .schemas import _read_schemas
+from .utils import _read_extractors
 from ..errors import BadRequest, BaseError, NotFound
 from ..utils.projects import ctx, init_project
 NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
@@ -31,8 +32,10 @@ def get_project(manager, attributes=None):
     project = {'name': name, 'id': project_id}
     schemas = [{'id': s} for s in _read_schemas(manager)]
     spiders = [{'id': s} for s in manager.list_spiders()]
+    extractors = [{'id': s} for s in _read_extractors(manager)]
     project['schemas'] = schemas
     project['spiders'] = spiders
+    project['extractors'] = extractors
     data = ProjectSchema(context=ctx(manager)).dump(project).data
     return data
 
@@ -64,7 +67,9 @@ def status(manager, attributes=None):
     project_id = manager.project_name
     data = get_project(manager)
     data['meta'] = {
-        'changed_files': json.loads(manager.pm._changed_files(project_id))
+        'changes': [
+            {'type': type_, 'path': path, 'old_path': old_path}
+            for type_, path, old_path in manager.pm._changed_files(project_id)]
     }
     return data
 
