@@ -3,17 +3,17 @@
     <div class="checkbox">
         <label>
             {{input type="checkbox" name="required" checked=(mut field.required)}} Required
-            {{#help-icon}}
-                Only extract items that have this field. All samples using this data format will be affected
-            {{/help-icon}}
         </label>
+        {{#help-icon}}
+            Only extract items that have this field. All samples using this data format will be affected
+        {{/help-icon}}
     </div>
     <div class="checkbox">
         <label>
             {{input type="checkbox" name="vary" checked=(mut field.vary)}} Vary
-            {{#help-icon}}
-                The value of this field will be ignored when checking for duplicate items
-            {{/help-icon}}
         </label>
+        {{#help-icon}}
+            The value of this field will be ignored when checking for duplicate items
+        {{/help-icon}}
     </div>
 </form>
