@@ -1,12 +1,20 @@
+import json
+
+from os.path import dirname
 from unittest import TestCase
-from scrapy.http import TextResponse, HtmlResponse
+from scrapy.http import TextResponse, HtmlResponse, Request
+from scrapy.settings import Settings
 from slybot.utils import htmlpage_from_response
 
 from slybot.linkextractor import (
-        create_linkextractor_from_specs,
-        RssLinkExtractor,
-        SitemapLinkExtractor,
+    create_linkextractor_from_specs, RssLinkExtractor, SitemapLinkExtractor,
 )
+from slybot.plugins.scrapely_annotations.builder import (
+    apply_annotations, _clean_annotation_data
+)
+from slybot.utils import load_plugins
+from slybot.spider import IblSpider
+
 
 class Test_RegexLinkExtractor(TestCase):
     def test_default(self):
@@ -201,6 +209,14 @@ class Test_CsvLinkExtractor(TestCase):
 html = """
 <a href="http://www.example.com/path">Click here</a>
 """
+_PATH = dirname(__file__)
+with open('%s/data/templates/daft_list.json' % _PATH) as f:
+    daft_sample = json.load(f)
+    annotations = daft_sample['plugins']['annotations-plugin']['extracts']
+    daft_body = apply_annotations(_clean_annotation_data(annotations),
+                                  daft_sample['original_body'])
+    daft_sample['annotated_body'] = daft_body
+
 
 class Test_HtmlLinkExtractor(TestCase):
     def test_simple(self):
@@ -211,6 +227,7 @@ class Test_HtmlLinkExtractor(TestCase):
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[0].text, 'Click here')
+
 
 class Test_PaginationExtractor(TestCase):
     def test_simple(self):
@@ -224,4 +241,24 @@ class Test_PaginationExtractor(TestCase):
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[0].text, 'Click here')
 
-
+    def test_trained(self):
+        base = 'http://www.daft.ie/ireland/houses-for-sale/?offset={}'.format
+        daft_url = base(10)
+        spec = {
+            'start_urls': [daft_url],
+            'links_to_follow': 'auto',
+            'respect_nofollow': False,
+            'follow_patterns': [],
+            'exclude_patterns': [],
+            'init_requests': [],
+            'templates': [daft_sample]
+        }
+        settings = Settings()
+        settings.set('LOADED_PLUGINS', load_plugins(settings))
+        spider = IblSpider('hn', spec, {}, {}, settings=settings)
+        request = Request(daft_url)
+        response = HtmlResponse(url=daft_url, body=daft_body, request=request,
+                                encoding="utf-8")
+        data = {r.url for r in spider.handle_html(response)
+                if isinstance(r, Request)}
+        self.assertEqual({base(i) for i in (90, 80, 70)}, data)

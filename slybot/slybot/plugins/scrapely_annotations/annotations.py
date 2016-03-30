@@ -39,7 +39,11 @@ class Annotations(object):
         self.item_classes = {}
         self.template_scrapes = {template.get('page_id'): template['scrapes']
                                  for template in spec.get('templates')}
-        self.html_link_extractor = HtmlLinkExtractor()
+        if (settings.get('AUTO_PAGINATION') or
+                spec.get('links_to_follow') == 'auto'):
+            self.html_link_extractor = PaginationExtractor()
+        else:
+            self.html_link_extractor = HtmlLinkExtractor()
         for schema_name, schema in items.items():
             if schema_name not in self.item_classes:
                 if not schema.get('name'):
@@ -159,7 +163,10 @@ class Annotations(object):
 
     def _process_attributes(self, item, descriptor, htmlpage):
         new_item = {}
-        attr_map = descriptor.attribute_map
+        try:
+            attr_map = descriptor.attribute_map
+        except AttributeError:
+            attr_map = {}
         page = getattr(htmlpage, 'htmlpage', htmlpage)
         for field, value in item.items():
             if field.startswith('_sticky'):

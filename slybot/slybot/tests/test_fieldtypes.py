@@ -39,3 +39,6 @@ class FieldTypesUrlEncoding(TestCase):
         for text, url in zip(urls, results):
             self.assertEqual(img_p.adapt(img_p.extract(text), htmlpage), url)
             self.assertEqual(url_p.adapt(url_p.extract(text), htmlpage), url)
+
+    def test_blank_image_url(self):
+        assert ImagesFieldTypeProcessor().extract(' ') == ''

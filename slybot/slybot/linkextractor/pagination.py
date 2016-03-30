@@ -25,7 +25,7 @@ class PaginationExtractor(HtmlLinkExtractor):
         if n_items is not None:
             self.link_annotation.mark_link(
                 response_or_htmlpage.url, follow=(n_items > 0))
-        best = self.link_annotation.best_links_to_follow()    
+        best = self.link_annotation.best_links_to_follow()
         if best:
             pages = []
             for url in best:
