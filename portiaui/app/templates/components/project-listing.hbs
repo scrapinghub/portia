@@ -1,8 +1,32 @@
 {{#tree-list}}
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
-            {{#list-item-text class="title"}}
+            {{#list-item-text class="title project-listing"}}
                 Project
+                {{#animation-container hide=(or (not versionControlled) (not project.hasChanges)) id="project-changes-info" class="inline project-changes" setHeight=false}}
+                    Not published
+                    {{#help-icon tooltipClasses="tooltip-wide"}}
+                        Not published
+                        <p>
+                            This project has changes that have not yet been published.
+                        </p>
+                        <p>
+                            When you make changes in Portia a private workspace is created for your
+                            user, separate from the rest of the project. Other users cannot see
+                            these changes until they are published, and you cannot see changes that
+                            were published by other users after you started making changes.
+                        </p>
+                        <p>
+                            To run a spider or make your changes visible to other users you must
+                            first publish ({{icon-button icon='publish'}}) the changes.
+                        </p>
+                        <p>
+                            To clean your private workspace, and get back to the most recently
+                            published version of your project, you can discard your changes
+                            ({{icon-button icon='rollback'}}).
+                        </p>
+                    {{/help-icon}}
+                {{/animation-container}}
             {{/list-item-text}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item}}
@@ -12,10 +36,10 @@
                         {{project.name}}
                     {{/list-item-text}}
                     {{#tooltip-container tooltipFor="project-publish-button" text="Publish project" tooltipContainer='body'}}
-                        {{list-item-icon id="project-publish-button" icon='publish' action=(action 'publish')}}
+                        {{list-item-icon id="project-publish-button" class=(if project.hasChanges 'active') icon='publish' action=(action 'publish')}}
                     {{/tooltip-container}}
                     {{#tooltip-container tooltipFor="project-discard-button" text="Discard changes" tooltipContainer='body'}}
-                        {{list-item-icon id="project-discard-button" icon='rollback' action=(action 'discard')}}
+                        {{list-item-icon id="project-discard-button" class=(if project.hasChanges 'active') icon='rollback' action=(action 'discard')}}
                     {{/tooltip-container}}
                     {{#tooltip-container tooltipFor="project-close-button" text="Close project" tooltipContainer='body'}}
                         {{#link-to 'projects' id="project-close-button"}}
