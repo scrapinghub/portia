@@ -357,6 +357,7 @@ def port_standard(standard_annotations, sel, sample):
         annotation['selector'] = selector
         annotation['reject_selectors'] = []
         annotation = _add_annotation_data(annotation, sample)
+        # TODO: Split annotation if using more than one attribute
         new_annotations.append(annotation)
     return new_annotations
 
