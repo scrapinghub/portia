@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import {getColors} from '../../../../../utils/colors';
+import {elementPath} from '../../../../../utils/selectors';
 
 export default Ember.Controller.extend({
     dispatcher: Ember.inject.service(),
@@ -132,7 +133,7 @@ export default Ember.Controller.extend({
                 return selectedModel;
             }
 
-            // ... otherwise fine best match
+            // ... otherwise find best match
             const annotations = this.get('sample.orderedAnnotations');
             if (annotations.length) {
                 const annotationsToMatch = annotations.slice();
@@ -142,11 +143,31 @@ export default Ember.Controller.extend({
                     annotationsToMatch.removeObject(selectedModel);
                     annotationsToMatch.unshift(selectedModel);
                 }
+                const hoveredElementPath = elementPath(hoveredElement);
                 const possibilities = annotationsToMatch.map(annotation => {
                     const selectorGenerator = annotation.get('selectorGenerator');
-                    const distance = selectorGenerator ?
-                        selectorGenerator.generalizationDistance(hoveredElement) :
-                        Infinity;
+                    let distance = Infinity;
+                    if (selectorGenerator) {
+                        distance = selectorGenerator.generalizationDistance(hoveredElement);
+                        if (distance < Infinity && !isEditMode) {
+                            // reject annotations with elements that share a container with the
+                            // hovered element
+                            const annotationPaths = annotation.get('elements').map(elementPath);
+                            const containerElements =
+                                annotation.get('parent.itemAnnotation.elements');
+                            container: for (let containerElement of containerElements) {
+                                const containerPath = elementPath(containerElement);
+                                const depth = containerPath.length - 1;
+                                for (let annotationPath of annotationPaths) {
+                                    if (containerElement === annotationPath[depth] &&
+                                            containerElement === hoveredElementPath[depth]) {
+                                        distance = Infinity;
+                                        break container;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     return {
                         annotation,
                         distance
