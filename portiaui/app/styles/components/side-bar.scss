@@ -1,5 +1,6 @@
 #side-bar {
     width: $sidebar-width;
+    flex: 0 0 auto;
     background-color: $sidebar-background-color;
     border-right: 1px solid $navbar-default-border;
     padding: $navbar-padding-horizontal $navbar-padding-horizontal ($navbar-padding-horizontal + 10px);

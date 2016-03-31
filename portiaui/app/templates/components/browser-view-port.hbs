@@ -1,6 +1,8 @@
 <div class="browser-navigation panel-heading">
     {{url-bar class="navbar-form" role="navigation"}}
-    {{yield (hash section="toolbar")}}
+    <div class="browser-toolbar">
+        {{yield (hash section="toolbar")}}
+    </div>
 </div>
 <div class="browser-banner{{unless webSocket.closed ' hide'}}">
     {{#if webSocket.connecting}}
