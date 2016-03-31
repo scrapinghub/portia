@@ -17,6 +17,7 @@ export default Ember.Route.extend({
             //this.store.findAll('item-annotation');
             //this.store.findAll('annotation');
         });
+        return model.checkChanges();
     },
 
     setupController: function(controller, model) {

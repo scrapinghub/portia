@@ -71,6 +71,10 @@ const SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
         promise.finally(() => {
             this.get('savingNotification').end();
             this.get('extractedItems').update();
+            const project = this.get('uiState.models.project');
+            if (project) {
+                project.markChanged();
+            }
         });
         return promise;
     },

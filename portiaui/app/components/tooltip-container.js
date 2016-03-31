@@ -9,6 +9,7 @@ export default Ember.Component.extend({
     },
     placement: 'top',
     text: false,
+    tooltipClasses: null,
     tooltipContainer: false,
     tooltipFor: false,
     triggerEvents: 'hover',

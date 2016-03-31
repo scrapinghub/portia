@@ -71,6 +71,14 @@
             width: 100%;
         }
     }
+
+    .project-listing {
+        justify-content: space-between;
+    }
+
+    .project-changes {
+        text-transform: none;
+    }
 }
 
 #options-panels,
