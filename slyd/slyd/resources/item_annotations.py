@@ -22,7 +22,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     repeated_container_selectors = [
         s for s in attributes.pop('repeated_accept_selectors', []) if s
     ]
-    if attributes.get('repeated'):
+    if repeated_container_selectors:
         repeated_container_id = _strip_parent(container['id'])
         repeated_container = containers.get(repeated_container_id)
         container_id = repeated_container_id + '#parent'
@@ -88,7 +88,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
                   item_id=annotation_id.split('#')[0])
-    container['repeated_container_selectors'] = repeated_container_selectors
+    container['repeated_accept_selectors'] = repeated_container_selectors
     container['id'] = annotation_id
     return ItemAnnotationSchema(context=context).dump(container).data
 

@@ -91,21 +91,18 @@ const ElementStructure = Ember.Object.extend({
                                 annotation.setProperties({
                                     acceptSelectors: [],
                                     siblings: 0,
-                                    repeated: false,
                                     repeatedAcceptSelectors: []
                                 });
                             } else if (element.length > 1) {
                                 annotation.setProperties({
                                     acceptSelectors: [containerSelector],
                                     siblings,
-                                    repeated: true,
                                     repeatedAcceptSelectors: [selector]
                                 });
                             } else {
                                 annotation.setProperties({
                                     acceptSelectors: [selector],
                                     siblings,
-                                    repeated: false,
                                     repeatedAcceptSelectors: []
                                 });
                             }
