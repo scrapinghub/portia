@@ -4,7 +4,8 @@ from scrapy.utils.request import request_fingerprint
 from slybot.validation.schema import get_schema_validator
 
 from .models import SampleSchema, HtmlSchema
-from .items import create_item
+from .annotations import _update_annotation
+from .item_annotations import _update_item_annotation
 from .utils import (_load_sample, _create_schema, _get_formatted_schema,
                     _process_annotations, _add_items_and_annotations,
                     SLYBOT_VERSION)
@@ -52,8 +53,12 @@ def create_sample(manager, spider_id, attributes):
 
 
 def update_sample(manager, spider_id, sample_id, attributes):
+    includes = attributes.pop('includes', [])
     attributes = _check_sample_attributes(attributes)
     sample = _load_sample(manager, spider_id, sample_id)
+    if includes:
+        annotations = _update_annotations(sample, includes)
+        sample['plugins']['annotations-plugin']['extracts'] = annotations
     sample.update(attributes)
     get_schema_validator('template').validate(sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
@@ -63,6 +68,7 @@ def update_sample(manager, spider_id, sample_id, attributes):
 def delete_sample(manager, spider_id, sample_id, attributes=None):
     manager.remove_template(spider_id, sample_id)
     return SampleSchema.empty_data()
+
 
 def get_sample_html(manager, spider_id, sample_id):
     sample = manager.resource('spiders', spider_id, sample_id)
@@ -99,3 +105,18 @@ def _process_sample(sample, manager, spider_id):
     data = SampleSchema(context=_ctx()).dump(sample).data
     return _add_items_and_annotations(data, items, annotations,
                                       item_annotations, _ctx)
+
+
+def _update_annotations(sample, includes):
+    annotations = sample['plugins']['annotations-plugin']['extracts']
+    new_annotations = [c for c in annotations if c.get('item_container')]
+    containers = []
+    for annotation in includes:
+        if annotation['type'] == 'annotations':
+            annotation, _ = _update_annotation(sample, annotation)
+            new_annotations.append(annotation)
+        elif annotation['type'] == 'item-annotations':
+            containers.append(annotation)
+    for container in containers:
+        _update_item_annotation(sample, container, new_annotations)
+    return new_annotations

@@ -244,6 +244,7 @@ def _process_annotations(sample):
         item_annotations.append(container)
     annotations = [i for i in chain(*grouped.values())
                    if not i.get('item_container')]
+    print(containers)
     return items, annotations, item_annotations
 
 

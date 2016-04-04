@@ -257,6 +257,9 @@ class AnnotationSchema(BaseAnnotationSchema):
     ignore_beneath = fields.Boolean(default=False)
     variant = fields.Integer(default=False)
     slice = fields.List(fields.Integer())
+    pre_text = fields.Str()
+    post_text = fields.Str()
+    selection_mode = fields.Str()
 
     field = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas/{schema_id}/fields/'

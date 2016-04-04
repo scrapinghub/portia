@@ -298,7 +298,6 @@ export default Ember.Service.extend({
         const fieldsMap = new Map(
             schema.get('fields').map(field => [field.get('name'), field]));
 
-        let annotationsToMigrate = [];
         item.get('annotations').forEach((annotation) => {
             if (annotation instanceof ItemAnnotation) {
                 return;
@@ -307,22 +306,12 @@ export default Ember.Service.extend({
             const type = annotation.get('type');
             let field = fieldsMap.get(name);
             if (field && field.get('type') === type) {
-                let newAnnotation = annotation.toJSON();
-                newAnnotation.parent = item;
-                newAnnotation.field = field;
-                newAnnotation.extractors = annotation.get('extractors');
-                annotationsToMigrate.push(newAnnotation);
-                this.removeAnnotation(annotation);
+                annotation.field = field;
             }
         });
 
         item.set('schema', schema);
-        item.save().then(() => {
-            annotationsToMigrate.forEach(newAnnotation => {
-                newAnnotation = this.get('store').createRecord('annotation', newAnnotation);
-                newAnnotation.save();
-            });
-        });
+        item.get('sample').then(sample => sample.save());
     },
 
     removeSchema(schema) {
@@ -470,12 +459,12 @@ export default Ember.Service.extend({
     addElementToAnnotation(annotation, element) {
         annotation.addElement(element);
         this.selectAnnotationElement(annotation, element);
-        annotation.save();
+        annotation.get('sample').then((sample) => sample.save());
     },
 
     removeElementFromAnnotation(annotation, element) {
         annotation.removeElement(element);
         this.selectAnnotation(annotation);
-        annotation.save();
+        annotation.get('sample').then((sample) => sample.save());
     }
 });

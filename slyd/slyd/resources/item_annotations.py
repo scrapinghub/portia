@@ -11,13 +11,25 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     annotation_id = item_id.strip('#')
     sample = _load_sample(manager, spider_id, sample_id)
     annotations = sample['plugins']['annotations-plugin']['extracts']
+    container, repeated_selectors = _update_item_annotation(
+        sample, attributes['data'], annotations)
+    manager.savejson(sample, ['spiders', spider_id, sample_id])
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
+                  item_id=annotation_id.split('#')[0])
+    container['repeated_container_selectors'] = repeated_selectors
+    container['id'] = annotation_id
+    return ItemAnnotationSchema(context=context).dump(container).data
+
+
+def _update_item_annotation(sample, attributes, annotations):
+    annotation_id = attributes['id'].strip('#')
     containers, _, _ = _group_annotations(annotations)
     container = containers.get(annotation_id,
                                containers.get(_strip_parent(annotation_id)))
     if container is None:
         raise KeyError('No annotation with id "%s" found' % annotation_id)
-    relationships = _load_relationships(attributes.get('data', {}))
-    attributes = attributes.get('data', {}).get('attributes', {})
+    relationships = _load_relationships(attributes)
+    attributes = attributes.get('attributes', {})
     container['accept_selectors'] = attributes.get('accept_selectors', [])
     repeated_container_selectors = [
         s for s in attributes.pop('repeated_accept_selectors', []) if s
@@ -85,12 +97,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     container['container_id'] = parent_container_id
     if container['accept_selectors']:
         container['selector'] = container['accept_selectors'][0]
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
-                  item_id=annotation_id.split('#')[0])
-    container['repeated_accept_selectors'] = repeated_container_selectors
-    container['id'] = annotation_id
-    return ItemAnnotationSchema(context=context).dump(container).data
+    return container, repeated_container_selectors
 
 
 def _strip_parent(id_):
