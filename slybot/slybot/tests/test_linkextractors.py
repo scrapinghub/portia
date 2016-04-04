@@ -26,7 +26,7 @@ class Test_RegexLinkExtractor(TestCase):
         self.assertEqual(len(links), 2)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[1].url, 'https://aws.amazon.com/product?id=23')
-        
+
     def test_custom(self):
         specs = {"type": "regex", "value": 'url: ((?:http|https)://www.example.com/[\w/]+)'}
         lextractor = create_linkextractor_from_specs(specs)
@@ -63,13 +63,13 @@ xmlfeed = """<?xml version="1.0" encoding="UTF-8" ?>
         <guid>unique string per item</guid>
         <pubDate>Mon, 06 Sep 2009 16:20:00 +0000 </pubDate>
     </item>
-                            
+
 </channel>
 </rss>"""
 
 sitemapfeed = """
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
 	xmlns:image="http://www.sitemaps.org/schemas/sitemap-image/1.1"
         xmlns:video="http://www.sitemaps.org/schemas/sitemap-video/1.1">
 
@@ -90,14 +90,14 @@ sitemapindex = """
 
 atomfeed = """
 <?xml version="1.0" encoding="utf-8"?>
- 
+
 <feed xmlns="http://www.w3.org/2005/Atom">
-  
+
     <title>Example Feed</title>
     <subtitle>A subtitle.</subtitle>
     <link href="http://example.org/feed/" rel="self" />
     <link href="http://example.org/" />
-    
+
     <entry>
         <title>Atom-Powered Robots Run Amok</title>
         <link href="http://example.org/2003/12/13/atom03" />
@@ -240,6 +240,30 @@ class Test_PaginationExtractor(TestCase):
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[0].text, 'Click here')
+
+    def test_start_urls(self):
+        specs = {"type": "pagination",
+                 "value": None,
+                 "start_urls": ['http://www.spam.com/?p=1',
+                                'http://www.eggs.com/?page=0']
+        }
+        lextractor = create_linkextractor_from_specs(specs)
+        html = """
+        <a href="http://www.spam.com/?p=100">Click here 1</a>
+        <a href="http://www.spam.com/?p=200">Click here 2</a>
+        <a href="http://www.spam.com/?p=300">Click here 3</a>
+        """
+        html_page = htmlpage_from_response(
+            HtmlResponse(url='http://www.example.com/', body=html))
+        links = list(lextractor.links_to_follow(html_page))
+        links = sorted(links, key=lambda link: link.url)
+        self.assertEqual(len(links), 3)
+        self.assertEqual(links[0].url, "http://www.spam.com/?p=100")
+        self.assertEqual(links[1].url, "http://www.spam.com/?p=200")
+        self.assertEqual(links[2].url, "http://www.spam.com/?p=300")
+        self.assertEqual(links[0].text, 'Click here 1')
+        self.assertEqual(links[1].text, 'Click here 2')
+        self.assertEqual(links[2].text, 'Click here 3')
 
     def test_trained(self):
         base = 'http://www.daft.ie/ireland/houses-for-sale/?offset={}'.format

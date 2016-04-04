@@ -1,14 +1,22 @@
 from scrapy.http import Response
+from scrapy.link import Link
 
 from page_finder import LinkAnnotation
 from .html import HtmlLinkExtractor
 
 
 class PaginationExtractor(HtmlLinkExtractor):
-    def __init__(self):
+    def __init__(self, **specs):
         self.link_annotation = LinkAnnotation()
         self.visited = set()
         self.url_to_link = {}
+        start_urls = specs.get('start_urls')
+        if start_urls:
+            self.link_annotation.load(start_urls)
+            for url in start_urls:
+                self.url_to_link[url] = Link(url)
+                self.visited.add(url)
+                self.link_annotation.mark_link(url, follow=True)
         super(PaginationExtractor, self).__init__()
 
     def _extract_links(self, response_or_htmlpage, n_links=3):
