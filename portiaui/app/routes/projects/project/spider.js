@@ -4,7 +4,17 @@ export default Ember.Route.extend({
     browser: Ember.inject.service(),
 
     model(params) {
-        return this.store.findRecord('spider', params.spider_id);
+        return this.store.queryRecord('spider', {
+            id: params.spider_id,
+            project_id: this.modelFor('projects.project').get('id')
+        });
+    },
+
+    afterModel(model) {
+        return this.store.query('sample', {
+            spider_project_id: this.modelFor('projects.project').get('id'),
+            spider_id: model.get('id')
+        });
     },
 
     setupController(controller) {

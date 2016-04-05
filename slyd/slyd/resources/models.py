@@ -229,7 +229,12 @@ class SampleSchema(SlydSchema):
     )
 
     def dump(self, obj, many=None, update_fields=True, **kwargs):
-        obj.setdefault('items', [])
+        many = self.many if many is None else bool(many)
+        if many:
+            for o in obj:
+                o.setdefault('items', [])
+        else:
+            obj.setdefault('items', [])
         return super(SampleSchema, self).dump(obj, many, update_fields,
                                               **kwargs)
 
