@@ -131,25 +131,9 @@ def _read_resource(manager, resource):
     try:
         schemas = manager.resource(resource)
         assert isinstance(schemas, dict)
-    except (AssertionError, TypeError):
-        manager.savejson({}, [resource])
+    except (AssertionError, TypeError, IOError):
         return {}
     return schemas
-
-
-def _recreate_missing_item_annotations(manager, spider_id, sample_id, sample):
-    # TODO: See if this is still needed and remove if not
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    container_ids = {a['id'] for a in annotations if a.get('item_container')}
-    new_annotations = []
-    for annotation in annotations:
-        if (annotation.get('item_container') and
-                'container_id' in annotation and
-                annotation['container_id'] not in container_ids):
-            new_annotations.append(_recreate_parent_annotation(annotation))
-    if new_annotations:
-        annotations.extend(new_annotations)
-        manager.savejson({}, ['spiders', spider_id, sample_id])
 
 
 def _recreate_parent_annotation(child, exists=True):

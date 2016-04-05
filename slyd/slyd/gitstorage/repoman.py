@@ -12,12 +12,9 @@ from dulwich.diff_tree import tree_changes, RenameDetector
 from .jsondiff import merge_jsons
 
 
-CHANGE_ADD = 'add'
 CHANGE_MODIFY = 'modify'
 CHANGE_DELETE = 'delete'
 CHANGE_RENAME = 'rename'
-CHANGE_COPY = 'copy'
-CHANGE_UNCHANGED = 'unchanged'
 
 FILE_MODE = 0o100644
 
@@ -53,7 +50,9 @@ class Repoman(object):
         self._encoding = 'UTF-8'
         self._time_zone = parse_timezone('+0000')[0]
         self.commit = sentinel
+        self.last_commit = None
         self.tree = sentinel
+        self.last_tree = None
 
     @classmethod
     def setup(cls, storage_backend, location):
@@ -95,6 +94,7 @@ class Repoman(object):
             repoman._repo = cls.storage.open(repo_name, connection)
         except TypeError:
             repoman._repo = cls.storage.open(repo_name)
+        repoman.name = repo_name
         return repoman
 
     @classmethod
@@ -169,34 +169,6 @@ class Repoman(object):
             files_info[path] = data
         self._perform_file_operation(
             branch_name, self._save_files, files_info, commit_message)
-
-    def delete_file(self, file_path, branch_name, commit_message=None):
-        """Delete a file from the repo and advances the specified branch head.
-
-        If the branch does not exist yet, it will be created.
-        """
-        self._perform_file_operation(
-            branch_name, self._delete_file, file_path, commit_message)
-
-    def rename_file(self, old_file_path, new_file_path, branch_name,
-                    commit_message=None):
-        """Rename a file in the repo and advances the specified branch head.
-
-        If the branch does not exist yet, it will be created.
-        """
-        self._perform_file_operation(branch_name, self._rename_file,
-                                     old_file_path, new_file_path,
-                                     commit_message)
-
-    def rename_folder(self, old_folder_path, new_folder_path, branch_name,
-                      commit_message=None):
-        """Rename a file in the repo and advances the specified branch head.
-
-        If the branch does not exist yet, it will be created.
-        """
-        self._perform_file_operation(branch_name, self._rename_folder,
-                                     old_folder_path, new_folder_path,
-                                     commit_message)
 
     def blob_for_branch(self, file_path, branch_name):
         """Return the blob with the contents of file_path.
@@ -296,6 +268,8 @@ class Repoman(object):
         if commit is not sentinel:
             self._update_store(commit, tree)
             self._advance_branch(branch, commit)
+            self.last_commit = commit
+            self.last_tree = tree
             if commit is self.commit:
                 self.commit = sentinel
             if tree is self.tree:
@@ -335,28 +309,6 @@ class Repoman(object):
         """Return the name of all changed files within the branch."""
         changes = self.get_branch_changed_entries(branch_name)
         return [entry.new.path or entry.old.path for entry in changes]
-
-    def get_branch_conflicted_files(self, branch_name):
-        """Return a dict with the conflicted files for a given branch."""
-        def has_conflict(json):
-            for key in json.keys():
-                if (key == '__CONFLICT' or
-                        isinstance(json[key], dict) and
-                        has_conflict(json[key])):
-                    return True
-            return False
-
-        conflicts = {}
-        for file_path in self.get_branch_changed_files(branch_name):
-            try:
-                content_str = self.file_contents_for_branch(file_path,
-                                                            branch_name)
-            except TypeError:  # XXX: File was delete in one branch
-                content_str = None
-            content = loads(content_str or '{}')
-            if has_conflict(content):
-                conflicts[file_path] = content
-        return conflicts
 
     def kill_branch(self, branch_name):
         """Kill a branch and the objects that are only accessible from it.
@@ -528,59 +480,12 @@ class Repoman(object):
         self._update_store(commit, tree, *blobs)
         return commit
 
-    def _delete_file(self, parent_commit, file_path, commit_message):
-        tree = self._get_tree(parent_commit)
-        del tree[file_path]
-        commit = self._create_commit()
-        commit.parents = [parent_commit]
-        commit.tree = tree.id
-        commit.message = commit_message or 'Deleting %s' % file_path
-        self._update_store(commit, tree)
-        return commit
-
-    def _rename_file(self, parent_commit, old_file_path, new_file_path,
-                     commit_message):
-        tree = self._get_tree(parent_commit)
-        tree[new_file_path] = tree[old_file_path]
-        del tree[old_file_path]
-        commit = self._create_commit()
-        commit.parents = [parent_commit]
-        commit.tree = tree.id
-        commit.message = (commit_message or
-                          'Renaming %s to %s' % (old_file_path, new_file_path))
-        self._update_store(commit, tree)
-        return commit
-
-    def _rename_folder(self, parent_commit, old_folder_path, new_folder_path,
-                       commit_message=None):
-        if old_folder_path[-1] != '/':
-            old_folder_path += '/'
-        if new_folder_path[-1] != '/':
-            new_folder_path += '/'
-        tree = self._get_tree(parent_commit)
-        for path in tree:
-            if path.startswith(old_folder_path):
-                file_path = new_folder_path + path.split(old_folder_path, 1)[1]
-                tree[file_path] = tree[path]
-                del tree[path]
-        commit = self._create_commit()
-        commit.parents = [parent_commit]
-        commit.tree = tree.id
-        commit.message = (commit_message or
-                          'Renaming %s to %s' % (old_folder_path,
-                                                 new_folder_path))
-        self._update_store(commit, tree)
-        return commit
-
     def _update_store(self, *args):
         objects = [(obj, None) for obj in args if obj not in (None, sentinel)]
         self._repo.object_store.add_objects(objects)
 
     def _advance_branch(self, branch_name, commit):
         self.refs['refs/heads/%s' % branch_name] = commit.id
-
-    def _get_branch_tree(self, branch_name):
-        return self._get_tree(self.get_branch(branch_name))
 
     def _get_tree(self, revision):
         repo = self._repo

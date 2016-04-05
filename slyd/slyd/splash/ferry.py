@@ -374,7 +374,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
         try:
             spider = spec.spider_with_templates(spider_name)
-        except TypeError:
+        except IOError:
             return {'error': 4003,
                     'reason': 'Spider "%s" not found' % spider_name}
 
@@ -384,11 +384,11 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                if _should_load_sample(s)]
         try:
             items = spec.resource('items')
-        except TypeError:
+        except IOError:
             items = {}
         try:
             extractors = spec.resource('extractors')
-        except TypeError:
+        except IOError:
             extractors = {}
         if not self.settings.get('SPLASH_URL'):
             self.settings.set('SPLASH_URL', 'portia')

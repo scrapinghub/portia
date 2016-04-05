@@ -96,6 +96,9 @@ class ReconnectionPool(ConnectionPool):
             setattr(manager, 'connection', conn)
             if getattr(manager, 'pm', None):
                 setattr(manager.pm, 'connection', conn)
+            if (not hasattr(manager, 'storage') and
+                    hasattr(manager, 'project_name')):
+                manager._open_repo()
         except AttributeError:
             manager = None
 
@@ -104,8 +107,8 @@ class ReconnectionPool(ConnectionPool):
             conn.commit()
             return result
         except:
-            if hasattr(manager, 'rollback_changes'):
-                manager.rollback_changes()
+            if hasattr(manager, 'storage'):
+                del manager.storage
             conn.rollback()
             raise
 
