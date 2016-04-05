@@ -12,8 +12,11 @@ export default Ember.Route.extend({
         });
     },
 
-    afterModel() {
+    afterModel(model) {
         this.get('extractedItems').update();
+        // reload the model to fetch it with annotations included
+        // TODO: allow fetching as a relationship, need to inline annotations first
+        return model.reload();
     },
 
     renderTemplate() {
