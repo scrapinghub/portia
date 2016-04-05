@@ -8,19 +8,21 @@ export default Ember.Route.extend({
     },
 
     afterModel(model) {
-        // XXX: Need to wait for project id to be loaded
-        Ember.run.next(this, function() {
-            this.store.findAll('schema');
-            this.store.findAll('spider');
-            this.store.findAll('extractor');
-            //this.store.findAll('item');
-            //this.store.findAll('item-annotation');
-            //this.store.findAll('annotation');
-        });
-        return model.checkChanges();
+        const id = model.get('id');
+        return Ember.RSVP.all([
+            this.store.query('schema', {
+                project_id: id
+            }),
+            this.store.query('spider', {
+                project_id: id
+            }),
+            this.store.query('extractor', {
+                project_id: id
+            }),
+            model.checkChanges()]);
     },
 
-    setupController: function(controller, model) {
+    setupController(controller, model) {
         this._super(controller, model);
         controller.set('projects', this.controllerFor('projects'));
     },

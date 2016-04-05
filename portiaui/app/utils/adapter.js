@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 import UrlTemplates from "ember-data-url-templates";
+import { isObject, isArray } from './types';
 
 const SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
     extractedItems: Ember.inject.service(),
@@ -8,61 +9,50 @@ const SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
     uiState: Ember.inject.service(),
 
     baseTemplate: '{+host}/api/projects/',
-    shouldReloadAll: () => true,
-    _load_relationship: function(model, record, from, id) {
-        if (from === model && !!id) {
-            return id;
+
+    _getQueryParam(param, query) {
+        if (query && query[param]) {
+            const value = query[param];
+            delete query[param];
+            return value;
         }
-        if (!record) {
-            return undefined;
-        }
-        if (record._internalModel) {
-            record = record._internalModel;
-        }
-        let relationships = record._relationships.initializedRelationships;
-        if (relationships[model] && relationships[model].inverseRecord) {
-            return relationships[model].inverseRecord.id;
-        }
-        if (relationships[model] && relationships[model].record &&
-            relationships[model].record.modelName === model) {
-            return relationships[model].record.id;
-        }
-        for (let key of Object.keys(relationships)) {
-            let model_id = this._load_relationship(model, relationships[key].inverseRecord);
-            if (model_id) {
-                return model_id;
+    },
+
+    _getSnapshotProperty: function(property, snapshot) {
+        const path = property.split('_');
+        while (snapshot) {
+            const attribute = path.shift();
+            if (!path.length) {
+                if (attribute === 'id') {
+                    return snapshot.id;
+                }
+                const attributes = snapshot.attributes();
+                if (attribute in attributes) {
+                    return attributes[attribute];
+                }
+                return;
+            }
+
+            try {
+                snapshot = snapshot.belongsTo(attribute);
+            } catch (e) {
+                return;
             }
         }
     },
 
-    _id_from_location: function(prefix) {
-        let re = new RegExp(`/${prefix}/([^/\?]+)`),
-            matches = re.exec(document.location.hash);
-        if (matches) {
-            return matches.slice(-1)[0];
-        }
-    },
-
     urlSegments: {
-        project_id: function(from, id, snapshot) {
-            return (this._load_relationship('project', snapshot, from, id) ||
-                    this.get('uiState.projectRoute.currentModel.id') ||
-                    this._id_from_location('projects'));
+        id(type, id, snapshot, query) {
+            if (id && !isArray(id) && !isObject(id)) {
+                return id;
+            }
+            return this._getQueryParam('id', query);
         },
-        spider_id: function(from, id, snapshot) {
-            return (this._load_relationship('spider', snapshot, from, id) ||
-                    this.get('uiState.spiderRoute.currentModel.id') ||
-                    this._id_from_location('spiders'));
-        },
-        schema_id: function(from, id,  snapshot) {
-            return (this._load_relationship('schema', snapshot, from, id) ||
-                    this.get('uiState.schemaRoute.currentModel.id') ||
-                    this._id_from_location('schemas'));
-        },
-        sample_id: function(from, id, snapshot) {
-            return (this._load_relationship('sample', snapshot, from, id) ||
-                    this.get('uiState.sampleRoute.currentModel.id') ||
-                    this._id_from_location('samples'));
+
+        unknownProperty(key) {
+            return function(type, id, snapshot, query) {
+                return this._getQueryParam(key, query) || this._getSnapshotProperty(key, snapshot);
+            };
         }
     },
 
