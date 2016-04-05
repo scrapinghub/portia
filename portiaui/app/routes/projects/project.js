@@ -1,6 +1,8 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+    browser: Ember.inject.service(),
+
     model(params) {
         return this.store.findRecord('project', params.project_id);
     },
@@ -15,11 +17,16 @@ export default Ember.Route.extend({
             //this.store.findAll('item-annotation');
             //this.store.findAll('annotation');
         });
+        return model.checkChanges();
     },
 
     setupController: function(controller, model) {
         this._super(controller, model);
         controller.set('projects', this.controllerFor('projects'));
+    },
+
+    deactivate() {
+        this.set('browser.url', null);
     },
 
     renderTemplate() {

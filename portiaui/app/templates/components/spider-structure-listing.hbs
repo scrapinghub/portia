@@ -112,7 +112,7 @@
             {{/tree-list-item}}
             {{#each spider.samples as |sample|}}
                 {{#tree-list-item hide=(and currentSample (not-eq sample currentSample)) as |options|}}
-                    {{#link-to 'projects.project.spider.sample' sample}}
+                    {{#link-to 'projects.project.spider.sample' sample (query-params url=sample.url baseurl=null) current-when='projects.project.spider.sample'}}
                         {{list-item-icon icon='sample'}}
                         {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}

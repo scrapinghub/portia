@@ -66,15 +66,18 @@ class ProjectSchema(SlydSchema):
     name = fields.Str()
     spiders = fields.Relationship(
         related_url='/api/projects/{project_id}/spiders',
-        related_url_kwargs={'project_id': '<id>'}, type_='spiders'
+        related_url_kwargs={'project_id': '<id>'}, type_='spiders',
+        include_data=True, many=True
     )
     schemas = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas',
-        related_url_kwargs={'project_id': '<id>'}, type_='schemas'
+        related_url_kwargs={'project_id': '<id>'}, type_='schemas',
+        include_data=True, many=True
     )
     extractors = fields.Relationship(
         related_url='/api/projects/{project_id}/extractors',
-        related_url_kwargs={'project_id': '<id>'}, type_='extractors'
+        related_url_kwargs={'project_id': '<id>'}, type_='extractors',
+        include_data=True, many=True
     )
     project = fields.Relationship(
         self_url='/api/projects/{project_id}',
@@ -283,12 +286,14 @@ class BaseAnnotationSchema(SlydSchema):
 
 
 class AnnotationSchema(BaseAnnotationSchema):
-
     required = fields.Boolean(default=False)
     ignore = fields.Boolean(default=False)
     ignore_beneath = fields.Boolean(default=False)
     variant = fields.Integer(default=False)
     slice = fields.List(fields.Integer())
+    pre_text = fields.Str()
+    post_text = fields.Str()
+    selection_mode = fields.Str()
 
     field = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas/{schema_id}/fields/'

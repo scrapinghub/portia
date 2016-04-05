@@ -18,7 +18,11 @@ export default Ember.Component.extend({
         {
             value: 'patterns',
             label: 'Configure url patterns'
-        }
+        },
+        {
+            value: 'auto',
+            label: 'Follow links automatically'
+        },
     ],
 
     linksToFollow: Ember.computed('spider.linksToFollow', {

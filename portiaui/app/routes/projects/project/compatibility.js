@@ -5,17 +5,23 @@ export default Ember.Route.extend({
         return params;
     },
 
-    redirect({path}) {
+    redirect({path}, {queryParams}) {
         // conflicts route has the same path
         if (path === 'items') {
-            this.transitionTo('projects.project');
+            this.transitionTo('projects.project', {
+                queryParams: queryParams
+            });
             return;
         }
         const fragments = path.split('/');
         if (fragments.length === 1) {
-            this.transitionTo('projects.project.spider', fragments[0]);
+            this.transitionTo('projects.project.spider', fragments[0], {
+                queryParams: queryParams
+            });
         } else  {
-            this.transitionTo('projects.project.spider.sample', fragments[0], fragments[1]);
+            this.transitionTo('projects.project.spider.sample', fragments[0], fragments[1], {
+                queryParams: queryParams
+            });
         }
     }
 });

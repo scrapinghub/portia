@@ -714,7 +714,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
             elif token_type == htt.CLOSE_TAG:
                 tag_stack.pop(-1)
             if not tag_stack:
-                return self._find_siblings_end(template, start_index + idx,
+                return self._find_siblings_end(template, start_index + idx + 1,
                                                max_index, siblings - 1)
 
     def _trim_prefix(self, prefix, suffix, template, min_prefix_len=1,

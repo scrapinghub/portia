@@ -1,12 +1,20 @@
+import json
+
+from os.path import dirname
 from unittest import TestCase
-from scrapy.http import TextResponse, HtmlResponse
+from scrapy.http import TextResponse, HtmlResponse, Request
+from scrapy.settings import Settings
 from slybot.utils import htmlpage_from_response
 
 from slybot.linkextractor import (
-        create_linkextractor_from_specs,
-        RssLinkExtractor,
-        SitemapLinkExtractor,
+    create_linkextractor_from_specs, RssLinkExtractor, SitemapLinkExtractor,
 )
+from slybot.plugins.scrapely_annotations.builder import (
+    apply_annotations, _clean_annotation_data
+)
+from slybot.utils import load_plugins
+from slybot.spider import IblSpider
+
 
 class Test_RegexLinkExtractor(TestCase):
     def test_default(self):
@@ -18,7 +26,7 @@ class Test_RegexLinkExtractor(TestCase):
         self.assertEqual(len(links), 2)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[1].url, 'https://aws.amazon.com/product?id=23')
-        
+
     def test_custom(self):
         specs = {"type": "regex", "value": 'url: ((?:http|https)://www.example.com/[\w/]+)'}
         lextractor = create_linkextractor_from_specs(specs)
@@ -55,13 +63,13 @@ xmlfeed = """<?xml version="1.0" encoding="UTF-8" ?>
         <guid>unique string per item</guid>
         <pubDate>Mon, 06 Sep 2009 16:20:00 +0000 </pubDate>
     </item>
-                            
+
 </channel>
 </rss>"""
 
 sitemapfeed = """
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
 	xmlns:image="http://www.sitemaps.org/schemas/sitemap-image/1.1"
         xmlns:video="http://www.sitemaps.org/schemas/sitemap-video/1.1">
 
@@ -82,14 +90,14 @@ sitemapindex = """
 
 atomfeed = """
 <?xml version="1.0" encoding="utf-8"?>
- 
+
 <feed xmlns="http://www.w3.org/2005/Atom">
-  
+
     <title>Example Feed</title>
     <subtitle>A subtitle.</subtitle>
     <link href="http://example.org/feed/" rel="self" />
     <link href="http://example.org/" />
-    
+
     <entry>
         <title>Atom-Powered Robots Run Amok</title>
         <link href="http://example.org/2003/12/13/atom03" />
@@ -201,6 +209,14 @@ class Test_CsvLinkExtractor(TestCase):
 html = """
 <a href="http://www.example.com/path">Click here</a>
 """
+_PATH = dirname(__file__)
+with open('%s/data/templates/daft_list.json' % _PATH) as f:
+    daft_sample = json.load(f)
+    annotations = daft_sample['plugins']['annotations-plugin']['extracts']
+    daft_body = apply_annotations(_clean_annotation_data(annotations),
+                                  daft_sample['original_body'])
+    daft_sample['annotated_body'] = daft_body
+
 
 class Test_HtmlLinkExtractor(TestCase):
     def test_simple(self):
@@ -211,6 +227,7 @@ class Test_HtmlLinkExtractor(TestCase):
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[0].text, 'Click here')
+
 
 class Test_PaginationExtractor(TestCase):
     def test_simple(self):
@@ -224,4 +241,48 @@ class Test_PaginationExtractor(TestCase):
         self.assertEqual(links[0].url, 'http://www.example.com/path')
         self.assertEqual(links[0].text, 'Click here')
 
+    def test_start_urls(self):
+        specs = {"type": "pagination",
+                 "value": None,
+                 "start_urls": ['http://www.spam.com/?p=1',
+                                'http://www.eggs.com/?page=0']
+        }
+        lextractor = create_linkextractor_from_specs(specs)
+        html = """
+        <a href="http://www.spam.com/?p=100">Click here 1</a>
+        <a href="http://www.spam.com/?p=200">Click here 2</a>
+        <a href="http://www.spam.com/?p=300">Click here 3</a>
+        """
+        html_page = htmlpage_from_response(
+            HtmlResponse(url='http://www.example.com/', body=html))
+        links = list(lextractor.links_to_follow(html_page))
+        links = sorted(links, key=lambda link: link.url)
+        self.assertEqual(len(links), 3)
+        self.assertEqual(links[0].url, "http://www.spam.com/?p=100")
+        self.assertEqual(links[1].url, "http://www.spam.com/?p=200")
+        self.assertEqual(links[2].url, "http://www.spam.com/?p=300")
+        self.assertEqual(links[0].text, 'Click here 1')
+        self.assertEqual(links[1].text, 'Click here 2')
+        self.assertEqual(links[2].text, 'Click here 3')
 
+    def test_trained(self):
+        base = 'http://www.daft.ie/ireland/houses-for-sale/?offset={}'.format
+        daft_url = base(10)
+        spec = {
+            'start_urls': [daft_url],
+            'links_to_follow': 'auto',
+            'respect_nofollow': False,
+            'follow_patterns': [],
+            'exclude_patterns': [],
+            'init_requests': [],
+            'templates': [daft_sample]
+        }
+        settings = Settings()
+        settings.set('LOADED_PLUGINS', load_plugins(settings))
+        spider = IblSpider('hn', spec, {}, {}, settings=settings)
+        request = Request(daft_url)
+        response = HtmlResponse(url=daft_url, body=daft_body, request=request,
+                                encoding="utf-8")
+        data = {r.url for r in spider.handle_html(response)
+                if isinstance(r, Request)}
+        self.assertEqual({base(i) for i in (90, 80, 70)}, data)

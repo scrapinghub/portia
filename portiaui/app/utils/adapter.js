@@ -36,7 +36,7 @@ const SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
     },
 
     _id_from_location: function(prefix) {
-        let re = new RegExp(`/${prefix}/([^/]+)`),
+        let re = new RegExp(`/${prefix}/([^/\?]+)`),
             matches = re.exec(document.location.hash);
         if (matches) {
             return matches.slice(-1)[0];
@@ -71,6 +71,10 @@ const SlydJSONAPIAdapter = DS.JSONAPIAdapter.extend(UrlTemplates, {
         promise.finally(() => {
             this.get('savingNotification').end();
             this.get('extractedItems').update();
+            const project = this.get('uiState.models.project');
+            if (project) {
+                project.markChanged();
+            }
         });
         return promise;
     },

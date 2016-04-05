@@ -56,7 +56,7 @@ def update_spider(manager, spider_id, attributes):
         if 'samples' in spider:
             del spider['samples']
         response = SpiderSchema(context=context).dump(spider).data
-        spider = _populate_relationships(spider)
+        spider = _populate_relationships(spider, spider_id)
         new_spider = SpiderSchema(context=context).dump(spider).data
         response['included'] = [new_spider['data']]
         response['data']['attributes']['name'] = "_deleted"
@@ -84,7 +84,7 @@ def _check_spider_attributes(attributes, include_defaults=False):
 def _load_spider(manager, spider_id, include_samples=False):
     spider = manager.spider_json(spider_id)
     spider['id'] = spider_id
-    spider = _populate_relationships(spider)
+    spider = _populate_relationships(spider, spider_id)
     if include_samples:
         samples = []
         for name in spider['template_names']:
@@ -94,7 +94,8 @@ def _load_spider(manager, spider_id, include_samples=False):
         spider['samples'] = samples
     return spider
 
-def _populate_relationships(spider):
+
+def _populate_relationships(spider, spider_id):
     if not spider.get('name'):
         spider['name'] = spider_id
     spider['samples'] = [

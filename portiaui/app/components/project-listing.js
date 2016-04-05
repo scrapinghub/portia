@@ -1,10 +1,13 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
+    capabilities: Ember.inject.service(),
     notificationManager: Ember.inject.service(),
 
     tagName: '',
-    
+
+    versionControlled: Ember.computed.readOnly('capabilities.capabilities.version_control'),
+
     project: null,
 
     actions: {
