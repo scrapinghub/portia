@@ -41,7 +41,7 @@
     "ember-idx-accordion": "^0.1.1",
     "es5-shim": "^4.1.5",
     "express": "^5.0.0-alpha.1",
-    "glob": "^5.0.6",
+    "glob": "7.0.0",
     "mutation-summary": "0.0.0",
     "mutationobserver-shim": "^0.3.1",
     "rimraf": "^2.3.4"
