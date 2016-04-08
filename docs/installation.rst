@@ -48,7 +48,7 @@ Debian
 Running Portia Locally
 ^^^^^^^^^^^^^^^^^^^^^^
 
-**These instructions are only valid for a Debian based OS**
+**These instructions are only valid for a Debian based OS (Ubuntu 14.04 recommended)**
 
 Install the following dependencies::
 
