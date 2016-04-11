@@ -1,7 +1,6 @@
 import re
 import urllib
-from scrapy.utils.url import urljoin_rfc
-from six.moves.urllib_parse import urlparse
+from six.moves.urllib_parse import urlparse, urljoin
 
 
 CSS_IMPORT = re.compile(r'''@import\s*["']([^"']+)["']''')
@@ -14,7 +13,10 @@ def wrap_url(url, tabid, base=None):
     referer = None
     if base:
         referer = urlparse(base.strip()).netloc
-        url = urljoin_rfc(base, url)
+        try:
+            url = urljoin(base, url).encode('utf-8')
+        except UnicodeEncodeError:
+            return 'data:text/plain,invalid_url'
     parsed = urlparse(url)
     referer = referer or parsed.netloc
 
