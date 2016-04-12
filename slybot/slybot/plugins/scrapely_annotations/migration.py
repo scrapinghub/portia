@@ -30,7 +30,7 @@ from operator import itemgetter
 from urllib import unquote
 from uuid import uuid4
 
-from lxml.etree import _Element
+from lxml.etree import _Element, Comment
 from scrapy import Selector
 
 from slybot.plugins.scrapely_annotations.utils import add_tagids
@@ -103,6 +103,16 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     Adapted from mozilla findCssSelector in css-logic.js
     http://lxr.mozilla.org/mozilla-release/source/toolkit/devtools/styleinspector/css-logic.js
     """
+    def children_index(elem):
+        parent = elem.getparent()
+        if parent:
+            children = filter(lambda x: x.tag is not Comment,
+                              parent.getchildren())
+            index = children.index(elem) + 1
+        else:
+            index = 0
+        return index
+
     elem_id = elem.attrib.get('id')
     if elem_id and len(sel.css('#%s' % elem_id)) == 1 and depth > 1:
         return '#%s' % elem_id
@@ -127,8 +137,7 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
             if len(matches) == 1:
                 return selector
             # Maybe it's unique using a tag name and nth-child
-            index = elem.getparent().getchildren().index(elem)
-            selector = '%s:nth-child(%s)' % (selector, index)
+            selector = '%s:nth-child(%s)' % (selector, children_index(elem))
             matches = sel.css(selector)
             if len(matches) == 1:
                 return selector
@@ -136,7 +145,6 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     # Not unique enough yet.  As long as it's not a child of the document,
     # continue recursing up until it is unique enough.
     if elem.getparent() is not None:
-        index = elem.getparent().getchildren().index(elem) + 1
         if tag_name in ('thead', 'tbody'):
             selector = find_css_selector(elem.getparent(), sel, depth + 1,
                                          True)
@@ -145,7 +153,7 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
                 find_css_selector(elem.getparent(), sel, depth + 1),
                 '' if previous_tbody or tag_name == 'tr' else ' >',
                 tag_name,
-                index
+                children_index(elem)
             )
     return selector
 
