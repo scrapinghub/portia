@@ -47,9 +47,19 @@ export default Ember.Component.extend({
 
         validateSpiderName(name) {
             const nm = this.get('notificationManager');
-            if(!/^[a-zA-Z0-9][a-zA-Z0-9_\.-]*$/.test(name)) {
+            if(!name) {
                 nm.showWarningNotification(`Invalid spider name.
-                    Only letters, numbers, underscores, dashes and dots are allowed.`);
+                    An empty name is not allowed.`);
+                return false;
+            }
+            if(/\\|\//.test(name)) {
+                nm.showWarningNotification(`Invalid spider name.
+                    Slashes are not allowed.`);
+                return false;
+            }
+            if(/^\.+$/.test(name)) {
+                nm.showWarningNotification(`Invalid spider name.
+                    You cannot use only dots as a spider name.`);
                 return false;
             }
             return true;

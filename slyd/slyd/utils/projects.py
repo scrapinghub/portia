@@ -6,8 +6,8 @@ from collections import OrderedDict as ODict
 from slybot.validation.schema import get_schema_validator
 
 from slyd.utils import short_guid
-# stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
-_INVALID_FILE_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
+# Do not allow slashes or a series of .'s (so safe for FS path)
+_INVALID_FILE_RE = re.compile(r'\\|/|^\.*$')
 
 
 def ctx(manager, **kwargs):

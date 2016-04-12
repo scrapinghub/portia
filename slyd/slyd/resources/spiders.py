@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from six import text_type
 from slybot.validation.schema import get_schema_validator
 
 from .models import SpiderSchema
@@ -27,9 +28,11 @@ def create_spider(manager, attributes):
     if spider['name'] in set(manager.list_spiders()):
         raise BadRequest('A spider with the name "%s" already '
                          'exists' % spider['name'])
-    spider['id'] = spider['name'].encode('utf-8')
+    spider_id = spider['id'] = spider['name']
     manager.savejson(spider, ['spiders', spider['id']])
-    context = ctx(manager, spider_id=spider['id'])
+    context = ctx(
+        manager,
+        spider_id=spider_id.encode('utf8') if isinstance(spider_id, text_type) else spider_id)
     return SpiderSchema(context=context).dump(spider).data
 
 
@@ -43,13 +46,15 @@ def update_spider(manager, spider_id, attributes):
     rename = spider.get('name') and spider_id != spider['name']
     original_id = spider_id
     if rename:
-        manager.rename_spider(spider_id, spider['name'].encode('utf-8'))
+        manager.rename_spider(spider_id, spider['name'])
         spider_id = spider['name']
     spider['id'] = spider_id
     clean_spider(spider)
-    manager.savejson(spider, ['spiders', spider_id.encode('utf-8')])
+    manager.savejson(spider, ['spiders', spider_id])
     spider['samples'] = [{'id': name} for name in spider['template_names']]
-    context = ctx(manager, spider_id=spider_id)
+    context = ctx(
+        manager,
+        spider_id=spider_id.encode('utf8') if isinstance(spider_id, text_type) else spider_id)
     if rename:
         # HACK: Ember doesn't allow changing IDs, so return a "new" spider
         # and mark the original as deleted.
