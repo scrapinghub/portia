@@ -9,7 +9,8 @@ from .items import (list_items, get_item, create_item, update_item,
                     get_item_sub_annotations, delete_item)
 from .item_annotations import update_item_annotation
 from .projects import (list_projects, get_project, create_project,
-                       update_project, delete_project, status, merge, reset)
+                       update_project, delete_project, status, merge, reset,
+                       download)
 from .spiders import (list_spiders, get_spider, create_spider, update_spider,
                       delete_spider)
 from .samples import (list_samples, get_sample, create_sample, update_sample,
@@ -121,6 +122,10 @@ project_reset = Route(
     'projects/{project_id}/reset',
     patch=reset
 )
+project_download = Route(
+    'projects/{project_id}/download',
+    get=download
+)
 spiders_list = Route(
     'projects/{project_id}/spiders',
     get=list_spiders,
@@ -131,6 +136,10 @@ spider = Route(
     get=get_spider,
     patch=update_spider,
     delete=delete_spider
+)
+spider_download = Route(
+    'projects/{project_id}/download/{spider_id}',
+    get=download
 )
 samples_list = Route(
     'projects/{project_id}/spiders/{spider_id}/samples',
@@ -172,6 +181,7 @@ routes = [
     item_sub_annotations,
     projects_list,
     project,
+    project_download,
     project_publish,
     project_reset,
     project_status,
@@ -182,4 +192,5 @@ routes = [
     schema,
     spiders_list,
     spider,
+    spider_download,
 ]

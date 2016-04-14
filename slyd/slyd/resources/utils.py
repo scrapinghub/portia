@@ -15,6 +15,14 @@ from slybot.plugins.scrapely_annotations.migration import (port_sample,
 SLYBOT_VERSION = slybot.__version__
 
 
+class BaseApiResponse(object):
+    def __init__(self, data):
+        self.data = data
+
+    def format_response(self, request, data):
+        raise NotImplementedError
+
+
 def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
     sample = manager.resource('spiders', spider_id, sample_id)
     if not sample.get('name'):

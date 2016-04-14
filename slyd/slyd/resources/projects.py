@@ -5,7 +5,7 @@ import json
 from .models import (ProjectSchema, SchemaSchema, FieldSchema, ExtractorSchema,
                      SpiderSchema)
 from .schemas import _read_schemas
-from .utils import _read_extractors
+from .utils import _read_extractors, BaseApiResponse
 from ..errors import BadRequest, BaseError, NotFound
 from ..utils.projects import ctx, init_project
 NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
@@ -99,6 +99,28 @@ def reset(manager, attributes=None):
         raise BadRequest('There are no changes to discard')
     manager.pm.discard_changes(project_id)
     return get_project(manager)
+
+
+class ProjectsManagerFileResponse(BaseApiResponse):
+    def __init__(self, data, command, project_manager):
+        super(ProjectsManagerFileResponse, self).__init__(data)
+        self.command = command
+        self.project_manager = project_manager
+
+    def format_response(self, request, data):
+        return self.project_manager._render_file(request, self.command, data)
+
+
+def download(manager, spider_id=None, attributes=None):
+    project_id = manager.project_name
+    spider_ids = [spider_id] if spider_id is not None else '*'
+    command = {
+        'cmd': 'download',
+        'args': [project_id, spider_ids]
+    }
+
+    file_content = manager.pm.download_project(project_id, spider_ids)
+    return ProjectsManagerFileResponse(file_content, command, manager.pm)
 
 
 def _check_project_attributes(manager, attributes):
