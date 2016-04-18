@@ -1,14 +1,18 @@
 import json
 from six.moves.urllib.parse import unquote
 
+from functools import partial
 from itertools import groupby
 from operator import itemgetter
 
+from twisted.internet.defer import Deferred
+from twisted.web.server import NOT_DONE_YET
 from jsonschema.exceptions import ValidationError as jsValidationError
 from marshmallow.exceptions import ValidationError as mwValidationError
 from parse import compile
 
 from .resources import routes
+from .resources.utils import BaseApiResponse
 from .errors import BadRequest, NotFound, BaseError, InternalServerError
 
 
@@ -58,15 +62,27 @@ class APIResource(object):
                                 request.auth_info)
                             manager.pm = self.spec_manager.project_manager(
                                 request.auth_info)
+                            manager.pm.request = request
                         else:
                             manager = self.spec_manager.project_manager(
                                 request.auth_info)
                         parsed = {k: unquote(v)
                                   for k, v in parsed.named.items()}
                         parsed['attributes'] = load_attributes(request)
-                        return self.format_response(request,
-                                                    callback(manager,
-                                                             **parsed))
+
+                        api_response = callback(manager, **parsed)
+                        data = api_response
+                        if isinstance(api_response, BaseApiResponse):
+                            data = api_response.data
+
+                        if isinstance(data, Deferred):
+                            data.addCallbacks(
+                                partial(self.deferred_finished, request,
+                                        api_response),
+                                partial(self.deferred_failed, request))
+                            return NOT_DONE_YET
+
+                        return self.format_response(request, api_response, data)
         # except KeyError as ex:
         #     if isinstance(ex, KeyError):
         #         ex = NotFound('Resource not found',
@@ -87,7 +103,10 @@ class APIResource(object):
         #                                            'No route matches: '
         #                                            '"%s"' % request.path))
 
-    def format_response(self, request, data):
+    def format_response(self, request, api_response, data):
+        if isinstance(api_response, BaseApiResponse):
+            return api_response.format_response(request, data)
+
         status = 200
         if request.method == 'POST':
             status = 204 if data is None else 201
@@ -107,6 +126,22 @@ class APIResource(object):
         if _id is not None:
             data['id'] = _id
         return json.dumps({'errors': [data]})
+
+    def deferred_finished(self, request, api_response, data):
+        data = self.format_response(request, api_response, data)
+        request.write(data)
+        request.finish()
+
+    def deferred_failed(self, request, failure):
+        error = failure.value
+        if isinstance(error, BaseError):
+            body = self.format_error(request, error)
+            request.write(body)
+        else:
+            request.setResponseCode(500)
+            request.write(failure.getErrorMessage())
+        request.finish()
+        return failure
 
     def _handle_uncaught_exception(self, ex):
         # TODO: log and return traceback
