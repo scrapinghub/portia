@@ -22,6 +22,7 @@ Handle generated annotations
     3. Remove extra annotation metadata
 """
 import json
+import re
 
 import slybot
 
@@ -97,6 +98,14 @@ def find_element(tagid, sel):
         return elements[0]._root
 
 
+def css_escape(s):
+    """from http://mathiasbynens.be/notes/css-escapes"""
+    s = re.sub(r'(^-$|[ !"#\$%&\'()*+,./:;<=>?@\[\\\]^`{|}~])', r'\\\1', s)
+    s = re.sub(r'^(-?)(\d)', lambda m: '%s\%x ' % (m.group(1), ord(m.group(2))), s)
+    s = re.sub(r'([\t\n\v\f\r])', lambda m: '\%x ' % ord(m.group(1)), s)
+    return s
+
+
 def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     """Find a unique selector for an element.
 
@@ -114,8 +123,10 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
         return index
 
     elem_id = elem.attrib.get('id')
-    if elem_id and len(sel.css('#%s' % elem_id)) == 1 and depth > 1:
-        return '#%s' % elem_id
+    if elem_id:
+        id_selector = '#%s' % css_escape(elem_id)
+        if len(sel.css(id_selector)) == 1 and depth > 1:
+            return id_selector
 
     # Inherently unique by tag name
     tag_name = elem.tag
@@ -127,7 +138,7 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     classes = elem.get('class', '').split()
     if classes:
         for class_name in classes:
-            selector = '.%s' % class_name
+            selector = '.%s' % css_escape(class_name)
             matches = sel.css(selector)
             if len(matches) == 1:
                 return selector
