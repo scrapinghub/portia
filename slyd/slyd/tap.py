@@ -43,6 +43,7 @@ def create_root(config, settings_module):
     from .specmanager import SpecManager
     from .authmanager import AuthManager
     from .projectspec import create_project_resource
+    from slyd.api import APIResource
     from slyd.bot import create_bot_resource
     from slyd.projects import create_projects_manager_resource
 
@@ -74,6 +75,9 @@ def create_root(config, settings_module):
     # add projects manager at /projects
     projects = create_projects_manager_resource(spec_manager)
     root.putChild('projects', projects)
+
+    # # add json api routes
+    root.putChild('api', APIResource(spec_manager))
 
     # add crawler at /projects/PROJECT_ID/bot
     projects.putChild('bot', create_bot_resource(spec_manager))
