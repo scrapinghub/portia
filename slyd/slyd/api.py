@@ -13,7 +13,10 @@ from parse import compile
 
 from .resources import routes
 from .resources.utils import BaseApiResponse
-from .errors import BadRequest, NotFound, BaseError, InternalServerError
+from .errors import (
+    BadRequest, NotFound, BaseError, InternalServerError, Forbidden
+)
+FORBIDDEN_TEXT = 'You do not have access to this project.'
 
 
 class APIResource(object):
@@ -57,6 +60,10 @@ class APIResource(object):
                     parsed = self._parse(route, request.postpath)
                     if parsed:
                         if 'project_id' in parsed.named:
+                            if not self._has_auth(request,
+                                                  parsed.named['project_id']):
+                                return self.format_error(
+                                    request, Forbidden(FORBIDDEN_TEXT))
                             manager = self.spec_manager.project_spec(
                                 parsed.named.pop('project_id'),
                                 request.auth_info)
@@ -146,6 +153,14 @@ class APIResource(object):
     def _handle_uncaught_exception(self, ex):
         # TODO: log and return traceback
         return InternalServerError('An unexpected error has occurred')
+
+    def _has_auth(self, request, project_id):
+        auth_info = request.auth_info
+        if ('authorized_projects' not in auth_info or
+                auth_info.get('staff', False) or
+                project_id in auth_info['authorized_projects']):
+            return True
+        return False
 
 
 def load_attributes(request):
