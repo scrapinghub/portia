@@ -6,6 +6,7 @@ from collections import defaultdict, namedtuple
 from cStringIO import StringIO
 from itertools import groupby, chain
 from operator import itemgetter
+import operator
 
 from numpy import array
 from six.moves import xrange
@@ -39,6 +40,11 @@ _DEFAULT_EXTRACTOR = FieldTypeManager().type_processor_class('text')()
 Region = namedtuple('Region', ['score', 'start_index', 'end_index'])
 container_id = lambda x: x.annotation.metadata.get('container_id')
 
+def _int_cmp(a, op, b):
+    op = getattr(operator, op)
+    a = -float('inf') if a is None else a
+    b = -float('inf') if b is None else b
+    return op(a, b)
 
 class MissingRequiredError(Exception):
     pass
@@ -143,7 +149,7 @@ class SlybotRecordExtractor(RecordExtractor):
             ignored_regions = []
         extractors = sorted(self.extractors + ignored_regions,
                             key=lambda x: labelled_element(x).start_index)
-        _, _, attributes = self._doextract(page, extractors, start_index,
+        _, _, attributes = self._doextract(page, extractors + ignored_regions, start_index,
                                            end_index, **kwargs)
         return list(attributes)
 
@@ -154,6 +160,18 @@ class SlybotRecordExtractor(RecordExtractor):
         nested_regions = nested_regions or []
         ignored_regions = ignored_regions or []
         first_extractor, following_extractors = extractors[0], extractors[1:]
+        while (following_extractors and
+               _int_cmp(labelled_element(following_extractors[0]).start_index, 'lt',
+                        labelled_element(first_extractor).end_index)):
+            ex = following_extractors.pop(0)
+            labelled = labelled_element(ex)
+            if (isinstance(labelled, AnnotationTag) or
+                (nested_regions and
+                 _int_cmp(labelled_element(nested_regions[-1]).start_index, 'lt', labelled.start_index) and
+                 _int_cmp(labelled.start_index, 'lt', labelled_element(nested_regions[-1]).end_index))):
+                nested_regions.append(ex)
+            else:
+                ignored_regions.append(ex)
         lelem = labelled_element
         extracted_data = []
         # end_index is inclusive, but similar_region treats it as exclusive
@@ -181,7 +199,9 @@ class SlybotRecordExtractor(RecordExtractor):
                     page, following_extractors, sindex or start_index,
                     end_index, **kwargs)
                 extracted_data += following_data
-
+            if nested_regions:
+                _, _, nested_data = self._doextract(page, nested_regions, pindex, sindex, **kwargs)
+                extracted_data += nested_data
         elif following_extractors:
             end_index, _, following_data = self._doextract(
                 page, following_extractors, start_index, end_index, **kwargs)
@@ -191,6 +211,10 @@ class SlybotRecordExtractor(RecordExtractor):
                     nested_regions, ignored_regions, **kwargs
                 )
             extracted_data += following_data
+        elif nested_regions:
+            _, _, nested_data = self._doextract(page, nested_regions, start_index, end_index, **kwargs)
+            extracted_data += nested_data
+
         if (hasattr(first_extractor, 'annotation') and
                 first_extractor.annotation):
             annotation = first_extractor.annotation or []
@@ -414,12 +438,13 @@ class BaseContainerExtractor(object):
         if (hasattr(self.schema, '_item_validates') and
                 not self.schema._item_validates(new_item_fields)):
             return {}
-        new_item = {getattr(f, 'description', f): v
-                    for f, v in new_item.items()}
+        merged_item = defaultdict(list)
+        for f, v in new_item.iteritems():
+            merged_item[getattr(f, 'description', f)] += v
         _type = getattr(self.schema, 'description', None)
         if _type:
-            new_item[u'_type'] = _type
-        return dict(new_item)
+            merged_item[u'_type'] = _type
+        return dict(merged_item)
 
     def _process_fields(self, annotations, regions, htmlpage):
         for annotation in arg_to_iter(annotations):
@@ -436,8 +461,9 @@ class BaseContainerExtractor(object):
                     text_extractor = TextRegionDataExtractor(
                         annotation.get('pre_text', ''),
                         annotation.get('post_text', ''))
+                    field_extraction = copy.deepcopy(field_extraction)
                     field_extraction.extractor = _compose(
-                        field_extraction.extractor, text_extractor)
+                        field_extraction.extractor, text_extractor.extract)
                 extracted = self._process_values(
                     regions, htmlpage, field_extraction
                 )
