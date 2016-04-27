@@ -79,7 +79,6 @@ def port_sample(sample):
     new_annotations.extend(standard_annos)
     new_annotations.extend(port_generated(generated_annos, sel))
     new_annotations.extend(port_variants(variant_annos, sel))
-
     # Update annotations
     sample['plugins']['annotations-plugin']['extracts'] = new_annotations
     sample['version'] = SLYBOT_VERSION
@@ -336,12 +335,14 @@ def port_generated(generated_annotations, sel):
         else:
             text = element.text
         text = (text or '').strip()
-        data = annotation['data']
-        content_field = annotation.get('text-content', 'content')
-        anno = data.get(content_field)
-        if anno:
-            anno['pre_text'] = text[0:slice[0]]
-            anno['post_text'] = text[slice[1]:]
+        for anno_id, anno in annotation['data'].iteritems():
+            attribute = anno.get('attribute')
+            if attribute == 'content' or attribute == 'text-content':
+                pre_text = text[0:slice[0]]
+                post_text = text[slice[1]:]
+                if pre_text or post_text:
+                    anno['pre_text'] = pre_text
+                    anno['post_text'] = post_text
         # Create new text region field
         annotation.pop('variant', None)
         del annotation['generated']
