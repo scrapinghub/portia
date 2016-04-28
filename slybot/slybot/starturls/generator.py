@@ -94,3 +94,6 @@ class UrlGenerator(object):
         params = [self._build_section(d, True) for d in spec.get('params', [])]
         url_generator = self._generate_urls(template, paths, param, params)
         return url_generator
+
+
+generator = UrlGenerator()
