@@ -57,3 +57,17 @@ export function logError(err, params) {
     }
 }
 
+export function renameAttr($elements, from, to) {
+    if (to === from) {
+        return $elements;
+    }
+
+    return $elements.each(function() {
+        if (this.hasAttribute(from)) {
+            this.setAttribute(to, this.getAttribute(from));
+            this.removeAttribute(from);
+        } else if (this.hasAttribute(to)) {
+            this.removeAttribute(to);
+        }
+    });
+}

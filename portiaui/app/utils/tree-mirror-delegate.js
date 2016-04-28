@@ -49,6 +49,7 @@ function addEmbedBlockedMessage(node) {
 
 export default function treeMirrorDelegate(){
     return {
+        cssEnabled: true,
         createElement: function(tagName) {
             var node = null;
             if(tagName === 'SCRIPT' || tagName === 'META' || tagName === 'BASE') {
@@ -64,7 +65,6 @@ export default function treeMirrorDelegate(){
             if(tagName === 'FORM') {
                 $(node).on('submit', ()=>false);
             } else if (tagName === 'IFRAME' || tagName === 'FRAME') {
-                // TODO: copy file to new UI
                 node.setAttribute('src', '/static/frames-not-supported.html');
             } else if (tagName === 'CANVAS') {
                 paintCanvasMessage(node);
@@ -82,6 +82,24 @@ export default function treeMirrorDelegate(){
                 (attrName === 'data' || attrName === 'src')) // Block embed / object
             ) {
                 return true;
+            }
+
+            // make sure tree mutations take into account disabled CSS
+            if (!this.cssEnabled) {
+                if (attrName === 'style') {
+                    attrName = 'data-portia-hidden-style';
+                } else if (node.tagName === 'STYLE' && attrName === 'media') {
+                    attrName = 'data-portia-hidden-media';
+                } else if (node.tagName === 'LINK') {
+                    if (attrName === 'media' && node.getAttribute('rel') === 'stylesheet') {
+                        attrName = 'data-portia-hidden-media';
+                    } else if (attrName === 'rel' && value === 'stylesheet' &&
+                               node.hasAttribute('media')) {
+                        node.setAttribute('data-portia-hidden-media',
+                                          node.getAttribute('media'));
+                        node.removeAttribute('media');
+                    }
+                }
             }
 
             try{
