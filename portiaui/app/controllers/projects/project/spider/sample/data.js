@@ -3,6 +3,7 @@ import {getColors} from '../../../../../utils/colors';
 import {elementPath} from '../../../../../utils/selectors';
 
 export default Ember.Controller.extend({
+    browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
@@ -25,6 +26,7 @@ export default Ember.Controller.extend({
         edit: 'tool-multiple-button'
     },
 
+    cssEnabled: Ember.computed.readOnly('browser.cssEnabled'),
     magicToolActive: Ember.computed.alias('uiState.selectedTools.magicToolActive'),
     hoveredElement: Ember.computed.readOnly('uiState.viewPort.hoveredElement'),
     originalSelectedElement: Ember.computed.alias('uiState.viewPort.originalSelectedElement'),
@@ -220,6 +222,15 @@ export default Ember.Controller.extend({
         }),
 
     actions: {
+        toggleCSS() {
+            const browser = this.get('browser');
+            if (this.get('cssEnabled')) {
+                browser.disableCSS();
+            } else {
+                browser.enableCSS();
+            }
+        },
+
         toggleMagicTool() {
             const magicToolActive = this.get('magicToolActive');
             const selectionMode = this.get('selectionMode');

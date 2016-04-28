@@ -1,16 +1,67 @@
 import Ember from 'ember';
-import { cleanUrl } from '../utils/utils';
-
+import { cleanUrl, renameAttr } from '../utils/utils';
 
 export const NAVIGATION_MODE = 'navigation';
 export const ANNOTATION_MODE = 'data-annotation';
 export const INTERACTION_MODES = new Set([ANNOTATION_MODE]);
 export const DEFAULT_MODE = NAVIGATION_MODE;
 
-export default Ember.Service.extend({
+const META_STYLE = `<style title="portia-show-meta">
+    head {
+        display: block;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex-direction: column;
+        flex-direction: column;
+    }
+    title, meta, link {
+        display: block;
+    }
+    title {
+        -webkit-order: 0;
+        order: 0;
+        font-weight: bold;
+    }
+    title::before {
+        content: 'Title: ';
+        font-weight: normal;
+    }
+    meta {
+        -webkit-order: 1;
+        order: 1;
+    }
+    meta[name][content]::after {
+        content: attr(name) ': "' attr(content) '"';
+    }
+    meta[property][content]::after {
+        content: attr(property) ': "' attr(content) '"';
+    }
+    meta[itemprop][content]::after {
+        content: attr(itemprop) ': "' attr(content) '"';
+    }
+    link {
+        -webkit-order: 2;
+        order: 2;
+    }
+    link[href][rel]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(data-portia-href) '"';
+    }
+    link[href][rel][data-portia-hidden-media]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(data-portia-href) '" media: "' attr(data-portia-hidden-media) '"';
+    }
+    link[href][rel][type]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(data-portia-href) '" type: "' attr(type) '"';
+    }
+    link[href][rel][type][data-portia-hidden-media]::after {
+        content: 'Link: rel: "' attr(rel) '" href: "' attr(data-portia-href) '" type: "' attr(type) '" media: "' attr(data-portia-hidden-media) '"';
+    }
+</style>`;
+
+export default Ember.Service.extend(Ember.Evented, {
     webSocket: Ember.inject.service(),
 
     backBuffer: [],
+    cssEnabled: true,
     document: null,
     forwardBuffer: [],
     loading: false,
@@ -47,6 +98,15 @@ export default Ember.Service.extend({
         return document ? Ember.$(document) : null;
     }),
 
+    init() {
+        this._super(...arguments);
+        this.on('contentChanged', () => {
+            Ember.run.next(() => {
+                Ember.run.scheduleOnce('sync', this, 'checkCSS');
+            });
+        });
+    },
+    
     resetUrl: Ember.observer('document', function() {
         if (!this.get('document')) {
             this.setProperties({
@@ -99,6 +159,51 @@ export default Ember.Service.extend({
         this.notifyPropertyChange('_url');
     },
 
+    checkCSS() {
+        const $iframe = this.get('$document');
+        const $showMetaStyleElement = $iframe.find('style[title="portia-show-meta"]');
+        const cssEnabled = !$showMetaStyleElement.length;
+        this.set('cssEnabled', cssEnabled);
+    },
+
+    disableCSS() {
+        if (![ANNOTATION_MODE].includes(this.get('mode'))) {
+            return;
+        }
+
+        const iframe = this.get('document');
+        if (this.get('cssEnabled') && iframe) {
+            const $iframe = this.get('$document');
+            const $styles = $iframe.find(
+                'style:not([title="portia-show-meta"]), link[rel="stylesheet"]');
+            renameAttr($styles, 'media', 'data-portia-hidden-media');
+            // disable stylesheets using an impossible media query
+            $styles.attr('media', '(width: -1px)');
+            renameAttr($iframe.find('[style]'), 'style', 'data-portia-hidden-style');
+            $iframe.find('body').append(META_STYLE);
+            this.set('cssEnabled', false);
+        }
+    },
+
+    enableCSS() {
+        if (![ANNOTATION_MODE].includes(this.get('mode'))) {
+            return;
+        }
+
+        const iframe = this.get('document');
+        if (!this.get('cssEnabled') && iframe) {
+            const $iframe = this.get('$document');
+            $iframe.find('style[title="portia-show-meta"]').remove();
+            const $styles = $iframe.find(
+                'style:not([title="portia-show-meta"]), link[rel="stylesheet"]');
+            $styles.attr('media', null);
+            renameAttr($styles, 'data-portia-hidden-media', 'media');
+            renameAttr($iframe.find('[data-portia-hidden-style]'),
+                                    'data-portia-hidden-style', 'style');
+            this.set('cssEnabled', true);
+        }
+    },
+
     setAnnotationMode() {
         this.set('mode', ANNOTATION_MODE);
     },
@@ -106,6 +211,7 @@ export default Ember.Service.extend({
     clearAnnotationMode() {
         if (this.get('mode') === ANNOTATION_MODE) {
             this.set('mode', DEFAULT_MODE);
+            this.enableCSS();
         }
     }
 });

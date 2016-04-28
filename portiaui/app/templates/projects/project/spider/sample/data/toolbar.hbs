@@ -2,6 +2,28 @@
 
 <div class="tool-bar">
     <div class="btn-group" role="group">
+        {{#tooltip-container tooltipFor="css-tool-button" placement='left' tooltipContainer='body' as |options| }}
+            {{#if (eq options.section 'tooltip')}}
+                Toggle page styling
+                <p>
+                    When page styling is enabled you see the web page as the page author intended,
+                    the same way it would appear in a browser. However, sometimes this makes it hard
+                    to select the data that you need, for example if there are overlapping parts of
+                    the page or if some parts are hidden.
+                </p>
+                <p>
+                    You can disable the page styling which will change the look and layout of the
+                    page but will force all content within the page to become visible.
+                </p>
+            {{else}}
+                <button id="css-tool-button" type="button" class="btn btn-default {{if cssEnabled 'active'}}" {{action 'toggleCSS'}}>
+                    {{icon-button icon='tool-css'}}
+                </button>
+            {{/if}}
+        {{/tooltip-container}}
+    </div>
+
+    <div class="btn-group" role="group">
         {{#tooltip-container tooltipFor="magic-tool-button" placement='left' tooltipContainer='body' as |options| }}
             {{#if (eq options.section 'tooltip')}}
                 Magic tool selector
