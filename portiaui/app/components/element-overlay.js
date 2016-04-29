@@ -44,37 +44,55 @@ export default Ember.Component.extend({
             const newElement = attrValue(newAttrs.viewPortElement);
             const positionMonitor = this.get('positionMonitor');
             if (oldElement) {
-                positionMonitor.unRegisterElement(oldElement, this, null, this.updatePosition);
+                positionMonitor.unRegisterElement(
+                    oldElement, this, this.readContainerSize, this.updatePosition);
             }
             if (newElement) {
                 Ember.run.schedule('afterRender', () => {
-                    positionMonitor.registerElement(newElement, this, null, this.updatePosition);
+                    positionMonitor.registerElement(
+                        newElement, this, this.readContainerSize, this.updatePosition);
                 });
             }
         }
     },
 
-    updatePosition(rect) {
+    readContainerSize(rects, boundingRect, element) {
+        this.containerSize = {
+            width: element.ownerDocument.defaultView.innerWidth,
+            height: element.ownerDocument.defaultView.innerHeight
+        };
+    },
+
+    updatePosition(rects) {
         if (!this.element) {
             return;
         }
 
-        const left = Math.round(rect.left);
-        const top = Math.round(rect.top);
+        let left = 0;
+        let top = 0;
+        let width = 0;
+        let height = 0;
         let style = '';
+
+        if (rects.length) {
+            left = Math.round(Math.min(this.containerSize.width, Math.max(0, rects[0].left)));
+            top = Math.round(Math.min(this.containerSize.height, Math.max(0, rects[0].top)));
+            width = Math.round(Math.min(this.containerSize.width,
+                                        Math.max(0, rects[0].right))) - left;
+            height = Math.round(Math.min(this.containerSize.height,
+                                         Math.max(0, rects[0].bottom))) - top;
+        }
 
         switch (this.get('positionMode')) {
             case 'size':
-                const width = Math.round(rect.width);
-                const height = Math.round(rect.height);
                 style = `transform: translate(${left}px, ${top}px);
                          width: ${width}px; height: ${height}px;`;
                 break;
 
             case 'edges':
                 // container is positioned in top left, and has zero width and height
-                const right = -left + -Math.round(rect.width);
-                const bottom = -top + -Math.round(rect.height);
+                const right = -left + -width;
+                const bottom = -top + -height;
                 style = `left: ${left}px; right: ${right}px; top: ${top}px; bottom: ${bottom}px;`;
                 break;
         }
