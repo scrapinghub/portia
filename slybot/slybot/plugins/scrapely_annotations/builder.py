@@ -12,6 +12,36 @@ from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
                     OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
 
 
+def merge_containers(annotations):
+    """If there are several different items with the same container, reuse
+    the container for all of them"""
+    final_annotations = []
+    grouped_by_tagid = defaultdict(list)
+    for annotation in annotations:
+        if annotation.get('item_container'):
+            grouped_by_tagid[annotation['tagid']].append(annotation)
+        else:
+            final_annotations.append(annotation)
+    rename_id = {}
+    for tagid, annotations in grouped_by_tagid.iteritems():
+        if len(annotations) > 1:
+            old_id = [annotation['id'] for annotation in annotations]
+            new_id = '|'.join(old_id)
+            new_annotation = annotations[0]
+            new_annotation['id'] = new_id
+            final_annotations.append(new_annotation)
+            for annotation_id in old_id:
+                rename_id[annotation_id] = new_id
+        else:
+            final_annotations.append(annotations[0])
+    for annotation in final_annotations:
+        container_id = annotation.get('container_id')
+        if container_id in rename_id:
+            annotation['container_id'] = rename_id[container_id]
+    return sorted(final_annotations,
+                  key=lambda annotation: annotation.get('item_id', ''))
+
+
 class Annotations(object):
 
     def save_extraction_data(self, data, template, options={}):
@@ -40,7 +70,8 @@ class Annotations(object):
             ]
         }
         """
-        annotation_data = _clean_annotation_data(data.get('extracts', []))
+        annotation_data = merge_containers(
+            _clean_annotation_data(data.get('extracts', [])))
         data['extracts'] = annotation_data
         template['annotated_body'] = apply_annotations(
             annotation_data,

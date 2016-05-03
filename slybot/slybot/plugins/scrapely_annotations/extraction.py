@@ -359,16 +359,16 @@ class BaseContainerExtractor(object):
         for container_name, container_data in tree.items():
             if container_name not in containers:
                 continue  # Ignore missing containers
-            containers = container_annos[container_name]
             annotation = None
             for a in template.annotations:
                 if a.metadata.get('id') == container_name:
                     annotation = a
                     break
-            if containers:
+            container_contents = container_annos[container_name]
+            if container_contents and annotation:
                 cls._add_new_container(
                     annotation, container_extractors, container_data,
-                    template, container_annos, containers, legacy)
+                    template, container_annos, container_contents, legacy)
         return container_extractors
 
     @staticmethod
