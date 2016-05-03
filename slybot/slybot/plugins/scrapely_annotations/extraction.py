@@ -292,10 +292,11 @@ class BaseContainerExtractor(object):
                     self._add_new_container(
                         annotation, new_extractors, container_data, template,
                         containers, container_contents, legacy)
-        self.annotation = None
+        if not hasattr(self, 'annotation'):
+            self.annotation = None
         if annotation:
             self.annotation = annotation
-        elif new_extractors:
+        elif new_extractors and self.annotation is None:
             self.annotation = new_extractors[0].annotation
         return new_extractors
 
@@ -399,8 +400,10 @@ class BaseContainerExtractor(object):
         """
         Look for an annotation with the given id in the given template
         """
+        annotation_id = annotation_id.decode('utf-8')
         for annotation in template.annotations:
-            if annotation.metadata.get('id') == annotation_id:
+            aid = annotation.metadata.get('id', '').decode('utf-8')
+            if aid == annotation_id:
                 return annotation
 
     def _validate_and_adapt_item(self, item, htmlpage):
@@ -705,7 +708,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
     def _find_siblings(self, template, containers, container_contents):
         child_id = container_contents[0].annotation.metadata['container_id']
         child = self.annotation = containers[child_id][0].annotation
-        parent_id = self.annotation.metadata.get('container_id')
+        parent_id = child.metadata.get('container_id')
         parent = self._find_annotation(template, parent_id)
         siblings = child.metadata.get('siblings', 0)
         end = child.end_index
@@ -718,6 +721,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                                       child.annotation_text,
                                       child.tag_attributes)
             new_child.metadata = child.metadata
+            self.annotation = new_child
             return (parent, new_child)
         return parent, child
 

@@ -149,7 +149,10 @@ const BrowserIFrame = Ember.Component.extend({
             });
         }
         this.iframePromise.then(() => {
+            const browser = this.get('browser');
+            this.treeMirror.delegate.cssEnabled = browser.get('cssEnabled');
             this.treeMirror[action].apply(this.treeMirror, args);
+            browser.trigger('contentChanged');
         });
     },
 

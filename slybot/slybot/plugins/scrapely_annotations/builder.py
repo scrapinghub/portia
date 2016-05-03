@@ -139,7 +139,8 @@ def _gen_annotation_info(annotation):
             'schema_id': annotation.get('schema_id'),
             'repeated': annotation.get('repeated'),
             'siblings': annotation.get('siblings'),
-            'field': annotation.get('field')
+            'field': annotation.get('field'),
+            'selector': annotation.get('selector')
         })
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):

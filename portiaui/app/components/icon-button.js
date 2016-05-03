@@ -30,6 +30,7 @@ export const ICON_CLASSES = {
     spider: 'portia-icon portia-icon-spider',
     structure: 'fa fa-sitemap',
     text: 'portia-icon portia-icon-text',
+    'tool-css': 'fa fa-file-code-o',
     'tool-magic': 'fa fa-magic fa-flip-horizontal',
     'tool-select': 'fa fa-mouse-pointer',
     'tool-add': 'fa fa-plus',
