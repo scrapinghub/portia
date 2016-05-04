@@ -1,3 +1,5 @@
+from itertools import chain
+
 from scrapy.http.request import Request
 from scrapy.utils.request import request_fingerprint
 
@@ -5,10 +7,11 @@ from slybot.validation.schema import get_schema_validator
 
 from .models import SampleSchema, HtmlSchema
 from .annotations import _update_annotation
-from .item_annotations import _update_item_annotation
+from .items import _port_annotation_fields
+from .item_annotations import _update_item_annotation, _strip_parent
 from .utils import (_load_sample, _create_schema, _get_formatted_schema,
                     _process_annotations, _add_items_and_annotations,
-                    SLYBOT_VERSION)
+                    _read_schemas, SLYBOT_VERSION)
 from ..errors import BadRequest
 from ..utils.projects import ctx, gen_id
 
@@ -41,7 +44,7 @@ def create_sample(manager, spider_id, attributes):
     if 'version' not in attributes:
         attributes['version'] = SLYBOT_VERSION
     manager.savejson(attributes, ['spiders', spider_id, sample_id])
-    attributes = _load_sample(manager, spider_id, sample_id)
+    attributes = _load_sample(manager, spider_id, sample_id, sample=attributes)
     manager.savejson(attributes, ['spiders', spider_id, sample_id])
     spider['template_names'].append(sample_id)
     manager.savejson(spider, ['spiders', spider_id])
@@ -56,13 +59,19 @@ def update_sample(manager, spider_id, sample_id, attributes):
     includes = attributes.pop('includes', [])
     attributes = _check_sample_attributes(attributes)
     sample = _load_sample(manager, spider_id, sample_id)
+    schemas = {}
     if includes:
-        annotations = _update_annotations(sample, includes)
+        annotations, schemas = _update_annotations(manager, sample, includes)
         sample['plugins']['annotations-plugin']['extracts'] = annotations
     sample.update(attributes)
     get_schema_validator('template').validate(sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    return _process_sample(sample, manager, spider_id)
+    sample = _process_sample(sample, manager, spider_id)
+    schemas = [_get_formatted_schema(manager, sid, schema, True)
+               for sid, schema in schemas.items()]
+    sample.setdefault('included', []).extend(s['data'] for s in schemas)
+    sample['included'].extend(chain(*(s['included'] for s in schemas)))
+    return sample
 
 
 def delete_sample(manager, spider_id, sample_id, attributes=None):
@@ -107,16 +116,35 @@ def _process_sample(sample, manager, spider_id):
                                       item_annotations, _ctx)
 
 
-def _update_annotations(sample, includes):
+def _update_annotations(manager, sample, includes):
     annotations = sample['plugins']['annotations-plugin']['extracts']
     new_annotations = [c for c in annotations if c.get('item_container')]
-    containers = []
-    for annotation in includes:
-        if annotation['type'] == 'annotations':
+    old_containers = {c['id']: c for c in new_annotations}
+    containers = {}
+    for annotation in sorted(includes, key=lambda x: x.get('type')):
+        _type = annotation['type']
+        if _type == 'annotations':
             annotation, _ = _update_annotation(sample, annotation)
             new_annotations.append(annotation)
-        elif annotation['type'] == 'item-annotations':
-            containers.append(annotation)
-    for container in containers:
-        _update_item_annotation(sample, container, new_annotations)
-    return new_annotations
+        elif _type == 'item-annotations':
+            containers[annotation['id']] = annotation
+        elif _type == 'items':
+            rels = annotation['relationships']
+            containers[annotation['id']]['relationships'].update(rels)
+    new_schemas, schemas = {}, None
+    for cid, container in containers.items():
+        old_schema_id = old_containers[cid]['schema_id']
+        con, _ = _update_item_annotation(sample, container, new_annotations)
+        if schemas is None:
+            schemas = _read_schemas(manager)
+        if con['schema_id'] != old_schema_id and old_schema_id is not None:
+            ids = {con['id'], _strip_parent(con['id'])}
+            filtered_annotations = [a for a in new_annotations
+                                    if not a.get('item_container') and
+                                    a.get('container_id') in ids]
+            _, new_schema, _, schemas = _port_annotation_fields(
+                old_schema_id, con['schema_id'], schemas, filtered_annotations)
+            new_schemas[con['schema_id']] = new_schema
+    if new_schemas:
+        manager.savejson(schemas, ['items'])
+    return new_annotations, new_schemas

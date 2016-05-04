@@ -91,7 +91,7 @@ def update_item(manager, spider_id, sample_id, item_id, attributes):
     relationships = _load_relationships(attributes['data'])
     schema_id = relationships.get('schema_id')
     schema = {'id': schema_id}
-    ported = False
+    schemas, ported = None, False
     filtered = [a for a in all_annotations if a.get('container_id') in ids]
     for annotation in annotations:
         if schema_id is not None:
@@ -102,9 +102,21 @@ def update_item(manager, spider_id, sample_id, item_id, attributes):
                 schema['id'] = schema_id
                 ported = True
             annotation['schema_id'] = schema_id
+            if (not ported and 'schema_id' in annotation and
+                    schema_id != annotation['schema_id']):
+                if schemas is None:
+                    schemas = _read_schemas(manager)
+                _, schema, _ported, schemas = _port_annotation_fields(
+                    annotation['schema_id'], schema_id, schemas, filtered)
+                schema['id'] = schema_id
+                if _ported:
+                    ported = True
+            annotation['schema_id'] = schema_id
         elif 'schema_id' in annotation:
             schema_id = annotation['schema_id']
             schema = {'id': schema_id}
+    if ported:
+        manager.savejson(schemas, ['items'])
     annotation['container_id'] = relationships.get('parent_id')
     annotation = sorted(annotations, key=lambda x: x['id'], reverse=True)[0]
     manager.savejson(sample, ['spiders', spider_id, sample_id])
@@ -181,9 +193,8 @@ def _item(sample, schema, item_annotation, annotations=None, context=None,
     return item
 
 
-def _port_annotation_fields(manager, old_schema_id, new_schema_id,
+def _port_annotation_fields(old_schema_id, new_schema_id, schemas,
                             annotations):
-    schemas = _read_schemas(manager)
     old_schema, new_schema = schemas[old_schema_id], schemas[new_schema_id]
     new_schemas_names = {
         d.get('name', _id): _id for _id, d in new_schema['fields'].items()
@@ -199,7 +210,7 @@ def _port_annotation_fields(manager, old_schema_id, new_schema_id,
             else:
                 if not field:
                     field = {
-                        'name': 'field%s' % len(new_schema['fields']),
+                        'name': 'field%s' % (len(new_schema['fields']) + 1),
                         'vary': False,
                         'required': False,
                         'type': 'text'
@@ -207,6 +218,5 @@ def _port_annotation_fields(manager, old_schema_id, new_schema_id,
                 new_schema, fid = _create_field(new_schema, field, schemas)
                 new_fields = True
                 annotation['field'] = fid
-    if new_fields:
-        manager.savejson(schemas, ['items'])
-    return annotations, new_schema
+    schemas[new_schema_id] = new_schema
+    return annotations, new_schema, new_fields, schemas

@@ -23,8 +23,10 @@ class BaseApiResponse(object):
         raise NotImplementedError
 
 
-def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
-    sample = manager.resource('spiders', spider_id, sample_id)
+def _load_sample(manager, spider_id, sample_id, create_missing_item=True,
+                 sample=None):
+    if sample is None:
+        sample = manager.resource('spiders', spider_id, sample_id)
     if not sample.get('name'):
         sample['name'] = sample_id
     sample['id'] = sample_id
@@ -244,7 +246,6 @@ def _process_annotations(sample):
         item_annotations.append(container)
     annotations = [i for i in chain(*grouped.values())
                    if not i.get('item_container')]
-    print(containers)
     return items, annotations, item_annotations
 
 

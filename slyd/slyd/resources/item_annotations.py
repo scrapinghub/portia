@@ -1,6 +1,7 @@
 import copy
 
 from .annotations import _load_relationships
+from .items import _port_annotation_fields
 from .utils import _load_sample, _group_annotations
 from .models import ItemAnnotationSchema
 from ..utils.projects import ctx
@@ -34,7 +35,8 @@ def _update_item_annotation(sample, attributes, annotations):
     repeated_container_selectors = [
         s for s in attributes.pop('repeated_accept_selectors', []) if s
     ]
-    if repeated_container_selectors:
+    schema_id = relationships.get('schema_id')
+    if attributes.get('repeated') or repeated_container_selectors:
         repeated_container_id = _strip_parent(container['id'])
         repeated_container = containers.get(repeated_container_id)
         container_id = repeated_container_id + '#parent'
@@ -71,6 +73,8 @@ def _update_item_annotation(sample, attributes, annotations):
         repeated_container['container_id'] = container['id']
         repeated_container['siblings'] = attributes.pop('siblings', 0)
         repeated_container['accept_selectors'] = repeated_container_selectors
+        if schema_id:
+            repeated_container['schema_id'] = schema_id
         if repeated_container_selectors:
             repeated_container['selector'] = repeated_container_selectors[0]
     else:
@@ -87,9 +91,12 @@ def _update_item_annotation(sample, attributes, annotations):
                 if a.get('id') != repeated_container_id
             ]
             container['id'] = repeated_container_id
+            container['container_id'] = None
             sample['plugins']['annotations-plugin']['extracts'] = annotations
 
     parent_container_id = relationships.get('parent_id')
+    if schema_id:
+        container['schema_id'] = schema_id
     field = attributes.get('field')
     if field:
         container['field'] = field

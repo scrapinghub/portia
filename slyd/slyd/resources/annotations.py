@@ -205,6 +205,7 @@ def _update_annotation(sample, attributes):
     annotation['selector'] = data.get('selector', annotation['selector'])
     if annotation['selector'] is None:
         annotation['selector'] = ', '.join(annotation['accept_selectors'])
+    annotation['selection_mode'] = data.get('selection_mode', 'auto')
     return annotation, sample
 
 
