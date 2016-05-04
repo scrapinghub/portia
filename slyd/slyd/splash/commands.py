@@ -30,8 +30,7 @@ _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 
 
 def save_html(data, socket):
-    manager = socket.spec_manager.project_spec(data['project'],
-                                               socket.user.auth)
+    manager = socket.manager
     path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
     sample = _load_sample(manager, *path)
     stated_encoding = socket.tab.evaljs('document.characterSet')
@@ -78,8 +77,7 @@ def extract_items(data, socket):
 
 def _update_sample(data, socket, sample=None, save=False, use_live=False):
     """Recompile sample with latest annotations"""
-    spec = socket.spec_manager.project_spec(data['project'],
-                                            socket.user.auth)
+    spec = socket.manager
     if sample is None:
         sample = spec.resource('spiders', data['spider'], data['sample'])
     # TODO: Handle js enabled
@@ -102,8 +100,7 @@ def _update_sample(data, socket, sample=None, save=False, use_live=False):
 def update_spider(data, socket, spider=None):
     if not socket.spider:
         return
-    spec = socket.spec_manager.project_spec(data['project'],
-                                            socket.user.auth)
+    spec = socket.manager
     if spider is None:
         spider = spec.resource('spiders', data['spider'])
     socket.spider.plugins['Annotations'].build_url_filter(spider)
@@ -111,8 +108,7 @@ def update_spider(data, socket, spider=None):
 
 
 def _load_items_and_extractors(data, socket):
-    spec = socket.spec_manager.project_spec(data['project'],
-                                            socket.user.auth)
+    spec = socket.manager
     try:
         items = spec.resource('items')
     except TypeError:
@@ -339,8 +335,7 @@ class ProjectData(ProjectModifier):
             type = path[0]
         if any(v is None for v in (data, meta, socket)):
             raise BadRequest('No data provided')
-        spec = socket.spec_manager.project_spec(meta['project'],
-                                                socket.user.auth)
+        spec = socket.manager
         try:
             obj = self.verify_data(path, data, spec)
         except (KeyError, IndexError) as ex:
@@ -395,8 +390,7 @@ def delete_project_data(data, socket):
     """
     try:
         meta = data['_meta']
-        spec = socket.spec_manager.project_spec(meta['project'],
-                                                socket.user.auth)
+        spec = socket.manager
         option = meta.get('type', '')
         command = getattr(spec, 'remove_%s' % option)
         spider = meta['spider'].encode('utf-8')
@@ -423,8 +417,7 @@ def rename_project_data(data, socket):
     """
     try:
         meta = data['_meta']
-        spec = socket.spec_manager.project_spec(meta['project'],
-                                                socket.user.auth)
+        spec = socket.manager
         option = meta.get('type', '')
         command = getattr(spec, 'rename_%s' % option)
         spider = meta['spider'].encode('utf-8')

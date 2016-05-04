@@ -2,7 +2,6 @@ import json
 from os.path import splitext, split, join, sep
 from functools import wraps
 
-from twisted.internet.threads import deferToThread
 from twisted.internet.task import deferLater
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet import reactor
@@ -13,16 +12,6 @@ from slyd.errors import BadRequest
 from .repoman import Repoman
 from slyd.utils.copy import GitSpiderCopier
 from slyd.utils.download import GitProjectArchiver
-
-
-def run_in_thread(func):
-    '''A decorator to defer execution to a thread'''
-
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return deferToThread(func, *args, **kwargs)
-
-    return wrapper
 
 
 def retry_operation(retries=3, catches=(Exception,), seconds=0):
@@ -53,14 +42,31 @@ def retry_operation(retries=3, catches=(Exception,), seconds=0):
     return wrapper
 
 
+def wrap_callback(connection, callback, manager, **parsed):
+    manager.connection = connection
+    if hasattr(manager, 'pm'):
+        manager.pm.connection = connection
+    result = callback(manager, **parsed)
+    if manager._changed_file_data:
+        manager.commit_changes()
+    return result
+
+
 class GitProjectMixin(object):
+    def run(self, callback, **parsed):
+        pool = getattr(Repoman, 'pool', None)
+        if pool is None:
+            return wrap_callback(None, callback, self, **parsed)
+        return pool.runWithConnection(wrap_callback, callback, self, **parsed)
+
     def _project_name(self, name):
         if name is None:
             name = getattr(self, 'project_name')
         return name
 
     def _open_repo(self, name=None):
-        return Repoman.open_repo(self._project_name(name))
+        return Repoman.open_repo(self._project_name(name), self.connection,
+                                 self.user)
 
     def _get_branch(self, repo=None, read_only=False, name=None):
         if repo is None:
@@ -108,9 +114,11 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
         self.modify_request = {
             'download': self._render_file
         }
+        self._changed_file_data = {}
 
     def all_projects(self):
-        return [{'name': repo, 'id': repo} for repo in Repoman.list_repos()]
+        return [{'name': repo, 'id': repo}
+                for repo in Repoman.list_repos(self.connection)]
 
     def create_project(self, name):
         self.validate_project_name(name)
@@ -122,21 +130,22 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
             join('spiders', 'settings.py'): templates['SETTINGS'],
         }
         try:
-            Repoman.create_repo(name).save_files(project_files, 'master')
+            Repoman.create_repo(name, self.connection).save_files(
+                project_files, 'master'
+            )
         except NameError:
             raise BadRequest("Bad Request",
                              'A project already exists with the name "%s".'
                              % name)
 
     def remove_project(self, name):
-        Repoman.delete_repo(name)
+        Repoman.delete_repo(name, self.connection)
 
     def edit_project(self, name, revision):
         # Do nothing here, but subclasses can use this method as a hook
         # e.g. to import projects from another source.
         return
 
-    @run_in_thread
     def publish_project(self, name, force):
         repoman = self._open_repo(name)
         if (repoman.publish_branch(self._get_branch(repoman),
@@ -163,14 +172,12 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
         repoman = self._open_repo(name)
         return json.dumps({'revisions': repoman.get_published_revisions()})
 
-    @run_in_thread
     def conflicted_files(self, name):
         repoman = self._open_repo(name)
         branch = self._get_branch(repoman, read_only=True)
         conflicts = repoman.publish_branch(branch, dry_run=True)
         return json.dumps(conflicts if conflicts is not True else {})
 
-    @run_in_thread
     def changed_files(self, name):
         return json.dumps([
             fname or oldn for _, fname, oldn in self._changed_files(name)
@@ -197,7 +204,6 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
         copier = GitSpiderCopier(source, destination, branch)
         return json.dumps(copier.copy(spiders, items))
 
-    @run_in_thread
     def download_project(self, name, spiders=None, version=None):
         if version is None:
             version = (0, 9)
@@ -212,7 +218,8 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
             if self._gen_etag({'args': [name, spiders]}) in etags:
                 return ''
             branch = self._get_branch(name=name, read_only=True)
-            return GitProjectArchiver(Repoman.open_repo(name), version=version,
+            return GitProjectArchiver(Repoman.open_repo(name, self.connection),
+                                      version=version,
                                       branch=branch).archive(spiders).read()
         return json.dumps({'status': 404,
                            'error': 'Project "%s" not found' % name})
