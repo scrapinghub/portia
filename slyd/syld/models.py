@@ -251,7 +251,6 @@ class BaseAnnotationSchema(SlydSchema):
 
 
 class AnnotationSchema(BaseAnnotationSchema):
-
     required = fields.Boolean(default=False)
     ignore = fields.Boolean(default=False)
     ignore_beneath = fields.Boolean(default=False)

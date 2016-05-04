@@ -2,13 +2,17 @@ import json
 import re
 
 from os.path import join
-from .repoman import Repoman
+from .repoman import Repoman, CHANGE_DELETE
 from slyd.projectspec import ProjectSpec
-from slyd.gitstorage.projects import retry_operation, GitProjectMixin
+from slyd.gitstorage.projects import GitProjectMixin
 from slyd.errors import BadRequest
 
 
 class GitProjectSpec(GitProjectMixin, ProjectSpec):
+
+    def __init__(self, project_name, auth_info):
+        super(GitProjectSpec, self).__init__(project_name, auth_info)
+        self._changed_file_data = {}
 
     @classmethod
     def setup(cls, storage_backend, location, **kwargs):
@@ -42,14 +46,12 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
         for file_path in repo.list_files_for_branch(branch):
             split_path = file_path.split('/')
             if len(split_path) > 2 and split_path[1] == name:
-                repo.delete_file(file_path, branch)
-        repo.delete_file(self._rfile_name('spiders', name), branch)
+                self.delete_file(file_path)
+        self.delete_file(self._rfile_name('spiders', name))
 
     def remove_template(self, spider_name, name, save_spider=True):
         try:
-            self._open_repo().delete_file(
-                self._rfile_name('spiders', spider_name, name),
-                self._get_branch())
+            self.delete_file(self._rfile_name('spiders', spider_name, name))
         except KeyError:
             pass
         if save_spider:
@@ -66,8 +68,17 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
     def writejson(self, outf, *resources):
         outf.write(self._rfile_contents(resources))
 
-    @retry_operation(catches=(KeyError,), seconds=0.5)
     def savejson(self, obj, resources):
-        self._open_repo().save_file(self._rfile_name(*resources),
-                                    json.dumps(obj, sort_keys=True, indent=4),
-                                    self._get_branch())
+        self._changed_file_data[self._rfile_name(*resources)] = (
+            json.dumps(obj, sort_keys=True, indent=4),
+            'update'
+        )
+
+    def delete_file(self, path):
+        self._changed_file_data[path] = (None, CHANGE_DELETE)
+
+    def commit_changes(self):
+        if not self._changed_file_data:
+            return
+        repo = self._open_repo()
+        repo.save_files(self._changed_file_data, self._get_branch())
