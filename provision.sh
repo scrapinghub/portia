@@ -109,8 +109,8 @@ configure_initctl(){
     cp "$APP_ROOT/slyd.conf" /etc/init
     echo "Starting slyd service"
     echo "====================="
-    /etc/init.d/nginx start
-    start slyd
+    sudo /etc/init.d/nginx restart
+    sudo start slyd
 }
 
 if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then
