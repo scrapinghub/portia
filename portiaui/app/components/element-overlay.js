@@ -5,22 +5,14 @@ export default Ember.Component.extend({
     overlays: Ember.inject.service(),
     positionMonitor: Ember.inject.service(),
 
-    classNames: ['overlay'],
+    tagName: '',
 
     positionMode: 'size',  // or 'edges'
-
-    backgroundStyle: Ember.computed('color.main', function() {
-        const color = this.get('color.main');
-        return Ember.String.htmlSafe(color ? `background-color: ${color};` : '');
-    }),
-    shadowStyle: Ember.computed('color.shadow', function() {
-        const color = this.get('color.shadow');
-        return Ember.String.htmlSafe(color ? `box-shadow: 0 1px 3px -2px ${color};` : '');
-    }),
-    textShadowStyle: Ember.computed('color.shadow', function() {
-        const color = this.get('color.shadow');
-        return Ember.String.htmlSafe(color ? `text-shadow: 0 1px 1px ${color};` : '');
-    }),
+    
+    init() {
+        this._super(...arguments);
+        this.set('rects', []);
+    },
 
     didInsertElement() {
         Ember.run.scheduleOnce('afterRender', this, this.notifyAddOverlay);
@@ -56,6 +48,11 @@ export default Ember.Component.extend({
         }
     },
 
+    on(name, ...params) {
+        this._super(...arguments);
+        Ember.run.scheduleOnce('afterRender', ...params, this.get('rects'));
+    },
+
     readContainerSize(rects, boundingRect, element) {
         this.containerSize = {
             width: element.ownerDocument.defaultView.innerWidth,
@@ -64,39 +61,50 @@ export default Ember.Component.extend({
     },
 
     updatePosition(rects) {
-        if (!this.element) {
-            return;
+        const overlayRects = [];
+        let prevRect = null;
+        let length = this.get('rects').length;
+
+        for (let rect of Array.from(rects)) {
+            const left = Math.round(Math.min(this.containerSize.width, Math.max(0, rect.left)));
+            const right = Math.round(Math.min(this.containerSize.width, Math.max(0, rect.right)));
+            const top = Math.round(Math.min(this.containerSize.height, Math.max(0, rect.top)));
+            const bottom = Math.round(Math.min(this.containerSize.height,
+                                               Math.max(0, rect.bottom)));
+            const width = right - left;
+            const height = bottom - top;
+
+            if (prevRect && top === prevRect.top && bottom === prevRect.bottom &&
+                    (left === prevRect.right || right === prevRect.left)) {
+                // merge neighbouring rects to minimize amount of rendered/animated elements
+                prevRect.left = Math.min(left, prevRect.left);
+                prevRect.right = Math.max(right, prevRect.right);
+                prevRect.width += width;
+            } else {
+                prevRect = {
+                    left,
+                    right,
+                    top,
+                    bottom,
+                    width,
+                    height
+                };
+                overlayRects.push(prevRect);
+            }
         }
 
-        let left = 0;
-        let top = 0;
-        let width = 0;
-        let height = 0;
-        let style = '';
-
-        if (rects.length) {
-            left = Math.round(Math.min(this.containerSize.width, Math.max(0, rects[0].left)));
-            top = Math.round(Math.min(this.containerSize.height, Math.max(0, rects[0].top)));
-            width = Math.round(Math.min(this.containerSize.width,
-                                        Math.max(0, rects[0].right))) - left;
-            height = Math.round(Math.min(this.containerSize.height,
-                                         Math.max(0, rects[0].bottom))) - top;
+        // never shrink the number of elements, so that they can be animated out and are available
+        // if needed again.
+        length = Math.max(length, overlayRects.length);
+        for (let i = overlayRects.length; i < length; i++) {
+            overlayRects.push({});
         }
 
-        switch (this.get('positionMode')) {
-            case 'size':
-                style = `transform: translate(${left}px, ${top}px);
-                         width: ${width}px; height: ${height}px;`;
-                break;
-
-            case 'edges':
-                // container is positioned in top left, and has zero width and height
-                const right = -left + -width;
-                const bottom = -top + -height;
-                style = `left: ${left}px; right: ${right}px; top: ${top}px; bottom: ${bottom}px;`;
-                break;
-        }
-
-        this.element.setAttribute('style', style);
+        Ember.run.next(Ember.run.scheduleOnce, 'sync', () => {
+            if (!this.isDestroying) {
+                this.set('rects', overlayRects);
+            }
+        });
+        this.trigger('element-moved', overlayRects);
     }
 });
