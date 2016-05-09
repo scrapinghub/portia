@@ -1,11 +1,12 @@
 import json
-import re
 
 from os.path import join
+from six import text_type
 from .repoman import Repoman
 from slyd.projectspec import ProjectSpec
 from slyd.gitstorage.projects import retry_operation, GitProjectMixin
 from slyd.errors import BadRequest
+from ..utils.projects import allowed_file_name
 
 
 class GitProjectSpec(GitProjectMixin, ProjectSpec):
@@ -18,13 +19,23 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
         return self._open_repo().file_contents_for_branch(
             self._rfile_name(*resources), self._get_branch(read_only=True))
 
+    @staticmethod
+    def _encode_segment(str):
+        if isinstance(str, text_type):
+            str = str.encode('utf8')
+        return str
+
     def _rfile_name(self, *resources):
-        return join(*resources) + '.json'
+        return self._rdir_name(*resources) + '.json'
+
+    def _rdir_name(self, *resources):
+        resources = map(self._encode_segment, resources)
+        return join(*resources)
 
     def rename_spider(self, from_name, to_name):
         if to_name == from_name:
             return
-        if not re.match('^[a-zA-Z0-9][a-zA-Z0-9_\.-]*$', to_name):
+        if not allowed_file_name(to_name):
             raise BadRequest('Bad Request', 'Invalid spider name')
 
         if to_name in self.list_spiders():
@@ -33,8 +44,8 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
         self._open_repo().rename_file(self._rfile_name('spiders', from_name),
                                       self._rfile_name('spiders', to_name),
                                       self._get_branch())
-        self._open_repo().rename_folder(join('spiders', from_name),
-                                        join('spiders', to_name),
+        self._open_repo().rename_folder(self._rdir_name('spiders', from_name),
+                                        self._rdir_name('spiders', to_name),
                                         self._get_branch())
 
     def remove_spider(self, name):
