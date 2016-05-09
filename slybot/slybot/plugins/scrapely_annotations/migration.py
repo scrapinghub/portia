@@ -34,7 +34,7 @@ from uuid import uuid4
 from lxml.etree import _Element, Comment
 from scrapy import Selector
 
-from slybot.plugins.scrapely_annotations.utils import add_tagids
+from slybot.plugins.scrapely_annotations.utils import add_tagids, propagate_schema_id
 SLYBOT_VERSION = slybot.__version__
 IGNORE_ATTRIBUTES = ['data-scrapy-ignore', 'data-scrapy-ignore-beneath']
 
@@ -64,6 +64,7 @@ def port_sample(sample):
 
     # Group annotations by type
     annotations = sample['plugins']['annotations-plugin']['extracts']
+    propagate_schema_id(annotations, sample.get('scrapes'))
     sel = Selector(text=add_tagids(sample['original_body']))
     annotations = port_standard(annotations, sel, sample)
     standard_annos, generated_annos, variant_annos = [], [], []

@@ -102,3 +102,26 @@ def remove_tagids(source):
     """remove from the given page, all tagids previously added by add_tagids()
     """
     return _modify_tagids(source, False)
+
+
+def propagate_schema_id(annotations, default=None):
+    """If a container contains an schema_id, move that information to all
+    its children"""
+    grouped_by_id = {annotation.get('id'):annotation for annotation in annotations}
+    for annotation in annotations:
+        current_annotation = annotation
+        while True:
+            schema_id = current_annotation.get('schema_id')
+            if schema_id:
+                annotation['schema_id'] = schema_id
+                break
+            container_id = current_annotation.get('container_id')
+            if container_id:
+                container = grouped_by_id.get(container_id)
+            else:
+                container = None
+            if not container:
+                if default:
+                    annotation['schema_id'] = default
+                break # could not find container with schema_id
+            current_annotation = container

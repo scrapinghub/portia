@@ -22,6 +22,21 @@ XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
 from .extraction import SlybotIBLExtractor
 
 
+def get_best_descriptor(descriptors, extracted_data):
+    if not extracted_data:
+        return None
+    best_score = -1
+    best_descriptor = None
+    extracted_attributes = set(extracted_data.keys())
+    for descriptor in descriptors:
+        score = len(set(descriptor.attribute_map.keys()) &
+                    extracted_attributes)
+        if score > best_score:
+            best_descriptor = descriptor
+            best_score = score
+    return best_descriptor
+
+
 class Annotations(object):
     """
     Base Class for adding plugins to Portia Web and Slybot.
@@ -32,13 +47,11 @@ class Annotations(object):
         Perform any initialization needed for crawling using this plugin
         """
         _item_template_pages = sorted((
-            [t.get('scrapes'), dict_to_page(t, 'annotated_body'),
+            [dict_to_page(t, 'annotated_body'),
              t.get('extractors', []), t.get('version', '0.12.0')]
             for t in spec['templates'] if t.get('page_type', 'item') == 'item'
         ), key=lambda x: x[0])
         self.item_classes = {}
-        self.template_scrapes = {template.get('page_id'): template['scrapes']
-                                 for template in spec.get('templates')}
         if (settings.get('AUTO_PAGINATION') or
                 spec.get('links_to_follow') == 'auto'):
             self.html_link_extractor = PaginationExtractor()
@@ -52,32 +65,32 @@ class Annotations(object):
                 self.item_classes[schema_name] = item_cls
 
         # Create descriptors and apply additional extractors to fields
-        page_descriptor_pairs = []
-        self.schema_descriptors = {}
-        for default, template, template_extractors, v in _item_template_pages:
-            descriptors = OrderedDict()
+        self.descriptors = []
+        template_descriptors_version = []
+        for template, template_extractors, v in _item_template_pages:
+            schema_to_descriptors = OrderedDict()
             for schema_name, schema in items.items():
                 item_descriptor = create_slybot_item_descriptor(schema,
                                                                 schema_name)
                 apply_extractors(item_descriptor, template_extractors,
                                  extractors)
-                descriptors[schema_name] = item_descriptor
-            descriptor = descriptors.values() or [{}]
-            descriptors['#default'] = descriptors.get(default, descriptor[0])
-            self.schema_descriptors[template.page_id] = descriptors['#default']
-            page_descriptor_pairs.append((template, descriptors, v))
-            add_extractors_to_descriptors(descriptors, extractors)
+                schema_to_descriptors[schema_name] = item_descriptor
+            template_descriptors = schema_to_descriptors.values() or [{}]
+            self.descriptors += template_descriptors
+            schema_to_descriptors['#default'] = template_descriptors[0]
+            template_descriptors_version.append((template, schema_to_descriptors, v))
+            add_extractors_to_descriptors(schema_to_descriptors, extractors)
 
-        grouped = itertools.groupby(sorted(page_descriptor_pairs,
+        grouped = itertools.groupby(sorted(template_descriptors_version,
                                            key=operator.itemgetter(2)),
                                     lambda x: x[2] < '0.13.0')
         self.extractors = []
-        for version, group in grouped:
-            if version:
+        for old_version, group in grouped:
+            if old_version:
                 self.extractors.append(
                     InstanceBasedLearningExtractor(
-                        [(page, scrapes['#default'])
-                         for page, scrapes, version in group]))
+                        [(template, descriptors['#default'])
+                         for template, descriptors, version in group]))
             else:
                 self.extractors.append(SlybotIBLExtractor(list(group)))
 
@@ -118,25 +131,22 @@ class Annotations(object):
         link_regions = []
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
-        descriptor = None
-        unprocessed = False
         if template is not None and hasattr(template, 'descriptor'):
             descriptor = template.descriptor()
-            if hasattr(descriptor, 'name'):
-                item_cls_name = descriptor.name
-            elif hasattr(descriptor, 'get'):
-                item_cls_name = descriptor.get('name',
-                                               descriptor.get('display_name'))
-            else:
-                item_cls_name = ''
+            unprocessed = False
         else:
+            descriptor = get_best_descriptor(self.descriptors, extracted_data)
             unprocessed = True
-            try:
-                descriptor = self.schema_descriptors[template.id]
-                item_cls_name = self.template_scrapes[template.id]
-            except AttributeError:
-                descriptor = sorted(self.schema_descriptors.items())[0][1]
-                item_cls_name = sorted(self.template_scrapes.items())[0][1]
+
+        if hasattr(descriptor, 'name'):
+            item_cls_name = descriptor.name
+        elif hasattr(descriptor, 'get'):
+            item_cls_name = descriptor.get('name',
+                                           descriptor.get('display_name'))
+        else:
+            item_cls_name = ''
+            if extracted_data is not None:
+                import pdb; pdb.set_trace()
         item_cls = self.item_classes.get(item_cls_name)
         items = []
         for processed_attributes in extracted_data or []:

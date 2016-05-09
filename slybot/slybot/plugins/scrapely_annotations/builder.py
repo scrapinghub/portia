@@ -9,28 +9,8 @@ from operator import itemgetter
 from uuid import uuid4
 
 from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
-                    OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
-
-
-def propagate_schema_id(annotations):
-    """If a container contains an schema_id, move that information to all
-    its children"""
-    grouped_by_id = {annotation.get('id'):annotation for annotation in annotations}
-    for annotation in annotations:
-        current_annotation = annotation
-        while True:
-            schema_id = current_annotation.get('schema_id')
-            if schema_id:
-                annotation['schema_id'] = schema_id
-                break
-            container_id = current_annotation.get('container_id')
-            if container_id:
-                container = grouped_by_id.get(container_id)
-            else:
-                container = None
-            if not container:
-                break # could not find container with schema_id
-            current_annotation = container
+                    OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID,
+                    propagate_schema_id)
 
 
 def merge_containers(annotations):
