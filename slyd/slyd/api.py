@@ -76,11 +76,7 @@ class APIResource(object):
                         parsed = {k: unquote(v)
                                   for k, v in parsed.named.items()}
                         parsed['attributes'] = load_attributes(request)
-
-                        api_response = getattr(
-                            manager, 'run', lambda cb, **p: cb(manager, **p))(
-                            callback, **parsed
-                        )
+                        api_response = manager.run(callback, **parsed)
                         data = api_response
                         if isinstance(api_response, BaseApiResponse):
                             data = api_response.data

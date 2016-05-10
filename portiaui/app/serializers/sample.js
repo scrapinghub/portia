@@ -16,7 +16,7 @@ export default DS.JSONAPISerializer.extend({
     },
 
     _addAnnotations(item, includes) {
-        let data =item.belongsTo('itemAnnotation').serialize().data;
+        let data = item.belongsTo('itemAnnotation').serialize().data;
         data.id = item.id;
         includes.push(data);
         for (let annotation of item.hasMany('annotations')) {

@@ -10,6 +10,7 @@ from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
 from weakref import WeakKeyDictionary, WeakValueDictionary
 from monotonic import monotonic
+from twisted.internet import defer
 from twisted.python import log
 from twisted.python.failure import Failure
 
@@ -20,6 +21,7 @@ from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
+from slyd.gitstorage.projects import wrap_callback
 from slyd.gitstorage.repoman import Repoman
 from slyd.errors import BaseHTTPError
 
@@ -169,17 +171,6 @@ class PortiaJSApi(QObject):
             self.protocol.sendMessage(metadata(self.protocol))
 
 
-def wrap_message_callback(connection, socket, data):
-    manager = socket.manager
-    manager.connection = connection
-    if hasattr(manager, 'pm'):
-        manager.pm.connection = connection
-    message = socket._on_message(data)
-    if manager._changed_file_data:
-        manager.commit_changes()
-    return socket.sendMessage(message)
-
-
 class FerryServerProtocol(WebSocketServerProtocol):
 
     _handlers = {
@@ -242,11 +233,21 @@ class FerryServerProtocol(WebSocketServerProtocol):
         project = data.get('project', data.get('_meta', {}).get('project'))
         self.manager = self.spec_manager.project_spec(project, self.auth_info)
         self.manager.pm = self.spec_manager.project_manager(self.auth_info)
-        if pool is None:
-            return wrap_message_callback(self, data)
-        return pool._runWithConnection(wrap_message_callback, self, data)
+        params = []
+        if pool is not None:
+            params.append(pool._runWithConnection)
 
-    def _on_message(self, data):
+        def wrap_message_callback(connection, callback, manager, data=None):
+            if data is None:
+                connection, callback, manager, data = (None, connection,
+                                                       callback, manager)
+            return wrap_callback(connection, callback, manager, data=data)
+        params.extend([wrap_message_callback, self._on_message, self.manager,
+                       data])
+        deferred = defer.maybeDeferred(*params)
+        deferred.addCallback(self.sendMessage)
+
+    def _on_message(self, _, data):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
         if '_command' in data and data['_command'] in self._handlers:
