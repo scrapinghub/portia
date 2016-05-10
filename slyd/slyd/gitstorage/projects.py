@@ -1,10 +1,8 @@
+import contextlib
 import json
-from os.path import splitext, split, join, sep
-from functools import wraps
+import sys
 
-from twisted.internet.task import deferLater
-from twisted.internet.defer import inlineCallbacks
-from twisted.internet import reactor
+from os.path import splitext, split, join, sep
 
 from slyd.projects import ProjectsManager
 from slyd.projecttemplates import templates
@@ -13,43 +11,50 @@ from .repoman import Repoman
 from slyd.utils.copy import GitSpiderCopier
 from slyd.utils.download import GitProjectArchiver
 
-
-def retry_operation(retries=3, catches=(Exception,), seconds=0):
-    '''
-    :param retries: Number of times to attempt the operation
-    :param catches: Which exceptions to catch and trigger a retry
-    :param seconds: How long to wait between retries
-    '''
-    def wrapper(func):
-        def sleep(sec):
-            return deferLater(reactor, sec, lambda: None)
-
-        @wraps(func)
-        @inlineCallbacks
-        def wrapped(*args, **kwargs):
-            err = None
-            for _ in range(retries):
-                try:
-                    yield func(*args, **kwargs)
-                except catches as e:
-                    err = e
-                    yield sleep(seconds)
-                else:
-                    break
-            if err is not None:
-                raise err
-        return wrapped
-    return wrapper
+try:
+    from MySQLdb import DataBaseError
+    ERRORS = (DataBaseError, IOError)
+except ImportError:
+    ERRORS = IOError,
+RETRIES = 3
 
 
 def wrap_callback(connection, callback, manager, **parsed):
     manager.connection = connection
     if hasattr(manager, 'pm'):
         manager.pm.connection = connection
-    result = callback(manager, **parsed)
-    if manager._changed_file_data:
-        manager.commit_changes()
-    return result
+    if connection is None:
+        result = callback(manager, **parsed)
+        if manager._changed_file_data:
+            manager.commit_changes()
+        return result
+    for _ in range(RETRIES):
+            with transaction(manager, parsed.get('project_id')):
+                return callback(manager, **parsed)
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    raise exc_type, exc_value, exc_traceback
+
+
+@contextlib.contextmanager
+def transaction(manager, project_id):
+    if project_id or getattr(manager, 'project_name', None):
+        repo = manager._open_repo(project_id)
+        commit_id = repo.get_branch(manager._get_branch(repo))
+        cursor = manager.connection.cursor()
+        cursor.execute(
+            'SELECT 1 FROM objs WHERE `oid`=%s AND `repo`=%s FOR UPDATE',
+            (commit_id, repo._repo._name))
+        cursor.close()
+    try:
+        yield
+        if manager._changed_file_data:
+            manager.commit_changes()
+    except ERRORS:
+        manager.connection.rollback()
+    except Exception:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        manager.connection.rollback()
+        raise exc_type, exc_value, exc_traceback
 
 
 class GitProjectMixin(object):
@@ -88,7 +93,7 @@ class GitProjectMixin(object):
                 and f.endswith(".json")]
 
 
-class GitProjectsManager(ProjectsManager, GitProjectMixin):
+class GitProjectsManager(GitProjectMixin, ProjectsManager):
 
     @classmethod
     def setup(cls, storage_backend, location):

@@ -138,6 +138,9 @@ class ProjectsManager(object):
             'download': self.download_project
         }
 
+    def run(self, callback, **kwargs):
+        return callback(**kwargs)
+
     def all_projects(self):
         try:
             for fname in os.listdir(self.projectsdir):
