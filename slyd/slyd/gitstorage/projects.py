@@ -29,22 +29,14 @@ def wrap_callback(connection, callback, manager, **parsed):
             manager.commit_changes()
         return result
     for _ in range(RETRIES):
-            with transaction(manager, parsed.get('project_id')):
+            with transaction(manager):
                 return callback(manager, **parsed)
     exc_type, exc_value, exc_traceback = sys.exc_info()
     raise exc_type, exc_value, exc_traceback
 
 
 @contextlib.contextmanager
-def transaction(manager, project_id):
-    if project_id or getattr(manager, 'project_name', None):
-        repo = manager._open_repo(project_id)
-        commit_id = repo.get_branch(manager._get_branch(repo))
-        cursor = manager.connection.cursor()
-        cursor.execute(
-            'SELECT 1 FROM objs WHERE `oid`=%s AND `repo`=%s FOR UPDATE',
-            (commit_id, repo._repo._name))
-        cursor.close()
+def transaction(manager):
     try:
         yield
         if manager._changed_file_data:
