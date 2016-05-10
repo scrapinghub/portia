@@ -35,7 +35,8 @@ def create_annotation(manager, spider_id, sample_id, attributes):
     schema_id = _find_schema_id(annotation, sample)
     field = _create_field_for_annotation(manager, annotation, sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id, schema_id=schema_id)
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
+                  schema_id=schema_id)
     annotation = AnnotationSchema(context=context).dump(
         _split_annotations([annotation])[0]).data
     if field:
@@ -45,48 +46,15 @@ def create_annotation(manager, spider_id, sample_id, attributes):
 
 def update_annotation(manager, spider_id, sample_id, annotation_id,
                       attributes):
-    relationships = _load_relationships(attributes['data'])
-    data = attributes['data'].get('attributes', {})
-    anno_id, _id = _split_annotation_id(annotation_id)
-    annotation, sample = _get_annotation(manager, spider_id, sample_id,
-                                         anno_id)
-    annotation_data = annotation['data'][_id]
-    field_id = annotation_data['field']
-    if relationships.get('field_id'):
-        field_id = relationships['field_id']
-    annotation_data['field'] = field_id
-    attribute = annotation_data['attribute']
-    if data.get('attribute'):
-        attribute = data['attribute']
-    annotation_data['attribute'] = attribute
-    annotation_data['required'] = bool(data.get('required', False))
-    extractors = relationships.get('extractors', [])
-    if extractors:
-        if isinstance(extractors, dict) and 'id' in extractors:
-            extractors = [extractors.get('id')]
-        elif isinstance(extractors, list):
-            extractors = [e['id'] for e in extractors if e and 'id' in e]
-    annotation_data['extractors'] = extractors
-
-    # Check if annotation has been moved to new container
-    if ('parent_id' in relationships and
-            relationships['parent_id'] != annotation.get('container_id')):
-        data['container_id'] = relationships['parent_id'].split('|')[0]
-
-    annotation['accept_selectors'] = data.get('accept_selectors',
-                                              annotation['accept_selectors'])
-    annotation['reject_selectors'] = data.get('reject_selectors',
-                                              annotation['reject_selectors'])
-    annotation['selector'] = data.get('selector', annotation['selector'])
-    if annotation['selector'] is None:
-        annotation['selector'] = ', '.join(annotation['accept_selectors'])
-
+    sample = _load_sample(manager, spider_id, sample_id)
+    annotation, sample = _update_annotation(sample, attributes['data'])
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     schema_id = _find_schema_id(annotation, sample)
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
-                  schema_id=schema_id, field_id=field_id)
     split_annotations = _split_annotations([annotation])
     a = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
+    field_id = a['field']['id']
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
+                  schema_id=schema_id, field_id=field_id)
     return AnnotationSchema(context=context).dump(a).data
 
 
@@ -107,11 +75,15 @@ def delete_annotation(manager, spider_id, sample_id, annotation_id,
 
 def _get_annotation(manager, spider_id, sample_id, annotation_id):
     sample = _load_sample(manager, spider_id, sample_id)
+    return _load_annotation(sample, annotation_id), sample
+
+
+def _load_annotation(sample, annotation_id):
     annotations = sample['plugins']['annotations-plugin']['extracts']
     matching = list(filter(lambda a: a.get('id') == annotation_id,
                            annotations))
     if matching:
-        return _check_annotation_attributes(matching[0], True), sample
+        return _check_annotation_attributes(matching[0], True)
     raise NotFound('No annotation with the id "%s" found' % annotation_id)
 
 
@@ -197,8 +169,50 @@ def _create_annotation(sample, attributes):
     return annotation
 
 
+def _update_annotation(sample, attributes):
+    annotation_id = attributes['id']
+    relationships = _load_relationships(attributes)
+    data = attributes.get('attributes', {})
+    anno_id, _id = _split_annotation_id(annotation_id)
+    annotation = _load_annotation(sample, anno_id)
+    annotation_data = annotation['data'][_id]
+    field_id = annotation_data['field']
+    if relationships.get('field_id'):
+        field_id = relationships['field_id']
+    annotation_data['field'] = field_id
+    attribute = annotation_data['attribute']
+    if data.get('attribute'):
+        attribute = data['attribute']
+    annotation_data['attribute'] = attribute
+    annotation_data['required'] = bool(data.get('required', False))
+    extractors = relationships.get('extractors', [])
+    if extractors:
+        if isinstance(extractors, dict) and 'id' in extractors:
+            extractors = [extractors.get('id')]
+        elif isinstance(extractors, list):
+            extractors = [e['id'] for e in extractors if e and 'id' in e]
+    annotation_data['extractors'] = extractors
+
+    # Check if annotation has been moved to new container
+    if ('parent_id' in relationships and
+            relationships['parent_id'] != annotation.get('container_id')):
+        data['container_id'] = relationships['parent_id'].split('|')[0]
+
+    annotation['accept_selectors'] = data.get('accept_selectors',
+                                              annotation['accept_selectors'])
+    annotation['reject_selectors'] = data.get('reject_selectors',
+                                              annotation['reject_selectors'])
+    annotation['selector'] = data.get('selector', annotation['selector'])
+    if annotation['selector'] is None:
+        annotation['selector'] = ', '.join(annotation['accept_selectors'])
+    annotation['selection_mode'] = data.get('selection_mode', 'auto')
+    return annotation, sample
+
+
 def _find_schema_id(annotation, sample):
-    annotations = dict((a['id'], a) for a in sample['plugins']['annotations-plugin']['extracts'])
+    annotations = {
+        a['id']: a for a in sample['plugins']['annotations-plugin']['extracts']
+    }
     while annotation and 'schema_id' not in annotation:
         container_id = annotation.get('container_id')
         annotation = annotations.get(container_id)

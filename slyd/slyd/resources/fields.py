@@ -8,13 +8,8 @@ from .utils import _read_schemas
 
 
 def list_fields(manager, schema_id, attributes=None):
-    fields = []
-    _fields = _read_schemas(manager)[schema_id]['fields']
-    for field_id, field in _fields.items():
-        field['id'] = field_id
-        fields.append(field)
-    context = ctx(manager, schema_id=schema_id)
-    return FieldSchema(many=True, context=context).dump(fields).data
+    return _dump_fields(manager, _read_schemas(manager)[schema_id]['fields'],
+                        schema_id)
 
 
 def get_field(manager, schema_id, field_id, attributes=None):
@@ -31,14 +26,8 @@ def get_field(manager, schema_id, field_id, attributes=None):
 def create_field(manager, schema_id, attributes):
     attributes = _check_field_attributes(attributes, include_defaults=True)
     schemas = _read_schemas(manager)
-    fields = {f for schema in schemas.values()
-              for f in schema.get('fields', [])}
     schema = schemas[schema_id]
-    field_id = gen_id(disallow=fields)
-    default_field_name = 'field%s' % (len(schema['fields']) + 1)
-    attributes['name'] = attributes.pop('name', default_field_name)
-    get_schema_validator('field').validate(attributes)
-    schema['fields'][field_id] = attributes
+    schemas[schema_id], field_id = _create_field(schema, attributes, schemas)
     manager.savejson(schemas, ['items'])
     attributes['id'] = field_id
     context = ctx(manager, schema_id=schema_id)
@@ -79,3 +68,23 @@ def _check_field_attributes(attributes, include_defaults=False):
         attributes['_skip_relationships'] = True
         return FieldSchema().dump(attributes).data['data']['attributes']
     return attributes
+
+
+def _create_field(schema, attributes, schemas):
+    fields = {f for schema in schemas.values()
+              for f in schema.get('fields', [])}
+    field_id = gen_id(disallow=fields)
+    default_field_name = 'field%s' % (len(schema['fields']) + 1)
+    attributes['name'] = attributes.pop('name', default_field_name)
+    get_schema_validator('field').validate(attributes)
+    schema['fields'][field_id] = attributes
+    return schema, field_id
+
+
+def _dump_fields(manager, fields, schema_id):
+    processed = []
+    for field_id, field in fields.items():
+        field['id'] = field_id
+        processed.append(field)
+    context = ctx(manager, schema_id=schema_id)
+    return FieldSchema(many=True, context=context).dump(processed).data

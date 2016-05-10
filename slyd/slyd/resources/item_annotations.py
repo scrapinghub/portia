@@ -1,6 +1,7 @@
 import copy
 
 from .annotations import _load_relationships
+from .items import _port_annotation_fields
 from .utils import _load_sample, _group_annotations
 from .models import ItemAnnotationSchema
 from ..utils.projects import ctx
@@ -11,18 +12,31 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     annotation_id = item_id.strip('#')
     sample = _load_sample(manager, spider_id, sample_id)
     annotations = sample['plugins']['annotations-plugin']['extracts']
+    container, repeated_selectors = _update_item_annotation(
+        sample, attributes['data'], annotations)
+    manager.savejson(sample, ['spiders', spider_id, sample_id])
+    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
+                  item_id=annotation_id.split('#')[0])
+    container['repeated_container_selectors'] = repeated_selectors
+    container['id'] = annotation_id
+    return ItemAnnotationSchema(context=context).dump(container).data
+
+
+def _update_item_annotation(sample, attributes, annotations):
+    annotation_id = attributes['id'].strip('#')
     containers, _, _ = _group_annotations(annotations)
     container = containers.get(annotation_id,
                                containers.get(_strip_parent(annotation_id)))
     if container is None:
         raise KeyError('No annotation with id "%s" found' % annotation_id)
-    relationships = _load_relationships(attributes.get('data', {}))
-    attributes = attributes.get('data', {}).get('attributes', {})
+    relationships = _load_relationships(attributes)
+    attributes = attributes.get('attributes', {})
     container['accept_selectors'] = attributes.get('accept_selectors', [])
     repeated_container_selectors = [
         s for s in attributes.pop('repeated_accept_selectors', []) if s
     ]
-    if repeated_container_selectors:
+    schema_id = relationships.get('schema_id')
+    if attributes.get('repeated') or repeated_container_selectors:
         repeated_container_id = _strip_parent(container['id'])
         repeated_container = containers.get(repeated_container_id)
         container_id = repeated_container_id + '#parent'
@@ -59,6 +73,8 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
         repeated_container['container_id'] = container['id']
         repeated_container['siblings'] = attributes.pop('siblings', 0)
         repeated_container['accept_selectors'] = repeated_container_selectors
+        if schema_id:
+            repeated_container['schema_id'] = schema_id
         if repeated_container_selectors:
             repeated_container['selector'] = repeated_container_selectors[0]
     else:
@@ -75,9 +91,12 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
                 if a.get('id') != repeated_container_id
             ]
             container['id'] = repeated_container_id
+            container['container_id'] = None
             sample['plugins']['annotations-plugin']['extracts'] = annotations
 
     parent_container_id = relationships.get('parent_id')
+    if schema_id:
+        container['schema_id'] = schema_id
     field = attributes.get('field')
     if field:
         container['field'] = field
@@ -85,12 +104,7 @@ def update_item_annotation(manager, spider_id, sample_id, item_id,
     container['container_id'] = parent_container_id
     if container['accept_selectors']:
         container['selector'] = container['accept_selectors'][0]
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
-                  item_id=annotation_id.split('#')[0])
-    container['repeated_accept_selectors'] = repeated_container_selectors
-    container['id'] = annotation_id
-    return ItemAnnotationSchema(context=context).dump(container).data
+    return container, repeated_container_selectors
 
 
 def _strip_parent(id_):

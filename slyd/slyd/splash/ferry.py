@@ -10,6 +10,7 @@ from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
 from weakref import WeakKeyDictionary, WeakValueDictionary
 from monotonic import monotonic
+from twisted.internet import defer
 from twisted.python import log
 from twisted.python.failure import Failure
 
@@ -20,6 +21,8 @@ from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
+from slyd.gitstorage.projects import wrap_callback
+from slyd.gitstorage.repoman import Repoman
 from slyd.errors import BaseHTTPError
 
 from .qtutils import QObject, pyqtSlot, QWebElement
@@ -209,13 +212,14 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
     def onConnect(self, request):
         try:
-            request.auth_info = json.loads(request.headers['x-auth-info'])
+            auth_info = json.loads(request.headers['x-auth-info'])
         except (KeyError, TypeError):
             return
         self.start_time = monotonic()
         self.spent_time = 0
         self.session_id = ''
-        self.factory[self] = User(request.auth_info)
+        self.auth_info = auth_info
+        self.factory[self] = User(auth_info)
 
     def onOpen(self):
         if self not in self.factory:
@@ -223,8 +227,21 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                  'parameters')
 
     def onMessage(self, payload, isbinary):
+        pool = getattr(Repoman, 'pool', None)
         payload = payload.decode('utf-8')
         data = json.loads(payload)
+        project = data.get('project', data.get('_meta', {}).get('project'))
+        self.manager = self.spec_manager.project_spec(project, self.auth_info)
+        self.manager.pm = self.spec_manager.project_manager(self.auth_info)
+        if pool is not None:
+            deferred = defer.maybeDeferred(
+                pool._runWithConnection, wrap_callback, self._on_message, self.manager, data=data)
+        else:
+            deferred = defer.maybeDeferred(
+                wrap_callback, None, self._on_message, self.manager, data=data)
+        deferred.addCallback(self.sendMessage)
+
+    def _on_message(self, _, data):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
         if '_command' in data and data['_command'] in self._handlers:
@@ -246,13 +263,13 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 if event_id:
                     message = "%s (Event ID: %s)" % (message, event_id)
 
-                return self.sendMessage({
+                return {
                     'error': code,
                     '_command': command,
                     'id': data.get('_meta', {}).get('id'),
                     'reason': reason,
                     'message': message,
-                })
+                }
 
             if result:
                 result.setdefault('_command', data.get('_callback', command))
@@ -263,8 +280,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 message = 'No command named "%s" found.' % command
             else:
                 message = "No command received"
-            self.sendMessage({'error': 4000,
-                              'reason': message})
+            return {'error': 4000,
+                    'reason': message}
 
     def onClose(self, was_clean, code, reason):
         if self in self.factory:
@@ -349,7 +366,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             return {'error': 4004,
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
-        spec = self.spec_manager.project_spec(meta['project'], self.user.auth)
+        spec = self.manager
 
         try:
             spider = spec.spider_with_templates(spider_name)
@@ -404,8 +421,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
 
 class FerryServerFactory(WebSocketServerFactory):
-    def __init__(self, uri, debug=False, assets='./'):
-        WebSocketServerFactory.__init__(self, uri, debug=debug)
+    def __init__(self, uri, assets='./'):
+        WebSocketServerFactory.__init__(self, uri)
         self._peers = WeakKeyDictionary()
         self.assets = assets
 

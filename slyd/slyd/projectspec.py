@@ -47,6 +47,9 @@ class ProjectSpec(object):
             'rmt': self.remove_template,
         }
 
+    def run(self, callback, **kwargs):
+        return callback(**kwargs)
+
     def list_spiders(self):
         for fname in os.listdir(join(self.project_dir, "spiders")):
             if fname.endswith(".json"):
