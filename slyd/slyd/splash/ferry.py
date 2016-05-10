@@ -233,18 +233,12 @@ class FerryServerProtocol(WebSocketServerProtocol):
         project = data.get('project', data.get('_meta', {}).get('project'))
         self.manager = self.spec_manager.project_spec(project, self.auth_info)
         self.manager.pm = self.spec_manager.project_manager(self.auth_info)
-        params = []
         if pool is not None:
-            params.append(pool._runWithConnection)
-
-        def wrap_message_callback(connection, callback, manager, data=None):
-            if data is None:
-                connection, callback, manager, data = (None, connection,
-                                                       callback, manager)
-            return wrap_callback(connection, callback, manager, data=data)
-        params.extend([wrap_message_callback, self._on_message, self.manager,
-                       data])
-        deferred = defer.maybeDeferred(*params)
+            deferred = defer.maybeDeferred(
+                pool._runWithConnection, wrap_callback, self._on_message, self.manager, data=data)
+        else:
+            deferred = defer.maybeDeferred(
+                wrap_callback, None, self._on_message, self.manager, data=data)
         deferred.addCallback(self.sendMessage)
 
     def _on_message(self, _, data):

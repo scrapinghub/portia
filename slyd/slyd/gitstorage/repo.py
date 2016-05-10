@@ -52,6 +52,10 @@ POOL_SIZE = 8
 USE_PREPARED_STATEMENTS = False
 
 
+def init_connection(connection):
+    connection.autocommit(False)
+
+
 def set_db_url(url):
     global DB_CONFIG
     DB_CONFIG = _parse(url)
@@ -59,7 +63,9 @@ def set_db_url(url):
     if connection_pool is None:
         connection_pool = ConnectionPool(
             "MySQLdb", cp_reconnect=True, cp_min=3, cp_max=POOL_SIZE,
-            cp_name=POOL_NAME, **DB_CONFIG)
+            cp_name=POOL_NAME, cp_openfun=init_connection,
+            init_command="SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ",
+            **DB_CONFIG)
     return connection_pool
 
 
@@ -238,7 +244,7 @@ class MysqlRefsContainer(RefsContainer):
     statements = {
         "DEL": "DELETE FROM `refs` WHERE `ref`=%s AND `repo`=%s",
         "ALL": "SELECT `ref` FROM `refs` WHERE `repo`=%s",
-        "GET": "SELECT `value` FROM `refs` WHERE `ref` = %s AND `repo`=%s",
+        "GET": "SELECT `value` FROM `refs` WHERE `ref` = %s AND `repo`=%s FOR UPDATE",
         "ADD": "REPLACE INTO `refs` VALUES(%s, %s, %s)",
     }
 
