@@ -10,7 +10,8 @@ export default Ember.Service.extend({
             context,
             readCallback,
             writeCallback,
-            rect: null
+            rects: null,
+            boundingRect: null
         };
         this.elements.push(options);
         if (this.timerId === null) {
@@ -37,24 +38,37 @@ export default Ember.Service.extend({
         const updates = [];
         // for performance first do DOM reads ...
         elements.forEach(options => {
-            const {element, rect} = options;
-            const newRect = element.getBoundingClientRect();
-            if (!rect ||
-                newRect.top !== rect.top || newRect.bottom !== rect.bottom ||
-                newRect.left !== rect.left || newRect.right !== rect.right) {
-                options.rect = newRect;
+            const {element, rects} = options;
+            const newRects = element.getClientRects();
+            let changed = false;
+            if (!rects || rects.length !== newRects.length) {
+                changed = true;
+            } else {
+                for (let i = 0; i < rects.length; i++) {
+                    const rect = rects[i];
+                    const newRect = newRects[i];
+                    if (newRect.top !== rect.top || newRect.bottom !== rect.bottom ||
+                        newRect.left !== rect.left || newRect.right !== rect.right) {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+            if (changed) {
+                options.rects = newRects;
+                options.boundingRect = element.getBoundingClientRect();
                 updates.push(options);
             }
         });
         // ... then run callbacks which will perform additional DOM reads ...
-        updates.forEach(({element, context, readCallback, rect}) => {
+        updates.forEach(({element, context, readCallback, rects, boundingRect}) => {
             if (readCallback) {
-                readCallback.call(context, rect, element);
+                readCallback.call(context, rects, boundingRect, element);
             }
         });
         // ... then run callbacks which will perform DOM writes
-        updates.forEach(({element, context, writeCallback, rect}) => {
-            writeCallback.call(context, rect, element);
+        updates.forEach(({element, context, writeCallback, rects, boundingRect}) => {
+            writeCallback.call(context, rects, boundingRect, element);
         });
         this.timerId = requestAnimationFrame(this.update.bind(this));
     }

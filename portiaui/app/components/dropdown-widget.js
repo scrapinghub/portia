@@ -88,19 +88,19 @@ export default Ember.Component.extend({
         this.windowHeight = window.innerHeight;
     },
 
-    updatePosition(rect) {
+    updatePosition(rects, boundingRect) {
         let positionLeft;
         let positionTop;
         if (this.get('alignRight')) {
-            positionLeft = Math.round(rect.right - this.menuWidth);
+            positionLeft = Math.round(boundingRect.right - this.menuWidth);
         } else {
-            positionLeft = Math.round(rect.left);
+            positionLeft = Math.round(boundingRect.left);
         }
-        if (rect.bottom + this.menuHeight > this.windowHeight) {
+        if (boundingRect.bottom + this.menuHeight > this.windowHeight) {
             // If it overflows under the screen, align top
-            positionTop = Math.round(rect.top - this.menuHeight);
+            positionTop = Math.round(boundingRect.top - this.menuHeight);
         } else {
-            positionTop = Math.round(rect.bottom);
+            positionTop = Math.round(boundingRect.bottom);
         }
         this.$menu.css({
             top: `${positionTop}px`,

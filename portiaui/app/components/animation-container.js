@@ -70,14 +70,14 @@ export default Ember.Component.extend({
             this.content, this, null, this.updateSize);
     },
 
-    readPosition(rect, element) {
+    readPosition(rects, boundingRect, element) {
         this.containerPosition = Ember.$(element).position();
     },
 
-    updatePosition(rect) {
+    updatePosition(rects, boundingRect) {
         const content = this.content;
         let style = '';
-        if (rect.top || rect.bottom || rect.left || rect.right) {
+        if (boundingRect.top || boundingRect.bottom || boundingRect.left || boundingRect.right) {
             const left = Math.round(this.containerPosition.left);
             const top = Math.round(this.containerPosition.top);
             style = `transform: translate(${left}px, ${top}px);`;
@@ -85,9 +85,9 @@ export default Ember.Component.extend({
         content.setAttribute('style', style);
     },
 
-    updateSize(rect) {
-        const width = Math.round(rect.width);
-        const height = Math.round(rect.height);
+    updateSize(rects, boundingRect) {
+        const width = Math.round(boundingRect.width);
+        const height = Math.round(boundingRect.height);
         let style = '';
         if (this.get('setWidth')) {
             style += `width: ${width}px;`;
