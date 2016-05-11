@@ -27,10 +27,11 @@ def get_best_descriptor(descriptors, extracted_data):
         return None
     best_score = -1
     best_descriptor = None
-    extracted_attributes = set(extracted_data.keys())
-    for descriptor in descriptors:
-        score = len(set(descriptor.attribute_map.keys()) &
-                    extracted_attributes)
+    for descriptor in descriptors.values():
+        score = 0
+        for item in extracted_data:
+            score += len(set(descriptor.attribute_map.keys()) &
+                         set(item.keys()))
         if score > best_score:
             best_descriptor = descriptor
             best_score = score
@@ -46,17 +47,18 @@ class Annotations(object):
         """
         Perform any initialization needed for crawling using this plugin
         """
-        _item_template_pages = sorted((
-            [dict_to_page(t, 'annotated_body'),
-             t.get('extractors', []), t.get('version', '0.12.0')]
-            for t in spec['templates'] if t.get('page_type', 'item') == 'item'
-        ), key=lambda x: x[0])
-        self.item_classes = {}
+
+        # Link extraction
+        ################################################################
         if (settings.get('AUTO_PAGINATION') or
                 spec.get('links_to_follow') == 'auto'):
             self.html_link_extractor = PaginationExtractor()
         else:
             self.html_link_extractor = HtmlLinkExtractor()
+
+        # Item classes
+        ################################################################
+        self.item_classes = {}
         for schema_name, schema in items.items():
             if schema_name not in self.item_classes:
                 if not schema.get('name'):
@@ -64,10 +66,18 @@ class Annotations(object):
                 item_cls = SlybotItem.create_iblitem_class(schema)
                 self.item_classes[schema_name] = item_cls
 
-        # Create descriptors and apply additional extractors to fields
-        self.descriptors = []
+        # Create descriptors for each template and apply additional
+        # extractors to fields
+        ################################################################
         template_descriptors_version = []
-        for template, template_extractors, v in _item_template_pages:
+        template_extractors_version = sorted((
+            [dict_to_page(t, 'annotated_body'),
+             t.get('scrapes'),
+             t.get('extractors', []),
+             t.get('version', '0.12.0')]
+            for t in spec['templates'] if t.get('page_type', 'item') == 'item'
+        ), key=lambda x: x[0])
+        for template, default, template_extractors, version in template_extractors_version:
             schema_to_descriptors = OrderedDict()
             for schema_name, schema in items.items():
                 item_descriptor = create_slybot_item_descriptor(schema,
@@ -75,18 +85,18 @@ class Annotations(object):
                 apply_extractors(item_descriptor, template_extractors,
                                  extractors)
                 schema_to_descriptors[schema_name] = item_descriptor
-            template_descriptors = schema_to_descriptors.values() or [{}]
-            self.descriptors += template_descriptors
-            schema_to_descriptors['#default'] = template_descriptors[0]
-            template_descriptors_version.append((template, schema_to_descriptors, v))
             add_extractors_to_descriptors(schema_to_descriptors, extractors)
+            template_descriptors_version.append((template, schema_to_descriptors, version))
 
+        # Build extractors
+        ################################################################
+        # Group templates into templates previous and after version 0.13.0
         grouped = itertools.groupby(sorted(template_descriptors_version,
                                            key=operator.itemgetter(2)),
                                     lambda x: x[2] < '0.13.0')
         self.extractors = []
-        for old_version, group in grouped:
-            if old_version:
+        for is_old_version, group in grouped:
+            if is_old_version:
                 self.extractors.append(
                     InstanceBasedLearningExtractor(
                         [(template, descriptors['#default'])
@@ -131,23 +141,30 @@ class Annotations(object):
         link_regions = []
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
-        if template is not None and hasattr(template, 'descriptor'):
-            descriptor = template.descriptor()
-            unprocessed = False
-        else:
-            descriptor = get_best_descriptor(self.descriptors, extracted_data)
-            unprocessed = True
 
-        if hasattr(descriptor, 'name'):
-            item_cls_name = descriptor.name
-        elif hasattr(descriptor, 'get'):
-            item_cls_name = descriptor.get('name',
-                                           descriptor.get('display_name'))
-        else:
-            item_cls_name = ''
-            if extracted_data is not None:
-                import pdb; pdb.set_trace()
+        # Get descriptor
+        unprocessed = True
+        descriptor = None
+        if template is not None:
+            if hasattr(template, 'descriptor'):
+                descriptor = template.descriptor()
+                unprocessed = False
+            if not descriptor:
+                unprocessed = True
+                descriptor = get_best_descriptor(
+                    template.descriptors, extracted_data)
+
+        # Get item class name
+        item_cls_name = ''
+        if descriptor:
+            if hasattr(descriptor, 'name'):
+                item_cls_name = descriptor.name
+            elif hasattr(descriptor, 'get'):
+                item_cls_name = descriptor.get('name',
+                                               descriptor.get('display_name'))
         item_cls = self.item_classes.get(item_cls_name)
+
+        # Build items
         items = []
         for processed_attributes in extracted_data or []:
             if processed_attributes.get('_type') in self.item_classes:
