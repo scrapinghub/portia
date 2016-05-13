@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import {getColors} from '../../../../../utils/colors';
-import {elementPath} from '../../../../../utils/selectors';
+import {BaseSelectorGenerator, elementPath} from '../../../../../utils/selectors';
 
 export default Ember.Controller.extend({
     browser: Ember.inject.service(),
@@ -122,7 +122,7 @@ export default Ember.Controller.extend({
         }),
     generalizableModel: Ember.computed(
         'selectionMode', 'selectedModel', 'hoveredElement',
-        'sample.orderedAnnotations.@each.selectorGenerator', function() {
+        'sample.orderedChildren.@each.elements', function() {
             const isEditMode = this.get('selectionMode') === 'edit';
             const selectedModel = this.get('selectedModel');
             const hoveredElement = this.get('hoveredElement');
@@ -147,24 +147,23 @@ export default Ember.Controller.extend({
                 }
                 const hoveredElementPath = elementPath(hoveredElement);
                 const possibilities = annotationsToMatch.map(annotation => {
-                    const selectorGenerator = annotation.get('selectorGenerator');
-                    let distance = Infinity;
-                    if (selectorGenerator) {
-                        distance = selectorGenerator.generalizationDistance(hoveredElement);
-                        if (distance < Infinity && !isEditMode) {
-                            // reject annotations with elements that share a container with the
-                            // hovered element
-                            const annotationPaths = annotation.get('elements').map(elementPath);
-                            const containerElements = annotation.get('parent.elements');
-                            container: for (let containerElement of containerElements) {
-                                const containerPath = elementPath(containerElement);
-                                const depth = containerPath.length - 1;
-                                for (let annotationPath of annotationPaths) {
-                                    if (containerElement === annotationPath[depth] &&
-                                            containerElement === hoveredElementPath[depth]) {
-                                        distance = Infinity;
-                                        break container;
-                                    }
+                    const selectorGenerator = BaseSelectorGenerator.create({
+                        elements: annotation.get('elements')
+                    });
+                    let distance = selectorGenerator.generalizationDistance(hoveredElement);
+                    if (distance < Infinity && !isEditMode) {
+                        // reject annotations with elements that share a container with the
+                        // hovered element
+                        const annotationPaths = annotation.get('elements').map(elementPath);
+                        const containerElements = annotation.get('parent.elements');
+                        container: for (let containerElement of containerElements) {
+                            const containerPath = elementPath(containerElement);
+                            const depth = containerPath.length - 1;
+                            for (let annotationPath of annotationPaths) {
+                                if (containerElement === annotationPath[depth] &&
+                                        containerElement === hoveredElementPath[depth]) {
+                                    distance = Infinity;
+                                    break container;
                                 }
                             }
                         }
