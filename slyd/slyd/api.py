@@ -5,7 +5,7 @@ from functools import partial
 from itertools import groupby
 from operator import itemgetter
 
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import maybeDeferred
 from twisted.web.server import NOT_DONE_YET
 from jsonschema.exceptions import ValidationError as jsValidationError
 from marshmallow.exceptions import ValidationError as mwValidationError
@@ -17,6 +17,7 @@ from .errors import (
     BadRequest, NotFound, BaseError, InternalServerError, Forbidden
 )
 FORBIDDEN_TEXT = 'You do not have access to this project.'
+VALIDATION_ERRORS = (AssertionError, jsValidationError, mwValidationError)
 
 
 class APIResource(object):
@@ -53,72 +54,51 @@ class APIResource(object):
         method = self.method_map.get(method, method)
         # TODO (SPEC): get content-type/accept and return error if it has media
         #              extensions
-        try:
-            for i in range(1):
-                # TODO (SPEC): Check content-type and raise error when needed
-                for route, callback in self.routes[method]:
-                    parsed = self._parse(route, request.postpath)
-                    if parsed:
-                        if 'project_id' in parsed.named:
-                            if not self._has_auth(request,
-                                                  parsed.named['project_id']):
-                                return self.format_error(
-                                    request, Forbidden(FORBIDDEN_TEXT))
-                            manager = self.spec_manager.project_spec(
-                                parsed.named.pop('project_id'),
-                                request.auth_info)
-                            manager.pm = self.spec_manager.project_manager(
-                                request.auth_info)
-                            manager.pm.request = request
-                        else:
-                            manager = self.spec_manager.project_manager(
-                                request.auth_info)
-                        parsed = {k: unquote(v)
-                                  for k, v in parsed.named.items()}
-                        parsed['attributes'] = load_attributes(request)
-                        api_response = manager.run(callback, **parsed)
-                        data = api_response
-                        if isinstance(api_response, BaseApiResponse):
-                            data = api_response.data
-
-                        if isinstance(data, Deferred):
-                            data.addCallbacks(
-                                partial(self.deferred_finished, request,
-                                        api_response),
-                                partial(self.deferred_failed, request))
-                            return NOT_DONE_YET
-
-                        return self.format_response(request, api_response, data)
+        # TODO (SPEC): Check content-type and raise error when needed
+        for route, callback in self.routes[method]:
+            parsed = self._parse(route, request.postpath)
+            if parsed:
+                if 'project_id' in parsed.named:
+                    if not self._has_auth(request,
+                                          parsed.named['project_id']):
+                        return self.format_error(request,
+                                                 Forbidden(FORBIDDEN_TEXT))
+                    manager = self.spec_manager.project_spec(
+                        parsed.named.pop('project_id'),
+                        request.auth_info)
+                    manager.pm = self.spec_manager.project_manager(
+                        request.auth_info)
+                    manager.pm.request = request
+                else:
+                    manager = self.spec_manager.project_manager(
+                        request.auth_info)
+                parsed = {k: unquote(v) for k, v in parsed.named.items()}
+                parsed['attributes'] = load_attributes(request)
+                deferred = maybeDeferred(manager.run, callback, **parsed)
+                deferred.addCallbacks(
+                    partial(self.deferred_finished, request),
+                    partial(self.deferred_failed, request))
+                return NOT_DONE_YET
         # except KeyError as ex:
         #     if isinstance(ex, KeyError):
         #         ex = NotFound('Resource not found',
         #                       'The resource at "%s" could not be'
         #                       ' found' % request.path)
         #     return self.format_error(request, ex)
-        # except (AssertionError, jsValidationError, mwValidationError) as ex:
-        #     return self.format_error(request,
-        #                              BadRequest('The input data was not valid.'
-        #                                         ' Validation failed with the '
-        #                                         'error: %s.' % str(ex)))
-        except BaseError as ex:
-            return self.format_error(request, ex)
-        # except Exception as ex:
-        #     return self.format_error(request,
-        #                              self._handle_uncaught_exception(ex))
-        # return self.format_error(request, NotFound('Resource not found',
-        #                                            'No route matches: '
-        #                                            '"%s"' % request.path))
+        return self.format_error(request, NotFound('Resource not found',
+                                                   'No route matches: '
+                                                   '"%s"' % request.path))
 
-    def format_response(self, request, api_response, data):
+    def format_response(self, request, api_response):
         if isinstance(api_response, BaseApiResponse):
-            return api_response.format_response(request, data)
+            return api_response.format_response(request)
 
         status = 200
         if request.method == 'POST':
-            status = 204 if data is None else 201
+            status = 204 if api_response is None else 201
         request.setResponseCode(status)
         request.setHeader(b'content-type', b"application/vnd.api+json")
-        return json.dumps(data)
+        return json.dumps(api_response)
 
     def format_error(self, request, error):
         request.setResponseCode(error.status)
@@ -133,13 +113,16 @@ class APIResource(object):
             data['id'] = _id
         return json.dumps({'errors': [data]})
 
-    def deferred_finished(self, request, api_response, data):
-        data = self.format_response(request, api_response, data)
+    def deferred_finished(self, request, api_response):
+        data = self.format_response(request, api_response)
         request.write(data)
         request.finish()
 
     def deferred_failed(self, request, failure):
         error = failure.value
+        if isinstance(error, VALIDATION_ERRORS):
+            error = BadRequest('The input data was not valid. Validation '
+                               'failed with the error: %s.' % str(error))
         if isinstance(error, BaseError):
             body = self.format_error(request, error)
             request.write(body)

@@ -218,4 +218,4 @@ class ProjectsManager(object):
         return '%s(%s)' % (self.__class__.__name__, str(self))
 
     def __str__(self):
-        return '%s' % self.username
+        return '%s' % self.user

@@ -99,3 +99,4 @@ def _process_sample(sample, manager, spider_id):
     data = SampleSchema(context=_ctx()).dump(sample).data
     return _add_items_and_annotations(data, items, annotations,
                                       item_annotations, _ctx)
+

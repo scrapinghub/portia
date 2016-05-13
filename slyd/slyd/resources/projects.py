@@ -107,8 +107,9 @@ class ProjectsManagerFileResponse(BaseApiResponse):
         self.command = command
         self.project_manager = project_manager
 
-    def format_response(self, request, data):
-        return self.project_manager._render_file(request, self.command, data)
+    def format_response(self, request):
+        return self.project_manager._render_file(request, self.command,
+                                                 self.data)
 
 
 def download(manager, spider_id=None, attributes=None):
