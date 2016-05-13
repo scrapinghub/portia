@@ -134,7 +134,8 @@ def _update_annotations(manager, sample, includes):
     new_schemas, schemas = {}, None
     for cid, container in containers.items():
         old_schema_id = old_containers[cid]['schema_id']
-        con, _ = _update_item_annotation(sample, container, new_annotations)
+        con, sel = _update_item_annotation(sample, container, new_annotations)
+        container['repeated_container_selectors'] = sel
         if schemas is None:
             schemas = _read_schemas(manager)
         if con['schema_id'] != old_schema_id and old_schema_id is not None:

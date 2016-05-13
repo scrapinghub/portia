@@ -15,7 +15,8 @@ from slyd.utils.download import GitProjectArchiver
 
 try:
     from MySQLdb import DataBaseError
-    ERRORS = (DataBaseError, IOError)
+    from _mysql_exceptions import OperationalError
+    ERRORS = (DataBaseError, OperationalError, IOError)
 except ImportError:
     ERRORS = IOError,
 RETRIES = 3
