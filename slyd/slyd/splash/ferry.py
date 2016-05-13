@@ -296,10 +296,11 @@ class FerryServerProtocol(WebSocketServerProtocol):
             log.err(msg)
 
     def sendMessage(self, payload, is_binary=False):
-        super(FerryServerProtocol, self).sendMessage(
-            json.dumps(payload, cls=ScrapyJSONEncoder, sort_keys=True),
-            is_binary
-        )
+        if isinstance(payload, dict) and '_command' in payload:
+            super(FerryServerProtocol, self).sendMessage(
+                json.dumps(payload, cls=ScrapyJSONEncoder, sort_keys=True),
+                is_binary
+            )
 
     def getElementByNodeId(self, nodeid):
         self.tab.web_page.mainFrame().evaluateJavaScript(
