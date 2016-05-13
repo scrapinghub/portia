@@ -4,6 +4,8 @@ import sys
 
 from os.path import splitext, split, join, sep
 
+from twisted.enterprise.adbapi import ConnectionLost
+
 from slyd.projects import ProjectsManager
 from slyd.projecttemplates import templates
 from slyd.errors import BadRequest
@@ -19,18 +21,23 @@ except ImportError:
 RETRIES = 3
 
 
-def wrap_callback(connection, callback, manager, **parsed):
-    manager.connection = connection
-    if hasattr(manager, 'pm'):
-        manager.pm.connection = connection
-    if connection is None:
-        result = callback(manager, **parsed)
-        if manager._changed_file_data:
-            manager.commit_changes()
-        return result
-    for _ in range(RETRIES):
-            with transaction(manager):
-                return callback(manager, **parsed)
+def wrap_callback(connection, callback, manager, retries=0, **parsed):
+    try:
+        manager.connection = connection
+        if hasattr(manager, 'pm'):
+            manager.pm.connection = connection
+        if connection is None:
+            result = callback(manager, **parsed)
+            if manager._changed_file_data:
+                manager.commit_changes()
+            return result
+        for _ in range(RETRIES):
+                with transaction(manager):
+                    return callback(manager, **parsed)
+    except ConnectionLost:  # ConnectionLost only triggerd by mysql backend
+        if retries < RETRIES:
+            return connection._pool._runWithConnection(
+                wrap_callback, callback, manager, retries + 1, **parsed)
     exc_type, exc_value, exc_traceback = sys.exc_info()
     raise exc_type, exc_value, exc_traceback
 
