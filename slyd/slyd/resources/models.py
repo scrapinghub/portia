@@ -2,6 +2,7 @@ from itertools import chain
 
 from marshmallow_jsonapi import Schema, fields
 from marshmallow import pre_dump, post_load
+from scrapy.utils.misc import arg_to_iter
 
 
 class SlydSchema(Schema):
@@ -229,7 +230,8 @@ class SampleSchema(SlydSchema):
     )
 
     def dump(self, obj, many=None, update_fields=True, **kwargs):
-        obj.setdefault('items', [])
+        for sample in arg_to_iter(obj):
+            sample.setdefault('items', [])
         return super(SampleSchema, self).dump(obj, many, update_fields,
                                               **kwargs)
 

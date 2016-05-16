@@ -25,6 +25,12 @@ class BaseApiResponse(object):
 
 def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
     sample = manager.resource('spiders', spider_id, sample_id)
+    return _handle_sample_updates(manager, sample, spider_id, sample_id,
+                                  create_missing_item)
+
+
+def _handle_sample_updates(manager, sample, spider_id, sample_id,
+                           create_missing_item=True):
     if not sample.get('name'):
         sample['name'] = sample_id
     sample['id'] = sample_id

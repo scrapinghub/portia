@@ -73,11 +73,10 @@ def update_annotation(manager, spider_id, sample_id, annotation_id,
             relationships['parent_id'] != annotation.get('container_id')):
         data['container_id'] = relationships['parent_id'].split('|')[0]
 
-    annotation['accept_selectors'] = data.get('accept_selectors',
-                                              annotation['accept_selectors'])
-    annotation['reject_selectors'] = data.get('reject_selectors',
-                                              annotation['reject_selectors'])
-    annotation['selector'] = data.get('selector', annotation['selector'])
+    fields = ['accept_selectors', 'reject_selectors', 'selector',
+              'selection_mode', 'pre_text', 'post_text']
+    for field in fields:
+        annotation[field] = data.get(field, annotation.get(field))
     if annotation['selector'] is None:
         annotation['selector'] = ', '.join(annotation['accept_selectors'])
 
