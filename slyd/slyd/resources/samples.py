@@ -4,10 +4,9 @@ from scrapy.utils.request import request_fingerprint
 from slybot.validation.schema import get_schema_validator
 
 from .models import SampleSchema, HtmlSchema
-from .items import create_item
 from .utils import (_load_sample, _create_schema, _get_formatted_schema,
                     _process_annotations, _add_items_and_annotations,
-                    SLYBOT_VERSION)
+                    _handle_sample_updates, SLYBOT_VERSION)
 from ..errors import BadRequest
 from ..utils.projects import ctx, gen_id
 
@@ -39,8 +38,8 @@ def create_sample(manager, spider_id, attributes):
     get_schema_validator('template').validate(attributes)
     if 'version' not in attributes:
         attributes['version'] = SLYBOT_VERSION
-    manager.savejson(attributes, ['spiders', spider_id, sample_id])
-    attributes = _load_sample(manager, spider_id, sample_id)
+    attributes = _handle_sample_updates(manager, attributes, spider_id,
+                                        sample_id)
     manager.savejson(attributes, ['spiders', spider_id, sample_id])
     spider['template_names'].append(sample_id)
     manager.savejson(spider, ['spiders', spider_id])
@@ -99,4 +98,3 @@ def _process_sample(sample, manager, spider_id):
     data = SampleSchema(context=_ctx()).dump(sample).data
     return _add_items_and_annotations(data, items, annotations,
                                       item_annotations, _ctx)
-
