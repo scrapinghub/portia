@@ -160,7 +160,24 @@ export const BaseSelectorGenerator = Ember.Object.extend({
         return this.createSelectors(groupedPaths, parentMap);
     }),
     selector: Ember.computed('selectors', function() {
-        return this.mergeSelectors(this.get('selectors'));
+        const selectors = this.get('selectors');
+
+        // filter out selectors with trailing implicit tags, if a selector
+        // without the tag also exists, otherwise the combined selector may
+        // match too many elements
+        const filteredSelectors = [];
+        for (let selectorGroup of selectors) {
+            for (let selector of selectorGroup) {
+                const selectorParts = selector.split(' > ');
+                const trailingTag = selectorParts[selectorParts.length - 1];
+                if (!IMPLICIT_TAGS.has(trailingTag) ||
+                        !selectorGroup.includes(selectorParts.slice(0, -1).join(' > '))) {
+                    filteredSelectors.push(selector);
+                }
+            }
+        }
+
+        return this.mergeSelectors(filteredSelectors);
     }),
     xpath: Ember.computed('selector', function() {
         const selector = this.get('selector');
