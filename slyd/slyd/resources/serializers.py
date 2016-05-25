@@ -7,6 +7,7 @@ from slyd.orm.base import AUTO_PK
 from slyd.orm.exceptions import ProtectedError
 from slyd.orm.models import (Project, Schema, Field, Extractor, Spider, Sample,
                              Item, Annotation)
+from slyd.resources.utils import sample_uses_js
 from slyd.utils.projects import unique_name
 
 
@@ -14,6 +15,11 @@ def clear_auto_created(instance):
     if instance.auto_created:
         instance.auto_created = False
         instance.save(only=('auto_created',))
+
+
+def set_sample_body_type(sample):
+    sample.body = 'rendered_body' if sample_uses_js(sample.spider, sample) \
+        else 'original_body'
 
 
 class ProjectSerializer(JsonApiSerializer):
@@ -175,6 +181,7 @@ class SampleSerializer(JsonApiSerializer):
 
     def create(self, validated_data):
         sample = super(SampleSerializer, self).create(validated_data)
+        set_sample_body_type(sample)
 
         project = sample.spider.project
         schema_names = map(attrgetter('name'), project.schemas)
@@ -186,6 +193,11 @@ class SampleSerializer(JsonApiSerializer):
         item = Item(self.storage, id=AUTO_PK, sample=sample, schema=schema)
         item.save()
 
+        return sample
+
+    def update(self, sample, validated_data):
+        sample = super(SampleSerializer, self).update(sample, validated_data)
+        set_sample_body_type(sample)
         return sample
 
 

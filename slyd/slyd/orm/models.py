@@ -309,6 +309,8 @@ class Sample(Model, OrderedAnnotationsMixin):
     page_type = String(default='item', validate=OneOf(['item']))
     original_body = String(default='')
     annotated_body = String(default='')
+    rendered_body = String(default='')
+    body = String(validate=OneOf(['original_body', 'rendered_body']))
     spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
                        only='id')
     items = HasMany('Item', related_name='sample', on_delete=CLEAR)

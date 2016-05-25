@@ -7,6 +7,9 @@ const Sample = BaseModel.extend({
     url: DS.attr('string'),
     spider: DS.belongsTo(),
     items: DS.hasMany(),
+    body: DS.attr('string', {
+        default: 'original_body'
+    }),
 
     orderedAnnotations: Ember.computed('items.content.@each.orderedAnnotations', function() {
         return [].concat(...this.get('items').mapBy('orderedAnnotations'));
@@ -20,12 +23,11 @@ const Sample = BaseModel.extend({
 Sample.reopenClass({
     normalizeTitle(title) {
         return title
-            .toLowerCase()
             .trim()
             .replace(/[^a-z\s_-]/ig, '')
             .substring(0, 48)
             .trim()
-            .replace(/\s+/g, '-');
+            .replace(/\s+/g, ' ');
     }
 });
 

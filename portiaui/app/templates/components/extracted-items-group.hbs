@@ -8,6 +8,7 @@
         {{#group.tab toolId="extracted-items-json"}}
             JSON
         {{/group.tab}}
+        {{extracted-items-status}}
     {{else if (eq group.section "panels")}}
         {{#group.panel class="extracted-items container-fluid" toolId="extracted-items" as |active|}}
             {{extracted-items-panel selected=active}}

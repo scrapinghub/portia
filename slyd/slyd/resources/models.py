@@ -200,6 +200,8 @@ class SampleSchema(SlydSchema):
     extractors = fields.Dict(default={})
     original_body = fields.Str(default='')
     annotated_body = fields.Str(default='')
+    rendered_body = fields.Str(default='')
+    body = fields.Str(default='original_body')
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},

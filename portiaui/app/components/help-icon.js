@@ -5,5 +5,7 @@ export default Ember.Component.extend({
 
     tooltipClasses: null,
     tooltipContainer: 'body',
-    placement: 'right'
+    placement: 'right',
+    icon: 'help',
+    classes: 'help-icon',
 });
