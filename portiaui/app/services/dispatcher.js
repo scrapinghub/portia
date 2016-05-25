@@ -101,6 +101,12 @@ export default Ember.Service.extend({
         } else {
             name = url.replace(/[^a-zA-Z0-9_\.-]/g, '')
         }
+        let baseName = name;
+        let counter = 1;
+        while (store.peekRecord('spider', name)) {
+            name = `${baseName}_${counter}`;
+            counter += 1;
+        }
         const spider = store.createRecord('spider', {
             name: name,
             startUrls: [url],
