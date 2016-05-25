@@ -189,7 +189,7 @@ class ProjectSpec(object):
         return '%s(%s)' % (self.__class__.__name__, str(self))
 
     def __str__(self):
-        return '%s, %s' % (self.project_name, self.username)
+        return '%s, %s' % (self.project_name, self.user)
 
 
 class ProjectResource(SlydJsonObjectResource, ProjectModifier):

@@ -1,10 +1,6 @@
-import contextlib
 import json
-import sys
 
 from os.path import splitext, split, join, sep
-
-from twisted.enterprise.adbapi import ConnectionLost
 
 from slyd.projects import ProjectsManager
 from slyd.projecttemplates import templates
@@ -13,48 +9,12 @@ from .repoman import Repoman
 from slyd.utils.copy import GitSpiderCopier
 from slyd.utils.download import GitProjectArchiver
 
-try:
-    from MySQLdb import DataBaseError
-    from _mysql_exceptions import OperationalError
-    ERRORS = (DataBaseError, OperationalError, IOError)
-except ImportError:
-    ERRORS = IOError,
-RETRIES = 3
-
 
 def wrap_callback(connection, callback, manager, retries=0, **parsed):
-    try:
-        manager.connection = connection
-        if hasattr(manager, 'pm'):
-            manager.pm.connection = connection
-        if connection is None:
-            result = callback(manager, **parsed)
-            if manager._changed_file_data:
-                manager.commit_changes()
-            return result
-        for _ in range(RETRIES):
-                with transaction(manager):
-                    return callback(manager, **parsed)
-    except ConnectionLost:  # ConnectionLost only triggerd by mysql backend
-        if retries < RETRIES:
-            return connection._pool._runWithConnection(
-                wrap_callback, callback, manager, retries + 1, **parsed)
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    raise exc_type, exc_value, exc_traceback
-
-
-@contextlib.contextmanager
-def transaction(manager):
-    try:
-        yield
-        if manager._changed_file_data:
-            manager.commit_changes()
-    except ERRORS:
-        manager.connection.rollback()
-    except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        manager.connection.rollback()
-        raise exc_type, exc_value, exc_traceback
+    result = callback(manager, **parsed)
+    if manager._changed_file_data:
+        manager.commit_changes()
+    return result
 
 
 class GitProjectMixin(object):
@@ -120,6 +80,7 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
             'download': self._render_file
         }
         self._changed_file_data = {}
+        self.connection = None
 
     def all_projects(self):
         return [{'name': repo, 'id': repo}

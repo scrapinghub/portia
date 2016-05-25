@@ -13,6 +13,7 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
     def __init__(self, project_name, auth_info):
         super(GitProjectSpec, self).__init__(project_name, auth_info)
         self._changed_file_data = {}
+        self.connection = None
 
     @classmethod
     def setup(cls, storage_backend, location, **kwargs):
