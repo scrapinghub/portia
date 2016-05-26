@@ -1,11 +1,7 @@
 import os
-
-import six
-
-import MySQLdb
+import sys
 
 from contextlib import contextmanager
-from functools import wraps
 from io import BytesIO
 
 from dulwich.errors import NoIndexPresent
@@ -19,7 +15,73 @@ from dulwich.refs import RefsContainer, SYMREF
 
 from six.moves.urllib.parse import urlparse
 
-from twisted.enterprise.adbapi import ConnectionPool
+from twisted.enterprise.adbapi import ConnectionPool, ConnectionLost
+
+from slyd.projects import ProjectsManager
+from slyd.projectspec import ProjectSpec
+
+
+try:
+    from MySQLdb import OperationalError
+    ERRORS = (ConnectionLost, OperationalError, IOError)
+except ImportError:
+    ERRORS = (ConnectionLost, IOError)
+    OperationalError = None
+RETRIES = 3
+
+
+class ReconnectionPool(ConnectionPool):
+    '''This pool will reconnect if the server goes away or a deadlock occurs.
+
+    This also injects a connection into `ProjectsManager` and `ProjectSpec`
+    instances.
+
+    [source] http://www.gelens.org/2009/09/13/twisted-connectionpool-revisited/
+    [via] http://stackoverflow.com/questions/12677246/
+    '''
+
+    def _runWithConnection(self, func, *args, **kw):
+        retries = kw.pop('_retries', 0)
+        conn = self.connectionFactory(self)
+        try:
+            for manager in args:
+                if isinstance(manager, (ProjectsManager, ProjectSpec)):
+                    break
+            setattr(manager, 'connection', conn)
+            if getattr(manager, 'pm', None):
+                setattr(manager.pm, 'connection', conn)
+        except AttributeError:
+            pass
+
+        try:
+            result = func(conn, *args, **kw)
+            conn.commit()
+            return result
+        except ERRORS as e:
+            # Connection should be re-acquired and transaction re-run when the
+            # following OperationalErrors occur:
+            #     1213: Deadlock found when trying to get lock
+            #     2006: MySQL server has gone away
+            #     2013: Lost connection to MySQL server during query
+            if (retries >= RETRIES or isinstance(e, OperationalError) and
+                    e[0] not in (2006, 2013, 1213)):
+                raise
+            try:
+                conn.rollback()
+            except:
+                pass
+            finally:
+                conn.reconnect()
+
+            kw['_retries'] = retries + 1
+            return self._runWithConnection(func, *args, **kw)
+        except:
+            excType, excValue, excTraceback = sys.exc_info()
+            try:
+                conn.rollback()
+            except:
+                pass
+            raise excType, excValue, excTraceback
 
 
 @contextmanager
@@ -45,9 +107,10 @@ def _parse(url):
     return config
 
 
-DB_CONFIG = 'DB_URL' in os.environ and _parse(os.environ['DB_URL']) or {}
 connection_pool = None
-POOL_NAME = "PORTIA"
+DB_CONFIG = 'DB_URL' in os.environ and _parse(os.environ['DB_URL']) or {}
+INIT_COMMAND = 'SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ'
+POOL_NAME = 'PORTIA'
 POOL_SIZE = 8
 USE_PREPARED_STATEMENTS = False
 
@@ -61,10 +124,10 @@ def set_db_url(url):
     DB_CONFIG = _parse(url)
     global connection_pool
     if connection_pool is None:
-        connection_pool = ConnectionPool(
-            "MySQLdb", cp_reconnect=True, cp_min=3, cp_max=POOL_SIZE,
+        connection_pool = ReconnectionPool(
+            'MySQLdb', cp_reconnect=True, cp_min=3, cp_max=POOL_SIZE,
             cp_name=POOL_NAME, cp_openfun=init_connection,
-            init_command="SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ",
+            init_command=INIT_COMMAND,
             **DB_CONFIG)
     return connection_pool
 
