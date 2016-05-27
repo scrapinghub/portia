@@ -18,7 +18,9 @@ module.exports = function(defaults) {
     app.import('bower_components/moment/min/moment.min.js');
     app.import('bower_components/uri.js/src/URI.min.js');
     app.import('bower_components/css-escape/css.escape.js');
+
     app.import('vendor/tree-mirror.js');
+    app.import('vendor/modernizr.js');
 
     ['eot', 'svg', 'ttf', 'woff', 'woff2'].forEach(function(file) {
         app.import('bower_components/font-awesome/fonts/fontawesome-webfont.' + file, {
