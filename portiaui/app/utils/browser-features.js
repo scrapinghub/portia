@@ -2,12 +2,12 @@ import Ember from 'ember';
 const { Promise } = Ember.RSVP;
 
 export default function hasBrowserFeatures() {
-    let features = ['flexbox', 'mutationobserver'];
+    let features = Ember.A(['flexbox']);
 
     return new Promise(function(resolve) {
-        let hasFeatures = features.map((feature) => {
+        let hasFeatures = features.every((feature) => {
             return Modernizr[feature];
-        }).every();
+        });
         resolve(hasFeatures);
     });
 }
