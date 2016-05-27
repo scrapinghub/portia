@@ -2,14 +2,21 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     browser: Ember.inject.service(),
-    'extractedItems': Ember.inject.service(),
+    extractedItems: Ember.inject.service(),
 
     model(params) {
-        return this.store.findRecord('sample', params.sample_id);
+        return this.store.queryRecord('sample', {
+            id: params.sample_id,
+            spider_id: this.modelFor('projects.project.spider').get('id'),
+            spider_project_id: this.modelFor('projects.project').get('id')
+        });
     },
 
     afterModel(model) {
         this.get('extractedItems').update();
+        // reload the model to fetch it with annotations included
+        // TODO: allow fetching as a relationship, need to inline annotations first
+        return model.reload();
     },
 
     renderTemplate() {
