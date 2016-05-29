@@ -1,0 +1,18 @@
+.browser-logos {
+    height: 120px;
+}
+
+.browser-logo {
+    height: 120px;
+    margin-right: 40px;
+    transition: 0.2s;
+    &:hover {
+        margin-top: -8px;
+    }
+}
+
+.no-decoration {
+    &:focus, &:hover {
+        text-decoration: none;
+    }
+}

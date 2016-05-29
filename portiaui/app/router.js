@@ -32,6 +32,7 @@ Router.map(function() {
             this.route('compatibility', {path: "*path"});
         });
     });
+    this.route('browsers');
 });
 
 export default Router;
