@@ -1,5 +1,5 @@
 import Ember from 'ember';
-const { Promise } = Ember.RSVP;
+const { RSVP } = Ember;
 
 export default function hasBrowserFeatures() {
     let features = [
@@ -8,11 +8,11 @@ export default function hasBrowserFeatures() {
         "csspointerevents", "opacity", "csstransforms", "csstransitions", "cssvhunit",
         "classlist", "placeholder", "localstorage", "svgasimg", "datauri", "atobbtoa"
     ];
-
-    return new Promise(function(resolve) {
-        let hasFeatures = features.every((feature) => {
-            return Modernizr[feature];
+    let feature_promises = features.map((feature) => {
+        return new RSVP.Promise((resolve) => {
+            Modernizr.on(feature, (isFeatureActive) => { resolve(isFeatureActive); });
         });
-        resolve(hasFeatures);
     });
+
+    return RSVP.hash(feature_promises);
 }
