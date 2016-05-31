@@ -1,13 +1,22 @@
+.browser-list-container {
+    @extend .full-page-content;
+
+    margin: 0 auto;
+    text-align: center;
+}
+
 .browser-logos {
-    height: 120px;
+    max-height: 120px;
 }
 
 .browser-logo {
-    height: 120px;
-    margin-right: 40px;
+    width: 13%;
+    max-width: 1000px;
+    margin-left: 20px;
+    margin-right: 20px;
     transition: 0.2s;
     &:hover {
-        margin-top: -8px;
+        transform: translateY(-8px);
     }
 }
 
