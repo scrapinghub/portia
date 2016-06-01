@@ -14,5 +14,5 @@ export default function hasBrowserFeatures() {
         });
     });
 
-    return RSVP.hash(feature_promises);
+    return RSVP.all(feature_promises);
 }
