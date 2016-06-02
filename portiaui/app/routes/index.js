@@ -8,7 +8,7 @@ export default Ember.Route.extend({
         return hasBrowserFeatures();
     },
 
-    redirect(model, transition) {
+    redirect(model) {
         let hasFeatures = model.every(identity);
         let nextRoute = hasFeatures ? 'projects' : 'browsers';
         this.replaceWith(nextRoute);
