@@ -1,0 +1,42 @@
+.browser-list-container {
+    @extend .full-page-content;
+
+    margin: 0 auto;
+    margin-top: 20px;
+    padding: 0 40px;
+    text-align: center;
+
+    h3 { margin-top: 0; }
+}
+
+.browser-p {
+    font-size: 1.3em;
+    color: #777;
+}
+
+.browser-mg {
+    margin: none;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.browser-logos {
+    display: flex;
+    margin-top: 26px;
+    max-height: 120px;
+}
+
+.browser-logo {
+    width: 120px;
+    height: 120px;
+    transition: 0.2s;
+    &:hover {
+        transform: translateY(-8px);
+    }
+}
+
+.no-decoration {
+    &:focus, &:hover {
+        text-decoration: none;
+    }
+}
