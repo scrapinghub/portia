@@ -2,13 +2,15 @@ import Ember from 'ember';
 
 let browsers = [
     {
+        name: 'Chrome',
+        alt: 'Chrome logo',
         src: '/assets/images/chrome-logo.jpg',
-        alt: 'Chromo logo',
         href: 'https://www.google.com/chrome/browser/desktop/'
     },
     {
-        src: '/assets/images/firefox-logo.png',
+        name: 'Firefox',
         alt: 'Firefox logo',
+        src: '/assets/images/firefox-logo.png',
         href: 'https://www.mozilla.org/en-US/firefox/new/'
     }
 ];
