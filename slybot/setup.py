@@ -2,7 +2,7 @@ from slybot import __version__
 from setuptools import setup, find_packages
 
 install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema',
-                    'dateparser', 'scrapyjs', 'page_finder']
+                    'dateparser', 'scrapyjs', 'page_finder', 'six']
 extras = {
     'tests': ['nose', 'nose-timer'],
     'clustering': ['page_clustering']
@@ -14,7 +14,7 @@ setup(name='slybot',
       description='Slybot crawler',
       author='Scrapy project',
       author_email='info@scrapy.org',
-      url='http://github.com/scrapy/slybot',
+      url='http://github.com/scrapinghub/portia',
       packages=find_packages(exclude=('tests', 'tests.*')),
       platforms=['Any'],
       scripts=['bin/slybot', 'bin/portiacrawl'],

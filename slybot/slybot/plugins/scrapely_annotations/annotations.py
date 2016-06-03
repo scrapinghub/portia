@@ -16,7 +16,8 @@ from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors, add_extractors_to_descriptors
-from slybot.utils import htmlpage_from_response, include_exclude_filter
+from slybot.utils import (htmlpage_from_response, include_exclude_filter,
+                          _build_sample)
 XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
 
 from .extraction import SlybotIBLExtractor
@@ -32,14 +33,16 @@ class Annotations(object):
         Perform any initialization needed for crawling using this plugin
         """
         self.logger = logger
+        templates = map(self._get_annotated_template, spec['templates'])
+
         _item_template_pages = sorted((
             [t.get('scrapes'), dict_to_page(t, 'annotated_body'),
              t.get('extractors', []), t.get('version', '0.12.0')]
-            for t in spec['templates'] if t.get('page_type', 'item') == 'item'
+            for t in templates if t.get('page_type', 'item') == 'item'
         ), key=lambda x: x[0])
         self.item_classes = {}
         self.template_scrapes = {template.get('page_id'): template['scrapes']
-                                 for template in spec.get('templates')}
+                                 for template in templates}
         if (settings.get('AUTO_PAGINATION') or
                 spec.get('links_to_follow') == 'auto'):
             self.html_link_extractor = PaginationExtractor()
@@ -84,8 +87,7 @@ class Annotations(object):
 
         # generate ibl extractor for links pages
         _links_pages = [dict_to_page(t, 'annotated_body')
-                        for t in spec['templates']
-                        if t.get('page_type') == 'links']
+                        for t in templates if t.get('page_type') == 'links']
         _links_item_descriptor = create_slybot_item_descriptor({'fields': {}})
         self._links_ibl_extractor = InstanceBasedLearningExtractor(
             [(t, _links_item_descriptor) for t in _links_pages]) \
@@ -107,6 +109,11 @@ class Annotations(object):
             self.clustering = None
             self.logger.info(
                 "Clustering setting deactivated")
+
+    def _get_annotated_template(self, template):
+        if template.get('version', '0.12.0') >= '0.13.0':
+            _build_sample(template)
+        return template
 
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
