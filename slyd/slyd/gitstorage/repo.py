@@ -71,7 +71,15 @@ class ReconnectionPool(ConnectionPool):
             except:
                 pass
             finally:
-                conn.reconnect()
+                # If the rollback raised a ConnectionLost error it may have
+                # disconnected the connection but not set _connection to None
+                # which means a subsequent reconnect will fail with a
+                # "wrong connection for thread" Exception.
+                try:
+                    conn.reconnect()
+                except:
+                    conn._connection = None
+                    conn.reconnect()
 
             kw['_retries'] = retries + 1
             return self._runWithConnection(func, *args, **kw)
