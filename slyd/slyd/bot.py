@@ -29,10 +29,10 @@ from scrapy.exceptions import DontCloseSpider
 from scrapy.utils.request import request_fingerprint
 from scrapy.utils.serialize import ScrapyJSONEncoder
 try:
-    from scrapy.spider import Spider
+    from scrapy.spiders import Spider
 except ImportError:
     # BaseSpider class was deprecated in Scrapy 0.21
-    from scrapy.spider import BaseSpider as Spider
+    from scrapy.spiders import BaseSpider as Spider
 from slybot.spider import IblSpider
 from .html import html4annotation, extract_html
 from .resource import SlydJsonResource
