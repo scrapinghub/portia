@@ -1,18 +1,14 @@
 import os
 import shutil
 
-from six.moves import StringIO
-from six.moves.urllib.parse import urljoin
-
+from django.core.files.base import ContentFile
 from django.core.files.move import file_move_safe
-from django.core.files.storage import Storage, FileSystemStorage, File
+from django.core.files.storage import Storage, FileSystemStorage
+from dulwich.diff_tree import tree_changes
 from dulwich.objects import Blob
 
 
 FILE_MODE = 0o100644
-CHANGE_UPDATE = 0
-CHANGE_RENAME = 1
-CHANGE_DELETE = 2
 
 
 class CommitingStorage(object):
@@ -28,7 +24,7 @@ class CommitingStorage(object):
     def checkout(self):
         pass
 
-    def commit(self):
+    def commit(self, message='Saving multiple files'):
         pass
 
 
@@ -52,34 +48,46 @@ class GitStorage(CommitingStorage, Storage):
                  commit=None, tree=None):
         self.repo = repo
         self.branch = branch
-        # TODO: If branch doesn't exist -> Create from master
         if commit is None:
-            _commit_id = repo.refs['refs/heads/%s' % branch]
-            commit = repo._repo.get_object(_commit_id)
+            for ref in {'refs/heads/%s' % branch, 'refs/heads/master'}:
+                try:
+                    _commit_id = repo._repo.refs[ref]
+                except KeyError:
+                    pass
+                else:
+                    commit = repo._repo.get_object(_commit_id)
+                    break
         self._commit = commit
         if tree is None:
             tree = repo._repo.get_object(self._commit.tree)
         self._tree = tree
-        self._changes = {}
+        self._working_tree = tree.copy()
+        self._blobs = {}
         self.base_url = base_url
 
-    def _open(self, name, mode):
+    def _open(self, name, mode='rb'):
         name = self._prepare_path(name)
-        if self.exists(name):
-            _, sha = self._tree[name]
-            buf = StringIO(self.repo._repo.get_object(sha).as_raw_string())
-            return File(buf, name)
+        if self.isfile(name):
+            _, sha = self._working_tree[name]
+            if sha in self._blobs:
+                blob = self._blobs[sha]
+            else:
+                blob = self.repo._repo.get_object(sha)
+                self._blobs[sha] = blob
+            return ContentFile(blob.data, name)
         raise IOError(2, 'No file or directory', name)
 
-    def _save(self, name, content, max_length=None):
+    def _save(self, name, content):
         name = self._prepare_path(name)
-        self._changes[name] = (content.file, name, CHANGE_UPDATE)
+        blob = Blob.from_string(content.read())
+        self._blobs[blob.id] = blob
+        self._working_tree.add(name, FILE_MODE, blob.id)
         return name
 
     def delete(self, name):
         name = self._prepare_path(name)
-        if self.exists(name):
-            self._changes[name] = (None, name, CHANGE_DELETE)
+        if self.isfile(name):
+            del self._working_tree[name]
         else:
             raise IOError(2, 'No file or directory', name)
 
@@ -92,11 +100,11 @@ class GitStorage(CommitingStorage, Storage):
     def listdir(self, path):
         path = self._prepare_path(path)
         # All paths should be relative to the project directory
-        path_parts = len(path.rstrip('/').split('/'))
+        path_parts = len(path.split('/'))
         if path:
             path_parts += 1
         dirs, files = set(), set()
-        for p in self._tree:
+        for p in self._working_tree:
             if not p.startswith(path):
                 continue
             split = p.split('/')
@@ -111,21 +119,16 @@ class GitStorage(CommitingStorage, Storage):
                 dirs.add(section)
         return sorted(dirs), sorted(files)
 
-    def url(self, name):
-        name = self._prepare_path(name)
-        path_parts = ['projects', self.repo.name] + name.split('/')
-        return urljoin(self.base_url, '/'.join(path_parts))
-
     def isdir(self, name):
         name = self._prepare_path(name)
         dir_name = name + '/'
-        if any(path.startswith(dir_name) for path in self._tree):
+        if any(path.startswith(dir_name) for path in self._working_tree):
             return True
         return False
 
     def isfile(self, name):
         name = self._prepare_path(name)
-        if name in self._tree:
+        if name in self._working_tree:
             return True
         return False
 
@@ -134,23 +137,28 @@ class GitStorage(CommitingStorage, Storage):
         if not self.exists(old_name):
             raise IOError(2, 'No file or directory', old_name)
         new_name = self._prepare_path(new_name)
+        if old_name == new_name:
+            return
         if self.isfile(old_name):
-            self._changes[old_name] = (None, new_name, CHANGE_RENAME)
+            self._working_tree[new_name] = self._working_tree[old_name]
+            del self._working_tree[old_name]
         elif self.isdir(old_name):
-            for path in self._tree:
-                if path.startswith(old_name):
+            dir_name = old_name + '/'
+            for path in self._working_tree:
+                if path.startswith(dir_name):
                     new_path = self._prepare_path(
                         '{}/{}'.format(new_name, path[len(old_name):]))
-                    self._changes[path] = (None, new_path, CHANGE_RENAME)
+                    self._working_tree[new_path] = self._working_tree[path]
+                    del self._working_tree[path]
 
     def rmtree(self, name):
         name = self._prepare_path(name)
         if not self.isdir(name):
             raise IOError(2, 'No file or directory', name)
         dir_name = name + '/'
-        for path in self._tree:
+        for path in self._working_tree:
             if path.startswith(dir_name):
-                self.delete(path)
+                del self._working_tree[path]
 
     def _prepare_path(self, path):
         path = path.lstrip('.').strip('/')
@@ -163,30 +171,29 @@ class GitStorage(CommitingStorage, Storage):
             return path.encode('utf-8')
         return path
 
-    def commit(self):
-        if not self._changes:
+    def commit(self, message='Saving multiple files'):
+        working_tree = self._working_tree
+
+        if working_tree == self._tree:
             return
-        commit = self.repo._create_commit()
-        commit.parents = self._commit.parents
-        tree = self._tree
-        ordered = sorted(self._changes.items(), key=lambda x: x[1][2])
+
+        fake_store = {
+            self._tree.id: self._tree,
+            working_tree.id: working_tree,
+        }
+
         blobs = []
-        for path, (contents, new_path, change) in ordered:
-            if change == CHANGE_RENAME:
-                tree[new_path] = tree[path]
-            if change in (CHANGE_DELETE, CHANGE_RENAME):
-                try:
-                    del tree[path]
-                except KeyError:
-                    pass
-            else:
-                blob = Blob.from_string(contents.read())
-                tree.add(path, FILE_MODE, blob.id)
-                blobs.append(blob)
-        commit.tree = tree.id
-        commit.message = 'Saving multiple files'
-        self.repo._update_store(commit, tree, *blobs)
+        for change in tree_changes(fake_store, self._tree.id, working_tree.id):
+            if change.new.sha in self._blobs:
+                blobs.append(self._blobs[change.new.sha])
+
+        commit = self.repo._create_commit()
+        commit.parents = [self._commit.id]
+        commit.tree = working_tree.id
+        commit.message = message
+        self.repo._update_store(commit, working_tree, *blobs)
         self.repo._advance_branch(self.branch, commit)
+
         self._commit = commit
-        self._tree = tree
-        self._changes = {}
+        self._tree = working_tree
+        self._working_tree = working_tree.copy()
