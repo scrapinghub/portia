@@ -10,6 +10,8 @@ from scrapy.settings import Settings
 
 from slybot.spider import IblSpider
 
+from ..errors import BadRequest, BaseError
+
 
 @inlineCallbacks
 def extract_items(spec, spider_name, urls, request):
@@ -34,6 +36,11 @@ def extract_items(spec, spider_name, urls, request):
                         item['templates'] = [i['_template']
                                              for i in extracted_items]
                     items.append(item)
+    except BaseError as e:
+        request.setResponseCode(e.status)
+        request.write(json.dumps({
+            'error': e.title
+        }))
     except Exception:
         traceback.print_exc()
         request.setResponseCode(500)
@@ -50,7 +57,16 @@ def extract_items(spec, spider_name, urls, request):
 
 
 def load_spider(spec, spider_name):
-    spider = spec.spider_with_templates(spider_name)
-    items = spec.resource('items')
-    extractors = spec.resource('extractors')
+    try:
+        spider = spec.spider_with_templates(spider_name)
+    except (TypeError, ValueError):
+        raise BadRequest('The spider %s, could not be cound' % spider_name)
+    try:
+        items = spec.resource('items')
+    except (TypeError, ValueError):
+        items = {}
+    try:
+        extractors = spec.resource('extractors')
+    except (TypeError, ValueError):
+        extractors = {}
     return IblSpider(spider_name, spider, items, extractors, Settings())
