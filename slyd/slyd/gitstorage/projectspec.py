@@ -2,7 +2,7 @@ import json
 import re
 
 from os.path import join
-from .repoman import Repoman, CHANGE_DELETE
+from .repoman import Repoman, CHANGE_DELETE, CHANGE_MODIFY
 from slyd.projectspec import ProjectSpec
 from slyd.gitstorage.projects import GitProjectMixin
 from slyd.errors import BadRequest
@@ -20,8 +20,14 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
         Repoman.setup(storage_backend, location)
 
     def _rfile_contents(self, resources):
+        file_name = self._rfile_name(*resources)
+        if file_name in self._changed_file_data:
+            content, change = self._changed_file_data[file_name]
+            if change == CHANGE_DELETE:
+                return None
+            return content
         return self._open_repo().file_contents_for_branch(
-            self._rfile_name(*resources), self._get_branch(read_only=True))
+            file_name, self._get_branch(read_only=True))
 
     def _rfile_name(self, *resources):
         return join(*resources) + '.json'
@@ -72,7 +78,7 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
     def savejson(self, obj, resources):
         self._changed_file_data[self._rfile_name(*resources)] = (
             json.dumps(obj, sort_keys=True, indent=4),
-            'update'
+            CHANGE_MODIFY
         )
 
     def delete_file(self, path):
