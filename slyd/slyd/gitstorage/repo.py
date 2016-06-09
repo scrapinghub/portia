@@ -4,7 +4,7 @@ import sys
 from contextlib import contextmanager
 from io import BytesIO
 
-from dulwich.errors import NoIndexPresent
+from dulwich.errors import NoIndexPresent, ObjectMissing
 from dulwich.object_store import BaseObjectStore
 from dulwich.objects import sha_to_hex
 from dulwich.pack import (PackData, PackInflater, write_pack_header,
@@ -13,9 +13,11 @@ from dulwich.pack import (PackData, PackInflater, write_pack_header,
 from dulwich.repo import BaseRepo
 from dulwich.refs import RefsContainer, SYMREF
 
+from retrying import retry
+
 from six.moves.urllib.parse import urlparse
 
-from twisted.enterprise.adbapi import ConnectionPool, ConnectionLost
+from twisted.enterprise.adbapi import ConnectionPool
 
 from slyd.projects import ProjectsManager
 from slyd.projectspec import ProjectSpec
@@ -23,11 +25,31 @@ from slyd.projectspec import ProjectSpec
 
 try:
     from MySQLdb import OperationalError
-    ERRORS = (ConnectionLost, OperationalError, IOError)
 except ImportError:
-    ERRORS = (ConnectionLost, IOError)
-    OperationalError = None
-RETRIES = 3
+    OperationalError = type(None)
+
+
+def retry_on_exception(exception):
+    # Connection should be re-acquired and transaction re-run when the
+    # following OperationalErrors occur:
+    #     1213: Deadlock found when trying to get lock
+    #     2006: MySQL server has gone away
+    #     2013: Lost connection to MySQL server during query
+    if (isinstance(exception, OperationalError) and
+            exception[0] in (2006, 2013, 1213)):
+        return True
+    if isinstance(exception, (ObjectMissing, IOError)):
+        return True
+    return False
+
+
+RETRY_CONFIG = {
+    # Try 5 times with delays of 20ms, 40ms, 80ms, 160ms + [0, 20ms]
+    'stop_max_attempt_number': 5,
+    'wait_exponential_multiplier': 10,
+    'wait_jitter_max': 20,
+    'retry_on_exception': retry_on_exception,
+}
 
 
 class ReconnectionPool(ConnectionPool):
@@ -40,8 +62,8 @@ class ReconnectionPool(ConnectionPool):
     [via] http://stackoverflow.com/questions/12677246/
     '''
 
+    @retry(**RETRY_CONFIG)
     def _runWithConnection(self, func, *args, **kw):
-        retries = kw.pop('_retries', 0)
         conn = self.connectionFactory(self)
         try:
             for manager in args:
@@ -57,39 +79,12 @@ class ReconnectionPool(ConnectionPool):
             result = func(conn, *args, **kw)
             conn.commit()
             return result
-        except ERRORS as e:
-            # Connection should be re-acquired and transaction re-run when the
-            # following OperationalErrors occur:
-            #     1213: Deadlock found when trying to get lock
-            #     2006: MySQL server has gone away
-            #     2013: Lost connection to MySQL server during query
-            if (retries >= RETRIES or isinstance(e, OperationalError) and
-                    e[0] not in (2006, 2013, 1213)):
-                raise
-            try:
-                conn.rollback()
-            except:
-                pass
-            finally:
-                # If the rollback raised a ConnectionLost error it may have
-                # disconnected the connection but not set _connection to None
-                # which means a subsequent reconnect will fail with a
-                # "wrong connection for thread" Exception.
-                try:
-                    conn.reconnect()
-                except:
-                    conn._connection = None
-                    conn.reconnect()
-
-            kw['_retries'] = retries + 1
-            return self._runWithConnection(func, *args, **kw)
         except:
-            excType, excValue, excTraceback = sys.exc_info()
             try:
                 conn.rollback()
             except:
                 pass
-            raise excType, excValue, excTraceback
+            raise
 
 
 @contextmanager
@@ -117,7 +112,14 @@ def _parse(url):
 
 connection_pool = None
 DB_CONFIG = 'DB_URL' in os.environ and _parse(os.environ['DB_URL']) or {}
-INIT_COMMAND = 'SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ'
+# REPEATABLE READ is not enough, we need SERIALIZABLE
+# From https://dev.mysql.com/doc/refman/5.7/en/commit.html
+#   If you use tables from more than one transaction-safe storage engine (such
+#   as InnoDB), and the transaction isolation level is not SERIALIZABLE, it is
+#   possible that when one transaction commits, another ongoing transaction
+#   that uses the same tables will see only some of the changes made by the
+#   first transaction.
+INIT_COMMAND = 'SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE'
 POOL_NAME = 'PORTIA'
 POOL_SIZE = 8
 USE_PREPARED_STATEMENTS = False
@@ -206,6 +208,9 @@ class MysqlObjectStore(BaseObjectStore):
             cursor.execute(MysqlObjectStore.statements["GET"],
                            (self._to_hexsha(name), self._repo))
             row = cursor.fetchone()
+            if row is None:
+                # last resort fallback, this exception will cause a retry
+                raise ObjectMissing(name)
             return row
 
     def _add_object(self, obj):
@@ -315,7 +320,7 @@ class MysqlRefsContainer(RefsContainer):
     statements = {
         "DEL": "DELETE FROM `refs` WHERE `ref`=%s AND `repo`=%s",
         "ALL": "SELECT `ref` FROM `refs` WHERE `repo`=%s",
-        "GET": "SELECT `value` FROM `refs` WHERE `ref` = %s AND `repo`=%s FOR UPDATE",
+        "GET": "SELECT `value` FROM `refs` WHERE `ref` = %s AND `repo`=%s",
         "ADD": "REPLACE INTO `refs` VALUES(%s, %s, %s)",
     }
 
