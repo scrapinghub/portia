@@ -11,7 +11,7 @@ from six.moves.urllib_parse import urljoin
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
 from slybot.utils import htmlpage_from_response
-from .splash.css_utils import process_css, wrap_url, unscape
+from .splash.css_utils import process_css, wrap_url, unescape
 from .utils import serialize_tag, add_tagids
 
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
@@ -71,7 +71,7 @@ def descriptify(doc, base=None, proxy=None):
                         element.attributes[key] = '/static/frames-not-supported.html'
                     # Rewrite javascript URIs
                     elif key in URI_ATTRIBUTES and val is not None:
-                            if _contains_js(unscape(val)):
+                            if _contains_js(unescape(val)):
                                 element.attributes[key] = "#"
                             elif base and proxy and not (element.tag == "a" and key == 'href'):
                                 element.attributes[key] = wrap_url(val, -1,

@@ -1,7 +1,7 @@
 import re
 import urllib
 import six
-import htmlentitydefs
+import six.moves.html_entities as htmlentitydefs
 from six.moves.urllib_parse import urlparse, urljoin
 
 CSS_IMPORT = re.compile(r'''@import\s*["']([^"']+)["']''')
@@ -28,7 +28,7 @@ def _replace_entity(match):
             pass
         return entity # leave as is
 
-def unscape(mystr):
+def unescape(mystr):
     """replaces all numeric html entities by its unicode equivalent.
     """
     return _ENTITY_RE.sub(_replace_entity, mystr)
@@ -51,7 +51,7 @@ def wrap_url(url, tabid, base=None):
         return 'data:text/plain,invalid_scheme'
     
     return "/proxy?" + urllib.urlencode({
-        "url": unscape(url),
+        "url": unescape(url),
         "referer": referer,
         "tabid": tabid
     })
