@@ -29,13 +29,10 @@ export default Ember.Component.extend({
                         const canRemove = (autoCreated &&
                                            items.get('length') <= 1 &&
                                            schema.get('id') !== autoCreated);
-                        item.set('schema', schema);
-                        item.save().then(() => {
-                            if (canRemove) {
-                                this.get('dispatcher').deleteAutoCreatedSchema(sample);
-                            }
-                            sample.reload();
-                        });
+                        if (canRemove) {
+                            this.get('dispatcher').deleteAutoCreatedSchema(sample);
+                        }
+                        sample.reload();
                     });
                 });
             });
