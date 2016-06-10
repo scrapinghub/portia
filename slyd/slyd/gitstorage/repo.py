@@ -17,38 +17,51 @@ from retrying import retry
 
 from six.moves.urllib.parse import urlparse
 
-from twisted.enterprise.adbapi import ConnectionPool
+from twisted.enterprise.adbapi import ConnectionPool, ConnectionLost
 
 from slyd.projects import ProjectsManager
 from slyd.projectspec import ProjectSpec
 
 
 try:
-    from MySQLdb import OperationalError
+    from MySQLdb import DatabaseError, InterfaceError
 except ImportError:
-    OperationalError = type(None)
+    DatabaseError = InterfaceError = type(None)
 
 
-def retry_on_exception(exception):
-    # Connection should be re-acquired and transaction re-run when the
-    # following OperationalErrors occur:
-    #     1213: Deadlock found when trying to get lock
-    #     2006: MySQL server has gone away
-    #     2013: Lost connection to MySQL server during query
-    if (isinstance(exception, OperationalError) and
-            exception[0] in (2006, 2013, 1213)):
-        return True
-    if isinstance(exception, (ObjectMissing, IOError)):
-        return True
-    return False
+CONNECTION_RETRY_CONFIG = {
+    # Connections may fail because of a network issue or from timeouts, try 4
+    # times with increasing delays of 100ms, 500ms, 5000ms
+    'stop_max_attempt_number': 4,
+    'wait_func': lambda attempts, delay: [100, 500, 5000][min(attempts - 1, 2)],
+    'retry_on_exception': lambda exception: (
+        isinstance(exception, (ConnectionLost, InterfaceError)) or
+        # 2006: MySQL server has gone away
+        # 2013: Lost connection to MySQL server during query
+        # 2014: Commands out of sync; you can't run this command now
+        (isinstance(exception, DatabaseError) and
+         exception[0] in (2006, 2013, 2014))),
+}
 
+DEADLOCK_RETRY_CONFIG = {
+    # Retry deadlocks until success with a small delay, since they will occur for
+    # all concurrent conflicting transactions
+    'stop_func': lambda attempts, delay: False,
+    'wait_random_min': 10,
+    'wait_random_max': 30,
+    'retry_on_exception': lambda exception: (
+        # 1213: Deadlock found when trying to get lock
+        isinstance(exception, DatabaseError) and exception[0] == 1213),
+}
 
-RETRY_CONFIG = {
-    # Try 5 times with delays of 20ms, 40ms, 80ms, 160ms + [0, 20ms]
-    'stop_max_attempt_number': 5,
-    'wait_exponential_multiplier': 10,
-    'wait_jitter_max': 20,
-    'retry_on_exception': retry_on_exception,
+MISSING_OBJECT_RETRY_CONFIG = {
+    # These shouldn't happen, and they may occur because a row was deleted, try
+    # a limited number of times with a small delay
+    'stop_max_attempt_number': 3,
+    'wait_random_min': 10,
+    'wait_random_max': 30,
+    'retry_on_exception': lambda exception: (
+        isinstance(exception, (ObjectMissing, IOError))),
 }
 
 
@@ -62,7 +75,9 @@ class ReconnectionPool(ConnectionPool):
     [via] http://stackoverflow.com/questions/12677246/
     '''
 
-    @retry(**RETRY_CONFIG)
+    @retry(**DEADLOCK_RETRY_CONFIG)
+    @retry(**MISSING_OBJECT_RETRY_CONFIG)
+    @retry(**CONNECTION_RETRY_CONFIG)
     def _runWithConnection(self, func, *args, **kw):
         conn = self.connectionFactory(self)
         try:
@@ -73,17 +88,16 @@ class ReconnectionPool(ConnectionPool):
             if getattr(manager, 'pm', None):
                 setattr(manager.pm, 'connection', conn)
         except AttributeError:
-            pass
+            manager = None
 
         try:
             result = func(conn, *args, **kw)
             conn.commit()
             return result
         except:
-            try:
-                conn.rollback()
-            except:
-                pass
+            if hasattr(manager, 'rollback_changes'):
+                manager.rollback_changes()
+            conn.rollback()
             raise
 
 
@@ -208,10 +222,10 @@ class MysqlObjectStore(BaseObjectStore):
             cursor.execute(MysqlObjectStore.statements["GET"],
                            (self._to_hexsha(name), self._repo))
             row = cursor.fetchone()
-            if row is None:
-                # last resort fallback, this exception will cause a retry
-                raise ObjectMissing(name)
-            return row
+        if row is None:
+            # last resort fallback, this exception will cause a retry
+            raise ObjectMissing(name)
+        return row
 
     def _add_object(self, obj):
         data = obj.as_raw_string()
@@ -241,7 +255,7 @@ class MysqlObjectStore(BaseObjectStore):
                 cursor.execute(MysqlObjectStore.statements["DEL"],
                                (oid, self._repo))
 
-    def add_pack(self, cursor):
+    def add_pack(self):
         """Add a new pack to this object store.
 
         Because this object store doesn't support packs, we extract and add the
@@ -256,7 +270,7 @@ class MysqlObjectStore(BaseObjectStore):
             p = PackData.from_file(BytesIO(f.getvalue()), f.tell())
             f.close()
             for obj in PackInflater.for_pack_data(p):
-                self._add_object(obj, cursor)
+                self._add_object(obj)
 
         def abort():
             pass
@@ -336,7 +350,7 @@ class MysqlRefsContainer(RefsContainer):
                            (self._repo,))
             return (t[0] for t in cursor.fetchall())
 
-    def read_loose_ref(self, name, cursor=None):
+    def read_loose_ref(self, name):
         with closing_cursor(self.connection) as cursor:
             cursor.execute(MysqlRefsContainer.statements["GET"],
                            (name, self._repo))
@@ -371,18 +385,18 @@ class MysqlRefsContainer(RefsContainer):
         self._update_ref(name, ref)
         return True
 
-    def _remove_ref(self, cursor, name):
-        cursor.execute(MysqlRefsContainer.statements["DEL"],
-                       (name, self._repo))
+    def _remove_ref(self, name):
+        with closing_cursor(self.connection) as cursor:
+            cursor.execute(MysqlRefsContainer.statements["DEL"],
+                           (name, self._repo))
 
     def remove_if_equals(self, name, old_ref):
         if old_ref is not None:
             current_ref = self.read_loose_ref(name)
             if current_ref != old_ref:
                 return False
-        with closing_cursor(self.connection) as cursor:
-            self._remove_ref(cursor, name)
-            return True
+        self._remove_ref(name)
+        return True
 
     def get_peeled(self, name):
         return self._peeled.get(name)
