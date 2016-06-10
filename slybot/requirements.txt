@@ -6,6 +6,6 @@ lxml==3.4.1
 dateparser==0.2
 python-dateutil<=2.4.2
 jsonschema==2.4.0
-six==1.5.2
+six==1.10.0
 scrapyjs==0.1.1
 page_finder==0.1.1
