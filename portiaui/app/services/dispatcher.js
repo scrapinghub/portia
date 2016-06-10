@@ -301,32 +301,51 @@ export default Ember.Service.extend({
     },
 
     changeItemSchema(item, schema) {
-        const fieldsMap = new Map(
-            schema.get('fields').map(field => [field.get('name'), field]));
+        return schema.get('fields').then(fields => {
+            const store = this.get('store');
 
-        let annotationsToMigrate = [];
-        item.get('annotations').forEach((annotation) => {
-            if (annotation instanceof ItemAnnotation) {
-                return;
-            }
-            const name = annotation.get('name');
-            const type = annotation.get('type');
-            let field = fieldsMap.get(name);
-            if (field && field.get('type') === type) {
-                let newAnnotation = annotation.toJSON();
-                newAnnotation.parent = item;
-                newAnnotation.field = field;
-                newAnnotation.extractors = annotation.get('extractors');
-                annotationsToMigrate.push(newAnnotation);
-                this.removeAnnotation(annotation);
-            }
-        });
+            const fieldMap = {};
+            fields.forEach(field => {
+                fieldMap[field.get('name')] = field;
+            });
 
-        item.set('schema', schema);
-        item.save().then(() => {
-            annotationsToMigrate.forEach(newAnnotation => {
-                newAnnotation = this.get('store').createRecord('annotation', newAnnotation);
-                newAnnotation.save();
+            const annotations = [];
+            const promises = [];
+            item.get('orderedAnnotations').forEach(annotation => {
+                if (annotation.constructor.modelName === 'annotation') {
+                    promises.push(
+                        annotation.get('field').then(field => {
+                            const name = field.get('name');
+
+                            annotations.push({
+                                annotation,
+                                fieldName: name
+                            });
+
+                            if (!(name in fieldMap)) {
+                                const newField = store.createRecord('field', {
+                                    name,
+                                    type: field.get('type'),
+                                    schema
+                                });
+                                fieldMap[name] = newField;
+                                return newField.save();
+                            }
+                        }));
+                }
+            });
+
+            return Ember.RSVP.all(promises).then(() => {
+                const promises = [];
+                for (let {annotation, fieldName} of annotations) {
+                    annotation.set('field', fieldMap[fieldName]);
+                    promises.push(annotation.save());
+                }
+
+                return Ember.RSVP.all(promises).then(() => {
+                    item.set('schema', schema);
+                    return item.save();
+                });
             });
         });
     },
@@ -375,8 +394,8 @@ export default Ember.Service.extend({
 
     deleteAutoCreatedSchema(sample) {
         if(sample.get('_autoCreatedSchema')) {
-            this.get('store').findRecord('schema', sample.get('_autoCreatedSchema'), {reload: true})
-                .then(s => this.removeSchema(s));
+            const schema = this.get('store').peekRecord('schema', sample.get('_autoCreatedSchema'));
+            this.removeSchema(schema);
             sample.set('_autoCreatedSchema', null);
         }
     },

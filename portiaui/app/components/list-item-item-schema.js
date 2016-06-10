@@ -21,15 +21,24 @@ export default Ember.Component.extend({
 
         changeSchema() {
             const item = this.get('item');
-            const sample = item.get('sample');
-            if(sample.get('_autoCreatedSchema') &&
-               sample.get('items.length') === 1 &&
-               item.get('schema.id') !== sample.get('_autoCreatedSchema')) {
-                this.get('dispatcher').deleteAutoCreatedSchema(sample);
-            }
-
-            // Map fields to the old schema to the new one
-            this.get('dispatcher').changeItemSchema(item, item.get('schema'));
+            const schema = item.get('schema.content');  // get the new schema
+            item.get('sample').then(sample => {
+                this.get('dispatcher').changeItemSchema(item, schema).then(() => {
+                    sample.get('items').then(items => {
+                        const autoCreated = sample.get('_autoCreatedSchema');
+                        const canRemove = (autoCreated &&
+                                           items.get('length') <= 1 &&
+                                           schema.get('id') !== autoCreated);
+                        item.set('schema', schema);
+                        item.save().then(() => {
+                            if (canRemove) {
+                                this.get('dispatcher').deleteAutoCreatedSchema(sample);
+                            }
+                            sample.reload();
+                        });
+                    });
+                });
+            });
         }
     }
 });
