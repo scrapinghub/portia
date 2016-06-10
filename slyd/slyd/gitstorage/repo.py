@@ -320,7 +320,7 @@ class MysqlRefsContainer(RefsContainer):
     statements = {
         "DEL": "DELETE FROM `refs` WHERE `ref`=%s AND `repo`=%s",
         "ALL": "SELECT `ref` FROM `refs` WHERE `repo`=%s",
-        "GET": "SELECT `value` FROM `refs` WHERE `ref` = %s AND `repo`=%s",
+        "GET": "SELECT `value` FROM `refs` WHERE `ref` = %s AND `repo`=%s FOR UPDATE",
         "ADD": "REPLACE INTO `refs` VALUES(%s, %s, %s)",
     }
 
