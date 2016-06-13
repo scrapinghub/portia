@@ -1,5 +1,4 @@
 import os
-import sys
 
 from contextlib import contextmanager
 from io import BytesIO
@@ -21,6 +20,7 @@ from twisted.enterprise.adbapi import ConnectionPool, ConnectionLost
 
 from slyd.projects import ProjectsManager
 from slyd.projectspec import ProjectSpec
+from slyd.utils.retry import deferred_retry
 
 
 try:
@@ -75,10 +75,19 @@ class ReconnectionPool(ConnectionPool):
     [via] http://stackoverflow.com/questions/12677246/
     '''
 
+    @deferred_retry(**DEADLOCK_RETRY_CONFIG)
+    @deferred_retry(**MISSING_OBJECT_RETRY_CONFIG)
+    @deferred_retry(**CONNECTION_RETRY_CONFIG)
+    def run_deferred_with_connection(self, func, *args, **kw):
+        return self._runner(func, *args, **kw)
+
     @retry(**DEADLOCK_RETRY_CONFIG)
     @retry(**MISSING_OBJECT_RETRY_CONFIG)
     @retry(**CONNECTION_RETRY_CONFIG)
     def _runWithConnection(self, func, *args, **kw):
+        return self._runner(func, *args, **kw)
+
+    def _runner(self, func, *args, **kw):
         conn = self.connectionFactory(self)
         try:
             for manager in args:
