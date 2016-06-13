@@ -42,7 +42,7 @@ class ProjectSpec(object):
         cls.base_dir = location
 
     def __init__(self, project_name, auth_info):
-        self.project_dir = join(ProjectSpec.base_dir, project_name)
+        self.project_dir = join(self.base_dir, project_name)
         self.project_name = project_name
         self.auth_info = auth_info
         self.user = auth_info['username']

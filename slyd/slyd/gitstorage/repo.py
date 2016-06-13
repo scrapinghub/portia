@@ -99,7 +99,8 @@ class ReconnectionPool(ConnectionPool):
             if (not hasattr(manager, 'storage') and
                     hasattr(manager, 'project_name')):
                 manager._open_repo()
-        except AttributeError:
+        # Handle case where no manager is used
+        except (AttributeError, UnboundLocalError):
             manager = None
 
         try:

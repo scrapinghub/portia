@@ -16,6 +16,8 @@ django==1.9.4
 mysql-python==1.2.5
 dulwich==0.13.0
 
+portia2code==0.0.6
+
 # Splash dev
 --allow-external=splash
 https://github.com/scrapinghub/splash/archive/master.tar.gz

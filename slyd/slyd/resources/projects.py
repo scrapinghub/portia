@@ -119,8 +119,8 @@ def download(manager, spider_id=None, attributes=None):
         'cmd': 'download',
         'args': [project_id, spider_ids]
     }
-
-    file_content = manager.pm.download_project(project_id, spider_ids)
+    fmt = attributes['arguments'].get('format', ['spec'])[0]
+    file_content = manager.pm.download_project(project_id, spider_ids, fmt=fmt)
     return ProjectsManagerFileResponse(file_content, command, manager.pm)
 
 
