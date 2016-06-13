@@ -1,7 +1,7 @@
 from __future__ import absolute_import
+from functools import partial
 import json
 import os
-import traceback
 
 from six.moves.urllib_parse import urlparse
 
@@ -12,7 +12,6 @@ from weakref import WeakKeyDictionary, WeakValueDictionary
 from monotonic import monotonic
 from twisted.internet import defer
 from twisted.python import log
-from twisted.python.failure import Failure
 
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
@@ -235,53 +234,22 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.manager.pm = self.spec_manager.project_manager(self.auth_info)
         if pool is not None:
             deferred = defer.maybeDeferred(
-                pool._runWithConnection, wrap_callback, self._on_message, self.manager, data=data)
+                pool.run_deferred_with_connection, wrap_callback,
+                self._on_message, self.manager, data=data)
         else:
             deferred = defer.maybeDeferred(
                 wrap_callback, None, self._on_message, self.manager, data=data)
-        deferred.addCallback(self.sendMessage)
+        deferred.addCallbacks(self.sendMessage,
+                              partial(self.send_error, data))
 
     def _on_message(self, _, data):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
-        if '_command' in data and data['_command'] in self._handlers:
-            command = data['_command']
-            try:
-                result = self._handlers[command](data, self)
-            except Exception as e:
-                command = data.get('_callback') or command
-                if isinstance(e, BaseHTTPError):
-                    code, reason, message = e.status, e.title, e.body
-                else:
-                    code = 500
-                    reason = "Internal Server Error"
-                    traceback.print_exc()
-                    message = "An unexpected error has occurred."
-                failure = Failure()
-                log.err(failure)
-                event_id = getattr(failure, 'sentry_event_id', None)
-                if event_id:
-                    message = "%s (Event ID: %s)" % (message, event_id)
-
-                return {
-                    'error': code,
-                    '_command': command,
-                    'id': data.get('_meta', {}).get('id'),
-                    'reason': reason,
-                    'message': message,
-                }
-
-            if result:
-                result.setdefault('_command', data.get('_callback', command))
-                self.sendMessage(result)
-        else:
-            command = data.get('_command')
-            if command:
-                message = 'No command named "%s" found.' % command
-            else:
-                message = "No command received"
-            return {'error': 4000,
-                    'reason': message}
+        command = data['_command']
+        result = self._handlers[command](data, self)
+        if result:
+            result.setdefault('_command', data.get('_callback', command))
+        return result
 
     def onClose(self, was_clean, code, reason):
         if self in self.factory:
@@ -301,6 +269,41 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 json.dumps(payload, cls=ScrapyJSONEncoder, sort_keys=True),
                 is_binary
             )
+
+    def send_error(self, data, failure):
+        e = failure.value
+        command = data.get('_callback', data.get('_command'))
+        id_ = data.get('_meta', {}).get('id')
+        if isinstance(e, BaseHTTPError):
+            code, reason, message = e.status, e.title, e.body
+        elif isinstance(e, KeyError):
+            requested_command = data.get('_command')
+            code = 4000
+            reason = "Unknown command"
+            if requested_command:
+                message = 'No command named "%s" found.' % requested_command
+            else:
+                message = "No command received"
+        else:
+            code = 500
+            reason = "Internal Server Error"
+            message = "An unexpected error has occurred."
+        log.err(failure)
+        event_id = getattr(failure, 'sentry_event_id', None)
+        if event_id:
+            message = "%s (Event ID: %s)" % (message, event_id)
+
+        response = {
+            'error': code,
+            'reason': reason,
+            'message': message,
+        }
+        if command:
+            response['_command'] = command
+        if id_:
+            response['id'] = id_
+
+        self.sendMessage(response)
 
     def getElementByNodeId(self, nodeid):
         self.tab.web_page.mainFrame().evaluateJavaScript(

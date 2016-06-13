@@ -12,7 +12,7 @@ from slyd.utils.download import GitProjectArchiver
 
 def wrap_callback(connection, callback, manager, retries=0, **parsed):
     result = callback(manager, **parsed)
-    if manager._changed_file_data:
+    if hasattr(manager, 'commit_changes'):
         manager.commit_changes()
     return result
 
@@ -79,7 +79,6 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         self.modify_request = {
             'download': self._render_file
         }
-        self._changed_file_data = {}
         self.connection = None
 
     def all_projects(self):

@@ -309,42 +309,43 @@ export default Ember.Service.extend({
                 fieldMap[field.get('name')] = field;
             });
 
-            const annotations = [];
-            const promises = [];
-            item.get('orderedAnnotations').forEach(annotation => {
-                if (annotation.constructor.modelName === 'annotation') {
-                    promises.push(
-                        annotation.get('field').then(field => {
-                            const name = field.get('name');
-
-                            annotations.push({
-                                annotation,
-                                fieldName: name
-                            });
-
-                            if (!(name in fieldMap)) {
-                                const newField = store.createRecord('field', {
-                                    name,
-                                    type: field.get('type'),
-                                    schema
-                                });
-                                fieldMap[name] = newField;
-                                return newField.save();
-                            }
-                        }));
-                }
-            });
-
-            return Ember.RSVP.all(promises).then(() => {
+            return item.get('annotations').then(allAnnotations => {
+                const annotations = [];
                 const promises = [];
-                for (let {annotation, fieldName} of annotations) {
-                    annotation.set('field', fieldMap[fieldName]);
-                    promises.push(annotation.save());
-                }
+                allAnnotations.forEach(annotation => {
+                    if (annotation.constructor.modelName === 'annotation') {
+                        promises.push(
+                            annotation.get('field').then(field => {
+                                const name = field.get('name');
+
+                                annotations.push({
+                                    annotation,
+                                    fieldName: name
+                                });
+
+                                if (!(name in fieldMap)) {
+                                    const newField = store.createRecord('field', {
+                                        name,
+                                        type: field.get('type'),
+                                        schema
+                                    });
+                                    fieldMap[name] = newField;
+                                    return newField.save();
+                                }
+                            }));
+                    }
+                });
 
                 return Ember.RSVP.all(promises).then(() => {
-                    item.set('schema', schema);
-                    return item.save();
+                    for (let {annotation, fieldName} of annotations) {
+                        annotation.set('field', fieldMap[fieldName]);
+                    }
+
+                    return item.get('itemAnnotation').then(itemAnnotation =>
+                        itemAnnotation.save().then(() => {
+                            item.set('schema', schema);
+                            return item.save();
+                        }));
                 });
             });
         });

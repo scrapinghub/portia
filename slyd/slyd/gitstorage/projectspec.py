@@ -89,3 +89,6 @@ class GitProjectSpec(GitProjectMixin, ProjectSpec):
             return
         repo = self._open_repo()
         repo.save_files(self._changed_file_data, self._get_branch())
+
+    def rollback_changes(self):
+        self._changed_file_data.clear()
