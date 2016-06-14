@@ -12,7 +12,7 @@ from .errors import BaseError, BaseHTTPError, BadRequest
 from .projecttemplates import templates
 from .resource import SlydJsonObjectResource, SlydJsonErrorPage
 from .utils.copy import FileSystemSpiderCopier
-from .utils.download import FileSystemProjectArchiver
+from .utils.download import ProjectArchiver, CodeProjectArchiver
 from .utils.storage import FsStorage
 
 
@@ -122,8 +122,6 @@ def allowed_project_name(name):
 
 class ProjectsManager(object):
 
-    base_dir = '.'
-
     @classmethod
     def setup(cls, location):
         cls.base_dir = location
@@ -131,7 +129,6 @@ class ProjectsManager(object):
     def __init__(self, auth_info):
         self.auth_info = auth_info
         self.user = auth_info['username']
-        self.projectsdir = ProjectsManager.base_dir
         self.modify_request = {
             'download': self._render_file
         }
@@ -147,13 +144,7 @@ class ProjectsManager(object):
         return callback(**kwargs)
 
     def all_projects(self):
-        try:
-            for fname in self.storage.listdir(self.projectsdir):
-                if os.path.isdir(join(self.projectsdir, fname)):
-                    yield {'id': fname, 'name': fname}
-        except OSError as ex:
-            if ex.errno != errno.ENOENT:
-                raise
+        raise NotImplementedError
 
     def list_projects(self):
         if 'authorized_projects' in self.auth_info:
@@ -189,20 +180,15 @@ class ProjectsManager(object):
         # e.g. to import projects from another source.
         return
 
-    def project_filename(self, name):
-        return join(self.projectsdir, name)
-
     def validate_project_name(self, name):
         if not allowed_project_name(name):
             raise BadRequest('Bad Request', 'Invalid project name %s.' % name)
 
     def copy_data(self, source, destination, spiders, items):
-        copier = FileSystemSpiderCopier(source, destination, self.projectsdir)
-        return json.dumps(copier.copy(spiders, items))
+        raise NotImplementedError
 
     def download_project(self, name, spiders=None, version=None):
-        archiver = FileSystemProjectArchiver(name, base_dir=self.projectsdir)
-        return archiver.archive(spiders).read()
+        raise NotImplementedError
 
     def commit_changes(self):
         if getattr(self, 'storage', None):
@@ -225,7 +211,33 @@ class ProjectsManager(object):
 
 class FileSystemProjectsManager(ProjectsManager):
     storage_class = FsStorage
+    basedir = '.'
 
     def __init__(self, auth_info):
         super(FileSystemProjectsManager, self).__init__(auth_info)
         self.storage = self.storage_class(self.base_dir)
+        self.projectsdir = self.base_dir
+
+    def all_projects(self):
+        try:
+            for fname in self.storage.listdir(self.projectsdir):
+                if os.path.isdir(join(self.projectsdir, fname)):
+                    yield {'id': fname, 'name': fname}
+        except OSError as ex:
+            if ex.errno != errno.ENOENT:
+                raise
+
+    def project_filename(self, name):
+        return join(self.projectsdir, name)
+
+    def copy_data(self, source, destination, spiders, items):
+        copier = FileSystemSpiderCopier(source, destination, self.projectsdir)
+        return json.dumps(copier.copy(spiders, items))
+
+    def download_project(self, name, spiders=None, version=None, fmt=None):
+        storage = self.storage_class(self.project_filename(name))
+        if fmt == u'code':
+            archiver = CodeProjectArchiver(storage, name=name)
+        else:
+            archiver = ProjectArchiver(storage, name=name)
+        return archiver.archive(spiders).read()

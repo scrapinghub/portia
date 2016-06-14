@@ -5,7 +5,7 @@ from os.path import splitext, split, exists
 from slyd.projects import ProjectsManager
 from slyd.errors import BadRequest
 from slyd.utils.copy import GitSpiderCopier
-from slyd.utils.download import GitProjectArchiver
+from slyd.utils.download import ProjectArchiver, CodeProjectArchiver
 from slyd.utils.storage import GitStorage
 from .repoman import Repoman
 
@@ -181,23 +181,24 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         copier = GitSpiderCopier(source, destination, branch)
         return json.dumps(copier.copy(spiders, items))
 
-    def download_project(self, name, spiders=None, version=None):
-        if version is None:
-            version = (0, 9)
-        else:
-            version = tuple(version)
+    def download_project(self, name, spiders=None, version=None, fmt=None):
+        self._open_repo(name, read_only=True)
         if (self.auth_info.get('staff') or
                 ('authorized_projects' in self.auth_info and
                  name in self.auth_info['authorized_projects'])):
             request = self.request
+
             etag_str = (request.getHeader('If-None-Match') or '').split(',')
             etags = [etag.strip() for etag in etag_str]
-            if self._gen_etag({'args': [name, spiders]}) in etags:
+            etag_data = {'args': [name, spiders]}
+            if self._gen_etag(etag_data) in etags:
                 return ''
-            branch = self._get_branch(name=name, read_only=True)
-            return GitProjectArchiver(Repoman.open_repo(name, self.connection),
-                                      version=version,
-                                      branch=branch).archive(spiders).read()
+            readablename = self._get_project_name(name)
+            if fmt == u'code':
+                archiver = CodeProjectArchiver(self.storage, name=readablename)
+            else:
+                archiver = ProjectArchiver(self.storage, name=readablename)
+            return archiver.archive(spiders).read()
         return json.dumps({'status': 404,
                            'error': 'Project "%s" not found' % name})
 
@@ -224,10 +225,16 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
             request.setHeader('Content-Length', len(body))
         return body
 
+    def _get_project_name(self, _id):
+        if 'project_data' in getattr(self.request, 'auth_info', {}):
+            for project in self.request.auth_info['project_data']:
+                if hasattr(project, 'get') and project.get('id') == _id:
+                    return project.get('name') or _id
+        return _id
+
     def _gen_etag(self, request_data):
         args = request_data.get('args')
-        _id = args[0]
-        last_commit = self._open_repo(_id).refs['refs/heads/master']
+        last_commit = self.storage._commit.id
         spiders = args[1] if len(args) > 1 and args[1] else []
         return (last_commit + '.' + '.'.join(spiders)).encode('utf-8')
 

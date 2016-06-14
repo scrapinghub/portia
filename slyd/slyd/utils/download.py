@@ -5,10 +5,12 @@ import os
 import zipfile
 
 from collections import defaultdict
+from os.path import join
 from six import StringIO
 from datetime import datetime
 
 from slyd.projecttemplates import templates
+from portia2code.porter import load_project_data, port_project
 import six
 
 REQUIRED_FILES = {'setup.py', 'scrapy.cfg', 'extractors.json', 'items.json',
@@ -24,17 +26,26 @@ FILE_TEMPLATES = {
 }
 
 
+def walk(storage, dirname=''):
+    dirs, files = storage.listdir(dirname)
+    for dname in dirs:
+        files.extend([join(dname, fname)
+                      for fname in walk(storage, join(dirname, dname))])
+    return set(files)
+
+
 class ProjectArchiver(object):
 
     required_files = frozenset(REQUIRED_FILES)
     file_templates = FILE_TEMPLATES
 
-    def __init__(self, project, version=None, required_files=None):
+    def __init__(self, storage, version=None, required_files=None, name=None):
         if version is None:
             version = (0, 10)
         self.separator = os.path.sep
         self.version = version
-        self.project = project
+        self.storage = storage
+        self.name = name
         if required_files is not None:
             self.required_files = required_files
 
@@ -90,36 +101,13 @@ class ProjectArchiver(object):
         Add a spider or template to the archive. If the slybot version is less
         than 0.10 a spider and all of its templates are added as a single file.
         """
-        if self.version > (0, 9):
-            data = self.read_file(file_path, deserialize=True)
-            added = {file_path}
-        else:
-            file_path, data, added = self._add_legacy_spider(file_path,
-                                                             templates,
-                                                             extractors)
+        data = self.read_file(file_path, deserialize=True)
+        added = {file_path}
         if data is not None and data.get('deleted'):
             return self._deleted_spider(file_path, data, templates)
 
         spider_content = json.dumps(data, sort_keys=True, indent=4)
         return file_path, spider_content, added
-
-    def _add_legacy_spider(self, file_path, templates, extractors):
-        """
-        Build a legacy spider and add all templates to a single spider object
-        """
-        spider = self._spider_name(file_path)
-        file_path = self._spider_path(file_path)
-        spider_data = self.read_file(file_path, deserialize=True)
-        if spider_data is None or spider_data.get('deleted'):
-            return file_path, spider_data, {file_path}
-        names = set(spider_data.pop('template_names', []))
-        spider_templates = [tp for tp in templates.get(spider, [])
-                            if self._name(tp) in names]
-        loaded_templates, added = self._spider_templates(spider_templates,
-                                                         extractors)
-        added.add(file_path)
-        spider_data['templates'] = loaded_templates
-        return file_path, spider_data, added
 
     def _deleted_spider(self, file_path, spider_data, templates):
         """
@@ -212,63 +200,41 @@ class ProjectArchiver(object):
         return spider_templates
 
     def list_files(self):
-        raise NotImplementedError
+        return walk(self.storage)
 
     def read_file(self, filename, deserialize=False):
-        raise NotImplementedError
-
-
-class FileSystemProjectArchiver(ProjectArchiver):
-    def __init__(self, project, version=None, required_files=None,
-                 base_dir='.'):
-        self.base_dir = os.path.join(base_dir, '')
-        super(FileSystemProjectArchiver, self).__init__(project, version,
-                                                        required_files)
-        self.separator = os.path.sep
-
-    def list_files(self):
-        file_paths = []
-        project_dir = os.path.join(self.base_dir, self.project)
-        for dir, _, files in os.walk(project_dir):
-            dir = dir.split(project_dir)[1]
-            dir = dir[1:] if dir.startswith(os.path.sep) else dir
-            for filename in files:
-                if filename.endswith(('.json', '.cfg', '.py')):
-                    file_paths.append(os.path.join(dir, filename))
-        return file_paths
-
-    def read_file(self, filename, deserialize=False):
-        file_path = os.path.join(self.base_dir, self.project, filename)
-        if not os.path.isfile(file_path):
+        try:
+            contents = self.storage.open(filename).read()
+        except IOError:
             return
-        with open(file_path, 'r') as f:
-            contents = f.read()
-            if deserialize and contents:
-                return json.loads(contents)
-            return contents
-
-
-class GitProjectArchiver(ProjectArchiver):
-
-    def __init__(self, project, version=None, ignore_deleted=True,
-                 required_files=None, branch='master'):
-        self.branch = branch
-        self.ignore_deleted = ignore_deleted
-        super(GitProjectArchiver, self).__init__(project, version,
-                                                 required_files)
-        self.separator = '/'
-
-    def list_files(self):
-        return list(set(self.project.list_files_for_branch('master')) |
-                    set(self.project.list_files_for_branch(self.branch)))
-
-    def read_file(self, filename, deserialize=False):
-        contents = self.project.file_contents_for_branch(filename, self.branch)
-        if contents is None and self.branch != 'master':
-            contents = self.project.file_contents_for_branch(filename,
-                                                             'master')
-        if contents is None and not self.ignore_deleted:
-            contents = json.dumps({'deleted': True})
         if deserialize and contents is not None:
             return json.loads(contents)
         return contents
+
+
+class CodeProjectArchiver(ProjectArchiver):
+    def archive(self, spiders=None):
+        def list_spiders(spiders):
+            if spiders:
+                return spiders
+            _, spiders = self.storage.listdir('spiders')
+            len_json = len('.json')
+            return [s[:-len_json] for s in spiders if s.endswith('.json')]
+
+        def open_file(*path):
+            path = join(*path[1:])
+            if not path.endswith('json'):
+                path = '%s.json' % path
+            return json.loads(self.storage.open(path).read())
+        schemas, extractors, spiders = load_project_data(
+            open_file, list_spiders, None)
+        name = self._process_name()
+        return port_project(name, schemas, spiders, extractors)
+
+    def _process_name(self):
+        try:
+            int(self.name)
+        except ValueError:
+            return self.name
+        # Scrapy will not allow the use of a number as a project name
+        return 'A%s' % self.name
