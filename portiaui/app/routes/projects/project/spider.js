@@ -71,6 +71,15 @@ export default Ember.Route.extend({
         error() {
             this.transitionTo('projects.project',
                 this.modelFor('projects.project'));
+        },
+
+        transitionToFragments(start_url_id) {
+            this.transitionTo('projects.project.spider.start-url.options', start_url_id);
+        },
+
+        closeOptions() {
+            let spider = this.modelFor('projects.project.spider');
+            this.transitionTo('projects.project.spider', spider);
         }
     }
 });

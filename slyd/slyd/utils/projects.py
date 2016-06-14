@@ -3,6 +3,7 @@ import re
 
 from collections import OrderedDict as ODict
 
+from slybot.starturls import StartUrlCollection
 from slybot.validation.schema import get_schema_validator
 
 from slyd.utils import short_guid
@@ -61,7 +62,7 @@ def clean_spider(obj):
         obj['init_requests'] = [req for req in obj['init_requests']
                                 if all(f in req for f in required_fields)]
     if 'start_urls' in obj:
-        obj['start_urls'] = list(ODict([(x, 1) for x in obj['start_urls']]))
+        obj['start_urls'] = StartUrlCollection(obj['start_urls']).uniq()
     # XXX: Need id to keep track of renames for deploy and export
     if 'id' not in obj:
         obj['id'] = obj.get('name') or short_guid()
