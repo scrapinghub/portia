@@ -198,7 +198,7 @@ class IblSpider(SitemapSpider):
         for plugin_class, plugin_name in zip(load_plugins(settings),
                                              load_plugin_names(settings)):
             instance = plugin_class()
-            instance.setup_bot(settings, spec, schemas, extractors)
+            instance.setup_bot(settings, spec, schemas, extractors, self.logger)
             plugins[plugin_name] = instance
         return plugins
 

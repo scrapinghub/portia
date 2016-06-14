@@ -1,6 +1,7 @@
 
 class Selectors(object):
-    def setup_bot(self, settings, spec, items, extractors):
+    def setup_bot(self, settings, spec, items, extractors, logger):
+        self.logger = logger
         self.selectors = {} # { template_id: { field_name: {..} }
 
         for template in spec['templates']:
@@ -28,4 +29,3 @@ class Selectors(object):
             item[field] = ([item[field]] + result) if field in item else result
 
 __all__ = [Selectors]
-
