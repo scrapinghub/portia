@@ -91,6 +91,16 @@ class Annotations(object):
             if _links_pages else None
 
         self.build_url_filter(spec)
+        # Clustering
+        self.template_names = [t.get('page_id') for t in spec['templates']]
+        if settings.get('PAGE_CLUSTERING'):
+            try:
+                import page_clustering
+                self.clustering = page_clustering.kmeans_from_samples(spec['templates'])
+            except ImportError:
+                self.clustering = None
+        else:
+            self.clustering = None
 
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
@@ -114,7 +124,19 @@ class Annotations(object):
         return [], []
 
     def _do_extract_items_from(self, htmlpage, extractor):
-        extracted_data, template = extractor.extract(htmlpage)
+        # Try to predict template to use
+        pref_template_id = None
+        template_cluster = 'not available'
+        if self.clustering:
+            self.clustering.add_page(htmlpage)
+            if self.clustering.is_fit:
+                clt = self.clustering.classify(htmlpage)
+                if clt != -1:
+                    template_cluster = self.template_names[clt]
+                    pref_template_id = template_cluster
+                else:
+                    template_cluster = 'outlier'
+        extracted_data, template = extractor.extract(htmlpage, pref_template_id)
         link_regions = []
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
@@ -163,8 +185,9 @@ class Annotations(object):
                     {'fields': {k: default_meta for k in item}}
                 )
                 item = item_cls(**item)
+            if self.clustering:
+                item['_template_cluster'] = template_cluster
             items.append(item)
-
         return items, link_regions
 
     def _process_attributes(self, item, descriptor, htmlpage):
