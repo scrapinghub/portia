@@ -1,4 +1,4 @@
-const SAMPLE_SIZE = 10;
+const SAMPLE_SIZE = 20;
 
 function augmentFragment(fragment) {
     switch(fragment.type) {

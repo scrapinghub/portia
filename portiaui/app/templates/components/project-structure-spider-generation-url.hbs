@@ -1,9 +1,11 @@
 {{#tree-list-item as |options|}}
-    {{#link-to 'projects.project.spider.start-url.options' startUrlIndex bubbles=false class="ignore-active"}}
+    {{#link-to 'projects.project.spider.start-url.options' startUrlIndex bubbles=false}}
         {{list-item-icon icon='generated-url'}}
-        {{#list-item-text}}{{url}}{{/list-item-text}}
-        {{#link-to 'projects.project.spider.start-url.options' startUrlIndex bubbles=false class="ignore-active"}}
-            {{list-item-icon icon='options'}}
+        {{#list-item-text class="generated-url"}}{{url}}{{/list-item-text}}
+        {{#link-to 'projects.project.spider' bubbles=false}}
+            {{#link-to 'projects.project.spider.start-url.options' startUrlIndex bubbles=false class="ignore-active"}}
+                {{list-item-icon icon='options'}}
+            {{/link-to}}
         {{/link-to}}
         {{list-item-icon icon='remove' action=(action 'removeStartUrl') bubbles=false}}
     {{/link-to}}
