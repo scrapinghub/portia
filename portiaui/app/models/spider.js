@@ -5,7 +5,7 @@ import BaseModel from './base';
 export default BaseModel.extend({
     name: Ember.computed.alias('id'),
     // name: DS.attr('string'),
-    startUrls: DS.attr('array', {
+    startUrls: DS.attr('startUrl', {
         defaultValue() {
             return [];
         }

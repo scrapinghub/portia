@@ -1,6 +1,6 @@
-{{#dropdown-widget class="select-box" open=(mut open) active=(mut viewValue) focused=value menuContainer=menuContainer menuClass=menuClass menuAlign=menuAlign onClose=(action 'menuClosed') as |widget|}}
+{{#dropdown-widget class="select-box" open=(mut open) active=(mut viewValue) focused=value menuContainer=menuContainer menuClass=menuClass menuAlign=menuAlign onClose=(action 'menuClosed') isDisabled=isDisabled as |widget|}}
     {{#if (eq widget.section 'widget')}}
-        <button id="{{inputId}}" class="btn btn-default form-control dropdown-toggle {{if buttonClass buttonClass}}" type="button" name={{name}} aria-haspopup="true" aria-expanded="true" {{action widget.toggleMenu 'button'}}>
+    <button id="{{inputId}}" class="btn btn-default form-control dropdown-toggle {{if buttonClass buttonClass}} {{if isDisabled 'disabled'}}" type="button" name={{name}} aria-haspopup="true" aria-expanded="true" {{action widget.toggleMenu 'button'}}>
             <span class="value">
                 {{#if valueAttribute}}
                     {{get viewValue valueAttribute}}

@@ -1,0 +1,30 @@
+<h3>Fragments</h3>
+
+{{#each fragments as |fragment index|}}
+    {{fragment-options
+      removeFragment=(action 'removeFragment')
+      index=index
+      fragment=fragment
+      fragmentColor=(array-get fragmentColors index)
+    }}
+{{/each}}
+
+<div class="add-fragment-container">
+    {{list-item-icon class="fragment-action-icon" icon='add' action=(action 'addFragment')}}
+</div>
+
+<h3 class="start-url-list-title">Generation List</h3>
+<div class="start-url-list form-control">
+    {{#vertical-collection
+      content=generatedUrlLists
+      itemTagName='p'
+      defaultHeight=20
+      as |generatedUrlList|
+    }}
+        {{#each generatedUrlList as |fragment index|}}
+            {{#colored-span class="fragment-span" color=(array-get fragmentColors index)}}
+                {{fragment}}
+            {{/colored-span}}
+        {{/each}}
+    {{/vertical-collection}}
+</div>

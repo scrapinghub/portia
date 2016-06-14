@@ -1,0 +1,31 @@
+form.fragment-form {
+    margin-bottom: 10px;
+}
+
+.fragment-form .compact-control {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.fragment-form .fragment-input {
+    width: 125px;
+    margin-left: 8px;
+    margin-right: 10px;
+}
+
+.fragment-form .fragment-type {
+    width: 75px;
+    .value {
+        max-width: calc(100% - 10px);
+    }
+}
+
+.fragment-action-icon {
+    position: absolute;
+    right: -10px;
+    line-height: 35px;
+}
+
+.add-fragment-container {
+    height: 35px;
+}
