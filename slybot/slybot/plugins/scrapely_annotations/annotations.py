@@ -27,10 +27,11 @@ class Annotations(object):
     Base Class for adding plugins to Portia Web and Slybot.
     """
 
-    def setup_bot(self, settings, spec, items, extractors):
+    def setup_bot(self, settings, spec, items, extractors, logger):
         """
         Perform any initialization needed for crawling using this plugin
         """
+        self.logger = logger
         _item_template_pages = sorted((
             [t.get('scrapes'), dict_to_page(t, 'annotated_body'),
              t.get('extractors', []), t.get('version', '0.12.0')]
@@ -97,10 +98,15 @@ class Annotations(object):
             try:
                 import page_clustering
                 self.clustering = page_clustering.kmeans_from_samples(spec['templates'])
+                self.logger.info("Clustering activated")
             except ImportError:
                 self.clustering = None
+                self.logger.warning(
+                    "Clustering could not be used because it is not installed")
         else:
             self.clustering = None
+            self.logger.info(
+                "Clustering setting deactivated")
 
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
