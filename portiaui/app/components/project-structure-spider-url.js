@@ -1,14 +1,15 @@
 import Ember from 'ember';
+const { computed } = Ember;
 import { cleanUrl } from '../utils/utils';
 
 export default Ember.Component.extend({
-    browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
-
     tagName: '',
 
-    spider: null,
-    url: null,
+    fragments: computed.alias('startUrl.fragments'),
+    url: computed('startUrl.url', 'fragments.@each.type', 'fragments.@each.value', function() {
+        return this.get('startUrl').toString();
+    }),
 
     viewUrl: Ember.computed('url', {
         get() {
@@ -21,25 +22,29 @@ export default Ember.Component.extend({
         }
     }),
 
-    actions: {
-        removeStartUrl() {
-            const spider = this.get('spider');
-            const url = this.get('url');
-            this.get('dispatcher').removeStartUrl(spider, url);
-        },
+    handleNewUrl(oldUrl, newUrl) {
+        const spider = this.get('spider');
+        const cleanNewUrl= cleanUrl(newUrl);
 
+        if (!oldUrl) {
+            this.get('dispatcher').addStartUrl(spider, cleanNewUrl);
+        } else {
+            this.get('dispatcher').replaceStartUrl(spider, oldUrl, cleanNewUrl);
+        }
+    },
+
+    removeStartUrl() {
+        this.get('dispatcher').removeStartUrl(this.get('spider'),
+                                              this.get('startUrl'));
+    },
+
+    actions: {
         saveStartUrl(oldUrl, newUrl) {
-            const spider = this.get('spider');
             if (oldUrl !== newUrl) {
-                if (!newUrl) {
-                    this.get('dispatcher').removeStartUrl(spider, oldUrl);
+                if (newUrl) {
+                    this.handleNewUrl(oldUrl, newUrl);
                 } else {
-                    newUrl = cleanUrl(newUrl);
-                    if (!oldUrl) {
-                        this.get('dispatcher').addStartUrl(spider, newUrl);
-                    } else {
-                        this.get('dispatcher').replaceStartUrl(spider, oldUrl, newUrl);
-                    }
+                    this.removeStartUrl();
                 }
             }
         }

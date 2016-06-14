@@ -15,6 +15,7 @@ export default Ember.Component.extend({
     menuClass: null,
     menuContainer: null,
     open: false,
+    isDisabled: false,
 
     alignRight: Ember.computed.equal('menuAlign', 'right'),
     menuClasses: Ember.computed('menuClass', 'menuContainer', 'open', 'alignRight', function() {
@@ -111,7 +112,9 @@ export default Ember.Component.extend({
 
     actions: {
         openMenu() {
-            this.set('open', true);
+            if (!this.get('isDisabled')) {
+                this.set('open', true);
+            }
         },
 
         closeMenu(closeReason) {
