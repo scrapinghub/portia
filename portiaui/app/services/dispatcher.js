@@ -1,7 +1,9 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
 import ItemAnnotation from '../models/item-annotation';
-import {getDefaultAttribute} from '../components/inspector-panel';
+import { getDefaultAttribute } from '../components/inspector-panel';
+import { includesUrl } from '../utils/start-urls';
+import startUrl from '../models/start-url';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -88,47 +90,22 @@ export default Ember.Service.extend({
         });
     },
 
-    addSpider(project, redirect = false) {
-        const url = this.get('browser.url');
-        if (!url) {
-            return;
+    addStartUrl(spider, url) {
+        if (url && !includesUrl(spider, url)) {
+            return startUrl({ url: url }).save(spider);
         }
-        let name = url;
-        const matches = url.match('//([a-zA-Z0-9\._-]*)');
-        const store = this.get('store');
-        if (matches && matches.length) {
-            name = matches.slice(-1)[0]
-        } else {
-            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '')
-        }
-        let baseName = name;
-        let counter = 1;
-        while (store.peekRecord('spider', name)) {
-            name = `${baseName}_${counter}`;
-            counter += 1;
-        }
-        const spider = store.createRecord('spider', {
-            name: name,
-            startUrls: [url],
-            project
-        });
-        spider.set('project', project);
-        spider.save().then(() => {
-            if (redirect) {
-                spider.set('new', true);
-                const routing = this.get('routing');
-                routing.transitionTo('projects.project.spider', [spider], {}, true);
-            }
-        });
-        return spider;
     },
 
-    addStartUrl(spider, url) {
-        const urls = spider.get('startUrls');
-        if (url && !urls.includes(url)) {
-            urls.pushObject(url);
-            spider.save();
-            return url;
+    addGeneratedUrl(spider, url) {
+        let spec = { isGenerated: true };
+
+        if (!url || includesUrl(spider, url)) {
+            spec.url = 'http://';
+            return startUrl(spec).save(spider);
+        }
+        if (!includesUrl(spider, url)) {
+            spec.url = url;
+            return startUrl(spec).save(spider);
         }
     },
 
@@ -293,6 +270,11 @@ export default Ember.Service.extend({
         });
     },
 
+    addFragment(startUrl) {
+        let emptyFragment = { type: 'fixed', value: '' };
+        startUrl.fragments.addObject(emptyFragment);
+    },
+
     changeAnnotationSource(annotation, attribute) {
         if (annotation) {
             annotation.set('attribute', attribute);
@@ -386,10 +368,10 @@ export default Ember.Service.extend({
         spider.save();
     },
 
-    replaceStartUrl(spider, oldUrl, newUrl) {
+    replaceStartUrl(spider, oldUrl, newUrl, startUrlObject) {
         const urls = spider.get('startUrls');
-        urls.removeObject(oldUrl);
-        urls.addObject(newUrl);
+        urls.removeObject(startUrlObject);
+        urls.addObject(startUrl({url: newUrl, isGenerated: startUrlObject.isGenerated}));
         spider.save();
     },
 
@@ -460,6 +442,10 @@ export default Ember.Service.extend({
     removeAnnotationExtractor(annotation, extractor) {
         annotation.get('extractors').removeObject(extractor);
         annotation.save();
+    },
+
+    removeFragment(startUrl, fragment) {
+        startUrl.fragments.removeObject(fragment);
     },
 
     selectAnnotation(annotation) {

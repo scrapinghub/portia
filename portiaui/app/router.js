@@ -19,6 +19,9 @@ Router.map(function() {
                 });
                 this.route('options');
                 this.route('link-options');
+                this.route('start-url', {path: "start-urls/:start_url_id"}, function() {
+                    this.route('options');
+                });
             });
             this.route('schema', {path: "schemas/:schema_id"}, function() {
                 this.route('field', {path: "fields/:field_id"}, function() {

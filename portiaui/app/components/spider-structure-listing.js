@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import {computedCanAddSample} from '../services/dispatcher';
+import startUrl from '../models/start-url';
 
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
@@ -21,9 +22,10 @@ export default Ember.Component.extend({
 
     actions: {
         addStartUrl() {
+            this.get('closeOptions')();
             const spider = this.get('spider');
             let newUrl = this.get('browser.url') || '';
-            const urls = spider.get('startUrls');
+            const urls = spider.get('startUrls').mapBy('url');
             if (newUrl && urls.includes(newUrl)) {
                 newUrl = '';
             }
@@ -34,6 +36,13 @@ export default Ember.Component.extend({
                 newUrl: true,
                 urlValue: newUrl
             });
+        },
+
+        addGenerationUrl() {
+            const spider = this.get('spider');
+            let newUrl = this.get('browser.url') || '';
+            let newStartUrl = this.get('dispatcher').addGeneratedUrl(spider, newUrl);
+            this.get('transitionToFragments')(spider.get('startUrls').indexOf(newStartUrl));
         },
 
         addSample() {

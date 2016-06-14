@@ -22,6 +22,7 @@
     "broccoli-asset-rev": "^2.2.0",
     "ember-ajax": "0.7.1",
     "ember-api-actions": "0.0.11",
+    "ember-async-image": "0.1.1",
     "ember-cli": "2.4.2",
     "ember-cli-app-version": "^1.0.0",
     "ember-cli-autoprefixer": "^0.6.0",
@@ -44,7 +45,10 @@
     "ember-load-initializers": "^0.5.0",
     "ember-local-storage": "^1.1.0",
     "ember-resolver": "^2.0.3",
+    "ember-route-action-helper": "0.3.1",
+    "ember-run-raf": "1.1.2",
     "ember-truth-helpers": "^1.2.0",
-    "loader.js": "^4.0.0"
+    "loader.js": "^4.0.0",
+    "smoke-and-mirrors": "0.5.3"
   }
 }

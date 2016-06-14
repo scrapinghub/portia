@@ -1,0 +1,10 @@
+{{#tree-list-item as |options|}}
+    {{#link-to 'projects.project.spider.start-url.options' startUrlIndex bubbles=false class="ignore-active"}}
+        {{list-item-icon icon='generated-url'}}
+        {{#list-item-text}}{{url}}{{/list-item-text}}
+        {{#link-to 'projects.project.spider.start-url.options' startUrlIndex bubbles=false class="ignore-active"}}
+            {{list-item-icon icon='options'}}
+        {{/link-to}}
+        {{list-item-icon icon='remove' action=(action 'removeStartUrl') bubbles=false}}
+    {{/link-to}}
+{{/tree-list-item}}
