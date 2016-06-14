@@ -1,6 +1,9 @@
 from setuptools import setup, find_packages
 
-install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema']
+install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema',
+                    'django', 'parse', 'marshmallow_jsonapi', 'chardet',
+                    'autobahn', 'requests', 'monotonic', 'service_identity',
+                    'ndg-httpsclient']
 tests_requires = install_requires
 
 setup(name='slyd',

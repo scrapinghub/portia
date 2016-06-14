@@ -15,8 +15,8 @@ DATA_DIR = join(dirname(dirname(__file__)), 'data')
 SPEC_DATA_DIR = join(DATA_DIR, 'projects')
 
 SPEC_FACTORY = {
-    'PROJECT_SPEC': 'slyd.projectspec.ProjectSpec',
-    'PROJECT_MANAGER': 'slyd.projects.ProjectsManager',
+    'PROJECT_SPEC': 'slyd.projectspec.FileSystemProjectSpec',
+    'PROJECT_MANAGER': 'slyd.projects.FileSystemProjectsManager',
     'PARAMS': {
         'location': SPEC_DATA_DIR,
     },

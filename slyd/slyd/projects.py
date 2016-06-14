@@ -1,14 +1,19 @@
 from __future__ import absolute_import
-import json, re, shutil, errno, os
+import errno
+import json
+import os
+import re
+
 from os.path import join
 from twisted.internet.defer import Deferred
 from twisted.web.resource import NoResource
 from twisted.web.server import NOT_DONE_YET
 from .errors import BaseError, BaseHTTPError, BadRequest
 from .projecttemplates import templates
-from .resource import SlydJsonObjectResource
+from .resource import SlydJsonObjectResource, SlydJsonErrorPage
 from .utils.copy import FileSystemSpiderCopier
 from .utils.download import FileSystemProjectArchiver
+from .utils.storage import FsStorage
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -143,7 +148,7 @@ class ProjectsManager(object):
 
     def all_projects(self):
         try:
-            for fname in os.listdir(self.projectsdir):
+            for fname in self.storage.listdir(self.projectsdir):
                 if os.path.isdir(join(self.projectsdir, fname)):
                     yield {'id': fname, 'name': fname}
         except OSError as ex:
@@ -159,37 +164,30 @@ class ProjectsManager(object):
     def create_project(self, name):
         self.validate_project_name(name)
         project_filename = self.project_filename(name)
-        os.makedirs(project_filename)
-        with open(join(project_filename, 'project.json'), 'wb') as outf:
-            outf.write(templates['PROJECT'])
-
-        with open(join(project_filename, 'scrapy.cfg'), 'w') as outf:
-            outf.write(templates['SCRAPY'])
-
-        with open(join(project_filename, 'setup.py'), 'w') as outf:
-            outf.write(templates['SETUP'] % name)
-
-        with open(join(project_filename, 'items.json'), 'w') as outf:
-            outf.write(templates['ITEMS'])
-
-        os.makedirs(join(project_filename, 'spiders'))
-
-        init_py = join(project_filename, 'spiders', '__init__.py')
-        with open(init_py, 'w') as outf:
-            outf.write('')
-
-        settings_py = join(project_filename, 'spiders', 'settings.py')
-        with open(settings_py, 'w') as outf:
-            outf.write(templates['SETTINGS'])
+        project_files = {
+            'project.json': templates['PROJECT'],
+            'scrapy.cfg': templates['SCRAPY'],
+            'setup.py': templates['SETUP'] % str(name),
+            'items.json': templates['ITEMS'],
+            join('spiders', '__init__.py'): '',
+            join('spiders', 'settings.py'): templates['SETTINGS'],
+        }
+        for filename, template in project_files.items():
+            self.storage.save(join(project_filename, filename), template)
 
     def rename_project(self, from_name, to_name):
         self.validate_project_name(from_name)
         self.validate_project_name(to_name)
-        os.rename(self.project_filename(from_name),
-                  self.project_filename(to_name))
+        self.storage.move(self.project_filename(from_name),
+                          self.project_filename(to_name))
 
     def remove_project(self, name):
-        shutil.rmtree(self.project_filename(name))
+        self.storage.rmtree(self.project_filename(name))
+
+    def edit_project(self, name, revision=None):
+        # Do nothing here, but subclasses can use this method as a hook
+        # e.g. to import projects from another source.
+        return
 
     def project_filename(self, name):
         return join(self.projectsdir, name)
@@ -206,6 +204,10 @@ class ProjectsManager(object):
         archiver = FileSystemProjectArchiver(name, base_dir=self.projectsdir)
         return archiver.archive(spiders).read()
 
+    def commit_changes(self):
+        if getattr(self, 'storage', None):
+            self.storage.commit()
+
     def _render_file(self, request, request_data, body):
         name = request_data.get('args')[0].encode('utf-8')
         request.setHeader('Content-Type', 'application/zip')
@@ -219,3 +221,11 @@ class ProjectsManager(object):
 
     def __str__(self):
         return '%s' % self.user
+
+
+class FileSystemProjectsManager(ProjectsManager):
+    storage_class = FsStorage
+
+    def __init__(self, auth_info):
+        super(FileSystemProjectsManager, self).__init__(auth_info)
+        self.storage = self.storage_class(self.base_dir)

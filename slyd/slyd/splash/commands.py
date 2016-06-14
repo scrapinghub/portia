@@ -111,11 +111,11 @@ def _load_items_and_extractors(data, socket):
     spec = socket.manager
     try:
         items = spec.resource('items')
-    except TypeError:
+    except IOError:
         items = {}
     try:
         extractors = spec.resource('extractors')
-    except TypeError:
+    except IOError:
         extractors = {}
     return items, extractors
 

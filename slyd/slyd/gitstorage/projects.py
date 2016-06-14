@@ -1,23 +1,31 @@
 import json
 
-from os.path import splitext, split, join, sep
+from os.path import splitext, split, exists
 
 from slyd.projects import ProjectsManager
-from slyd.projecttemplates import templates
 from slyd.errors import BadRequest
-from .repoman import Repoman
 from slyd.utils.copy import GitSpiderCopier
 from slyd.utils.download import GitProjectArchiver
+from slyd.utils.storage import GitStorage
+from .repoman import Repoman
 
 
 def wrap_callback(connection, callback, manager, retries=0, **parsed):
     result = callback(manager, **parsed)
-    if hasattr(manager, 'commit_changes'):
-        manager.commit_changes()
+    manager.commit_changes()
     return result
 
 
 class GitProjectMixin(object):
+    storage_class = GitStorage
+
+    @classmethod
+    def setup(cls, storage_backend, location):
+        Repoman.setup(storage_backend, location)
+        cls.base_dir = ''
+        if exists(location):
+            cls.base_dir = location
+
     def run(self, callback, **parsed):
         pool = getattr(Repoman, 'pool', None)
         if pool is None:
@@ -29,35 +37,50 @@ class GitProjectMixin(object):
             name = getattr(self, 'project_name')
         return name
 
-    def _open_repo(self, name=None):
+    def _open_repo(self, name=None, read_only=False):
+        if getattr(self, 'storage', None):
+            return self.storage.repo
+        branch, repo = self._get_branch_and_repo(None, read_only, name)
+        self.storage = self.storage_class(repo, branch,
+                                          commit=repo.last_commit,
+                                          tree=repo.last_tree)
+        return repo
+
+    def _get_branch_and_repo(self, repo=None, read_only=False, name=None):
+        if getattr(self, 'storage', None):
+            return self.storage.branch, self.storage.repo
+        if repo is None:
+            repo = self._init_or_open_project(name)
+        if repo.has_branch(self.user):
+            return self.user, repo
+        elif not read_only:
+            repo.create_branch(self.user, repo.get_branch('master'))
+            return self.user, repo
+        else:
+            return 'master', repo
+
+    def _get_branch(self, repo=None, read_only=False, name=None):
+        return self._get_branch_and_repo(repo, read_only, name)[0]
+
+    def _init_or_open_project(self, name):
+        name = self._project_name(name)
+        if not Repoman.repo_exists(name, self.connection):
+            pm = getattr(self, 'pm', self)
+            pm.create_project(name)
+            if getattr(pm, 'storage', None):
+                self.storage = pm.storage
+                return self.storage.repo
         return Repoman.open_repo(self._project_name(name), self.connection,
                                  self.user)
 
-    def _get_branch(self, repo=None, read_only=False, name=None):
-        if repo is None:
-            repo = self._open_repo(name)
-        if repo.has_branch(self.user):
-            return self.user
-        elif not read_only:
-            repo.create_branch(self.user, repo.get_branch('master'))
-            return self.user
-        else:
-            return 'master'
-
     def list_spiders(self, name=None):
-        repoman = self._open_repo(self._project_name(name))
-        files = repoman.list_files_for_branch(self._get_branch(repoman,
-                                                               read_only=True))
+        self._open_repo(self._project_name(name), read_only=True)
+        _, files = self.storage.listdir('spiders')
         return [splitext(split(f)[1])[0] for f in files
-                if f.startswith("spiders") and f.count(sep) == 1
-                and f.endswith(".json")]
+                if f.endswith(".json")]
 
 
 class GitProjectsManager(GitProjectMixin, ProjectsManager):
-
-    @classmethod
-    def setup(cls, storage_backend, location):
-        Repoman.setup(storage_backend, location)
 
     def __init__(self, *args, **kwargs):
         ProjectsManager.__init__(self, *args, **kwargs)
@@ -87,29 +110,18 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
 
     def create_project(self, name):
         self.validate_project_name(name)
-        project_files = {
-            'project.json': templates['PROJECT'],
-            'scrapy.cfg': templates['SCRAPY'],
-            'setup.py': templates['SETUP'] % str(name),
-            join('spiders', '__init__.py'): '',
-            join('spiders', 'settings.py'): templates['SETTINGS'],
-        }
         try:
-            Repoman.create_repo(name, self.connection).save_files(
-                project_files, 'master'
-            )
+            repo = Repoman.create_repo(name, self.connection, self.user)
         except NameError:
             raise BadRequest("Bad Request",
                              'A project already exists with the name "%s".'
                              % name)
+        self.storage = self.storage_class(repo, 'master', tree=repo.last_tree,
+                                          commit=repo.last_commit)
+        super(GitProjectsManager, self).create_project(name)
 
     def remove_project(self, name):
         Repoman.delete_repo(name, self.connection)
-
-    def edit_project(self, name, revision):
-        # Do nothing here, but subclasses can use this method as a hook
-        # e.g. to import projects from another source.
-        return
 
     def publish_project(self, name, force):
         repoman = self._open_repo(name)
@@ -138,7 +150,7 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         return json.dumps({'revisions': repoman.get_published_revisions()})
 
     def conflicted_files(self, name):
-        repoman = self._open_repo(name)
+        repoman = self._open_repo(name, read_only=True)
         branch = self._get_branch(repoman, read_only=True)
         conflicts = repoman.publish_branch(branch, dry_run=True)
         return json.dumps(conflicts if conflicts is not True else {})
@@ -149,7 +161,7 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         ])
 
     def _changed_files(self, name):
-        repoman = self._open_repo(name)
+        repoman = self._open_repo(name, read_only=True)
         branch = self._get_branch(repoman, read_only=True)
         changes = repoman.get_branch_changed_entries(branch)
         return [
@@ -157,10 +169,10 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         ]
 
     def save_file(self, name, file_path, file_contents):
-        repoman = self._open_repo(name)
-        repoman.save_file(file_path, json.dumps(
+        self._open_repo(name)
+        self.storage.save(file_path, json.dumps(
             file_contents,
-            sort_keys=True, indent=4), self._get_branch(repoman))
+            sort_keys=True, indent=4))
 
     def copy_data(self, source, destination, spiders, items):
         source = self._open_repo(source)

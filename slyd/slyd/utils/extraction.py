@@ -51,6 +51,12 @@ def extract_items(spec, spider_name, urls, request):
 
 def load_spider(spec, spider_name):
     spider = spec.spider_with_templates(spider_name)
-    items = spec.resource('items')
-    extractors = spec.resource('extractors')
+    try:
+        items = spec.resource('items')
+    except IOError:
+        items = {}
+    try:
+        extractors = spec.resource('extractors')
+    except IOError:
+        extractors = {}
     return IblSpider(spider_name, spider, items, extractors, Settings())
