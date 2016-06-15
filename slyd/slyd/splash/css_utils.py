@@ -16,7 +16,6 @@ def _replace_entity(match):
     if entity[:2] == "&#":
         # character reference
         if entity[:3] == "&#x":
-        if entity[:3] == "&#x":
             return six.unichr(int(entity[3:-1], 16))
         else:
             return six.unichr(int(entity[2:-1]))
