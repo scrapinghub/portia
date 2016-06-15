@@ -38,6 +38,8 @@ export const ICON_CLASSES = {
     'tool-remove': 'fa fa-minus',
     'tool-multiple': 'fa fa-th-large',
     url: 'fa fa-globe',
+    'url-generated': 'portia-icon portia-icon-generated-url',
+    'url-feed': 'portia-icon portia-icon-feed-url',
     warning: 'structure-list-warning fa fa-exclamation-circle'
 };
 
