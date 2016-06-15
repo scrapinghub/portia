@@ -22,7 +22,7 @@ Git versioning can be enabled by creating a `local_settings.py` file in the `sly
         'PROJECT_SPEC': 'slyd.gitstorage.projectspec.ProjectSpec',
         'PROJECT_MANAGER': 'slyd.gitstorage.projects.ProjectsManager',
         'PARAMS': {
-            'storage_backend': 'dulwich.fsrepo.FsRepo',
+            'storage_backend': 'dulwich.repo.Repo',
             'location': os.environ.get('PORTIA_DATA_DIR', SPEC_DATA_DIR)
         },
         'CAPABILITIES': {
@@ -43,7 +43,7 @@ You can also use MySQL to store your project files in combination with Git:
         'PROJECT_SPEC': 'slyd.gitstorage.projectspec.ProjectSpec',
         'PROJECT_MANAGER': 'slyd.gitstorage.projects.ProjectsManager',
         'PARAMS': {
-            'storage_backend': 'dulwich.mysqlrepo.MysqlRepo',
+            'storage_backend': 'slyd.gitstorage.repo.MysqlRepo',
             'location': os.environ.get('DB_URL'),
         },
         'CAPABILITIES': {
