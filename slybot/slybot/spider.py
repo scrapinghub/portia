@@ -31,7 +31,8 @@ class IblSpider(SitemapSpider):
                  **kw):
         self.start_url_generators = {
             'start_urls': StartUrls(),
-            'generated_urls': UrlGenerator(settings, kw)
+            'generated_urls': UrlGenerator(settings, kw),
+            #'feed_urls': FeedUrls(self, settings, kw)
         }
         self.generic_form = GenericForm(**kw)
         super(IblSpider, self).__init__(name, **kw)
@@ -54,8 +55,10 @@ class IblSpider(SitemapSpider):
             spec[key] = val
 
     def _process_start_urls(self, spec):
-        for url in self._create_start_urls(spec):
-            request = Request(url, callback=self.parse, dont_filter=True)
+        for request in self._create_start_urls(spec):
+            if not isinstance(request, Request):
+                request = Request(request, callback=self.parse,
+                                  dont_filter=True)
             self._add_splash_meta(request)
             self._start_requests.append(request)
 

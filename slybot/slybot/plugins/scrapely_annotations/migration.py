@@ -57,6 +57,8 @@ def gen_id(disallow=None):
 def port_sample(sample):
     """Convert slybot samples made before slybot 0.13 to new format."""
     if not sample.get('annotated_body'):
+        if not sample.get('plugins'):
+            sample['plugins'] = {'annotations-plugin': {'extracts': []}}
         return sample  # Handle empty body
     if not sample.get('plugins'):
         sample['plugins'] = load_annotations(sample.get('annotated_body', u''))
@@ -64,7 +66,12 @@ def port_sample(sample):
 
     # Group annotations by type
     annotations = sample['plugins']['annotations-plugin']['extracts']
-    sel = Selector(text=add_tagids(sample['original_body']))
+    try:
+        sel = Selector(text=add_tagids(sample['original_body']))
+    except KeyError:
+        annotated = sample['annotated_body']
+        sample['original_body'] = annotated
+        sel = Selector(text=add_tagids(annotated))
     annotations = port_standard(annotations, sel, sample)
     standard_annos, generated_annos, variant_annos = [], [], []
     for a in annotations:
@@ -74,12 +81,29 @@ def port_sample(sample):
             variant_annos.append(a)
         else:
             standard_annos.append(a)
+    if not annotations:
+        return sample
     new_annotations = []
+    a = find_element(annotations[0], sel)
+    for b in annotations[1:]:
+        b = find_element(b, sel)
+        a = find_common_parent(a, b)
+    container_id = gen_id()
+    parent = a.getparent()
+    new_annotations.append(
+        _create_container(a if parent is None else parent, container_id,
+                          selector=sel))
     for a in standard_annos:
         a.pop('variant', None)
     new_annotations.extend(standard_annos)
     new_annotations.extend(port_generated(generated_annos, sel))
     new_annotations.extend(port_variants(variant_annos, sel))
+    for a in new_annotations:
+        if not (a.get('item_container') and a.get('container_id')):
+            a['container_id'] = container_id
+        tagid = a.pop('tagid', None) or a.pop('data-tagid', None)
+        elems = sel.css(a['selector'])
+        elem = elems[0].root
     # Update annotations
     sample['plugins']['annotations-plugin']['extracts'] = new_annotations
     sample['version'] = SLYBOT_VERSION
@@ -94,7 +118,7 @@ def find_element(tagid, sel):
         tagid = tagid.get('tagid')
     elements = sel.xpath('//*[@data-tagid="%s"]' % tagid)
     if elements:
-        return elements[0]._root
+        return elements[0].root
 
 
 def css_escape(s):
@@ -113,7 +137,7 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     """
     def children_index(elem):
         parent = elem.getparent()
-        if parent:
+        if parent is not None:
             children = filter(lambda x: x.tag is not Comment,
                               parent.getchildren())
             index = children.index(elem) + 1
@@ -121,10 +145,23 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
             index = 0
         return index
 
+    def build_table_selector(elem):
+        parent = find_css_selector(elem.getparent(), sel, depth + 1)
+        join = '' if previous_tbody else ' >'
+        selector = '%s%s %s:nth-child(%s)' % (
+            parent, join, tag_name, children_index(elem)
+        )
+        e = sel.css(selector)
+        if not e:
+            join = '' if previous_tbody or tag_name == 'tr' else ' >'
+            selector = '%s%s %s:nth-child(%s)' % (
+                parent, join, tag_name, children_index(elem))
+        return selector
+
     elem_id = elem.attrib.get('id')
     if elem_id:
         id_selector = '#%s' % css_escape(elem_id)
-        if len(sel.css(id_selector)) == 1 and depth > 1:
+        if len(sel.css(id_selector)) == 1 and depth <= 1:
             return id_selector
 
     # Inherently unique by tag name
@@ -159,12 +196,7 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
             selector = find_css_selector(elem.getparent(), sel, depth + 1,
                                          True)
         else:
-            selector = '%s%s %s:nth-child(%s)' % (
-                find_css_selector(elem.getparent(), sel, depth + 1),
-                '' if previous_tbody or tag_name == 'tr' else ' >',
-                tag_name,
-                children_index(elem)
-            )
+            selector = build_table_selector(elem)
     return selector
 
 
@@ -292,7 +324,7 @@ def _create_container(element, container_id, repeated=False, siblings=0,
     else:
         s = find_css_selector(element, selector)
     data = {
-        'id': '%s%s' % (container_id, '' if repeated else '#parent'),
+        'id': '%s%s' % (container_id, '#parent' if repeated else ''),
         'accept_selectors': [s],
         'reject_selectors': [],
         'selector': s,
@@ -335,28 +367,48 @@ def port_generated(generated_annotations, sel):
     """Port generated annotations to annotations with custom extractors."""
     for annotation in generated_annotations:
         # Find pre and post text
-        slice = annotation.get('slice')
-        if not annotation.get('tagid') or not slice or len(slice) != 2:
+        _slice = annotation.get('slice')
+        if not annotation.get('tagid') or not _slice or len(_slice) != 2:
             continue
         element = find_element(annotation, sel)
         if element is None:
             continue
+        pre_text, post_text = '', ''
         if annotation.get('insert_after'):
+            selector = find_css_selector(element.getparent(), sel)
+            if not selector:
+                continue
+            annotation['accept_selectors'] = [selector]
+            annotation['selector'] = selector
+            siblings = list(element.getparent().iterchildren())
+            start = siblings.index(element)
+
+            def process_siblings(others, reverse=False):
+                text = []
+                order = ('tail', 'text') if reverse else ('text', 'tail')
+                for elem in others:
+                    for t in order:
+                        text.append(getattr(elem, t) or ' ')
+                    if any(t.strip() for t in text):
+                        break
+                return ''.join(text)
+            pre_text = process_siblings(
+                siblings[start - 1: 0: -1] + [siblings[0]], True)
+            post_text = process_siblings(siblings[start + 1:], 1)
             text = element.tail
         else:
             text = element.text
         text = (text or '').strip()
-        for anno_id, anno in annotation['data'].iteritems():
-            attribute = anno.get('attribute')
-            if attribute == 'content' or attribute == 'text-content':
-                pre_text = text[0:slice[0]]
-                post_text = text[slice[1]:]
-                if pre_text or post_text:
-                    anno['pre_text'] = pre_text
-                    anno['post_text'] = post_text
+        data = annotation['data']
+        contentf = annotation.get('text-content', 'content')
+        for anno in (a for a in data.values() if a['attribute'] == contentf):
+            pre_text = (pre_text + text[0:_slice[0]]).strip()
+            post_text = (text[_slice[1]:] + post_text).strip()
+            if anno and pre_text or post_text:
+                anno['pre_text'] = pre_text
+                anno['post_text'] = post_text
         # Create new text region field
         annotation.pop('variant', None)
-        del annotation['generated']
         del annotation['slice']
     return generated_annotations
 
@@ -390,10 +442,10 @@ def load_annotations(body):
     existing_ids = set()
     annotations = []
     for elem in sel.xpath('//*[@data-scrapy-annotate]'):
-        attributes = elem._root.attrib
+        attributes = elem.root.attrib
         annotation = json.loads(unquote(attributes['data-scrapy-annotate']))
-        if (isinstance(elem._root, _Element) and
-                elem._root.tag.lower() == 'ins'):
+        if (isinstance(elem.root, _Element) and
+                elem.root.tag.lower() == 'ins'):
             annotation.update(find_generated_annotation(elem))
         else:
             annotation['tagid'] = attributes.get('data-tagid')
@@ -402,7 +454,7 @@ def load_annotations(body):
         existing_ids.add(annotation['id'])
         annotations.append(annotation)
     for elem in sel.xpath('//*[@%s]' % '|@'.join(IGNORE_ATTRIBUTES)):
-        attributes = elem._root.attrib
+        attributes = elem.root.attrib
         for attribute in IGNORE_ATTRIBUTES:
             if attribute in attributes:
                 break
@@ -416,7 +468,7 @@ def load_annotations(body):
 
 def find_generated_annotation(elem):
     """Find annotation information for generated element."""
-    elem = elem._root
+    elem = elem.root
     previous = elem.getprevious()
     insert_after = True
     nodes = []

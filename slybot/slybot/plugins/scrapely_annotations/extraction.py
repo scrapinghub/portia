@@ -21,7 +21,7 @@ from scrapely.extraction.pageobjects import (
 from scrapely.extraction.regionextract import (
     RecordExtractor, BasicTypeExtractor, TraceExtractor,
     TemplatePageExtractor, RepeatedDataExtractor, AdjacentVariantExtractor,
-    TextRegionDataExtractor, labelled_element, _compose
+    TextRegionDataExtractor, labelled_element
 )
 from scrapely.extraction.similarity import (
     similar_region, longest_unique_subsequence, first_longest_subsequence
@@ -31,14 +31,29 @@ from scrapy.utils.spider import arg_to_iter
 from slybot.fieldtypes import FieldTypeManager
 from slybot.item import SlybotFieldDescriptor
 
+from w3lib.html import remove_tags
+
+
+def _compose(f, g):
+    """given unary functions f and g, return a function that computes f(g(x))
+    """
+    def _exec(x):
+        ret = g(x)
+        if ret is not None:
+            ret = HtmlPageRegion(ret.htmlpage, remove_tags(ret.text_content))
+            return f(ret)
+        return None
+    return _exec
+
 
 MAX_SEARCH_DISTANCE_MULTIPLIER = 3
 MIN_TOKEN_LENGTH_BEFORE_TRUNCATE = 3
 MIN_JUMP_DISTANCE = 0.7
 MAX_RELATIVE_SEPARATOR_MULTIPLIER = 0.7
-_DEFAULT_EXTRACTOR = FieldTypeManager().type_processor_class('text')()
+_DEFAULT_EXTRACTOR = FieldTypeManager().type_processor_class('raw html')()
 Region = namedtuple('Region', ['score', 'start_index', 'end_index'])
 container_id = lambda x: x.annotation.metadata.get('container_id')
+
 
 def _int_cmp(a, op, b):
     op = getattr(operator, op)
@@ -161,8 +176,9 @@ class SlybotRecordExtractor(RecordExtractor):
         ignored_regions = ignored_regions or []
         first_extractor, following_extractors = extractors[0], extractors[1:]
         while (following_extractors and
-               _int_cmp(labelled_element(following_extractors[0]).start_index, 'lt',
-                        labelled_element(first_extractor).end_index)):
+               _int_cmp(
+                labelled_element(following_extractors[0]).start_index, 'lt',
+                labelled_element(first_extractor).end_index)):
             ex = following_extractors.pop(0)
             labelled = labelled_element(ex)
             if (isinstance(labelled, AnnotationTag) or
@@ -176,11 +192,18 @@ class SlybotRecordExtractor(RecordExtractor):
         extracted_data = []
         # end_index is inclusive, but similar_region treats it as exclusive
         end_region = None if end_index is None else end_index + 1
+        start_region = None if start_index is None else start_index - 1
         labelled = lelem(first_extractor)
-        score, pindex, sindex = \
-            similar_region(
-                page.page_tokens, self.template_tokens, labelled, start_index,
+        try:
+            score, pindex, sindex = similar_region(
+                page.page_tokens, self.template_tokens, labelled, start_region,
                 end_region, self.best_match, **kwargs)
+        except IndexError:
+            start_region, end_region = start_index, end_index
+            score, pindex, sindex = similar_region(
+                page.page_tokens, self.template_tokens, labelled, start_region,
+                end_region, self.best_match, **kwargs)
+
         if score > 0:
             if isinstance(labelled, AnnotationTag):
                 similar_ignored_regions = []
@@ -195,24 +218,31 @@ class SlybotRecordExtractor(RecordExtractor):
                 extracted_data = first_extractor.extract(
                     page, pindex, sindex, similar_ignored_regions, **kwargs)
             if following_extractors:
+                previous_extraction = start_region or sindex
+                if previous_extraction:
+                    kwargs['previous'] = previous_extraction + 1
                 _, _, following_data = self._doextract(
-                    page, following_extractors, sindex or start_index,
+                    page, following_extractors, sindex or start_region,
                     end_index, **kwargs)
                 extracted_data += following_data
             if nested_regions:
-                _, _, nested_data = self._doextract(page, nested_regions, pindex, sindex, **kwargs)
+                _, _, nested_data = self._doextract(
+                    page, nested_regions, pindex, sindex, **kwargs)
                 extracted_data += nested_data
         elif following_extractors:
             end_index, _, following_data = self._doextract(
                 page, following_extractors, start_index, end_index, **kwargs)
             if end_index is not None:
                 pindex, sindex, extracted_data = self._doextract(
-                    page, [first_extractor], start_index, end_index - 1,
+                    page, [first_extractor], start_region, end_index,
                     nested_regions, ignored_regions, **kwargs
                 )
+                if extracted_data and sindex:
+                    kwargs['previous'] = sindex + 1
             extracted_data += following_data
         elif nested_regions:
-            _, _, nested_data = self._doextract(page, nested_regions, start_index, end_index, **kwargs)
+            _, _, nested_data = self._doextract(
+                page, nested_regions, start_index, end_index, **kwargs)
             extracted_data += nested_data
 
         if (hasattr(first_extractor, 'annotation') and
@@ -360,16 +390,16 @@ class BaseContainerExtractor(object):
         for container_name, container_data in tree.items():
             if container_name not in containers:
                 continue  # Ignore missing containers
-            containers = container_annos[container_name]
+            container = container_annos[container_name]
             annotation = None
             for a in template.annotations:
                 if a.metadata.get('id') == container_name:
                     annotation = a
                     break
-            if containers:
+            if container:
                 cls._add_new_container(
                     annotation, container_extractors, container_data,
-                    template, container_annos, containers, legacy)
+                    template, container_annos, container, legacy)
         return container_extractors
 
     @staticmethod
@@ -414,20 +444,25 @@ class BaseContainerExtractor(object):
         """
         if u'_type' in item:
             return item
-        for k in self.extra_requires:
-            if k not in item:
-                return {}
-            if k.startswith('_sticky'):
-                del item[k]
+        if isinstance(item, dict):
+            for k in self.extra_requires:
+                if k.startswith('_sticky'):  # Sticky no longer supported
+                    item.pop(k, None)
+                    continue
+                if k not in item:
+                    return {}
         new_item = defaultdict(list)
         if isinstance(item, dict):
             item = item.items()
         elif item and not isinstance(item[0], tuple):
             item = [item]
         for k, v in item:
-            if hasattr(k, 'startswith') and k.startswith('_'):
-                new_item[k] = v
-                continue
+            if hasattr(k, 'startswith'):
+                if k.startswith('_'):
+                    new_item[k] = v
+                    continue
+                elif k.startswith('#'):
+                    continue
             try:
                 for k, v in self._process_fields(k, v, htmlpage):
                     new_item[k].extend(v)
@@ -435,13 +470,15 @@ class BaseContainerExtractor(object):
                 return {}
         new_item_fields = {getattr(f, 'name', f): v
                            for f, v in new_item.items() if v}
+        new_item = {getattr(f, 'description', f): v
+                    for f, v in new_item.items() if v}
+        _type = getattr(self.schema, 'description', None)
         if (hasattr(self.schema, '_item_validates') and
                 not self.schema._item_validates(new_item_fields)):
             return {}
         merged_item = defaultdict(list)
         for f, v in new_item.iteritems():
             merged_item[getattr(f, 'description', f)] += v
-        _type = getattr(self.schema, 'description', None)
         if _type:
             merged_item[u'_type'] = _type
         return dict(merged_item)
@@ -555,11 +592,10 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
         Find a region surrounding repeated data and run extractors on the data
         in that region.
         """
-        items = []
         start_index = max(0, start_index - 1)
         max_end_index = len(page.token_page_indexes)
         if end_index is None:
-            end_index = max_end_index - 1
+            end_index = max_end_index
         else:
             end_index = min(max_end_index, end_index + 1)
         region = Region(*similar_region(
@@ -567,12 +603,18 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
             start_index, end_index, self.best_match, **kwargs))
         if region.score < 1:
             return []
+        items = self._extract_items_from_region(region, page, ignored_regions,
+                                                **kwargs)
+        return [self._validate_and_adapt_item(i, page) for i in items]
+
+    def _extract_items_from_region(self, region, page, ignored_regions, **kw):
+        items = []
         for extractor in self.extractors:
             try:
                 try:
                     item = extractor.extract(
                         page, region.start_index, region.end_index,
-                        ignored_regions, **kwargs
+                        ignored_regions, **kw
                     )
                 except TypeError:
                     ex = SlybotRecordExtractor(
@@ -580,7 +622,7 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
                     )
                     item = ex.extract(
                         page, region.start_index, region.end_index,
-                        ignored_regions, **kwargs
+                        ignored_regions, **kw
                     )
             except MissingRequiredError:
                 return []
@@ -592,7 +634,6 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
                     items.append(item)
             else:
                 items.append(item)
-        items = [self._validate_and_adapt_item(i, page) for i in items]
         return items
 
 
@@ -859,6 +900,7 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
             basic_extractors = TraceExtractor.apply(template, basic_extractors)
         basic_extractors = ContainerExtractor.apply(template, basic_extractors,
                                                     legacy=legacy)
+
         item_containers, extractors = [], []
         for extractor in basic_extractors:
             if (isinstance(extractor, BaseContainerExtractor) and
