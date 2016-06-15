@@ -2,6 +2,8 @@
 import json
 from os.path import dirname
 from unittest import TestCase
+from scrapy.settings import Settings
+from scrapy.http.response.html import HtmlResponse
 from slybot.plugins.scrapely_annotations.extraction import (
     parse_template, BaseContainerExtractor, group_tree, ContainerExtractor,
     RepeatedContainerExtractor, TemplatePageMultiItemExtractor,
@@ -11,6 +13,7 @@ from slybot.item import create_slybot_item_descriptor
 from slybot.plugins.scrapely_annotations.builder import (
     apply_annotations, _clean_annotation_data
 )
+from slybot.spider import IblSpider
 from scrapely.extraction.pageobjects import TokenDict
 from scrapely.htmlpage import HtmlPage
 from scrapely.extraction.regionextract import BasicTypeExtractor
@@ -105,6 +108,10 @@ annotations = sample['plugins']['annotations-plugin']['extracts']
 annotated = apply_annotations(_clean_annotation_data(annotations),
                               sample['original_body'])
 
+with open('%s/data/templates/xceed.json' % _PATH) as f:
+    xceed_spider = json.load(f)
+
+
 def _annotation_tag_to_dict(tag):
     return {attr: getattr(tag, attr, object())
             for attr in ['annotation_text', 'end_index', 'metadata',
@@ -167,7 +174,6 @@ class ContainerExtractorTest(TestCase):
         result['_type'] = 'default'
         self.assertEqual(bce._validate_and_adapt_item(data, template), result)
         bce.extra_requires = ['pid', '_sticky1']
-        self.assertEqual(bce._validate_and_adapt_item(data, template), {})
         data['_sticky1'] = True
         self.assertEqual(bce._validate_and_adapt_item(data, template), result)
 
@@ -183,6 +189,7 @@ class ContainerExtractorTest(TestCase):
         self.assertEqual(e, [33554432, 33554439, 33554438])
 
     def test_extract(self):
+        self.maxDiff = None
         extractors = ContainerExtractor.apply(unvalidated_template,
                                               basic_extractors)
         ibl_extractor = TemplatePageMultiItemExtractor(unvalidated_template,
@@ -196,8 +203,8 @@ class ContainerExtractorTest(TestCase):
             u'date': [u'2015-08-07 10:09:32Z'],
             u'text': [u"Bootstrap navbar doesn't open - mobile view"],
             u'title': [u'I have a sticky nav with this code (Which is not mine'
-                       u') // Create a clone of the menu, right next to '
-                       u'original. ...'],
+                       u')\n\n// Create a clone of the menu, right next to '
+                       u'original.\n...'],
             u'url': [u'https://stackoverflow.com/questions/31875193/bootstrap-'
                      u'navbar-doesnt-open-mobile-view']
         })
@@ -208,8 +215,8 @@ class ContainerExtractorTest(TestCase):
             u'title': [u"Last days i'm trying to put my rails app in "
                        u"production with apache and passenger(no rvm), but "
                        u"still nothing. In my browser i get an error like "
-                       u"this: We're sorry, but something went wrong. "
-                       u"We've been ..."],
+                       u"this:\n\nWe're sorry, but something went wrong."
+                       u"\nWe've been ..."],
             u'url': [u'https://stackoverflow.com/questions/31874997/rails-in-'
                      u'production-with-apachepassenger-error']
         })
@@ -219,9 +226,9 @@ class ContainerExtractorTest(TestCase):
             u'text': [u'iPython + Spark + Cassandra - Py4JJavaError and How to'
                       u' connect to Cassandra from Spark?'],
             u'title': [u"How can I connect to Cassandra from Spark with "
-                       u"iPython? I have followed the code from here and "
-                       u"modified it, import os import sys # Path for spark "
-                       u"source folder os.environ['SPARK_HOME'] = ..."],
+                       u"iPython?\n\nI have followed the code from here and "
+                       u"modified it,\n\nimport os\nimport sys\n\n# Path for "
+                       u"spark source folder\nos.environ['SPARK_HOME'] = ..."],
             u'url': [u'https://stackoverflow.com/questions/31872831/ipython-'
                      u'spark-cassandra-py4jjavaerror-and-how-to-connect-to-'
                      u'cassandra-from']
@@ -247,9 +254,21 @@ class ContainerExtractorTest(TestCase):
     def test_extract_missing_schema(self):
         extractor = SlybotIBLExtractor([(sample_411, {}, '0.13.0')])
         data = extractor.extract(page_411)[0]
-        self.assertEqual(data[1]['full_name'], [u'Joe Smith'])
-        self.assertEqual(data[1]['first_name'], [u'Joe Smith'])
-        self.assertEqual(data[1]['last_name'], [u'Joe Smith'])
+        raw_html = ('<span itemprop="name"><span itemprop="givenName">Joe'
+                    '</span> <span itemprop="familyName">Smith</span></span>')
+        self.assertEqual(data[1]['full_name'], [raw_html])
+        self.assertEqual(data[1]['first_name'], [raw_html])
+        self.assertEqual(data[1]['last_name'], [raw_html])
+
+    def test_extract_multiple_item_types(self):
+        spider = IblSpider('xceed', xceed_spider, xceed_spider['items'], {},
+                           Settings())
+        data = list(spider.parse(
+            HtmlResponse('http://url',
+                         body=xceed_spider['templates'][0]['original_body'],
+                         encoding='utf-8')
+        ))
+        self.assertEqual(data[:6], xceed_spider['results'])
 
     def test_required_annotation(self):
         ibl_extractor = SlybotIBLExtractor([

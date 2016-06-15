@@ -31,7 +31,8 @@ class IblSpider(SitemapSpider):
                  **kw):
         self.start_url_generators = {
             'start_urls': StartUrls(),
-            'generated_urls': UrlGenerator(settings, kw)
+            'generated_urls': UrlGenerator(settings, kw),
+            #'feed_urls': FeedUrls(self, settings, kw)
         }
         self.generic_form = GenericForm(**kw)
         super(IblSpider, self).__init__(name, **kw)
@@ -54,8 +55,10 @@ class IblSpider(SitemapSpider):
             spec[key] = val
 
     def _process_start_urls(self, spec):
-        for url in self._create_start_urls(spec):
-            request = Request(url, callback=self.parse, dont_filter=True)
+        for request in self._create_start_urls(spec):
+            if not isinstance(request, Request):
+                request = Request(request, callback=self.parse,
+                                  dont_filter=True)
             self._add_splash_meta(request)
             self._start_requests.append(request)
 
@@ -198,7 +201,7 @@ class IblSpider(SitemapSpider):
         for plugin_class, plugin_name in zip(load_plugins(settings),
                                              load_plugin_names(settings)):
             instance = plugin_class()
-            instance.setup_bot(settings, spec, schemas, extractors)
+            instance.setup_bot(settings, spec, schemas, extractors, self.logger)
             plugins[plugin_name] = instance
         return plugins
 
@@ -227,7 +230,6 @@ class IblSpider(SitemapSpider):
         return self._handle('handle_html', response)
 
     def _configure_js(self, spec, settings):
-        self._job_id = settings.get('JOB', '')
         self.js_enabled = False
         self.SPLASH_HOST = None
         if settings.get('SPLASH_URL'):
@@ -239,6 +241,10 @@ class IblSpider(SitemapSpider):
                 settings.get('SPLASH_USER', ''),
                 settings.get('SPLASH_PASS', ''))
         self.splash_wait = settings.getint('SPLASH_WAIT', 5)
+        self.splash_timeout = settings.getint('SPLASH_TIMEOUT', 30)
+        self.splash_js_source = settings.get(
+            'SPLASH_JS_SOURCE', 'function(){}')
+        self.splash_lua_source = settings.get('SPLASH_LUA_SOURCE', '')
         self._filter_js_urls = self._build_js_url_filter(spec)
 
     def _build_js_url_filter(self, spec):
@@ -252,10 +258,14 @@ class IblSpider(SitemapSpider):
         if self.js_enabled and self._filter_js_urls(request.url):
             cleaned_url = urlparse(request.url)._replace(params='', query='',
                                                          fragment='').geturl()
+            endpoint = 'execute' if self.splash_lua_source else 'render.html'
             request.meta['splash'] = {
-                'endpoint': 'render.html?job_id=%s' % self._job_id,
+                'endpoint': endpoint,
                 'args': {
                     'wait': self.splash_wait,
+                    'timeout': self.splash_timeout,
+                    'js_source': self.splash_js_source,
+                    'lua_source': self.splash_lua_source,
                     'images': 0,
                     'url': request.url,
                     'baseurl': cleaned_url

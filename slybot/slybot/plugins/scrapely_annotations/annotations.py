@@ -28,10 +28,11 @@ class Annotations(object):
     Base Class for adding plugins to Portia Web and Slybot.
     """
 
-    def setup_bot(self, settings, spec, items, extractors):
+    def setup_bot(self, settings, spec, items, extractors, logger):
         """
         Perform any initialization needed for crawling using this plugin
         """
+        self.logger = logger
         templates = map(self._get_annotated_template, spec['templates'])
 
         _item_template_pages = sorted((
@@ -93,6 +94,21 @@ class Annotations(object):
             if _links_pages else None
 
         self.build_url_filter(spec)
+        # Clustering
+        self.template_names = [t.get('page_id') for t in spec['templates']]
+        if settings.get('PAGE_CLUSTERING'):
+            try:
+                import page_clustering
+                self.clustering = page_clustering.kmeans_from_samples(spec['templates'])
+                self.logger.info("Clustering activated")
+            except ImportError:
+                self.clustering = None
+                self.logger.warning(
+                    "Clustering could not be used because it is not installed")
+        else:
+            self.clustering = None
+            self.logger.info(
+                "Clustering setting deactivated")
 
     def _get_annotated_template(self, template):
         if template.get('version', '0.12.0') >= '0.13.0':
@@ -121,7 +137,19 @@ class Annotations(object):
         return [], []
 
     def _do_extract_items_from(self, htmlpage, extractor):
-        extracted_data, template = extractor.extract(htmlpage)
+        # Try to predict template to use
+        pref_template_id = None
+        template_cluster = 'not available'
+        if self.clustering:
+            self.clustering.add_page(htmlpage)
+            if self.clustering.is_fit:
+                clt = self.clustering.classify(htmlpage)
+                if clt != -1:
+                    template_cluster = self.template_names[clt]
+                    pref_template_id = template_cluster
+                else:
+                    template_cluster = 'outlier'
+        extracted_data, template = extractor.extract(htmlpage, pref_template_id)
         link_regions = []
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
@@ -129,12 +157,13 @@ class Annotations(object):
         unprocessed = False
         if template is not None and hasattr(template, 'descriptor'):
             descriptor = template.descriptor()
-            if descriptor is None:
-                item_cls_name = ''
-            elif isinstance(descriptor, dict):
-                item_cls_name = descriptor.get('name', '')
-            else:
+            if hasattr(descriptor, 'name'):
                 item_cls_name = descriptor.name
+            elif hasattr(descriptor, 'get'):
+                item_cls_name = descriptor.get('name',
+                                               descriptor.get('display_name'))
+            else:
+                item_cls_name = ''
         else:
             unprocessed = True
             try:
@@ -169,8 +198,9 @@ class Annotations(object):
                     {'fields': {k: default_meta for k in item}}
                 )
                 item = item_cls(**item)
+            if self.clustering:
+                item['_template_cluster'] = template_cluster
             items.append(item)
-
         return items, link_regions
 
     def _process_attributes(self, item, descriptor, htmlpage):
