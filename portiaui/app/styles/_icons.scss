@@ -93,10 +93,22 @@
     }
 }
 
+%combined-icon {
+    position: relative;
+
+    &:after {
+        display: inline-block;
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        vertical-align: middle;
+    }
+}
+
 .portia-icon-safe-html {
     @extend .#{$fa-css-prefix};
+    @extend %combined-icon;
     @extend .#{$fa-css-prefix}-code;
-    position: relative;
 
     &:before {
         display: inline-block;
@@ -105,31 +117,55 @@
 
     &:after {
         content: $fa-var-circle-thin;
-        display: inline-block;
-        position: absolute;
         left: 0;
-        width: 100%;
-        text-align: center;
-        vertical-align: middle;
         transform: scale(1.2);
     }
 }
 
 .portia-icon-selector {
     @extend .#{$fa-css-prefix};
+    @extend %combined-icon;
     @extend .#{$fa-css-prefix}-circle;
-    position: relative;
 
     &:after {
         content: $fa-var-mouse-pointer;
-        display: inline-block;
-        position: absolute;
         left: 1px;
         top: -1px;
-        width: 100%;
         color: $fa-inverse;
-        text-align: center;
-        vertical-align: middle;
         transform: scale(0.6);
+    }
+}
+
+%subscript-icon {
+    @extend %combined-icon;
+
+    &:after {
+        right: -3px;
+        bottom: -3px;
+        transform: scale(0.7);
+        text-shadow: -1px -1px 1px $sidebar-background-color,
+                       1px 1px 1px $sidebar-background-color,
+                      -1px 1px 1px $sidebar-background-color,
+                      1px -1px 1px $sidebar-background-color;
+    }
+}
+
+.portia-icon-generated-url {
+    @extend .#{$fa-css-prefix};
+    @extend %subscript-icon;
+    @extend .#{$fa-css-prefix}-globe;
+
+    &:after {
+        content: $fa-var-tasks;
+    }
+}
+
+.portia-icon-feed-url {
+    @extend .#{$fa-css-prefix};
+    @extend %subscript-icon;
+    @extend .#{$fa-css-prefix}-globe;
+
+    &:after {
+        content: $fa-var-rss;
     }
 }
