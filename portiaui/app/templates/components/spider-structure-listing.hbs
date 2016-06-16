@@ -24,10 +24,10 @@
 
                 {{#list-item-icon-menu icon='add-dropdown' as |options|}}
                     {{#options.item value="Add fixed URL" action=(chain-actions (action 'addStartUrl') options.closeMenu) as |value|}}
-                        {{list-item-icon class="icon" icon="add"}}{{value}}
+                        {{list-item-icon class="icon" icon="url"}}{{value}}
                     {{/options.item}}
                     {{#options.item value="Add generation URL" action=(chain-actions (action 'addGenerationUrl') options.closeMenu) as |value|}}
-                        {{list-item-icon class="icon" icon="add"}}{{value}}
+                        {{list-item-icon class="icon" icon="url-generated"}}{{value}}
                     {{/options.item}}
                 {{/list-item-icon-menu}}
 

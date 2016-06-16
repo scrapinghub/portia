@@ -14,5 +14,21 @@
 .start-url-generation-list {
     p {
         white-space: nowrap;
+        position: relative;
+        margin: 0;
     }
+}
+
+.fragments-title {
+    line-height: 30px;
+    margin-bottom: 10px;
+    display: inline-block;
+    color: $navbar-default-color;
+}
+
+#add-fragment-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    line-height: 30px;
 }
