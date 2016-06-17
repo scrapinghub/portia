@@ -5,13 +5,13 @@ function augmentFragment(fragment) {
         case('fixed'):
             return [fragment.value];
         case('list'):
-            return fragment.value.split(',');
+            return fragment.value.split(' ');
         case('range'):
             if (!fragment.value.match(/\d+-\d+/)) { return ['']; }
 
             const result = [];
             let [a, b] = fragment.value.split('-').map(x => parseInt(x));
-            let upperLimit = Math.min(b - a, a + SAMPLE_SIZE);
+            let upperLimit = Math.min(b, a + SAMPLE_SIZE);
             for(let i = a; i < upperLimit + 1; i += 1) {
                 result.push(i.toString());
             }
@@ -49,10 +49,10 @@ export function multiplicityFragment(fragment) {
         case('fixed'):
             return 1;
         case('list'):
-            return fragment.value.split(',').length;
+            return fragment.value.split(' ').length;
         case('range'):
             if (!fragment.value.match(/\d+-\d+/)) {
-                return 0;
+                return 1;
             } else {
                 let [a, b] = fragment.value.split('-').map(x => parseInt(x));
                 return b - a + 1;
