@@ -1,7 +1,13 @@
 {{list-item-badge value=multiplicity color=fragmentColor}}
 
 <div class="form-group">
-    {{input type="text" class="form-control compact-control fragment-input" value=(mut fragment.value)}}
+    {{#if isRange}}
+        {{input type="text" class="form-control compact-control fragment-left-half" value=(mut lower) placeholder="1"}}
+        <span>-</span>
+        {{input type="text" class="form-control compact-control fragment-right-half" value=(mut higher) placeholder="10"}}
+    {{else}}
+    {{input type="text" class="form-control compact-control fragment-input" value=(mut fragment.value) placeholder=listPlaceholder}}
+    {{/if}}
 </div>
 
 <div class="form-group">
