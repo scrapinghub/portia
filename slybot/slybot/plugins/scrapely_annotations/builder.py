@@ -296,18 +296,18 @@ def apply_selector_annotations(annotations, target_page):
     for annotation in annotations:
         if not annotation.get('selector'):
             accepted_elements = set(
-                chain(*[[elem.root for elem in page.css(sel)]
+                chain(*[[elem._root for elem in page.css(sel)]
                         for sel in annotation.get('accept_selectors', [])
                         if sel])
             )
             rejected_elements = set(
-                chain(*[[elem.root for elem in page.css(sel)]
+                chain(*[[elem._root for elem in page.css(sel)]
                         for sel in annotation.get('reject_selectors', [])
                         if sel])
             )
             elems = accepted_elements - rejected_elements
         else:
-            elems = [elem.root for elem in page.css(annotation['selector'])]
+            elems = [elem._root for elem in page.css(annotation['selector'])]
         if elems:
             tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
             tagid = min(tagids)
