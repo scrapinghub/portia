@@ -118,6 +118,7 @@
     "respect_nofollow": false, 
     "results": [
         {
+            "_index": 1,
             "_template": "ec891c9df77d09298c0f44f7973af3d5d4adc1e5", 
             "_type": "ticket", 
             "date": [
@@ -135,6 +136,7 @@
             "url": "http://url"
         }, 
         {
+            "_index": 2,
             "_template": "ec891c9df77d09298c0f44f7973af3d5d4adc1e5", 
             "_type": "ticket", 
             "date": [
@@ -152,6 +154,7 @@
             "url": "http://url"
         }, 
         {
+            "_index": 3,
             "_template": "ec891c9df77d09298c0f44f7973af3d5d4adc1e5", 
             "_type": "ticket", 
             "date": [
@@ -169,6 +172,7 @@
             "url": "http://url"
         }, 
         {
+            "_index": 4,
             "_template": "ec891c9df77d09298c0f44f7973af3d5d4adc1e5", 
             "_type": "ticket", 
             "date": [
