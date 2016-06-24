@@ -478,7 +478,11 @@ class BaseContainerExtractor(object):
             return {}
         merged_item = defaultdict(list)
         for f, v in new_item.iteritems():
-            merged_item[getattr(f, 'description', f)] += v
+            fieldname = getattr(f, 'description', f)
+            try:
+                merged_item[fieldname] += v
+            except TypeError:
+                merged_item[fieldname] = v
         if _type:
             merged_item[u'_type'] = _type
         return dict(merged_item)
@@ -693,9 +697,18 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                             pass
                         break
             index += 1
+        result = []
+        for i, item in enumerate(extracted, 1):
+            if not item:
+                continue
+            try:
+                item[u'_index'] = i
+            except TypeError:
+                pass
+            result.append(item)
         if self.parent_annotation.metadata.get('field'):
-            return [(self.parent_annotation.metadata['field'], extracted)]
-        return list(filter(bool, extracted))
+            return [(self.parent_annotation.metadata['field'], result)]
+        return result
 
     def _find_prefix_suffix(self, extractors, container_contents, containers,
                             template):

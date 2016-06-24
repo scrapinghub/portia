@@ -196,9 +196,11 @@ class ContainerExtractorTest(TestCase):
                                                        extractors)
         data = ibl_extractor.extract(extraction_page)
         self.assertEqual(len(data), 96)
-        self.assertEqual({tuple(sorted(i.keys())) for i in data},
-                         {('_template', u'date', u'text', u'title', u'url')})
+        self.assertEqual(
+            {tuple(sorted(i.keys())) for i in data},
+            {('_index', '_template', u'date', u'text', u'title', u'url')})
         self.assertDictEqual(data[0], {
+            u'_index': 1,
             u'_template': u'stack_overflow_test',
             u'date': [u'2015-08-07 10:09:32Z'],
             u'text': [u"Bootstrap navbar doesn't open - mobile view"],
@@ -209,6 +211,7 @@ class ContainerExtractorTest(TestCase):
                      u'navbar-doesnt-open-mobile-view']
         })
         self.assertDictEqual(data[50], {
+            u'_index': 51,
             u'_template': 'stack_overflow_test',
             u'date': [u'2015-08-07 10:01:03Z'],
             u'text': [u'Rails in production with Apache+passenger error'],
@@ -221,6 +224,7 @@ class ContainerExtractorTest(TestCase):
                      u'production-with-apachepassenger-error']
         })
         self.assertDictEqual(data[-1], {
+            u'_index': 96,
             u'_template': 'stack_overflow_test',
             u'date': [u'2015-08-07 08:16:43Z'],
             u'text': [u'iPython + Spark + Cassandra - Py4JJavaError and How to'
