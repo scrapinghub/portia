@@ -31,6 +31,14 @@ _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
 
 
+def cookies(socket):
+    message = {
+        '_command': 'cookies',
+        'cookies': socket.tab.web_page.cookiejar.allCookies()
+    }
+    socket.sendMessage(message)
+
+
 def save_html(data, socket):
     manager = socket.manager
     path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
@@ -154,6 +162,7 @@ def load_page(data, socket):
         else:
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
+        cookies(socket)
 
     # Specify the user agent directly in the headers
     # Workaround for https://github.com/scrapinghub/splash/issues/290
@@ -176,6 +185,7 @@ def interact_page(data, socket):
         socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
     except JsError as e:
         print(e)
+    cookies(socket)
 
 
 def resolve(data, socket):
