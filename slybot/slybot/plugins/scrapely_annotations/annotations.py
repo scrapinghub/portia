@@ -18,9 +18,10 @@ from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors, add_extractors_to_descriptors
 from slybot.utils import (htmlpage_from_response, include_exclude_filter,
                           _build_sample)
-XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
-
 from .extraction import SlybotIBLExtractor
+XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
+_CLUSTER_NA = 'not available'
+_CLUSTER_OUTLIER = 'outlier'
 
 
 class Annotations(object):
@@ -107,8 +108,6 @@ class Annotations(object):
                     "Clustering could not be used because it is not installed")
         else:
             self.clustering = None
-            self.logger.info(
-                "Clustering setting deactivated")
 
     def _get_annotated_template(self, template):
         if template.get('version', '0.12.0') >= '0.13.0':
@@ -139,7 +138,7 @@ class Annotations(object):
     def _do_extract_items_from(self, htmlpage, extractor):
         # Try to predict template to use
         pref_template_id = None
-        template_cluster = 'not available'
+        template_cluster = _CLUSTER_NA
         if self.clustering:
             self.clustering.add_page(htmlpage)
             if self.clustering.is_fit:
@@ -148,7 +147,7 @@ class Annotations(object):
                     template_cluster = self.template_names[clt]
                     pref_template_id = template_cluster
                 else:
-                    template_cluster = 'outlier'
+                    template_cluster = _CLUSTER_OUTLIER
         extracted_data, template = extractor.extract(htmlpage, pref_template_id)
         link_regions = []
         for ddict in extracted_data or []:
