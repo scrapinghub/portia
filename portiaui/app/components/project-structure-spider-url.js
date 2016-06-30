@@ -3,12 +3,8 @@ const { computed } = Ember;
 import { cleanUrl } from '../utils/utils';
 
 export default Ember.Component.extend({
-    browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
-
     tagName: '',
-
-    spider: null,
 
     fragments: computed.alias('startUrl.fragments'),
     url: computed('startUrl.url', 'fragments.@each.type', 'fragments.@each.value', function() {
@@ -27,12 +23,6 @@ export default Ember.Component.extend({
     }),
 
     actions: {
-        removeStartUrl() {
-            const spider = this.get('spider');
-            const startUrl = this.get('startUrl');
-            this.get('dispatcher').removeStartUrl(spider, startUrl);
-        },
-
         saveStartUrl(oldUrl, newUrl) {
             const spider = this.get('spider');
             const startUrl = this.get('startUrl');

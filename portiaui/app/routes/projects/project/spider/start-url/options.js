@@ -3,12 +3,17 @@ import OptionsRoute from '../../../../../mixins/options-route';
 
 export default Ember.Route.extend(OptionsRoute, {
     model() {
-        return this.modelFor('projects.project.spider.start-url');
+        const startUrl = this.modelFor('projects.project.spider.start-url');
+
+        return {
+            spider: this.getSpider(),
+            startUrlId: this.getSpider().get('startUrls').indexOf(startUrl)
+        };
     },
 
     afterModel(model) {
         if (!model) {
-            this.transitionTo('projects.project.spider', spider);
+            this.transitionToSpider();
         }
     },
 
@@ -19,10 +24,21 @@ export default Ember.Route.extend(OptionsRoute, {
         });
     },
 
+    getSpider() {
+        return this.modelFor('projects.project.spider');
+    },
+
+    transitionToSpider() {
+        this.transitionTo('projects.project.spider', this.getSpider());
+    },
+
     actions: {
         closeOptions() {
-            let spider = this.modelFor('projects.project.spider');
-            this.transitionTo('projects.project.spider', spider);
+            this.transitionToSpider();
+        },
+
+        saveSpider() {
+            this.getSpider().save();
         }
     }
 });
