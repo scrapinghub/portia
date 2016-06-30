@@ -2,11 +2,11 @@
 
 <div class="form-group">
     {{#if isRange}}
-        {{input type="text" class="form-control compact-control fragment-left-half" value=(mut lower) placeholder="1"}}
+        {{input type="text" class="form-control compact-control fragment-left-half" value=(mut lower) placeholder="start" focus-out=(action saveSpider)}}
         <span>-</span>
-        {{input type="text" class="form-control compact-control fragment-right-half" value=(mut higher) placeholder="10"}}
+        {{input type="text" class="form-control compact-control fragment-right-half" value=(mut higher) placeholder="end" focus-out=(action saveSpider)}}
     {{else}}
-    {{input type="text" class="form-control compact-control fragment-input" value=(mut fragment.value) placeholder=listPlaceholder}}
+    {{input type="text" class="form-control compact-control fragment-input" value=(mut fragment.value) placeholder=listPlaceholder focus-out=(action saveSpider)}}
     {{/if}}
 </div>
 

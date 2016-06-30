@@ -45,21 +45,30 @@
                     </p>
                 </div>
             {{/tree-list-item}}
-            {{#each spider.startUrls key="@index" as |startUrl|}}
+            {{#each spider.startUrls key="@index" as |startUrl index|}}
                 {{#if (or (not newUrl) (not-eq urlValue startUrl.url))}}
                     {{#if startUrl.isGenerated}}
                         {{project-structure-spider-generation-url
-                          spider=spider
+                          index=index
                           startUrl=startUrl
-                          closeOptions=(action closeOptions)
+                          removeStartUrl=(chainActions (action 'removeStartUrl' startUrl) (action closeOptions))
                         }}
                     {{else}}
-                        {{project-structure-spider-url spider=spider startUrl=startUrl}}
+                        {{project-structure-spider-url
+                          spider=spider
+                          startUrl=startUrl
+                          removeStartUrl=(action 'removeStartUrl' startUrl)
+                        }}
                     {{/if}}
                 {{/if}}
             {{/each}}
             {{#if newUrl}}
-                {{project-structure-spider-url spider=spider url=urlValue urlAdded=(mut newUrl)}}
+                {{project-structure-spider-url
+                  spider=spider
+                  url=urlValue
+                  urlAdded=(mut newUrl)
+                  removeStartUrl=(action 'removeStartUrl' newUrl)
+                }}
             {{/if}}
         {{/if}}
     {{/tree-list-item}}

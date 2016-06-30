@@ -2,24 +2,21 @@ import Ember from 'ember';
 import { flatten } from '../utils/utils';
 import { augmentFragmentList, fragmentToString } from '../utils/start-urls';
 
-function generatedURL(spec) {
-    return {
-        url: spec.url,
-        type: 'generated',
-        fragments: [{
-            type: 'fixed',
-            value: spec.url
-        }]
-    };
-}
-
 export default function startUrl(spec) {
-    let urlObject = {};
-    if (spec.isGenerated) {
-        urlObject = generatedURL(spec);
-    } else {
-        urlObject.url = spec.url;
-        urlObject.type = 'url';
+    function buildUrlObject() {
+        if (spec.type === 'generated') {
+            return generatedURL();
+        }
+        return { url: spec.url, type: 'url' };
+    }
+
+    function generatedURL() {
+        let fragments = spec.fragments || [{type: 'fixed', value: spec.url}];
+        return {
+            url: spec.url,
+            type: 'generated',
+            fragments: fragments
+        };
     }
 
     function generateList() {
@@ -37,23 +34,38 @@ export default function startUrl(spec) {
         return urlList;
     }
 
-    urlObject.save = (spider) => {
+    function save(spider) {
         const urls = spider.get('startUrls');
         urls.pushObject(urlObject);
-        if (!spec.isGenerated) { spider.save(); }
         return urlObject;
-    };
+    }
 
-    urlObject.toString = () => {
-        if (spec.isGenerated) {
+    function toString() {
+        if (urlObject.isGenerated) {
             return urlObject.fragments.map(fragmentToString).join('');
         } else {
             return urlObject.url;
         }
-    };
+    }
 
-    urlObject.isGenerated = !!spec.isGenerated;
+    function serialize() {
+        let base = {
+            'url': urlObject.toString(),
+            'type': urlObject.type
+        };
+        if (urlObject.isGenerated) {
+            base.fragments = urlObject.fragments;
+        }
+        return base;
+    }
 
+    let urlObject = buildUrlObject();
+    urlObject.isGenerated = urlObject.type === 'generated';
+
+    urlObject.save = save;
+    urlObject.getUrl = toString;
+    urlObject.toString = toString;
+    urlObject.serialize = serialize;
     urlObject.generateList = generateList;
 
     return urlObject;

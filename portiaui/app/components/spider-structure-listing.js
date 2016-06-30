@@ -1,6 +1,5 @@
 import Ember from 'ember';
 import {computedCanAddSample} from '../services/dispatcher';
-import startUrl from '../models/start-url';
 
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
@@ -43,6 +42,10 @@ export default Ember.Component.extend({
             let newUrl = this.get('browser.url') || '';
             let newStartUrl = this.get('dispatcher').addGeneratedUrl(spider, newUrl);
             this.get('transitionToFragments')(spider.get('startUrls').indexOf(newStartUrl));
+        },
+
+        removeStartUrl(startUrl) {
+            this.get('dispatcher').removeStartUrl(this.get('spider'), startUrl);
         },
 
         addSample() {

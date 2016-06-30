@@ -96,7 +96,7 @@ export default Ember.Service.extend({
     },
 
     addGeneratedUrl(spider, url) {
-        let spec = { isGenerated: true };
+        let spec = { type: 'generated' };
 
         if (!url || includesUrl(spider, url)) {
             spec.url = 'http://';

@@ -22,22 +22,21 @@
       index=index
       fragment=fragment
       fragmentColor=(array-get fragmentColors index)
+      saveSpider=(action saveSpider)
     }}
 {{/each}}
 
 <h3 class="start-url-list-title">Generation List</h3>
 <div class="start-url-list form-control">
-    {{#vertical-collection
-      content=generatedUrlLists
-      itemTagName='p'
-      defaultHeight=20
-      class="start-url-generation-list"
-      as |generatedUrlList|
-    }}
+    <section class="start-url-generation-list">
+    {{#each generatedUrlLists as |generatedUrlList|}}
+        <p>
         {{#each generatedUrlList as |fragment index|}}
             {{#colored-span class="fragment-span" color=(array-get fragmentColors index)}}
                 {{fragment}}
             {{/colored-span}}
         {{/each}}
-    {{/vertical-collection}}
+        </p>
+    {{/each}}
+    </section>
 </div>
