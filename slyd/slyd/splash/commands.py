@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import hashlib
 import json
+import logging
 import re
 import socket as _socket
 import six.moves.urllib_parse as urlparse
@@ -27,6 +28,7 @@ from .utils import open_tab, extract_data, BaseWSError, BadRequest, NotFound
 
 
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
+_SPIDER_LOG = logging.getLogger('spider')
 
 
 def save_html(data, socket):
@@ -64,7 +66,8 @@ def extract_items(data, socket):
                   for k, v in socket.spiderspec.spider.items()}
         items, extractors = _load_items_and_extractors(data, socket)
         extraction = BotAnnotations()
-        extraction.setup_bot(Settings(), spider, items, extractors)
+        extraction.setup_bot(Settings(), spider, items, extractors,
+                             _SPIDER_LOG)
         socket.spider.plugins['Annotations'] = extraction
     items, links = extract_data(url, html, socket.spider, sample_names)
     if not items:
