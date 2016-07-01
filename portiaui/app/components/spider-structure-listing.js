@@ -10,6 +10,7 @@ export default Ember.Component.extend({
 
     project: null,
     spider: null,
+    newStartUrl: null,
 
     canAddSample: computedCanAddSample('spider'),
     currentSample: Ember.computed.readOnly('uiState.models.sample'),
@@ -19,21 +20,35 @@ export default Ember.Component.extend({
         this.set('newUrl', false);
     },
 
+    getNewStartUrl(newUrl) {
+        let newStartUrl = '';
+        if (newUrl) {
+            newStartUrl = this.get('dispatcher').addStartUrl(
+                this.get('spider'), newUrl
+            );
+        }
+        return newStartUrl;
+    },
+
+    getNewUrl() {
+        let newUrl = this.get('browser.url') || '';
+        const urls = this.get('spider.startUrls').mapBy('url');
+        if (newUrl && urls.includes(newUrl)) {
+            newUrl = '';
+        }
+        return newUrl;
+    },
+
     actions: {
         addStartUrl() {
             this.get('closeOptions')();
-            const spider = this.get('spider');
-            let newUrl = this.get('browser.url') || '';
-            const urls = spider.get('startUrls').mapBy('url');
-            if (newUrl && urls.includes(newUrl)) {
-                newUrl = '';
-            }
-            if (newUrl) {
-                this.get('dispatcher').addStartUrl(spider, newUrl);
-            }
+
+            const newUrl = this.getNewUrl();
+
             this.setProperties({
                 newUrl: true,
-                urlValue: newUrl
+                urlValue: newUrl,
+                newStartUrl: this.getNewStartUrl(newUrl)
             });
         },
 
@@ -46,6 +61,7 @@ export default Ember.Component.extend({
 
         removeStartUrl(startUrl) {
             this.get('dispatcher').removeStartUrl(this.get('spider'), startUrl);
+            this.get('closeOptions')();
         },
 
         addSample() {

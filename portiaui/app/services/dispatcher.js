@@ -370,8 +370,13 @@ export default Ember.Service.extend({
 
     replaceStartUrl(spider, oldUrl, newUrl, startUrlObject) {
         const urls = spider.get('startUrls');
+        const type = startUrlObject ? startUrlObject.type : 'url';
+
         urls.removeObject(startUrlObject);
-        urls.addObject(startUrl({url: newUrl, isGenerated: startUrlObject.isGenerated}));
+        if (!includesUrl(spider, newUrl)) {
+            urls.addObject(startUrl({url: newUrl, type: type}));
+        }
+
         spider.save();
     },
 
