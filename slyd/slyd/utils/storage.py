@@ -156,7 +156,7 @@ class GitStorage(CommitingStorage, Storage):
         if not self.isdir(name):
             raise IOError(2, 'No file or directory', name)
         dir_name = name + '/'
-        for path in self._working_tree:
+        for path, _, _ in self._working_tree.items():
             if path.startswith(dir_name):
                 del self._working_tree[path]
 
