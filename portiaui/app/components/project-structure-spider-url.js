@@ -22,20 +22,30 @@ export default Ember.Component.extend({
         }
     }),
 
+    handleNewUrl(oldUrl, newUrl) {
+        const spider = this.get('spider');
+        const cleanNewUrl= cleanUrl(newUrl);
+
+        if (!oldUrl) {
+            this.get('dispatcher').addStartUrl(spider, cleanNewUrl);
+        } else {
+            this.get('dispatcher').replaceStartUrl(spider, oldUrl, cleanNewUrl,
+                                                   this.get('startUrl'));
+        }
+    },
+
+    removeStartUrl() {
+        this.get('dispatcher').removeStartUrl(this.get('spider'),
+                                              this.get('startUrl'));
+    },
+
     actions: {
         saveStartUrl(oldUrl, newUrl) {
-            const spider = this.get('spider');
-            const startUrl = this.get('startUrl');
             if (oldUrl !== newUrl) {
-                if (!newUrl) {
-                    this.get('dispatcher').removeStartUrl(spider, startUrl);
+                if (newUrl) {
+                    this.handleNewUrl(oldUrl, newUrl);
                 } else {
-                    newUrl = cleanUrl(newUrl);
-                    if (!oldUrl) {
-                        this.get('dispatcher').addStartUrl(spider, newUrl);
-                    } else {
-                        this.get('dispatcher').replaceStartUrl(spider, oldUrl, newUrl, startUrl);
-                    }
+                    this.removeStartUrl();
                 }
             }
         }

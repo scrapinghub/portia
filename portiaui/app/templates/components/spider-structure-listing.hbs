@@ -51,7 +51,7 @@
                         {{project-structure-spider-generation-url
                           index=index
                           startUrl=startUrl
-                          removeStartUrl=(chainActions (action 'removeStartUrl' startUrl) (action closeOptions))
+                          removeStartUrl=(action 'removeStartUrl' startUrl)
                         }}
                     {{else}}
                         {{project-structure-spider-url
@@ -65,6 +65,7 @@
             {{#if newUrl}}
                 {{project-structure-spider-url
                   spider=spider
+                  startUrl=newStartUrl
                   url=urlValue
                   urlAdded=(mut newUrl)
                   removeStartUrl=(action 'removeStartUrl' newUrl)
