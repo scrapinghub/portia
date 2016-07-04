@@ -68,7 +68,7 @@ export function cssToXpath(selector) {
                     xPathSiblingParts.push(`*[@id="${part.slice(1)}"]`);
                 } else {
                     let match;
-                    match = part.match(/^([a-z]+)?(?:\.((?:.(?!:nth-child))+.))?(?::nth-child\((\d+)\))?(?::nth-child\((\d*)n\+(\d+)\))?(?::nth-child\(-(\d*)n\+(\d+)\))?$/);  // jshint ignore:line
+                    match = part.match(/^([a-z]+[0-9]?)?(?:\.((?:.(?!:nth-child))+.))?(?::nth-child\((\d+)\))?(?::nth-child\((\d*)n\+(\d+)\))?(?::nth-child\(-(\d*)n\+(\d+)\))?$/);  // jshint ignore:line
                     if (match) {
                         let conditions = '';
 
