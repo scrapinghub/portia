@@ -48,7 +48,6 @@
     "ember-route-action-helper": "0.3.1",
     "ember-run-raf": "1.1.2",
     "ember-truth-helpers": "^1.2.0",
-    "loader.js": "^4.0.0",
-    "smoke-and-mirrors": "0.5.3"
+    "loader.js": "^4.0.0"
   }
 }

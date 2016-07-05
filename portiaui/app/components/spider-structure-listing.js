@@ -44,6 +44,9 @@ export default Ember.Component.extend({
             this.get('closeOptions')();
 
             const newUrl = this.getNewUrl();
+            if (newUrl) {
+                this.get('dispatcher').addStartUrl(spider, newUrl);
+            }
 
             this.setProperties({
                 newUrl: true,
