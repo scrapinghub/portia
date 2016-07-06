@@ -4,21 +4,12 @@ export default Ember.Route.extend({
     browser: Ember.inject.service(),
 
     model(params) {
-        return this.store.findRecord('project', params.project_id);
+        return this.store.peekRecord('project', params.project_id);
     },
 
     afterModel(model) {
-        const id = model.get('id');
         return Ember.RSVP.all([
-            this.store.query('schema', {
-                project_id: id
-            }),
-            this.store.query('spider', {
-                project_id: id
-            }),
-            this.store.query('extractor', {
-                project_id: id
-            }),
+            model.reload(),
             model.checkChanges()]);
     },
 

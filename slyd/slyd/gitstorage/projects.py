@@ -11,7 +11,7 @@ from .repoman import Repoman
 
 
 def wrap_callback(connection, callback, manager, retries=0, **parsed):
-    result = callback(manager, **parsed)
+    result = callback(**parsed)
     manager.commit_changes()
     return result
 

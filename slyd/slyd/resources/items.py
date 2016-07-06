@@ -1,163 +1,112 @@
-from __future__ import absolute_import
-from .annotations import (_split_annotations, _load_relationships,
-                          _nested_containers)
-from .models import ItemSchema, AnnotationSchema, ItemAnnotationSchema
-from .utils import (_load_sample, _create_schema, _process_annotations,
-                    _add_items_and_annotations)
-from ..errors import NotFound
-from ..utils.projects import ctx, gen_id
+from operator import attrgetter
+
+from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .serializers import ItemSchema
+from ..orm.base import AUTO_PK
+from ..orm.exceptions import ProtectedError
+from ..orm.models import Project, Schema, Field, Sample
 
 
-def list_items(manager, spider_id, sample_id, attributes=None):
-    sample = _load_sample(manager, spider_id, sample_id)
-    items, _, _ = _process_annotations(sample)
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
-    return ItemSchema(many=True, context=context).dump(items).data
+class ItemRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+    list_path = ('projects/{project_id}/spiders/{spider_id}/samples'
+                 '/{sample_id}/items')
+    detail_path = ('projects/{project_id}/spiders/{spider_id}'
+                   '/samples/{sample_id}/items/{item_id}')
+    serializer_class = ItemSchema
 
+    def perform_create(self, data):
+        relationships = data.get('data', {}).get('relationships')
+        if (relationships and 'schema' in relationships and
+                relationships['schema'].get('data') is None):
+            del relationships['schema']
 
-def get_item_sub_annotations(manager, spider_id, sample_id, item_id,
-                             attributes=None):
-    sample = _load_sample(manager, spider_id, sample_id)
-    items, annotations, item_annotations = _process_annotations(sample)
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
-    items = [item for item in items if item['id'] == item_id]
-    annotations = [a for a in annotations if a.get('container_id') == item_id]
-    item_annotations = [i for i in item_annotations if i['id'] == item_id]
-    item = ItemSchema(many=True, context=context).dump(items).data
-    _ctx = lambda x=None, y=None: ctx(manager, spider_id=spider_id,
-                                      sample_id=sample['id'], schema_id=x,
-                                      item_id=y)
-    return _add_items_and_annotations(item, items, annotations,
-                                      item_annotations, _ctx)
+        item = super(ItemRoute, self).perform_create(data)
 
+        if item.schema is None:
+            project = Project(self.storage, id=self.args.get('project_id'))
+            sample = item.sample
+            schema_names = set(map(attrgetter('name'), project.schemas))
+            counter = 1
+            while True:
+                schema_name = u'{}{}'.format(sample.name, counter)
+                if schema_name not in schema_names:
+                    break
+                counter += 1
+            schema = Schema(self.storage, id=AUTO_PK, name=schema_name,
+                            project=project, auto_created=True)
+            schema.items.add(item)
+            schema.save()
 
-def get_item(manager, spider_id, sample_id, item_id, attributes=None):
-    item_id = item_id.split('#')[0]
-    sample = _load_sample(manager, spider_id, sample_id,
-                          create_missing_item=False)
-    items, _, _ = _process_annotations(sample)
-    item = filter(lambda x: x.get('id') == item_id, items)
-    if not item:
-        raise NotFound('No item with the id "%s" could be found' % item_id)
-    else:
-        item = item[0]
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
-    return ItemSchema(context=context).dump(item).data
+        return item
 
+    def perform_update(self, instance, data, type_=None):
+        if type_ is not None:
+            return super(ItemRoute, self).perform_update(instance, data, type_)
 
-def create_item(manager, spider_id, sample_id, attributes):
-    sample = _load_sample(manager, spider_id, sample_id,
-                          create_missing_item=False)
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    aid = gen_id(disallow=[a['id'] for a in annotations if a.get('id')])
-    relationships = _load_relationships(attributes.get('data'))
-    attributes = attributes.get('data', {}).get('attributes', {})
-    schema_id = relationships.get('schema_id')
-    container_id = relationships.get('parent_id')
-    if not schema_id:
-        name = sample.get('name', sample.get('id'))
-        schemas, schema_id = _create_schema(manager, {'name': name})
-        if sample['scrapes'] not in schemas:
-            sample['scrapes'] = schema_id
-    annotation = {
-        'id': aid,
-        'accept_selectors': ['body'],
-        'selector': 'body',
-        'field': attributes.get('field'),
-        'annotations': {'#portia-content': '#dummy'},
-        'required': [],
-        'text-content': '#portia-content',
-        'item_container': True,
-        'schema_id': schema_id,
-        'container_id': container_id
-    }
-    annotations.append(annotation)
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
-                  item_id=annotation['container_id'])
-    return _item(sample, {'id': schema_id}, annotation, context=context)
+        current_schema = instance.schema
+        deleted = super(ItemRoute, self).perform_update(instance, data, type_)
+        new_schema = instance.schema
+        if new_schema != current_schema:
+            field_map = {field.name: field for field in new_schema.fields}
+            for annotation in instance.annotations:
+                current_field = annotation.field
+                if current_field.name in field_map:
+                    new_field = field_map[current_field.name]
+                    if new_field.auto_created:
+                        new_field.auto_created = False
+                        new_field.save(only=('auto_created',))
+                else:
+                    new_field = Field(self.storage, id=AUTO_PK,
+                                      name=current_field.name,
+                                      type=current_field.type,
+                                      schema=new_schema,
+                                      auto_created=True)
+                    field_map[new_field.name] = new_field
+                    new_field.save()
+                annotation.field = new_field
+                annotation.save(only=('field',))
+                if current_field.auto_created:
+                    deleted.extend(current_field.delete())
+            if current_schema.auto_created:
+                deleted.extend(current_schema.delete())
+            if new_schema.auto_created:
+                new_schema.auto_created = False
+                new_schema.save(only=('auto_created',))
+        return deleted
 
+    def perform_destroy(self, instance):
+        sample = instance.sample
+        items = sample.items
+        if len(items) == 1 and items[0] == instance:
+            raise ProtectedError(
+                u"Cannot delete item {} because it is the only item in "
+                u"sample {}".format(instance, sample))
+        return super(ItemRoute, self).perform_destroy(instance)
 
-def update_item(manager, spider_id, sample_id, item_id, attributes):
-    item_id = item_id.split('#')[0]
-    sample = _load_sample(manager, spider_id, sample_id,
-                          create_missing_item=False)
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    ids = (item_id, '%s#parent' % item_id)
-    annotations = filter(lambda x: x.get('id') in ids, annotations)
-    if not annotations:
-        raise NotFound('No item with the id "%s" could be found' % item_id)
-    relationships = _load_relationships(attributes['data'])
-    for annotation in annotations:
-        schema_id = relationships.get('schema_id')
-        if schema_id is not None:
-            annotation['schema_id'] = schema_id
-    annotation['container_id'] = relationships.get('parent_id')
-    annotation = sorted(annotations, key=lambda x: x['id'], reverse=True)[0]
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
-                  item_id=annotation.get('container_id'))
-    return _item(sample, {'id': schema_id}, annotation, context=context)
+    def get_instance(self):
+        return self.get_collection()[self.args.get('item_id')]
 
+    def get_collection(self):
+        project = Project(self.storage, id=self.args.get('project_id'))
+        project.schemas  # preload schemas and fields
+        project.extractors  # preload extractors
+        return (project.spiders[self.args.get('spider_id')]
+                       .samples[self.args.get('sample_id')]
+                       .items)
 
-def delete_item(manager, spider_id, sample_id, item_id, attributes=None):
-    item_id = item_id.split('#')[0]
-    sample = _load_sample(manager, spider_id, sample_id,
-                          create_missing_item=False)
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    try:
-        _get_item(annotations, item_id)
-    except NotFound:
-        pass  # If item doesn't exist might need to fix project relationships
-    # Delete all annotations related to the item
-    paths = _nested_containers(annotations)
-    paths = list(filter(lambda x: item_id in x, paths))
-    longest_path = set()
-    if paths:
-        longest_path = max(paths, key=len)
-    if longest_path:
-        longest_path = set(longest_path[longest_path.index(item_id):])
-    longest_path.add(item_id)
-    sample['plugins']['annotations-plugin']['extracts'] = [
-        a for a in annotations
-        if not (a['id'] in (item_id, '%s#parent' % item_id) or
-                a.get('container_id') in longest_path)
-    ]
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    return ItemSchema.empty_data()
+    def deserialize_related_model(self, model, id_):
+        if model is Sample:
+            project = Project(self.storage, id=self.args.get('project_id'))
+            return project.spiders[self.args.get('spider_id')].samples[id_]
+        return super(ItemRoute, self).deserialize_related_model(model, id_)
 
-
-def _get_item(items, item_id):
-    for item in items:
-        if item['id'] == item_id and item.get('container_id'):
-            return item
-    raise NotFound('No item with the id "%s" could be found.' % item_id)
-
-
-def _item(sample, schema, item_annotation, annotations=None, context=None):
-    if annotations is None:
-        annotatations = []
-    if context is None:
-        context = {}
-    item_id = item_annotation['id'].rsplit('#', 1)[0]
-    container_id = item_annotation.get('container_id')
-    item = {
-        'id': item_id,
-        'sample': sample,
-        'schema': schema,
-        'item_annotation': item_annotation,
-        'annotations': annotatations
-    }
-    if container_id and item_annotation['id'].split('#')[0] != container_id:
-        item_annotation['parent'] = {'id': container_id}
-        item['parent'] = {'id': container_id}
-    item = ItemSchema(context=context).dump(item).data
-    item_annotation_s = ItemAnnotationSchema(context=context)
-    item_annotation = item_annotation_s.dump(item_annotation).data['data']
-    dumped_annotations = []
-    for annotation in _split_annotations(annotatations):
-        context['field_id'] = annotation['field']['id']
-        dumped_annotations.append(
-            AnnotationSchema(context=context).dump(annotation).data['data'])
-    item['included'] = [item_annotation] + dumped_annotations
-    return item
+    def get_detail_kwargs(self):
+        return {
+            'include_data': [
+                'schema.fields',
+                'annotations.field.schema.fields',
+                'annotations.extractors',
+            ],
+        }

@@ -34,37 +34,18 @@ export default Ember.Component.extend({
             const currentType = annotation.get('type');
             const dispatcher = this.get('dispatcher');
 
-            Ember.RSVP.all([
-                dispatcher.addNamedField(schema, name, currentType, /* redirect = */false),
-                annotation.get('field'),
-            ]).then(([newField, oldField]) => {
-                annotation.set('field', newField);
-                annotation.save().then(() => {
-                    if(annotation.get('_autoCreatedField') && oldField.get('_autoCreatedBy') &&
-                       annotation.get('_autoCreatedField.id') === oldField.get('id')) {
-                        oldField.destroyRecord();
-                    }
-                    annotation.set('_autoCreatedField', null);
+            dispatcher.addNamedField(schema, name, currentType, /* redirect = */false).then(
+                field => {
+                    annotation.set('field', field);
+                    annotation.save();
                 });
-            });
         },
 
         changeField() {
             const annotation = this.get('annotation');
-            const field = annotation.get('field');
+            const field = annotation.get('field.content');
             annotation.set('field', field);
-
-            annotation.save().then((annotation) => {
-                if(field.get('_autoCreatedBy')) {
-                    field.set('_autoCreatedBy._autoCreatedField', null);
-                }
-                if(annotation.get('_autoCreatedField')) {
-                    if(annotation.get('_autoCreatedField.id') !== annotation.get('field.id')) {
-                        annotation.get('_autoCreatedField').destroyRecord();
-                        annotation.set('_autoCreatedField', null);
-                    }
-                }
-            });
+            annotation.save();
         }
     }
 });

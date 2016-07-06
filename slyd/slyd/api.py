@@ -1,4 +1,3 @@
-import json
 from six.moves.urllib.parse import unquote
 
 from functools import partial
@@ -6,24 +5,40 @@ from itertools import groupby
 from operator import itemgetter
 
 from twisted.internet.defer import maybeDeferred
+from twisted.web.http import RESPONSES, FORBIDDEN
 from twisted.web.server import NOT_DONE_YET
 from jsonschema.exceptions import ValidationError as jsValidationError
 from marshmallow.exceptions import ValidationError as mwValidationError
 from parse import compile
 
-from .resources import routes
-from .resources.utils import BaseApiResponse
-from .errors import (
-    BadRequest, NotFound, BaseError, InternalServerError, Forbidden
-)
+from .resources.annotations import AnnotationRoute
+from .resources.extractors import ExtractorRoute
+from .resources.fields import FieldRoute
+from .resources.items import ItemRoute
+from .resources.projects import ProjectRoute
+from .resources.response import (JsonApiError, JsonApiErrorResponse,
+                                 JsonApiNotFoundResponse)
+from .resources.spiders import SpiderRoute
+from .resources.samples import SampleRoute
+from .resources.schemas import SchemaRoute
+from .errors import BadRequest, BaseError, Forbidden
+
 FORBIDDEN_TEXT = 'You do not have access to this project.'
 VALIDATION_ERRORS = (AssertionError, jsValidationError, mwValidationError)
 
 
 class APIResource(object):
     isLeaf = True
-    children = routes
-    method_map = {'PUT': 'PATCH'}
+    children = [
+        AnnotationRoute,
+        ExtractorRoute,
+        FieldRoute,
+        ItemRoute,
+        ProjectRoute,
+        SampleRoute,
+        SchemaRoute,
+        SpiderRoute,
+    ]
 
     def __init__(self, spec_manager):
         self.spec_manager = spec_manager
@@ -32,109 +47,80 @@ class APIResource(object):
         self.routes = self._build_routes()
 
     def _build_routes(self):
-        routes = sorted(((method.upper(), len(route.path.split('/')),
-                          route.path, getattr(route, method))
+        routes = sorted(((method, len(path.split('/')), path, route)
                          for route in self.children
-                         for method in route.methods
-                         if getattr(route, method)), reverse=True)
-        return {method: sorted(((compile(p), cb)
-                                for _, _, p, cb in info),
+                         for method, path in route.get_resources()),
+                        reverse=True)
+        return {method: sorted(((compile(p), p, route)
+                                for _, _, p, route in info),
                                reverse=True,
                                key=lambda x: len(x[0]._format.split('/')))
                 for method, info in groupby(routes, itemgetter(0))}
 
-    def _parse(self, route, path):
+    def _parse(self, parser, path):
         path = '/'.join(path).strip('/')
-        if len(path.split('/')) > len(route._format.split('/')):
-            raise NotFound('No route found for path "/api/%s"' % path)
-        return route.parse(path)
+        if len(path.split('/')) > len(parser._format.split('/')):
+            return
+        return parser.parse(path)
 
     def render(self, request):
-        method = request.method.upper()
-        method = self.method_map.get(method, method)
+        method = request.method.lower()
         # TODO (SPEC): get content-type/accept and return error if it has media
         #              extensions
         # TODO (SPEC): Check content-type and raise error when needed
-        for route, callback in self.routes[method]:
-            parsed = self._parse(route, request.postpath)
+        for parser, path, route_class in self.routes[method]:
+            parsed = self._parse(parser, request.postpath)
             if parsed:
                 if 'project_id' in parsed.named:
-                    if not self._has_auth(request,
-                                          parsed.named['project_id']):
-                        return self.format_error(request,
-                                                 Forbidden(FORBIDDEN_TEXT))
-                    manager = self.spec_manager.project_spec(
-                        parsed.named.pop('project_id'),
+                    if not self._has_auth(request, parsed.named['project_id']):
+                        return JsonApiErrorResponse(
+                            Forbidden(
+                                RESPONSES[FORBIDDEN],
+                                FORBIDDEN_TEXT)).render(request)
+
+                    project_spec = self.spec_manager.project_spec(
+                        parsed.named.get('project_id'),
                         request.auth_info)
-                    manager.pm = self.spec_manager.project_manager(
+                    project_manager = self.spec_manager.project_manager(
                         request.auth_info)
-                    manager.pm.request = request
+                    project_spec.pm = project_manager
+                    project_manager.request = request
                 else:
-                    manager = self.spec_manager.project_manager(
+                    project_manager = self.spec_manager.project_manager(
                         request.auth_info)
+                    project_spec = None
+
                 parsed = {k: unquote(v) for k, v in parsed.named.items()}
-                parsed['attributes'] = load_attributes(request)
-                deferred = maybeDeferred(manager.run, callback, **parsed)
-                deferred.addCallbacks(
-                    partial(self.deferred_finished, request),
-                    partial(self.deferred_failed, request))
+                route = route_class(route_path=path,
+                                    request=request,
+                                    args=parsed,
+                                    project_manager=project_manager,
+                                    project_spec=project_spec)
+
+                deferred = maybeDeferred(route.dispatch)
+                deferred.addErrback(partial(self.deferred_failed, request))
+                deferred.addCallback(partial(self.deferred_finished, request))
                 return NOT_DONE_YET
-        # except KeyError as ex:
-        #     if isinstance(ex, KeyError):
-        #         ex = NotFound('Resource not found',
-        #                       'The resource at "%s" could not be'
-        #                       ' found' % request.path)
-        #     return self.format_error(request, ex)
-        return self.format_error(request, NotFound('Resource not found',
-                                                   'No route matches: '
-                                                   '"%s"' % request.path))
 
-    def format_response(self, request, api_response):
-        if isinstance(api_response, BaseApiResponse):
-            return api_response.format_response(request)
+        return JsonApiNotFoundResponse().render(request)
 
-        status = 200
-        if request.method == 'POST':
-            status = 204 if api_response is None else 201
-        request.setResponseCode(status)
-        request.setHeader(b'content-type', b"application/vnd.api+json")
-        return json.dumps(api_response)
-
-    def format_error(self, request, error):
-        request.setResponseCode(error.status)
-        request.setHeader(b'content-type', b"application/vnd.api+json")
-        data = {
-            'status': error.status,
-            'title': error.title,
-            'detail': error.body,
-        }
-        _id = getattr(error, 'id', None)
-        if _id is not None:
-            data['id'] = _id
-        return json.dumps({'errors': [data]})
-
-    def deferred_finished(self, request, api_response):
-        data = self.format_response(request, api_response)
-        request.write(data)
-        request.finish()
+    def deferred_finished(self, request, response):
+        response.render_async(request)
 
     def deferred_failed(self, request, failure):
         error = failure.value
+        if isinstance(error, JsonApiError):
+            return error
         if isinstance(error, VALIDATION_ERRORS):
             error = BadRequest('The input data was not valid. Validation '
                                'failed with the error: %s.' % str(error))
         if isinstance(error, BaseError):
-            body = self.format_error(request, error)
-            request.write(body)
+            return JsonApiErrorResponse(error)
         else:
             request.setResponseCode(500)
             request.write(failure.getErrorMessage())
         request.finish()
         return failure
-
-    def _handle_uncaught_exception(self, ex):
-        # TODO: log and return traceback
-        return InternalServerError('An unexpected error has occurred')
 
     def _has_auth(self, request, project_id):
         auth_info = request.auth_info
@@ -143,12 +129,3 @@ class APIResource(object):
                 project_id in auth_info['authorized_projects']):
             return True
         return False
-
-
-def load_attributes(request):
-    try:
-        data = json.loads(request.content.read())
-    except ValueError:
-        data = {}
-    data['arguments'] = request.args
-    return data

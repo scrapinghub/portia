@@ -242,7 +242,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         deferred.addCallbacks(self.sendMessage,
                               partial(self.send_error, data))
 
-    def _on_message(self, _, data):
+    def _on_message(self, data):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
         command = data['_command']
