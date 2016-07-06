@@ -331,8 +331,6 @@ export default Ember.Service.extend({
         if (!includesUrl(spider, newUrl)) {
             urls.addObject(startUrl({url: newUrl, type: type}));
         }
-
-        spider.save();
     },
 
     removeSample(sample) {
