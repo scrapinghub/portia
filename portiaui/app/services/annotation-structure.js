@@ -89,21 +89,21 @@ const ElementStructure = Ember.Object.extend({
                         if (!annotation.get('isDeleted')) {
                             if (!element.length) {
                                 annotation.setProperties({
-                                    acceptSelectors: [],
-                                    siblings: 0,
-                                    repeatedAcceptSelectors: []
+                                    selector: null,
+                                    repeatedSelector: null,
+                                    siblings: 0
                                 });
                             } else if (element.length > 1) {
                                 annotation.setProperties({
-                                    acceptSelectors: [containerSelector],
-                                    siblings,
-                                    repeatedAcceptSelectors: [selector]
+                                    selector: containerSelector,
+                                    repeatedSelector: selector,
+                                    siblings
                                 });
                             } else {
                                 annotation.setProperties({
-                                    acceptSelectors: [selector],
-                                    siblings,
-                                    repeatedAcceptSelectors: []
+                                    selector,
+                                    repeatedSelector: null,
+                                    siblings
                                 });
                             }
                         }
@@ -272,22 +272,19 @@ const DataElementStructure = ElementStructure.extend({
     model: null,  // a sample
 
     definition: Ember.computed('model.orderedAnnotations.[]', function() {
-        return this.get('model.items').filter(
-            item => !!item && !!item.get('itemAnnotation.content')).map(item => ({
-                annotation: item.get('itemAnnotation'),
-                children: item.get('annotations').map(function mapper(annotation) {
-                    if (annotation.constructor.modelName === 'annotation') {
-                        return {
-                            annotation
-                        };
-                    } else if (annotation.constructor.modelName === 'item-annotation') {
-                        return {
-                            annotation,
-                            children: (annotation.get('item.annotations') || []).map(mapper)
-                        };
-                    }
-                })
-            }));
+        return (this.get('model.items') || []).filter(
+            item => !!item).map(function mapper(annotation) {
+                if (annotation.constructor.modelName === 'annotation') {
+                    return {
+                        annotation
+                    };
+                } else if (annotation.constructor.modelName === 'item') {
+                    return {
+                        annotation,
+                        children: (annotation.get('annotations') || []).map(mapper)
+                    };
+                }
+            });
     })
 });
 

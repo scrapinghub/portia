@@ -1,31 +1,23 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import BaseModel from './base';
 import {
     elementPath,
     smartSelector
 } from '../utils/selectors';
 
-export default DS.Model.extend({
-    parent: DS.belongsTo('item', {
-        inverse: 'annotations',
+export default BaseModel.extend({
+    attribute: DS.attr('string', {
+        defaultValue: 'content'
     }),
-    field: DS.belongsTo({
+    required: DS.attr('boolean', {
+        defaultValue: false
     }),
-    extractors: DS.hasMany(),
-
-    attribute: DS.attr('string'),
-    tagid: DS.attr('string'),
-    required: DS.attr('boolean'),
-    ignore: DS.attr('boolean'),
-    ignoreBeneath: DS.attr('boolean'),
-    variant: DS.attr('number'),
-    slice: DS.attr('array'),
-
-    // selection
     selectionMode: DS.attr('string', {
         defaultValue: 'auto'
     }),
-    // json fixes error with storing ember NativeArray in indexed db
+    selector: DS.attr('string'),
+    xpath: DS.attr('string'),
     acceptSelectors: DS.attr('array', {
         defaultValue() {
             return [];
@@ -36,8 +28,14 @@ export default DS.Model.extend({
             return [];
         }
     }),
-    selector: DS.attr('string'),
-    xpath: DS.attr('string'),
+    preText: DS.attr('string'),
+    postText: DS.attr('string'),
+
+    parent: DS.belongsTo('item', {
+        inverse: 'annotations'
+    }),
+    field: DS.belongsTo(),
+    extractors: DS.hasMany(),
 
     name: Ember.computed.readOnly('field.name'),
     type: Ember.computed.readOnly('field.type'),
@@ -45,7 +43,7 @@ export default DS.Model.extend({
     orderedIndex: Ember.computed('sample.orderedAnnotations', function() {
         return (this.get('sample.orderedAnnotations') || []).indexOf(this);
     }),
-    sample: Ember.computed.or('parent.sample', 'parent.itemAnnotation.sample'),
+    sample: Ember.computed.readOnly('parent.sample'),
 
     updateSelectors: Ember.observer('', function() {
         const selectionMode = this.get('selectionMode');
@@ -121,90 +119,5 @@ export default DS.Model.extend({
                 rejectSelectors: []
             });
         });
-    },
-
-    set() {
-        this.cancelPendingDelete();
-        this._super(...arguments);
-    },
-
-    setProperties() {
-        this.cancelPendingDelete();
-        this._super(...arguments);
-    },
-
-    save() {
-        // starting another save while one hasn't been completed by the adapter causes an error
-        if (this.get('isSaving') && this._savePromise) {
-            // upgrade to destroy if saving directly after delete
-            if (this._savePromise._queuedAction === 'delete') {
-                this._savePromise._queuedAction = 'destroy';
-            } else {
-                this._savePromise._queuedAction = 'save';
-            }
-            return this._savePromise;
-        }
-
-        const currentParentPromise = this.get('parent.itemAnnotation');
-        const promise = this._super(...arguments).then(result => Ember.RSVP.all([
-            currentParentPromise,
-            this.get('parent.itemAnnotation')
-        ]).then(([currentParent, newParent]) => {
-            const promises = [];
-            if (currentParent && currentParent !== newParent) {
-                const promise = this.syncRelative(currentParent);
-                if (promise) {
-                    promises.push(promise);
-                }
-            }
-            if (newParent) {
-                const promise = this.syncRelative(newParent);
-                if (promise) {
-                    promises.push(promise);
-                }
-            }
-            return Ember.RSVP.all(promises).then(() => result);
-        })).finally(() => {
-            switch (this._savePromise._queuedAction) {
-                case 'save':
-                    return this.save();
-                case 'delete':
-                    this.deleteRecord();
-                    return;
-                case 'destroy':
-                    return this.destroyRecord();
-            }
-        });
-
-        this._savePromise = promise;
-        return promise;
-    },
-
-    deleteRecord() {
-        // deleting during a save is not allowed, queue it
-        if (this.get('isSaving') && this._savePromise) {
-            this._savePromise._queuedAction = 'delete';
-            return;
-        }
-        this._super();
-    },
-
-    cancelPendingDelete() {
-        // ignore pending delete if an attribute is set on the model
-        if (this.get('isSaving') && this._savePromise) {
-            if (this._savePromise._queuedAction === 'delete') {
-                delete this._savePromise._queuedAction;
-            }
-        }
-    },
-
-    syncRelative(relative) {
-        const changed = relative.changedAttributes();
-        for (let key of Object.keys(changed)) {
-            const [oldValue, newValue] = changed[key];
-            if (Ember.compare(oldValue, newValue) !== 0) {
-                return relative.save();
-            }
-        }
     }
 });

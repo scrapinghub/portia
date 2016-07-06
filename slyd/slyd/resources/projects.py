@@ -1,144 +1,230 @@
-from __future__ import absolute_import
-import six
+from collections import OrderedDict
 import json
 
-from .models import (ProjectSchema, SchemaSchema, FieldSchema, ExtractorSchema,
-                     SpiderSchema)
-from .schemas import _read_schemas
-from .utils import _read_extractors, BaseApiResponse
+from django.utils.functional import cached_property
+from six import itervalues, string_types
+
+from .models import ProjectSchema as OldProjectSchema
+from .response import JsonApiResource, ProjectDownloadResponse
+from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
+from .serializers import ProjectSchema
 from ..errors import BadRequest, BaseError, NotFound
-from ..utils.projects import ctx, init_project
+from ..orm.models import Project
+
 NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
 
 
-def list_projects(manager, attributes=None):
-    """List all available project for the current user"""
-    projects = []
-    for project in manager.list_projects():
-        if isinstance(project, six.string_types):
-            project = {'id': project, 'name': project}
-        elif isinstance(project, dict):
-            if not project.get('id'):
-                project['id'] = project['name']
-        projects.append(project)
-    return ProjectSchema(many=True).dump(projects).data
+class ProjectDownloadMixin(object):
+    @classmethod
+    def get_resources(cls):
+        for resouce in super(ProjectDownloadMixin, cls).get_resources():
+            yield resouce
+        yield 'get', cls.download_path
+
+    def get_handler(self):
+        if self.route_path == self.download_path:
+            return self.download
+        return super(ProjectDownloadMixin, self).get_handler()
+
+    def download(self):
+        project_manager = self.project_manager
+        project_id = self.args.get('project_id')
+        spider_id = self.args.get('spider_id', None)
+        spider_ids = [spider_id] if spider_id is not None else '*'
+        fmt = self.query.get('format', ['spec'])[0]
+        return ProjectDownloadResponse(
+            project_id, spider_ids, fmt, project_manager)
 
 
-@init_project
-def get_project(manager, attributes=None):
-    """Get current project including schemas and extractors if required"""
-    project_id = manager.project_name
-    name = _get_project_name(manager.pm, project_id)
-    project = {'name': name, 'id': project_id}
-    schemas = [{'id': s} for s in _read_schemas(manager)]
-    spiders = [{'id': s} for s in manager.list_spiders()]
-    extractors = [{'id': s} for s in _read_extractors(manager)]
-    project['schemas'] = schemas
-    project['spiders'] = spiders
-    project['extractors'] = extractors
-    data = ProjectSchema(context=ctx(manager)).dump(project).data
-    return data
+class ProjectDataMixin(object):
+    @cached_property
+    def projects(self):
+        auth_info = self.request.auth_info
+        if 'projects_data' in auth_info:
+            projects = auth_info['projects_data']
+        elif 'authorized_projects' in auth_info:
+            projects = [{'id': id_, 'name': id_}
+                        for id_ in auth_info['authorized_projects']]
+        else:
+            projects = self.project_manager.all_projects()
+
+        project_list = []
+        for project in projects:
+            if isinstance(project, string_types):
+                project = {
+                    'id': project,
+                    'name': project,
+                }
+            elif isinstance(project, dict):
+                if not project.get('id'):
+                    project['id'] = project['name']
+            project_list.append(project)
+
+        return OrderedDict([(project['id'], project) for project in projects])
 
 
-def create_project(manager, attributes):
-    """Create a new project from the provided attributes"""
-    attributes = _check_project_attributes(manager, attributes)
-    manager.create_project(attributes['name'])
-    return ProjectSchema().dump({'name': attributes['name']}).data
+class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
+                   ListModelMixin, RetrieveModelMixin):
+    list_path = 'projects'
+    detail_path = 'projects/{project_id}'
+    status_path = 'projects/{project_id}/status'
+    publish_path = 'projects/{project_id}/publish'
+    reset_path = 'projects/{project_id}/reset'
+    download_path = 'projects/{project_id}/download'
+    serializer_class = ProjectSchema
 
+    class FakeStorage(object):
+        def exists(self, *args, **kwargs):
+            return False
 
-def update_project(manager, project_id, attributes):
-    """Update an exiting project with the provided attributes"""
-    attributes = _check_project_attributes(manager, attributes)
-    if project_id != attributes['name']:
-        manager.rename_project(project_id, attributes['name'])
-    return ProjectSchema().dump({'name': attributes['name']}).data
+        def listdir(self, *args, **kwargs):
+            return [], []
 
+    @classmethod
+    def get_resources(cls):
+        for resouce in super(ProjectRoute, cls).get_resources():
+            yield resouce
+        yield 'get', cls.status_path
+        yield 'put', cls.publish_path
+        yield 'patch', cls.reset_path
+        yield 'put', cls.publish_path
+        yield 'patch', cls.reset_path
 
-def delete_project(manager, project_id, attributes=None):
-    """Delete the request project"""
-    manager.remove_project(project_id)
-    return ProjectSchema.empty_data()
+    def get_handler(self):
+        if self.route_path == self.status_path:
+            return self.status
+        if self.route_path == self.publish_path:
+            return self.publish
+        if self.route_path == self.reset_path:
+            return self.reset
+        return super(ProjectRoute, self).get_handler()
 
+    # def create(self):
+    #     """Create a new project from the provided attributes"""
+    #     manager = self.project_manager
+    #     attributes = _check_project_attributes(manager, self.data)
+    #     manager.create_project(attributes['name'])
+    #     return self.serialize_instance({
+    #         'id': attributes['name'],
+    #         'name': attributes['name'],
+    #     })
 
-def status(manager, attributes=None):
-    if not hasattr(manager.pm, '_changed_files'):
-        raise NotFound(NOT_AVAILABLE_ERROR)
-    project_id = manager.project_name
-    data = get_project(manager)
-    data['meta'] = {
-        'changes': [
-            {'type': type_, 'path': path, 'old_path': old_path}
-            for type_, path, old_path in manager.pm._changed_files(project_id)]
-    }
-    return data
+    # def update(self):
+    #     """Update an exiting project with the provided attributes"""
+    #     manager = self.project_spec
+    #     project_id = self.args.get('project_id')
+    #     attributes = _check_project_attributes(manager, self.data)
+    #     if project_id != attributes['name']:
+    #         manager.rename_project(project_id, attributes['name'])
+    #     return self.serialize_instance({
+    #         'id': project_id,
+    #         'name': attributes['name'],
+    #     })
 
+    # def destroy(self):
+    #     """Delete the request project"""
+    #     manager = self.project_spec
+    #     project_id = self.args.get('project_id')
+    #     manager.remove_project(project_id)
+    #     return self.get_empty()
 
-def merge(manager, attributes=None):
-    if not hasattr(manager.pm, 'publish_project'):
-        raise NotFound(NOT_AVAILABLE_ERROR)
-    project_id = manager.project_name
-    if not status(manager):
-        raise BadRequest('The project is up to date')
-    publish_status = json.loads(
-        manager.pm.publish_project(project_id, attributes.get('force', False)))
-    if publish_status['status'] == 'conflict':
-        raise BaseError(409, 'A conflict has occurred in this project',
-                        'You must resolve the conflict for the project to be'
-                        ' successfully published')
-    data = get_project(manager)
-    data['meta'] = manager.pm._schedule_data(project_id=project_id)
-    return data
+    def status(self):
+        response = self.retrieve()
+        data = OrderedDict()
+        data.update({
+            'meta': {
+                'changes': self.get_project_changes()
+            }
+        })
+        data.update(response.data)
+        return JsonApiResource(200, data)
 
+    def publish(self):
+        manager = self.project_spec
+        if not hasattr(manager.pm, 'publish_project'):
+            raise NotFound(NOT_AVAILABLE_ERROR)
+        project_id = manager.project_name
+        if not self.get_project_changes():
+            raise BadRequest('The project is up to date')
+        publish_status = json.loads(
+            manager.pm.publish_project(project_id,
+                                       self.data.get('force', False)))
+        if publish_status['status'] == 'conflict':
+            raise BaseError(409, 'A conflict has occurred in this project',
+                            'You must resolve the conflict for the project to be'
+                            ' successfully published')
 
-def reset(manager, attributes=None):
-    if not hasattr(manager.pm, 'discard_changes'):
-        raise NotFound(NOT_AVAILABLE_ERROR)
-    project_id = manager.project_name
-    if not status(manager):
-        raise BadRequest('There are no changes to discard')
-    manager.pm.discard_changes(project_id)
-    return get_project(manager)
+        response = self.retrieve()
+        data = OrderedDict()
+        data.update({
+            'meta': manager.pm._schedule_data(project_id=project_id)
+        })
+        data.update(response.data)
+        return JsonApiResource(200, data)
 
+    def reset(self):
+        manager = self.project_spec
+        if not hasattr(manager.pm, 'discard_changes'):
+            raise NotFound(NOT_AVAILABLE_ERROR)
+        project_id = manager.project_name
+        if not self.get_project_changes():
+            raise BadRequest('There are no changes to discard')
+        manager.pm.discard_changes(project_id)
+        return self.retrieve()
 
-class ProjectsManagerFileResponse(BaseApiResponse):
-    def __init__(self, data, command, project_manager):
-        super(ProjectsManagerFileResponse, self).__init__(data)
-        self.command = command
-        self.project_manager = project_manager
+    def get_instance(self):
+        return Project(
+            self.storage, **self.projects[self.args.get('project_id')])
 
-    def format_response(self, request):
-        return self.project_manager._render_file(request, self.command,
-                                                 self.data)
+    def get_collection(self):
+        storage = self.FakeStorage()
+        return Project.collection(Project(storage, **project)
+                                  for project in itervalues(self.projects))
 
+    def get_detail_kwargs(self):
+        return {
+            'include_data': [
+                'spiders',
+                'schemas',
+            ],
+            'fields_map': {
+                'spiders': [
+                    'project',
+                ],
+                'schemas': [
+                    'name',
+                    'project',
+                ],
+            },
+            'exclude_map': {
+                'projects': [
+                    'extractors',
+                ],
+            }
+        }
 
-def download(manager, spider_id=None, attributes=None):
-    project_id = manager.project_name
-    spider_ids = [spider_id] if spider_id is not None else '*'
-    command = {
-        'cmd': 'download',
-        'args': [project_id, spider_ids]
-    }
-    fmt = attributes['arguments'].get('format', ['spec'])[0]
-    file_content = manager.pm.download_project(project_id, spider_ids, fmt=fmt)
-    return ProjectsManagerFileResponse(file_content, command, manager.pm)
+    def get_list_kwargs(self):
+        return {
+            'fields_map': {
+                'projects': [
+                    'name',
+                ],
+            }
+        }
+
+    def get_project_changes(self):
+        manager = self.project_spec
+        if not hasattr(manager.pm, '_changed_files'):
+            raise NotFound(NOT_AVAILABLE_ERROR)
+        return [{'type': type_, 'path': path, 'old_path': old_path}
+                for type_, path, old_path
+                in manager.pm._changed_files(manager.project_name)]
 
 
 def _check_project_attributes(manager, attributes):
-    attributes = ProjectSchema().load(attributes).data
+    attributes = OldProjectSchema().load(attributes).data
     if 'name' not in attributes:
         raise BadRequest('Bad Request',
                          'Can\'t create a project without a name')
     manager.validate_project_name(attributes['name'])
     return attributes
-
-
-def _get_project_name(manager, project_id):
-    projects = {}
-    for project in manager.list_projects():
-        if isinstance(project, six.string_types):
-            projects[project] = project
-        elif isinstance(project, dict):
-            if 'id' in project:
-                projects[project['id']] = project['name']
-    return projects.get(project_id, project_id)

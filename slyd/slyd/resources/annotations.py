@@ -1,216 +1,88 @@
-from __future__ import absolute_import
-from urllib import unquote
+from operator import attrgetter
 
-from .models import AnnotationSchema
-from .fields import create_field
-from .utils import (_load_sample, extraction, Extractor, Annotation,
-                    _split_annotations)
-from ..errors import NotFound
-from ..utils.projects import gen_id, ctx
+from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .serializers import AnnotationSchema
+from ..orm.base import AUTO_PK
+from ..orm.models import Project, Field, Item
 
 
-def list_annotations(manager, spider_id, sample_id, attributes=None):
-    # TODO(refactor): Build annotation load function
-    sample = manager.resource('spiders', spider_id, sample_id)
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
-    return AnnotationSchema(many=True, context=context).dump(annotations).data
+class AnnotationRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                      CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+    list_path = ('projects/{project_id}/spiders/{spider_id}/samples'
+                 '/{sample_id}/annotations')
+    detail_path = ('projects/{project_id}/spiders/{spider_id}/samples'
+                   '/{sample_id}/annotations/{annotation_id}')
+    serializer_class = AnnotationSchema
 
+    def perform_create(self, data):
+        relationships = data.get('data', {}).get('relationships')
+        if (relationships and 'field' in relationships and
+                relationships['field'].get('data') is None):
+            del relationships['field']
 
-def get_annotation(manager, spider_id, sample_id, annotation_id,
-                   attributes=None):
-    aid, _id = _split_annotation_id(annotation_id)
-    if not _id:
-        raise NotFound('No annotation with the id "%s" found.' % annotation_id)
-    anno, _ = _get_annotation(manager, spider_id, sample_id, aid)
-    split_annotations = _split_annotations([anno])
-    anno = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id)
-    return AnnotationSchema(context=context).dump(anno).data
+        annotation = super(AnnotationRoute, self).perform_create(data)
 
+        if annotation.field is None:
+            project = Project(self.storage, id=self.args.get('project_id'))
+            project.schemas  # preload schemas and fields
+            item = annotation.parent
+            schema = item.schema
+            field_names = set(map(attrgetter('name'), schema.fields))
+            counter = 1
+            while True:
+                field_name = u'field{}'.format(counter)
+                if field_name not in field_names:
+                    break
+                counter += 1
+            field = Field(self.storage, id=AUTO_PK, name=field_name,
+                          schema=schema, auto_created=True)
+            field.annotations.add(annotation)
+            field.save()
 
-def create_annotation(manager, spider_id, sample_id, attributes):
-    sample = _load_sample(manager, spider_id, sample_id)
-    annotation = _create_annotation(sample, attributes)
-    schema_id = _find_schema_id(annotation, sample)
-    field = _create_field_for_annotation(manager, annotation, sample)
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id, schema_id=schema_id)
-    annotation = AnnotationSchema(context=context).dump(
-        _split_annotations([annotation])[0]).data
-    if field:
-        annotation['included'] = [field]
-    return annotation
+        return annotation
 
+    def perform_update(self, instance, data, type_=None):
+        if type_ is not None:
+            return super(AnnotationRoute, self).perform_update(
+                instance, data, type_)
 
-def update_annotation(manager, spider_id, sample_id, annotation_id,
-                      attributes):
-    relationships = _load_relationships(attributes['data'])
-    data = attributes['data'].get('attributes', {})
-    anno_id, _id = _split_annotation_id(annotation_id)
-    annotation, sample = _get_annotation(manager, spider_id, sample_id,
-                                         anno_id)
-    annotation_data = annotation['data'][_id]
-    field_id = annotation_data['field']
-    if relationships.get('field_id'):
-        field_id = relationships['field_id']
-    annotation_data['field'] = field_id
-    attribute = annotation_data['attribute']
-    if data.get('attribute'):
-        attribute = data['attribute']
-    annotation_data['attribute'] = attribute
-    annotation_data['required'] = bool(data.get('required', False))
-    extractors = relationships.get('extractors', [])
-    if extractors:
-        if isinstance(extractors, dict) and 'id' in extractors:
-            extractors = [extractors.get('id')]
-        elif isinstance(extractors, list):
-            extractors = [e['id'] for e in extractors if e and 'id' in e]
-    annotation_data['extractors'] = extractors
+        current_field = instance.field
+        deleted = super(AnnotationRoute, self).perform_update(
+            instance, data, type_)
+        new_field = instance.field
+        if new_field != current_field:
+            if current_field.auto_created:
+                deleted.extend(current_field.delete())
+            if new_field.auto_created:
+                new_field.auto_created = False
+                new_field.save(only=('auto_created',))
+        return deleted
 
-    # Check if annotation has been moved to new container
-    if ('parent_id' in relationships and
-            relationships['parent_id'] != annotation.get('container_id')):
-        data['container_id'] = relationships['parent_id'].split('|')[0]
+    def get_instance(self):
+        return self.get_collection()[self.args.get('annotation_id')]
 
-    fields = ['accept_selectors', 'reject_selectors', 'selector',
-              'selection_mode', 'pre_text', 'post_text']
-    for field in fields:
-        annotation[field] = data.get(field, annotation.get(field))
-    if annotation['selector'] is None:
-        annotation['selector'] = ', '.join(annotation['accept_selectors'])
+    def get_collection(self):
+        project = Project(self.storage, id=self.args.get('project_id'))
+        project.schemas  # preload schemas and fields
+        project.extractors  # preload extractors
+        return (project.spiders[self.args.get('spider_id')]
+                       .samples[self.args.get('sample_id')]
+                       .ordered_annotations)
 
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    schema_id = _find_schema_id(annotation, sample)
-    context = ctx(manager, spider_id=spider_id, sample_id=sample_id,
-                  schema_id=schema_id, field_id=field_id)
-    split_annotations = _split_annotations([annotation])
-    a = filter(lambda x: x['id'] == annotation_id, split_annotations)[0]
-    return AnnotationSchema(context=context).dump(a).data
+    def deserialize_related_model(self, model, id_):
+        if model is Item:
+            project = Project(self.storage, id=self.args.get('project_id'))
+            return (project.spiders[self.args.get('spider_id')]
+                           .samples[self.args.get('sample_id')]
+                           .items[id_])
+        return super(AnnotationRoute, self).deserialize_related_model(
+            model, id_)
 
-
-def delete_annotation(manager, spider_id, sample_id, annotation_id,
-                      attributes=None):
-    annotation_id, _id = _split_annotation_id(annotation_id)
-    annotation, sample = _get_annotation(manager, spider_id, sample_id,
-                                         annotation_id)
-    del annotation['data'][_id]
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    if not annotation['data']:
-        sample['plugins']['annotations-plugin']['extracts'] = [
-            a for a in annotations if a['id'] != annotation_id
-        ]
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    return AnnotationSchema.empty_data()
-
-
-def _get_annotation(manager, spider_id, sample_id, annotation_id):
-    sample = _load_sample(manager, spider_id, sample_id)
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    matching = list(filter(lambda a: a.get('id') == annotation_id,
-                           annotations))
-    if matching:
-        return _check_annotation_attributes(matching[0], True), sample
-    raise NotFound('No annotation with the id "%s" found' % annotation_id)
-
-
-def _check_annotation_attributes(attributes, include_defaults=False):
-    """Fill in default annotation values if required."""
-    return attributes
-
-
-def _nested_containers(annotations):
-    extractors = [Extractor(Annotation(a)) for a in annotations]
-    info = extraction.BaseContainerExtractor._get_container_data(extractors)
-    data = extraction.BaseContainerExtractor._build_extraction_tree(info[0])
-    grouped_data = extraction.group_tree(data, info[1])
-    nested = set()
-    _find_annotation_paths(grouped_data, nested)
-    return nested
-
-
-def _find_annotation_paths(tree, nested, parents=None):
-    if parents is None:
-        parents = []
-    for k, v in tree.items():
-        if v is None:
-            nested.add(tuple(parents))
-            continue
-        if isinstance(v, list):
-            for ex in v:
-                anno = ex.annotation.metadata
-                if anno.get('item_container'):
-                    _find_annotation_paths(anno, nested, parents[:] + [k])
-        elif isinstance(v, dict):
-            _find_annotation_paths(v, nested, parents[:] + [k])
-
-
-def _split_annotation_id(_id):
-    """Split annotations from <annotation_id>#<sub_annotation_id>."""
-    split_annotation_id = unquote(_id).split('|')
-    annotation_id = split_annotation_id[0]
-    try:
-        field_id = split_annotation_id[1]
-    except IndexError:
-        field_id = None
-    return annotation_id, field_id
-
-
-def _load_relationships(attributes):
-    """Load relationships from jsonapi data. For field_id and container_id."""
-    relationships = {}
-    for key, value in attributes['relationships'].items():
-        relationships[key] = value.get('data') or {}
-        if hasattr(relationships[key], 'get'):
-            relationships['%s_id' % key] = relationships[key].get('id')
-    return relationships
-
-
-def _create_annotation(sample, attributes):
-    relationships = _load_relationships(attributes['data'])
-    attributes = attributes['data']['attributes']
-    annotations = sample['plugins']['annotations-plugin']['extracts']
-    aid = gen_id(disallow=[a['id'] for a in annotations if a.get('id')])
-    _id = gen_id(disallow={i for a in annotations for i in a.get('data', [])})
-    annotation = {
-        'id': aid,
-        'container_id': relationships['parent_id'].split('|')[0],
-        # TODO: default to most likely attribute
-        'data': {
-            _id: {
-                'attribute': attributes.get('attribute', 'content'),
-                'field': relationships['field_id'],
-                'required': False,
-                'extractors': []
-            }
-        },
-        'accept_selectors': attributes.get('accept_selectors', []),
-        'reject_selectors': attributes.get('reject_selectors', []),
-        'selector': attributes.get('selector'),
-        'required': [],
-        'tagid': attributes.get('tagid', '1')
-    }
-    if annotation['selector'] is None:
-        annotation['selector'] = ', '.join(annotation['accept_selectors'])
-    annotations.append(annotation)
-    return annotation
-
-
-def _find_schema_id(annotation, sample):
-    annotations = dict((a['id'], a) for a in sample['plugins']['annotations-plugin']['extracts'])
-    while annotation and 'schema_id' not in annotation:
-        container_id = annotation.get('container_id')
-        annotation = annotations.get(container_id)
-    return annotation and annotation.get('schema_id')
-
-
-def _create_field_for_annotation(manager, annotation, sample):
-    schema_id = _find_schema_id(annotation, sample)
-    field = create_field(manager, schema_id,
-                         {'data': {'attributes': {'type': 'text'},
-                          'type': 'fields'}})
-    field_id = field['data']['id']
-    for anno in annotation['data'].values():
-        if anno['field'] is None:
-            anno['field'] = field_id
-    return field['data']
+    def get_detail_kwargs(self):
+        return {
+            'include_data': [
+                'field.schema.fields',
+                'extractors',
+            ],
+        }

@@ -18,15 +18,15 @@
                         {{list-item-icon icon='remove' action=(action 'removeAnnotation' annotation) bubbles=false}}
                     {{/link-to}}
                 {{/tree-list-item}}
-            {{else if (eq annotation.constructor.modelName "item-annotation")}}
-                {{#data-structure-annotations sample=sample item=annotation.item annotationColors=annotationColors}}
-                    {{#link-to 'projects.project.spider.sample.data.item' annotation.item}}
+            {{else if (eq annotation.constructor.modelName "item")}}
+                {{#data-structure-annotations sample=sample item=annotation annotationColors=annotationColors}}
+                    {{#link-to 'projects.project.spider.sample.data.item' annotation}}
                         {{list-item-icon icon='schema'}}
                         {{list-item-badge value=(or annotation.elements.length 0)}}
-                        {{list-item-editable value=(mut annotation.name) editing=(mut annotation.new) onChange=(action 'saveItemAnnotation' annotation)}}
-                        {{list-item-item-schema item=annotation.item.content}}
-                        {{list-item-add-annotation-menu item=annotation.item}}
-                        {{list-item-icon icon='remove' action=(action 'removeItemAnnotation' annotation) bubbles=false}}
+                        {{list-item-editable value=(mut annotation.name) editing=(mut annotation.new) onChange=(action 'saveItem' annotation)}}
+                        {{list-item-item-schema item=annotation}}
+                        {{list-item-add-annotation-menu item=annotation}}
+                        {{list-item-icon icon='remove' action=(action 'removeItem' annotation) bubbles=false}}
                     {{/link-to}}
                 {{/data-structure-annotations}}
             {{/if}}

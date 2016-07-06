@@ -1,81 +1,48 @@
-from __future__ import absolute_import
-from slybot.validation.schema import get_schema_validator
-
-from .models import FieldSchema
-from ..errors import NotFound
-from ..utils.projects import gen_id, ctx
-from .utils import _read_schemas
+from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .serializers import FieldSchema
+from ..orm.models import Project, Schema
 
 
-def list_fields(manager, schema_id, attributes=None):
-    fields = []
-    _fields = _read_schemas(manager)[schema_id]['fields']
-    for field_id, field in _fields.items():
-        field['id'] = field_id
-        fields.append(field)
-    context = ctx(manager, schema_id=schema_id)
-    return FieldSchema(many=True, context=context).dump(fields).data
+class FieldRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                 CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+    list_path = 'projects/{project_id}/schemas/{schema_id}/fields'
+    detail_path = 'projects/{project_id}/schemas/{schema_id}/fields/{field_id}'
+    serializer_class = FieldSchema
 
+    def perform_create(self, data):
+        instance = super(FieldRoute, self).perform_create(data)
+        self.clear_auto_created(instance.schema)
+        return instance
 
-def get_field(manager, schema_id, field_id, attributes=None):
-    items = _read_schemas(manager)
-    if schema_id not in items:
-        raise NotFound('No schema with id "%s" found' % schema_id)
-    item = items[schema_id]
-    field = item['fields'][field_id]
-    field['id'] = field_id
-    context = ctx(manager, schema_id=schema_id)
-    return FieldSchema(context=context).dump(field).data
+    def perform_update(self, instance, data, type_=None):
+        if type_ is not None:
+            return super(FieldRoute, self).perform_update(instance, data, type_)
 
+        deleted = super(FieldRoute, self).perform_update(instance, data, type_)
+        self.clear_auto_created(instance)
+        self.clear_auto_created(instance.schema)
+        return deleted
 
-def create_field(manager, schema_id, attributes):
-    attributes = _check_field_attributes(attributes, include_defaults=True)
-    schemas = _read_schemas(manager)
-    fields = {f for schema in schemas.values()
-              for f in schema.get('fields', [])}
-    schema = schemas[schema_id]
-    field_id = gen_id(disallow=fields)
-    default_field_name = 'field%s' % (len(schema['fields']) + 1)
-    attributes['name'] = attributes.pop('name', default_field_name)
-    get_schema_validator('field').validate(attributes)
-    schema['fields'][field_id] = attributes
-    manager.savejson(schemas, ['items'])
-    attributes['id'] = field_id
-    context = ctx(manager, schema_id=schema_id)
-    return FieldSchema(context=context).dump(attributes).data
+    def perform_destroy(self, instance):
+        self.clear_auto_created(instance.schema)
+        return super(FieldRoute, self).perform_destroy(instance)
 
+    def get_instance(self):
+        return self.get_collection()[self.args.get('field_id')]
 
-def update_field(manager, schema_id, field_id, attributes):
-    schemas = _read_schemas(manager)
-    if schema_id not in schemas:
-        raise NotFound('No item with id "%s" found' % schema_id)
-    schema = schemas[schema_id]
-    field = schema['fields'][field_id]
-    attributes = _check_field_attributes(attributes)
-    field.update(attributes)
-    get_schema_validator('field').validate(field)
-    schemas[schema_id]['fields'][field_id] = field
-    manager.savejson(schemas, ['items'])
-    field['id'] = field_id
-    context = ctx(manager, schema_id=schema_id)
-    return FieldSchema(context=context).dump(field).data
+    def get_collection(self):
+        project = Project(self.storage, id=self.args.get('project_id'))
+        return project.schemas[self.args.get('schema_id')].fields
 
+    def deserialize_related_model(self, model, id_):
+        if model is Schema:
+            project = Project(self.storage, id=self.args.get('project_id'))
+            return project.schemas[id_]
+        return super(FieldRoute, self).deserialize_related_model(model, id_)
 
-def delete_field(manager, schema_id, field_id, attributes=None):
-    items = _read_schemas(manager)
-    if schema_id not in items:
-        raise NotFound('No item with id "%s" found' % schema_id)
-    item = items[schema_id]
-    if field_id not in item['fields']:
-        raise NotFound('No field with id "%s" found' % field_id)
-    item['fields'].pop(field_id)
-    manager.savejson(items, ['items'])
-    return FieldSchema.empty_data()
-
-
-def _check_field_attributes(attributes, include_defaults=False):
-    attributes = FieldSchema().load(attributes).data
-    if include_defaults:
-        attributes['_skip_relationships'] = True
-        return FieldSchema().dump(attributes).data['data']['attributes']
-    return attributes
+    @staticmethod
+    def clear_auto_created(instance):
+        if instance.auto_created:
+            instance.auto_created = False
+            instance.save(only=('auto_created',))

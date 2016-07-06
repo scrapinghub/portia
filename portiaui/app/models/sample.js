@@ -1,12 +1,10 @@
 import Ember from 'ember';
 import DS from 'ember-data';
+import BaseModel from './base';
 
-const Sample = DS.Model.extend({
+const Sample = BaseModel.extend({
     name: DS.attr('string'),
     url: DS.attr('string'),
-    pageId: DS.attr('string'),
-    pageType: DS.attr('string'),
-    scrapes: DS.attr('string'),
     spider: DS.belongsTo(),
     items: DS.hasMany(),
 
@@ -14,7 +12,8 @@ const Sample = DS.Model.extend({
         return [].concat(...this.get('items').mapBy('orderedAnnotations'));
     }),
     orderedChildren: Ember.computed('items.content.@each.orderedChildren', function() {
-        return [].concat(...this.get('items').mapBy('orderedChildren'));
+        return [].concat(...this.get('items').map(item => [item].concat(
+            item.getWithDefault('orderedChildren', []))));
     })
 });
 

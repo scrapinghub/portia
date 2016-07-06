@@ -1,100 +1,68 @@
-from scrapy.http.request import Request
-from scrapy.utils.request import request_fingerprint
+from operator import attrgetter
 
-from slybot.validation.schema import get_schema_validator
-
-from .models import SampleSchema, HtmlSchema
-from .utils import (_load_sample, _create_schema, _get_formatted_schema,
-                    _process_annotations, _add_items_and_annotations,
-                    _handle_sample_updates, SLYBOT_VERSION)
-from ..errors import BadRequest
-from ..utils.projects import ctx, gen_id
+from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .serializers import SampleSchema
+from ..orm.base import AUTO_PK
+from ..orm.models import Project, Schema, Spider, Item
 
 
-def list_samples(manager, spider_id, attributes=None):
-    samples = []
-    spider = manager.resource('spiders', spider_id)
-    _samples = spider.get('template_names', [])
-    for name in _samples:
-        sample = _load_sample(manager, spider_id, name)
-        samples.append(sample)
-    context = ctx(manager, spider_id=spider_id)
-    return SampleSchema(many=True, context=context).dump(samples).data
+class SampleRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                  CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+    list_path = 'projects/{project_id}/spiders/{spider_id}/samples'
+    detail_path = ('projects/{project_id}/spiders/{spider_id}/samples'
+                   '/{sample_id}')
+    serializer_class = SampleSchema
 
+    def perform_create(self, data):
+        project = Project(self.storage, id=self.args.get('project_id'))
+        sample = super(SampleRoute, self).perform_create(data)
 
-def get_sample(manager, spider_id, sample_id, attributes=None):
-    sample = _load_sample(manager, spider_id, sample_id)
-    return _process_sample(sample, manager, spider_id)
+        schema_name = sample.name
+        schema_names = set(map(attrgetter('name'), project.schemas))
+        counter = 1
+        while schema_name in schema_names:
+            schema_name = u'{}{}'.format(sample.name, counter)
+            counter += 1
+        schema = Schema(self.storage, id=AUTO_PK, name=schema_name,
+                        project=project, auto_created=True)
+        schema.save()
 
+        item = Item(self.storage, id=AUTO_PK, sample=sample, schema=schema)
+        item.save()
 
-def create_sample(manager, spider_id, attributes):
-    spider = manager.resource('spiders', spider_id)
-    sample_id = gen_id(disallow=spider['template_names'])
-    attributes = _check_sample_attributes(attributes, True)
-    name = attributes.get('name') or sample_id
-    schema, schema_id = _create_schema(manager, {'name': name},
-                                       autoincrement=True)
-    attributes['scrapes'] = schema_id
-    get_schema_validator('template').validate(attributes)
-    if 'version' not in attributes:
-        attributes['version'] = SLYBOT_VERSION
-    attributes = _handle_sample_updates(manager, attributes, spider_id,
-                                        sample_id)
-    manager.savejson(attributes, ['spiders', spider_id, sample_id])
-    spider['template_names'].append(sample_id)
-    manager.savejson(spider, ['spiders', spider_id])
-    attributes['id'] = sample_id
-    schema = _get_formatted_schema(manager, schema_id, schema, True)
-    sample = _process_sample(attributes, manager, spider_id)
-    sample['included'].append(schema['data'])
-    return sample
+        return sample
 
+    def get_instance(self):
+        return self.get_collection()[self.args.get('sample_id')]
 
-def update_sample(manager, spider_id, sample_id, attributes):
-    attributes = _check_sample_attributes(attributes)
-    sample = _load_sample(manager, spider_id, sample_id)
-    sample.update(attributes)
-    get_schema_validator('template').validate(sample)
-    manager.savejson(sample, ['spiders', spider_id, sample_id])
-    return _process_sample(sample, manager, spider_id)
+    def get_collection(self):
+        project = Project(self.storage, id=self.args.get('project_id'))
+        project.schemas  # preload schemas and fields
+        project.extractors  # preload extractors
+        return project.spiders[self.args.get('spider_id')].samples
 
+    def deserialize_related_model(self, model, id_):
+        if model is Spider:
+            project = Project(self.storage, id=self.args.get('project_id'))
+            return project.spiders[id_]
+        return super(SampleRoute, self).deserialize_related_model(model, id_)
 
-def delete_sample(manager, spider_id, sample_id, attributes=None):
-    manager.remove_template(spider_id, sample_id)
-    return SampleSchema.empty_data()
+    def get_detail_kwargs(self):
+        return {
+            'include_data': [
+                'items.schema.fields',
+                'items.annotations.field.schema.fields',
+                'items.annotations.extractors',
+            ],
+        }
 
-def get_sample_html(manager, spider_id, sample_id):
-    sample = manager.resource('spiders', spider_id, sample_id)
-    return HtmlSchema().dump({'id': sample.get('fp'),
-                              'html': sample.get('original_body', '')})
-
-
-def _check_sample_attributes(attributes, include_defaults=False):
-    attributes = SampleSchema().load(attributes).data
-    if 'url' not in attributes:
-        raise BadRequest('Can\'t create a sample without a "url"')
-    if 'page_id' not in attributes:
-        request = Request(attributes['url'])
-        attributes['page_id'] = request_fingerprint(request)
-    if 'scrapes' not in attributes:
-        attributes['scrapes'] = 'default'  # TODO: add default schema
-    if include_defaults:
-        dumper = SampleSchema(skip_relationships=True,
-                              exclude=('html', 'items'))
-        attributes = dumper.dump(attributes).data['data']['attributes']
-    return attributes
-
-
-def _process_sample(sample, manager, spider_id):
-    _ctx = lambda x=None, y=None: ctx(manager, spider_id=spider_id,
-                                      sample_id=sample['id'], schema_id=x,
-                                      item_id=y)
-    items, annotations, item_annotations = _process_annotations(sample)
-    sample['items'] = items
-    # Remove any html pages from sample
-    for key in sample.keys():
-        if '_body' in key:
-            sample.pop(key)
-    data = SampleSchema(context=_ctx()).dump(sample).data
-    return _add_items_and_annotations(data, items, annotations,
-                                      item_annotations, _ctx)
+    def get_list_kwargs(self):
+        excludes = SampleSchema.opts.default_kwargs['exclude_map']['samples']
+        return {
+            'exclude_map': {
+                'samples': excludes + [
+                    'items',
+                ]
+            }
+        }

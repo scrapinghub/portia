@@ -1,30 +1,27 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-import ItemAnnotation from './item-annotation';
+import BaseModel from './base';
 
-export default DS.Model.extend({
-    sample: DS.belongsTo(),
-    schema: DS.belongsTo({
-        async: true,
+export default BaseModel.extend({
+    name: DS.attr('string'),
+    selector: DS.attr('string'),
+    repeatedSelector: DS.attr('string'),
+    siblings: DS.attr('number', {
+        defaultValue: 0
     }),
+
+    sample: DS.belongsTo(),
+    // parent: DS.belongsTo('item'),
+    schema: DS.belongsTo(),
     annotations: DS.hasMany({
-        async: true,
         inverse: 'parent',
         polymorphic: true
     }),
-    itemAnnotation: DS.belongsTo({
-        inverse: 'item',
-        async: true
-    }),
-    parent: DS.belongsTo('item', {
-        async: true
-    }),
-
 
     orderedAnnotations: Ember.computed(
         'annotations', 'annotations.@each.orderedAnnotations', function() {
             return [].concat(...this.get('annotations').map(annotation => (
-                annotation instanceof ItemAnnotation ?
+                annotation.constructor.modelName === 'item' ?
                     annotation.getWithDefault('orderedAnnotations', []) :
                     [annotation]
             )));
@@ -33,7 +30,7 @@ export default DS.Model.extend({
         'annotations.[]', 'annotations.@each.orderedChildren', function() {
             return [].concat(...this.get('annotations').map(annotation => (
                 [annotation].concat(
-                    annotation instanceof ItemAnnotation ?
+                    annotation.constructor.modelName === 'item' ?
                         annotation.getWithDefault('orderedChildren', []) :
                         []
                 )

@@ -5,18 +5,14 @@ export default Ember.Route.extend({
     extractedItems: Ember.inject.service(),
 
     model(params) {
-        return this.store.queryRecord('sample', {
-            id: params.sample_id,
-            spider_id: this.modelFor('projects.project.spider').get('id'),
-            spider_project_id: this.modelFor('projects.project').get('id')
-        });
+        return this.store.peekRecord('sample', params.sample_id);
     },
 
     afterModel(model) {
-        this.get('extractedItems').update();
-        // reload the model to fetch it with annotations included
-        // TODO: allow fetching as a relationship, need to inline annotations first
-        return model.reload();
+        return model.reload().then(model => {
+            this.get('extractedItems').update();
+            return model;
+        });
     },
 
     renderTemplate() {
@@ -35,13 +31,6 @@ export default Ember.Route.extend({
         error() {
             this.transitionTo('projects.project.spider',
                 this.modelFor('projects.project.spider'));
-        },
-
-        deactivate() {
-            let sample = this.get('currentModel');
-            if(sample) {
-                sample.set('_autoCreatedSchema', null);
-            }
-        },
+        }
     }
 });

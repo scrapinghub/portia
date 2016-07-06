@@ -7,7 +7,7 @@ export default Ember.Route.extend({
                values have been removed. If we use the same object for the new transition the
                unspecified values will keep their current values. This means we can't automatically
                pass through query parameters that have intentionally been emptied. */
-            queryParams: Ember.merge({
+            queryParams: Ember.assign({
                 url: null,
                 baseurl: null
             }, queryParams)
