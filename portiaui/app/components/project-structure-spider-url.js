@@ -29,10 +29,8 @@ export default Ember.Component.extend({
         if (!oldUrl) {
             this.get('dispatcher').addStartUrl(spider, cleanNewUrl);
         } else {
-            this.get('dispatcher').replaceStartUrl(spider, oldUrl, cleanNewUrl,
-                                                   this.get('startUrl'));
+            this.get('dispatcher').replaceStartUrl(spider, oldUrl, cleanNewUrl);
         }
-        spider.save();
     },
 
     removeStartUrl() {

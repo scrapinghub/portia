@@ -403,14 +403,16 @@ export default Ember.Service.extend({
         spider.save();
     },
 
-    replaceStartUrl(spider, oldUrl, newUrl, startUrlObject) {
+    replaceStartUrl(spider, oldUrl, newUrl) {
         const urls = spider.get('startUrls');
-        const type = startUrlObject ? startUrlObject.type : 'url';
 
-        urls.removeObject(startUrlObject);
+        let oldStartUrl = urls.filterBy('url', oldUrl)[0];
+        urls.removeObject(oldStartUrl);
+
         if (!includesUrl(spider, newUrl)) {
-            urls.addObject(startUrl({url: newUrl, type: type}));
+            urls.addObject(startUrl({url: newUrl, type: 'url'}));
         }
+        spider.save()
     },
 
     deleteAutoCreatedSchema(sample) {

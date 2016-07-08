@@ -37,6 +37,7 @@ export default function startUrl(spec) {
     function save(spider) {
         const urls = spider.get('startUrls');
         urls.pushObject(urlObject);
+        spider.save();
         return urlObject;
     }
 
