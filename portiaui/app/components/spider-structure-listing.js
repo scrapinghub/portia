@@ -23,9 +23,8 @@ export default Ember.Component.extend({
     getNewStartUrl(newUrl) {
         let newStartUrl = '';
         if (newUrl) {
-            newStartUrl = this.get('dispatcher').addStartUrl(
-                this.get('spider'), newUrl
-            );
+            const spider = this.get('spider');
+            newStartUrl = this.get('dispatcher').addStartUrl(spider, newUrl);
         }
         return newStartUrl;
     },
