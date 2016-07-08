@@ -327,40 +327,6 @@ class Repoman(object):
                 conflicts[file_path] = content
         return conflicts
 
-    def kill_branch(self, branch_name):
-        '''Kills a branch and the objects that are only accessible from it.
-
-        Deletes all objects (commits, trees, blobs) that can only be accesed
-        from this branch. This should be called after sucessfully publishing
-        a branch to dispose of it and the intermediate objects.
-        '''
-        b_blob_ids = set({})
-        b_commit_ids = []
-        b_tree_ids = set({})
-        branch = self.get_branch(branch_name)
-        # Collect branch objects.
-        for entry in self._repo.get_walker(include=branch):
-            if entry.commit.message.startswith('Publishing'):
-                break
-            else:
-                b_commit_ids.append(entry.commit.id)
-                b_tree_ids.add(entry.commit.tree)
-                tree = self._repo.get_object(entry.commit.tree)
-                for _, _, blob_id in tree.items():
-                    b_blob_ids.add(blob_id)
-        # Substract objects referenced from published commits.
-        for p_revision_id in self.get_published_revisions():
-            p_revision = self._repo.get_object(p_revision_id)
-            p_revision.tree in b_tree_ids and b_tree_ids.remove(
-                p_revision.tree)
-            p_tree = self._repo.get_object(p_revision.tree)
-            for _, _, p_blob_id in p_tree.items():
-                p_blob_id in b_blob_ids and b_blob_ids.remove(p_blob_id)
-        # Delete unreachable objects.
-        self._repo.object_store.delete_objects(
-            list(b_blob_ids | b_tree_ids) + b_commit_ids)
-        self.delete_branch(branch_name)
-
     def add_tag(self, tag_name):
         commit = self._repo['refs/heads/master']
         tag = Tag()
