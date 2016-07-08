@@ -141,7 +141,7 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
         repoman = self._open_repo(name)
         if (repoman.publish_branch(self._get_branch(repoman),
                                    force=force) == True):
-            repoman.kill_branch(self._get_branch(repoman))
+            repoman.delete_branch(self._get_branch(repoman))
             return {'status': 'ok'}
         else:
             return {'status': 'conflict'}
@@ -154,7 +154,7 @@ class GitProjectsManager(ProjectsManager, GitProjectMixin):
 
     def discard_changes(self, name):
         repoman = self._open_repo(name)
-        repoman.kill_branch(self._get_branch(repoman))
+        repoman.delete_branch(self._get_branch(repoman))
 
     def project_revisions(self, name):
         repoman = self._open_repo(name)
