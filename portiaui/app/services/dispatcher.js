@@ -89,6 +89,41 @@ export default Ember.Service.extend({
         });
     },
 
+    addSpider(project, redirect = false) {
+        const url = this.get('browser.url');
+        if (!url) {
+            return;
+        }
+        let name = url;
+        const matches = url.match('//([a-zA-Z0-9\._-]*)');
+        const store = this.get('store');
+        if (matches && matches.length) {
+            name = matches.slice(-1)[0]
+        } else {
+            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '')
+        }
+        let baseName = name;
+        let counter = 1;
+        while (store.peekRecord('spider', name)) {
+            name = `${baseName}_${counter}`;
+            counter += 1;
+        }
+        const spider = store.createRecord('spider', {
+            name: name,
+            startUrls: [startUrl({ url: url })],
+            project
+        });
+        spider.set('project', project);
+        spider.save().then(() => {
+            if (redirect) {
+                spider.set('new', true);
+                const routing = this.get('routing');
+                routing.transitionTo('projects.project.spider', [spider], {}, true);
+            }
+        });
+        return spider;
+    },
+
     addStartUrl(spider, url) {
         if (url && !includesUrl(spider, url)) {
             return startUrl({ url: url }).save(spider);
