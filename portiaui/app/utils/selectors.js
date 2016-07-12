@@ -517,6 +517,42 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
             return this.mergeSelectors(filteredSelectors);
         }),
 
+    repeatedAnnotation: Ember.computed('selector', 'parent.repeatedContainers', function() {
+        const parent = this.get('parent');
+        if (!parent) {
+            return false;
+        }
+        const selector = this.get('selector');
+        const repeatedContainers = parent.get('repeatedContainers');
+        const selectorMatcher = this.get('selectorMatcher');
+        const elements = selectorMatcher.query(selector);
+        if (!(selector && elements && elements.length > 1)) {
+            return false;
+        }
+        if (repeatedContainers.length > 1) {
+            for (let container of repeatedContainers) {
+                let i = 0;
+                for (let child of elements) {
+                    if (container.contains(child)) {
+                        i += 1;
+                    }
+                    if (i > 1) {
+                        break;
+                    }
+                }
+                if (i > 1) {
+                    return true;
+                }
+            }
+        }
+        const container = parent.get('container');
+        if (container) {
+            const otherAnnotations = parent.get('parent.children').filter(s => s !== parent);
+            return !otherAnnotations.any(a => a.get('container') === container);
+        }
+        return false;
+    }),
+
     createGeneralizedSelectors(groupedPaths) {
         const selectors = groupedPaths.map(group => this.createGroupSelectors(group, null, true));
         return this.filterRejectedSelectors(selectors);

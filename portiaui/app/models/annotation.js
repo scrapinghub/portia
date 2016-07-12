@@ -13,6 +13,9 @@ export default BaseAnnotation.extend({
     required: DS.attr('boolean', {
         defaultValue: false
     }),
+    repeated: DS.attr('boolean', {
+        defaultValue: false
+    }),
     selectionMode: DS.attr('string', {
         defaultValue: 'auto'
     }),

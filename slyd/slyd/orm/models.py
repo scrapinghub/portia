@@ -392,7 +392,10 @@ class Sample(Model, OrderedAnnotationsMixin):
                 container_id = item['container_id'] = parent['container_id']
                 item['repeated_selector'] = item['selector']
                 item['selector'] = parent['selector']
-                item['siblings'] = parent['siblings'] or item['siblings']
+                try:
+                    item['siblings'] = parent['siblings'] or item['siblings']
+                except KeyError:
+                    item['siblings'] = 0
                 item['schema_id'] = parent['schema_id'] or item['schema_id']
                 if container_id:
                     containers[container_id]['children'].remove(parent)
@@ -566,6 +569,7 @@ class Annotation(BaseAnnotation):
     xpath = String(allow_none=True, default=None)
     accept_selectors = List(String)
     reject_selectors = List(String)
+    repeated = Boolean(default=False)
     pre_text = String(allow_none=True, default=None)
     post_text = String(allow_none=True, default=None)
     field = BelongsTo(Field, related_name='annotations', on_delete=PROTECT,
@@ -630,6 +634,7 @@ class Annotation(BaseAnnotation):
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
             'required': annotation_data['required'] or False,
+            'repeated': annotation_data.get('repeated',  False),
             'selection_mode': data.get('selection_mode') or 'auto',
             'selector': data['selector'] or None,
             'xpath': data.get('xpath') or None,
@@ -660,6 +665,7 @@ class Annotation(BaseAnnotation):
             ('pre_text', data['pre_text']),
             ('reject_selectors', data['reject_selectors']),
             ('required', []),
+            ('repeated', data['repeated']),
             ('selection_mode', data['selection_mode']),
             ('selector', data['selector']),
             ('tagid', None),
