@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 import json
+import re
+
 from os.path import dirname
 from unittest import TestCase
+from scrapy import Request
 from scrapy.settings import Settings
 from scrapy.http.response.html import HtmlResponse
+from scrapy.utils.spider import arg_to_iter
 from slybot.plugins.scrapely_annotations.extraction import (
     parse_template, BaseContainerExtractor, group_tree, ContainerExtractor,
     RepeatedContainerExtractor, TemplatePageMultiItemExtractor,
@@ -19,6 +23,12 @@ from scrapely.htmlpage import HtmlPage
 from scrapely.extraction.regionextract import BasicTypeExtractor
 from scrapely.extraction.pageparsing import parse_extraction_page
 from scrapely.htmlpage import HtmlTagType
+
+
+def _spider(start_urls=None, sample=None):
+    sample = [] if sample is None else arg_to_iter(sample)
+    start_urls = [] if start_urls is None else arg_to_iter(start_urls)
+    return {'start_urls': start_urls, 'templates': sample}
 
 base_page = u"""<html><body>
     <ul>{}</ul>
@@ -75,11 +85,26 @@ target2 = HtmlPage(url="http://www.test.com/a", body=target2)
 simple_descriptors = {k: create_slybot_item_descriptor(v)
                       for k, v in schemas.items()}
 add_extractors_to_descriptors(simple_descriptors, {})
-
 _PATH = dirname(__file__)
+
+
+def _open_spec(name):
+    use_json = True if name.endswith('.json') else False
+    with open('%s/data/templates/%s' % (_PATH, name)) as f:
+        return json.load(f) if use_json else f.read()
+
+
+def _open_sample_and_page(name):
+    sample_spec = _open_spec(name)
+    annotations = sample_spec['plugins']['annotations-plugin']['extracts']
+    annotated = apply_annotations(_clean_annotation_data(annotations),
+                                  sample_spec['original_body'])
+    url = sample_spec['url']
+    return (HtmlPage(url=url, body=annotated),
+            HtmlPage(url=url, body=sample_spec['original_body']))
+
 td = TokenDict()
-with open('%s/data/templates/stack_overflow.html' % _PATH) as f:
-    html_page = HtmlPage(body=f.read().decode('utf-8'))
+html_page = HtmlPage(body=_open_spec('stack_overflow.html').decode('utf-8'))
 extraction_page = parse_extraction_page(td, html_page)
 with open('%s/data/SampleProject/items.json' % _PATH) as f:
     items = json.load(f)
@@ -94,22 +119,8 @@ root_container = basic_extractors[1]
 child_container = basic_extractors[2]
 child_annotations = basic_extractors[3:]
 
-with open('%s/data/templates/411_list.json' % _PATH) as f:
-    sample = json.load(f)
-annotations = sample['plugins']['annotations-plugin']['extracts']
-annotated = apply_annotations(_clean_annotation_data(annotations),
-                              sample['original_body'])
-sample_411 = HtmlPage(url=sample['url'], body=annotated)
-page_411 = HtmlPage(url=sample['url'],
-                    body=sample['original_body'])
-with open('%s/data/templates/daft_list.json' % _PATH) as f:
-    sample = json.load(f)
-annotations = sample['plugins']['annotations-plugin']['extracts']
-annotated = apply_annotations(_clean_annotation_data(annotations),
-                              sample['original_body'])
-
-with open('%s/data/templates/xceed.json' % _PATH) as f:
-    xceed_spider = json.load(f)
+sample_411, page_411 = _open_sample_and_page('411_list.json')
+xceed_spider = _open_spec('xceed.json')
 
 
 def _annotation_tag_to_dict(tag):
@@ -189,7 +200,6 @@ class ContainerExtractorTest(TestCase):
         self.assertEqual(e, [33554432, 33554439, 33554438])
 
     def test_extract(self):
-        self.maxDiff = None
         extractors = ContainerExtractor.apply(unvalidated_template,
                                               basic_extractors)
         ibl_extractor = TemplatePageMultiItemExtractor(unvalidated_template,
@@ -272,7 +282,39 @@ class ContainerExtractorTest(TestCase):
                          body=xceed_spider['templates'][0]['original_body'],
                          encoding='utf-8')
         ))
-        self.assertEqual(data[:6], xceed_spider['results'])
+        items = [d for d in data if not isinstance(d, Request)]
+        self.assertEqual(items, xceed_spider['results'])
+
+    def test_extract_repeated_field(self):
+        sample = {
+            'plugins': {'annotations-plugin': {}},
+            'url': 'https://stackoverflow.com',
+            'original_body': re.sub(
+                'data-scrapy-annotate=".*"', '', html_page._body),
+            'scrapes': 'default',
+            'version': '0.13.0'
+        }
+        data = _open_spec('so_annotations.json')
+        annos, items, results = data['annos'], data['items'], data['results']
+        sample['plugins']['annotations-plugin']['extracts'] = annos
+        spider = IblSpider('so', _spider(sample=sample),
+                           items, {}, Settings())
+        page = HtmlResponse('http://url', body=sample['original_body'],
+                            encoding='utf-8')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        keys = {(u'_index', u'_template', u'_type', u'answered', u'tags',
+                 u'title', 'url')}
+        self.assertEqual({tuple(sorted(i.keys())) for i in items}, keys)
+        self.assertEqual(items[0], results[0])
+        self.assertEqual(items[52], results[1])
+        self.assertEqual(items[-1], results[2])
+        self.assertEqual(len(items), 96)
+        data = _open_spec('autoevolution.json')
+        page = HtmlResponse('http://url', body=data['original_body'],
+                            encoding='utf-8')
+        spider = IblSpider('ae', _spider(sample=data), {}, {}, Settings())
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, {})
 
     def test_required_annotation(self):
         ibl_extractor = SlybotIBLExtractor([
