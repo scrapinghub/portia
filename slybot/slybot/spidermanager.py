@@ -2,6 +2,9 @@ from __future__ import absolute_import
 import tempfile
 import shutil
 import atexit
+import logging
+
+import slybot
 
 from zipfile import ZipFile
 
@@ -19,6 +22,7 @@ class SlybotSpiderManager(object):
     implements(ISpiderManager)
 
     def __init__(self, datadir, spider_cls=None, settings=None, **kwargs):
+        logging.info('Slybot %s Spider', slybot.__version__)
         if settings is None:
             settings = get_project_settings()
         self.spider_cls = load_object(spider_cls) if spider_cls else IblSpider
