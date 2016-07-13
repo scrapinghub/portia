@@ -2,6 +2,7 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     browser: Ember.inject.service(),
+    jobQ: Ember.inject.service(),
 
     model(params) {
         return this.store.findRecord('project', params.project_id);
@@ -24,6 +25,9 @@ export default Ember.Route.extend({
 
     setupController(controller, model) {
         this._super(controller, model);
+
+        this.get('jobQ').start(model.get('id'));
+
         controller.set('projects', this.controllerFor('projects'));
     },
 
