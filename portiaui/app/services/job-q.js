@@ -3,7 +3,7 @@ const { run } = Ember;
 
 const Jobs = Ember.Object.extend({
     endpoint() {
-        return `http://storage.scrapinghub.com/jobq/${this.get('projectId')}/` +
+        return `https://storage.scrapinghub.com/jobq/${this.get('projectId')}/` +
                `summary/running?apikey=${cookie.get('apikey')}`;
     },
 
