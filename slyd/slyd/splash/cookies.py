@@ -5,6 +5,7 @@ class PortiaCookieJar(SplashCookieJar):
     def __init__(self, web_page, socket):
         super(SplashCookieJar, self).__init__(web_page)
         self.socket = socket
+        self._last_cookies = None
 
     def setCookiesFromUrl(self, cookie_list, url):
         result = super(PortiaCookieJar, self).setCookiesFromUrl(cookie_list, url)
@@ -23,8 +24,11 @@ class PortiaCookieJar(SplashCookieJar):
         return super(PortiaCookieJar, self).setAllCookies(qt_cookies)
 
     def update_client_cookies(self):
+        cookies = self.allCookies()
+        if self._last_cookies == cookies:
+            return
+        self._last_cookies = cookies
         self.socket.sendMessage({
             '_command': 'cookies',
-            '_data': cookies2har(self.allCookies())
+            'cookies': cookies2har(cookies)
         })
-

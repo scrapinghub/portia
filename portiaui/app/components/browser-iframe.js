@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { storageFor } from 'ember-local-storage';
 import { cleanUrl, shortGuid } from '../utils/utils';
 import interactionEvent from '../utils/interaction-event';
 import treeMirrorDelegate from '../utils/tree-mirror-delegate';
@@ -10,6 +11,7 @@ const BrowserIFrame = Ember.Component.extend({
     overlays: Ember.inject.service(),
     webSocket: Ember.inject.service(),
     uiState: Ember.inject.service(),
+    cookiesStore: storageFor('cookies'),
 
     tagName: 'iframe',
     classNames: ['browser-iframe'],
@@ -160,25 +162,24 @@ const BrowserIFrame = Ember.Component.extend({
 
     cookieId: Ember.computed('spider', 'project', function() {
         if (this.get('project') && this.get('spider')) {
-            return `cookies:${this.get('project')}/${this.get('spider')}`;
+            return `cookies:${this.get('project')}/${this.get('spider')}`.replace(/\./g, '_');
         }
     }),
 
     msgCookies(data) {
         let cookies = data.cookies,
             cookieId = this.get('cookieId');
-
-        if(window.localStorage && cookieId && cookies.length){
-            window.localStorage.setItem(cookieId, JSON.stringify(cookies));
+        if (cookies && cookies.length) {
+            this.set(`cookiesStore.${cookieId}`, cookies);
         }
     },
 
     loadCookies(){
         let cookieId = this.get('cookieId')
-        if(window.localStorage && cookieId){
-            let cookies = window.localStorage.getItem(cookieId);
+        if(cookieId){
+            let cookies = this.get(`cookiesStore.${cookieId}`);
             if (cookies) {
-                return JSON.parse(cookies);
+                return cookies;
             }
         }
         return {};
