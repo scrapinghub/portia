@@ -2,7 +2,7 @@
 
 module.exports = function(environment) {
     var ENV = {
-        modulePrefix: 'portia-web',
+        modulePrefix: 'portia-ui',
         environment: environment,
         baseURL: '/',
         locationType: 'hash',
