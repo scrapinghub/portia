@@ -50,8 +50,9 @@ DEADLOCK_RETRY_CONFIG = {
     'wait_random_min': 10,
     'wait_random_max': 30,
     'retry_on_exception': lambda exception: (
+        # 1205: Lock wait timeout exceeded; try restarting transaction
         # 1213: Deadlock found when trying to get lock
-        isinstance(exception, DatabaseError) and exception[0] == 1213),
+        isinstance(exception, DatabaseError) and exception[0] in (1205, 1213)),
 }
 
 MISSING_OBJECT_RETRY_CONFIG = {
