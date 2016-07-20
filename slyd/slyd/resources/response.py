@@ -88,13 +88,14 @@ class JsonApiValidationErrorResponse(JsonApiError):
 
 
 class ProjectDownloadResponse(BaseApiResource):
-    def __init__(self, project_id, spider_ids, fmt, project_manager):
+    def __init__(self, project_id, spider_ids, fmt, version, branch,
+                 project_manager):
         self.command = {
             'cmd': 'download',
             'args': [project_id, spider_ids]
         }
         self.file_content = project_manager.download_project(
-            project_id, spider_ids, fmt=fmt)
+            project_id, spider_ids, fmt=fmt, version=version, branch=branch)
         self.project_manager = project_manager
 
     def render(self, request):

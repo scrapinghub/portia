@@ -22,6 +22,7 @@
     "ember-ajax": "^2.0.1",
     "ember-api-actions": "0.0.11",
     "ember-cli": "2.6.3",
+    "ember-api-requests": "0.3.0",
     "ember-cli-app-version": "^1.0.0",
     "ember-cli-autoprefixer": "^0.6.0",
     "ember-cli-babel": "^5.1.6",

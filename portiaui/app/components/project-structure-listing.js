@@ -2,6 +2,7 @@ import Ember from 'ember';
 import {computedCanAddSpider} from '../services/dispatcher';
 
 export default Ember.Component.extend({
+    api: Ember.inject.service(),
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
     uiState: Ember.inject.service(),
@@ -43,6 +44,22 @@ export default Ember.Component.extend({
 
         removeSpider(spider) {
             this.get('dispatcher').removeSpider(spider);
+        },
+
+        runSpider(spider) {
+            this.get('api').post('schedule', {
+                model: spider,
+                jsonData: {data: {type: 'spiders', id: spider.id}}
+            }).then(data => {
+                this.get('notificationManager').showNotification(
+                    'Your spider has been scheduled successfully');
+            }, data => {
+                let error = data.errors[0];
+                if (error.status > 499) {
+                    throw data;
+                }
+                this.get('notificationManager').showNotification(error.title, error.detail);
+            });
         },
 
         validateSpiderName(name) {
