@@ -120,6 +120,9 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
                                           commit=repo.last_commit)
         super(GitProjectsManager, self).create_project(name)
 
+    def project_filename(self, name):
+        return name
+
     def remove_project(self, name):
         Repoman.delete_repo(name, self.connection)
 
