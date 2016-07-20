@@ -190,6 +190,24 @@
             "url": "http://url"
         }, 
         {
+            "_index": 5,
+            "_template": "ec891c9df77d09298c0f44f7973af3d5d4adc1e5",
+            "_type": "ticket",
+            "date": [
+                "Sales end: Jun 10, 23:45pm"
+            ],
+            "includes": [
+                "Prive\u00e9 on the Backstage for 5 people - 1 bottle inc. + soft drinks"
+            ],
+            "price": [
+                "230.00"
+            ],
+            "type": [
+                "Bottle Service"
+            ],
+            "url": "http://url"
+        }, 
+        {
             "_template": "ec891c9df77d09298c0f44f7973af3d5d4adc1e5", 
             "_type": "venue", 
             "address": [
