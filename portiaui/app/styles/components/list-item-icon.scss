@@ -12,6 +12,10 @@
         }
     }
 
+    &.has-indent {
+      margin-left: 20px;
+    }
+
     .tree-list-item-content & {
         height: $tree-list-row-height;
         line-height: $tree-list-row-height;

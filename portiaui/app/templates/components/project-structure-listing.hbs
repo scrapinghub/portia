@@ -46,7 +46,7 @@
                         {{#if (not currentSpider)}}
                             {{jobq-badge spider=spider}}
                         {{/if}}
-                        {{list-item-icon icon='spider'}}
+                        {{list-item-icon icon='spider' hasIndent=(or (eq spider currentSpider) (not (has-job spider)))}}
                         {{#if currentSpider}}
                             {{#list-item-text}}{{spider.name}}{{/list-item-text}}
                         {{else}}
@@ -112,7 +112,7 @@
             {{#each project.schemas as |schema|}}
                 {{#tree-list-item hide=(and currentSchema (not-eq schema currentSchema)) as |options|}}
                     {{#link-to 'projects.project.schema' schema}}
-                        {{list-item-icon icon='schema'}}
+                        {{list-item-icon icon='schema' hasIndent=true}}
                         {{list-item-editable value=(mut schema.name) editing=(mut schema.new) onChange=(action 'saveSchema' schema)}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}
                             {{list-item-icon icon='remove' disabled=(not (not schema.items.length)) action=(action 'removeSchema' schema) bubbles=false}}
