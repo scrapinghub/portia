@@ -9,7 +9,7 @@ from marshmallow.schema import SchemaMeta
 from marshmallow_jsonapi import Schema as BaseSchema, SchemaOpts
 from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from six import iteritems, iterkeys, string_types, with_metaclass
-from six.moves import zip
+from six.moves import map, zip
 
 from slyd.jsonapi.registry import schemas, get_schema
 from slyd.jsonapi.relationships import Relationship, PolymorphicRelationship
@@ -23,7 +23,8 @@ from slyd.orm.fields import Field as OrmField
 from slyd.orm.relationships import BaseRelationship, HasMany
 
 __all__ = [
-    'JsonApiSchema',
+    'JsonApiSerializer',
+    'JsonApiPolymorphicSerializer',
 ]
 
 DELETED_PROFILE = 'https://portia.scrapinghub.com/jsonapi/extensions/deleted'
@@ -32,12 +33,12 @@ DELETED_PROFILE_ALIAS = 'deleted'
 UPDATES_PROFILE_ALIAS = 'updates'
 
 
-class JsonApiSchemaMeta(SchemaMeta):
+class JsonApiSerializerMeta(SchemaMeta):
     """Meta class for JSON API schemas."""
     def __new__(mcs, name, bases, attrs):
-        parents = [b for b in bases if isinstance(b, JsonApiSchemaMeta)]
+        parents = [b for b in bases if isinstance(b, JsonApiSerializerMeta)]
         if not parents:
-            return super(JsonApiSchemaMeta, mcs).__new__(
+            return super(JsonApiSerializerMeta, mcs).__new__(
                 mcs, name, bases, attrs)
 
         meta = attrs.pop('Meta', None)
@@ -96,16 +97,16 @@ class JsonApiSchemaMeta(SchemaMeta):
         schema_attrs['_url'] = Method('get_url')
 
         attrs.update(schema_attrs)
-        cls = super(JsonApiSchemaMeta, mcs).__new__(mcs, name, bases, attrs)
+        cls = super(JsonApiSerializerMeta, mcs).__new__(mcs, name, bases, attrs)
 
         # add new schema to registry by type
         schemas[schema_type] = cls
         return cls
 
 
-class JsonApiSchemaOpts(SchemaOpts):
+class JsonApiSerializerOpts(SchemaOpts):
     def __init__(self, meta):
-        super(JsonApiSchemaOpts, self).__init__(meta)
+        super(JsonApiSerializerOpts, self).__init__(meta)
         if meta is BaseSchema.Meta:
             return
 
@@ -124,8 +125,8 @@ class JsonApiSchemaOpts(SchemaOpts):
             raise ValueError("'default_kwargs' option must be a dictionary.")
 
 
-class JsonApiSchema(with_metaclass(JsonApiSchemaMeta, BaseSchema)):
-    OPTIONS_CLASS = JsonApiSchemaOpts
+class JsonApiSerializer(with_metaclass(JsonApiSerializerMeta, BaseSchema)):
+    OPTIONS_CLASS = JsonApiSerializerOpts
 
     def __init__(self, instance=None, data=None, storage=None, only=(),
                  **kwargs):
@@ -183,14 +184,15 @@ class JsonApiSchema(with_metaclass(JsonApiSchemaMeta, BaseSchema)):
                     only.append(name)
             only.append('_url')
 
-        self.field_order = list(fields or []) + map(self.inflect, field_names)
-        self.relationship_order = (list(fields or []) +
-                                   map(self.inflect, relationship_names))
+        self.field_order = list(
+            chain(fields or [], map(self.inflect, field_names)))
+        self.relationship_order = list(
+            chain(fields or [], map(self.inflect, relationship_names)))
 
         only_set = set(only)
         kwargs['include_data'] = tuple(
             k for k in iterkeys(self.include_map) if k in only_set)
-        super(JsonApiSchema, self).__init__(only=only, **kwargs)
+        super(JsonApiSerializer, self).__init__(only=only, **kwargs)
         self.instance = instance
         self.initial_data = data
         if storage:
@@ -492,7 +494,7 @@ class JsonApiSchema(with_metaclass(JsonApiSchemaMeta, BaseSchema)):
             updated.append(instance)
 
         self.add_includes(updated)
-        response = super(JsonApiSchema, self).format_json_api_response(
+        response = super(JsonApiSerializer, self).format_json_api_response(
             data, many)
 
         if 'included' in response:
@@ -517,7 +519,7 @@ class JsonApiSchema(with_metaclass(JsonApiSchemaMeta, BaseSchema)):
         return order_dict(response, TOP_LEVEL_OBJECT_ORDER)
 
     def format_item(self, item):
-        item = super(JsonApiSchema, self).format_item(item)
+        item = super(JsonApiSerializer, self).format_item(item)
         if 'attributes' in item:
             attributes = item.pop('attributes')
             attributes.pop('-url', None)  # super call adds this
@@ -575,7 +577,7 @@ class JsonApiSchema(with_metaclass(JsonApiSchemaMeta, BaseSchema)):
         response.setdefault('meta', {})[alias] = data
 
 
-class JsonApiPolymorphicSchema(object):
+class JsonApiPolymorphicSerializer(object):
     def __new__(cls, base, default_model, instance=None, data=None, many=False,
                 **kwargs):
         if not many:
@@ -601,10 +603,10 @@ class JsonApiPolymorphicSchema(object):
 
         if data:
             raise ValueError(
-                u"You can only use a JsonApiPolymorphicSchema with many=True "
-                u"for serializing a ModelCollection")
+                u"You can only use a JsonApiPolymorphicSerializer with "
+                u"many=True for serializing a ModelCollection")
 
-        return super(JsonApiPolymorphicSchema, cls).__new__(
+        return super(JsonApiPolymorphicSerializer, cls).__new__(
             cls, base, default_model, instance, data, many, **kwargs)
 
     def __init__(self, base, default_model, instance=None, data=None,

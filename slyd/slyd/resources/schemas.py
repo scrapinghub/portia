@@ -1,10 +1,8 @@
-from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .route import JsonApiModelRoute
 from ..orm.models import Project, Schema
 
 
-class SchemaRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                  CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+class SchemaRoute(JsonApiModelRoute):
     list_path = 'projects/{project_id}/schemas'
     detail_path = 'projects/{project_id}/schemas/{schema_id}'
     default_model = Schema

@@ -1,12 +1,10 @@
-from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
-from .serializers import SampleSchema
+from .route import JsonApiModelRoute
+from .serializers import SampleSerializer
 from ..jsonapi.utils import cached_property
 from ..orm.models import Project, Sample
 
 
-class SampleRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                  CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+class SampleRoute(JsonApiModelRoute):
     list_path = 'projects/{project_id}/spiders/{spider_id}/samples'
     detail_path = ('projects/{project_id}/spiders/{spider_id}/samples'
                    '/{sample_id}')
@@ -47,7 +45,8 @@ class SampleRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
         }
 
     def get_list_kwargs(self):
-        excludes = SampleSchema.opts.default_kwargs['exclude_map']['samples']
+        excludes = (SampleSerializer.opts
+                                    .default_kwargs['exclude_map']['samples'])
         return {
             'exclude_map': {
                 'samples': excludes + [

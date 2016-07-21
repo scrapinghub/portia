@@ -1,10 +1,8 @@
-from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .route import JsonApiModelRoute
 from ..orm.models import Project, Extractor
 
 
-class ExtractorRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                     CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+class ExtractorRoute(JsonApiModelRoute):
     list_path = 'projects/{project_id}/extractors'
     detail_path = 'projects/{project_id}/extractors/{extractor_id}'
     default_model = Extractor

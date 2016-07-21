@@ -1,11 +1,9 @@
-from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .route import JsonApiModelRoute
 from ..jsonapi.utils import cached_property
 from ..orm.models import Project, Item
 
 
-class ItemRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+class ItemRoute(JsonApiModelRoute):
     list_path = ('projects/{project_id}/spiders/{spider_id}/samples'
                  '/{sample_id}/items')
     detail_path = ('projects/{project_id}/spiders/{spider_id}'
