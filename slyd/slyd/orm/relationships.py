@@ -209,6 +209,9 @@ class BaseRelationship(fields.Nested):
             self._model, attrname=attrname, related_name=self.related_name)
         setattr(cls, attrname, descriptor)
 
+    def get_dependencies(self, cls):
+        return {cls._pk_field}
+
     @staticmethod
     def _includes_relationships(field, model):
         includes_relationships = True

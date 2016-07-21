@@ -6,13 +6,13 @@ from six import iteritems, string_types
 from slyd.orm.decorators import pre_dump, post_dump, post_load
 
 __all__ = [
-    'BaseFileSchema',
+    'FileSerializer',
 ]
 
 
-class FileSchemaOpts(schema.SchemaOpts):
+class FileSerializerOpts(schema.SchemaOpts):
     def __init__(self, meta):
-        super(FileSchemaOpts, self).__init__(meta)
+        super(FileSerializerOpts, self).__init__(meta)
         if meta is schema.BaseSchema.Meta:
             return
 
@@ -30,11 +30,11 @@ class FileSchemaOpts(schema.SchemaOpts):
                 "'polymorphic' option must be a string or boolean.")
 
 
-class BaseFileSchema(schema.Schema):
-    OPTIONS_CLASS = FileSchemaOpts
+class FileSerializer(schema.Schema):
+    OPTIONS_CLASS = FileSerializerOpts
 
     def __init__(self, *args, **kwargs):
-        super(BaseFileSchema, self).__init__(*args, **kwargs)
+        super(FileSerializer, self).__init__(*args, **kwargs)
         if self.opts.polymorphic:
             self.extra = self.extra or {}
             polymorphic_key = self.opts.polymorphic
@@ -47,7 +47,7 @@ class BaseFileSchema(schema.Schema):
         return getattr(self.opts.model, item)
 
     def get_attribute(self, attr, obj, default):
-        return super(BaseFileSchema, self).get_attribute(attr, obj, default)
+        return super(FileSerializer, self).get_attribute(attr, obj, default)
 
     @post_load
     def create_object(self, data):
@@ -81,7 +81,7 @@ class BaseFileSchema(schema.Schema):
         elif isinstance(data, Sequence):
             data = [self._wrap_only(value) for value in data]
 
-        result, errors = super(BaseFileSchema, self)._do_load(
+        result, errors = super(FileSerializer, self)._do_load(
             data, many, *args, **kwargs)
 
         # we need to wrap the result of a many load in a ModelCollection, but

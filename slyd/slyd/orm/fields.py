@@ -75,6 +75,11 @@ class Field(fields.Field):
     def contribute_to_class(self, cls, attrname):
         setattr(cls, attrname, FieldDescriptor(attrname, self))
 
+    def get_dependencies(self, cls):
+        if self.primary_key:
+            return set()
+        return {cls._pk_field}
+
     def serialize(self, attr, obj, accessor=None):
         if self._CHECK_ATTRIBUTE:
             value = self.get_value(attr, obj, accessor=accessor)
@@ -190,6 +195,9 @@ class DependantField(Field):
         super(DependantField, self).__init__(**kwargs)
         self.when = when
         self.then = then
+
+    def get_dependencies(self, cls):
+        return super(DependantField, self).get_dependencies(cls) | {self.when}
 
     def serialize(self, attr, obj, accessor=None):
         field = self._field_for_data(obj)
