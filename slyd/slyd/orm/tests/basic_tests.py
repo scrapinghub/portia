@@ -4,20 +4,13 @@ import mock
 
 from slyd.orm.exceptions import PathResolutionError, ValidationError
 from .models import (ExampleModel, RequiredFieldModel, SingleFileModel,
-                     ManyFileModel, ParamFileModel, EnvelopeModel)
+                     ManyFileModel, ParamFileModel, PolymorphicChildModel1)
 from .utils import mock_storage
 
 
 class BasicModelTests(unittest.TestCase):
     def setUp(self):
         self.storage = mock_storage({
-            'envelope.json':
-                '{'
-                '    "model-1": {'
-                '        "id": "model-1",'
-                '        "field": true'
-                '    }'
-                '}',
             'single.json':
                 '{'
                 '    "id": "model-1",'
@@ -169,17 +162,6 @@ class BasicModelTests(unittest.TestCase):
             model.field
         self.storage.open.assert_not_called()
 
-    def test_load_envelope(self):
-        model = EnvelopeModel.load(self.storage)
-
-        self.storage.open.assert_called_once_with('envelope.json')
-        self.assertEqual(model.dump(), {
-            'model-1': {
-                'id': 'model-1',
-                'field': True,
-            },
-        })
-
     def test_save_single(self):
         model = SingleFileModel.load(self.storage)
         model.id = 'changed-id'
@@ -240,21 +222,6 @@ class BasicModelTests(unittest.TestCase):
             model.save()
         self.storage.save.assert_not_called()
 
-    def test_save_envelope(self):
-        model = EnvelopeModel.load(self.storage)
-        model.field = False
-        model.save()
-
-        self.storage.save.assert_called_once_with('envelope.json', mock.ANY)
-        self.assertEqual(
-            self.storage.files['envelope.json'],
-            '{\n'
-            '    "model-1": {\n'
-            '        "field": false, \n'
-            '        "id": "model-1"\n'
-            '    }\n'
-            '}')
-
     def test_save_selected_fields(self):
         model = SingleFileModel.load(self.storage)
         model.id = 'changed-id'
@@ -268,3 +235,81 @@ class BasicModelTests(unittest.TestCase):
             '    "field": false, \n'
             '    "id": "model-1"\n'
             '}')
+
+
+class PolymorphicModelTests(unittest.TestCase):
+    def setUp(self):
+        self.storage = mock_storage({
+            'children.json':
+                '['
+                '    {'
+                '        "type": "PolymorphicChildModel1",'
+                '        "id": "child-1",'
+                '        "field1": "child-1",'
+                '        "parent": "parent-1"'
+                '    },'
+                '    {'
+                '        "_type_": "PolymorphicChildModel2",'
+                '        "id": "child-2",'
+                '        "field2": "child-2",'
+                '        "parent": "parent-1"'
+                '    }'
+                ']',
+        })
+
+    def test_load_many(self):
+        models = PolymorphicChildModel1.load(self.storage)
+
+        self.storage.open.assert_called_once_with('children.json')
+        self.assertEqual(models.dump(), [
+            {
+                'type': 'PolymorphicChildModel1',
+                'id': 'child-1',
+                'field1': 'child-1',
+                'parent': 'parent-1',
+            },
+            {
+                '_type_': 'PolymorphicChildModel2',
+                'id': 'child-2',
+                'field2': 'child-2',
+                'parent': 'parent-1',
+            },
+        ])
+
+    def test_load_one_from_many(self):
+        model = PolymorphicChildModel1(self.storage, id='child-1')
+
+        self.assertEqual(model.id, 'child-1')
+        self.storage.open.assert_not_called()
+        self.assertEqual(model.field1, 'child-1')
+        self.storage.open.assert_called_once_with('children.json')
+        self.assertEqual(model.dump(), {
+            'type': 'PolymorphicChildModel1',
+            'id': 'child-1',
+            'field1': 'child-1',
+            'parent': 'parent-1',
+        })
+        self.storage.open.assert_called_once_with('children.json')
+
+    def test_save_many(self):
+        model = PolymorphicChildModel1(self.storage, id='child-1')
+        model.field1 = 'test'
+        model.save()
+
+        self.storage.save.assert_called_once_with('children.json', mock.ANY)
+        self.assertEqual(
+            self.storage.files['children.json'],
+            '[\n'
+            '    {\n'
+            '        "field1": "test", \n'
+            '        "id": "child-1", \n'
+            '        "parent": "parent-1", \n'
+            '        "type": "PolymorphicChildModel1"\n'
+            '    }, \n'
+            '    {\n'
+            '        "_type_": "PolymorphicChildModel2", \n'
+            '        "field2": "child-2", \n'
+            '        "id": "child-2", \n'
+            '        "parent": "parent-1"\n'
+            '    }\n'
+            ']')

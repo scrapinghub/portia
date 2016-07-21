@@ -40,15 +40,6 @@ class ParamFileModel(Model):
         path = u'param-{self.param}.json'
 
 
-class EnvelopeModel(Model):
-    id = fields.String(primary_key=True)
-    field = fields.Field()
-
-    class Meta:
-        path = u'envelope.json'
-        envelope = True
-
-
 class OneToOneModel1(Model):
     id = fields.String(primary_key=True)
     field = fields.Field()
@@ -109,3 +100,36 @@ class ManyToManyModel2(Model):
     class Meta:
         path = u'm2m-model-2.json'
         owner = 'm1'
+
+
+class PolymorphicParentModel(Model):
+    id = fields.String(primary_key=True)
+    field = fields.Field()
+    children = fields.HasMany('PolymorphicChildBase', related_name='parent',
+                              polymorphic=True, on_delete=fields.CASCADE,
+                              only='id')
+
+    class Meta:
+        path = u'parents.json'
+
+
+class PolymorphicChildBase(Model):
+    id = fields.String(primary_key=True)
+    parent = fields.BelongsTo(PolymorphicParentModel, related_name='children',
+                              on_delete=fields.CLEAR, only='id')
+
+    class Meta:
+        path = u'children.json'
+        owner = 'parent'
+        polymorphic = True
+
+
+class PolymorphicChildModel1(PolymorphicChildBase):
+    field1 = fields.Field()
+
+
+class PolymorphicChildModel2(PolymorphicChildBase):
+    field2 = fields.Field()
+
+    class Meta:
+        polymorphic = '_type_'

@@ -4,13 +4,16 @@ import mock
 
 from slyd.orm.exceptions import ValidationError
 from slyd.orm.models import (Project, Schema, Field, Extractor, Spider, Sample,
-                             Item, Annotation, SLYBOT_VERSION)
+                             BaseAnnotation, Item, Annotation, SLYBOT_VERSION)
 from .utils import mock_storage
 
 
 class ProjectTestCase(unittest.TestCase):
     def setUp(self):
-        self.storage = mock_storage({
+        self.storage = mock_storage(self.get_storage_files())
+
+    def get_storage_files(self):
+        return {
             'project.json':
                 '{'
                 '    "id": "example",'
@@ -192,8 +195,8 @@ class ProjectTestCase(unittest.TestCase):
                 '            ]'
                 '        }'
                 '    }'
-                '}'
-        })
+                '}',
+        }
 
 
 class ProjectTests(ProjectTestCase):
@@ -2308,6 +2311,184 @@ class SampleTests(ProjectTestCase):
 
 
 class ItemTests(ProjectTestCase):
+    def get_storage_files(self):
+        return dict(super(ItemTests, self).get_storage_files(), **{
+            'items.json':
+                '{'
+                '    "1664-4f20-b657": {'
+                '        "fields": {'
+                '            "fbec-4a42-a4b0": {'
+                '                "auto_created": true,'
+                '                "id": "fbec-4a42-a4b0",'
+                '                "name": "title",'
+                '                "required": true,'
+                '                "type": "text",'
+                '                "vary": false'
+                '            },'
+                '            "cca5-490c-b604": {'
+                '                "id": "cca5-490c-b604",'
+                '                "name": "price",'
+                '                "required": true,'
+                '                "type": "price",'
+                '                "vary": false'
+                '            },'
+                '            "34bc-406f-80bc": {'
+                '                "id": "34bc-406f-80bc",'
+                '                "name": "image",'
+                '                "required": false,'
+                '                "type": "image",'
+                '                "vary": false'
+                '            },'
+                '            "ecfc-4dbe-b488": {'
+                '                "id": "ecfc-4dbe-b488",'
+                '                "name": "details",'
+                '                "required": false,'
+                '                "type": "text",'
+                '                "vary": false'
+                '            }'
+                '        },'
+                '        "name": "product"'
+                '    },'
+                '    "fa87-4791-8642": {'
+                '        "fields": {},'
+                '        "name": "other"'
+                '    }'
+                '}',
+            'spiders/shop-crawler/1ddc-4043-ac4d.json':
+                '{'
+                '    "id": "1ddc-4043-ac4d",'
+                '    "name": "example",'
+                '    "url": "http://example.com",'
+                '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67",'
+                '    "page_type": "item",'
+                '    "original_body": "<html></html>",'
+                '    "annotated_body": "<html></html>",'
+                '    "spider": "shop-crawler",'
+                '    "scrapes": "1664-4f20-b657",'
+                '    "plugins": {'
+                '        "annotations-plugin": {'
+                '            "extracts": ['
+                '                {'
+                '                    "id": "1e47-4833-a4d4",'
+                '                    "container_id": "1e47-4833-a4d4#parent",'
+                '                    "schema_id": "1664-4f20-b657",'
+                '                    "item_container": true,'
+                '                    "selector": ".main",'
+                '                    "repeated": true,'
+                '                    "siblings": 0,'
+                '                    "required": [],'
+                '                    "tagid": 18,'
+                '                    "text-content": "#portia-content",'
+                '                    "annotations": {'
+                '                        "#portia-content": "#dummy"'
+                '                    }'
+                '                },'
+                '                {'
+                '                    "id": "1e47-4833-a4d4#parent",'
+                '                    "container_id": null,'
+                '                    "schema_id": "1664-4f20-b657",'
+                '                    "item_container": true,'
+                '                    "selector": "body",'
+                '                    "repeated": false,'
+                '                    "siblings": 0,'
+                '                    "required": [],'
+                '                    "tagid": 18,'
+                '                    "text-content": "#portia-content",'
+                '                    "annotations": {'
+                '                        "#portia-content": "#dummy"'
+                '                    }'
+                '                },'
+                '                {'
+                '                    "id": "3606-4d68-a6a0",'
+                '                    "container_id": "1e47-4833-a4d4",'
+                '                    "selection_mode": "auto",'
+                '                    "selector": ".main > h1",'
+                '                    "accept_selectors": ['
+                '                        ".main:nth-child(1) > h1",'
+                '                        ".main:nth-child(2) > h1"'
+                '                    ],'
+                '                    "reject_selectors": [],'
+                '                    "data": {'
+                '                        "d1e2-4673-a72a": {'
+                '                            "field": "fbec-4a42-a4b0",'
+                '                            "attribute": "content",'
+                '                            "required": false,'
+                '                            "extractors": {}'
+                '                        }'
+                '                    },'
+                '                    "pre_text": null,'
+                '                    "post_text": null,'
+                '                    "tagid": null,'
+                '                    "required": []'
+                '                },'
+                '                {'
+                '                    "id": "b161-47b1-b064",'
+                '                    "container_id": "1e47-4833-a4d4",'
+                '                    "schema_id": "1664-4f20-b657",'
+                '                    "item_container": true,'
+                '                    "selector": ".main > div",'
+                '                    "repeated": false,'
+                '                    "siblings": 0,'
+                '                    "required": [],'
+                '                    "tagid": 18,'
+                '                    "text-content": "#portia-content",'
+                '                    "annotations": {'
+                '                        "#portia-content": "#dummy"'
+                '                    }'
+                '                },'
+                '                {'
+                '                    "id": "5c18-40cf-8809",'
+                '                    "container_id": "1e47-4833-a4d4",'
+                '                    "selection_mode": "auto",'
+                '                    "selector": ".main > img",'
+                '                    "accept_selectors": ['
+                '                        ".main:nth-child(1) > img"'
+                '                    ],'
+                '                    "reject_selectors": [],'
+                '                    "data": {'
+                '                        "de35-49b5-b90b": {'
+                '                            "field": "34bc-406f-80bc",'
+                '                            "attribute": "content",'
+                '                            "required": false,'
+                '                            "extractors": ['
+                '                                "e6fc-4758-9e6b",'
+                '                                "154f-45ce-bfbd"'
+                '                            ]'
+                '                        }'
+                '                    },'
+                '                    "pre_text": null,'
+                '                    "post_text": null,'
+                '                    "tagid": null,'
+                '                    "required": []'
+                '                },'
+                '                {'
+                '                    "id": "7fd9-4ba9-83b8",'
+                '                    "container_id": "b161-47b1-b064",'
+                '                    "selection_mode": "auto",'
+                '                    "selector": ".main > div > span",'
+                '                    "accept_selectors": ['
+                '                        ".main:nth-child(1) > div > span"'
+                '                    ],'
+                '                    "reject_selectors": [],'
+                '                    "data": {'
+                '                        "6535-4215-b774": {'
+                '                            "field": "cca5-490c-b604",'
+                '                            "attribute": "content",'
+                '                            "required": false,'
+                '                            "extractors": {}'
+                '                        }'
+                '                    },'
+                '                    "pre_text": null,'
+                '                    "post_text": null,'
+                '                    "tagid": null,'
+                '                    "required": []'
+                '                }'
+                '            ]'
+                '        }'
+                '    }'
+                '}',
+        })
+
     def test_minimal_item(self):
         item = Item(id='item-1')
 
@@ -2358,6 +2539,90 @@ class ItemTests(ProjectTestCase):
             'text-content': '#portia-content',
         })
 
+    def test_with_annotation(self):
+        item = Item(id='item-1')
+        item.annotations.append(Annotation(id='annotation-1|data-1'))
+
+        self.assertEqual(item.dump(), {
+            'annotations': {
+                '#portia-content': '#dummy',
+            },
+            'children': [
+                {
+                    "accept_selectors": [],
+                    "container_id": "item-1",
+                    "data": {
+                        "data-1": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": None,
+                            "required": False,
+                        },
+                    },
+                    "id": "annotation-1",
+                    "post_text": None,
+                    "pre_text": None,
+                    "reject_selectors": [],
+                    "required": [],
+                    "selection_mode": "auto",
+                    "selector": None,
+                    "tagid": None,
+                    "xpath": None,
+                },
+            ],
+            'container_id': None,
+            'id': 'item-1',
+            'item_container': True,
+            'repeated': False,
+            'repeated_selector': None,
+            'required': [],
+            'schema_id': None,
+            'selector': None,
+            'siblings': 0,
+            'tagid': None,
+            'text-content': '#portia-content',
+        })
+
+    def test_with_nested_item(self):
+        item = Item(id='item-1')
+        item.annotations.append(Item(id='item-2'))
+
+        self.assertEqual(item.dump(), {
+            'annotations': {
+                '#portia-content': '#dummy',
+            },
+            'children': [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy",
+                    },
+                    "children": [],
+                    "container_id": "item-1",
+                    "id": "item-2",
+                    "item_container": True,
+                    "repeated": False,
+                    "repeated_selector": None,
+                    "required": [],
+                    "schema_id": None,
+                    "selector": None,
+                    "siblings": 0,
+                    "tagid": None,
+                    "text-content": "#portia-content",
+                },
+            ],
+            'container_id': None,
+            'id': 'item-1',
+            'item_container': True,
+            'repeated': False,
+            'repeated_selector': None,
+            'required': [],
+            'schema_id': None,
+            'selector': None,
+            'siblings': 0,
+            'tagid': None,
+            'text-content': '#portia-content',
+        })
+
     def test_load_through_project(self):
         project = Project(self.storage, id='example')
         items = project.spiders['shop-crawler'].samples['1ddc-4043-ac4d'].items
@@ -2396,6 +2661,47 @@ class ItemTests(ProjectTestCase):
                         'selector': '.main > h1',
                         'tagid': None,
                         'xpath': None,
+                    },
+                    {
+                        'annotations': {
+                            '#portia-content': '#dummy',
+                        },
+                        'children': [
+                            {
+                                'accept_selectors': [
+                                    '.main:nth-child(1) > div > span',
+                                ],
+                                'container_id': 'b161-47b1-b064',
+                                'data': {
+                                    '6535-4215-b774': {
+                                        'attribute': 'content',
+                                        'extractors': {},
+                                        'field': 'cca5-490c-b604',
+                                        'required': False,
+                                    },
+                                },
+                                'id': '7fd9-4ba9-83b8',
+                                'post_text': None,
+                                'pre_text': None,
+                                'reject_selectors': [],
+                                'required': [],
+                                'selection_mode': 'auto',
+                                'selector': '.main > div > span',
+                                'tagid': None,
+                                'xpath': None,
+                            },
+                        ],
+                        'container_id': '1e47-4833-a4d4',
+                        'id': 'b161-47b1-b064',
+                        'item_container': True,
+                        'repeated': False,
+                        'repeated_selector': None,
+                        'required': [],
+                        'schema_id': '1664-4f20-b657',
+                        'selector': '.main > div',
+                        'siblings': 0,
+                        'tagid': None,
+                        'text-content': '#portia-content',
                     },
                     {
                         'accept_selectors': [
@@ -2476,6 +2782,47 @@ class ItemTests(ProjectTestCase):
                     'selector': '.main > h1',
                     'tagid': None,
                     'xpath': None,
+                },
+                {
+                    'annotations': {
+                        '#portia-content': '#dummy',
+                    },
+                    'children': [
+                        {
+                            'accept_selectors': [
+                                '.main:nth-child(1) > div > span',
+                            ],
+                            'container_id': 'b161-47b1-b064',
+                            'data': {
+                                '6535-4215-b774': {
+                                    'attribute': 'content',
+                                    'extractors': {},
+                                    'field': 'cca5-490c-b604',
+                                    'required': False,
+                                },
+                            },
+                            'id': '7fd9-4ba9-83b8',
+                            'post_text': None,
+                            'pre_text': None,
+                            'reject_selectors': [],
+                            'required': [],
+                            'selection_mode': 'auto',
+                            'selector': '.main > div > span',
+                            'tagid': None,
+                            'xpath': None,
+                        },
+                    ],
+                    'container_id': '1e47-4833-a4d4',
+                    'id': 'b161-47b1-b064',
+                    'item_container': True,
+                    'repeated': False,
+                    'repeated_selector': None,
+                    'required': [],
+                    'schema_id': '1664-4f20-b657',
+                    'selector': '.main > div',
+                    'siblings': 0,
+                    'tagid': None,
+                    'text-content': '#portia-content',
                 },
                 {
                     'accept_selectors': [
@@ -2612,6 +2959,44 @@ class ItemTests(ProjectTestCase):
             '                    "xpath": null\n'
             '                }, \n'
             '                {\n'
+            '                    "annotations": {\n'
+            '                        "#portia-content": "#dummy"\n'
+            '                    }, \n'
+            '                    "container_id": "1e47-4833-a4d4", \n'
+            '                    "id": "b161-47b1-b064", \n'
+            '                    "item_container": true, \n'
+            '                    "repeated": false, \n'
+            '                    "required": [], \n'
+            '                    "schema_id": "1664-4f20-b657", \n'
+            '                    "selector": ".main > div", \n'
+            '                    "siblings": 0, \n'
+            '                    "tagid": null, \n'
+            '                    "text-content": "#portia-content"\n'
+            '                }, \n'
+            '                {\n'
+            '                    "accept_selectors": [\n'
+            '                        ".main:nth-child(1) > div > span"\n'
+            '                    ], \n'
+            '                    "container_id": "b161-47b1-b064", \n'
+            '                    "data": {\n'
+            '                        "6535-4215-b774": {\n'
+            '                            "attribute": "content", \n'
+            '                            "extractors": {}, \n'
+            '                            "field": "cca5-490c-b604", \n'
+            '                            "required": false\n'
+            '                        }\n'
+            '                    }, \n'
+            '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "post_text": null, \n'
+            '                    "pre_text": null, \n'
+            '                    "reject_selectors": [], \n'
+            '                    "required": [], \n'
+            '                    "selection_mode": "auto", \n'
+            '                    "selector": ".main > div > span", \n'
+            '                    "tagid": null, \n'
+            '                    "xpath": null\n'
+            '                }, \n'
+            '                {\n'
             '                    "accept_selectors": [\n'
             '                        ".main:nth-child(1) > img"\n'
             '                    ], \n'
@@ -2721,6 +3106,44 @@ class ItemTests(ProjectTestCase):
             '                    "required": [], \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
+            '                    "tagid": null, \n'
+            '                    "xpath": null\n'
+            '                }, \n'
+            '                {\n'
+            '                    "annotations": {\n'
+            '                        "#portia-content": "#dummy"\n'
+            '                    }, \n'
+            '                    "container_id": "test-id", \n'
+            '                    "id": "b161-47b1-b064", \n'
+            '                    "item_container": true, \n'
+            '                    "repeated": false, \n'
+            '                    "required": [], \n'
+            '                    "schema_id": "1664-4f20-b657", \n'
+            '                    "selector": ".main > div", \n'
+            '                    "siblings": 0, \n'
+            '                    "tagid": null, \n'
+            '                    "text-content": "#portia-content"\n'
+            '                }, \n'
+            '                {\n'
+            '                    "accept_selectors": [\n'
+            '                        ".main:nth-child(1) > div > span"\n'
+            '                    ], \n'
+            '                    "container_id": "b161-47b1-b064", \n'
+            '                    "data": {\n'
+            '                        "6535-4215-b774": {\n'
+            '                            "attribute": "content", \n'
+            '                            "extractors": {}, \n'
+            '                            "field": "cca5-490c-b604", \n'
+            '                            "required": false\n'
+            '                        }\n'
+            '                    }, \n'
+            '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "post_text": null, \n'
+            '                    "pre_text": null, \n'
+            '                    "reject_selectors": [], \n'
+            '                    "required": [], \n'
+            '                    "selection_mode": "auto", \n'
+            '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
             '                    "xpath": null\n'
             '                }, \n'
@@ -2837,6 +3260,44 @@ class ItemTests(ProjectTestCase):
             '                    "required": [], \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
+            '                    "tagid": null, \n'
+            '                    "xpath": null\n'
+            '                }, \n'
+            '                {\n'
+            '                    "annotations": {\n'
+            '                        "#portia-content": "#dummy"\n'
+            '                    }, \n'
+            '                    "container_id": "1e47-4833-a4d4", \n'
+            '                    "id": "b161-47b1-b064", \n'
+            '                    "item_container": true, \n'
+            '                    "repeated": false, \n'
+            '                    "required": [], \n'
+            '                    "schema_id": "1664-4f20-b657", \n'
+            '                    "selector": ".main > div", \n'
+            '                    "siblings": 0, \n'
+            '                    "tagid": null, \n'
+            '                    "text-content": "#portia-content"\n'
+            '                }, \n'
+            '                {\n'
+            '                    "accept_selectors": [\n'
+            '                        ".main:nth-child(1) > div > span"\n'
+            '                    ], \n'
+            '                    "container_id": "b161-47b1-b064", \n'
+            '                    "data": {\n'
+            '                        "6535-4215-b774": {\n'
+            '                            "attribute": "content", \n'
+            '                            "extractors": {}, \n'
+            '                            "field": "cca5-490c-b604", \n'
+            '                            "required": false\n'
+            '                        }\n'
+            '                    }, \n'
+            '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "post_text": null, \n'
+            '                    "pre_text": null, \n'
+            '                    "reject_selectors": [], \n'
+            '                    "required": [], \n'
+            '                    "selection_mode": "auto", \n'
+            '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
             '                    "xpath": null\n'
             '                }, \n'
@@ -3001,6 +3462,44 @@ class ItemTests(ProjectTestCase):
             '                    "xpath": null\n'
             '                }, \n'
             '                {\n'
+            '                    "annotations": {\n'
+            '                        "#portia-content": "#dummy"\n'
+            '                    }, \n'
+            '                    "container_id": "1e47-4833-a4d4", \n'
+            '                    "id": "b161-47b1-b064", \n'
+            '                    "item_container": true, \n'
+            '                    "repeated": false, \n'
+            '                    "required": [], \n'
+            '                    "schema_id": "1664-4f20-b657", \n'
+            '                    "selector": ".main > div", \n'
+            '                    "siblings": 0, \n'
+            '                    "tagid": null, \n'
+            '                    "text-content": "#portia-content"\n'
+            '                }, \n'
+            '                {\n'
+            '                    "accept_selectors": [\n'
+            '                        ".main:nth-child(1) > div > span"\n'
+            '                    ], \n'
+            '                    "container_id": "b161-47b1-b064", \n'
+            '                    "data": {\n'
+            '                        "6535-4215-b774": {\n'
+            '                            "attribute": "content", \n'
+            '                            "extractors": {}, \n'
+            '                            "field": "cca5-490c-b604", \n'
+            '                            "required": false\n'
+            '                        }\n'
+            '                    }, \n'
+            '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "post_text": null, \n'
+            '                    "pre_text": null, \n'
+            '                    "reject_selectors": [], \n'
+            '                    "required": [], \n'
+            '                    "selection_mode": "auto", \n'
+            '                    "selector": ".main > div > span", \n'
+            '                    "tagid": null, \n'
+            '                    "xpath": null\n'
+            '                }, \n'
+            '                {\n'
             '                    "accept_selectors": [\n'
             '                        ".main:nth-child(1) > img"\n'
             '                    ], \n'
@@ -3094,6 +3593,32 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['items.json'],
             '{\n'
+            '    "1664-4f20-b657": {\n'
+            '        "fields": {\n'
+            '            "cca5-490c-b604": {\n'
+            '                "id": "cca5-490c-b604", \n'
+            '                "name": "price", \n'
+            '                "required": true, \n'
+            '                "type": "price", \n'
+            '                "vary": false\n'
+            '            }, \n'
+            '            "34bc-406f-80bc": {\n'
+            '                "id": "34bc-406f-80bc", \n'
+            '                "name": "image", \n'
+            '                "required": false, \n'
+            '                "type": "image", \n'
+            '                "vary": false\n'
+            '            }, \n'
+            '            "ecfc-4dbe-b488": {\n'
+            '                "id": "ecfc-4dbe-b488", \n'
+            '                "name": "details", \n'
+            '                "required": false, \n'
+            '                "type": "text", \n'
+            '                "vary": false\n'
+            '            }\n'
+            '        }, \n'
+            '        "name": "product"\n'
+            '    }, \n'
             '    "fa87-4791-8642": {\n'
             '        "fields": {}, \n'
             '        "name": "other"\n'
@@ -3174,7 +3699,7 @@ class AnnotationTests(ProjectTestCase):
         self.assertListEqual(annotations.keys(),
                              ['3606-4d68-a6a0|d1e2-4673-a72a',
                               '5c18-40cf-8809|de35-49b5-b90b'])
-        self.assertIsInstance(annotations, Annotation.collection)
+        self.assertIsInstance(annotations, BaseAnnotation.collection)
         self.assertEqual(self.storage.open.call_count, 2)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),

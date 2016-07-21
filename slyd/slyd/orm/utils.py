@@ -7,10 +7,16 @@ from slyd.orm.exceptions import ValidationError
 
 __all__ = [
     'cached_property',
+    'cached_property_ignore_set',
     'unspecified',
     'validate_type',
     'AttributeDict',
 ]
+
+
+class cached_property_ignore_set(cached_property):
+    def __set__(self, instance, value):
+        pass
 
 
 unspecified = object()

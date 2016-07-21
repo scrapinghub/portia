@@ -258,6 +258,10 @@ class ModelCollection(OwnedList):
         context = {
             'snapshots': ModelSnapshots.default_snapshots[index:]
         }
+        if self.model.opts.polymorphic:
+            return [instance.__class__.file_schema(
+                        context=context).dump(instance).data
+                    for instance in self]
         return self.model.file_schema(
             many=True, context=context).dump(self).data
 
@@ -327,9 +331,12 @@ class ListDescriptor(object):
         for value in values:
             collection._validate(value)
         if collection != values:
-            del collection[:]
-            collection.extend(values)
+            self.replace_collection(collection, values)
 
     def new_collection(self, instance):
         return FieldCollection(owner=instance, attrname=self.attrname,
                                snapshots=('committed',))
+
+    def replace_collection(self, collection, values):
+        del collection[:]
+        collection.extend(values)

@@ -5,8 +5,9 @@ from six import string_types
 
 from slyd.orm.collection import set_related, clear_related, ListDescriptor
 from slyd.orm.exceptions import ImproperlyConfigured, ValidationError
-from slyd.orm.registry import get_model
-from slyd.orm.utils import cached_property, validate_type
+from slyd.orm.registry import get_model, get_polymorphic_model
+from slyd.orm.utils import (cached_property, cached_property_ignore_set,
+                            validate_type)
 
 __all__ = [
     'BelongsTo',
@@ -84,12 +85,16 @@ class HasManyDescriptor(ListDescriptor, BaseRelationshipDescriptor):
                 collection.extend(items)
         return collection
 
+    def replace_collection(self, collection, values):
+        del collection[:]
+        collection.update(values)
+
 
 class BaseRelationship(fields.Nested):
     descriptor_class = None
 
     def __init__(self, model, related_name, on_delete, ignore_in_file=False,
-                 envelope=None, envelope_remove_key=None, **kwargs):
+                 polymorphic=False, **kwargs):
         self._model = model
         self.related_name = related_name
 
@@ -99,9 +104,10 @@ class BaseRelationship(fields.Nested):
         self.on_delete = on_delete
 
         self.ignore_in_file = ignore_in_file
-        self.envelope = envelope
-        self.envelope_remove_key = envelope_remove_key
+        self.polymorphic = polymorphic
         super(BaseRelationship, self).__init__(None, **kwargs)
+        if polymorphic and isinstance(self.only, string_types):
+            self.only = (self.only,)
 
     @cached_property
     def model(self):
@@ -109,22 +115,69 @@ class BaseRelationship(fields.Nested):
             self._model = get_model(self._model)
         return self._model
 
-    @property
+    @cached_property_ignore_set
     def nested(self):
         return self.model.file_schema
 
-    @nested.setter
-    def nested(self, value):
-        pass
-
-    @property
+    @cached_property
     def schema(self):
-        schema = super(BaseRelationship, self).schema
-        if self.envelope is not None:
-            schema.envelope = self.envelope
-        if self.envelope_remove_key is not None:
-            schema.envelope_remove_key = self.envelope_remove_key
-        return schema
+        return super(BaseRelationship, self).schema
+
+    def _serialize(self, nested_obj, attr, obj):
+        if self.polymorphic:
+            objects = nested_obj
+            if not self.many:
+                objects = [nested_obj]
+            result = []
+            for polymorphic_object in objects:
+                polymorphic_relationship = self._get_field_for_polymorphic(
+                    polymorphic_object.__class__)
+                result.append(
+                    polymorphic_relationship._serialize(
+                        polymorphic_object, attr, obj))
+            if len(result) == 1 and not self.many:
+                result = result[0]
+            return result
+
+        return super(BaseRelationship, self)._serialize(nested_obj, attr, obj)
+
+    def _deserialize(self, value, attr, data):
+        if self.polymorphic:
+            serialized = value
+            if not self.many:
+                serialized = [value]
+            result = []
+            for polymorphic_serialized in serialized:
+                polymorphic_type = get_polymorphic_model(polymorphic_serialized)
+                polymorphic_relationship = self._get_field_for_polymorphic(
+                    polymorphic_type)
+                result.append(
+                    polymorphic_relationship._deserialize(
+                        polymorphic_serialized, attr, data))
+            if len(result) == 1 and not self.many:
+                result = result[0]
+            return result
+
+        if self.many and not self._is_collection(value):
+            self.fail('type', input=value, type=value.__class__.__name__)
+        data, errors = self.schema.load(value)
+        if errors:
+            raise ValidationError(errors, data=data)
+        return data
+
+    def _get_field_for_polymorphic(self, model):
+        relationship_copy = object.__new__(self.__class__)
+        relationship_copy.__dict__ = dict(self.__dict__)
+        relationship_copy.__dict__.pop('model', None)
+        relationship_copy.__dict__.pop('nested', None)
+        relationship_copy.__dict__.pop('schema', None)
+        relationship_copy.model = model
+        relationship_copy.many = False
+        relationship_copy.polymorphic = False
+        return relationship_copy
+
+    def _is_collection(self, value):
+        return isinstance(value, Mapping) or utils.is_collection(value)
 
     def contribute_to_class(self, cls, attrname):
         if (not self.ignore_in_file and
@@ -179,18 +232,3 @@ class HasMany(BaseRelationship):
     def __init__(self, *args, **kwargs):
         kwargs['many'] = True
         super(HasMany, self).__init__(*args, **kwargs)
-
-    def _deserialize(self, value, attr, data):
-        if self.many and not self._is_collection(value):
-            self.fail('type', input=value, type=value.__class__.__name__)
-        data, errors = self.schema.load(value)
-        if errors:
-            raise ValidationError(errors, data=data)
-        return data
-
-    def _is_collection(self, value):
-        return (isinstance(value, Mapping)
-                if (self.envelope
-                    if self.envelope is not None
-                    else self.model.opts.envelope)
-                else utils.is_collection(value))

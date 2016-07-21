@@ -1,10 +1,9 @@
 from collections import OrderedDict, Sequence
 
 from marshmallow import schema
-from six import iteritems
+from six import iteritems, string_types
 
-from slyd.orm.decorators import pre_dump, post_dump, pre_load, post_load
-from slyd.orm.utils import unwrap_envelopes, wrap_envelopes
+from slyd.orm.decorators import pre_dump, post_dump, post_load
 
 __all__ = [
     'BaseFileSchema',
@@ -23,28 +22,25 @@ class FileSchemaOpts(schema.SchemaOpts):
         self.ordered = True
         # the model from which the Schema was created, required
         self.model = getattr(meta, 'model')
-        # whether to wrap the output in an envelope keyed by primary key
-        self.envelope = getattr(meta, 'envelope', False)
-        if not isinstance(self.envelope, bool):
-            raise ValueError("'envelope' option must be a boolean.")
-        # whether to remove the key from the body of the enveloped object
-        self.envelope_remove_key = getattr(meta, 'envelope_remove_key', False)
-        if not isinstance(self.envelope_remove_key, bool):
-            raise ValueError("'envelope_remove_key' option must be a boolean.")
+        self.polymorphic = getattr(meta, 'polymorphic', False)
+        # whether to include the model name in the serialized output, if a
+        # string use that as the output attribute, otherwise uses 'type'
+        if not isinstance(self.polymorphic, (bool, string_types)):
+            raise ValueError(
+                "'polymorphic' option must be a string or boolean.")
 
 
 class BaseFileSchema(schema.Schema):
     OPTIONS_CLASS = FileSchemaOpts
 
-    def __init__(self, envelope=None, envelope_remove_key=None,
-                 *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(BaseFileSchema, self).__init__(*args, **kwargs)
-        self.envelope = (envelope
-                         if envelope is not None
-                         else self.opts.envelope)
-        self.envelope_remove_key = (envelope_remove_key
-                                    if envelope_remove_key is not None
-                                    else self.opts.envelope_remove_key)
+        if self.opts.polymorphic:
+            self.extra = self.extra or {}
+            polymorphic_key = self.opts.polymorphic
+            if isinstance(polymorphic_key, bool):
+                polymorphic_key = 'type'
+            self.extra[polymorphic_key] = self.opts.model.__name__
 
     def __getattr__(self, item):
         # try to resolve missing attributes from the model
@@ -52,13 +48,6 @@ class BaseFileSchema(schema.Schema):
 
     def get_attribute(self, attr, obj, default):
         return super(BaseFileSchema, self).get_attribute(attr, obj, default)
-
-    @pre_load(pass_many=True)
-    def unwrap_envelopes(self, data, many):
-        if self.envelope:
-            return unwrap_envelopes(data, many, self.opts.model._pk_field,
-                                    self.envelope_remove_key)
-        return data
 
     @post_load
     def create_object(self, data):
@@ -81,13 +70,6 @@ class BaseFileSchema(schema.Schema):
         sorted, while collections can maintain their insertion order
         """
         return OrderedDict((item for item in sorted(iteritems(data))))
-
-    @post_dump(pass_many=True)
-    def wrap_envelopes(self, data, many):
-        if self.envelope:
-            return wrap_envelopes(data, many, self.opts.model._pk_field,
-                                  self.envelope_remove_key)
-        return data
 
     def _do_load(self, data, many=None, *args, **kwargs):
         # support the case where we have only a single field to load and we get
