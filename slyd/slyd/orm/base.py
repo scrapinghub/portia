@@ -9,9 +9,10 @@ from toposort import toposort_flatten
 
 from slyd.orm.collection import ModelCollection
 from slyd.orm.deletion import Collector
-from slyd.orm.exceptions import ImproperlyConfigured, PathResolutionError
+from slyd.orm.exceptions import (ImproperlyConfigured, PathResolutionError,
+                                 ValidationError)
 from slyd.orm.fields import Field, DependantField
-from slyd.orm.registry import models
+from slyd.orm.registry import models, get_polymorphic_model
 from slyd.orm.relationships import BaseRelationship
 from slyd.orm.schemas import BaseFileSchema
 from slyd.orm.snapshots import ModelSnapshots
@@ -39,12 +40,10 @@ class ModelOpts(object):
         if self.owner and not isinstance(model._fields.get(self.owner),
                                          BaseRelationship):
             raise ValueError("'owner' option must be a relationship name.")
-        self.envelope = getattr(meta, 'envelope', False)
-        if not isinstance(self.envelope, bool):
-            raise ValueError("'envelope' option must be a boolean.")
-        self.envelope_remove_key = getattr(meta, 'envelope_remove_key', False)
-        if not isinstance(self.envelope_remove_key, bool):
-            raise ValueError("'envelope_remove_key' option must be a boolean.")
+        self.polymorphic = getattr(meta, 'polymorphic', False)
+        if not isinstance(self.polymorphic, (bool, string_types)):
+            raise ValueError(
+                "'polymorphic' option must be a string or boolean.")
 
 
 class ModelMeta(type):
@@ -60,27 +59,36 @@ class ModelMeta(type):
                 u"A Model named '{}' already exists".format(name))
 
         meta = attrs.pop('Meta', None)
+        meta_bases = tuple(parent.Meta for parent in parents) + (object,)
+        if meta:
+            meta_bases = (meta,) + meta_bases
+        meta = type('Meta', meta_bases, {})
+
         primary_key = None
         fields = {}
-        basic_attrs = {}
+        basic_attrs = {
+            'Meta': meta,
+        }
         file_schema_attrs = {}
 
-        for attrname, value in iteritems(attrs):
-            if isinstance(value, BaseRelationship):
-                fields[attrname] = value
-            elif isinstance(value, Field):
-                if value.primary_key:
-                    if primary_key:
-                        raise ImproperlyConfigured(
-                            u"Model '{}' declared with more than one primary "
-                            u"key".format(name))
-                    primary_key = attrname
-                fields[attrname] = value
-            # move decorated marshmallow methods to the file schema
-            elif hasattr(value, '__marshmallow_tags__'):
-                file_schema_attrs[attrname] = value
-            else:
-                basic_attrs[attrname] = value
+        for attrs in chain([attrs], (getattr(parent, '_class_attrs', {})
+                                     for parent in parents)):
+            for attrname, value in iteritems(attrs):
+                if isinstance(value, BaseRelationship):
+                    fields[attrname] = value
+                elif isinstance(value, Field):
+                    if value.primary_key:
+                        if primary_key:
+                            raise ImproperlyConfigured(
+                                u"Model '{}' declared with more than one primary "
+                                u"key".format(name))
+                        primary_key = attrname
+                    fields[attrname] = value
+                # move decorated marshmallow methods to the file schema
+                elif hasattr(value, '__marshmallow_tags__'):
+                    file_schema_attrs[attrname] = value
+                else:
+                    basic_attrs[attrname] = value
 
         if fields and not primary_key:
             raise ImproperlyConfigured(
@@ -99,7 +107,12 @@ class ModelMeta(type):
         except ValueError as e:
             raise ImproperlyConfigured(e.message)
 
+        class_attrs = {}
+        class_attrs.update(fields)
+        class_attrs.update(file_schema_attrs)
+        class_attrs.update(basic_attrs)
         cls = super(ModelMeta, mcs).__new__(mcs, name, bases, basic_attrs)
+        cls._class_attrs = class_attrs
         cls._pk_field = primary_key
         cls._fields = fields
         cls._ordered_fields = ordered_fields
@@ -120,8 +133,7 @@ class ModelMeta(type):
             field.contribute_to_class(cls, attrname)
 
         # build a marshmallow schema for the filesystem format
-        meta_bases = (meta, object) if meta else (object,)
-        file_schema_attrs['Meta'] = type('Meta', meta_bases, {
+        file_schema_attrs['Meta'] = type('Meta', (meta,), {
             'model': cls
         })
         cls.file_schema = type(cls.__name__ + 'Schema', (BaseFileSchema,),
@@ -204,17 +216,28 @@ class Model(with_metaclass(ModelMeta)):
                     u"'{}' is not a field of model '{}'".format(
                         attrname, self.__class__.__name__))
 
+        errors = {}
         self._initializing = set(kwargs.keys())
         for attrname in self._ordered_fields:
             if attrname in kwargs:
-                setattr(self, attrname, kwargs[attrname])
+                try:
+                    setattr(self, attrname, kwargs[attrname])
+                except ValidationError as err:
+                    errors[attrname] = err.messages
         self._initializing.clear()
+
+        if errors:
+            raise ValidationError(errors)
 
     def __eq__(self, other):
         if isinstance(other, Model):
             return other.data_key == self.data_key
         if isinstance(other, tuple):
-            return other == self.data_key
+            self_class, self_pk = self.data_key
+            other_class, other_pk = other
+            return self_pk == other_pk and (
+                issubclass(self_class, other_class) or
+                issubclass(other_class, self_class))
         return False
 
     def __ne__(self, other):
@@ -389,19 +412,20 @@ class Model(with_metaclass(ModelMeta)):
     def _get_object_to_dump(self, model, parent_snapshots):
         child = model
         while child.opts.owner:
-            parent_field = child.opts.owner
-            parent = getattr(
-                child.with_snapshots(parent_snapshots),
-                parent_field)
+            parent = child._get_parent_object(parent_snapshots)
             if isinstance(parent, ModelCollection):
                 parent = next(iter(parent))
             to_save = getattr(
                 parent.with_snapshots(('staged', 'committed')),
-                child._fields[parent_field].related_name)
+                child._fields[child.opts.owner].related_name)
             child = parent
         if child.__class__ is model.__class__._file_model:
             to_save = child
         return to_save
+
+    def _get_parent_object(self, parent_snapshots):
+        parent_field = self.opts.owner
+        return getattr(self.with_snapshots(parent_snapshots), parent_field)
 
     def _staged_model_references(self, load_relationships=False):
         for name, field in iteritems(self._fields):
@@ -490,7 +514,7 @@ class Model(with_metaclass(ModelMeta)):
         if not path:
             return
 
-        many = cls.opts.owner
+        many = bool(cls.opts.owner)
         if instance and many:
             try:
                 instance.data_store.get(instance._pk_field)
@@ -506,11 +530,29 @@ class Model(with_metaclass(ModelMeta)):
                 return cls.collection()
             return instance  # may be None
 
-        file_schema = cls._file_model.file_schema
         file_data = json.loads(storage.open(path).read(),
                                object_pairs_hook=OrderedDict)
-        result = file_schema(context={'storage': storage})\
-            .load(file_data, many=many).data
+
+        if cls.opts.polymorphic:
+            if not many:
+                file_data = [file_data]
+            collection_type = cls.__bases__[0]
+            result = collection_type.collection()
+            for polymorphic_data in file_data:
+                polymorphic_type = get_polymorphic_model(polymorphic_data)
+                polymorphic_schema = polymorphic_type._file_model.file_schema
+                result.append(
+                    polymorphic_schema(
+                        context={'storage': storage}).load(
+                            polymorphic_data).data)
+            if len(result) == 1 and not many:
+                result = result[0]
+            return result
+
+        file_schema = cls._file_model.file_schema
+        result = file_schema(
+            context={'storage': storage}).load(
+                file_data, many=many).data
         return result
 
     @classmethod

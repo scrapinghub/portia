@@ -1,14 +1,16 @@
-from collections import OrderedDict
+from collections import deque, OrderedDict
 
-from six import iteritems
+from six import iteritems, iterkeys, itervalues
 
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slyd.orm.base import Model
 from slyd.orm.decorators import pre_load, post_dump
+from slyd.orm.exceptions import PathResolutionError
 from slyd.orm.fields import (Boolean, Domain, Integer, List, Regexp, String, Url,
                              DependantField, BelongsTo, HasMany,
                              CASCADE, CLEAR, PROTECT)
+from slyd.orm.utils import unwrap_envelopes, wrap_envelopes
 from slyd.orm.validators import OneOf
 from slyd.utils import short_guid
 
@@ -51,8 +53,10 @@ class Schema(Model):
     class Meta:
         path = u'items.json'
         owner = 'project'
-        envelope = True
-        envelope_remove_key = True
+
+    @pre_load(pass_many=True)
+    def unwrap_envelopes(self, data, many):
+        return unwrap_envelopes(data, many, 'id', True)
 
     @pre_load
     def name_from_id(self, data):
@@ -77,6 +81,10 @@ class Schema(Model):
             del data['auto_created']
         return data
 
+    @post_dump(pass_many=True)
+    def wrap_envelopes(self, data, many):
+        return wrap_envelopes(data, many, 'id', True)
+
 
 class Field(Model):
     id = String(primary_key=True)
@@ -93,10 +101,13 @@ class Field(Model):
     class Meta:
         path = u'items.json'
         owner = 'schema'
-        envelope = True
 
     def __repr__(self):
         return super(Field, self).__repr__('name', 'type')
+
+    @pre_load(pass_many=True)
+    def unwrap_envelopes(self, data, many):
+        return unwrap_envelopes(data, many, 'id', False)
 
     @pre_load
     def name_from_id(self, data):
@@ -120,6 +131,10 @@ class Field(Model):
             del data['auto_created']
         return data
 
+    @post_dump(pass_many=True)
+    def wrap_envelopes(self, data, many):
+        return wrap_envelopes(data, many, 'id', False)
+
 
 class Extractor(Model):
     id = String(primary_key=True)
@@ -136,7 +151,10 @@ class Extractor(Model):
     class Meta:
         path = u'extractors.json'
         owner = 'project'
-        envelope = True
+
+    @pre_load(pass_many=True)
+    def unwrap_envelopes(self, data, many):
+        return unwrap_envelopes(data, many, 'id', False)
 
     @pre_load
     def to_type_and_value(self, data):
@@ -161,6 +179,10 @@ class Extractor(Model):
             else:  # type_ == 'regex'
                 data['regular_expression'] = value
         return data
+
+    @post_dump(pass_many=True)
+    def wrap_envelopes(self, data, many):
+        return wrap_envelopes(data, many, 'id', False)
 
 
 class Spider(Model):
@@ -242,6 +264,15 @@ class Spider(Model):
 
 class OrderedAnnotationsMixin(object):
     @property
+    def ordered_children(self):
+        children = BaseAnnotation.collection()
+        for annotation in self.annotations:
+            children.append(annotation)
+            if isinstance(annotation, Item):
+                children.extend(annotation.ordered_children)
+        return children
+
+    @property
     def ordered_annotations(self):
         annotations = Annotation.collection()
         for annotation in self.annotations:
@@ -252,13 +283,13 @@ class OrderedAnnotationsMixin(object):
         return annotations
 
     @property
-    def ordered_children(self):
-        children = []
+    def ordered_items(self):
+        items = Item.collection()
         for annotation in self.annotations:
-            children.append(annotation)
             if isinstance(annotation, Item):
-                children.extend(annotation.ordered_annotations)
-        return children
+                items.append(annotation)
+                items.extend(annotation.ordered_items)
+        return items
 
 
 class Sample(Model, OrderedAnnotationsMixin):
@@ -308,6 +339,7 @@ class Sample(Model, OrderedAnnotationsMixin):
                 annotation.update({
                     'repeated_selector': None,
                     'children': [],
+                    'type': 'Item',
                 })
                 items.append(annotation)
             else:
@@ -317,51 +349,59 @@ class Sample(Model, OrderedAnnotationsMixin):
                     items.append(dict(annotation, **{
                         'data': {
                             data_id: annotation_data,
-                        }
+                        },
+                        'type': 'Annotation',
                     }))
 
         for item in items:
             container_id = item.get('container_id')
-            if not container_id:
-                continue
             if 'repeated' in item and item.pop('repeated'):
                 parent = containers.pop(container_id)
-                item['container_id'] = None
+                container_id = item['container_id'] = parent['container_id']
                 item['repeated_selector'] = item['selector']
                 item['selector'] = parent['selector']
                 item['siblings'] = parent['siblings'] or item['siblings']
                 item['schema_id'] = parent['schema_id'] or item['schema_id']
-            else:
+                if container_id:
+                    containers[container_id]['children'].remove(parent)
+            if container_id:
                 containers[container_id]['children'].append(item)
 
-        data['items'] = containers.values()
+        data['items'] = [container
+                         for container in itervalues(containers)
+                         if container.get('container_id') is None]
         return data
 
     @post_dump
     def add_fields(self, data):
-        data_items = data.pop('items', [])
-        items = []
-        for item in data_items:
-            children = item.pop('children', [])
-            repeated_selector = item.pop('repeated_selector', None)
-            if repeated_selector:
-                parent_id = '{}#parent'.format(item['id'])
-                items.append(OrderedDict(item, **{
-                    'id': parent_id,
-                    'repeated': False,
-                }))
-                items.append(OrderedDict(item, **{
-                    'container_id': parent_id,
-                    'repeated': True,
-                    'selector': repeated_selector,
-                }))
+        items = data.pop('items', [])
+        queue = deque(items)
+        output_annotations = []
+        while queue:
+            annotation = queue.popleft()
+            if annotation.get('item_container'):
+                children = annotation.pop('children', [])
+                repeated_selector = annotation.pop('repeated_selector', None)
+                if repeated_selector:
+                    parent_id = '{}#parent'.format(annotation['id'])
+                    output_annotations.append(OrderedDict(annotation, **{
+                        'id': parent_id,
+                        'repeated': False,
+                    }))
+                    output_annotations.append(OrderedDict(annotation, **{
+                        'container_id': parent_id,
+                        'repeated': True,
+                        'selector': repeated_selector,
+                    }))
+                else:
+                    output_annotations.append(annotation)
+                queue.extendleft(reversed(children))
             else:
-                items.append(item)
-            items.extend(children)
+                output_annotations.append(annotation)
 
         scrapes = None
-        for item in data_items:
-            scrapes = item.get('schema_id')
+        for annotation in output_annotations:
+            scrapes = annotation.get('schema_id')
             if scrapes:
                 break
 
@@ -369,7 +409,7 @@ class Sample(Model, OrderedAnnotationsMixin):
             'extractors': data.get('extractors', {}),
             'plugins': {
                 'annotations-plugin': {
-                    'extracts': items,
+                    'extracts': output_annotations,
                 },
             },
             'scrapes': scrapes,
@@ -379,21 +419,26 @@ class Sample(Model, OrderedAnnotationsMixin):
         return OrderedDict(sorted(iteritems(data)))
 
 
-class Item(Model, OrderedAnnotationsMixin):
+class BaseAnnotation(Model):
     id = String(primary_key=True)
+    parent = BelongsTo('Item', related_name='annotations', on_delete=CASCADE,
+                       only='id')
+
+    class Meta:
+        polymorphic = True
+
+
+class Item(BaseAnnotation, OrderedAnnotationsMixin):
     name = String(allow_none=True, load_from='field', dump_to='field')
     selector = String(allow_none=True, default=None)
     repeated_selector = String(allow_none=True, default=None)
     siblings = Integer(default=0)
     sample = BelongsTo(Sample, related_name='items', on_delete=CASCADE,
-                       ignore_in_file=True, load_from='sample_id',
-                       dump_to='sample_id')
-    # parent = BelongsTo('Item', related_name='orderedChildren',
-    #                    on_delete=CASCADE, ignore_in_file=True)
+                       ignore_in_file=True)
     schema = BelongsTo(Schema, related_name='items', on_delete=PROTECT,
-                       load_from='schema_id', dump_to='schema_id',
-                       only='id', envelope=False)
-    annotations = HasMany('Annotation', related_name='parent', on_delete=CLEAR,
+                       load_from='schema_id', dump_to='schema_id', only=('id',))
+    annotations = HasMany(BaseAnnotation, related_name='parent',
+                          polymorphic=True, on_delete=CLEAR,
                           load_from='children', dump_to='children')
 
     class Meta:
@@ -404,6 +449,39 @@ class Item(Model, OrderedAnnotationsMixin):
         return super(Item, self).__repr__('name', 'selector',
                                           'repeated_selector')
 
+    @property
+    def owner_sample(self):
+        if self.sample:
+            return self.sample
+        if self.parent:
+            return self.parent.owner_sample
+        return None
+
+    @classmethod
+    def storage_path(cls, data, snapshots=None):
+        # in the nested item case try to get the path from parent
+        try:
+            return super(Item, cls).storage_path(data, snapshots)
+        except PathResolutionError as e:
+            if isinstance(data, cls):
+                try:
+                    parent = data.data_store.get('parent', snapshots=snapshots)
+                except KeyError:
+                    raise e
+                return cls.storage_path(parent, snapshots)
+            raise e
+
+    def _get_parent_object(self, parent_snapshots):
+        return self.with_snapshots(parent_snapshots).owner_sample
+
+    @pre_load
+    def wrap_schema_envelopes(self, data):
+        if 'schema_id' in data:
+            data['schema_id'] = {
+                data['schema_id']: {}
+            }
+        return data
+
     @pre_load
     def remove_attributes(self, data):
         # remove the unused annotations attribute since it will conflict with
@@ -412,13 +490,20 @@ class Item(Model, OrderedAnnotationsMixin):
         data.pop('annotations', None)
         return data
 
+    @pre_load
+    def add_field(self, data):
+        data.setdefault('field', None)
+        return data
+
     @post_dump
     def add_attributes(self, data):
+        if data.get('field') is None:
+            data.pop('field', None)
         data.update({
             'annotations': {
                 '#portia-content': '#dummy',
             },
-            'container_id': None,
+            'container_id': data.pop('parent', None),
             'item_container': True,
             'repeated': bool(data.get('repeated_selector')),
             'required': [],
@@ -427,9 +512,20 @@ class Item(Model, OrderedAnnotationsMixin):
         })
         return OrderedDict(sorted(iteritems(data)))
 
+    @post_dump
+    def remove_type(self, data):
+        data.pop('type')
+        return data
 
-class Annotation(Model):
-    id = String(primary_key=True)
+    @post_dump
+    def unwrap_schema_envelopes(self, data):
+        if 'schema_id' in data:
+            data['schema_id'] = (data['schema_id'] and
+                                 next(iterkeys(data['schema_id'])))
+        return data
+
+
+class Annotation(BaseAnnotation):
     attribute = String(default='content')
     required = Boolean(default=False)
     selection_mode = String(default='auto', validate=OneOf(
@@ -440,12 +536,10 @@ class Annotation(Model):
     reject_selectors = List(String)
     pre_text = String(allow_none=True, default=None)
     post_text = String(allow_none=True, default=None)
-    parent = BelongsTo(Item, related_name='annotations', on_delete=CASCADE,
-                       only='id')
     field = BelongsTo(Field, related_name='annotations', on_delete=PROTECT,
-                      only='id', envelope=False)
+                      only=('id',))
     extractors = HasMany(Extractor, related_name='annotations',
-                         on_delete=PROTECT, only='id', envelope=False)
+                         on_delete=PROTECT, only=('id',))
 
     class Meta:
         path = (u'spiders/{self.parent.sample.spider.id}'
@@ -456,8 +550,22 @@ class Annotation(Model):
         return super(Annotation, self).__repr__('attribute', 'selector')
 
     @property
-    def sample(self):
-        return self.parent.sample
+    def owner_sample(self):
+        return self.parent.owner_sample
+
+    @classmethod
+    def storage_path(cls, data, snapshots=None):
+        # in the nested item case try to get the path from parent
+        try:
+            return super(Annotation, cls).storage_path(data, snapshots)
+        except PathResolutionError as e:
+            if isinstance(data, cls):
+                try:
+                    parent = data.data_store.get('parent', snapshots=snapshots)
+                except KeyError:
+                    raise e
+                return Item.storage_path(parent, snapshots)
+            raise e
 
     @classmethod
     def generate_pk(cls, storage):
@@ -472,20 +580,33 @@ class Annotation(Model):
         # there should only be one key in data['data'], annotations with
         # multiple data keys are split in the Sample's pre_load
         data_id, annotation_data = next(iteritems(data['data']))
+
+        field = annotation_data['field'] or None
+        if field:
+            field = {
+                field: {
+                    'id': field
+                }
+            }
+        extractors = OrderedDict([
+            (extractor, {
+                'id': extractor
+            }) for extractor in annotation_data['extractors'] or []])
+
         return {
             'id': '{}|{}'.format(data['id'], data_id),
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
             'required': annotation_data['required'] or False,
-            'selection_mode': data.get('selection_mode'),
+            'selection_mode': data.get('selection_mode') or 'auto',
             'selector': data['selector'] or None,
             'xpath': data.get('xpath') or None,
             'accept_selectors': data['accept_selectors'] or [],
             'reject_selectors': data['reject_selectors'] or [],
-            'pre_text': data['pre_text'] or None,
-            'post_text': data['post_text'] or None,
-            'field': annotation_data['field'] or None,
-            'extractors': annotation_data['extractors'] or [],
+            'pre_text': data.get('pre_text') or None,
+            'post_text': data.get('post_text') or None,
+            'field': field,
+            'extractors': extractors,
         }
 
     @post_dump
@@ -497,8 +618,8 @@ class Annotation(Model):
             ('data', {
                 data_id: OrderedDict([
                     ('attribute', data['attribute']),
-                    ('extractors', data['extractors'] or {}),
-                    ('field', data['field']),
+                    ('extractors', list(iterkeys(data['extractors'])) or {}),
+                    ('field', data['field'] and next(iterkeys(data['field']))),
                     ('required', data['required']),
                 ]),
             }),
