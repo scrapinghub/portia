@@ -14,9 +14,10 @@ from slyd.orm.exceptions import (ImproperlyConfigured, PathResolutionError,
 from slyd.orm.fields import Field, DependantField
 from slyd.orm.registry import models, get_polymorphic_model
 from slyd.orm.relationships import BaseRelationship
-from slyd.orm.schemas import BaseFileSchema
+from slyd.orm.serializers import FileSerializer
 from slyd.orm.snapshots import ModelSnapshots
-from slyd.orm.utils import cached_property, unspecified, AttributeDict
+from slyd.orm.utils import (cached_property, class_property, unspecified,
+                            AttributeDict)
 from slyd.utils import short_guid
 from slyd.utils.storage import ContentFile
 
@@ -94,28 +95,15 @@ class ModelMeta(type):
             raise ImproperlyConfigured(
                 u"Model '{}' declared with no primary key".format(name))
 
-        dependencies = {}
-        for attrname, field in iteritems(fields):
-            if attrname == primary_key:
-                dependencies[attrname] = set()
-            elif isinstance(field, DependantField):
-                dependencies[attrname] = {primary_key, field.when}
-            else:
-                dependencies[attrname] = {primary_key}
-        try:
-            ordered_fields = toposort_flatten(dependencies)
-        except ValueError as e:
-            raise ImproperlyConfigured(e.message)
-
         class_attrs = {}
         class_attrs.update(fields)
         class_attrs.update(file_schema_attrs)
         class_attrs.update(basic_attrs)
         cls = super(ModelMeta, mcs).__new__(mcs, name, bases, basic_attrs)
+
         cls._class_attrs = class_attrs
         cls._pk_field = primary_key
         cls._fields = fields
-        cls._ordered_fields = ordered_fields
         cls._file_fields = file_fields = {k for k, f in iteritems(fields)
                                           if not f.ignore_in_file}
         cls._field_names = sorted(k for k, f in iteritems(fields)
@@ -132,39 +120,25 @@ class ModelMeta(type):
                 file_schema_attrs[attrname] = field
             field.contribute_to_class(cls, attrname)
 
+        # compute an safe order for setting fields during construction
+        try:
+            cls._ordered_fields = toposort_flatten({
+                attrname: field.get_dependencies(cls)
+                for attrname, field in iteritems(fields)
+            })
+        except ValueError as e:
+            raise ImproperlyConfigured(e.message)
+
         # build a marshmallow schema for the filesystem format
         file_schema_attrs['Meta'] = type('Meta', (meta,), {
             'model': cls
         })
-        cls.file_schema = type(cls.__name__ + 'Schema', (BaseFileSchema,),
-                               file_schema_attrs)
+        cls.file_schema = type(cls.__name__ + 'FileSerializer',
+                               (FileSerializer,), file_schema_attrs)
 
         # add new model to registry by name
         models[name] = cls
         return cls
-
-    @property
-    def _file_model(cls):
-        """Find the top-level model stored in this model's path."""
-        model = getattr(cls, '_cached_file_model', unspecified)
-        if model is not unspecified:
-            return model
-
-        path = cls.opts.path
-        model = cls
-        while True:
-            if model.opts.owner:
-                try:
-                    owner = model._fields[model.opts.owner].model
-                    path = re.sub(r'{{self.{}(\.|}})'.format(model.opts.owner),
-                                  '{self\\1', path)
-                    if owner is not model and owner.opts.path == path:
-                        model = owner
-                        continue
-                except KeyError:
-                    pass
-            cls._cached_file_model = model
-            return model
 
 
 class Model(with_metaclass(ModelMeta)):
@@ -279,6 +253,29 @@ class Model(with_metaclass(ModelMeta)):
         if copy.data_store is not self.data_store:
             copy.data_store.copy_from(self.data_store)
         return copy
+
+    @class_property
+    def _file_model(cls):
+        """Find the top-level model stored in this model's path."""
+        model = getattr(cls, '_cached_file_model', unspecified)
+        if model is not unspecified:
+            return model
+
+        path = cls.opts.path
+        model = cls
+        while True:
+            if model.opts.owner:
+                try:
+                    owner = model._fields[model.opts.owner].model
+                    path = re.sub(r'{{self.{}(\.|}})'.format(model.opts.owner),
+                                  '{self\\1', path)
+                    if owner is not model and owner.opts.path == path:
+                        model = owner
+                        continue
+                except KeyError:
+                    pass
+            cls._cached_file_model = model
+            return model
 
     @classmethod
     def generate_pk(cls, storage):
@@ -419,7 +416,7 @@ class Model(with_metaclass(ModelMeta)):
                 parent.with_snapshots(('staged', 'committed')),
                 child._fields[child.opts.owner].related_name)
             child = parent
-        if child.__class__ is model.__class__._file_model:
+        if child.__class__ is model._file_model:
             to_save = child
         return to_save
 

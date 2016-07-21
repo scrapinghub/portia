@@ -40,7 +40,6 @@ def CASCADE_AUTO_OR_CLEAR(collector, instance, field_name, related_instance):
 
 
 class Schema(Model):
-    # TODO: resolve project from schema
     id = String(primary_key=True)
     name = String(required=True)
     auto_created = Boolean(default=False)
@@ -61,7 +60,6 @@ class Schema(Model):
     @pre_load
     def name_from_id(self, data):
         if 'name' not in data:
-            # display_name ?
             data['name'] = data['id']
         return data
 
@@ -192,7 +190,6 @@ class Spider(Model):
     # TODO: generated urls
     links_to_follow = String(default='all', validate=OneOf(
         ['none', 'patterns', 'all', 'auto']))
-    # TODO: compute automatically from start urls
     allowed_domains = List(Domain)
     respect_nofollow = Boolean(default=True)
     follow_patterns = List(Regexp)
@@ -355,7 +352,7 @@ class Sample(Model, OrderedAnnotationsMixin):
 
         for item in items:
             container_id = item.get('container_id')
-            if 'repeated' in item and item.pop('repeated'):
+            if item.pop('repeated', False):
                 parent = containers.pop(container_id)
                 container_id = item['container_id'] = parent['container_id']
                 item['repeated_selector'] = item['selector']
@@ -633,74 +630,3 @@ class Annotation(BaseAnnotation):
             ('tagid', None),
             ('xpath', data['xpath']),
         ])
-
-
-def init_storage():
-    from slyd_dash import settings
-    from slyd.gitstorage import repo
-    from slyd.utils.storage import GitStorage
-    from slyd.gitstorage.repoman import Repoman
-
-    rs = dict(settings.SPEC_FACTORY.get('PARAMS'))
-    del rs['dash_url']
-    Repoman.setup(**rs)
-    repo.set_db_url(rs['location'])
-    connection = repo.connection_pool.connectionFactory(repo.connection_pool)
-
-    repo = Repoman.open_repo('2222238', connection, author='michal <>')
-    storage = GitStorage(repo, branch='staff')
-    return storage
-
-
-if __name__ == '__main__':
-    storage = init_storage()
-
-    # print storage.open('items.json').read()
-    # print storage.open('extractors.json').read()
-    # print storage.listdir('spiders')
-    # print storage.listdir('spiders/owlkingdom.com')
-    # print storage.open('spiders/owlkingdom.com.json').read()
-    print storage.open('spiders/owlkingdom.com/390e-4b11-94ce.json').read()
-    exit(0)
-    # print
-
-    # import sys
-    # sys.setrecursionlimit(100)
-
-    project = Project(storage, name='2222238')
-    print project
-    print
-
-    # print project.schemas
-    # print
-
-    print project.schemas['5118-4990-9ee0'].fields['02bc-4d7f-bd53']
-    print
-
-    print project.extractors['e6fc-4758-9e6b']
-    print
-
-    spider = Spider(storage, id='owlkingdom.com')
-    print spider
-    # print spider.samples
-    # print spider.samples['1ddc-4043-ac4d']
-    # print spider.dumps()
-    print
-
-    sample = Sample(storage, id='1ddc-4043-ac4d', spider=spider)
-    print sample
-    print sample.dumps()
-    print spider.samples
-    print spider.samples['1ddc-4043-ac4d']
-    print spider.dumps()
-    print
-
-    # # partial_spider = Spider(storage, id='owlkingdom.com')
-    # partial_sample = Sample(storage, id='1ddc-4043-ac4d', spider=spider)
-    # print partial_sample
-    # print partial_sample.dumps()
-    # print
-
-    # print partial_spider
-    # print partial_spider.dumps()
-    # print

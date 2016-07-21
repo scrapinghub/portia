@@ -8,6 +8,7 @@ from slyd.orm.exceptions import ValidationError
 __all__ = [
     'cached_property',
     'cached_property_ignore_set',
+    'class_property',
     'unspecified',
     'validate_type',
     'AttributeDict',
@@ -17,6 +18,17 @@ __all__ = [
 class cached_property_ignore_set(cached_property):
     def __set__(self, instance, value):
         pass
+
+
+class class_property(object):
+    """A read-only descriptor that works on the class too"""
+    def __init__(self, fget=None):
+        if fget is not None and not isinstance(fget, classmethod):
+            fget = classmethod(fget)
+        self.fget = fget
+
+    def __get__(self, instance, instance_type=None):
+        return self.fget.__get__(instance, instance_type)()
 
 
 unspecified = object()
