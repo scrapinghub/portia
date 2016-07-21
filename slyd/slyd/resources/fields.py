@@ -1,11 +1,9 @@
-from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .route import JsonApiModelRoute
 from ..jsonapi.utils import cached_property
 from ..orm.models import Project, Field
 
 
-class FieldRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                 CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+class FieldRoute(JsonApiModelRoute):
     list_path = 'projects/{project_id}/schemas/{schema_id}/fields'
     detail_path = 'projects/{project_id}/schemas/{schema_id}/fields/{field_id}'
     default_model = Field

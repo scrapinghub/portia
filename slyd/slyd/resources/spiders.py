@@ -1,12 +1,9 @@
 from .projects import ProjectDataMixin, ProjectDownloadMixin
-from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .route import JsonApiModelRoute
 from ..orm.models import Project, Spider
 
 
-class SpiderRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
-                  ListModelMixin, RetrieveModelMixin, CreateModelMixin,
-                  UpdateModelMixin, DestroyModelMixin):
+class SpiderRoute(ProjectDownloadMixin, ProjectDataMixin, JsonApiModelRoute):
     list_path = 'projects/{project_id}/spiders'
     detail_path = 'projects/{project_id}/spiders/{spider_id}'
     download_path = 'projects/{project_id}/download/{spider_id}'

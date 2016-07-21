@@ -1,6 +1,8 @@
 from operator import attrgetter
 
-from slyd.jsonapi.schema import JsonApiSchema
+from six.moves import map
+
+from slyd.jsonapi.serializers import JsonApiSerializer
 from slyd.orm.base import AUTO_PK
 from slyd.orm.exceptions import ProtectedError
 from slyd.orm.models import (Project, Schema, Field, Extractor, Spider, Sample,
@@ -14,7 +16,7 @@ def clear_auto_created(instance):
         instance.save(only=('auto_created',))
 
 
-class ProjectSchema(JsonApiSchema):
+class ProjectSerializer(JsonApiSerializer):
     class Meta:
         model = Project
         url = '/api/projects/{self.id}'
@@ -31,7 +33,7 @@ class ProjectSchema(JsonApiSchema):
         }
 
 
-class SchemaSchema(JsonApiSchema):
+class SchemaSerializer(JsonApiSerializer):
     class Meta:
         model = Schema
         url = '/api/projects/{self.project.id}/schemas/{self.id}'
@@ -57,12 +59,13 @@ class SchemaSchema(JsonApiSchema):
         }
 
     def update(self, instance, validated_data):
-        instance = super(SchemaSchema, self).update(instance, validated_data)
+        instance = super(SchemaSerializer, self).update(
+            instance, validated_data)
         clear_auto_created(instance)
         return instance
 
 
-class FieldSchema(JsonApiSchema):
+class FieldSerializer(JsonApiSerializer):
     class Meta:
         model = Field
         url = ('/api/projects/{self.schema.project.id}/schemas'
@@ -83,22 +86,22 @@ class FieldSchema(JsonApiSchema):
         }
 
     def create(self, validated_data):
-        field = super(FieldSchema, self).create(validated_data)
+        field = super(FieldSerializer, self).create(validated_data)
         clear_auto_created(field.schema)
         return field
 
     def update(self, instance, validated_data):
-        instance = super(FieldSchema, self).update(instance, validated_data)
+        instance = super(FieldSerializer, self).update(instance, validated_data)
         clear_auto_created(instance)
         clear_auto_created(instance.schema)
         return instance
 
     def delete(self):
         clear_auto_created(self.instance.schema)
-        super(FieldSchema, self).delete()
+        super(FieldSerializer, self).delete()
 
 
-class ExtractorSchema(JsonApiSchema):
+class ExtractorSerializer(JsonApiSerializer):
     class Meta:
         model = Extractor
         url = '/api/projects/{self.project.id}/extractors/{self.id}'
@@ -116,7 +119,7 @@ class ExtractorSchema(JsonApiSchema):
         }
 
 
-class SpiderSchema(JsonApiSchema):
+class SpiderSerializer(JsonApiSerializer):
     class Meta:
         model = Spider
         url = '/api/projects/{self.project.id}/spiders/{self.id}'
@@ -140,10 +143,10 @@ class SpiderSchema(JsonApiSchema):
     def delete(self):
         project = self.instance.project
         project.schemas  # preload schemas and fields
-        super(SpiderSchema, self).delete()
+        super(SpiderSerializer, self).delete()
 
 
-class SampleSchema(JsonApiSchema):
+class SampleSerializer(JsonApiSerializer):
     class Meta:
         model = Sample
         url = ('/api/projects/{self.spider.project.id}/spiders'
@@ -171,7 +174,7 @@ class SampleSchema(JsonApiSchema):
         }
 
     def create(self, validated_data):
-        sample = super(SampleSchema, self).create(validated_data)
+        sample = super(SampleSerializer, self).create(validated_data)
 
         project = sample.spider.project
         schema_names = map(attrgetter('name'), project.schemas)
@@ -186,7 +189,7 @@ class SampleSchema(JsonApiSchema):
         return sample
 
 
-class ItemSchema(JsonApiSchema):
+class ItemSerializer(JsonApiSerializer):
     class Meta:
         model = Item
         url = ('/api/projects/{self.owner_sample.spider.project.id}/spiders'
@@ -216,7 +219,7 @@ class ItemSchema(JsonApiSchema):
         }
 
     def create(self, validated_data):
-        item = super(ItemSchema, self).create(validated_data)
+        item = super(ItemSerializer, self).create(validated_data)
 
         if item.schema is None:
             sample = item.owner_sample
@@ -240,7 +243,7 @@ class ItemSchema(JsonApiSchema):
     def update(self, instance, validated_data):
         current_schema = instance.schema
 
-        instance = super(ItemSchema, self).update(instance, validated_data)
+        instance = super(ItemSerializer, self).update(instance, validated_data)
 
         new_schema = instance.schema
         if new_schema != current_schema:
@@ -276,10 +279,10 @@ class ItemSchema(JsonApiSchema):
             raise ProtectedError(
                 u"Cannot delete item {} because it is the only item in the "
                 u"sample {}".format(instance, sample))
-        super(ItemSchema, self).delete()
+        super(ItemSerializer, self).delete()
 
 
-class AnnotationSchema(JsonApiSchema):
+class AnnotationSerializer(JsonApiSerializer):
     class Meta:
         model = Annotation
         url = ('/api/projects/{self.owner_sample.spider.project.id}/spiders'
@@ -300,7 +303,7 @@ class AnnotationSchema(JsonApiSchema):
         }
 
     def create(self, validated_data):
-        annotation = super(AnnotationSchema, self).create(validated_data)
+        annotation = super(AnnotationSerializer, self).create(validated_data)
 
         if annotation.field is None:
             project = annotation.owner_sample.spider.project
@@ -319,7 +322,7 @@ class AnnotationSchema(JsonApiSchema):
     def update(self, instance, validated_data):
         current_field = instance.field
 
-        instance = super(AnnotationSchema, self).update(
+        instance = super(AnnotationSerializer, self).update(
             instance, validated_data)
 
         new_field = instance.field

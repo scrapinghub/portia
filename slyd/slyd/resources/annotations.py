@@ -1,11 +1,9 @@
-from .route import (JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                    CreateModelMixin, UpdateModelMixin, DestroyModelMixin)
+from .route import JsonApiModelRoute
 from ..jsonapi.utils import cached_property
 from ..orm.models import Project, BaseAnnotation, Annotation
 
 
-class AnnotationRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
-                      CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+class AnnotationRoute(JsonApiModelRoute):
     list_path = ('projects/{project_id}/spiders/{spider_id}/samples'
                  '/{sample_id}/annotations')
     detail_path = ('projects/{project_id}/spiders/{spider_id}/samples'

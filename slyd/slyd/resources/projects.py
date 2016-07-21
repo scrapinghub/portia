@@ -4,7 +4,7 @@ import json
 from django.utils.functional import cached_property
 from six import itervalues, string_types
 
-from .models import ProjectSchema as OldProjectSchema
+from .models import ProjectSchema
 from .response import JsonApiResource, ProjectDownloadResponse
 from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
 from ..errors import BadRequest, BaseError, NotFound
@@ -16,8 +16,8 @@ NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
 class ProjectDownloadMixin(object):
     @classmethod
     def get_resources(cls):
-        for resouce in super(ProjectDownloadMixin, cls).get_resources():
-            yield resouce
+        for resource in super(ProjectDownloadMixin, cls).get_resources():
+            yield resource
         yield 'get', cls.download_path
 
     def get_handler(self):
@@ -221,7 +221,7 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
 
 
 def _check_project_attributes(manager, attributes):
-    attributes = OldProjectSchema().load(attributes).data
+    attributes = ProjectSchema().load(attributes).data
     if 'name' not in attributes:
         raise BadRequest('Bad Request',
                          'Can\'t create a project without a name')

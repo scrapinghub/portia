@@ -6,12 +6,13 @@ from django.utils.functional import cached_property
 from marshmallow import ValidationError
 from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from six import iteritems
+from six.moves import map
 from twisted.web.http import RESPONSES, OK, CREATED, NO_CONTENT, CONFLICT
 
 from .response import (JsonApiResource, JsonApiErrorResponse,
                        JsonApiNotFoundResponse, JsonApiValidationErrorResponse)
 from ..errors import BadRequest, BaseError
-from ..jsonapi.schema import JsonApiPolymorphicSchema
+from ..jsonapi.serializers import JsonApiPolymorphicSerializer
 from ..jsonapi.registry import get_schema
 from ..jsonapi.utils import type_from_model_name
 from ..orm.collection import ModelCollection
@@ -164,7 +165,7 @@ class JsonApiRoute(object):
         params.update(kwargs)
 
         if self.polymorphic:
-            return JsonApiPolymorphicSchema(
+            return JsonApiPolymorphicSerializer(
                 base=self.polymorphic, default_model=self.default_model,
                 instance=instance, data=data, many=many, **params)
 
@@ -292,3 +293,8 @@ class DestroyModelMixin(object):
 
     def perform_destroy(self, serializer):
         return serializer.delete()
+
+
+class JsonApiModelRoute(JsonApiRoute, ListModelMixin, RetrieveModelMixin,
+                        CreateModelMixin, UpdateModelMixin, DestroyModelMixin):
+    pass
