@@ -1,13 +1,11 @@
 from collections import OrderedDict
 import json
 
-from six import iteritems
+from six.moves import map
 from twisted.python.compat import intToBytes
 from twisted.web.http import RESPONSES, NOT_FOUND, BAD_REQUEST
 from twisted.web.server import NOT_DONE_YET
 
-from ..jsonapi.utils import (TOP_LEVEL_OBJECT_ORDER, LINKS_OBJECT_ORDER,
-                             order_dict)
 from ..errors import NotFound
 
 
@@ -41,14 +39,6 @@ class JsonApiResource(BaseApiResource):
                     b' '.join(map(bytes, profiles)))
             request.setHeader(b'content-type', content_type)
 
-            if 'aliases' in data:
-                data['aliases'] = OrderedDict(
-                    sorted(iteritems(data['aliases'])))
-            if 'links' in data:
-                data['links'] = order_dict(data['links'], LINKS_OBJECT_ORDER)
-            if 'meta' in data:
-                data['meta'] = OrderedDict(sorted(iteritems(data['meta'])))
-            data = order_dict(data, TOP_LEVEL_OBJECT_ORDER)
             return json.dumps(data, indent=2)
 
 

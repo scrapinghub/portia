@@ -164,10 +164,20 @@ export default Ember.Service.extend({
     },
 
     addItem(sample, redirect = false) {
-        const store = this.get('store');
-        const item = store.createRecord('item', {
+        return this._addItem({
             sample
-        });
+        }, redirect);
+    },
+
+    addNestedItem(parentItem, redirect = false) {
+        return this._addItem({
+            parent: parentItem
+        }, redirect);
+    },
+
+    _addItem(attributes, redirect = false) {
+        const store = this.get('store');
+        const item = store.createRecord('item', attributes);
         this.saveAnnotationAndRelatedSelectors(item).then(() => {
             if (redirect) {
                 item.set('new', true);
@@ -176,18 +186,6 @@ export default Ember.Service.extend({
             }
         });
         return item;
-    },
-
-    addItemAnnotation(item /*, redirect = false */) {
-        const store = this.get('store');
-        const sample =  item.get('sample');
-        const newItem = store.createRecord('item', {
-            name: `subitem${item.get('annotations.length') + 1}`,
-            parent: item,
-            sample
-        });
-        this.saveAnnotationAndRelatedSelectors(newItem);
-        return newItem;
     },
 
     addAnnotation(item, element, attribute, redirect = false) {
@@ -228,7 +226,7 @@ export default Ember.Service.extend({
     },
 
     saveAnnotationAndRelatedSelectors(annotation) {
-        return annotation.get('sample').then(sample => {
+        return annotation.get('ownerSample').then(sample => {
             const coalesce = [];
             for (let child of sample.get('orderedChildren')) {
                 if (child === annotation) {
@@ -258,7 +256,7 @@ export default Ember.Service.extend({
     
     addAnnotationTypeExtractor(annotation, type) {
         const store = this.get('store');
-        const project = annotation.get('sample.spider.project');
+        const project = annotation.get('ownerSample.spider.project');
         return project.get('extractors').then(extractors => {
             const existing = extractors.find(extractor => {
                 return extractor.get('type') === 'type' && extractor.get('value') === type;
@@ -288,7 +286,7 @@ export default Ember.Service.extend({
 
     addNewAnnotationRegexExtractor(annotation) {
         const store = this.get('store');
-        const project = annotation.get('sample.spider.project');
+        const project = annotation.get('ownerSample.spider.project');
         const extractor = store.createRecord('extractor', {
             project,
             type: 'regex',

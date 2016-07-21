@@ -7,7 +7,6 @@ from six import itervalues, string_types
 from .models import ProjectSchema as OldProjectSchema
 from .response import JsonApiResource, ProjectDownloadResponse
 from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
-from .serializers import ProjectSchema
 from ..errors import BadRequest, BaseError, NotFound
 from ..orm.models import Project
 
@@ -71,7 +70,7 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
     publish_path = 'projects/{project_id}/publish'
     reset_path = 'projects/{project_id}/reset'
     download_path = 'projects/{project_id}/download'
-    serializer_class = ProjectSchema
+    default_model = Project
 
     class FakeStorage(object):
         def exists(self, *args, **kwargs):

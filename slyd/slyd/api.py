@@ -118,7 +118,8 @@ class APIResource(object):
             return JsonApiErrorResponse(error)
         else:
             request.setResponseCode(500)
-            request.write(failure.getErrorMessage())
+            request.setHeader(b'content-type', b'text/plain')
+            request.write(failure.getTraceback())
         request.finish()
         return failure
 
