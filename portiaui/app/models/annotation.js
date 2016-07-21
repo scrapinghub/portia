@@ -1,12 +1,12 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-import BaseModel from './base';
+import BaseAnnotation from './base-annotation';
 import {
     elementPath,
     smartSelector
 } from '../utils/selectors';
 
-export default BaseModel.extend({
+export default BaseAnnotation.extend({
     attribute: DS.attr('string', {
         defaultValue: 'content'
     }),
@@ -31,19 +31,16 @@ export default BaseModel.extend({
     preText: DS.attr('string'),
     postText: DS.attr('string'),
 
-    parent: DS.belongsTo('item', {
-        inverse: 'annotations'
-    }),
     field: DS.belongsTo(),
     extractors: DS.hasMany(),
 
     name: Ember.computed.readOnly('field.name'),
     type: Ember.computed.readOnly('field.type'),
+    ownerSample: Ember.computed.readOnly('parent.ownerSample'),
 
-    orderedIndex: Ember.computed('sample.orderedAnnotations', function() {
-        return (this.get('sample.orderedAnnotations') || []).indexOf(this);
+    orderedIndex: Ember.computed('ownerSample.orderedAnnotations', function() {
+        return (this.get('ownerSample.orderedAnnotations') || []).indexOf(this);
     }),
-    sample: Ember.computed.readOnly('parent.sample'),
 
     updateSelectors: Ember.observer('', function() {
         const selectionMode = this.get('selectionMode');

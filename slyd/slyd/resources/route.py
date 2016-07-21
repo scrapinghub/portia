@@ -11,21 +11,19 @@ from twisted.web.http import RESPONSES, OK, CREATED, NO_CONTENT, CONFLICT
 from .response import (JsonApiResource, JsonApiErrorResponse,
                        JsonApiNotFoundResponse, JsonApiValidationErrorResponse)
 from ..errors import BadRequest, BaseError
+from ..jsonapi.schema import JsonApiPolymorphicSchema
 from ..jsonapi.registry import get_schema
 from ..jsonapi.utils import type_from_model_name
-from ..orm.base import AUTO_PK
 from ..orm.collection import ModelCollection
-from ..orm.exceptions import ImproperlyConfigured, ProtectedError
+from ..orm.exceptions import ProtectedError
 from ..orm.relationships import BelongsTo, HasMany
-
-DELETED_PROFILE = 'https://portia.scrapinghub.com/jsonapi/extensions/deleted'
-UPDATES_PROFILE = 'https://portia.scrapinghub.com/jsonapi/extensions/updates'
 
 
 class JsonApiRoute(object):
     list_path = None
     detail_path = None
-    serializer_class = None
+    default_model = None
+    polymorphic = None
 
     list_method_map = {
         'get': 'list',
@@ -108,113 +106,6 @@ class JsonApiRoute(object):
     def get_collection(self):
         raise NotImplementedError
 
-    @staticmethod
-    def get_empty():
-        return {
-            'meta': {},
-        }
-
-    def add_profile(self, extension, alias, data=None):
-        if data is None:
-            data = {}
-        data.setdefault('aliases', {})[alias] = extension
-        data.setdefault('links', {}).setdefault('profile', []).append(extension)
-        return data
-
-    def add_deleted(self, deleted_instances, main_instance, data):
-        deleted_items = []
-        for deleted in deleted_instances:
-            if deleted is main_instance:
-                continue
-
-            deleted_type = type_from_model_name(deleted.__class__.__name__)
-            deleted_schema = get_schema(deleted_type)
-            deleted_serialized = deleted_schema(only=('id',)).dump(
-                deleted.with_snapshots(('working',))).data.get('data', {})
-            if deleted_serialized:
-                deleted_items.append(deleted_serialized)
-
-        if deleted_items:
-            data = self.add_profile(DELETED_PROFILE, 'deleted', data)
-            data.setdefault('meta', {})['deleted'] = deleted_items
-
-        return data
-
-    def add_updates(self, updated_instances, data):
-        updated_items = []
-        for updated in updated_instances:
-            updated_type = type_from_model_name(updated.__class__.__name__)
-            updated_schema = get_schema(updated_type)
-            updated_serialized = updated_schema(only=('id',)).dump(
-                updated.with_snapshots(('working',))).data.get('data', {})
-            if updated_serialized:
-                updated_items.append(updated_serialized)
-
-        if updated_items:
-            data = self.add_profile(UPDATES_PROFILE, 'updates', data)
-            data.setdefault('meta', {})['updates'] = updated_items
-
-        return data
-
-    def serialize_instance(self, instance, includes=()):
-        kwargs = {}
-        if self.method == 'get':
-            kwargs.update({
-                'current_url': self.path,
-            })
-        kwargs.update(self.get_detail_kwargs())
-        kwargs.update(self.get_request_kwargs())
-        serializer = self.get_serializer(**kwargs)
-        if serializer.opts.model is not instance.__class__:
-            type_ = type_from_model_name(instance.__class__.__name__)
-            # these will not be relevant when serializing a different type
-            kwargs.pop('include_data', None)
-            kwargs.pop('ordering', None)
-            serializer = get_schema(type_)(**kwargs)
-        included_data = serializer.included_data
-        for include in includes:
-            data = self.serialize_instance(include)
-            item = data['data']
-            included_data[(item['type'], item['id'])] = item
-            for item in data.get('included', []):
-                included_data[(item['type'], item['id'])] = item
-        return serializer.dump(instance).data
-
-    def serialize_collection(self, collection, includes=()):
-        kwargs = {
-            'many': True,
-        }
-        if self.method == 'get':
-            kwargs.update({
-                'current_url': self.path,
-            })
-        kwargs.update(self.get_list_kwargs())
-        kwargs.update(self.get_request_kwargs())
-        serializer = self.get_serializer(**kwargs)
-        if serializer.opts.model is not collection.model:
-            type_ = type_from_model_name(collection.model.__name__)
-            serializer = get_schema(type_)(**kwargs)
-        included_data = serializer.included_data
-        for include in includes:
-            data = self.serialize_instance(include)
-            item = data['data']
-            included_data[(item['type'], item['id'])] = item
-            for item in data.get('included', []):
-                included_data[(item['type'], item['id'])] = item
-        return serializer.dump(collection).data
-
-    def deserialize_data(self, data, only=(), partial=False, type_=None):
-        if type_ is None:
-            serializer = self.get_serializer(only=only, partial=partial)
-        else:
-            serializer = get_schema(type_)(only=only, partial=partial)
-        return serializer.load(data).data
-
-    def deserialize_related_model(self, model, id_):
-        return model(self.storage, **{
-            model._pk_field: id_,
-        })
-
     def filter_collection(self, collection):
         if 'filter[id]' in self.query:
             if not isinstance(collection, ModelCollection):
@@ -226,39 +117,60 @@ class JsonApiRoute(object):
 
             collection = collection.__class__((collection[id_] for id_ in ids))
 
-        try:
-            for key, values in iteritems(self.query):
-                if key.startswith('filter[') and key[-1] == ']':
-                    field = key[7:-1]
-                    fields = set()
-                    for field_list in values:
-                        fields.update(field_list.split(','))
+        for key, values in iteritems(self.query):
+            if key.startswith('filter[') and key[-1] == ']':
+                field_name = key[7:-1]
+                field_values = set()
+                for field_list in values:
+                    field_values.update(field_list.split(','))
 
-                    filtered = []
-                    for obj in collection:
-                        if isinstance(obj._fields[field], BelongsTo):
-                            filter_values = {getattr(obj, field).pk}
-                        elif isinstance(obj._fields[field], HasMany):
+                filtered = []
+                for obj in collection:
+                    try:
+                        field = obj._fields[field_name]
+                        if isinstance(field, BelongsTo):
+                            related = getattr(obj, field_name)
+                            filter_values = {related.pk if related else 'null'}
+                        elif isinstance(field, HasMany):
                             filter_values = set(map(attrgetter('pk'),
-                                                    getattr(obj, field)))
+                                                    getattr(obj, field_name)))
                         else:
-                            value = getattr(obj, field)
+                            value = getattr(obj, field_name)
                             if isinstance(value, Sequence):
                                 filter_values = set(value)
                             else:
                                 filter_values = {value}
-                        if filter_values.intersection(fields):
+                        if filter_values.intersection(field_values):
                             filtered.append(obj)
 
-                    collection = collection.__class__(filtered)
-        except (AttributeError, TypeError):
-            # ignore invalid fields
-            pass
+                    except (AttributeError, KeyError, TypeError):
+                        # skip objects which don't have a field
+                        pass
+                collection = collection.__class__(filtered)
 
         return collection
 
-    def get_serializer(self, *args, **kwargs):
-        return self.serializer_class(*args, **kwargs)
+    def get_serializer(self, instance=None, data=None, many=False, **kwargs):
+        params = {}
+        if self.method == 'get':
+            params.update({
+                'current_url': self.path,
+            })
+        if many:
+            params.update(self.get_list_kwargs())
+        else:
+            params.update(self.get_detail_kwargs())
+        params.update(self.get_request_kwargs())
+        params.update(kwargs)
+
+        if self.polymorphic:
+            return JsonApiPolymorphicSchema(
+                base=self.polymorphic, default_model=self.default_model,
+                instance=instance, data=data, many=many, **params)
+
+        type_ = type_from_model_name(self.default_model.__name__)
+        return get_schema(type_)(
+            instance=instance, data=data, many=many, **params)
 
     def get_detail_kwargs(self):
         return {}
@@ -295,154 +207,20 @@ class JsonApiRoute(object):
         return kwargs
 
 
-class BaseUpdateModelMixin(object):
-    def perform_update(self, instance, data, type_=None):
-        if type_ is None:
-            model = self.serializer_class.opts.model
-        else:
-            model = instance.__class__
-
-        attributes = self.deserialize_data(
-            data, partial=set(model._ordered_fields).difference({'id'}),
-            type_=type_)
-
-        fields = []
-        for attrname in model._ordered_fields:
-            if attrname in attributes:
-                value = attributes[attrname]
-                if attrname in model._field_names:
-                    setattr(instance, attrname, value)
-                    fields.append(attrname)
-                elif attrname in model._relationship_names:
-                    # read in existing value to populate data stores
-                    getattr(instance, attrname)
-
-                    related_model = model._fields[attrname].model
-                    if isinstance(value, list):
-                        setattr(instance, attrname, [
-                            self.deserialize_related_model(related_model, v)
-                            for v in value])
-                        fields.append(attrname)
-                    else:
-                        setattr(instance, attrname,
-                                self.deserialize_related_model(
-                                    related_model, value))
-                        fields.append(attrname)
-
-        instance.save(only=fields)
-        return []
-
-    def apply_profile_updates(self):
-        if UPDATES_PROFILE not in self.data.get('links', {}).get('profile', []):
-            return [], []
-        for alias, profile in iteritems(self.data.get('aliases', {})):
-            if profile == UPDATES_PROFILE:
-                break
-        else:
-            return [], []
-
-        errors = []
-        updated = []
-        deleted = []
-        for i, update in enumerate(self.data.get('meta', {}).get(alias, [])):
-            type_ = update.get('type')
-            if type_:
-                try:
-                    serializer = get_schema(type_)
-                except ImproperlyConfigured:
-                    errors.append({
-                        'detail': 'Invalid type: {}'.format(type_),
-                        'source': {
-                            'pointer': '/meta/{}/{}/data/type'.format(alias, i),
-                        },
-                    })
-                    continue
-                try:
-                    data = {
-                        'data': update,
-                    }
-                    type_ = update.get('type')
-                    id_ = self.deserialize_data(
-                        data, only=('id',), type_=type_)['id']
-                    instance = self.deserialize_related_model(
-                        serializer.opts.model, id_)
-                    updated.append(instance)
-                    for deleted_obj in self.perform_update(
-                            instance, data, type_=type_):
-                        if deleted_obj not in deleted:
-                            deleted.append(deleted_obj)
-                except (ValidationError, IncorrectTypeError) as err:
-                    errors.extend({
-                        'detail': error['detail'],
-                        'source': {
-                            'pointer': '/meta/{}/{}{}'.format(
-                                alias, i, error['source']['pointer'])
-                        },
-                    } for error in err.messages.get('errors', []))
-                    continue
-
-        if errors:
-            err = ValidationError(u'Invalid data for updates.')
-            err.messages = {
-                'errors': errors
-            }
-            raise err
-
-        return updated, deleted
-
-
-class CreateModelMixin(BaseUpdateModelMixin):
+class CreateModelMixin(object):
     def create(self):
-        errors = []
+        serializer = self.get_serializer(data=self.data, storage=self.storage,
+                                         partial={'id'})
 
         try:
-            instance = self.perform_create(self.data)
-        except (ValidationError, IncorrectTypeError) as err:
-            errors.extend(err.messages.get('errors', []))
+            self.perform_create(serializer)
+        except ValidationError as err:
+            raise JsonApiValidationErrorResponse(err.messages)
 
-        try:
-            updated, deleted = self.apply_profile_updates()
-        except (ValidationError, IncorrectTypeError) as err:
-            errors.extend(err.messages.get('errors', []))
+        return JsonApiResource(CREATED, serializer.data)
 
-        if errors:
-            raise JsonApiValidationErrorResponse({
-                'errors': errors
-            })
-
-        updated = [u for u in updated if u not in deleted]
-        data = self.serialize_instance(instance, includes=updated)
-        if updated:
-            data = self.add_updates(updated, data)
-        if deleted:
-            data = self.add_deleted(deleted, instance, data)
-        return JsonApiResource(CREATED, data)
-
-    def perform_create(self, data):
-        model = self.serializer_class.opts.model
-        attributes = self.deserialize_data(data, partial=('id',))
-
-        processed_attributes = {
-            model._pk_field: AUTO_PK,
-        }
-        for attrname, value in iteritems(attributes):
-            if attrname in model._relationship_names:
-                related_model = model._fields[attrname].model
-                related_name = model._fields[attrname].related_name
-                if isinstance(value, list):
-                    value = [self.deserialize_related_model(related_model, v)
-                             for v in value]
-                else:
-                    value = self.deserialize_related_model(related_model, value)
-                # read in existing values to populate data stores, for unique
-                # key generation
-                for v in (value if isinstance(value, list) else [value]):
-                    getattr(v, related_name)
-            processed_attributes[attrname] = value
-
-        instance = model(self.storage, **processed_attributes)
-        instance.save()
-        return instance
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 class ListModelMixin(object):
@@ -452,7 +230,8 @@ class ListModelMixin(object):
         except (TypeError, IndexError, KeyError):
             raise JsonApiNotFoundResponse()
 
-        return JsonApiResource(OK, self.serialize_collection(collection))
+        serializer = self.get_serializer(collection, many=True)
+        return JsonApiResource(OK, serializer.data)
 
 
 class RetrieveModelMixin(object):
@@ -462,84 +241,54 @@ class RetrieveModelMixin(object):
         except (TypeError, IndexError, KeyError):
             raise JsonApiNotFoundResponse()
 
-        return JsonApiResource(OK, self.serialize_instance(instance))
+        serializer = self.get_serializer(instance)
+        return JsonApiResource(OK, serializer.data)
 
 
-class UpdateModelMixin(BaseUpdateModelMixin):
+class UpdateModelMixin(object):
     def update(self):
         try:
             instance = self.get_instance()
         except (TypeError, IndexError, KeyError):
             raise JsonApiNotFoundResponse()
 
-        errors = []
+        serializer = self.get_serializer(
+            instance, data=self.data,
+            partial=set(instance.__class__._ordered_fields).difference({'id'}))
 
         try:
-            deleted = self.perform_update(instance, self.data)
+            self.perform_update(serializer)
         except (ValidationError, IncorrectTypeError) as err:
-            errors.extend(err.messages.get('errors', []))
+            raise JsonApiValidationErrorResponse(err.messages)
 
-        try:
-            updated, more_deleted = self.apply_profile_updates()
-        except (ValidationError, IncorrectTypeError) as err:
-            errors.extend(err.messages.get('errors', []))
+        return JsonApiResource(OK, serializer.data)
 
-        if errors:
-            raise JsonApiValidationErrorResponse({
-                'errors': errors
-            })
-
-        for deleted_obj in more_deleted:
-            if deleted_obj not in deleted:
-                deleted.append(deleted_obj)
-        updated = [u for u in updated if u not in deleted]
-        data = self.serialize_instance(instance, includes=updated)
-        if updated:
-            data = self.add_updates(updated, data)
-        if deleted:
-            data = self.add_deleted(deleted, instance, data)
-        return JsonApiResource(OK, data)
+    def perform_update(self, serializer):
+        serializer.save()
 
 
-class DestroyModelMixin(BaseUpdateModelMixin):
+class DestroyModelMixin(object):
     def destroy(self):
         try:
             instance = self.get_instance()
         except (TypeError, IndexError, KeyError):
             raise JsonApiNotFoundResponse()
 
-        try:
-            deleted = self.perform_destroy(instance)
-        except ProtectedError:
-            raise JsonApiErrorResponse(
-                BaseError(
-                    CONFLICT,
-                    RESPONSES[CONFLICT],
-                    'You cannot delete this resource.'))
+        serializer = self.get_serializer(instance, data=self.data)
 
         try:
-            updated, more_deleted = self.apply_profile_updates()
+            self.perform_destroy(serializer)
         except (ValidationError, IncorrectTypeError) as err:
             raise JsonApiValidationErrorResponse(err.messages)
+        except ProtectedError:
+            raise JsonApiErrorResponse(
+                BaseError(CONFLICT, RESPONSES[CONFLICT],
+                          u'You cannot delete this resource.'))
 
-        for deleted_obj in more_deleted:
-            if deleted_obj not in deleted:
-                deleted.append(deleted_obj)
-        updated = [u for u in updated if u not in deleted]
-        if not updated and len(deleted) == 1 and deleted[0] == instance:
-            return JsonApiResource(NO_CONTENT)
+        data = serializer.data
+        if data:
+            return JsonApiResource(OK, data)
+        return JsonApiResource(NO_CONTENT)
 
-        if updated:
-            # serialize all update using the first instance, but return them
-            # all in the included attribute
-            data = self.serialize_instance(updated[0], includes=updated[1:])
-            data.setdefault('included', []).insert(0, data.pop('data'))
-            # response needs a top level meta attribute if data is missing
-            data.setdefault('meta', {})
-            data = self.add_updates(updated, data)
-        else:
-            data = self.get_empty()
-        return JsonApiResource(OK, self.add_deleted(deleted, instance, data))
-
-    def perform_destroy(self, instance):
-        return instance.delete()
+    def perform_destroy(self, serializer):
+        return serializer.delete()

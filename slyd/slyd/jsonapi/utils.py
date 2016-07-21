@@ -1,17 +1,22 @@
 from collections import defaultdict, OrderedDict
 
-from django.utils.functional import cached_property
 from django.utils.text import camel_case_to_spaces
 from six import iteritems
 from six.moves import reduce
 
+from slyd.orm.utils import cached_property, cached_property_ignore_set
+
 __all__ = [
-    'RESOURCE_OBJECT_ORDER',
-    'type_from_model_name',
-    'deep_getattr',
+    'cached_property',
+    'cached_property_ignore_set',
     'dasherize',
-    'should_include_field',
+    'deep_getattr',
     'order_dict',
+    'should_include_field',
+    'type_from_model_name',
+    'LINKS_OBJECT_ORDER',
+    'RESOURCE_OBJECT_ORDER',
+    'TOP_LEVEL_OBJECT_ORDER',
 ]
 
 TOP_LEVEL_OBJECT_ORDER = (
@@ -82,8 +87,3 @@ def order_dict(data, ordered_keys, key_map_cache={}):
         if can_cache:
             key_map_cache[ordered_keys] = key_map
     return OrderedDict(sorted(iteritems(data), key=lambda kv: key_map[kv[0]]))
-
-
-class cached_property_ignore_set(cached_property):
-    def __set__(self, instance, value):
-        pass

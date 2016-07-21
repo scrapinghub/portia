@@ -62,7 +62,7 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
                 const inverseName = inverseRelationship.name;
                 const manyRelationship = relatedRecord._relationships.get(inverseName);
                 if (manyRelationship.link) {
-                    return manyRelationship.link;
+                    return manyRelationship.link.split('?', 1)[0];
                 }
             }
         }
@@ -185,8 +185,16 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
             profiles.push(UPDATES_EXTENSION);
             acceptProfiles.push(UPDATES_EXTENSION);
         }
-        headers['Content-Type'] = `application/vnd.api+json; profile="${profiles.join(' ')}"`;
-        headers['Accept'] = `application/vnd.api+json; profile="${acceptProfiles.join(' ')}"`;
+        if (profiles.length) {
+            headers['Content-Type'] = `application/vnd.api+json; profile="${profiles.join(' ')}"`;
+        } else {
+            headers['Content-Type'] = 'application/vnd.api+json';
+        }
+        if (acceptProfiles.length) {
+            headers['Accept'] = `application/vnd.api+json; profile="${acceptProfiles.join(' ')}"`;
+        } else {
+            headers['Accept'] = 'application/vnd.api+json';
+        }
         return headers;
     },
 
@@ -223,86 +231,90 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
                     // for the included models when this promise resolves
                     promise = this.ajax(url, method, request);
                     promise.then(response => {
-                        if (response.links && response.links.profile &&
-                                response.links.profile.includes(UPDATES_EXTENSION)) {
-                            const aliases = [];
-                            for (let alias of Object.keys(response.aliases)) {
-                                if (response.aliases[alias] === UPDATES_EXTENSION) {
-                                    aliases.push(alias);
+                        const serializer = store.serializerFor(type.modelName);
+                        const requests = {};
+                        const responses = {};
+
+                        for (let {type, snapshot} of updates) {
+                            const modelName = type.modelName;
+                            const id = snapshot.id;
+                            const type_requests = requests[modelName] || (
+                                requests[modelName] = {});
+                            type_requests[id] = true;
+                        }
+
+                        let aliases = this._getExtentionAliases(response, UPDATES_EXTENSION);
+                        if (aliases.length && response.meta) {
+                            for (let alias of aliases) {
+                                for (let update of response.meta[alias]) {
+                                    const normalized = serializer._normalizeResourceHelper(update);
+                                    const {type, id} = normalized;
+                                    if (!requests[type] || !requests[type][id]) {
+                                        const error = new DS.AdapterError([{
+                                            title: "Unexpected update confirmation",
+                                            detail: `${response}`
+                                        }], "JSON API updates response contained " +
+                                            "confirmations for resources that were not " +
+                                            "requested.");
+                                        for (let {resolver} of updates) {
+                                            resolver.reject(error);
+                                        }
+                                        throw error;
+                                    }
+                                    const type_responses = responses[type] || (
+                                        responses[type] = {});
+                                    type_responses[id] = update;
                                 }
                             }
+                        }
 
-                            const serializer = store.serializerFor(type.modelName);
-                            const requests = {};
-                            const responses = {};
-
-                            for (let {type, snapshot} of updates) {
-                                const modelName = type.modelName;
-                                const id = snapshot.id;
-                                const type_requests = requests[modelName] || (
-                                    requests[modelName] = {});
-                                type_requests[id] = true;
-                            }
-
-                            if (aliases.length && response.meta) {
-                                for (let alias of aliases) {
-                                    for (let update of response.meta[alias]) {
-                                        const normalized =
-                                            serializer._normalizeResourceHelper(update);
-                                        const {type, id} = normalized;
-                                        if (!requests[type] || !requests[type][id]) {
-                                            const error = new DS.AdapterError([{
-                                                title: "Unexpected update confirmation",
-                                                detail: `${response}`
-                                            }], "JSON API updates response contained " +
-                                                "confirmations for resources that were not " +
-                                                "requested.");
-                                            for (let {resolver} of updates) {
-                                                resolver.reject(error);
-                                            }
-                                            throw error;
-                                        }
+                        // treat deleted as update confirmations
+                        aliases = this._getExtentionAliases(response, DELETED_EXTENSION);
+                        if (aliases.length && response.meta) {
+                            for (let alias of aliases) {
+                                for (let deleted of response.meta[alias]) {
+                                    const normalized = serializer._normalizeResourceHelper(deleted);
+                                    const {type, id} = normalized;
+                                    if (requests[type] && requests[type][id]) {
                                         const type_responses = responses[type] || (
                                             responses[type] = {});
-                                        type_responses[id] = update;
+                                        type_responses[id] = deleted;
                                     }
                                 }
                             }
+                        }
 
-                            if (response.included) {
-                                const filtered_included = [];
-                                for (let included of response.included) {
-                                    const normalized =
-                                        serializer._normalizeResourceHelper(included);
-                                    const {type, id} = normalized;
-                                    if (responses[type]) {
-                                        if (responses[type][id]) {
-                                            responses[type][id] = included;
-                                        }
-                                    } else {
-                                        filtered_included.push(included);
+                        if (response.included) {
+                            const filtered_included = [];
+                            for (let included of response.included) {
+                                const normalized =
+                                    serializer._normalizeResourceHelper(included);
+                                const {type, id} = normalized;
+                                if (responses[type]) {
+                                    if (responses[type][id]) {
+                                        responses[type][id] = included;
                                     }
+                                } else {
+                                    filtered_included.push(included);
                                 }
-                                response.included = filtered_included;
                             }
+                            response.included = filtered_included;
+                        }
 
-                            for (let {type, snapshot, resolver} of updates) {
-                                const modelName = type.modelName;
-                                const id = snapshot.id;
-                                if (responses[modelName]) {
-                                    if (responses[modelName][id]) {
-                                        resolver.resolve({
-                                            data: responses[modelName][id]
-                                        });
-                                        continue;
-                                    }
-                                }
-                                resolver.reject(new DS.AdapterError([{
-                                    title: "Missing update confirmation",
-                                    detail: `${response}`
-                                }], "JSON API updates response was missing confirmation for " +
-                                    "an updated resource"));
+                        for (let {type, snapshot, resolver} of updates) {
+                            const modelName = type.modelName;
+                            const id = snapshot.id;
+                            if (responses[modelName] && responses[modelName][id]) {
+                                resolver.resolve({
+                                    data: responses[modelName][id]
+                                });
+                                continue;
                             }
+                            resolver.reject(new DS.AdapterError([{
+                                title: "Missing update confirmation",
+                                detail: `${response}`
+                            }], "JSON API updates response was missing confirmation for " +
+                                "an updated resource"));
                         }
 
                         return response;
@@ -335,22 +347,17 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
             // handle our custom json api extension for listing records that were
             // deleted in the backend and should be unloaded.
             promise.then(response => {
-                if (response && response.links && response.links.profile &&
-                        response.links.profile.includes(DELETED_EXTENSION)) {
-                    const aliases = [];
-                    for (let alias of Object.keys(response.aliases)) {
-                        if (response.aliases[alias] === DELETED_EXTENSION) {
-                            aliases.push(alias);
-                        }
-                    }
-
-                    if (aliases.length && response.meta) {
-                        const serializer = store.serializerFor(type.modelName);
-                        for (let alias of aliases) {
-                            for (let deleted of response.meta[alias]) {
-                                const normalized = serializer._normalizeResourceHelper(deleted);
-                                const record = store.peekRecord(normalized.type, normalized.id);
-                                if (record) {
+                const aliases = this._getExtentionAliases(response, DELETED_EXTENSION);
+                if (aliases.length && response.meta) {
+                    const serializer = store.serializerFor(type.modelName);
+                    for (let alias of aliases) {
+                        for (let deleted of response.meta[alias]) {
+                            const normalized = serializer._normalizeResourceHelper(deleted);
+                            const record = store.peekRecord(normalized.type, normalized.id);
+                            if (record) {
+                                if (record.get('isSaving')) {
+                                    record.one('didCommit', record.unloadRecord);
+                                } else {
                                     record.unloadRecord();
                                 }
                             }
@@ -375,6 +382,19 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
         }
 
         return this.ajax(request.url, request.method, request);
+    },
+
+    _getExtentionAliases(response, extention) {
+        const aliases = [];
+        if (response && response.links && response.links.profile &&
+            response.links.profile.includes(extention)) {
+            for (let alias of Object.keys(response.aliases)) {
+                if (response.aliases[alias] === extention) {
+                    aliases.push(alias);
+                }
+            }
+        }
+        return aliases;
     },
 
     ajaxOptions(url, method, request = {}) {

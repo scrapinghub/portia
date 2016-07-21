@@ -1,8 +1,8 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-import BaseModel from './base';
+import BaseAnnotation from './base-annotation';
 
-export default BaseModel.extend({
+export default BaseAnnotation.extend({
     name: DS.attr('string'),
     selector: DS.attr('string'),
     repeatedSelector: DS.attr('string'),
@@ -11,11 +11,16 @@ export default BaseModel.extend({
     }),
 
     sample: DS.belongsTo(),
-    // parent: DS.belongsTo('item'),
     schema: DS.belongsTo(),
-    annotations: DS.hasMany({
+    annotations: DS.hasMany('base-annotation', {
         inverse: 'parent',
         polymorphic: true
+    }),
+
+    ownerSample: Ember.computed(function() {
+        return DS.PromiseObject.create({
+            promise: this.get('sample').then(sample => sample || this.get('parent.ownerSample'))
+        });
     }),
 
     orderedAnnotations: Ember.computed(
