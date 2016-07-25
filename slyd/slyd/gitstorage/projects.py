@@ -6,7 +6,7 @@ from slyd.projects import ProjectsManager
 from slyd.errors import BadRequest
 from slyd.utils.copy import GitSpiderCopier
 from slyd.utils.download import ProjectArchiver, CodeProjectArchiver
-from slyd.utils.storage import GitStorage
+from slyd.utils.storage import ContentFile, GitStorage
 from .repoman import Repoman
 
 
@@ -173,9 +173,8 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
 
     def save_file(self, name, file_path, file_contents):
         self._open_repo(name)
-        self.storage.save(file_path, json.dumps(
-            file_contents,
-            sort_keys=True, indent=4))
+        self.storage.save(file_path, ContentFile(
+            json.dumps(file_contents, sort_keys=True, indent=4), file_path))
 
     def copy_data(self, source, destination, spiders, items):
         source = self._open_repo(source)

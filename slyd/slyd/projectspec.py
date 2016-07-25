@@ -4,11 +4,8 @@ import re
 
 import slyd.errors
 
-from six.moves import StringIO
-
 from os.path import join, splitext
 
-from django.core.files.storage import File
 from scrapy.http import HtmlResponse
 from twisted.web.resource import NoResource, ForbiddenResource
 from twisted.web.server import NOT_DONE_YET
@@ -18,7 +15,7 @@ from .html import html4annotation
 from .errors import BaseHTTPError, BadRequest
 from .utils.projects import allowed_file_name, ProjectModifier
 from .utils.extraction import extract_items
-from .utils.storage import FsStorage
+from .utils.storage import ContentFile, FsStorage
 
 
 def create_project_resource(spec_manager):
@@ -152,8 +149,8 @@ class ProjectSpec(object):
     def savejson(self, obj, resources):
         # convert to json in a way that will make sense in diffs
         fname = self._rfilename(*resources)
-        fdata = File(StringIO(json.dumps(obj, sort_keys=True, indent=4)))
-        self.storage.save(fname, fdata)
+        self.storage.save(fname, ContentFile(
+            json.dumps(obj, sort_keys=True, indent=4), fname))
 
     def commit_changes(self):
         if getattr(self, 'storage', None):
