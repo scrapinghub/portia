@@ -13,7 +13,7 @@ from .projecttemplates import templates
 from .resource import SlydJsonObjectResource, SlydJsonErrorPage
 from .utils.copy import FileSystemSpiderCopier
 from .utils.download import ProjectArchiver, CodeProjectArchiver
-from .utils.storage import FsStorage
+from .utils.storage import ContentFile, FsStorage
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -164,7 +164,8 @@ class ProjectsManager(object):
             join('spiders', 'settings.py'): templates['SETTINGS'],
         }
         for filename, template in project_files.items():
-            self.storage.save(join(project_filename, filename), template)
+            path = join(project_filename, filename)
+            self.storage.save(path, ContentFile(template, path))
 
     def rename_project(self, from_name, to_name):
         self.validate_project_name(from_name)
