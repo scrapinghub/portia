@@ -6,8 +6,8 @@ AUTH_CONFIG = {
 }
 
 SPEC_FACTORY = {
-    'PROJECT_SPEC': 'slyd.projectspec.ProjectSpec',
-    'PROJECT_MANAGER': 'slyd.projects.ProjectsManager',
+    'PROJECT_SPEC': 'slyd.projectspec.FileSystemProjectSpec',
+    'PROJECT_MANAGER': 'slyd.projects.FileSystemProjectsManager',
     'PARAMS': {
         'location': "",
     },
@@ -22,4 +22,3 @@ SPEC_FACTORY = {
     },
     'CUSTOM': {}
 }
-

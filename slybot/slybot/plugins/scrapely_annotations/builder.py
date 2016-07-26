@@ -8,6 +8,7 @@ from itertools import tee, count, chain, groupby
 from operator import itemgetter
 from uuid import uuid4
 
+from .migration import _get_parent
 from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
                     OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
 
@@ -308,12 +309,35 @@ def apply_selector_annotations(annotations, target_page):
             elems = accepted_elements - rejected_elements
         else:
             elems = [elem._root for elem in page.css(annotation['selector'])]
-        if elems:
-            tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
-            tagid = min(tagids)
-            if tagid is not None:
-                annotation['tagid'] = tagid
-                converted_annotations.append(annotation)
+        if not elems:
+            continue
+
+        tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
+        tagid = min(tagids)
+        if tagid is not None:
+            annotation['tagid'] = tagid
+            converted_annotations.append(annotation)
+
+        # Create container for repeated field annotation
+        if (annotation.get('repeated') and
+                not annotation.get('item_container') and
+                len(annotation.get('annotations')) == 1):
+            parent = _get_parent(elems, page)
+            field = annotation['annotations'].values()[0][0]['field']
+            container_id = '%s#parent' % annotation['id']
+            if len(parent):
+                converted_annotations.append({
+                    'item_container': True,
+                    'id': container_id,
+                    'annotations': {'#portia-content': '#dummy'},
+                    'text-content': '#portia-content',
+                    'container_id': annotation['container_id'],
+                    'field': field,
+                    'tagid': parent.attrib.get('data-tagid')
+                })
+                annotation['item_container'] = True
+                annotation['field'] = field
+                annotation['container_id'] = container_id
     return converted_annotations
 
 

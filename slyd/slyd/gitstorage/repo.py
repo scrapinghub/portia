@@ -50,8 +50,9 @@ DEADLOCK_RETRY_CONFIG = {
     'wait_random_min': 10,
     'wait_random_max': 30,
     'retry_on_exception': lambda exception: (
+        # 1205: Lock wait timeout exceeded; try restarting transaction
         # 1213: Deadlock found when trying to get lock
-        isinstance(exception, DatabaseError) and exception[0] == 1213),
+        isinstance(exception, DatabaseError) and exception[0] in (1205, 1213)),
 }
 
 MISSING_OBJECT_RETRY_CONFIG = {
@@ -96,16 +97,21 @@ class ReconnectionPool(ConnectionPool):
             setattr(manager, 'connection', conn)
             if getattr(manager, 'pm', None):
                 setattr(manager.pm, 'connection', conn)
-        except AttributeError:
+        # Handle case where no manager is used
+        except (AttributeError, UnboundLocalError):
             manager = None
 
         try:
+            if (not hasattr(manager, 'storage') and
+                    hasattr(manager, '_open_repo') and
+                    hasattr(manager, 'project_name')):
+                manager._open_repo()
             result = func(conn, *args, **kw)
             conn.commit()
             return result
         except:
-            if hasattr(manager, 'rollback_changes'):
-                manager.rollback_changes()
+            if hasattr(manager, 'storage'):
+                del manager.storage
             conn.rollback()
             raise
 

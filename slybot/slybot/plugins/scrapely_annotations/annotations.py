@@ -16,10 +16,12 @@ from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors, add_extractors_to_descriptors
-from slybot.utils import htmlpage_from_response, include_exclude_filter
-XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
-
+from slybot.utils import (htmlpage_from_response, include_exclude_filter,
+                          _build_sample)
 from .extraction import SlybotIBLExtractor
+XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
+_CLUSTER_NA = 'not available'
+_CLUSTER_OUTLIER = 'outlier'
 
 
 class Annotations(object):
@@ -27,18 +29,21 @@ class Annotations(object):
     Base Class for adding plugins to Portia Web and Slybot.
     """
 
-    def setup_bot(self, settings, spec, items, extractors):
+    def setup_bot(self, settings, spec, items, extractors, logger):
         """
         Perform any initialization needed for crawling using this plugin
         """
+        self.logger = logger
+        templates = map(self._get_annotated_template, spec['templates'])
+
         _item_template_pages = sorted((
             [t.get('scrapes'), dict_to_page(t, 'annotated_body'),
              t.get('extractors', []), t.get('version', '0.12.0')]
-            for t in spec['templates'] if t.get('page_type', 'item') == 'item'
+            for t in templates if t.get('page_type', 'item') == 'item'
         ), key=lambda x: x[0])
         self.item_classes = {}
         self.template_scrapes = {template.get('page_id'): template['scrapes']
-                                 for template in spec.get('templates')}
+                                 for template in templates}
         if (settings.get('AUTO_PAGINATION') or
                 spec.get('links_to_follow') == 'auto'):
             self.html_link_extractor = PaginationExtractor()
@@ -83,14 +88,31 @@ class Annotations(object):
 
         # generate ibl extractor for links pages
         _links_pages = [dict_to_page(t, 'annotated_body')
-                        for t in spec['templates']
-                        if t.get('page_type') == 'links']
+                        for t in templates if t.get('page_type') == 'links']
         _links_item_descriptor = create_slybot_item_descriptor({'fields': {}})
         self._links_ibl_extractor = InstanceBasedLearningExtractor(
             [(t, _links_item_descriptor) for t in _links_pages]) \
             if _links_pages else None
 
         self.build_url_filter(spec)
+        # Clustering
+        self.template_names = [t.get('page_id') for t in spec['templates']]
+        if settings.get('PAGE_CLUSTERING'):
+            try:
+                import page_clustering
+                self.clustering = page_clustering.kmeans_from_samples(spec['templates'])
+                self.logger.info("Clustering activated")
+            except ImportError:
+                self.clustering = None
+                self.logger.warning(
+                    "Clustering could not be used because it is not installed")
+        else:
+            self.clustering = None
+
+    def _get_annotated_template(self, template):
+        if template.get('version', '0.12.0') >= '0.13.0':
+            _build_sample(template)
+        return template
 
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response)
@@ -114,7 +136,19 @@ class Annotations(object):
         return [], []
 
     def _do_extract_items_from(self, htmlpage, extractor):
-        extracted_data, template = extractor.extract(htmlpage)
+        # Try to predict template to use
+        pref_template_id = None
+        template_cluster = _CLUSTER_NA
+        if self.clustering:
+            self.clustering.add_page(htmlpage)
+            if self.clustering.is_fit:
+                clt = self.clustering.classify(htmlpage)
+                if clt != -1:
+                    template_cluster = self.template_names[clt]
+                    pref_template_id = template_cluster
+                else:
+                    template_cluster = _CLUSTER_OUTLIER
+        extracted_data, template = extractor.extract(htmlpage, pref_template_id)
         link_regions = []
         for ddict in extracted_data or []:
             link_regions.extend(ddict.pop("_links", []))
@@ -163,8 +197,9 @@ class Annotations(object):
                     {'fields': {k: default_meta for k in item}}
                 )
                 item = item_cls(**item)
+            if self.clustering:
+                item['_template_cluster'] = template_cluster
             items.append(item)
-
         return items, link_regions
 
     def _process_attributes(self, item, descriptor, htmlpage):
