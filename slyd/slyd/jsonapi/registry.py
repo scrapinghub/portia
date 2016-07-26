@@ -2,15 +2,15 @@ from slyd.orm.exceptions import ImproperlyConfigured
 
 
 __all__ = [
-    'schema',
+    'get_serializer',
 ]
 
-schemas = {}
+serializers = {}
 
 
-def get_schema(schema_type):
+def get_serializer(schema_type):
     try:
-        return schemas[schema_type]
+        return serializers[schema_type]
     except KeyError:
         raise ImproperlyConfigured(
             u"No schema for type '{}' exists".format(schema_type))
