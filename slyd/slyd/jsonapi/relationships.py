@@ -1,6 +1,6 @@
 from marshmallow_jsonapi.fields import Relationship as BaseRelationship
 
-from slyd.jsonapi.registry import get_schema
+from slyd.jsonapi.registry import get_serializer
 from slyd.jsonapi.utils import (TOP_LEVEL_OBJECT_ORDER, LINKS_OBJECT_ORDER,
                                 type_from_model_name, order_dict,
                                 cached_property, cached_property_ignore_set)
@@ -9,7 +9,7 @@ from slyd.jsonapi.utils import (TOP_LEVEL_OBJECT_ORDER, LINKS_OBJECT_ORDER,
 class Relationship(BaseRelationship):
     @cached_property
     def schema(self):
-        schema = get_schema(self.type_)
+        schema = get_serializer(self.type_)
         return schema(fields_map=self.root.fields_map,
                       exclude_map=self.root.exclude_map,
                       include_data=self.root.include_map.get(self.name, []),

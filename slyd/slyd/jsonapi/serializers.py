@@ -11,7 +11,7 @@ from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from six import iteritems, iterkeys, string_types, with_metaclass
 from six.moves import map, zip
 
-from slyd.jsonapi.registry import schemas, get_schema
+from slyd.jsonapi.registry import serializers, get_serializer
 from slyd.jsonapi.relationships import Relationship, PolymorphicRelationship
 from slyd.jsonapi.utils import (RESOURCE_OBJECT_ORDER, TOP_LEVEL_OBJECT_ORDER,
                                 cached_property, deep_getattr, dasherize,
@@ -34,7 +34,7 @@ UPDATES_PROFILE_ALIAS = 'updates'
 
 
 class JsonApiSerializerMeta(SchemaMeta):
-    """Meta class for JSON API schemas."""
+    """Meta class for JSON API serializers."""
     def __new__(mcs, name, bases, attrs):
         parents = [b for b in bases if isinstance(b, JsonApiSerializerMeta)]
         if not parents:
@@ -100,7 +100,7 @@ class JsonApiSerializerMeta(SchemaMeta):
         cls = super(JsonApiSerializerMeta, mcs).__new__(mcs, name, bases, attrs)
 
         # add new schema to registry by type
-        schemas[schema_type] = cls
+        serializers[schema_type] = cls
         return cls
 
 
@@ -419,7 +419,7 @@ class JsonApiSerializer(with_metaclass(JsonApiSerializerMeta, BaseSchema)):
             }
 
             try:
-                serializer_class = get_schema(type_)
+                serializer_class = get_serializer(type_)
             except ImproperlyConfigured:
                 errors.append({
                     'detail': 'Invalid type: {}.'.format(type_),
@@ -548,7 +548,7 @@ class JsonApiSerializer(with_metaclass(JsonApiSerializerMeta, BaseSchema)):
         included_data = self.included_data
         for instance in includes:
             type_ = type_from_model_name(instance.__class__.__name__)
-            serializer = get_schema(type_)(
+            serializer = get_serializer(type_)(
                 instance,
                 fields_map=self.fields_map,
                 exclude_map=self.exclude_map)
@@ -561,7 +561,7 @@ class JsonApiSerializer(with_metaclass(JsonApiSerializerMeta, BaseSchema)):
         references = []
         for instance in instances:
             type_ = type_from_model_name(instance.__class__.__name__)
-            serializer = get_schema(type_)(
+            serializer = get_serializer(type_)(
                 instance.with_snapshots(('working',)),
                 only=('id',))
             data = serializer.data.get('data', {})
@@ -590,13 +590,13 @@ class JsonApiPolymorphicSerializer(object):
                 type_ = data.get('data', {}).get('type')
 
             if type_:
-                serializer_class = get_schema(type_)
+                serializer_class = get_serializer(type_)
                 if not issubclass(serializer_class.opts.model, base):
                     type_ = None
 
             if not type_:
                 type_ = type_from_model_name(default_model.__name__)
-                serializer_class = get_schema(type_)
+                serializer_class = get_serializer(type_)
 
             return serializer_class(
                 instance=instance, data=data, many=many, **kwargs)
@@ -625,11 +625,11 @@ class JsonApiPolymorphicSerializer(object):
         included_set = set()
 
         default_type = type_from_model_name(self.default_model.__name__)
-        default_serializer = get_schema(default_type)
+        default_serializer = get_serializer(default_type)
 
         for instance in self.collection:
             type_ = type_from_model_name(instance.__class__.__name__)
-            serializer_class = get_schema(type_)
+            serializer_class = get_serializer(type_)
             if not issubclass(serializer_class.opts.model, self.base):
                 serializer_class = default_serializer
 

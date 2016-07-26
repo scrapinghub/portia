@@ -13,7 +13,7 @@ from .response import (JsonApiResource, JsonApiErrorResponse,
                        JsonApiNotFoundResponse, JsonApiValidationErrorResponse)
 from ..errors import BadRequest, BaseError
 from ..jsonapi.serializers import JsonApiPolymorphicSerializer
-from ..jsonapi.registry import get_schema
+from ..jsonapi.registry import get_serializer
 from ..jsonapi.utils import type_from_model_name
 from ..orm.collection import ModelCollection
 from ..orm.exceptions import ProtectedError
@@ -170,7 +170,7 @@ class JsonApiRoute(object):
                 instance=instance, data=data, many=many, **params)
 
         type_ = type_from_model_name(self.default_model.__name__)
-        return get_schema(type_)(
+        return get_serializer(type_)(
             instance=instance, data=data, many=many, **params)
 
     def get_detail_kwargs(self):
