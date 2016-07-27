@@ -1,15 +1,21 @@
-import six
-
 from collections import OrderedDict
 from datetime import datetime
-from itertools import product, chain
+from itertools import chain, product
+
+from scrapy.utils.spider import arg_to_iter
+
+import six
+
 try:
     from itertools import izip_longest
 except ImportError:
     from itertools import zip_longest as izip_longest
 from six.moves.urllib.parse import urlencode
 
-from scrapy.utils.spider import arg_to_iter
+
+class IdentityGenerator():
+    def __call__(self, spec):
+        return spec
 
 
 class UrlGenerator(object):

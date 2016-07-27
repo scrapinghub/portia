@@ -1,249 +1,178 @@
 from unittest import TestCase
-from datetime import datetime
-from jsonschema import ValidationError
-from scrapy.settings import Settings
-from slybot.starturls import StartUrls, UrlGenerator
-from slybot.validation.schema import get_schema_validator
+
+from slybot.starturls import FragmentGenerator, IdentityGenerator, StartUrlCollection, UrlGenerator
 
 
-class StartUrlGenerators(TestCase):
-    github_start_urls = [
-        'https://github.com/scrapinghub',
-        'https://github.com/scrapy',
-        'https://github.com/scrapy-plugins'
-    ]
-    donedeal_start_urls = [
-        'https://www.donedeal.ie/cars-for-sale/i/1',
-        'https://www.donedeal.ie/cars-for-sale/i/2',
-        'https://www.donedeal.ie/houses-for-sale/i/1',
-        'https://www.donedeal.ie/houses-for-sale/i/2',
-        'https://www.donedeal.ie/pets-for-sale/i/1',
-        'https://www.donedeal.ie/pets-for-sale/i/2',
-        'https://www.donedeal.ie/kitchens-for-sale/i/1',
-        'https://www.donedeal.ie/kitchens-for-sale/i/2'
-    ]
-    specs = {
-        'defaults': [{
-            "template": "https://github.com/{}",
-            "paths": [{
-                "type": "default",
-                "values": ["scrapinghub", "scrapy", "scrapy-plugins"],
-            }],
-            "params": [],
-            "params_template": {}
-        }],
-        'options': [{
-            "template": "https://github.com/{}",
-            "paths": [{
-                "type": "options",
-                "values": ["scrapinghub", "scrapy", "scrapy-plugins"],
-            }],
-            "params": [],
-            "params_template": {}
-        }],
-        'dates': [{
-            "template": "http://www.commitstrip.com/{}/{}/{}",
-            "paths": [{
-                "type": "default",
-                "values": ["en"]
-            }, {
-                "type": "date",
-                "values": ["%Y"],
-            }, {
-                "type": "date",
-                "values": ["%m"]
-            }],
-            "params": [],
-            "params_template": {}
-        }],
-        'range': [{
-            "template": "https://www.donedeal.ie/{}/{}/{}",
-            "paths": [{
-                "type": "default",
-                "values": ["cars-for-sale"]
-            }, {
-                "type": "options",
-                "values": ["i"],
-            }, {
-                "type": "range",
-                "values": [100000010, 100000000, -1]
-            }],
-            "params": [],
-            "params_template": {}
-        }],
-        'params_range': [{
-            "template": "http://www.smbc-comics.com/{}",
-            "paths": [{
-                "type": "default",
-                "values": ["index.php"]
-            }],
-            "params": [{
-                "name": "p",
-                "type": "range",
-                "values": [20, 30, 5]
-            }, {
-                "name": "q",
-                "type": "options",
-                "values": ['comic']
-            }],
-            "params_template": {}
-        }],
-        'spider_args': [{
-            "template": "https://www.donedeal.ie/{}/{}/{}",
-            "paths": [{
-                "type": "spider_args",
-                "values": ["categories", "sections"]
-            }, {
-                "type": "options",
-                "values": ["i"],
-            }, {
-                "type": "range",
-                "values": [1, 3]
-            }],
-            "params": [],
-            "params_template": {}
-        }],
-        'settings': [{
-            "template": "https://www.donedeal.ie/{}/{}/{}",
-            "paths": [{
-                "type": "settings",
-                "values": ["categories", "sections"]
-            }, {
-                "type": "options",
-                "values": ["i"],
-            }, {
-                "type": "range",
-                "values": [1, 3]
-            }],
-            "params": [],
-            "params_template": {}
-        }],
-        'params': [{
-            "template": "https://encrypted.google.com/search",
-            "paths": [],
-            "params": [{
-                "name": "q",
-                "type": "options",
-                "values": ["nosetests", "tox"]
-            }, {
-                "name": "location",
-                "type": "options",
-                "values": ["dublin", "cork"]
-            }],
-            "params_template": [
-                ("hl", "en"),
-                ("q", "python unittest")
-            ]
-        }]
-    }
-
-    def test_schema_format(self):
-        validator = get_schema_validator('spider')
-        spider = {
-            'start_urls_type': 'generated_urls',
-            'start_urls': [],
-            'links_to_follow': 'none',
-            'respect_nofollow': True
+class StartUrlCollectionTest(TestCase):
+    def setUp(self):
+        self.generators = {
+            'start_urls': IdentityGenerator(),
+            'generated_urls': UrlGenerator(),
+            'url': IdentityGenerator(),
+            'generated': FragmentGenerator(),
         }
-        for spec in self.specs.values():
-            spider['generated_urls'] = spec
-            validator.validate(spider)
 
-    def test_start_urls(self):
-        self.assertEqual(self.github_start_urls,
-                         StartUrls()(self.github_start_urls))
+    def test_mixed_start_urls_generation(self):
+        start_urls = [
+            'http://google.com',
+            {"type": "url", "url": "http://domain.com"},
+            {
+                'type': 'generated',
+                'url': 'https://github.com/[0-2]',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://github.com/'},
+                    {'type': 'range', 'value': '0-2'},
+                ]
+            }
+        ]
+        generated_start_urls = [
+            'http://google.com',
+            'http://domain.com',
+            'https://github.com/0',
+            'https://github.com/1',
+            'https://github.com/2',
+        ]
 
-    def test_generate_start_urls_from_defaults(self):
-        genny = UrlGenerator()
-        spec = self.specs['defaults']
-        self.assertEqual(["https://github.com/scrapinghub"],
-                         list(genny(spec[0])))
+        generated = StartUrlCollection(start_urls, self.generators, 'start_urls')
+        self.assertEqual(list(generated), generated_start_urls)
 
-    def test_generate_start_urls_from_options(self):
-        genny = UrlGenerator()
-        spec = self.specs['options']
-        self.assertEqual(self.github_start_urls, list(genny(spec[0])))
+    def test_generated_type(self):
+        generated_start_urls = [
+            'https://github.com/scrapinghub',
+            'https://github.com/scrapy',
+            'https://github.com/scrapy-plugins',
+        ]
+        start_urls = [
+            {
+                "template": "https://github.com/{}",
+                "paths": [{
+                    "type": "options",
+                    "values": ["scrapinghub", "scrapy", "scrapy-plugins"],
+                }],
+                "params": [],
+                "params_template": {}
+            },
+        ]
+        generated = StartUrlCollection(start_urls, self.generators, 'generated_urls')
 
-    def test_generate_start_urls_from_date(self):
-        now = datetime.now()
-        genny = UrlGenerator()
-        spec = self.specs['dates']
-        url = "http://www.commitstrip.com/en/{}/{:02}".format(now.year,
-                                                              now.month)
-        self.assertEqual([url], list(genny(spec[0])))
+        self.assertEqual(list(generated), generated_start_urls)
 
-    def test_generate_start_urls_from_range(self):
-        genny = UrlGenerator()
-        spec = self.specs['range']
-        urls = ["https://www.donedeal.ie/cars-for-sale/i/%s" % i
-                for i in range(100000010, 100000000, -1)]
-        self.assertEqual(urls, list(genny(spec[0])))
+    def test_unique_legacy_urls(self):
+        start_urls = [
+            'http://google.com',
+            'http://github.com',
+            'http://github.com',
+            'http://scrapinghub.com',
+            'http://scrapinghub.com',
+        ]
+        unique_urls = [
+            'http://google.com',
+            'http://github.com',
+            'http://scrapinghub.com',
+        ]
 
-    def test_generate_start_urls_from_params_range(self):
-        genny = UrlGenerator()
-        spec = self.specs['params_range']
-        urls = ["http://www.smbc-comics.com/index.php?p=%s&q=comic" % i
-                for i in range(20, 30, 5)]
-        self.assertEqual(urls, list(genny(spec[0])))
+        self.assertEqual(StartUrlCollection(start_urls).uniq(), unique_urls)
 
-    def test_generate_start_urls_from_spider_arg(self):
-        genny = UrlGenerator(spider_args={
-            'categories': ['cars-for-sale', 'houses-for-sale'],
-            'sections': ['pets-for-sale', 'kitchens-for-sale']
-        })
-        spec = self.specs['spider_args']
-        self.assertEqual(self.donedeal_start_urls, list(genny(spec[0])))
+    def test_unique_list_start_urls(self):
+        start_urls = [
+            {"type": "url", "url": "http://domain.com"},
+            {
+                'type': 'generated',
+                'url': 'https://github.com/[...]',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://github.com/'},
+                    {'type': 'list', 'value': 'scrapely portia'},
+                ]
+            },
+            {
+                'type': 'generated',
+                'url': 'https://github.com/[...]',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://github.com/'},
+                    {'type': 'list', 'value': 'scrapely scrapinghub portia'},
+                ]
+            },
+        ]
 
-    def test_generate_start_urls_from_setting(self):
-        genny = UrlGenerator(Settings(values={
-            'categories': 'cars-for-sale,houses-for-sale',
-            'sections': ['pets-for-sale', 'kitchens-for-sale']
-        }))
-        spec = self.specs['settings']
-        self.assertEqual(self.donedeal_start_urls, list(genny(spec[0])))
+        self.assertEqual(StartUrlCollection(start_urls).uniq(), start_urls)
 
-    def test_generate_start_urls_from_params(self):
-        genny = UrlGenerator()
-        spec = self.specs['params']
-        base = "https://encrypted.google.com/search?hl=en&q=%s&location=%s"
-        n, t, d, c = "nosetests", "tox", "dublin", "cork"
-        arg = [(n, d), (n, c), (t, d), (t, c)]
-        self.assertEqual([base % (q, l) for q, l in arg], list(genny(spec[0])))
+    def test_allowed_domains_with_many_fragments(self):
+        start_urls = [
+            {
+                'type': 'generated',
+                'url': 'https://github.com/[...]',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://github.com'},
+                    {'type': 'list', 'value': '/a /b /c'},
+                    {'type': 'range', 'value': '1-10000000'},
+                ]
+            },
+        ]
+        allowed_domains = [
+            'https://github.com/a',
+            'https://github.com/b',
+            'https://github.com/c',
+        ]
+        collection_domains = StartUrlCollection(start_urls, self.generators).allowed_domains
+        self.assertEqual(set(collection_domains), set(allowed_domains))
 
-    def test_misconfigured_start_urls_spec_type(self):
-        genny = UrlGenerator()
-        spec = [{
-            "template": "http://www.smbc-comics.com/{}",
-            "paths": [{
-                "type": "defaults",
-                "values": ["index.php"]
-            }],
-            "params": [],
-            "params_template": {}
-        }]
-        self.assertEqual([], list(genny(spec[0])))
+    def test_allowed_domains_with_mixed_urls(self):
+        start_urls = [
+            {
+                'type': 'generated',
+                'url': 'https://scrapinghub.com/[...]',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://scrapinghub.com/'},
+                    {'type': 'range', 'value': '1-10000000'},
+                ]
+            },
+            {
+                'type': 'generated',
+                'url': 'https://github[1-3].com/[...]',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://github'},
+                    {'type': 'range', 'value': '1-3'},
+                    {'type': 'fixed', 'value': '.com/'},
+                    {'type': 'range', 'value': '1-10000000'},
+                ]
+            },
+            {"type": "url", "url": "http://domain.com"},
+            'http://google.com',
+        ]
+        allowed_domains = [
+            'https://scrapinghub.com/',
+            'https://github1.com/',
+            'https://github2.com/',
+            'https://github3.com/',
+            'http://domain.com',
+            'http://google.com',
+        ]
+        collection_domains = StartUrlCollection(start_urls, self.generators).allowed_domains
+        self.assertEqual(set(collection_domains), set(allowed_domains))
 
-    def test_missing_arg_for_start_urls_spec(self):
-        genny = UrlGenerator(Settings(values={'home': 'home.php'}), {
-            'index': 'index.php'
-        })
-        spec = [{
-            "template": "http://www.smbc-comics.com/{}",
-            "paths": [{
-                "type": "spider_args",
-                "values": ["home"]
-            }],
-            "params": [],
-            "params_template": {}
-        }]
-        self.assertEqual([], list(genny(spec[0])))
-        spec = [{
-            "template": "http://www.smbc-comics.com/{}",
-            "paths": [{
-                "type": "settings",
-                "values": ["index"]
-            }],
-            "params": [],
-            "params_template": {}
-        }]
-        self.assertEqual([], list(genny(spec[0])))
+    def test_empty_allowed_domains(self):
+        start_urls = [
+            {
+                'type': 'generated',
+                'url': 'https://',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://'},
+                ]
+            },
+        ]
+        collection_domains = StartUrlCollection(start_urls, self.generators).allowed_domains
+        self.assertEqual(collection_domains, [])
+
+    def test_multiple_empty_allowed_domains(self):
+        start_urls = [
+            {
+                'type': 'generated',
+                'url': 'https://',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://'},
+                    {'type': 'fixed', 'value': 'scrapy'},
+                ]
+            },
+        ]
+        collection_domains = StartUrlCollection(start_urls, self.generators).allowed_domains
+        self.assertEqual(collection_domains, [])

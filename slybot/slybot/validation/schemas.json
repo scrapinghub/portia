@@ -48,9 +48,13 @@
         "id": "spider",
         "type": "object",
         "properties": {
-            "start_urls_type": {"type": "string", "enum": ["start_urls", "generated_urls"]},
-            "start_urls": {"type": "array", "items": {"type": "string", "format": "url"}, "required": true},
-            "generated_urls": {"type": "array", "items": {"$ref": "generated_url"}},
+
+            "start_urls": {
+                "type": "array",
+                "items": {"type": [{"$ref": "fixed_url"}, {"$ref": "start_url"}]},
+                "required": true
+            },
+
             "links_to_follow": {"type": "string", "enum": ["none", "patterns", "all", "auto"], "required": true},
             "follow_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
             "exclude_patterns": {"type": "array", "items": {"type": "string", "format": "regex"}},
@@ -63,6 +67,29 @@
             "template_names": {"type": "array", "items": {"type": "string"}},
             "page_actions": {"type": "array", "items": {"$ref": "action"}},
             "init_requests": {"type": "array", "items": {"$ref": "request"}}
+        }
+    },
+    {
+        "id": "fixed_url",
+        "type": "string",
+        "format": "url"
+    },
+    {
+        "id": "start_url",
+        "type": "object",
+        "properties": {
+            "url": {"type": "string", "required": true},
+            "type": {"type": "string", "enum": ["url", "generated"], "required": true},
+            "fragments": {"type": "array", "items": {"$ref": "url_fragment"}}
+        },
+        "additionalProperties": false
+    },
+    {
+        "id": "url_fragment",
+        "type": "object",
+        "properties": {
+            "type": {"type": "string", "enum": ["fixed", "range", "list"], "required": true},
+            "value": {"type": "string", "required": true}
         }
     },
     {
