@@ -2,25 +2,54 @@ from __future__ import unicode_literals
 
 from django.db.models import (Model, BinaryField, BigIntegerField,
                               SmallIntegerField, CharField)
+from django.db.models.expressions import Func, Value
 
 
 class TinyIntegerField(SmallIntegerField):
     def db_type(self, connection):
-        if connection.settings_dict['ENGINE'] == 'django.db.backends.mysql':
+        if connection.vendor == 'mysql':
             return "tinyint"
         else:
             return super(TinyIntegerField, self).db_type(connection)
 
 
+class RealBinaryField(BinaryField):
+    def db_type(self, connection):
+        if connection.vendor == 'mysql':
+            return "binary"
+        else:
+            return super(RealBinaryField, self).db_type(connection)
+
+
+class CompressedBinaryField(BinaryField):
+    def get_db_prep_save(self, value, connection):
+        prepped_value = super(CompressedBinaryField, self).get_db_prep_save(value, connection)
+        if connection.vendor == 'mysql':
+            return Func(Value(prepped_value), function='COMPRESS')
+        return prepped_value
+
+    def select_format(self, compiler, sql, params):
+        sql, params = super(CompressedBinaryField, self).select_format(compiler, sql, params)
+        if compiler.connection.vendor == 'mysql':
+            sql = 'UNCOMPRESS({})'.format(sql)
+        return sql, params
+
+
 class Objs(Model):
-    oid = BinaryField(max_length=40, primary_key=True)
+    oid = RealBinaryField(max_length=40, primary_key=True)
     repo = CharField(max_length=64, primary_key=True)
     type = TinyIntegerField(db_index=True)
     size = BigIntegerField(db_index=True)
-    data = BinaryField()
+    data = CompressedBinaryField()
+
+    class Meta:
+        db_table = 'objs'
 
 
 class Refs(Model):
     ref = CharField(max_length=100, primary_key=True)
     repo = CharField(max_length=64, primary_key=True)
-    value = BinaryField(max_length=40, db_index=True)
+    value = RealBinaryField(max_length=40, db_index=True)
+
+    class Meta:
+        db_table = 'refs'

@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'portia_api.apps.PortiaApiConfig',
+    'portia_api',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -120,3 +120,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Configure default db using single setting DATABASE_URL
+import os
+import dj_database_url
+DATABASE_URL = os.environ.get('DB_URL')
+DATABASES['default'].update(dj_database_url.parse(DATABASE_URL))
