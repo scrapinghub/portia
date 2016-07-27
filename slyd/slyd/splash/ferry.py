@@ -317,7 +317,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             self.populate_window_object
         )
 
-        self.tab.set_images_enabled(False)
+        self.tab.set_images_enabled(True)
         self.tab.set_viewport(meta.get('viewport', _DEFAULT_VIEWPORT))
         self.tab.set_user_agent(meta.get('user_agent', _DEFAULT_USER_AGENT))
         self.tab.loaded = False
