@@ -478,11 +478,12 @@ class BaseContainerExtractor(object):
                 not self.schema._item_validates(new_item_fields)):
             return {}
         merged_item = defaultdict(list)
-        for f, v in new_item.iteritems():
+        for f, v in new_item.items():
             fieldname = getattr(f, 'description', f)
             try:
+                assert not fieldname.startswith('_')
                 merged_item[fieldname] += v
-            except TypeError:
+            except (TypeError, AssertionError):
                 merged_item[fieldname] = v
         if _type:
             merged_item[u'_type'] = _type
