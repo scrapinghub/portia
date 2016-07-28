@@ -1,3 +1,7 @@
+# Python compiled files
+*__pycache__/*
+*.pyc
+
 # Vagrant files
 .vagrant/
 /.idea/
@@ -21,6 +25,9 @@ slybot/slybot/local_slybot_settings.py
 
 # Docs build directory
 docs/_build
+
+# Development Databases
+*.sqlite*
 
 # Default Portia data directory
 slyd/slyd/data
