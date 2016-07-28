@@ -55,30 +55,16 @@ class Repoman(object):
         self.last_tree = None
 
     @classmethod
-    def setup(cls, storage_backend, location):
+    def setup(cls, storage_backend):
         cls.storage = load_object(storage_backend)
-        cls.pool = cls.storage.setup(location)
 
     @classmethod
-    def init_backend(cls, connection=None):
-        try:
-            cls.storage._init_db(connection)
-        except TypeError:
-            cls.storage._init_db(connection)
-
-    @classmethod
-    def create_repo(cls, repo_name, connection, author=None):
+    def create_repo(cls, repo_name, author=None):
         """Create a new repository named repo_name."""
-        try:
-            if cls.storage.repo_exists(repo_name, connection):
-                raise NameError()
-            repoman = cls(author)
-            repoman._repo = cls.storage.init_bare(repo_name, connection)
-        except TypeError:
-            if cls.storage.repo_exists(repo_name):
-                raise NameError()
-            repoman = cls(author)
-            repoman._repo = cls.storage.init_bare(repo_name)
+        if cls.storage.repo_exists(repo_name):
+            raise NameError()
+        repoman = cls(author)
+        repoman._repo = cls.storage.init_bare(repo_name)
         tree = Tree()
         commit = repoman._create_commit()
         commit.tree = tree.id
@@ -87,38 +73,26 @@ class Repoman(object):
         return repoman
 
     @classmethod
-    def open_repo(cls, repo_name, connection, author=None):
+    def open_repo(cls, repo_name, author=None):
         """Open an existing repository."""
         repoman = cls(author)
-        try:
-            repoman._repo = cls.storage.open(repo_name, connection)
-        except TypeError:
-            repoman._repo = cls.storage.open(repo_name)
+        repoman._repo = cls.storage.open(repo_name)
         repoman.name = repo_name
         return repoman
 
     @classmethod
-    def repo_exists(cls, repo_name, connection):
+    def repo_exists(cls, repo_name):
         """Return true if a repository named repo_name can be opened."""
-        try:
-            return cls.storage.repo_exists(repo_name, connection)
-        except TypeError:
-            return cls.storage.repo_exists(repo_name)
+        return cls.storage.repo_exists(repo_name)
 
     @classmethod
-    def list_repos(cls, connection):
-        try:
-            return cls.storage.list_repos(connection)
-        except TypeError:
-            return cls.storage.list_repos()
+    def list_repos(cls):
+        return cls.storage.list_repos()
 
     @classmethod
-    def delete_repo(cls, repo_name, connection):
+    def delete_repo(cls, repo_name):
         """Delete an existing repo."""
-        try:
-            cls.storage.delete_repo(repo_name, connection)
-        except TypeError:
-            cls.storage.delete_repo(repo_name)
+        cls.storage.delete_repo(repo_name)
 
     @property
     def refs(self):

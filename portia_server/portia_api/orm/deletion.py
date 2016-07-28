@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
-from slyd.orm.exceptions import ProtectedError
-from slyd.orm.relationships import HasMany
+from .exceptions import ProtectedError
+from .relationships import HasMany
 
 __all__ = [
     'Collector',

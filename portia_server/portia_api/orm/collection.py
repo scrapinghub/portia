@@ -3,9 +3,9 @@ import json
 
 import six
 
-from slyd.orm.exceptions import ImproperlyConfigured, ValidationError
-from slyd.orm.snapshots import ModelSnapshots
-from slyd.orm.utils import cached_property, unspecified, validate_type
+from .exceptions import ImproperlyConfigured, ValidationError
+from .snapshots import ModelSnapshots
+from .utils import cached_property, unspecified, validate_type
 
 __all__ = [
     'set_related',
