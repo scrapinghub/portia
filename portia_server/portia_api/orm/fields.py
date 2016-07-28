@@ -4,10 +4,10 @@ from marshmallow import fields, validate
 from marshmallow.utils import get_value, missing
 from six import iteritems, itervalues
 
-from slyd.orm.collection import ListDescriptor
-from slyd.orm.deletion import CASCADE, CLEAR, PROTECT
-from slyd.orm.exceptions import ImproperlyConfigured, ValidationError
-from slyd.orm.relationships import BelongsTo, HasMany
+from .collection import ListDescriptor
+from .deletion import CASCADE, CLEAR, PROTECT
+from .exceptions import ImproperlyConfigured, ValidationError
+from .relationships import BelongsTo, HasMany
 
 __all__ = [
     'Boolean',

@@ -1,3 +1,4 @@
 django==1.9.8
 dj-database-url==0.3.0
 MySQL-python==1.2.5
+dulwich==0.14.1

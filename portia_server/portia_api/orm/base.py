@@ -7,19 +7,18 @@ from weakref import WeakKeyDictionary
 from six import iteritems, iterkeys, string_types, with_metaclass
 from toposort import toposort_flatten
 
-from slyd.orm.collection import ModelCollection
-from slyd.orm.deletion import Collector
-from slyd.orm.exceptions import (ImproperlyConfigured, PathResolutionError,
-                                 ValidationError)
-from slyd.orm.fields import Field, DependantField
-from slyd.orm.registry import models, get_polymorphic_model
-from slyd.orm.relationships import BaseRelationship
-from slyd.orm.serializers import FileSerializer
-from slyd.orm.snapshots import ModelSnapshots
-from slyd.orm.utils import (cached_property, class_property, unspecified,
-                            AttributeDict)
-from slyd.utils import short_guid
-from slyd.utils.storage import ContentFile
+from .collection import ModelCollection
+from .deletion import Collector
+from .exceptions import (ImproperlyConfigured, PathResolutionError,
+                         ValidationError)
+from .fields import Field
+from .registry import models, get_polymorphic_model
+from .relationships import BaseRelationship
+from .serializers import FileSerializer
+from .snapshots import ModelSnapshots
+from .utils import (cached_property, class_property, unspecified, AttributeDict)
+from ..utils import short_guid
+from ..utils.storage import ContentFile
 
 __all__ = [
     'Model',

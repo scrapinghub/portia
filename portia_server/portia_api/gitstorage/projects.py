@@ -4,9 +4,9 @@ from os.path import splitext, split, exists
 
 from slyd.projects import ProjectsManager
 from slyd.errors import BadRequest
-from slyd.utils.copy import GitSpiderCopier
-from slyd.utils.download import ProjectArchiver, CodeProjectArchiver
-from slyd.utils.storage import GitStorage
+from ..utils.copy import GitSpiderCopier
+from ..utils.download import ProjectArchiver, CodeProjectArchiver
+from ..utils.storage import GitStorage
 from .repoman import Repoman
 
 
@@ -21,7 +21,7 @@ class GitProjectMixin(object):
 
     @classmethod
     def setup(cls, storage_backend, location):
-        Repoman.setup(storage_backend, location)
+        Repoman.setup(storage_backend)
         cls.base_dir = ''
         if exists(location):
             cls.base_dir = location
@@ -64,14 +64,13 @@ class GitProjectMixin(object):
 
     def _init_or_open_project(self, name):
         name = self._project_name(name)
-        if not Repoman.repo_exists(name, self.connection):
+        if not Repoman.repo_exists(name):
             pm = getattr(self, 'pm', self)
             pm.create_project(name)
             if getattr(pm, 'storage', None):
                 self.storage = pm.storage
                 return self.storage.repo
-        return Repoman.open_repo(self._project_name(name), self.connection,
-                                 self.user)
+        return Repoman.open_repo(self._project_name(name), self.user)
 
     def list_spiders(self, name=None):
         self._open_repo(self._project_name(name), read_only=True)
@@ -102,16 +101,15 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         self.modify_request = {
             'download': self._render_file
         }
-        self.connection = None
 
     def all_projects(self):
         return [{'name': repo, 'id': repo}
-                for repo in Repoman.list_repos(self.connection)]
+                for repo in Repoman.list_repos()]
 
     def create_project(self, name):
         self.validate_project_name(name)
         try:
-            repo = Repoman.create_repo(name, self.connection, self.user)
+            repo = Repoman.create_repo(name, self.user)
         except NameError:
             raise BadRequest("Bad Request",
                              'A project already exists with the name "%s".'
@@ -124,7 +122,7 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         return name
 
     def remove_project(self, name):
-        Repoman.delete_repo(name, self.connection)
+        Repoman.delete_repo(name)
 
     def publish_project(self, name, force):
         repoman = self._open_repo(name)

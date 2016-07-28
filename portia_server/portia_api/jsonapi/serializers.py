@@ -115,7 +115,7 @@ class JsonApiSerializerOpts(SchemaOpts):
         # the model from which the Schema was created, required
         self.model = getattr(meta, 'model', None)
         if not issubclass(self.model, Model):
-            raise ValueError("'model' option must be a slyd.orm.Model.")
+            raise ValueError("'model' option must be a orm.Model.")
         # url for an object instance
         self.url = getattr(meta, 'url', None)
         if not isinstance(self.url, string_types):
