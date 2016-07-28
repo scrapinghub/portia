@@ -67,22 +67,6 @@ class SpiderTest(TestCase):
         t1, t2 = spec["templates"]
 
         target1, target2 = [HtmlPage(url=t["url"], body=t["original_body"]) for t in spec["templates"]]
-        items, link_regions = spider.plugins['Annotations'].extract_items(target1)
-        self.assertEqual(items[0], {
-                '_template': u'4fad6a7c688f922437000014',
-                '_type': u'default',
-                u'category': [u'Onions'],
-                u'days': [None],
-                u'description': [u'(110-120 days)&nbsp; Midsized Italian variety.&nbsp; Long to intermediate day red onion that tolerates cool climates.&nbsp; Excellent keeper.&nbsp; We have grown out thousands of bulbs and re-selected this variety to be the top quality variety that it once was.&nbsp; 4-5&quot; bulbs are top-shaped, uniformly colored, and have tight skins.'],
-                u'lifecycle': [u'Heirloom/Rare'],
-                u'name': [u'Rossa Di Milano Onion'],
-                u'price': [u'3.49'],
-                u'species': [u'Alium cepa'],
-                u'type': [u'Heirloom/Rare'],
-                'url': u'http://www.seedsofchange.com/garden_center/product_details.aspx?item_no=PS15978'}
-        )
-        self.assertEqual(link_regions, [])
-
         items, link_regions = spider.plugins['Annotations'].extract_items(target2)
         self.assertEqual(items[0], {
                 '_template': u'4fad6a7d688f922437000017',

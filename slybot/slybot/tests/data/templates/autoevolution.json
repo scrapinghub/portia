@@ -433,5 +433,228 @@
     "scrapes": "3e48-4f1d-a25a",
     "spider": "www.autoevolution.com",
     "url": "http://www.autoevolution.com/cars/honda-civic-5-doors-2005.html#aeng_honda-civic-5-doors-2005-14-i-dsi",
-    "version": "0.13.0b20"
+    "version": "0.13.0b20",
+    "results": [
+        {
+            "fuel_effiency_city": [
+                "39.9 mpg US OR 5.9 L/100Km"
+            ], 
+            "image": [
+                "http://s1.cdn.autoevolution.com/images/models/HONDA_Civic-5-Doors-2005_main.jpg"
+            ], 
+            "cyclinders": [
+                "L4"
+            ], 
+            "height": [
+                "59.1/59.4 in OR 1,501/1,509 mm"
+            ], 
+            "_template": "f9595b583d2b1640b443722777d8225a9406bb80", 
+            "top_speed": [
+                "105.6 mph OR 170 km/h"
+            ], 
+            "engines": [
+                "1.4 i-DSI", 
+                "1.8 i-VTEC", 
+                "2.2 i-CTDi"
+            ], 
+            "fuel_type": [
+                "Gasoline"
+            ], 
+            "fuel_efficiency": [
+                "30.9 mpg US OR 7.6 L/100Km"
+            ], 
+            "width": [
+                "57.5 in OR 1461 mm"
+            ], 
+            "unladen_weight": [
+                "2513.3 lbs OR 1140 kg"
+            ], 
+            "total_length": [
+                "167.3 in OR 4249 mm"
+            ], 
+            "?": [
+                "-"
+            ], 
+            "fuel_effiency_highway": [
+                "48 mpg US OR 4.9 L/100Km"
+            ], 
+            "_type": "car", 
+            "description": [
+                "In 2005 Honda introduced the eighth generation Civic, with a different approach for the European market compared to the American/Japanese market. A year after it presented the Civic Concept, the production version rolled out, marking a staggering and unprecedented resemblance between the two. The car introduced a new and unconventional design inside and out. With the focus clearly on looks, Honda tried to answer complains of boring design from the previous generation and develop a compact addressed to a younger consumer segment. The engines behind the new Civic are both fuel efficient and thrifty with a 1.4-liter i-DSI, a 1.8-liter i-VTEC petrol unit and a 2.2-liter i-CTDi diesel. share: \uf083 share \uf086 share \uf084 tweet see also: photo gallery"
+            ], 
+            "engine_displacement": [
+                "1339 cm3"
+            ], 
+            "f875-47f9-b433": [
+                "Multipoint Injection "
+            ], 
+            "tyres": [
+                "205/55R16"
+            ], 
+            "gross_weight": [
+                "3637.6 lbs OR 1650 kg"
+            ], 
+            "0-100km/h": [
+                "14.6 s"
+            ], 
+            "luggage": [
+                "17.1 cuFT OR 484 L"
+            ], 
+            "url": "http://url", 
+            "wheelbase": [
+                "103.9 in OR 2639 mm"
+            ], 
+            "length": [
+                "69.3 in OR 1760 mm"
+            ], 
+            "emissions": [
+                "139 g/km"
+            ]
+        }
+    ],
+    "schemas": {
+        "3e48-4f1d-a25a": {
+            "name": "car",
+            "fields": {
+                "15f8-456a-b398": {
+                    "name": "length",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "1bc1-4326-958c": {
+                    "name": "fuel_efficiency",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "2dc2-45d8-9bfc": {
+                    "name": "engines",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "3848-45fc-8bbd": {
+                    "name": "height",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "5a2c-4dde-a064": {
+                    "name": "image",
+                    "type": "image",
+                    "required": false,
+                    "vary": false
+                },
+                "5c91-4055-9cd0": {
+                    "name": "emissions",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "81d2-4e34-afce": {
+                    "name": "width",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "97df-4068-b152": {
+                    "name": "luggage",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "b12f-4593-bb1e": {
+                    "name": "0-100km/h",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "bf29-49d0-8d32": {
+                    "name": "description",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "eb01-487c-aabc": {
+                    "name": "unladen_weight",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "max_weight": {
+                    "name": "max_weight",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "de5d-4a74-bbbe": {
+                    "name": "tyres",
+                    "type": "text",
+                    "required": false,
+                    "vary": false
+                },
+                "edc5-44d4-8a37": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "?"
+                }, 
+                "715d-44f0-8610": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "engine_displacement"
+                }, 
+                "c151-43ac-a996": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "wheelbase"
+                }, 
+                "cb72-40f4-be48": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "gross_weight"
+                }, 
+                "74ca-4687-a998": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "fuel_effiency_city"
+                }, 
+                "3d6c-406b-ada0": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "cyclinders"
+                }, 
+                "ae56-4514-979d": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "total_length"
+                }, 
+                "7b14-4c51-9d8d": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "fuel_type"
+                }, 
+                "2237-4b60-94ff": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "top_speed"
+                }, 
+                "809c-4921-aaec": {
+                    "type": "text", 
+                    "required": false, 
+                    "vary": false, 
+                    "name": "fuel_effiency_highway"
+                }
+            }
+        }
+    }
 }

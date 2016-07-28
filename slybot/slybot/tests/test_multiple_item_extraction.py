@@ -310,11 +310,13 @@ class ContainerExtractorTest(TestCase):
         self.assertEqual(items[-1], results[2])
         self.assertEqual(len(items), 96)
         data = _open_spec('autoevolution.json')
+        schemas = data['schemas']
+        results = data['results']
         page = HtmlResponse('http://url', body=data['original_body'],
                             encoding='utf-8')
-        spider = IblSpider('ae', _spider(sample=data), {}, {}, Settings())
+        spider = IblSpider('ae', _spider(sample=data), schemas, {}, Settings())
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
-        self.assertEqual(items, {})
+        self.assertEqual(items, results)
 
     def test_required_annotation(self):
         ibl_extractor = SlybotIBLExtractor([

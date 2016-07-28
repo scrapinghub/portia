@@ -111,7 +111,7 @@ def _gen_annotation_info(annotation):
             'siblings': annotation.get('siblings'),
             'field': annotation.get('field'),
             'selector': annotation.get('selector')
-        })
+        }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):
             data['data-scrapy-ignore-beneath'] = 'true'
@@ -209,7 +209,7 @@ def _generate_elem(annotation, text):
     annotation_info[GENERATEDTAGID] = annotation.get('id')
     attributes = []
     for key, value in annotation_info.items():
-        attributes.append('="'.join((key, value.replace('"', '&quot;'))) + '"')
+        attributes.append('%s="%s"' % (key, value))
     sections.append(' '.join(attributes))
     if len(sections) > 1:
         sections[0] += ' '

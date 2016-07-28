@@ -7,6 +7,7 @@ import re
 from collections import OrderedDict
 
 from scrapy.http import Request
+from scrapy.utils.misc import arg_to_iter
 
 from scrapely.extraction import InstanceBasedLearningExtractor
 from scrapely.htmlpage import HtmlPage, dict_to_page
@@ -121,7 +122,7 @@ class Annotations(object):
         try:
             response.meta['n_items'] = len(items)
         except AttributeError:
-            pass # response not tied to any request
+            pass  # response not tied to any request
         for item in items:
             yield item
         for request in self._process_link_regions(htmlpage, link_regions):
@@ -151,7 +152,7 @@ class Annotations(object):
         extracted_data, template = extractor.extract(htmlpage, pref_template_id)
         link_regions = []
         for ddict in extracted_data or []:
-            link_regions.extend(ddict.pop("_links", []))
+            link_regions.extend(arg_to_iter(ddict.pop("_links", [])))
         descriptor = None
         unprocessed = False
         if template is not None and hasattr(template, 'descriptor'):
