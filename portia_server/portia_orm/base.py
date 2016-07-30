@@ -16,9 +16,9 @@ from .registry import models, get_polymorphic_model
 from .relationships import BaseRelationship
 from .serializers import FileSerializer
 from .snapshots import ModelSnapshots
-from .utils import (cached_property, class_property, unspecified, AttributeDict)
-from ..utils import short_guid
-from ..utils.storage import ContentFile
+from .utils import (cached_property, class_property, short_guid, unspecified,
+                    AttributeDict)
+from storage.storage import ContentFile
 
 __all__ = [
     'Model',

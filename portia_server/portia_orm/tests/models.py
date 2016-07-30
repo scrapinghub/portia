@@ -1,5 +1,5 @@
-from portia_api.orm import fields
-from portia_api.orm.base import Model
+from .. import fields
+from ..base import Model
 
 
 class ExampleModel(Model):

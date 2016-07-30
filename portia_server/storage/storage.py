@@ -7,6 +7,8 @@ from django.core.files.storage import Storage, FileSystemStorage
 from dulwich.diff_tree import tree_changes
 from dulwich.objects import Blob
 
+from .repoman import Repoman
+
 
 FILE_MODE = 0o100644
 
@@ -29,6 +31,10 @@ class CommitingStorage(object):
 
 
 class FsStorage(CommitingStorage, FileSystemStorage):
+    def __init__(self, location, branch='master', author=None, base_url=None,
+                 commit=None, tree=None):
+        super(FsStorage, self).__init__(location)
+
     def isdir(self, name):
         return os.path.isdir(self.path(name))
 
@@ -44,8 +50,9 @@ class FsStorage(CommitingStorage, FileSystemStorage):
 
 
 class GitStorage(CommitingStorage, Storage):
-    def __init__(self, repo, branch='master', base_url=None,
+    def __init__(self, location, branch='master', author=None, base_url=None,
                  commit=None, tree=None):
+        repo = Repoman.open_repo(location, author)
         self.repo = repo
         self.branch = branch
         if commit is None:

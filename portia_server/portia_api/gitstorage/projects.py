@@ -3,17 +3,11 @@ import json
 from os.path import splitext, split, exists
 
 from slyd.projects import ProjectsManager
-from slyd.errors import BadRequest
+from ..errors import BadRequest
 from ..utils.copy import GitSpiderCopier
 from ..utils.download import ProjectArchiver, CodeProjectArchiver
-from ..utils.storage import GitStorage
-from .repoman import Repoman
-
-
-def wrap_callback(connection, callback, manager, retries=0, **parsed):
-    result = callback(**parsed)
-    manager.commit_changes()
-    return result
+from storage.storage import GitStorage
+from storage.repoman import Repoman
 
 
 class GitProjectMixin(object):
@@ -25,12 +19,6 @@ class GitProjectMixin(object):
         cls.base_dir = ''
         if exists(location):
             cls.base_dir = location
-
-    def run(self, callback, **parsed):
-        pool = getattr(Repoman, 'pool', None)
-        if pool is None:
-            return wrap_callback(None, callback, self, **parsed)
-        return pool.runWithConnection(wrap_callback, callback, self, **parsed)
 
     def _project_name(self, name):
         if name is None:

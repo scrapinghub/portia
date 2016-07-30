@@ -8,15 +8,14 @@ from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slybot.plugins.scrapely_annotations.migration import (port_sample,
                                                            load_annotations)
-from portia_api.orm.base import Model
-from portia_api.orm.decorators import pre_load, post_dump
-from portia_api.orm.exceptions import PathResolutionError
-from portia_api.orm.fields import (
+from .base import Model
+from .decorators import pre_load, post_dump
+from .exceptions import PathResolutionError
+from .fields import (
     Boolean, Domain, Integer, List, Regexp, String, Url, DependantField,
     BelongsTo, HasMany, CASCADE, CLEAR, PROTECT)
-from portia_api.orm.utils import unwrap_envelopes, wrap_envelopes
-from portia_api.orm.validators import OneOf
-from portia_api.utils import short_guid
+from .utils import unwrap_envelopes, short_guid, wrap_envelopes
+from .validators import OneOf
 
 FIELD_TYPES = FieldTypeManager().available_type_names()
 

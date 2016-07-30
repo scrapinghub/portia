@@ -1,51 +1,46 @@
 from collections import OrderedDict
-import json
 
 from django.utils.functional import cached_property
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
 from six import itervalues, string_types
 
-from .models import ProjectSchema
-from .response import JsonApiResource, ProjectDownloadResponse
 from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
-from ..errors import BadRequest, BaseError, NotFound
-from ..orm.models import Project
+from portia_orm.models import Project
 
 NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
 
 
 class ProjectDownloadMixin(object):
-    @classmethod
-    def get_resources(cls):
-        for resource in super(ProjectDownloadMixin, cls).get_resources():
-            yield resource
-        yield 'get', cls.download_path
-
-    def get_handler(self):
-        if self.route_path == self.download_path:
-            return self.download
-        return super(ProjectDownloadMixin, self).get_handler()
-
+    @detail_route(methods=['get'])
     def download(self):
-        project_manager = self.project_manager
-        project_id = self.args.get('project_id')
-        spider_id = self.args.get('spider_id', None)
+        # project_manager = self.project_manager
+        project_id = self.kwargs.get('project_id')
+        spider_id = self.kwargs.get('spider_id', None)
         spider_ids = [spider_id] if spider_id is not None else '*'
-        fmt = self.query.get('format', ['spec'])[0]
-        return ProjectDownloadResponse(
-            project_id, spider_ids, fmt, project_manager)
+        fmt = self.query.get('format', 'spec')
+        # return ProjectDownloadResponse(
+        #     project_id, spider_ids, fmt, project_manager)
+        return Response(b'', status=HTTP_200_OK)
 
 
 class ProjectDataMixin(object):
     @cached_property
     def projects(self):
-        auth_info = self.request.auth_info
-        if 'projects_data' in auth_info:
-            projects = auth_info['projects_data']
-        elif 'authorized_projects' in auth_info:
-            projects = [{'id': id_, 'name': id_}
-                        for id_ in auth_info['authorized_projects']]
-        else:
-            projects = self.project_manager.all_projects()
+        # auth_info = self.request.auth_info
+        # if 'projects_data' in auth_info:
+        #     projects = auth_info['projects_data']
+        # elif 'authorized_projects' in auth_info:
+        #     projects = [{'id': id_, 'name': id_}
+        #                 for id_ in auth_info['authorized_projects']]
+        # else:
+        #     projects = self.project_manager.all_projects()
+
+        projects = [{
+            'id': '1111111',
+            'name': '1111111',
+        }]
 
         project_list = []
         for project in projects:
@@ -64,12 +59,7 @@ class ProjectDataMixin(object):
 
 class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
                    ListModelMixin, RetrieveModelMixin):
-    list_path = 'projects'
-    detail_path = 'projects/{project_id}'
-    status_path = 'projects/{project_id}/status'
-    publish_path = 'projects/{project_id}/publish'
-    reset_path = 'projects/{project_id}/reset'
-    download_path = 'projects/{project_id}/download'
+    lookup_url_kwarg = 'project_id'
     default_model = Project
 
     class FakeStorage(object):
@@ -78,25 +68,6 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
 
         def listdir(self, *args, **kwargs):
             return [], []
-
-    @classmethod
-    def get_resources(cls):
-        for resouce in super(ProjectRoute, cls).get_resources():
-            yield resouce
-        yield 'get', cls.status_path
-        yield 'put', cls.publish_path
-        yield 'patch', cls.reset_path
-        yield 'put', cls.publish_path
-        yield 'patch', cls.reset_path
-
-    def get_handler(self):
-        if self.route_path == self.status_path:
-            return self.status
-        if self.route_path == self.publish_path:
-            return self.publish
-        if self.route_path == self.reset_path:
-            return self.reset
-        return super(ProjectRoute, self).get_handler()
 
     # def create(self):
     #     """Create a new project from the provided attributes"""
@@ -127,53 +98,56 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
     #     manager.remove_project(project_id)
     #     return self.get_empty()
 
+    @detail_route(methods=['get'])
     def status(self):
         response = self.retrieve()
         data = OrderedDict()
-        data.update({
-            'meta': {
-                'changes': self.get_project_changes()
-            }
-        })
+        # data.update({
+        #     'meta': {
+        #         'changes': self.get_project_changes()
+        #     }
+        # })
         data.update(response.data)
-        return JsonApiResource(200, data)
+        return Response(data, status=HTTP_200_OK)
 
+    @detail_route(methods=['put', 'patch', 'post'])
     def publish(self):
-        manager = self.project_spec
-        if not hasattr(manager.pm, 'publish_project'):
-            raise NotFound(NOT_AVAILABLE_ERROR)
-        project_id = manager.project_name
-        if not self.get_project_changes():
-            raise BadRequest('The project is up to date')
-        publish_status = json.loads(
-            manager.pm.publish_project(project_id,
-                                       self.data.get('force', False)))
-        if publish_status['status'] == 'conflict':
-            raise BaseError(409, 'A conflict has occurred in this project',
-                            'You must resolve the conflict for the project to be'
-                            ' successfully published')
+        # manager = self.project_spec
+        # if not hasattr(manager.pm, 'publish_project'):
+        #     raise NotFound(NOT_AVAILABLE_ERROR)
+        # project_id = manager.project_name
+        # if not self.get_project_changes():
+        #     raise BadRequest('The project is up to date')
+        # publish_status = json.loads(
+        #     manager.pm.publish_project(project_id,
+        #                                self.data.get('force', False)))
+        # if publish_status['status'] == 'conflict':
+        #     raise BaseError(409, 'A conflict has occurred in this project',
+        #                     'You must resolve the conflict for the project to be'
+        #                     ' successfully published')
 
         response = self.retrieve()
         data = OrderedDict()
-        data.update({
-            'meta': manager.pm._schedule_data(project_id=project_id)
-        })
+        # data.update({
+        #     'meta': manager.pm._schedule_data(project_id=project_id)
+        # })
         data.update(response.data)
-        return JsonApiResource(200, data)
+        return Response(data, status=HTTP_200_OK)
 
+    @detail_route(methods=['put', 'patch', 'post'])
     def reset(self):
-        manager = self.project_spec
-        if not hasattr(manager.pm, 'discard_changes'):
-            raise NotFound(NOT_AVAILABLE_ERROR)
-        project_id = manager.project_name
-        if not self.get_project_changes():
-            raise BadRequest('There are no changes to discard')
-        manager.pm.discard_changes(project_id)
+        # manager = self.project_spec
+        # if not hasattr(manager.pm, 'discard_changes'):
+        #     raise NotFound(NOT_AVAILABLE_ERROR)
+        # project_id = manager.project_name
+        # if not self.get_project_changes():
+        #     raise BadRequest('There are no changes to discard')
+        # manager.pm.discard_changes(project_id)
         return self.retrieve()
 
     def get_instance(self):
         return Project(
-            self.storage, **self.projects[self.args.get('project_id')])
+            self.storage, **self.projects[self.kwargs.get('project_id')])
 
     def get_collection(self):
         storage = self.FakeStorage()
@@ -212,18 +186,19 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
         }
 
     def get_project_changes(self):
-        manager = self.project_spec
-        if not hasattr(manager.pm, '_changed_files'):
-            raise NotFound(NOT_AVAILABLE_ERROR)
-        return [{'type': type_, 'path': path, 'old_path': old_path}
-                for type_, path, old_path
-                in manager.pm._changed_files(manager.project_name)]
+        pass
+        # manager = self.project_spec
+        # if not hasattr(manager.pm, '_changed_files'):
+        #     raise NotFound(NOT_AVAILABLE_ERROR)
+        # return [{'type': type_, 'path': path, 'old_path': old_path}
+        #         for type_, path, old_path
+        #         in manager.pm._changed_files(manager.project_name)]
 
 
-def _check_project_attributes(manager, attributes):
-    attributes = ProjectSchema().load(attributes).data
-    if 'name' not in attributes:
-        raise BadRequest('Bad Request',
-                         'Can\'t create a project without a name')
-    manager.validate_project_name(attributes['name'])
-    return attributes
+# def _check_project_attributes(manager, attributes):
+#     attributes = ProjectSchema().load(attributes).data
+#     if 'name' not in attributes:
+#         raise BadRequest('Bad Request',
+#                          'Can\'t create a project without a name')
+#     manager.validate_project_name(attributes['name'])
+#     return attributes

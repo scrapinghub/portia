@@ -2,10 +2,10 @@ import unittest
 
 import mock
 
-from portia_api.orm.exceptions import PathResolutionError, ValidationError
 from .models import (ExampleModel, RequiredFieldModel, SingleFileModel,
                      ManyFileModel, ParamFileModel, PolymorphicChildModel1)
 from .utils import mock_storage
+from ..exceptions import PathResolutionError, ValidationError
 
 
 class BasicModelTests(unittest.TestCase):

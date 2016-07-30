@@ -1,50 +1,33 @@
-from collections import Sequence
-import json
+from collections import Sequence, OrderedDict
 from operator import attrgetter
 
+from django.http.response import Http404
 from django.utils.functional import cached_property
 from marshmallow import ValidationError
 from marshmallow_jsonapi.exceptions import IncorrectTypeError
-from six import iteritems
+from rest_framework.response import Response
+from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
+                                   HTTP_204_NO_CONTENT)
+from rest_framework.viewsets import ViewSet
+from six import iterkeys, text_type
 from six.moves import map
-from twisted.web.http import RESPONSES, OK, CREATED, NO_CONTENT, CONFLICT
 
-from .response import (JsonApiResource, JsonApiErrorResponse,
-                       JsonApiNotFoundResponse, JsonApiValidationErrorResponse)
-from ..errors import BadRequest, BaseError
-from ..jsonapi.serializers import JsonApiPolymorphicSerializer
+from portia_orm.collection import ModelCollection
+from portia_orm.exceptions import ProtectedError
+from portia_orm.relationships import BelongsTo, HasMany
+from storage import create_storage
+from ..errors import BadRequest
+from ..jsonapi.exceptions import (JsonApiDeleteConflictError,
+                                  JsonApiValidationError)
+from ..jsonapi.utils import get_status_title
 from ..jsonapi.registry import get_schema
+from ..jsonapi.serializers import JsonApiPolymorphicSerializer
 from ..jsonapi.utils import type_from_model_name
-from ..orm.collection import ModelCollection
-from ..orm.exceptions import ProtectedError
-from ..orm.relationships import BelongsTo, HasMany
 
 
-class JsonApiRoute(object):
-    list_path = None
-    detail_path = None
+class JsonApiRoute(ViewSet):
     default_model = None
     polymorphic = None
-
-    list_method_map = {
-        'get': 'list',
-        'post': 'create',
-    }
-
-    detail_method_map = {
-        'get': 'retrieve',
-        'put': 'update',
-        'patch': 'update',
-        'delete': 'destroy',
-    }
-
-    def __init__(self, route_path=None, request=None, args=None,
-                 project_manager=None, project_spec=None):
-        self.route_path = route_path
-        self.request = request
-        self.args = args or {}
-        self.project_manager = project_manager
-        self.project_spec = project_spec
 
     def __repr__(self):
         return 'Route(%s)' % str(self)
@@ -59,47 +42,63 @@ class JsonApiRoute(object):
 
     @cached_property
     def query(self):
-        return self.request.args or {}
+        return self.request.query_params or {}
 
     @cached_property
     def storage(self):
-        manager = self.project_spec or self.project_manager
-        if not hasattr(manager, 'storage') and hasattr(manager, 'project_name'):
-            manager._open_repo()
-        return getattr(manager, 'storage', None)
+        if 'project_id' in self.kwargs:
+            return create_storage(self.kwargs['project_id'], 'vagrant', 'vagrant')
+        return None
+        # manager = self.project_spec or self.project_manager
+        # if not hasattr(manager, 'storage') and hasattr(manager, 'project_name'):
+        #     manager._open_repo()
+        # return getattr(manager, 'storage', None)
 
     @cached_property
     def data(self):
-        try:
-            return json.loads(self.request.content.read())
-        except ValueError:
-            return {}
+        return self.request.data or {}
 
-    @classmethod
-    def get_resources(cls):
-        if cls.list_path:
-            for method, handler in iteritems(cls.list_method_map):
-                if hasattr(cls, handler):
-                    yield method, cls.list_path
+    def initialize_request(self, request, *args, **kwargs):
+        # if 'project_id' in kwargs:
+        #     # if not self._has_auth(request, parsed.named['project_id']):
+        #     #     return JsonApiErrorResponse(
+        #     #         Forbidden(
+        #     #             RESPONSES[FORBIDDEN],
+        #     #             FORBIDDEN_TEXT)).render(request)
+        #
+        #     project_spec = self.spec_manager.project_spec(
+        #         kwargs['project_id'],
+        #         request.auth_info)
+        #     project_manager = self.spec_manager.project_manager(
+        #         request.auth_info)
+        #     project_spec.pm = project_manager
+        #     project_manager.request = request
+        # else:
+        #     project_manager = self.spec_manager.project_manager(
+        #         request.auth_info)
+        #     project_spec = None
 
-        if cls.detail_path:
-            for method, handler in iteritems(cls.detail_method_map):
-                if hasattr(cls, handler):
-                    yield method, cls.detail_path
+        # self.project_manager = project_manager
+        # self.project_spec = project_spec
+        self.project_manager = None
+        self.project_spec = None
+        return super(JsonApiRoute, self).initialize_request(
+            request, *args, **kwargs)
 
-    def get_handler(self):
-        if self.route_path == self.list_path:
-            return getattr(self, self.list_method_map[self.method])
-        return getattr(self, self.detail_method_map[self.method])
-
-    def dispatch(self):
-        manager = self.project_spec or self.project_manager
-        return manager.run(self.dispatch_with_storage)
-
-    def dispatch_with_storage(self):
-        handler = self.get_handler()
-        self.storage  # initialize storage
-        return handler()
+    def handle_exception(self, exc):
+        response = super(JsonApiRoute, self).handle_exception(exc)
+        if isinstance(exc, Http404):
+            response.data['detail'] = "Resource '%s' not found." % self.path
+        status_code = response.status_code
+        if (isinstance(response.data, dict) and len(response.data) == 1 and
+                'detail' in response.data):
+            status_title = get_status_title(status_code)
+            response.data = OrderedDict([
+                ('status', text_type(status_code)),
+                ('title', status_title),
+                ('detail', response.data['detail']),
+            ])
+        return response
 
     def get_instance(self):
         raise NotImplementedError
@@ -113,16 +112,16 @@ class JsonApiRoute(object):
                 raise BadRequest(u"Cannot filter this collection.")
 
             ids = []
-            for id_list in self.query.pop('filter[id]'):
+            for id_list in self.query.getlist('filter[id]'):
                 ids.extend(id_list.split(','))
 
             collection = collection.__class__((collection[id_] for id_ in ids))
 
-        for key, values in iteritems(self.query):
-            if key.startswith('filter[') and key[-1] == ']':
+        for key in iterkeys(self.query):
+            if key != 'filter[id]' and key.startswith('filter[') and key[-1] == ']':
                 field_name = key[7:-1]
                 field_values = set()
-                for field_list in values:
+                for field_list in self.query.getlist(key):
                     field_values.update(field_list.split(','))
 
                 filtered = []
@@ -184,15 +183,15 @@ class JsonApiRoute(object):
 
         if 'include' in self.query:
             include = []
-            for include_list in self.query['include']:
+            for include_list in self.query.getlist('include'):
                 include.extend(include_list.split(','))
             kwargs['include_data'] = include
 
         fields = {}
-        for key, values in iteritems(self.query):
+        for key in iterkeys(self.query):
             if key.startswith('fields[') and key[-1] == ']':
                 field = key[7:-1]
-                for field_list in values:
+                for field_list in self.query.getlist(key):
                     if field in fields:
                         fields[field].extend(field_list.split(','))
                     else:
@@ -201,7 +200,7 @@ class JsonApiRoute(object):
 
         if 'sort' in self.query:
             sort_ = []
-            for sort_list in self.query['sort']:
+            for sort_list in self.query.getlist('sort'):
                 sort_.extend(sort_list.split(','))
             kwargs['ordering'] = sort_
 
@@ -209,60 +208,68 @@ class JsonApiRoute(object):
 
 
 class CreateModelMixin(object):
-    def create(self):
+    def create(self, *args, **kwargs):
         serializer = self.get_serializer(data=self.data, storage=self.storage,
                                          partial={'id'})
 
         try:
             self.perform_create(serializer)
         except ValidationError as err:
-            raise JsonApiValidationErrorResponse(err.messages)
+            raise JsonApiValidationError(err.messages)
 
-        return JsonApiResource(CREATED, serializer.data)
+        return Response(serializer.data, status=HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         serializer.save()
 
 
 class ListModelMixin(object):
-    def list(self):
+    def list(self, *args, **kwargs):
         try:
             collection = self.filter_collection(self.get_collection())
         except (TypeError, IndexError, KeyError):
-            raise JsonApiNotFoundResponse()
+            raise Http404
 
         serializer = self.get_serializer(collection, many=True)
-        return JsonApiResource(OK, serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
 class RetrieveModelMixin(object):
-    def retrieve(self):
+    def retrieve(self, *args, **kwargs):
         try:
             instance = self.get_instance()
         except (TypeError, IndexError, KeyError):
-            raise JsonApiNotFoundResponse()
+            raise Http404
 
         serializer = self.get_serializer(instance)
-        return JsonApiResource(OK, serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
 
 
 class UpdateModelMixin(object):
-    def update(self):
+    def update(self, *args, **kwargs):
         try:
             instance = self.get_instance()
         except (TypeError, IndexError, KeyError):
-            raise JsonApiNotFoundResponse()
+            raise Http404
+
+        if kwargs.pop('partial', False):
+            partial = set(instance.__class__._ordered_fields).difference({'id'})
+        else:
+            partial = False
 
         serializer = self.get_serializer(
-            instance, data=self.data,
-            partial=set(instance.__class__._ordered_fields).difference({'id'}))
+            instance, data=self.data, partial=partial)
 
         try:
             self.perform_update(serializer)
         except (ValidationError, IncorrectTypeError) as err:
-            raise JsonApiValidationErrorResponse(err.messages)
+            raise JsonApiValidationError(err.messages)
 
-        return JsonApiResource(OK, serializer.data)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         serializer.save()
@@ -273,23 +280,21 @@ class DestroyModelMixin(object):
         try:
             instance = self.get_instance()
         except (TypeError, IndexError, KeyError):
-            raise JsonApiNotFoundResponse()
+            raise Http404
 
         serializer = self.get_serializer(instance, data=self.data)
 
         try:
             self.perform_destroy(serializer)
         except (ValidationError, IncorrectTypeError) as err:
-            raise JsonApiValidationErrorResponse(err.messages)
+            raise JsonApiValidationError(err.messages)
         except ProtectedError:
-            raise JsonApiErrorResponse(
-                BaseError(CONFLICT, RESPONSES[CONFLICT],
-                          u'You cannot delete this resource.'))
+            raise JsonApiDeleteConflictError()
 
         data = serializer.data
         if data:
-            return JsonApiResource(OK, data)
-        return JsonApiResource(NO_CONTENT)
+            return Response(data, status=HTTP_200_OK)
+        return Response(status=HTTP_204_NO_CONTENT)
 
     def perform_destroy(self, serializer):
         return serializer.delete()

@@ -19,9 +19,9 @@ from twisted.enterprise.adbapi import ConnectionPool, ConnectionLost
 
 from slyd.projects import ProjectsManager
 from slyd.projectspec import ProjectSpec
-from ..utils.retry import deferred_retry
+from portia_api.utils.retry import deferred_retry
 
-from portia_api.models import Objs, Refs
+from .models import Objs, Refs
 
 
 try:

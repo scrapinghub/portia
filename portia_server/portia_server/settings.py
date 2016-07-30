@@ -35,7 +35,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'portia_api',
+    'db_repo.apps.DbRepoConfig',
+    'storage.apps.StorageConfig',
+    'portia_orm.apps.PortiaOrmConfig',
+    'portia_api.apps.PortiaApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -122,3 +125,12 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'portia_api.jsonapi.renderers.JSONApiRenderer',
+    )
+}
+
+PORTIA_DATA_STORAGE = 'storage.storage.GitStorage'
+REPO_BACKEND = 'db_repo.repo.MysqlRepo'

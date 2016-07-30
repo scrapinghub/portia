@@ -1,12 +1,8 @@
-from collections import OrderedDict
 import json
 
 from six.moves import map
 from twisted.python.compat import intToBytes
-from twisted.web.http import RESPONSES, NOT_FOUND, BAD_REQUEST
 from twisted.web.server import NOT_DONE_YET
-
-from ..errors import NotFound
 
 
 class BaseApiResource(object):
@@ -40,51 +36,6 @@ class JsonApiResource(BaseApiResource):
             request.setHeader(b'content-type', content_type)
 
             return json.dumps(data, indent=2)
-
-
-class JsonApiError(JsonApiResource, Exception):
-    pass
-
-
-class JsonApiErrorResponse(JsonApiError):
-    def __init__(self, error):
-        super(JsonApiErrorResponse, self).__init__(None)
-        self.error = error
-
-    def render(self, request):
-        error = self.error
-        self.status = error.status
-        self.data = data = OrderedDict([
-            ('id', getattr(error, 'id', None)),
-            ('status', error.status),
-            ('title', error.title),
-            ('detail', error.body),
-        ])
-        if data['id'] is None:
-            del data['id']
-        return super(JsonApiErrorResponse, self).render(request)
-
-
-class JsonApiNotFoundResponse(JsonApiErrorResponse):
-    def __init__(self):
-        super(JsonApiNotFoundResponse, self).__init__(None)
-
-    def render(self, request):
-        self.error = NotFound(
-            RESPONSES[NOT_FOUND], "Resource '%s' not found." % request.path)
-        return super(JsonApiNotFoundResponse, self).render(request)
-
-
-class JsonApiValidationErrorResponse(JsonApiError):
-    def __init__(self, data):
-        super(JsonApiValidationErrorResponse, self).__init__(BAD_REQUEST, {
-            'errors': [OrderedDict([
-                ('status', BAD_REQUEST),
-                ('title', RESPONSES[BAD_REQUEST]),
-                ('detail', error['detail']),
-                ('source', error['source']),
-            ]) for error in data.get('errors', [])]
-        })
 
 
 class ProjectDownloadResponse(BaseApiResource):

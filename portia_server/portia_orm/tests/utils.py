@@ -1,6 +1,6 @@
 import mock
 
-from portia_api.utils.storage import ContentFile
+from storage.storage import ContentFile
 
 
 def mock_storage(files):

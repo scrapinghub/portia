@@ -1,8 +1,8 @@
 import unittest
 
-from portia_api.orm.exceptions import ValidationError
 from .models import (ExampleModel, ChildModel, PolymorphicChildBase,
                      PolymorphicChildModel1, PolymorphicChildModel2)
+from ..exceptions import ValidationError
 
 
 class ModelCollectionTests(unittest.TestCase):
