@@ -3,7 +3,7 @@ from collections import OrderedDict, Sequence
 from marshmallow import schema
 from six import iteritems, string_types
 
-from portia_api.orm.decorators import pre_dump, post_dump, post_load
+from .decorators import pre_dump, post_dump, post_load
 
 __all__ = [
     'FileSerializer',

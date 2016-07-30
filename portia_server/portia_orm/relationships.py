@@ -3,11 +3,10 @@ from collections import Mapping
 from marshmallow import fields, utils
 from six import string_types
 
-from portia_api.orm.collection import set_related, clear_related, ListDescriptor
-from portia_api.orm.exceptions import ImproperlyConfigured, ValidationError
-from portia_api.orm.registry import get_model, get_polymorphic_model
-from portia_api.orm.utils import (cached_property, cached_property_ignore_set,
-                                  validate_type)
+from .collection import set_related, clear_related, ListDescriptor
+from .exceptions import ImproperlyConfigured, ValidationError
+from .registry import get_model, get_polymorphic_model
+from .utils import cached_property, cached_property_ignore_set, validate_type
 
 __all__ = [
     'BelongsTo',

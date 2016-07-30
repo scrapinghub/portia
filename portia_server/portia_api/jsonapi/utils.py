@@ -1,10 +1,11 @@
 from collections import defaultdict, OrderedDict
 
 from django.utils.text import camel_case_to_spaces
+from requests.status_codes import _codes as status_codes
 from six import iteritems
 from six.moves import reduce
 
-from portia_api.orm.utils import cached_property, cached_property_ignore_set
+from portia_orm.utils import cached_property, cached_property_ignore_set
 
 __all__ = [
     'cached_property',
@@ -87,3 +88,7 @@ def order_dict(data, ordered_keys, key_map_cache={}):
         if can_cache:
             key_map_cache[ordered_keys] = key_map
     return OrderedDict(sorted(iteritems(data), key=lambda kv: key_map[kv[0]]))
+
+
+def get_status_title(status_code):
+    return status_codes[status_code][0].replace('_', ' ').title()

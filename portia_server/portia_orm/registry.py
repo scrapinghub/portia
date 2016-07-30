@@ -1,6 +1,6 @@
 from six import itervalues
 
-from portia_api.orm.exceptions import ImproperlyConfigured
+from .exceptions import ImproperlyConfigured
 
 
 __all__ = [

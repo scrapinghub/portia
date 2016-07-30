@@ -3,5 +3,5 @@ from __future__ import unicode_literals
 from django.apps import AppConfig
 
 
-class PortiaApiConfig(AppConfig):
-    name = 'portia_api'
+class DbRepoConfig(AppConfig):
+    name = 'db_repo'

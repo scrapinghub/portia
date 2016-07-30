@@ -3,9 +3,9 @@ from operator import attrgetter
 from six.moves import map
 
 from portia_api.jsonapi.serializers import JsonApiSerializer
-from portia_api.orm.base import AUTO_PK
-from portia_api.orm.exceptions import ProtectedError
-from portia_api.orm.models import (Project, Schema, Field, Extractor, Spider,
+from portia_orm.base import AUTO_PK
+from portia_orm.exceptions import ProtectedError
+from portia_orm.models import (Project, Schema, Field, Extractor, Spider,
                                    Sample, Item, Annotation)
 from portia_api.utils.projects import unique_name
 

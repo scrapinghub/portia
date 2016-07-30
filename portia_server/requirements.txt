@@ -1,5 +1,8 @@
 django==1.9.8
+djangorestframework==3.4.1
 dj-database-url==0.4.1
-MySQL-python==1.2.5
+drf-nested-routers==0.11.1
 dulwich==0.14.1
+MySQL-python==1.2.5
+requests==2.9.1
 whitenoise==3.2

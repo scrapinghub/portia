@@ -1,15 +1,18 @@
 from collections import OrderedDict
+from uuid import uuid4
 
 from django.utils.functional import cached_property
 from six import iteritems
 
-from portia_api.orm.exceptions import ValidationError
+from .exceptions import ValidationError
 
 __all__ = [
     'cached_property',
     'cached_property_ignore_set',
     'class_property',
+    'short_guid',
     'unspecified',
+    'uuid4'
     'validate_type',
     'AttributeDict',
 ]
@@ -29,6 +32,10 @@ class class_property(object):
 
     def __get__(self, instance, instance_type=None):
         return self.fget.__get__(instance, instance_type)()
+
+
+def short_guid():
+    return '-'.join(str(uuid4()).split('-')[1:4])
 
 
 unspecified = object()

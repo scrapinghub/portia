@@ -18,10 +18,10 @@ from portia_api.jsonapi.utils import (
     RESOURCE_OBJECT_ORDER, TOP_LEVEL_OBJECT_ORDER, cached_property,
     deep_getattr, dasherize, order_dict, should_include_field,
     type_from_model_name)
-from portia_api.orm.base import AUTO_PK, Model
-from portia_api.orm.exceptions import ImproperlyConfigured
-from portia_api.orm.fields import Field as OrmField
-from portia_api.orm.relationships import BaseRelationship, HasMany
+from portia_orm.base import AUTO_PK, Model
+from portia_orm.exceptions import ImproperlyConfigured
+from portia_orm.fields import Field as OrmField
+from portia_orm.relationships import BaseRelationship, HasMany
 
 __all__ = [
     'JsonApiSerializer',
