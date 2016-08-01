@@ -21,6 +21,7 @@ from ..jsonapi.exceptions import (JsonApiDeleteConflictError,
                                   JsonApiValidationError)
 from ..jsonapi.utils import get_status_title
 from ..jsonapi.registry import get_schema
+from ..jsonapi.renderers import JSONApiRenderer
 from ..jsonapi.serializers import JsonApiPolymorphicSerializer
 from ..jsonapi.utils import type_from_model_name
 
@@ -28,6 +29,7 @@ from ..jsonapi.utils import type_from_model_name
 class JsonApiRoute(ViewSet):
     default_model = None
     polymorphic = None
+    renderer_classes = (JSONApiRenderer,)
 
     def __repr__(self):
         return 'Route(%s)' % str(self)
