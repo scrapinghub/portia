@@ -6,15 +6,14 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from six import itervalues, string_types
 
-from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
 from portia_orm.models import Project
-
-NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
+from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
+from ..jsonapi.exceptions import JsonApiFeatureNotAvailableError
 
 
 class ProjectDownloadMixin(object):
     @detail_route(methods=['get'])
-    def download(self):
+    def download(self, *args, **kwargs):
         # project_manager = self.project_manager
         project_id = self.kwargs.get('project_id')
         spider_id = self.kwargs.get('spider_id', None)
@@ -28,22 +27,8 @@ class ProjectDownloadMixin(object):
 class ProjectDataMixin(object):
     @cached_property
     def projects(self):
-        # auth_info = self.request.auth_info
-        # if 'projects_data' in auth_info:
-        #     projects = auth_info['projects_data']
-        # elif 'authorized_projects' in auth_info:
-        #     projects = [{'id': id_, 'name': id_}
-        #                 for id_ in auth_info['authorized_projects']]
-        # else:
-        #     projects = self.project_manager.all_projects()
-
-        projects = [{
-            'id': '1111111',
-            'name': '1111111',
-        }]
-
         project_list = []
-        for project in projects:
+        for project in getattr(self.request, 'projects', []):
             if isinstance(project, string_types):
                 project = {
                     'id': project,
@@ -54,7 +39,8 @@ class ProjectDataMixin(object):
                     project['id'] = project['name']
             project_list.append(project)
 
-        return OrderedDict([(project['id'], project) for project in projects])
+        return OrderedDict([(project['id'], project)
+                            for project in project_list])
 
 
 class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
@@ -99,22 +85,22 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
     #     return self.get_empty()
 
     @detail_route(methods=['get'])
-    def status(self):
+    def status(self, *args, **kwargs):
         response = self.retrieve()
         data = OrderedDict()
-        # data.update({
-        #     'meta': {
-        #         'changes': self.get_project_changes()
-        #     }
-        # })
+        data.update({
+            'meta': {
+                'changes': self.get_project_changes()
+            }
+        })
         data.update(response.data)
         return Response(data, status=HTTP_200_OK)
 
     @detail_route(methods=['put', 'patch', 'post'])
-    def publish(self):
+    def publish(self, *args, **kwargs):
         # manager = self.project_spec
         # if not hasattr(manager.pm, 'publish_project'):
-        #     raise NotFound(NOT_AVAILABLE_ERROR)
+        #     raise JsonApiFeatureNotAvailableError()
         # project_id = manager.project_name
         # if not self.get_project_changes():
         #     raise BadRequest('The project is up to date')
@@ -135,10 +121,10 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
         return Response(data, status=HTTP_200_OK)
 
     @detail_route(methods=['put', 'patch', 'post'])
-    def reset(self):
+    def reset(self, *args, **kwargs):
         # manager = self.project_spec
         # if not hasattr(manager.pm, 'discard_changes'):
-        #     raise NotFound(NOT_AVAILABLE_ERROR)
+        #     raise JsonApiFeatureNotAvailableError()
         # project_id = manager.project_name
         # if not self.get_project_changes():
         #     raise BadRequest('There are no changes to discard')
@@ -186,13 +172,12 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
         }
 
     def get_project_changes(self):
-        pass
-        # manager = self.project_spec
-        # if not hasattr(manager.pm, '_changed_files'):
-        #     raise NotFound(NOT_AVAILABLE_ERROR)
-        # return [{'type': type_, 'path': path, 'old_path': old_path}
-        #         for type_, path, old_path
-        #         in manager.pm._changed_files(manager.project_name)]
+        storage = self.storage
+        if not storage.version_control:
+            raise JsonApiFeatureNotAvailableError()
+        return [{'type': type_, 'path': path, 'old_path': old_path}
+                for type_, path, old_path
+                in storage.changed_files()]
 
 
 # def _check_project_attributes(manager, attributes):

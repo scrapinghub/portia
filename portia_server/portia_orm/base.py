@@ -18,7 +18,7 @@ from .serializers import FileSerializer
 from .snapshots import ModelSnapshots
 from .utils import (cached_property, class_property, short_guid, unspecified,
                     AttributeDict)
-from storage.storage import ContentFile
+from storage.backends import ContentFile
 
 __all__ = [
     'Model',
