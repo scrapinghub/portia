@@ -126,11 +126,5 @@ USE_L10N = True
 
 USE_TZ = True
 
-REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
-        'portia_api.jsonapi.renderers.JSONApiRenderer',
-    )
-}
-
 PORTIA_DATA_STORAGE = 'storage.storage.GitStorage'
 REPO_BACKEND = 'db_repo.repo.MysqlRepo'
