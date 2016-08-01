@@ -15,9 +15,9 @@ from six.moves import map
 from portia_orm.collection import ModelCollection
 from portia_orm.exceptions import ProtectedError
 from portia_orm.relationships import BelongsTo, HasMany
-from storage import create_storage
-from ..errors import BadRequest
-from ..jsonapi.exceptions import (JsonApiDeleteConflictError,
+from storage import create_project_storage
+from ..jsonapi.exceptions import (JsonApiBadRequestError,
+                                  JsonApiConflictError,
                                   JsonApiValidationError)
 from ..jsonapi.utils import get_status_title
 from ..jsonapi.registry import get_schema
@@ -47,45 +47,15 @@ class JsonApiRoute(ViewSet):
         return self.request.query_params or {}
 
     @cached_property
-    def storage(self):
-        if 'project_id' in self.kwargs:
-            return create_storage(self.kwargs['project_id'], 'vagrant', 'vagrant')
-        return None
-        # manager = self.project_spec or self.project_manager
-        # if not hasattr(manager, 'storage') and hasattr(manager, 'project_name'):
-        #     manager._open_repo()
-        # return getattr(manager, 'storage', None)
-
-    @cached_property
     def data(self):
         return self.request.data or {}
 
-    def initialize_request(self, request, *args, **kwargs):
-        # if 'project_id' in kwargs:
-        #     # if not self._has_auth(request, parsed.named['project_id']):
-        #     #     return JsonApiErrorResponse(
-        #     #         Forbidden(
-        #     #             RESPONSES[FORBIDDEN],
-        #     #             FORBIDDEN_TEXT)).render(request)
-        #
-        #     project_spec = self.spec_manager.project_spec(
-        #         kwargs['project_id'],
-        #         request.auth_info)
-        #     project_manager = self.spec_manager.project_manager(
-        #         request.auth_info)
-        #     project_spec.pm = project_manager
-        #     project_manager.request = request
-        # else:
-        #     project_manager = self.spec_manager.project_manager(
-        #         request.auth_info)
-        #     project_spec = None
-
-        # self.project_manager = project_manager
-        # self.project_spec = project_spec
-        self.project_manager = None
-        self.project_spec = None
-        return super(JsonApiRoute, self).initialize_request(
-            request, *args, **kwargs)
+    @cached_property
+    def storage(self):
+        if 'project_id' in self.kwargs:
+            return create_project_storage(
+                self.kwargs['project_id'], 'vagrant', 'vagrant')
+        return None
 
     def handle_exception(self, exc):
         response = super(JsonApiRoute, self).handle_exception(exc)
@@ -111,7 +81,7 @@ class JsonApiRoute(ViewSet):
     def filter_collection(self, collection):
         if 'filter[id]' in self.query:
             if not isinstance(collection, ModelCollection):
-                raise BadRequest(u"Cannot filter this collection.")
+                raise JsonApiBadRequestError(u"Cannot filter this collection.")
 
             ids = []
             for id_list in self.query.getlist('filter[id]'):
@@ -291,7 +261,7 @@ class DestroyModelMixin(object):
         except (ValidationError, IncorrectTypeError) as err:
             raise JsonApiValidationError(err.messages)
         except ProtectedError:
-            raise JsonApiDeleteConflictError()
+            raise JsonApiConflictError(u"You cannot delete this resource.")
 
         data = serializer.data
         if data:

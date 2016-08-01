@@ -1,6 +1,6 @@
 import mock
 
-from storage.storage import ContentFile
+from storage.backends import ContentFile
 
 
 def mock_storage(files):

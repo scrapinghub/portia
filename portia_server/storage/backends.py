@@ -1,11 +1,13 @@
 import os
 import shutil
 
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.move import file_move_safe
 from django.core.files.storage import Storage, FileSystemStorage
 from dulwich.diff_tree import tree_changes
 from dulwich.objects import Blob
+from six import text_type
 
 from .repoman import Repoman
 
@@ -13,7 +15,7 @@ from .repoman import Repoman
 FILE_MODE = 0o100644
 
 
-class CommitingStorage(object):
+class CommittingStorage(object):
     def get_available_name(self, name, max_length=None):
         return name
 
@@ -29,12 +31,33 @@ class CommitingStorage(object):
     def commit(self, message='Saving multiple files'):
         pass
 
+    def changed_files(self):
+        return []
 
-class FsStorage(CommitingStorage, FileSystemStorage):
-    def __init__(self, location, branch='master', author=None, base_url=None,
+
+class BasePortiaStorage(CommittingStorage, Storage):
+    version_control = False
+    create_projects = True
+    delete_projects = True
+    rename_projects = True
+    deploy_projects = False
+    rename_spiders = True
+    rename_samples = True
+
+    def __init__(self, project_id, branch='master', author=None,
                  commit=None, tree=None):
-        super(FsStorage, self).__init__(location)
+        self.project_id = text_type(project_id)
 
+    @classmethod
+    def setup(cls):
+        pass
+
+    @classmethod
+    def list_projects(cls, user):
+        raise NotImplementedError
+
+
+class FsStorage(BasePortiaStorage, FileSystemStorage):
     def isdir(self, name):
         return os.path.isdir(self.path(name))
 
@@ -49,10 +72,13 @@ class FsStorage(CommitingStorage, FileSystemStorage):
         shutil.rmtree(self.path(name))
 
 
-class GitStorage(CommitingStorage, Storage):
-    def __init__(self, location, branch='master', author=None, base_url=None,
+class GitStorage(BasePortiaStorage):
+    version_control = True
+
+    def __init__(self, project_id, branch='master', author=None,
                  commit=None, tree=None):
-        repo = Repoman.open_repo(location, author)
+        super(GitStorage, self).__init__(project_id)
+        repo = Repoman.open_repo(project_id, author)
         self.repo = repo
         self.branch = branch
         if commit is None:
@@ -70,7 +96,11 @@ class GitStorage(CommitingStorage, Storage):
         self._tree = tree
         self._working_tree = tree.copy()
         self._blobs = {}
-        self.base_url = base_url
+
+    @classmethod
+    def setup(cls):
+        Repoman.setup(getattr(settings, 'GITSTORAGE_REPO_BACKEND',
+                              'dulwich.repo.Repo'))
 
     def _open(self, name, mode='rb'):
         name = self._prepare_path(name)
@@ -204,3 +234,11 @@ class GitStorage(CommitingStorage, Storage):
         self._commit = commit
         self._tree = working_tree
         self._working_tree = working_tree.copy()
+
+    def changed_files(self):
+        if self.branch == 'master':
+            return []
+        changes = self.repo.get_branch_changed_entries(self.branch)
+        return [
+            (entry.type, entry.new.path, entry.old.path) for entry in changes
+        ]
