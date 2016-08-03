@@ -1,4 +1,6 @@
 import os
+import os.path
+import re
 import shutil
 
 from django.conf import settings
@@ -6,27 +8,20 @@ from django.core.files.base import ContentFile
 from django.core.files.move import file_move_safe
 from django.core.files.storage import Storage, FileSystemStorage
 from dulwich.diff_tree import tree_changes
-from dulwich.objects import Blob
-from six import text_type
+from dulwich.objects import Blob, Tree
+from six import iteritems, text_type
 
-from .repoman import Repoman
+from .projecttemplates import templates
+from .repoman import Repoman, DEFAULT_USER, FILE_MODE
 
 
-FILE_MODE = 0o100644
+class InvalidFilename(Exception):
+    pass
 
 
 class CommittingStorage(object):
     def get_available_name(self, name, max_length=None):
         return name
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self):
-        pass
-
-    def checkout(self):
-        pass
 
     def commit(self, message='Saving multiple files'):
         pass
@@ -44,20 +39,66 @@ class BasePortiaStorage(CommittingStorage, Storage):
     rename_spiders = True
     rename_samples = True
 
-    def __init__(self, project_id, branch='master', author=None,
-                 commit=None, tree=None):
-        self.project_id = text_type(project_id)
+    default_files = {
+        'project.json': 'PROJECT',
+        'scrapy.cfg': 'SCRAPY',
+        'setup.py': 'SETUP',
+        'items.json': 'ITEMS',
+        os.path.join('spiders', '__init__.py'): None,
+        os.path.join('spiders', 'settings.py'): 'SETTINGS',
+    }
+
+    def __init__(self, name, author=None):
+        self.name = text_type(name)
 
     @classmethod
     def setup(cls):
         pass
 
+    @staticmethod
+    def is_valid_filename(s):
+        # based on Django's Storage.get_valid_filename
+        if s.strip() != s:
+            return False
+        if re.sub(r'(?u)[^- \w.]', '', s) != s:
+            return False
+        return True
+
     @classmethod
-    def list_projects(cls, user):
+    def validate_filename(cls, s):
+        s = text_type(s)
+        if not cls.is_valid_filename(s):
+            raise InvalidFilename(
+                u"The string '{}' is not a valid filename.".format(s))
+        return s
+
+    def init_project(self):
+        self.validate_filename(self.name)
+
+        # TODO: add portia 2.0 tag
+
+        for filename, templatename in iteritems(self.default_files):
+            if not self.exists(filename):
+                template = templates.get(templatename, '') % {
+                    'name': self.name,
+                }
+                self.save(filename, ContentFile(template, filename))
+
+    @classmethod
+    def get_projects(cls, user):
+        # return an OrderedDict of id => name pairs
         raise NotImplementedError
 
 
 class FsStorage(BasePortiaStorage, FileSystemStorage):
+    base_dir = '.'
+
+    def __init__(self, name, *args, **kwargs):
+        super(FsStorage, self).__init__(name, *args, **kwargs)
+        FileSystemStorage.__init__(self, os.path.join(
+            self.base_dir, self.name))
+        self.init_project()
+
     def isdir(self, name):
         return os.path.isdir(self.path(name))
 
@@ -75,27 +116,30 @@ class FsStorage(BasePortiaStorage, FileSystemStorage):
 class GitStorage(BasePortiaStorage):
     version_control = True
 
-    def __init__(self, project_id, branch='master', author=None,
-                 commit=None, tree=None):
-        super(GitStorage, self).__init__(project_id)
-        repo = Repoman.open_repo(project_id, author)
+    def __init__(self, name, author=None):
+        super(GitStorage, self).__init__(name)
+        self.author = author
+        repo = Repoman.open_repo(name, author)
         self.repo = repo
-        self.branch = branch
-        if commit is None:
-            for ref in {'refs/heads/%s' % branch, 'refs/heads/master'}:
-                try:
-                    _commit_id = repo._repo.refs[ref]
-                except KeyError:
-                    pass
-                else:
-                    commit = repo._repo.get_object(_commit_id)
-                    break
+        self.branch = branch = (author and author.username) or DEFAULT_USER
+        commit = None
+        for ref in {'refs/heads/%s' % branch, 'refs/heads/master'}:
+            try:
+                _commit_id = repo._repo.refs[ref]
+            except KeyError:
+                pass
+            else:
+                commit = repo._repo.get_object(_commit_id)
+                break
         self._commit = commit
-        if tree is None:
-            tree = repo._repo.get_object(self._commit.tree)
+        if commit is None:
+            tree = Tree()
+        else:
+            tree = repo._repo.get_object(commit.tree)
         self._tree = tree
         self._working_tree = tree.copy()
         self._blobs = {}
+        self.init_project()
 
     @classmethod
     def setup(cls):
@@ -214,6 +258,10 @@ class GitStorage(BasePortiaStorage):
         if working_tree == self._tree:
             return
 
+        if self._commit is None:
+            self.repo = repo = Repoman.create_repo(self.name, self.author)
+            self._commit = repo.last_commit
+
         fake_store = {
             self._tree.id: self._tree,
             working_tree.id: working_tree,
@@ -238,7 +286,10 @@ class GitStorage(BasePortiaStorage):
     def changed_files(self):
         if self.branch == 'master':
             return []
-        changes = self.repo.get_branch_changed_entries(self.branch)
+        try:
+            changes = self.repo.get_branch_changed_entries(self.branch)
+        except KeyError:
+            return []
         return [
             (entry.type, entry.new.path, entry.old.path) for entry in changes
         ]

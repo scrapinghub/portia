@@ -16,6 +16,7 @@ CHANGE_MODIFY = 'modify'
 CHANGE_DELETE = 'delete'
 CHANGE_RENAME = 'rename'
 
+DEFAULT_USER = 'defaultuser'
 FILE_MODE = 0o100644
 
 sentinel = object()
@@ -46,7 +47,7 @@ class Repoman(object):
     """
     def __init__(self, author):
         """Do not instantiate directly, use create_repo or open_repo."""
-        self._author = author
+        self._author = (author and author.username) or DEFAULT_USER
         self._encoding = 'UTF-8'
         self._time_zone = parse_timezone('+0000')[0]
         self.commit = sentinel
