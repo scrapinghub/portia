@@ -1,3 +1,4 @@
+from datetime import datetime
 from itertools import product
 
 import six
@@ -9,6 +10,10 @@ class FragmentGenerator(object):
 
     def _process_list(self, fragment):
         return fragment.split(' ')
+
+    def _process_date(self, fragment):
+        now = datetime.now()
+        return [now.strftime(fragment)]
 
     def _process_range(self, fragment):
         a, b = map(int, fragment.split('-'))
