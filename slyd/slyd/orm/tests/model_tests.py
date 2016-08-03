@@ -194,7 +194,8 @@ class ProjectTestCase(unittest.TestCase):
                 '                }'
                 '            ]'
                 '        }'
-                '    }'
+                '    },'
+                '    "version": "' + SLYBOT_VERSION + '"'
                 '}',
         }
 
@@ -2485,7 +2486,8 @@ class ItemTests(ProjectTestCase):
                 '                }'
                 '            ]'
                 '        }'
-                '    }'
+                '    },'
+                '    "version": "' + SLYBOT_VERSION + '"'
                 '}',
         })
 
