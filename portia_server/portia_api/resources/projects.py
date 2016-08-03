@@ -4,9 +4,10 @@ from django.utils.functional import cached_property
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
-from six import itervalues, string_types
+from six import itervalues
 
 from portia_orm.models import Project
+from storage import get_storage_class
 from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
 from ..jsonapi.exceptions import JsonApiFeatureNotAvailableError
 
@@ -27,18 +28,8 @@ class ProjectDownloadMixin(object):
 class ProjectDataMixin(object):
     @cached_property
     def projects(self):
-        project_list = []
-        for project in getattr(self.request, 'projects', []):
-            if isinstance(project, string_types):
-                project = {
-                    'id': project,
-                    'name': project,
-                }
-            elif isinstance(project, dict):
-                if not project.get('id'):
-                    project['id'] = project['name']
-            project_list.append(project)
-
+        storage_class = get_storage_class()
+        project_list = storage_class.list_projects(self.request.user)
         return OrderedDict([(project['id'], project)
                             for project in project_list])
 

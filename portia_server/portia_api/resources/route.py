@@ -51,10 +51,16 @@ class JsonApiRoute(ViewSet):
         return self.request.data or {}
 
     @cached_property
+    def user(self):
+        return self.request.user
+
+    @cached_property
     def storage(self):
         if 'project_id' in self.kwargs:
             return create_project_storage(
-                self.kwargs['project_id'], 'vagrant', 'vagrant')
+                self.kwargs['project_id'],
+                author=self.user,
+                branch=self.user.username)
         return None
 
     def handle_exception(self, exc):
