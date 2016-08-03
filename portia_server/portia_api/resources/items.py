@@ -1,15 +1,11 @@
-from .route import JsonApiModelRoute
+from .projects import BaseProjectModelRoute
 from ..jsonapi.utils import cached_property
-from portia_orm.models import Project, Item
+from portia_orm.models import Item
 
 
-class ItemRoute(JsonApiModelRoute):
+class ItemRoute(BaseProjectModelRoute):
     lookup_url_kwarg = 'item_id'
     default_model = Item
-
-    @cached_property
-    def project(self):
-        return Project(self.storage, id=self.kwargs.get('project_id'))
 
     @cached_property
     def spider(self):

@@ -1,8 +1,8 @@
-from .route import JsonApiModelRoute
-from portia_orm.models import Project, Extractor
+from .projects import BaseProjectModelRoute
+from portia_orm.models import Extractor
 
 
-class ExtractorRoute(JsonApiModelRoute):
+class ExtractorRoute(BaseProjectModelRoute):
     lookup_url_kwarg = 'extractor_id'
     default_model = Extractor
 
@@ -10,5 +10,4 @@ class ExtractorRoute(JsonApiModelRoute):
         return self.get_collection()[self.kwargs.get('extractor_id')]
 
     def get_collection(self):
-        project = Project(self.storage, id=self.kwargs.get('project_id'))
-        return project.extractors
+        return self.project.extractors

@@ -1,15 +1,10 @@
-from .route import JsonApiModelRoute
-from ..jsonapi.utils import cached_property
-from portia_orm.models import Project, Field
+from .projects import BaseProjectModelRoute
+from portia_orm.models import Field
 
 
-class FieldRoute(JsonApiModelRoute):
+class FieldRoute(BaseProjectModelRoute):
     lookup_url_kwarg = 'field_id'
     default_model = Field
-
-    @cached_property
-    def project(self):
-        return Project(self.storage, id=self.kwargs.get('project_id'))
 
     def perform_create(self, serializer):
         self.project.schemas  # preload schemas
