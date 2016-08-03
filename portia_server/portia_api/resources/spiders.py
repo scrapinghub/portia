@@ -1,9 +1,8 @@
-from .projects import ProjectDataMixin, ProjectDownloadMixin
-from .route import JsonApiModelRoute
-from portia_orm.models import Project, Spider
+from .projects import BaseProjectModelRoute, ProjectDownloadMixin
+from portia_orm.models import Spider
 
 
-class SpiderRoute(ProjectDownloadMixin, ProjectDataMixin, JsonApiModelRoute):
+class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
     lookup_url_kwarg = 'spider_id'
     lookup_value_regex = '[^/]+'
     default_model = Spider
@@ -12,6 +11,4 @@ class SpiderRoute(ProjectDownloadMixin, ProjectDataMixin, JsonApiModelRoute):
         return self.get_collection()[self.kwargs.get('spider_id')]
 
     def get_collection(self):
-        project = Project(
-            self.storage, **self.projects[self.kwargs.get('project_id')])
-        return project.spiders
+        return self.project.spiders

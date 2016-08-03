@@ -1,16 +1,11 @@
-from .route import JsonApiModelRoute
+from .projects import BaseProjectModelRoute
 from .serializers import SampleSerializer
-from ..jsonapi.utils import cached_property
-from portia_orm.models import Project, Sample
+from portia_orm.models import Sample
 
 
-class SampleRoute(JsonApiModelRoute):
+class SampleRoute(BaseProjectModelRoute):
     lookup_url_kwarg = 'sample_id'
     default_model = Sample
-
-    @cached_property
-    def project(self):
-        return Project(self.storage, id=self.kwargs.get('project_id'))
 
     def perform_create(self, serializer):
         self.project.spiders  # preload spiders

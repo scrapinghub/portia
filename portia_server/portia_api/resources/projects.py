@@ -4,11 +4,12 @@ from django.utils.functional import cached_property
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
-from six import itervalues
+from six import iteritems
 
 from portia_orm.models import Project
 from storage import get_storage_class
-from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
+from .route import (JsonApiRoute, JsonApiModelRoute,
+                    ListModelMixin, RetrieveModelMixin)
 from ..jsonapi.exceptions import JsonApiFeatureNotAvailableError
 
 
@@ -25,16 +26,24 @@ class ProjectDownloadMixin(object):
         return Response(b'', status=HTTP_200_OK)
 
 
-class ProjectDataMixin(object):
+class BaseProjectRoute(JsonApiRoute):
     @cached_property
     def projects(self):
         storage_class = get_storage_class()
-        project_list = storage_class.list_projects(self.request.user)
-        return OrderedDict([(project['id'], project)
-                            for project in project_list])
+        return storage_class.get_projects(self.request.user)
+
+    @cached_property
+    def project(self):
+        project_id = self.kwargs.get('project_id')
+        name = self.projects[project_id]
+        return Project(self.storage, id=project_id, name=name)
 
 
-class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
+class BaseProjectModelRoute(BaseProjectRoute, JsonApiModelRoute):
+    pass
+
+
+class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
                    ListModelMixin, RetrieveModelMixin):
     lookup_url_kwarg = 'project_id'
     default_model = Project
@@ -123,13 +132,13 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
         return self.retrieve()
 
     def get_instance(self):
-        return Project(
-            self.storage, **self.projects[self.kwargs.get('project_id')])
+        return self.project
 
     def get_collection(self):
         storage = self.FakeStorage()
-        return Project.collection(Project(storage, **project)
-                                  for project in itervalues(self.projects))
+        return Project.collection(
+            Project(storage, id=project_id, name=name)
+            for project_id, name in iteritems(self.projects))
 
     def get_detail_kwargs(self):
         return {

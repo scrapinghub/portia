@@ -1,8 +1,8 @@
-from .route import JsonApiModelRoute
-from portia_orm.models import Project, Schema
+from .projects import BaseProjectModelRoute
+from portia_orm.models import Schema
 
 
-class SchemaRoute(JsonApiModelRoute):
+class SchemaRoute(BaseProjectModelRoute):
     lookup_url_kwarg = 'schema_id'
     default_model = Schema
 
@@ -10,8 +10,7 @@ class SchemaRoute(JsonApiModelRoute):
         return self.get_collection()[self.kwargs.get('schema_id')]
 
     def get_collection(self):
-        project = Project(self.storage, id=self.kwargs.get('project_id'))
-        return project.schemas
+        return self.project.schemas
 
     def get_list_kwargs(self):
         return {

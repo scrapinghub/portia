@@ -5,6 +5,7 @@ from django.http.response import Http404
 from django.utils.functional import cached_property
 from marshmallow import ValidationError
 from marshmallow_jsonapi.exceptions import IncorrectTypeError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_204_NO_CONTENT)
@@ -29,6 +30,7 @@ from ..jsonapi.utils import type_from_model_name
 class JsonApiRoute(ViewSet):
     default_model = None
     polymorphic = None
+    permission_classes = (IsAuthenticated,)
     renderer_classes = (JSONApiRenderer,)
 
     def __repr__(self):

@@ -1,16 +1,12 @@
-from .route import JsonApiModelRoute
+from .projects import BaseProjectModelRoute
 from ..jsonapi.utils import cached_property
-from portia_orm.models import Project, BaseAnnotation, Annotation
+from portia_orm.models import BaseAnnotation, Annotation
 
 
-class AnnotationRoute(JsonApiModelRoute):
+class AnnotationRoute(BaseProjectModelRoute):
     lookup_url_kwarg = 'annotation_id'
     default_model = Annotation
     polymorphic = BaseAnnotation
-
-    @cached_property
-    def project(self):
-        return Project(self.storage, id=self.kwargs.get('project_id'))
 
     @cached_property
     def sample(self):
