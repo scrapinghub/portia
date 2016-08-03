@@ -58,9 +58,7 @@ class JsonApiRoute(ViewSet):
     def storage(self):
         if 'project_id' in self.kwargs:
             return create_project_storage(
-                self.kwargs['project_id'],
-                author=self.user,
-                branch=self.user.username)
+                self.kwargs['project_id'], author=self.user)
         return None
 
     def handle_exception(self, exc):

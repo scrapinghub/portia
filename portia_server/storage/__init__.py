@@ -19,8 +19,4 @@ def get_storage_class():
 
 def create_project_storage(project_id, author=None, branch=None):
     storage_class = get_storage_class()
-    return storage_class(project_id,
-                         author=(author.username
-                                 if (author and author.username)
-                                 else 'defaultuser'),
-                         branch=branch or 'defaultuser')
+    return storage_class(project_id, author=author)
