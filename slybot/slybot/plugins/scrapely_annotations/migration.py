@@ -21,6 +21,7 @@ Handle generated annotations
     3. Find text for annotation
     3. Remove extra annotation metadata
 """
+import copy
 import json
 import re
 
@@ -54,24 +55,35 @@ def gen_id(disallow=None):
     return _id
 
 
-def port_sample(sample):
+def port_sample(sample, schemas=None):
     """Convert slybot samples made before slybot 0.13 to new format."""
-    if not sample.get('annotated_body'):
-        if not sample.get('plugins'):
-            sample['plugins'] = {'annotations-plugin': {'extracts': []}}
-        return sample  # Handle empty body
+    if schemas is None:
+        schemas = {}
+    container_id = gen_id()
+    default_annotations = [_create_container('body', container_id)]
+    if not sample.get('annotated_body') and not sample.get('plugins'):
+        sample['plugins'] = {
+            'annotations-plugin': {
+                'extracts': default_annotations
+            }
+        }
+        return sample
     if not sample.get('plugins'):
         sample['plugins'] = load_annotations(sample.get('annotated_body', u''))
-    del sample['annotated_body']
+    sample.pop('annotated_body', None)
 
     # Group annotations by type
     annotations = sample['plugins']['annotations-plugin']['extracts']
     try:
         sel = Selector(text=add_tagids(sample['original_body']))
     except KeyError:
-        annotated = sample['annotated_body']
+        annotated = sample.get('annotated_body', u'')
         sample['original_body'] = annotated
-        sel = Selector(text=add_tagids(annotated))
+        try:
+            tagged = add_tagids(annotated)
+        except KeyError:
+            tagged = u''
+        sel = Selector(text=tagged)
     annotations = port_standard(annotations, sel, sample)
     standard_annos, generated_annos, variant_annos = [], [], []
     for a in annotations:
@@ -82,17 +94,21 @@ def port_sample(sample):
         else:
             standard_annos.append(a)
     if not annotations:
+        sample['plugins'] = {
+            'annotations-plugin': {
+                'extracts': default_annotations
+            }
+        }
         return sample
     new_annotations = []
     a = find_element(annotations[0], sel)
     for b in annotations[1:]:
         b = find_element(b, sel)
         a = find_common_parent(a, b)
-    container_id = gen_id()
     parent = a.getparent()
-    new_annotations.append(
-        _create_container(a if parent is None else parent, container_id,
-                          selector=sel))
+    container = _create_container(
+        a if parent is None else parent, container_id, selector=sel)
+    new_annotations.append(container)
     for a in standard_annos:
         a.pop('variant', None)
     new_annotations.extend(standard_annos)
@@ -101,12 +117,12 @@ def port_sample(sample):
     for a in new_annotations:
         if not (a.get('item_container') and a.get('container_id')):
             a['container_id'] = container_id
-        tagid = a.pop('tagid', None) or a.pop('data-tagid', None)
-        elems = sel.css(a['selector'])
-        elem = elems[0].root
+        a.pop('tagid', None) or a.pop('data-tagid', None)
     # Update annotations
     sample['plugins']['annotations-plugin']['extracts'] = new_annotations
     sample['version'] = SLYBOT_VERSION
+    schema_id = guess_schema(sample, schemas)
+    container['schema_id'] = schema_id
     return sample
 
 
@@ -429,8 +445,13 @@ def port_standard(standard_annotations, sel, sample):
         annotation['selector'] = selector
         annotation['reject_selectors'] = []
         annotation = _add_annotation_data(annotation, sample)
-        # TODO: Split annotation if using more than one attribute
-        new_annotations.append(annotation)
+        for _id, data in annotation.get('data', {}).items():
+            a = copy.deepcopy(annotation)
+            a['id'] = gen_id()
+            a['data'] = {
+                gen_id(): data
+            }
+            new_annotations.append(a)
     return new_annotations
 
 
@@ -518,3 +539,51 @@ def find_generated_annotation(elem):
             start += len(text)
             last_node_ins = False
     return annotation
+
+
+def guess_schema(sample, schemas):
+    # If project has no schemas just return default value
+    if not schemas:
+        return 'default'
+
+    # Check if scrapes exists
+    schema_id = sample.get('scrapes')
+    if schema_id and schema_id in schemas:
+        return schema_id
+
+    # Check if a schema is explicitly mentioned
+    annotations = sample['plugins']['annotations-plugin']['extracts']
+    annotations_with_schemas = [a for a in annotations if 'schema_id' in a]
+    if annotations_with_schemas:
+        parent = sorted(annotations_with_schemas, key=container_id_key)[0]
+        return parent['schema_id']
+
+    # Look for a schema with matching fields
+    fields = set()
+    for annotation in annotations:
+        try:
+            fields.add(list(annotation['data'].values())[0]['field'])
+        except KeyError:
+            pass
+    scores = {}
+    fields = set()
+    for schema_id, schema in schemas.items():
+        scores[schema_id] = len(set(schema.get('fields')) & fields)
+    if any(score > 0 for score in scores.values()):
+        return max(scores.items(), key=itemgetter(1))[0]
+
+    # Use default if it is available
+    if 'default' in schemas:
+        return 'default'
+
+    # Use the schema with the most fields
+    schemas = sorted(
+        schemas.items(), key=lambda (k, v): len(v.get('fields', {})))
+    return schemas[-1][0]
+
+
+def container_id_key(annotation):
+    container_id = annotation.get('', 'z' * 19)
+    if container_id is None:
+        return ''
+    return container_id
