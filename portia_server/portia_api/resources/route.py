@@ -20,18 +20,19 @@ from storage import create_project_storage
 from ..jsonapi.exceptions import (JsonApiBadRequestError,
                                   JsonApiConflictError,
                                   JsonApiValidationError)
-from ..jsonapi.utils import get_status_title
+from ..jsonapi.parsers import JSONApiParser, JSONParser
 from ..jsonapi.registry import get_schema
-from ..jsonapi.renderers import JSONApiRenderer
+from ..jsonapi.renderers import JSONApiRenderer, JSONRenderer
 from ..jsonapi.serializers import JsonApiPolymorphicSerializer
-from ..jsonapi.utils import type_from_model_name
+from ..jsonapi.utils import get_status_title, type_from_model_name
 
 
 class JsonApiRoute(ViewSet):
     default_model = None
     polymorphic = None
     permission_classes = (IsAuthenticated,)
-    renderer_classes = (JSONApiRenderer,)
+    parser_classes = (JSONApiParser, JSONParser)
+    renderer_classes = (JSONApiRenderer, JSONRenderer)
 
     def __repr__(self):
         return 'Route(%s)' % str(self)
@@ -195,7 +196,9 @@ class CreateModelMixin(object):
         except ValidationError as err:
             raise JsonApiValidationError(err.messages)
 
-        return Response(serializer.data, status=HTTP_201_CREATED)
+        data = serializer.data
+        self.storage.commit()
+        return Response(data, status=HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         serializer.save()
@@ -243,7 +246,9 @@ class UpdateModelMixin(object):
         except (ValidationError, IncorrectTypeError) as err:
             raise JsonApiValidationError(err.messages)
 
-        return Response(serializer.data, status=HTTP_200_OK)
+        data = serializer.data
+        self.storage.commit()
+        return Response(data, status=HTTP_200_OK)
 
     def partial_update(self, request, *args, **kwargs):
         kwargs['partial'] = True
@@ -254,7 +259,7 @@ class UpdateModelMixin(object):
 
 
 class DestroyModelMixin(object):
-    def destroy(self):
+    def destroy(self, *args, **kwargs):
         try:
             instance = self.get_instance()
         except (TypeError, IndexError, KeyError):
@@ -270,6 +275,7 @@ class DestroyModelMixin(object):
             raise JsonApiConflictError(u"You cannot delete this resource.")
 
         data = serializer.data
+        self.storage.commit()
         if data:
             return Response(data, status=HTTP_200_OK)
         return Response(status=HTTP_204_NO_CONTENT)

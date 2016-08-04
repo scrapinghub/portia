@@ -1,18 +1,21 @@
 from __future__ import unicode_literals
 
-from rest_framework.renderers import JSONRenderer
+from rest_framework.renderers import JSONRenderer as BaseJSONRenderer
 
 
-class JSONApiRenderer(JSONRenderer):
-    media_type = 'application/vnd.api+json'
+class JSONRenderer(BaseJSONRenderer):
     default_indent = 2
 
     def get_indent(self, accepted_media_type, renderer_context):
-        indent = super(JSONApiRenderer, self).get_indent(
+        indent = super(JSONRenderer, self).get_indent(
             accepted_media_type, renderer_context)
         if indent is None:
             return self.default_indent
         return indent
+
+
+class JSONApiRenderer(JSONRenderer):
+    media_type = 'application/vnd.api+json'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
         ret = super(JSONApiRenderer, self).render(data, accepted_media_type, renderer_context)
