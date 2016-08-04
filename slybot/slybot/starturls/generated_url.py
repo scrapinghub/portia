@@ -32,7 +32,7 @@ class GeneratedUrl(object):
     @property
     def normalized_fragments(self):
         fixed, path = self._fixed_fragments, self._path_fragments
-        fragments = zip(fixed, path)
+        fragments = list(zip(fixed, path))
 
         # Missed last fixed fragment when using zip
         if len(fixed) == len(path) + 1:
@@ -64,8 +64,9 @@ class GeneratedUrl(object):
         template_params = self.spec['params_template']
 
         query_params = []
+        param_names = {p['name'] for p in params}
         for query, value in template_params:
-            if query not in [p['name'] for p in params]:
+            if query not in param_names:
                 query_params.append({
                     'name': query,
                     'type': 'default',
