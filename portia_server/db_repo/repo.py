@@ -288,7 +288,9 @@ class MysqlRefsContainer(RefsContainer):
         return True
 
     def _update_ref(self, name, value):
-        Refs.objects.update_or_create(repo=self._repo, ref=name, value=value)
+        Refs.objects.update_or_create(repo=self._repo, ref=name, defaults={
+            'value': value,
+        })
 
     def _remove_ref(self, name):
         Refs.objects.filter(repo=self._repo, ref=name).delete()
