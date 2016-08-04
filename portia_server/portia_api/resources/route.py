@@ -198,10 +198,19 @@ class CreateModelMixin(object):
 
         data = serializer.data
         self.storage.commit()
-        return Response(data, status=HTTP_201_CREATED)
+        headers = self.get_success_headers(data)
+        return Response(data, status=HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
         serializer.save()
+
+    def get_success_headers(self, data):
+        try:
+            return {
+                'Location': data['data']['links']['self']
+            }
+        except (TypeError, KeyError):
+            return {}
 
 
 class ListModelMixin(object):
