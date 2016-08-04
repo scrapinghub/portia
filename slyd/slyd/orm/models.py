@@ -1,9 +1,13 @@
+import json
+
 from collections import deque, OrderedDict
 
 from six import iteritems, iterkeys, itervalues
 
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
+from slybot.plugins.scrapely_annotations.migration import (port_sample,
+                                                           load_annotations)
 from slyd.orm.base import Model
 from slyd.orm.decorators import pre_load, post_dump
 from slyd.orm.exceptions import PathResolutionError
@@ -323,6 +327,29 @@ class Sample(Model, OrderedAnnotationsMixin):
             storage, instance, spider=spider, **kwargs)
 
     @pre_load
+    def chain_load(self, data):
+        methods = (self.migrate_sample, self.get_items)
+        for method in methods:
+            data = method(self, data)
+        return data
+
+    @staticmethod
+    def migrate_sample(self, data):
+        if not data.get('name'):
+            data['name'] = data.get('id', data.get('page_id', u'')[:20])
+        if 'scrapes' not in data or data.get('version', '') > '0.13.0':
+            return data
+        annotations = (data.pop('plugins', {}).get('annotations-plugin', {})
+                           .get('extracts', []))
+        items = [a for a in annotations if a.get('item_container')]
+        if items:
+            return data
+        schemas = json.load(self.context['storage'].open('items.json'))
+        annotations = load_annotations(data.get('annotated_body', u''))
+        data['plugins'] = annotations
+        return port_sample(data, schemas)
+
+    @staticmethod
     def get_items(self, data):
         annotations = (data.pop('plugins', {}).get('annotations-plugin', {})
                            .get('extracts', []))
