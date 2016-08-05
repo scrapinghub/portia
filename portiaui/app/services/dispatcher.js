@@ -1,7 +1,9 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
 import ItemAnnotation from '../models/item-annotation';
-import {getDefaultAttribute} from '../components/inspector-panel';
+import { getDefaultAttribute } from '../components/inspector-panel';
+import { includesUrl } from '../utils/start-urls';
+import startUrl from '../models/start-url';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -109,7 +111,7 @@ export default Ember.Service.extend({
         }
         const spider = store.createRecord('spider', {
             name: name,
-            startUrls: [url],
+            startUrls: [startUrl({ url: url })],
             project
         });
         spider.set('project', project);
@@ -124,11 +126,21 @@ export default Ember.Service.extend({
     },
 
     addStartUrl(spider, url) {
-        const urls = spider.get('startUrls');
-        if (url && !urls.includes(url)) {
-            urls.pushObject(url);
-            spider.save();
-            return url;
+        if (url && !includesUrl(spider, url)) {
+            return startUrl({ url: url }).save(spider);
+        }
+    },
+
+    addGeneratedUrl(spider, url) {
+        let spec = { type: 'generated' };
+
+        if (!url || includesUrl(spider, url)) {
+            spec.url = 'http://';
+            return startUrl(spec).save(spider);
+        }
+        if (!includesUrl(spider, url)) {
+            spec.url = url;
+            return startUrl(spec).save(spider);
         }
     },
 
@@ -293,6 +305,11 @@ export default Ember.Service.extend({
         });
     },
 
+    addFragment(startUrl) {
+        let emptyFragment = { type: 'fixed', value: '' };
+        startUrl.fragments.addObject(emptyFragment);
+    },
+
     changeAnnotationSource(annotation, attribute) {
         if (annotation) {
             annotation.set('attribute', attribute);
@@ -388,9 +405,14 @@ export default Ember.Service.extend({
 
     replaceStartUrl(spider, oldUrl, newUrl) {
         const urls = spider.get('startUrls');
-        urls.removeObject(oldUrl);
-        urls.addObject(newUrl);
-        spider.save();
+
+        let oldStartUrl = urls.filterBy('url', oldUrl)[0];
+        urls.removeObject(oldStartUrl);
+
+        if (!includesUrl(spider, newUrl)) {
+            urls.addObject(startUrl({url: newUrl, type: 'url'}));
+        }
+        spider.save()
     },
 
     deleteAutoCreatedSchema(sample) {
@@ -460,6 +482,10 @@ export default Ember.Service.extend({
     removeAnnotationExtractor(annotation, extractor) {
         annotation.get('extractors').removeObject(extractor);
         annotation.save();
+    },
+
+    removeFragment(startUrl, fragment) {
+        startUrl.fragments.removeObject(fragment);
     },
 
     selectAnnotation(annotation) {

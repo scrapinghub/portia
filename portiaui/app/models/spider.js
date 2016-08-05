@@ -3,7 +3,7 @@ import DS from 'ember-data';
 
 const Spider = DS.Model.extend({
     name: DS.attr('string'),
-    startUrls: DS.attr('array', {
+    startUrls: DS.attr('startUrl', {
         defaultValue() {
             return [];
         }

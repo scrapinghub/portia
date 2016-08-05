@@ -12,6 +12,7 @@ export default Ember.Component.extend({
     open: false,
     value: null,
     valueAttribute: null,
+    isDisabled: false,
 
     viewValue: Ember.computed('value', {
         get() {
