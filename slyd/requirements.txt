@@ -6,11 +6,14 @@ autobahn==0.13.0
 six==1.10.0
 chardet==2.3.0
 monotonic==0.3
-marshmallow_jsonapi==0.7.0
+marshmallow==2.8.0
+marshmallow_jsonapi==0.8.0
 parse==1.6.6
 ndg-httpsclient==0.4.0
 retrying==1.3.3
 django==1.9.4
+toposort==1.4
+mock==2.0.0
 
 # Dulwich's MySQL backend
 mysql-python==1.2.5
