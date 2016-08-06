@@ -1,24 +1,27 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
+    jobQ: Ember.inject.service(),
     browser: Ember.inject.service(),
 
     model(params) {
         return this.store.queryRecord('spider', {
             id: params.spider_id,
-            project_id: this.modelFor('projects.project').get('id')
+            project_id: this.projectId()
         });
     },
 
     afterModel(model) {
         return this.store.query('sample', {
-            spider_project_id: this.modelFor('projects.project').get('id'),
+            spider_project_id: this.projectId(),
             spider_id: model.get('id')
         });
     },
 
-    setupController(controller) {
+    setupController(controller, model) {
         this._super(...arguments);
+
+        this.get('jobQ').start(this.projectId(), model.get('id'));
         Ember.run.next(function () {
             controller.activate();
         });
@@ -31,6 +34,10 @@ export default Ember.Route.extend({
                 controller.activate();
             }
         });
+    },
+
+    projectId() {
+        return this.modelFor('projects.project').get('id');
     },
 
     renderTemplate() {

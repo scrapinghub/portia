@@ -62,6 +62,8 @@
 @import "templates/projects";
 @import "templates/browsers";
 
+@import "services/jobq";
+
 @import "components/animation-container";
 @import "components/browser-iframe";
 @import "components/browser-view-port";

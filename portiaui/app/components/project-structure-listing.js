@@ -1,9 +1,11 @@
 import Ember from 'ember';
+const { computed } = Ember;
 import {computedCanAddSpider} from '../services/dispatcher';
 
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
+    jobQ: Ember.inject.service(),
     uiState: Ember.inject.service(),
     notificationManager: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
@@ -14,7 +16,19 @@ export default Ember.Component.extend({
     currentSpider: Ember.computed.readOnly('uiState.models.spider'),
     currentSchema: Ember.computed.readOnly('uiState.models.schema'),
 
-    addSpiderTooltipText: Ember.computed('canAddSpider', {
+    jobCount: computed.alias('jobQ.jobs.count'),
+    spiderJobs: computed('jobCount', 'currentSpider', function() {
+        return this.get('jobQ.jobs').countForSpider();
+    }),
+    showJobs: computed('spiderJobs', 'routing.currentRouteName', function() {
+        return this.get('spiderJobs') > 0 && this.get('routing.currentRouteName').includes('spider');
+    }),
+    jobMessage: computed('spiderJobs', function() {
+        let isPlural = this.get('spiderJobs') > 1;
+        return `${this.get('spiderJobs')} job${isPlural ? 's' : ''} running`;
+    }),
+
+    addSpiderTooltipText: computed('canAddSpider', {
         get() {
             if (this.get('canAddSpider')) {
                 return 'Create a new Spider';
