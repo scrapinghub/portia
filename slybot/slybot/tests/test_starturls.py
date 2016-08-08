@@ -181,7 +181,7 @@ class StartUrlCollectionTest(TestCase):
         legacy = ['https://github.com/scrapinghub']
         normalized = [{
             'url': 'https://github.com/scrapinghub',
-            'type': 'fixed',
+            'type': 'url',
         }]
         collection = StartUrlCollection(legacy, self.generators)
 
@@ -438,7 +438,7 @@ class StartUrlCollectionTest(TestCase):
                     {'type': 'list', 'value': 'comic'},
                 ]
             },
-            {'url': 'http://github.com/scrapinghub.com', 'type': 'fixed'},
+            {'url': 'http://github.com/scrapinghub.com', 'type': 'url'},
             {
                 'url': 'https://github.com/[...]',
                 'type': 'generated',
