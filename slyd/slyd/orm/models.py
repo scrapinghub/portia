@@ -1,18 +1,20 @@
 import json
 
 from collections import deque, OrderedDict
-
+from marshmallow.fields import Nested
 from six import iteritems, iterkeys, itervalues
 
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slybot.plugins.scrapely_annotations.migration import (port_sample,
                                                            load_annotations)
+from slybot.starturls import StartUrlCollection
+
 from slyd.orm.base import Model
 from slyd.orm.decorators import pre_load, post_dump
 from slyd.orm.exceptions import PathResolutionError
 from slyd.orm.fields import (Boolean, Domain, Integer, List, Regexp, String, Url,
-                             DependantField, BelongsTo, HasMany,
+                             DependantField, BelongsTo, HasMany, StartUrl,
                              CASCADE, CLEAR, PROTECT)
 from slyd.orm.utils import unwrap_envelopes, wrap_envelopes
 from slyd.orm.validators import OneOf
@@ -190,8 +192,7 @@ class Extractor(Model):
 class Spider(Model):
     # TODO: validate id against allowed file name
     id = String(primary_key=True)
-    start_urls = List(Url)
-    # TODO: generated urls
+    start_urls = List(Nested(StartUrl))
     links_to_follow = String(default='all', validate=OneOf(
         ['none', 'patterns', 'all', 'auto']))
     allowed_domains = List(Domain)
@@ -230,6 +231,13 @@ class Spider(Model):
 
         return super(Spider, cls).load(
             storage, instance, project=project, **kwargs)
+
+    @pre_load
+    def normalize_start_urls(self, data):
+        if 'start_urls' in data or 'generated_urls' in data:
+            start_urls = data.get('start_urls', []) + data.get('generated_urls', [])
+            data['start_urls'] = StartUrlCollection(start_urls).normalize()
+        return data
 
     @pre_load
     def get_init_requests(self, data):
