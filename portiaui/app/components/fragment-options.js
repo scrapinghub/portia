@@ -2,6 +2,8 @@ import Ember from 'ember';
 const { computed } = Ember;
 import { multiplicityFragment } from '../utils/start-urls';
 
+const VALID_RANGE = /^\d+-\d+$/;
+
 export default Ember.Component.extend({
     tagName: 'form',
     classNames: ['fragment-form', 'form-inline'],
@@ -57,6 +59,9 @@ export default Ember.Component.extend({
         set(key, value) {
             const limits = this.getLimits();
             limits[0] = value;
+            if (!limits[1] || limits[0] !== limits[1]) {
+                limits[1] = value;
+            }
             this.set('fragment.value', limits.join('-'));
             return value;
         }
@@ -71,5 +76,21 @@ export default Ember.Component.extend({
             this.set('fragment.value', limits.join('-'));
             return value;
         }
-    })
+    }),
+
+    saveRange() {
+        if (VALID_RANGE.exec(this.get('fragment.value'))) {
+            this.get('saveSpider')();
+        }
+    },
+
+    actions: {
+        saveFragment() {
+            if (this.get('isRange')) {
+                this.saveRange();
+            } else {
+                this.get('saveSpider')();
+            }
+        }
+    }
 });

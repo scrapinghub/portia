@@ -109,7 +109,7 @@ export default Ember.Service.extend({
             counter += 1;
         }
         const spider = store.createRecord('spider', {
-            name: name,
+            id: name,
             startUrls: [startUrl({ url: url })],
             project
         });
