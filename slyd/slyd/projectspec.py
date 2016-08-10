@@ -99,8 +99,15 @@ class ProjectSpec(object):
             self.storage.move(dirname, self._rdirname('spiders', to_name))
 
     def remove_spider(self, name):
-        self.storage.delete(self._rfilename('spiders', name))
-        self.storage.rmtree(self._rdirname('spiders', name))
+        filename = self._rfilename('spiders', name)
+        assert filename.endswith('.json')
+        dirname = filename[:-len('.json')]
+
+        self.storage.delete(filename)
+        try:
+            self.storage.rmtree(dirname)
+        except IOError:
+            pass
 
     def rename_template(self, spider_name, from_name, to_name):
         template = self.resource('spiders', spider_name, from_name)

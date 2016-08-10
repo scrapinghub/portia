@@ -21,7 +21,12 @@
                 {{/help-icon}}
             {{/list-item-text}}
             {{#tooltip-container tooltipFor="add-start-url-button" text="Start crawling from the current page" tooltipContainer='body'}}
-                {{list-item-icon id="add-start-url-button" icon='add' action=(action 'addStartUrl')}}
+                {{indentation-spacer}}
+                {{list-item-icon
+                  id="add-start-url-button"
+                  icon='add'
+                  action=(action 'addStartUrl')
+                }}
             {{/tooltip-container}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item hide=spider.startUrls.length as |options|}}
@@ -56,6 +61,7 @@
             {{/list-item-text}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item as |options|}}
+                {{indentation-spacer}}
                 {{list-item-icon icon='link'}}
                 {{list-item-link-crawling spider=spider}}
                 {{#if (not-eq spider.linksToFollow 'none')}}
@@ -113,6 +119,7 @@
             {{#each spider.samples as |sample|}}
                 {{#tree-list-item hide=(and currentSample (not-eq sample currentSample)) as |options|}}
                     {{#link-to 'projects.project.spider.sample' sample (query-params url=sample.url baseurl=null) current-when='projects.project.spider.sample'}}
+                        {{indentation-spacer}}
                         {{list-item-icon icon='sample'}}
                         {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}

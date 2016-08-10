@@ -108,7 +108,7 @@ var TreeMirror = (function () {
         }
 
         if (!node) {
-            throw new Error("No node with id " + nodeData.id);
+            throw new Error("No node with that id.");
         }
 
         this.idMap[nodeData.id] = node;
@@ -148,6 +148,7 @@ var URL_ATTRIBUTES = {
     embed_src: true,
     object_data: true,
     video_poster: true,
+    form_action: true,
     iframe_src: true
 };
 function isUrlAttribute(tagName, attribute) {
@@ -203,23 +204,30 @@ var TreeMirrorClient = (function () {
         this.knownNodes.delete(node);
     };
 
-    TreeMirrorClient.prototype.getAttribute = function (node, attr) {
+    TreeMirrorClient.prototype.serializeAttribute = function (node, attr, obj) {
         var value = node.getAttribute(attr);
         var tagName = node.tagName;
 
-        if(!value) { return value; }
-
-        if(attr === "style"){
-            return __portiaApi.processCss(value, node.baseURI);
+        if(value === null) {
+            obj[attr] = null; // Attribute was removed
+            obj['data-portia-' + attr] = null;
+        } else if(attr === "style"){
+            obj[attr] = __portiaApi.processCss(value, node.baseURI);
+            obj['data-portia-' + attr] = value;
         } else if (isUrlAttribute(tagName, attr)){
-            return __portiaApi.wrapUrl(value, node.baseURI);
+            obj[attr] = __portiaApi.wrapUrl(value, node.baseURI);
+            obj['data-portia-' + attr] = value;
         } else if (tagName === 'A' && attr === 'href') {
             value = node.href;
-            if(!value || value.length === 0 || /^\s*javascript:/i.test(value)){
-                return null;
+            if(!value || /^\s*javascript:/i.test(value)){
+                obj[attr] = 'javascript:void(0)';
+                obj['data-portia-' + attr] = value;
+            } else {
+                obj[attr] = value;
             }
+        } else {
+            obj[attr] = value;
         }
-        return value;
     };
 
     TreeMirrorClient.prototype.serializeNode = function (node, recursive) {
@@ -258,12 +266,8 @@ var TreeMirrorClient = (function () {
                 data.tagName = elm.tagName;
                 data.attributes = {};
                 for (var i = 0; i < elm.attributes.length; i++) {
-                    var attr = elm.attributes[i],
-                        attrValue = this.getAttribute(node, attr.name);
-                    data.attributes[attr.name] = attrValue;
-                    if (!attrValue && attr.name === 'href') {
-                        data.attributes[attr.name] = 'javascript:void(0)';
-                    }
+                    var attr = elm.attributes[i];
+                    this.serializeAttribute(node, attr.name, data.attributes);
                 }
 
                 if (recursive && elm.childNodes.length) {
@@ -327,7 +331,7 @@ var TreeMirrorClient = (function () {
         var map = new MutationSummary.NodeMap();
 
         Object.keys(attributeChanged).forEach(function (attrName) {
-            attributeChanged[attrName].forEach(function (element) {
+            (attributeChanged[attrName] || []).forEach(function (element) {
                 var record = map.get(element);
                 if (!record) {
                     record = _this.serializeNode(element);
@@ -335,7 +339,7 @@ var TreeMirrorClient = (function () {
                     map.set(element, record);
                 }
 
-                record.attributes[attrName] = _this.getAttribute(element, attrName);
+                _this.serializeAttribute(element, attrName, record.attributes);
             });
         });
 

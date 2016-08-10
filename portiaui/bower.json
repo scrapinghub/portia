@@ -1,5 +1,5 @@
 {
-  "name": "portia-web",
+  "name": "portia-ui",
   "ignore": [
     "*",
     "!bower.json"

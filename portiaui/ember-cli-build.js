@@ -1,14 +1,14 @@
 /* global require, module */
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
+var UnwatchedDir = require('ember-cli/node_modules/broccoli-source').UnwatchedDir;
+var WatchedDir = require('ember-cli/node_modules/broccoli-source').WatchedDir;
+var concat = require('ember-cli/node_modules/broccoli-concat');
+var mergeTrees = require('ember-cli/lib/broccoli/merge-trees');
 
 module.exports = function(defaults) {
     var app = new EmberApp(defaults, {
         babel: {
             includePolyfill: true
-        },
-        sourcemaps: {
-            enabled: true,
-            extensions: ['js']
         }
     });
 
@@ -28,5 +28,27 @@ module.exports = function(defaults) {
         });
     });
 
-    return app.toTree();
+    // Splash scripts
+    var splashTree = concat(mergeTrees([
+        new WatchedDir(app._resolveLocal('../splash_utils')),
+        new UnwatchedDir(app._resolveLocal('vendor'))
+    ], {
+        annotation: 'TreeMerger (splash utils)'
+    }), {
+        inputFiles: [
+            'mutation-summary.js',
+            'tree-mirror.js',
+            // LocalStorage Shim disabled since it doesn't work in Qt5
+            // 'local-storage-shim.js',
+            'inject_this.js'
+        ],
+        outputFile: 'splash_content_scripts/combined.js',
+        header: '(function(){',
+        footer: '})();'
+    });
+
+    return mergeTrees([
+        app.toTree(),
+        splashTree
+    ]);
 };

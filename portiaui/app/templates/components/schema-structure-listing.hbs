@@ -30,6 +30,7 @@
             {{#each schema.fields as |field|}}
                 {{#tree-list-item as |options|}}
                     {{#link-to 'projects.project.schema.field' field}}
+                        {{indentation-spacer}}
                         {{list-item-icon icon=field.type}}
                         {{list-item-editable value=(mut field.name) editing=(mut field.new) onChange=(action 'saveField' field) validate=(action 'validateFieldName' field)}}
                         {{#list-item-field-type field=field}}
