@@ -155,7 +155,8 @@ export default Ember.Controller.extend({
                             // reject annotations with elements that share a container with the
                             // hovered element
                             const annotationPaths = annotation.get('elements').map(elementPath);
-                            const containerElements = annotation.get('parent.elements');
+                            const containerElements =
+                                annotation.get('parent.itemAnnotation.elements');
                             container: for (let containerElement of containerElements) {
                                 const containerPath = elementPath(containerElement);
                                 const depth = containerPath.length - 1;

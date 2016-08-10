@@ -7,7 +7,12 @@ export default Ember.Route.extend({
     selectedModel: Ember.computed.alias('uiState.viewPort.selectedModel'),
 
     model(params) {
-        return this.store.peekRecord('annotation', params.annotation_id);
+        return this.store.queryRecord('annotation', {
+            id: params.annotation_id,
+            parent_sample_id: this.modelFor('projects.project.spider.sample').get('id'),
+            parent_sample_spider_id: this.modelFor('projects.project.spider').get('id'),
+            parent_sample_spider_project_id: this.modelFor('projects.project').get('id')
+        });
     },
 
     afterModel(model) {

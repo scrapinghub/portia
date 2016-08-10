@@ -31,12 +31,12 @@ export default Ember.Component.extend({
             this.get('dispatcher').removeAnnotation(annotation);
         },
 
-        removeItem(item) {
-            this.get('dispatcher').removeItem(item);
+        removeItemAnnotation(itemAnnotation) {
+            this.get('dispatcher').removeItemAnnotation(itemAnnotation);
         },
 
-        saveItem(item) {
-            item.save();
+        saveItemAnnotation(itemAnnotation) {
+            itemAnnotation.save();
         }
     }
 });

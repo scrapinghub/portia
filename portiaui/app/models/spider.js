@@ -1,10 +1,8 @@
-import Ember from 'ember';
 import DS from 'ember-data';
-import BaseModel from './base';
 
-export default BaseModel.extend({
-    name: Ember.computed.alias('id'),
-    // name: DS.attr('string'),
+
+const Spider = DS.Model.extend({
+    name: DS.attr('string'),
     startUrls: DS.attr('array', {
         defaultValue() {
             return [];
@@ -38,7 +36,6 @@ export default BaseModel.extend({
             return [];
         }
     }),
-    // move to ui state?
     showLinks: DS.attr('boolean'),
     respectNoFollow: DS.attr('boolean', {
         defaultValue: true
@@ -59,7 +56,7 @@ export default BaseModel.extend({
 
     samples: DS.hasMany({
         async: true
-    }),
-
-    firstUrl: Ember.computed.readOnly('startUrls.firstObject')
+    })
 });
+
+export default Spider;

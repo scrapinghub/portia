@@ -1,5 +1,5 @@
 import SlydJSONAPIAdapter from '../utils/adapter';
 
 export default SlydJSONAPIAdapter.extend({
-    urlTemplate: '{+host}/api/projects{/id}'
+    urlTemplate: '{+host}/api/projects/{project_id}/spiders{/id}'
 });

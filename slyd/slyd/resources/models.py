@@ -2,6 +2,7 @@ from itertools import chain
 
 from marshmallow_jsonapi import Schema, fields
 from marshmallow import pre_dump, post_load
+from scrapy.utils.misc import arg_to_iter
 
 
 class SlydSchema(Schema):
@@ -67,17 +68,17 @@ class ProjectSchema(SlydSchema):
     spiders = fields.Relationship(
         related_url='/api/projects/{project_id}/spiders',
         related_url_kwargs={'project_id': '<id>'}, type_='spiders',
-        include_resource_linkage=True, many=True
+        include_data=True, many=True
     )
     schemas = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas',
         related_url_kwargs={'project_id': '<id>'}, type_='schemas',
-        include_resource_linkage=True, many=True
+        include_data=True, many=True
     )
     extractors = fields.Relationship(
         related_url='/api/projects/{project_id}/extractors',
         related_url_kwargs={'project_id': '<id>'}, type_='extractors',
-        include_resource_linkage=True, many=True
+        include_data=True, many=True
     )
     project = fields.Relationship(
         self_url='/api/projects/{project_id}',
@@ -95,13 +96,13 @@ class SchemaSchema(SlydSchema):
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
         type_='projects',
-        include_resource_linkage=True
+        include_data=True
     )
     fields = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas/{schema_id}/fields',
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<id>'},
-        many=True, include_resource_linkage=True, type_='fields'
+        many=True, include_data=True, type_='fields'
     )
 
     class Meta:
@@ -119,14 +120,14 @@ class FieldSchema(SlydSchema):
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
         type_='projects',
-        include_resource_linkage=True
+        include_data=True
     )
     schema = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas/{schema_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>'},
         type_='schema',
-        include_resource_linkage=True
+        include_data=True
     )
 
     class Meta:
@@ -154,13 +155,13 @@ class SpiderSchema(SlydSchema):
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples',
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>'},
-        many=True, include_resource_linkage=True, type_='samples'
+        many=True, include_data=True, type_='samples'
     )
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
         type_='projects',
-        include_resource_linkage=True
+        include_data=True
     )
 
     @pre_dump
@@ -204,13 +205,13 @@ class SampleSchema(SlydSchema):
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
-        type_='projects', include_resource_linkage=True
+        type_='projects', include_data=True
     )
     spider = fields.Relationship(
         related_url='/api/projects/{project_id}/spiders/{spider_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>'},
-        type_='spiders', include_resource_linkage=True
+        type_='spiders', include_data=True
     )
     html = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
@@ -218,7 +219,7 @@ class SampleSchema(SlydSchema):
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
                             'sample_id': '<id>'},
-        type_='html', include_resource_linkage=True
+        type_='html', include_data=True
     )
     items = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
@@ -226,7 +227,7 @@ class SampleSchema(SlydSchema):
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
                             'sample_id': '<id>'},
-        type_='items', many=True, include_resource_linkage=True
+        type_='items', many=True, include_data=True
     )
 
     def dump(self, obj, many=None, update_fields=True, **kwargs):
@@ -259,14 +260,14 @@ class BaseAnnotationSchema(SlydSchema):
                             'spider_id': '<spider_id>',
                             'sample_id': '<sample_id>'},
         type_='samples',
-        include_resource_linkage=True
+        include_data=True
     )
     parent = fields.Relationship(
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
                             'sample_id': '<sample_id>',
                             'item_id': '<parent_id>'},
-        type_='items', include_resource_linkage=True
+        type_='items', include_data=True
     )
 
     @property
@@ -307,12 +308,12 @@ class AnnotationSchema(BaseAnnotationSchema):
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>',
                             'field_id': '<field.id>'},
-        type_='fields', include_resource_linkage=True
+        type_='fields', include_data=True
     )
     extractors = fields.Relationship(
         related_url='/api/projects/{project_id}/extractors',
         related_url_kwargs={'project_id': '<project_id>'},
-        many=True, include_resource_linkage=True, type_='extractors'
+        many=True, include_data=True, type_='extractors'
     )
 
     class Meta:
@@ -331,7 +332,7 @@ class ItemAnnotationSchema(BaseAnnotationSchema):
         related_url='/api/projects/{project_id}/schemas/{schema_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>'},
-        type_='schemas', include_resource_linkage=True
+        type_='schemas', include_data=True
     )
 
     class Meta:
@@ -346,7 +347,7 @@ class ExtractorSchema(SlydSchema):
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
         type_='projects',
-        include_resource_linkage=True
+        include_data=True
     )
 
     @pre_dump
@@ -379,13 +380,13 @@ class ItemSchema(SlydSchema):
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
                             'sample_id': '<sample_id>'},
-        include_resource_linkage=True, type_='samples'
+        include_data=True, type_='samples'
     )
     schema = fields.Relationship(
         related_url='/api/projects/{project_id}/schemas/{schema_id}',
         related_url_kwargs={'project_id': '<project_id>',
                             'schema_id': '<schema_id>'},
-        type_='schemas', include_resource_linkage=True
+        type_='schemas', include_data=True
     )
     annotations = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
@@ -394,7 +395,7 @@ class ItemSchema(SlydSchema):
                             'spider_id': '<spider_id>',
                             'sample_id': '<sample_id>',
                             'item_id': '<id>'},
-        many=True, include_resource_linkage=True, type_='annotations'
+        many=True, include_data=True, type_='annotations'
     )
     item_annotation = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
@@ -403,9 +404,9 @@ class ItemSchema(SlydSchema):
                             'spider_id': '<spider_id>',
                             'sample_id': '<sample_id>',
                             'item_id': '<id>'},
-        include_resource_linkage=True, type_='item_annotations'
+        include_data=True, type_='item_annotations'
     )
-    parent = fields.Relationship(type_='items', include_resource_linkage=True)
+    parent = fields.Relationship(type_='items', include_data=True)
 
     @pre_dump
     def _dump_parent_id(self, item):
