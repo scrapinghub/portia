@@ -10,8 +10,8 @@
                 {{#unless item.parent}}
                     {{#data-structure-annotations sample=sample item=item annotationColors=annotationColors}}
                         {{#link-to 'projects.project.spider.sample.data.item' item}}
-                            {{list-item-icon icon='schema'}}
                             {{list-item-badge value=(or item.elements.length 0)}}
+                            {{list-item-icon icon='schema'}}
                             {{list-item-item-schema item=item selecting=(mut item.new)}}
                             {{list-item-add-annotation-menu item=item}}
                             {{list-item-icon icon='remove' action=(action 'removeItem' item) disabled=(lte sample.items.length 1) bubbles=false}}
