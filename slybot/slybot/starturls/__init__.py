@@ -7,6 +7,7 @@ import six
 from six.moves.urllib_parse import urlparse
 
 from .fragment_generator import FragmentGenerator
+from .generated_url import GeneratedUrl
 from .generator import IdentityGenerator, UrlGenerator
 
 
@@ -29,18 +30,19 @@ class StartUrlCollection(object):
         domains = [start_url.allowed_domains for start_url in self.start_urls]
         return list(set(chain(*domains)))
 
+    def normalize(self):
+        return (start_url.normalized for start_url in self.start_urls)
+
     def _generate_urls(self, start_url):
         generator = self.generators[start_url.generator_type]
         return generator(start_url.generator_value)
 
     def _url_type(self, start_url):
-        if self._is_legacy(start_url):
-            return LegacyUrl(start_url, self.generator_type)
+        if isinstance(start_url, six.string_types):
+            return StringUrl(start_url, self.generator_type)
+        if not (start_url.get('url') and start_url.get('type')):
+            return GeneratedUrl(start_url, self.generator_type)
         return StartUrl(start_url, self.generators)
-
-    def _is_legacy(self, start_url):
-        return (isinstance(start_url, six.string_types) or
-                not (start_url.get('url') and start_url.get('type')))
 
 
 class StartUrl(object):
@@ -51,10 +53,20 @@ class StartUrl(object):
         self.generator_value = self.spec if self._has_fragments else self.spec['url']
 
     @property
+    def key(self):
+        fragments = self.spec.get('fragments', [])
+        fragment_values = [fragment['value'] for fragment in fragments]
+        return self.spec['url'] + ''.join(fragment_values)
+
+    @property
     def allowed_domains(self):
         if self._has_fragments:
             return self._find_fragment_domains()
         return [self.spec['url']]
+
+    @property
+    def normalized(self):
+        return self.spec
 
     def _find_fragment_domains(self):
         generator = self.generators[self.generator_type]
@@ -81,17 +93,11 @@ class StartUrl(object):
         return any(getattr(parsed_url, method) != '' for method in methods)
 
     @property
-    def key(self):
-        fragments = self.spec.get('fragments', [])
-        fragment_values = [fragment['value'] for fragment in fragments]
-        return self.spec['url'] + ''.join(fragment_values)
-
-    @property
     def _has_fragments(self):
         return self.spec.get('fragments')
 
 
-class LegacyUrl(object):
+class StringUrl(object):
     def __init__(self, spec, generator_type):
         self.key = spec
         self.spec = spec
@@ -100,6 +106,8 @@ class LegacyUrl(object):
 
     @property
     def allowed_domains(self):
-        is_generated = self.generator_type == 'generated_urls'
-        url = self.spec['template'] if is_generated else self.spec
-        return [url]
+        return [self.spec]
+
+    @property
+    def normalized(self):
+        return {'url': self.spec, 'type': 'url'}

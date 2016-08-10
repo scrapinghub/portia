@@ -51,10 +51,6 @@ def create_root(config, settings_module):
                                    create_ferry_resource)
     from slyd.splash.proxy import ProxyResource
 
-    config = dict(config, **{
-        'docroot': DEFAULT_DOCROOT
-    })
-
     root = Resource()
     static = Resource()
     for file_name in listdir(config['docroot']):

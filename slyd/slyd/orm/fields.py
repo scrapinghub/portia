@@ -1,13 +1,18 @@
 import re
 
-from marshmallow import fields, validate
+from marshmallow import fields, Schema, validate
 from marshmallow.utils import get_value, missing
+
 from six import iteritems, itervalues
 
+from slybot.starturls import StartUrlCollection
+
 from slyd.orm.collection import ListDescriptor
+from slyd.orm.decorators import post_dump, pre_load
 from slyd.orm.deletion import CASCADE, CLEAR, PROTECT
 from slyd.orm.exceptions import ImproperlyConfigured, ValidationError
 from slyd.orm.relationships import BelongsTo, HasMany
+from slyd.orm.validators import OneOf
 
 __all__ = [
     'Boolean',
@@ -20,6 +25,7 @@ __all__ = [
     'Url',
     'BelongsTo',
     'HasMany',
+    'StartUrl',
     'CASCADE',
     'CLEAR',
     'PROTECT',
@@ -223,3 +229,24 @@ class DependantField(Field):
 class List(fields.List, Field):
     def contribute_to_class(self, cls, attrname):
         setattr(cls, attrname, ListDescriptor(attrname=attrname))
+
+
+class Fragment(Schema):
+    type = String(validate=OneOf(['fixed', 'range', 'list']), required=True)
+    value = String(default='', required=True)
+
+
+class StartUrl(Schema):
+    url = String(default='', required=True)
+    type = String(validate=OneOf(['url', 'generated']), required=True)
+    fragments = List(fields.Nested(Fragment))
+
+    @pre_load
+    def normalize(self, data):
+        if 'url' in data and 'type' in data:
+            return data
+        return list(StartUrlCollection([data]).normalize())[0]
+
+    @post_dump
+    def denormalize(self, data):
+        return data['url']
