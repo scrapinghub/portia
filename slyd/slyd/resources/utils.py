@@ -15,14 +15,6 @@ from slybot.plugins.scrapely_annotations.migration import (port_sample,
 SLYBOT_VERSION = slybot.__version__
 
 
-class BaseApiResponse(object):
-    def __init__(self, data):
-        self.data = data
-
-    def format_response(self, request):
-        raise NotImplementedError
-
-
 def _load_sample(manager, spider_id, sample_id, create_missing_item=True):
     sample = manager.resource('spiders', spider_id, sample_id)
     return _handle_sample_updates(manager, sample, spider_id, sample_id,
@@ -117,14 +109,6 @@ def _create_item_annotation(sample, schema_id):
 
 def _read_schemas(manager):
     return _read_resource(manager, 'items')
-
-
-def _read_extractors(manager):
-    extractors = _read_resource(manager, 'extractors')
-    for _id, extractor in extractors.items():
-        if _id not in extractor:
-            extractor['id'] = _id
-    return extractors
 
 
 def _read_resource(manager, resource):

@@ -1,4 +1,4 @@
-{{#list-item-relation-manager value=(mut item.schema) choices=item.sample.spider.project.schemas selecting=(mut selecting) onChange=(action 'changeSchema') create=(action 'addSchema') as |options|}}
+{{#list-item-relation-manager value=(mut item.schema) choices=item.ownerSample.spider.project.schemas selecting=(mut selecting) onChange=(action 'changeSchema') create=(action 'addSchema') as |options|}}
     {{#if (eq options.section 'change-header')}}
         Type to change the data format
     {{else if (eq options.section 'choices-header')}}

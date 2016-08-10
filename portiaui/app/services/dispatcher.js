@@ -1,6 +1,5 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
-import ItemAnnotation from '../models/item-annotation';
 import {getDefaultAttribute} from '../components/inspector-panel';
 
 export function computedCanAddSpider() {
@@ -108,7 +107,7 @@ export default Ember.Service.extend({
             counter += 1;
         }
         const spider = store.createRecord('spider', {
-            name: name,
+            id: name,
             startUrls: [url],
             project
         });
@@ -156,52 +155,37 @@ export default Ember.Service.extend({
             });
 
             if (redirect) {
-                sample.set('_autoCreatedSchema', sample.get('scrapes'));
                 sample.set('new', true);
                 const routing = this.get('routing');
-                routing.transitionTo('projects.project.spider.sample', [spider, sample], {}, true);
+                routing.transitionTo('projects.project.spider.sample', [sample], {}, true);
             }
         });
         return sample;
     },
 
     addItem(sample, redirect = false) {
-        const store = this.get('store');
-        const schema = store.createRecord('schema', {
-            name: sample.get('name'),
-            project: sample.get('spider.project')
-        });
-        const item = store.createRecord('item', {
+        return this._addItem({
             sample
-        });
-        schema.save().then(() => {
-            item.set('schema', schema);
-            item.save();
+        }, redirect);
+    },
+
+    addNestedItem(parentItem, redirect = false) {
+        return this._addItem({
+            parent: parentItem
+        }, redirect);
+    },
+
+    _addItem(attributes, redirect = false) {
+        const store = this.get('store');
+        const item = store.createRecord('item', attributes);
+        this.saveAnnotationAndRelatedSelectors(item).then(() => {
             if (redirect) {
                 item.set('new', true);
+                const routing = this.get('routing');
+                routing.transitionTo('projects.project.spider.sample.data.item', [item], {}, true);
             }
         });
         return item;
-    },
-
-    addItemAnnotation(item /*, redirect = false */) {
-        const store = this.get('store');
-        const project = item.get('schema.project');
-        const sample =  item.get('sample');
-        const schema = store.createRecord('schema', {
-            name: `schema${project.get('schemas.length') + 1}`,
-            project
-        });
-        const newItem = store.createRecord('item', {
-            name: `subitem${item.get('annotations.length') + 1}`,
-            parent: item,
-            sample
-        });
-        schema.save().then(() => {
-            newItem.set('schema', schema);
-            newItem.save();
-        });
-        return newItem;
     },
 
     addAnnotation(item, element, attribute, redirect = false) {
@@ -228,16 +212,9 @@ export default Ember.Service.extend({
         if (attribute !== undefined) {
             annotation.set('attribute', attribute);
         }
-        // FIXME: annotation.selector is null at this point
-        annotation.save().then(() => {
+        this.saveAnnotationAndRelatedSelectors(annotation).then(() => {
             if (redirect) {
                 annotation.set('new', true);
-                annotation.get('field').then(f => {
-                    if (!!f) {
-                        annotation.set('_autoCreatedField', f);
-                        f.set('_autoCreatedBy', annotation);
-                    }
-                });
             }
             if (element) {
                 this.selectAnnotationElement(annotation, element, redirect);
@@ -248,9 +225,38 @@ export default Ember.Service.extend({
         return annotation;
     },
 
+    saveAnnotationAndRelatedSelectors(annotation) {
+        return annotation.get('ownerSample').then(sample => {
+            const coalesce = [];
+            for (let child of sample.get('orderedChildren')) {
+                if (child === annotation) {
+                    continue;
+                }
+                if (child.constructor.modelName === 'item') {
+                    coalesce.push({
+                        model: child,
+                        options: {
+                            partial: ['selector', 'repeatedSelector', 'siblings']
+                        }
+                    });
+                } else if (child.constructor.modelName === 'annotation') {
+                    coalesce.push({
+                        model: child,
+                        options: {
+                            partial: ['selectionMode', 'selector', 'xpath']
+                        }
+                    });
+                }
+            }
+            return annotation.save(coalesce.length ? {
+                coalesce
+            } : undefined);
+        });
+    },
+    
     addAnnotationTypeExtractor(annotation, type) {
         const store = this.get('store');
-        const project = annotation.get('sample.spider.project');
+        const project = annotation.get('ownerSample.spider.project');
         return project.get('extractors').then(extractors => {
             const existing = extractors.find(extractor => {
                 return extractor.get('type') === 'type' && extractor.get('value') === type;
@@ -280,7 +286,7 @@ export default Ember.Service.extend({
 
     addNewAnnotationRegexExtractor(annotation) {
         const store = this.get('store');
-        const project = annotation.get('sample.spider.project');
+        const project = annotation.get('ownerSample.spider.project');
         const extractor = store.createRecord('extractor', {
             project,
             type: 'regex',
@@ -298,57 +304,6 @@ export default Ember.Service.extend({
             annotation.set('attribute', attribute);
             annotation.save();
         }
-    },
-
-    changeItemSchema(item, schema) {
-        return schema.get('fields').then(fields => {
-            const store = this.get('store');
-
-            const fieldMap = {};
-            fields.forEach(field => {
-                fieldMap[field.get('name')] = field;
-            });
-
-            return item.get('annotations').then(allAnnotations => {
-                const annotations = [];
-                const promises = [];
-                allAnnotations.forEach(annotation => {
-                    if (annotation.constructor.modelName === 'annotation') {
-                        promises.push(
-                            annotation.get('field').then(field => {
-                                const name = field.get('name');
-
-                                annotations.push({
-                                    annotation,
-                                    fieldName: name
-                                });
-
-                                if (!(name in fieldMap)) {
-                                    const newField = store.createRecord('field', {
-                                        name,
-                                        type: field.get('type'),
-                                        schema
-                                    });
-                                    fieldMap[name] = newField;
-                                    return newField.save();
-                                }
-                            }));
-                    }
-                });
-
-                return Ember.RSVP.all(promises).then(() => {
-                    for (let {annotation, fieldName} of annotations) {
-                        annotation.set('field', fieldMap[fieldName]);
-                    }
-
-                    return item.get('itemAnnotation').then(itemAnnotation =>
-                        itemAnnotation.save().then(() => {
-                            item.set('schema', schema);
-                            return item.save();
-                        }));
-                });
-            });
-        });
     },
 
     removeSchema(schema) {
@@ -393,59 +348,24 @@ export default Ember.Service.extend({
         spider.save();
     },
 
-    deleteAutoCreatedSchema(sample) {
-        if(sample.get('_autoCreatedSchema')) {
-            const schema = this.get('store').peekRecord('schema', sample.get('_autoCreatedSchema'));
-            this.removeSchema(schema);
-            sample.set('_autoCreatedSchema', null);
-        }
-    },
-
     removeSample(sample) {
         const currentSample = this.get('uiState.models.sample');
         if (sample === currentSample) {
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider', [], {}, true);
         }
-        for (let item of sample.get('items.content').currentState) {
-            let itemAnnotation = item.record.get('itemAnnotation.content');
-            let parent = item.record.get('parent.content');
-            if (parent) {
-                parent.unloadRecord();
-            }
-            for (let annotation of item.record.get('annotations.content').currentState) {
-                annotation.record.unloadRecord();
-            }
-            itemAnnotation.unloadRecord();
-            item.unloadRecord();
-        }
-        sample.destroyRecord().then(() => {
-            this.deleteAutoCreatedSchema(sample);
-        });
+        sample.destroyRecord();
     },
 
     removeItem(item) {
+        const currentItem = this.get('uiState.models.item');
         const currentAnnotation = this.get('uiState.models.annotation');
-        if (item.get('orderedAnnotations').includes(currentAnnotation)) {
+        if (item === currentItem || item.get('orderedAnnotations').includes(currentAnnotation)) {
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
-        const sample = item.get('sample');
-        item.destroyRecord().then(() => {
-            if (sample.get('items.length') === 0) {
-                this.addItem(sample);
-            }
-        });
-    },
-
-    removeItemAnnotation(itemAnnotation) {
-        const currentAnnotation = this.get('uiState.models.annotation'),
-              parentItem = itemAnnotation.get('item.content');
-        if (itemAnnotation.get('orderedAnnotations').includes(currentAnnotation)) {
-            const routing = this.get('routing');
-            routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
-        }
-        itemAnnotation.destroyRecord().then(() => parentItem.unloadRecord());
+        item.deleteRecord();
+        this.saveAnnotationAndRelatedSelectors(item);
     },
 
     removeAnnotation(annotation) {
@@ -454,7 +374,8 @@ export default Ember.Service.extend({
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
-        annotation.destroyRecord();
+        annotation.deleteRecord();
+        this.saveAnnotationAndRelatedSelectors(annotation);
     },
 
     removeAnnotationExtractor(annotation, extractor) {
@@ -495,13 +416,14 @@ export default Ember.Service.extend({
 
     addElementToAnnotation(annotation, element) {
         annotation.addElement(element);
-        this.selectAnnotationElement(annotation, element);
-        annotation.save();
+        this.saveAnnotationAndRelatedSelectors(annotation).then(() => {
+            this.selectAnnotationElement(annotation, element);
+        });
     },
 
     removeElementFromAnnotation(annotation, element) {
         annotation.removeElement(element);
         this.selectAnnotation(annotation);
-        annotation.save();
+        this.saveAnnotationAndRelatedSelectors(annotation);
     }
 });

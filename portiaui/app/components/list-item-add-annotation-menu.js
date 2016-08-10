@@ -13,9 +13,9 @@ export default Ember.Component.extend({
             this.get('dispatcher').addAnnotation(item, undefined, undefined, /* redirect = */true);
         },
 
-        addItemAnnotation() {
+        addNestedItem() {
             const item = this.get('item');
-            this.get('dispatcher').addItemAnnotation(item, /* redirect = */true);
+            this.get('dispatcher').addNestedItem(item, /* redirect = */true);
         }
     }
 });

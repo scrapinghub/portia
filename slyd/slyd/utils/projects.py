@@ -30,19 +30,26 @@ def gen_id(disallow=None):
     return _id
 
 
-def init_project(func):
-    def wrapped(*args, **kwargs):
-        if 'manager' in kwargs:
-            manager = kwargs['manager']
-        else:
-            manager = args[0]
-        if hasattr(manager.pm, 'edit_project'):
-            manager.pm.edit_project(manager.project_name, 'master')
-        if hasattr(manager, 'add_tag') and hasattr(manager.pm, '_has_tag'):
-            if not manager.pm._has_tag(manager.project_name, 'portia_2.0'):
-                manager.add_tag('portia_2.0')
-        return func(*args, **kwargs)
-    return wrapped
+def unique_name(base_name, disallow=(), initial_suffix=''):
+    disallow = set(disallow)
+    suffix = initial_suffix
+    while True:
+        name = u'{}{}'.format(base_name, suffix)
+        if name not in disallow:
+            break
+        try:
+            suffix += 1
+        except TypeError:
+            suffix = 1
+    return name
+
+
+def init_project(manager):
+    if hasattr(manager.pm, 'edit_project'):
+        manager.pm.edit_project(manager.project_name, 'master')
+    if hasattr(manager, 'add_tag') and hasattr(manager.pm, '_has_tag'):
+        if not manager.pm._has_tag(manager.project_name, 'portia_2.0'):
+            manager.add_tag('portia_2.0')
 
 
 def clean_spider(obj):

@@ -39,7 +39,7 @@
             {{/tree-list-item}}
             {{#each project.spiders as |spider|}}
                 {{#tree-list-item hide=(and currentSpider (not-eq spider currentSpider)) as |options|}}
-                    {{#link-to 'projects.project.spider' spider (query-params url=spider.startUrls.firstObject baseurl=null) current-when='projects.project.spider'}}
+                    {{#link-to 'projects.project.spider' spider (query-params url=(or spider.firstUrl null) baseurl=null) current-when='projects.project.spider'}}
                         {{list-item-icon icon='spider'}}
                         {{#if currentSpider}}
                             {{#list-item-text}}{{spider.name}}{{/list-item-text}}

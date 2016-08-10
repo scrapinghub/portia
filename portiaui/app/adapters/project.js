@@ -1,5 +1,6 @@
-import SlydJSONAPIAdapter from '../utils/adapter';
+import ApplicationAdapter from './application';
 
-export default SlydJSONAPIAdapter.extend({
-    urlTemplate: '{+host}/api/projects{/id}'
+export default ApplicationAdapter.extend({
+    urlTemplate: '{+host}/api/projects{/id}',
+    createRecordUrlTemplate: '{+host}/api/projects'
 });

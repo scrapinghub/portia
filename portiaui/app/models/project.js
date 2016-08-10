@@ -1,4 +1,5 @@
 import DS from 'ember-data';
+import BaseModel from './base';
 import { memberAction } from 'ember-api-actions';
 
 function memberActionAndMarkClean(options) {
@@ -12,7 +13,7 @@ function memberActionAndMarkClean(options) {
     };
 }
 
-const Project =  DS.Model.extend({
+const Project =  BaseModel.extend({
     name: DS.attr('string'),
     spiders: DS.hasMany(),
     schemas: DS.hasMany(),

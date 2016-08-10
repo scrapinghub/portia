@@ -2,17 +2,11 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     model(params) {
-        return this.store.queryRecord('schema', {
-            id: params.schema_id,
-            project_id: this.modelFor('projects.project').get('id')
-        });
+        return this.store.peekRecord('schema', params.schema_id);
     },
 
     afterModel(model) {
-        return this.store.query('field', {
-            schema_project_id: this.modelFor('projects.project').get('id'),
-            schema_id: model.get('id')
-        });
+        return model.reload();
     },
 
     renderTemplate() {
