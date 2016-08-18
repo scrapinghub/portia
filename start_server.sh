@@ -1,4 +1,5 @@
 #!/bin/bash
+
 echo "Starting slyd service"
 echo "====================="
 cd /home/ubuntu/portia/slyd && bin/slyd -p 9002

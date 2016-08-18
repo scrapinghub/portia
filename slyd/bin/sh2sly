@@ -7,7 +7,6 @@ Used for testing.
 This uses the python-scrapinghub library
 """
 
-
 def sh2sly(apikey, projects, destination):
     from scrapinghub import Connection, Project
     import tempfile, zipfile, os
