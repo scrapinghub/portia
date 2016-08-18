@@ -19,6 +19,7 @@ from twisted.python import log
 from jsonschema.exceptions import ValidationError
 
 from splash.browser_tab import JsError
+from splash.har.qt import cookies2har
 
 from slyd.utils.projects import ProjectModifier
 from slyd.resources.utils import _load_sample
@@ -29,6 +30,15 @@ from .utils import open_tab, extract_data, BaseWSError, BadRequest, NotFound
 
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
+
+
+def cookies(socket):
+    cookies_list = socket.tab.network_manager.cookiejar.allCookies()
+    message = {
+        '_command': 'cookies',
+        'cookies': cookies2har(cookies_list)
+    }
+    socket.sendMessage(message)
 
 
 def save_html(data, socket):
@@ -154,6 +164,7 @@ def load_page(data, socket):
         else:
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
+        cookies(socket)
 
     # Specify the user agent directly in the headers
     # Workaround for https://github.com/scrapinghub/splash/issues/290
@@ -176,6 +187,7 @@ def interact_page(data, socket):
         socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
     except JsError as e:
         print(e)
+    cookies(socket)
 
 
 def resolve(data, socket):

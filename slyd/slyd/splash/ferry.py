@@ -334,7 +334,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         manager.tab = self.tab
         main_frame = self.tab.web_page.mainFrame()
         cookiejar = PortiaCookieJar(self.tab.web_page, self)
-        self.tab.web_page.cookiejar = cookiejar
+        manager.cookiejar = cookiejar
+        manager.setCookieJar(cookiejar)
         if meta.get('cookies'):
             cookiejar.put_client_cookies(meta['cookies'])
 
