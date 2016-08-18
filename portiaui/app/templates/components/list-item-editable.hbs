@@ -1,5 +1,5 @@
 {{#if editing}}
-    {{buffered-input class="input-list-item" value=(mut value) focused=editing autoSelect=true spellcheck=spellcheck onChange=onChange validate=validate}}
+    {{buffered-input class="input-list-item" value=(mut value) focused=editing autoSelect=true spellcheck=spellcheck onChange=onChange validate=validate autofocus="autofocus"}}
 {{else}}
     <span>{{value}}</span>
     {{icon-button icon='edit' action=(action 'startEditing') bubbles=false}}

@@ -71,3 +71,11 @@ export function renameAttr($elements, from, to) {
         }
     });
 }
+
+export function flatten(list) {
+    const result = [];
+    list.forEach((element) => {
+        element.forEach((nested) => { result.push(nested); });
+    });
+    return result;
+}

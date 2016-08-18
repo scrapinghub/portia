@@ -1,0 +1,19 @@
+{{list-item-badge value=multiplicity color=fragmentColor}}
+
+<div class="form-group">
+    {{#if isRange}}
+        {{input type="text" class="form-control compact-control fragment-left-half" value=(mut lower) placeholder="start" focus-out=(action 'saveFragment')}}
+        <span>-</span>
+        {{input type="text" class="form-control compact-control fragment-right-half" value=(mut higher) placeholder="end" focus-out=(action 'saveFragment')}}
+    {{else}}
+    {{input type="text" class="form-control compact-control fragment-input" value=(mut fragment.value) placeholder=listPlaceholder focus-out=(action saveSpider)}}
+    {{/if}}
+</div>
+
+<div class="form-group">
+    {{select-box buttonClass="compact-control fragment-type" value=(mut fragmentType) valueAttribute='label' choices=fragmentTypeOptions isDisabled=(eq index 0)}}
+</div>
+
+{{#if (not-eq index 0)}}
+    {{list-item-icon class="fragment-action-icon" icon='remove' action=(action removeFragment fragment) bubbles=false}}
+{{/if}}
