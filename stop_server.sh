@@ -2,5 +2,5 @@
 
 echo "Stoping slyd service"
 echo "====================="
-sudo /etc/init.d/start_stop stop
+sudo /etc/init.d/categorization_engine stop
 exit 0

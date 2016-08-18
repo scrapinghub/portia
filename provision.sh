@@ -113,6 +113,22 @@ configure_initctl(){
     sudo start slyd
 }
 
+set_init_script(){
+    sudo cp /home/ubuntu/portia/categorization_engine_init_script.sh /etc/init.d/categorization_engine_init_script
+    sudo chmod +x /etc/init.d/categorization_engine_init_script
+}
+
+
+add_env_variables(){
+    cp /home/ubuntu/portia_configs/.env /home/ubuntu/portia/slybot/slybot/
+}
+
+set_crontab(){
+    echo "0 * * * * bash /home/ubuntu/portia/s3_project_sync.sh >> /home/ubuntu/portia/logs/s3_project_sync.log" > c
+    cat ~/c | crontab -
+}
+
+
 if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then
     usage
     exit 1

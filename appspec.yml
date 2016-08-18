@@ -4,14 +4,13 @@ files:
   - source: /
     destination: /home/ubuntu/portia/
 hooks:
-  BeforeInstall:
-    - location: stop_server.sh
-      timeout: 180
-      runas: ubuntu
   AfterInstall:
     - location: change_permissions.sh
       timeout: 180
       runas: root
+    - location: /home/ubuntu/portia/provision.sh install_deps install_splash install_python_deps configure_nginx set_init_script add_env_variables set_crontab
+      timeout: 1800
+      runas: ubuntu
   ApplicationStart:
     - location: start_server.sh
       timeout: 300
