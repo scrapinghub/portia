@@ -4,6 +4,10 @@ files:
   - source: /
     destination: /home/ubuntu/portia/
 hooks:
+  BeforeInstall:
+    - location: stop_server.sh
+      timeout: 180
+      runas: ubuntu
   AfterInstall:
     - location: change_permissions.sh
       timeout: 180
