@@ -8,12 +8,16 @@ import boto3
 import csv
 from botocore.exceptions import ClientError
 import json
+import os
 
 
 class DynamoDBPipeline(object):
     def __init__(self):
-      dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-      self.table = dynamodb.Table('parsed_data')
+      print os.environ['REGION_NAME']
+      print os.environ['TABLE_NAME']
+
+      dynamodb = boto3.resource('dynamodb', region_name=os.environ['REGION_NAME'])
+      self.table = dynamodb.Table(os.environ['TABLE_NAME'])
 
     def process_item(self, item, spider):
       url = ''
