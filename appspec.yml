@@ -8,7 +8,7 @@ hooks:
     - location: change_permissions.sh
       timeout: 180
       runas: root
-    - location: /home/ubuntu/portia/provision.sh install_deps install_splash install_python_deps configure_nginx set_init_script add_env_variables set_crontab
+    - location: initial_setup.sh
       timeout: 1800
       runas: ubuntu
   ApplicationStart:
