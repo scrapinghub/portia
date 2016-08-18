@@ -2,5 +2,5 @@
 
 echo "Starting slyd service"
 echo "====================="
-#cd /home/ubuntu/portia/slyd && bin/slyd -p 9002
-#sudo /etc/init.d/nginx restart
+cd /home/ubuntu/portia/slyd && nohup bin/slyd -p 9002 &
+sudo /etc/init.d/nginx restart
