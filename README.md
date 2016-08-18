@@ -25,3 +25,23 @@ For more detailed instructions, and alternatives to using Vagrant, see the [Inst
 
 Documentation can be found [here](http://portia.readthedocs.org/en/latest/index.html). Source files can be found in the ``docs`` directory.
 
+# EC2 Initialization Script
+Script:
+  #!/bin/bash
+  apt-get -y update
+  apt-get -y install awscli
+  apt-get -y install ruby2.0
+  cd /home/ubuntu
+  mkdir portia_logs
+  mkdir portia_configs
+  chown -R ubuntu:ubuntu portia_logs
+  chown -R ubuntu:ubuntu portia_configs
+  echo "export CATEGORIZATION_ENGINE_ENV=<env>" >> /home/ubuntu/.profile
+  aws s3 cp s3://aws-codedeploy-us-east-1/latest/install . --region us-east-1
+  chmod +x ./install
+  ./install auto
+
+ env = staging or production
+  
+  
+

@@ -124,8 +124,8 @@ add_env_variables(){
 }
 
 set_crontab(){
-    echo "0 * * * * bash /home/ubuntu/portia/s3_project_sync.sh >> /home/ubuntu/portia/logs/s3_project_sync.log"  > /home/ubuntu/portia_configs/crontab
-    cat /home/ubuntu/portia_configs/crontab | crontab -
+    echo "0 * * * * bash /home/ubuntu/portia/s3_project_sync.sh >> /home/ubuntu/portia_logs/s3_project_sync.log"  > /home/ubuntu/portia_configs/crontab.txt
+    cat /home/ubuntu/portia_configs/crontab.txt | crontab -
 }
 
 
