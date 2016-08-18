@@ -114,8 +114,8 @@ configure_initctl(){
 }
 
 set_init_script(){
-    sudo cp /home/ubuntu/portia/categorization_engine_init_script.sh /etc/init.d/categorization_engine_init_script
-    sudo chmod +x /etc/init.d/categorization_engine_init_script
+    sudo cp /home/ubuntu/portia/categorization_engine_init_script.sh /etc/init.d/categorization_engine
+    sudo chmod +x /etc/init.d/categorization_engine
 }
 
 
@@ -124,8 +124,8 @@ add_env_variables(){
 }
 
 set_crontab(){
-    echo "0 * * * * bash /home/ubuntu/portia/s3_project_sync.sh >> /home/ubuntu/portia/logs/s3_project_sync.log" > c
-    cat ~/c | crontab -
+    echo "0 * * * * bash /home/ubuntu/portia/s3_project_sync.sh >> /home/ubuntu/portia/logs/s3_project_sync.log"  > /home/ubuntu/portia_configs/crontab
+    cat /home/ubuntu/portia_configs/crontab | crontab -
 }
 
 
