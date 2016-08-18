@@ -1,0 +1,54 @@
+language: python
+python: 2.7
+sudo: required
+dist: trusty
+env:
+- WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
+cache:
+  directories:
+  - "$HOME/.cache/pip"
+  - "$HOME/.cache/wheelhouse"
+  - slyd/node_modules
+  - slyd/bower_components
+
+install:
+- source ${VIRTUAL_ENV}/bin/activate
+- sudo -E ./provision.sh install_deps install_splash install_python_deps
+- python -c 'import splash, qt5reactor' # Check it's in the python path
+- cd slyd
+- npm install -g bower
+- npm install
+- bower install
+- cd ..
+
+before_script:
+- "export DISPLAY=:99.0"
+- "sh -e /etc/init.d/xvfb start"
+- source ${VIRTUAL_ENV}/bin/activate
+- export PYTHONPATH=`pwd`/slybot:`pwd`/slyd
+- cd slyd
+- python tests/testserver/server.py 2>&1 | grep -v 'HTTP/1.1" 200' &
+- cd ..
+- sleep 3 # give xvfb some time to start
+script:
+- cd ./slybot
+- nosetests --with-doctest
+- cd ../slyd
+- npm test
+- nosetests --with-doctest
+- cd ../
+before_deploy:
+- cd ./slybot
+- pip install twine
+- sudo chown -R $USER:$USER *
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: scrapinghub
+  password:
+    secure: S5hZT2YBncUSkPTyR5RUQnACfTsW2ZtpHeQucIamKWN+xkE8KK9O0cWUMuKQ0q3U5ShFkZdhO4PnBjvtP54Dq9IogJAudkDJCylctf4qGoIlWu01mAoJzcUfrS5KW+VolF/opBJObwG38EIOOsVy9UYq7DeQcryAAG1RuMjONAk=
+  on:
+    all_branches: true
+    tags: true
+    repo: scrapinghub/portia
+    condition: "$TRAVIS_TAG =~ ^slybot-[0-9][.][0-9]*"
