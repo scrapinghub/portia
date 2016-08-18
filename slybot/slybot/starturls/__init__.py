@@ -110,4 +110,4 @@ class StringUrl(object):
 
     @property
     def normalized(self):
-        return {'url': self.spec, 'type': 'fixed'}
+        return {'url': self.spec, 'type': 'url'}
