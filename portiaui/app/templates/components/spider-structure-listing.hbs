@@ -21,7 +21,6 @@
                 {{/help-icon}}
             {{/list-item-text}}
             {{#tooltip-container tooltipFor="add-start-url-button" text="Start crawling from the current page" tooltipContainer='body'}}
-                {{indentation-spacer}}
                 {{#list-item-icon-menu icon='add-dropdown' as |options|}}
                     {{#options.item value="Add fixed URL" action=(chain-actions (action 'addStartUrl') options.closeMenu) as |value|}}
                         {{list-item-icon class="icon" icon="url"}}{{value}}
