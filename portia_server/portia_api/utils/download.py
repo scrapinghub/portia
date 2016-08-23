@@ -39,13 +39,10 @@ class ProjectArchiver(object):
     required_files = frozenset(REQUIRED_FILES)
     file_templates = FILE_TEMPLATES
 
-    def __init__(self, storage, version=None, required_files=None, name=None):
-        if version is None:
-            version = (0, 10)
+    def __init__(self, storage, required_files=None):
         self.separator = os.path.sep
-        self.version = version
         self.storage = storage
-        self.name = name
+        self.name = storage.name
         if required_files is not None:
             self.required_files = required_files
 
@@ -98,8 +95,7 @@ class ProjectArchiver(object):
 
     def _add_spider(self, file_path, templates, extractors):
         """
-        Add a spider or template to the archive. If the slybot version is less
-        than 0.10 a spider and all of its templates are added as a single file.
+        Add a spider or template to the archive.
         """
         data = self.read_file(file_path, deserialize=True)
         added = {file_path}
@@ -173,7 +169,7 @@ class ProjectArchiver(object):
         """
         Build a collection of paths needed to build the archive.
         """
-        if spiders is None or spiders == '*':
+        if spiders is None:
             all_files = self.list_files()
             return all_files, all_files, self._template_paths(None, all_files)
         if isinstance(spiders, six.string_types):
@@ -181,9 +177,8 @@ class ProjectArchiver(object):
         spider_paths = set('spiders/%s.json' % spider for spider in spiders)
         all_files = self.list_files()
         template_paths = self._template_paths(spiders, all_files)
-        if self.version > (0, 9):
-            templates = set(itertools.chain(*template_paths.values()))
-            spider_paths = spider_paths | templates
+        templates = set(itertools.chain(*template_paths.values()))
+        spider_paths = spider_paths | templates
         files = list(set(spider_paths) | self.required_files)
         return files, all_files, template_paths
 
@@ -205,8 +200,10 @@ class ProjectArchiver(object):
     def read_file(self, filename, deserialize=False):
         try:
             contents = self.storage.open(filename).read()
-        except IOError:
-            return
+        except IOError as e:
+            if filename in ('items.json', 'extractors.json'):
+                return {} if deserialize else '{}'
+            raise e
         if deserialize and contents is not None:
             return json.loads(contents)
         return contents
@@ -225,7 +222,12 @@ class CodeProjectArchiver(ProjectArchiver):
             path = join(*path[1:])
             if not path.endswith('json'):
                 path = '%s.json' % path
-            return json.loads(self.storage.open(path).read())
+            try:
+                return json.loads(self.storage.open(path).read())
+            except IOError as e:
+                if path in ('items.json', 'extractors.json'):
+                    return {}
+                raise e
         schemas, extractors, spiders = load_project_data(
             open_file, list_spiders, None)
         name = self._process_name()

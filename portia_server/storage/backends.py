@@ -9,7 +9,7 @@ from django.core.files.move import file_move_safe
 from django.core.files.storage import Storage, FileSystemStorage
 from dulwich.diff_tree import tree_changes
 from dulwich.objects import Blob, Tree
-from six import iteritems, text_type
+from six import iteritems, text_type, string_types
 
 from .projecttemplates import templates
 from .repoman import Repoman, DEFAULT_USER, FILE_MODE
@@ -118,28 +118,39 @@ class GitStorage(BasePortiaStorage):
 
     def __init__(self, name, author=None):
         super(GitStorage, self).__init__(name)
+        self._tree, self._working_tree = None, None
         self.author = author
         repo = Repoman.open_repo(name, author)
         self.repo = repo
         self.branch = branch = (author and author.username) or DEFAULT_USER
-        commit = None
-        for ref in {'refs/heads/%s' % branch, 'refs/heads/master'}:
-            try:
-                _commit_id = repo._repo.refs[ref]
-            except KeyError:
-                pass
-            else:
-                commit = repo._repo.get_object(_commit_id)
-                break
+        self.checkout(branch=branch)
+        self.init_project()
+
+    def checkout(self, commit=None, branch=None):
+        if self._tree != self._working_tree:
+            raise IOError('Can only switch from a clean repository')
+        if commit is not None and isinstance(commit, string_types):
+            commit = self.repo._repo.get_object(commit)
+        if not commit:
+            for ref in {'refs/heads/%s' % branch, 'refs/heads/master'}:
+                try:
+                    _commit_id = self.repo._repo.refs[ref]
+                except KeyError:
+                    pass
+                else:
+                    commit = self.repo._repo.get_object(_commit_id)
+                    break
+        if commit is not None and isinstance(commit, string_types):
+            commit = self.repo._repo.get_object(commit)
         self._commit = commit
         if commit is None:
             tree = Tree()
         else:
-            tree = repo._repo.get_object(commit.tree)
+            tree = self.repo._repo.get_object(commit.tree)
         self._tree = tree
         self._working_tree = tree.copy()
         self._blobs = {}
-        self.init_project()
+        # TODO: Fail if there are changes in working tree
 
     @classmethod
     def setup(cls):
@@ -147,7 +158,7 @@ class GitStorage(BasePortiaStorage):
                               'dulwich.repo.Repo'))
 
     def _open(self, name, mode='rb'):
-        name = self._prepare_path(name)
+        name = self.path(name)
         if self.isfile(name):
             _, sha = self._working_tree[name]
             if sha in self._blobs:
@@ -159,27 +170,27 @@ class GitStorage(BasePortiaStorage):
         raise IOError(2, 'No file or directory', name)
 
     def _save(self, name, content):
-        name = self._prepare_path(name)
+        name = self.path(name)
         blob = Blob.from_string(content.read())
         self._blobs[blob.id] = blob
         self._working_tree.add(name, FILE_MODE, blob.id)
         return name
 
     def delete(self, name):
-        name = self._prepare_path(name)
+        name = self.path(name)
         if self.isfile(name):
             del self._working_tree[name]
         else:
             raise IOError(2, 'No file or directory', name)
 
     def exists(self, name):
-        name = self._prepare_path(name)
+        name = self.path(name)
         if self.isfile(name) or self.isdir(name):
             return True
         return False
 
     def listdir(self, path):
-        path = self._prepare_path(path)
+        path = self.path(path)
         # All paths should be relative to the project directory
         path_parts = len(path.split('/'))
         if path:
@@ -201,23 +212,23 @@ class GitStorage(BasePortiaStorage):
         return sorted(dirs), sorted(files)
 
     def isdir(self, name):
-        name = self._prepare_path(name)
+        name = self.path(name)
         dir_name = name + '/'
         if any(path.startswith(dir_name) for path in self._working_tree):
             return True
         return False
 
     def isfile(self, name):
-        name = self._prepare_path(name)
+        name = self.path(name)
         if name in self._working_tree:
             return True
         return False
 
     def move(self, old_name, new_name, allow_overwrite=False):
-        old_name = self._prepare_path(old_name)
+        old_name = self.path(old_name)
         if not self.exists(old_name):
             raise IOError(2, 'No file or directory', old_name)
-        new_name = self._prepare_path(new_name)
+        new_name = self.path(new_name)
         if old_name == new_name:
             return
         if self.isfile(old_name):
@@ -227,13 +238,13 @@ class GitStorage(BasePortiaStorage):
             dir_name = old_name + '/'
             for path in self._working_tree:
                 if path.startswith(dir_name):
-                    new_path = self._prepare_path(
+                    new_path = self.path(
                         '{}/{}'.format(new_name, path[len(old_name):]))
                     self._working_tree[new_path] = self._working_tree[path]
                     del self._working_tree[path]
 
     def rmtree(self, name):
-        name = self._prepare_path(name)
+        name = self.path(name)
         if not self.isdir(name):
             raise IOError(2, 'No file or directory', name)
         dir_name = name + '/'
@@ -241,7 +252,7 @@ class GitStorage(BasePortiaStorage):
             if path.startswith(dir_name):
                 del self._working_tree[path]
 
-    def _prepare_path(self, path):
+    def path(self, path):
         path = path.lstrip('.').strip('/')
         if path:
             path = os.path.relpath(path)
@@ -254,7 +265,6 @@ class GitStorage(BasePortiaStorage):
 
     def commit(self, message='Saving multiple files'):
         working_tree = self._working_tree
-
         if working_tree == self._tree:
             return
 

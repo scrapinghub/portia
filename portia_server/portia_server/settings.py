@@ -103,3 +103,5 @@ USE_L10N = True
 USE_TZ = True
 
 PORTIA_STORAGE_BACKEND = 'storage.backends.FsStorage'
+
+SCHEDULE_URL = 'http://localhost:6800/schedule.json'

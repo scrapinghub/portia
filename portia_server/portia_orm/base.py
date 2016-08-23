@@ -356,7 +356,6 @@ class Model(with_metaclass(ModelMeta)):
             dirty = dirty.intersection(only)
         if dirty:
             store.update_snapshot('staged', ('working',), fields=dirty)
-
         for model, field in self._staged_model_references():
             related_store = model.data_store
             related_field = model._fields[field]
@@ -380,7 +379,10 @@ class Model(with_metaclass(ModelMeta)):
         for model in chain([self], (model for model, _
                                     in self._staged_model_references())):
             store = model.data_store
-            dirty = model._file_fields.intersection(iterkeys(store['staged']))
+            dirty = (
+                model._file_fields.intersection(iterkeys(store['staged'])) or
+                'project' in store.dirty_fields('working', ('committed',))
+            )
             path = model.storage_path(model, snapshots=('staged', 'committed'))
             old_path = model.storage_path(model,
                                           snapshots=('committed', 'staged'))
@@ -586,3 +588,11 @@ class Model(with_metaclass(ModelMeta)):
                     break
         except PathResolutionError:
             pass
+
+    def with_storage(self, storage):
+        data_key, old_storage = self.data_key, self.storage
+        self.storage = storage
+        self.data_key = data_key + (storage.name,)
+        copy = self.with_snapshots(('working',))
+        self.data_key, self.storage = data_key, old_storage
+        return copy
