@@ -19,6 +19,7 @@
                         </p>
                     {{/help-icon}}
                 {{/animation-container}}
+                {{spider-message currentSpider=currentSpider}}
             {{/list-item-text}}
             {{#tooltip-container tooltipFor="add-spider-button" text=addSpiderTooltipText tooltipContainer='body'}}
                 {{list-item-icon id="add-spider-button" icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}}
@@ -40,7 +41,9 @@
             {{#each project.spiders as |spider|}}
                 {{#tree-list-item hide=(and currentSpider (not-eq spider currentSpider)) as |options|}}
                     {{#link-to 'projects.project.spider' spider (query-params url=(or spider.firstUrl null) baseurl=null) current-when='projects.project.spider'}}
+                        {{spider-indentation spider=spider currentSpider=currentSpider}}
                         {{list-item-icon icon='spider'}}
+
                         {{#if currentSpider}}
                             {{#list-item-text}}{{spider.name}}{{/list-item-text}}
                         {{else}}
@@ -106,6 +109,7 @@
             {{#each project.schemas as |schema|}}
                 {{#tree-list-item hide=(and currentSchema (not-eq schema currentSchema)) as |options|}}
                     {{#link-to 'projects.project.schema' schema}}
+                        {{indentation-spacer}}
                         {{list-item-icon icon='schema'}}
                         {{list-item-editable value=(mut schema.name) editing=(mut schema.new) onChange=(action 'saveSchema' schema)}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}

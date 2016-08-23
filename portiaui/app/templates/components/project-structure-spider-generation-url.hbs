@@ -1,5 +1,6 @@
 {{#tree-list-item as |options|}}
     {{#link-to 'projects.project.spider.start-url.options' index bubbles=false}}
+        {{indentation-spacer}}
         {{list-item-icon icon='url-generated'}}
         {{#list-item-text class="generated-url"}}{{url}}{{/list-item-text}}
         {{#link-to 'projects.project.spider' bubbles=false}}
