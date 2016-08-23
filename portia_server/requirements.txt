@@ -6,3 +6,4 @@ dulwich==0.14.1
 MySQL-python==1.2.5
 requests==2.9.1
 whitenoise==3.2
+hubstorage==0.23.1

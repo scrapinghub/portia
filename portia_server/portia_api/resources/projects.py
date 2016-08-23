@@ -3,27 +3,39 @@ from collections import OrderedDict
 from django.utils.functional import cached_property
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
 from six import iteritems
 
 from portia_orm.models import Project
 from storage import get_storage_class
 from .route import (JsonApiRoute, JsonApiModelRoute,
                     ListModelMixin, RetrieveModelMixin)
-from ..jsonapi.exceptions import JsonApiFeatureNotAvailableError
+from .response import FileResponse
+from ..jsonapi.exceptions import (JsonApiFeatureNotAvailableError,
+                                  JsonApiBadRequestError,
+                                  JsonApiNotFoundError,
+                                  JsonApiConflictError)
+from ..utils.download import ProjectArchiver, CodeProjectArchiver
+from ..utils.copy import ModelCopier, MissingModelException
 
 
 class ProjectDownloadMixin(object):
     @detail_route(methods=['get'])
     def download(self, *args, **kwargs):
-        # project_manager = self.project_manager
-        project_id = self.kwargs.get('project_id')
-        spider_id = self.kwargs.get('spider_id', None)
-        spider_ids = [spider_id] if spider_id is not None else '*'
         fmt = self.query.get('format', 'spec')
-        # return ProjectDownloadResponse(
-        #     project_id, spider_ids, fmt, project_manager)
-        return Response(b'', status=HTTP_200_OK)
+        version = self.query.get('version', None)
+        branch = self.query.get('branch', None)
+        spider_id = self.kwargs.get('spider_id', None)
+        spiders = [spider_id] if spider_id is not None else None
+        if hasattr(self.storage, 'checkout') and (version or branch):
+            self.storage.checkout(version, branch)
+        archiver = CodeProjectArchiver if fmt == u'code' else ProjectArchiver
+        try:
+            content = archiver(self.storage).archive(spiders)
+        except IOError as e:
+            raise JsonApiNotFoundError(str(e))
+        return FileResponse('{}.zip'.format(self.storage.name), content,
+                            status=HTTP_200_OK)
 
 
 class BaseProjectRoute(JsonApiRoute):
@@ -55,34 +67,33 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
         def listdir(self, *args, **kwargs):
             return [], []
 
-    # def create(self):
-    #     """Create a new project from the provided attributes"""
-    #     manager = self.project_manager
-    #     attributes = _check_project_attributes(manager, self.data)
-    #     manager.create_project(attributes['name'])
-    #     return self.serialize_instance({
-    #         'id': attributes['name'],
-    #         'name': attributes['name'],
-    #     })
+    def create(self):
+        """Create a new project from the provided attributes"""
+        try:
+            name = self.data['name']
+        except KeyError:
+            raise JsonApiBadRequestError('No `name` provided')
+
+        if not self.storage.is_valid_filename(name):
+            raise JsonApiBadRequestError(
+                '"{}" is not a valid project name'.format(name))
+
+        # Bootstrap project
+        self.kwargs['project_id'] = name
+        storage = self.storage
+        storage.commit()
+
+        serializer = self.get_serializer(data=self.data, storage=storage,
+                                         partial={'id'})
+        data = serializer.data
+        headers = self.get_success_headers(data)
+        return Response(data, status=HTTP_201_CREATED, headers=headers)
 
     # def update(self):
     #     """Update an exiting project with the provided attributes"""
-    #     manager = self.project_spec
-    #     project_id = self.args.get('project_id')
-    #     attributes = _check_project_attributes(manager, self.data)
-    #     if project_id != attributes['name']:
-    #         manager.rename_project(project_id, attributes['name'])
-    #     return self.serialize_instance({
-    #         'id': project_id,
-    #         'name': attributes['name'],
-    #     })
 
     # def destroy(self):
-    #     """Delete the request project"""
-    #     manager = self.project_spec
-    #     project_id = self.args.get('project_id')
-    #     manager.remove_project(project_id)
-    #     return self.get_empty()
+    #     """Delete the requested project"""
 
     @detail_route(methods=['get'])
     def status(self, *args, **kwargs):
@@ -98,38 +109,57 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
 
     @detail_route(methods=['put', 'patch', 'post'])
     def publish(self, *args, **kwargs):
-        # manager = self.project_spec
-        # if not hasattr(manager.pm, 'publish_project'):
-        #     raise JsonApiFeatureNotAvailableError()
-        # project_id = manager.project_name
-        # if not self.get_project_changes():
-        #     raise BadRequest('The project is up to date')
-        # publish_status = json.loads(
-        #     manager.pm.publish_project(project_id,
-        #                                self.data.get('force', False)))
-        # if publish_status['status'] == 'conflict':
-        #     raise BaseError(409, 'A conflict has occurred in this project',
-        #                     'You must resolve the conflict for the project to be'
-        #                     ' successfully published')
+        if not self.storage.version_control and hasattr(self.storage, 'repo'):
+            raise JsonApiFeatureNotAvailableError()
 
+        if not self.get_project_changes():
+            raise JsonApiBadRequestError('You have no changes to publish')
+
+        force = self.query.get('force', False)
+        branch = self.storage.branch
+        published = self.storage.repo.publish_branch(branch, force=force)
+        if not published:
+            raise JsonApiConflictError(
+                'A conflict occurred when publishing your changes.'
+                'You must resolve the conflict before the project can be '
+                'published.')
+        self.deploy()
+        self.storage.repo.delete_branch(branch)
         response = self.retrieve()
-        data = OrderedDict()
-        # data.update({
-        #     'meta': manager.pm._schedule_data(project_id=project_id)
-        # })
-        data.update(response.data)
-        return Response(data, status=HTTP_200_OK)
+        return Response(response.data, status=HTTP_200_OK)
 
     @detail_route(methods=['put', 'patch', 'post'])
     def reset(self, *args, **kwargs):
-        # manager = self.project_spec
-        # if not hasattr(manager.pm, 'discard_changes'):
-        #     raise JsonApiFeatureNotAvailableError()
-        # project_id = manager.project_name
-        # if not self.get_project_changes():
-        #     raise BadRequest('There are no changes to discard')
-        # manager.pm.discard_changes(project_id)
+        if not self.storage.version_control and hasattr(self.storage, 'repo'):
+            raise JsonApiFeatureNotAvailableError()
+        branch = self.storage.branch
+        master = self.storage.repo.refs['refs/heads/master']
+        self.storage.repo.refs['refs/heads/%s' % branch] = master
         return self.retrieve()
+
+    @detail_route(methods=['post'])
+    def copy(self, *args, **kwargs):
+        from_project_id = self.query.get('from')
+        if not from_project_id:
+            raise JsonApiBadRequestError('`from` parameter must be provided.')
+        try:
+            self.projects[from_project_id]
+        except KeyError:
+            raise JsonApiNotFoundError(
+                'No project exists with the id "{}"'.format(from_project_id))
+        models = self.data.get('data', [])
+        if not models:
+            raise JsonApiBadRequestError('No models provided to copy.')
+
+        try:
+            copier = ModelCopier(self.project, self.storage, from_project_id)
+            copier.copy(models)
+        except MissingModelException as e:
+            raise JsonApiBadRequestError(
+                'Could not find the following ids "{}" in the project.'.format(
+                    '", "'.join(e.args[0])))
+        response = self.retrieve()
+        return Response(response.data, status=HTTP_201_CREATED)
 
     def get_instance(self):
         return self.project
@@ -179,11 +209,5 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
                 for type_, path, old_path
                 in storage.changed_files()]
 
-
-# def _check_project_attributes(manager, attributes):
-#     attributes = ProjectSchema().load(attributes).data
-#     if 'name' not in attributes:
-#         raise BadRequest('Bad Request',
-#                          'Can\'t create a project without a name')
-#     manager.validate_project_name(attributes['name'])
-#     return attributes
+    def deploy(self):
+        pass
