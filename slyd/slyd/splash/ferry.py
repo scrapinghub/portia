@@ -29,8 +29,8 @@ from .commands import (load_page, interact_page, close_tab, metadata, resize,
                        resolve, extract_items,
                        save_html, _update_sample, update_spider)
 from .css_utils import process_css, wrap_url
-from .utils import (_should_load_sample, _get_viewport,
-                    _load_items_and_extractors)
+from .utils import (_should_load_sample, _load_items_and_extractors,
+                    _DEFAULT_VIEWPORT)
 import six
 text = six.text_type  # unicode in py2, str in py3
 
@@ -114,7 +114,8 @@ class User(object):
 
 
 class SpiderSpec(object):
-    def __init__(self, name, spider, items, extractors):
+    def __init__(self, project, name, spider, items, extractors):
+        self.project = project
         self.name = name
         self.spider = spider
         self.items = items
@@ -381,8 +382,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
             self.settings.set('SPLASH_URL', 'portia')
         self.factory[self].spider = IblSpider(spider_name, spider, items,
                                               extractors, self.settings)
-        self.factory[self].spiderspec = SpiderSpec(spider_name, spider, items,
-                                                   extractors)
+        self.factory[self].spiderspec = SpiderSpec(
+            meta['project'], spider_name, spider, items, extractors)
 
     def update_spider(self, meta, spider=None, template=None, items=None,
                       extractors=None):
@@ -407,8 +408,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
             spider['template_names'] = [t['name'] for t in spider['templates']]
         self.factory[self].spider = IblSpider(meta['spider'], spider, items,
                                               extractors, self.settings)
-        self.factory[self].spiderspec = SpiderSpec(meta['spider'], spider,
-                                                   items, extractors)
+        self.factory[self].spiderspec = SpiderSpec(
+            meta['project'], meta['spider'], spider, items, extractors)
 
 
 class FerryServerFactory(WebSocketServerFactory):

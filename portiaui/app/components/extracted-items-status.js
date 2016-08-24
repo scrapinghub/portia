@@ -12,8 +12,15 @@ export default Ember.Component.extend({
     hasChanges: Ember.computed.gt('changes.length', 0),
 
     hasWarning: Ember.computed('type', 'changes', 'changes.length', function() {
-        return ((this.get('type') === 'js' && this.get('changes').length < 1) ||
-                this.get('hasChanges'));
+        let hasChanges = this.get('hasChanges');
+        if (this.get('type') === 'js') {
+            if (hasChanges && this.get('changes')[0] === 'no_items') {
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return hasChanges;
     }),
 
     icon: Ember.computed('hasWarning', function() {

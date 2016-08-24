@@ -19,6 +19,8 @@ from .utils import (open_tab, extract_data, _get_viewport, _decode,
                     _load_items_and_extractors)
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
+_SETTINGS = Settings()
+_SETTINGS.set('SPLASH_URL', 'http://splash')
 
 
 def cookies(socket):
@@ -31,119 +33,32 @@ def cookies(socket):
 
 
 def save_html(data, socket):
+    c = ItemChecker(socket, data['project'], data['spider'],
+                    data['sample'])
     manager = socket.manager
     path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
     sample = _load_sample(manager, *path)
     if sample.get('rendered_body') and not data.get('update'):
         return
-    stated_encoding = socket.tab.evaljs('document.characterSet')
     if 'use_live' not in data:
-        data['use_live'] = _check_js_required(socket)
+        data['use_live'] = c.using_js
     if data.get('use_live'):
         sample['body'] = 'rendered_body'
     else:
         sample['body'] = 'original_body'
-    html = socket.tab.html()
-    sample['rendered_body'] = html
-    try:
-        sample['original_body'] = _decode(
-            socket.tab.network_manager._raw_html, stated_encoding)
-        # XXX: Some pages only show a 301 page. Load the browser html
-        assert len(sample['original_body']) > 500
-    except (AttributeError, AssertionError):
-        sample['original_body'] = html
+    sample['rendered_body'] = c.html
+    sample['original_body'] = c.raw_html
     _update_sample(data, socket, sample, save=True)
 
 
 def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
-    if not socket.tab or not socket.spider or not data.get('sample'):
-        return {}
-    url = socket.tab.evaljs('location.href')
-    html = socket.tab.html()
-    try:
-        raw_html = socket.spiderspec.spider['original_body']
-    except (TypeError, KeyError):
-        stated_encoding = socket.tab.evaljs('document.characterSet')
-        raw_html = _decode(
-            socket.tab.network_manager._raw_html, stated_encoding)
-    if (socket.spiderspec is None or
-            (data['spider'] and socket.spiderspec.name != data['spider'])):
-        result = socket.open_spider(data)
-        if result and result.get('error'):
-            return {}
-    schemas, extractors = _load_items_and_extractors(data, socket)
-    using_js = _check_js_required(socket, url)
-    with _restore(socket.spider):
-        js_live_items, js_raw_items, links = _load_items(
-            data, socket, schemas, extractors, url, html, raw_html,
-            'rendered_body', True)
-        live_items, raw_items, links = _load_items(
-            data, socket, schemas, extractors, url, html, raw_html)
-        # Decide which items to use
-        if using_js:
-            changes, changed_values = _compare_items(js_live_items, raw_items)
-            sample_change, _ = _compare_items(js_live_items, live_items)
-            items = js_live_items
-        else:
-            changes, changed_values = _compare_items(raw_items, js_raw_items)
-            changes.extend(_compare_items(live_items, js_live_items)[0])
-            sample_change, _ = _compare_items(raw_items, js_raw_items)
-            items = raw_items if raw_items else live_items
+    c = ItemChecker(socket, data['project'], data['spider'],
+                    data.get('sample'))
     # TODO: add option for user to view raw and js items in UI from WS
-    items = _process_items(items)
+    items, changes, changed_values, links = c.extract()
     return {'links': links, 'items': items, 'changes': changes,
-            'changed': changed_values, 'type': 'js' if using_js else 'raw'}
-
-
-def _check_js_required(socket, url=None):
-    if url is None:
-        url = socket.tab.evaljs('location.href')
-    return 'splash' in socket.spider._add_splash_meta(Request(url)).meta
-
-
-@contextlib.contextmanager
-def _restore(spider):
-    annotations = spider.plugins['Annotations']
-    yield
-    spider.plugins['Annotations'] = annotations
-
-
-def _load_items(data, socket, schemas, extractors, url, live_html, raw_html,
-                body_field='original_body', live=False):
-    spider = socket.spiderspec.spider.copy()
-    spider['body'] = body_field
-    samples = [_update_sample(data, socket, use_live=live)]
-    spider['templates'] = samples
-    extraction = BotAnnotations()
-    extraction.setup_bot(Settings(), spider, schemas, extractors, _SPIDER_LOG)
-    socket.spider.plugins['Annotations'] = extraction
-    live_items, links = extract_data(url, live_html, socket.spider, samples)
-    raw_items, links = extract_data(url, raw_html, socket.spider, samples)
-    return live_items, raw_items, links
-
-
-def _compare_items(a, b):
-    change, changes = set(), []
-    lena, lenb = len(a), len(b)
-    if lenb > lena:
-        change = {'missing_items'}
-    for aitem, bitem in zip(a, b):
-        item_changes = {}
-        if aitem == bitem:
-            continue
-        afields, bfields = set(aitem.keys()), set(bitem.keys())
-        b_not_a = bfields ^ afields
-        if b_not_a:
-            change.add('missing_fields')
-            item_changes.update({k: None for k in b_not_a})
-        for field in afields:
-            afield, bfield = aitem.get(field), bitem.get(field)
-            if afield == bfield:
-                continue
-            item_changes.update({field: (afield, bfield)})
-        changes.append(item_changes)
-    return list(change), changes
+            'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
 def _update_sample(data, socket, sample=None, save=False, use_live=False):
@@ -168,11 +83,12 @@ def _update_sample(data, socket, sample=None, save=False, use_live=False):
 
 
 def update_spider(data, socket, spider=None):
-    if not socket.spider:
+    if not socket.spiderspec:
         return
     spec = socket.manager
     if spider is None:
         spider = spec.resource('spiders', data['spider'])
+    socket.spider._configure_js(spider, _SETTINGS)
     socket.spider.plugins['Annotations'].build_url_filter(spider)
     return extract(socket)
 
@@ -256,28 +172,11 @@ def extract(socket):
             'items': [],
             'links': {},
         }
-    templates = socket.spiderspec.templates
-    # Workarround for https://github.com/scrapinghub/splash/issues/259
-    url = socket.tab.evaljs('location.href')
-    html = socket.tab.html()
-    js_items, js_links = extract_data(url, html, socket.spider, templates)
-    raw_html = socket.tab.network_manager._raw_html
-    if raw_html:
-        raw_items, links = extract_data(url, raw_html, socket.spider,
-                                        templates)
-    else:
-        raw_items = []
-        links = []
-    raw = {l: 'raw' for l in links}
-    js = {l: 'js' for l in js_links}
-    js.update(raw)
-    items = js_items
-    if not (socket.spider.js_enabled and socket.spider._filter_js_urls(url)):
-        items = raw_items
-    return {
-        'items': items,
-        'links': js,
-    }
+    c = ItemChecker(socket, socket.spiderspec.project,
+                    socket.spiderspec.name)
+    items, changes, changed_values, links = c.extract()
+    return {'links': links, 'items': items, 'changes': changes,
+            'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
 def resize(data, socket):
@@ -308,3 +207,152 @@ def _process_items(items):
         elif isinstance(item, list):
             items[i] = _process_items(value)
     return items
+
+
+@contextlib.contextmanager
+def _restore(spider):
+    annotations = spider.plugins['Annotations']
+    yield
+    spider.plugins['Annotations'] = annotations
+
+
+def _compare_items(a, b):
+    change, changes = set(), []
+    lena, lenb = len(a), len(b)
+    if lenb > lena:
+        change = {'missing_items'}
+    for aitem, bitem in zip(a, b):
+        item_changes = {}
+        if aitem == bitem:
+            continue
+        afields, bfields = set(aitem.keys()), set(bitem.keys())
+        b_not_a = bfields ^ afields
+        if b_not_a:
+            change.add('missing_fields')
+            item_changes.update({k: None for k in b_not_a})
+        for field in afields:
+            afield, bfield = aitem.get(field), bitem.get(field)
+            if afield == bfield:
+                continue
+            item_changes.update({field: (afield, bfield)})
+        changes.append(item_changes)
+    return list(change), changes
+
+
+class ItemChecker(object):
+    def __init__(self, socket, project, spider=None, sample=None):
+        self.socket = socket
+        self.project = project
+        self.spider = spider
+        self.sample = sample
+        self._html = None
+        self._url = None
+        self._raw_html = None
+        self._using_js = None
+        self._schemas = None
+        self._extractors = None
+        if (self.spider and (not self.socket.spider or
+                             self.socket.spiderspec.name != spider)):
+            self.socket.open_spider({'project': self.project,
+                                     'spider': self.spider})
+
+    @property
+    def raw_html(self):
+        if self._raw_html is None:
+            stated_encoding = self.socket.tab.evaljs('document.characterSet')
+            try:
+                self._raw_html = _decode(
+                    self.socket.tab.network_manager._raw_html, stated_encoding)
+                # XXX: Some pages only show a 301 page. Load the browser html
+                assert len(self._raw_html) > 500
+            except (AttributeError, TypeError, AssertionError):
+                self._raw_html = self.html
+        return self._raw_html
+
+    @property
+    def html(self):
+        if self._html is None:
+            self._html = self.socket.tab.html()
+        return self._html
+
+    @property
+    def url(self):
+        if self._url is None:
+            self._url = self.socket.tab.evaljs('location.href')
+        return self._url
+
+    @property
+    def using_js(self):
+        if self._using_js is None:
+            add_splash_meta = self.socket.spider._add_splash_meta
+            url = self.url
+            self._using_js = 'splash' in add_splash_meta(Request(url)).meta
+        return self._using_js
+
+    @property
+    def schemas(self):
+        if self._schemas is None:
+            self._schemas, self._extractors = _load_items_and_extractors(
+                {}, self.socket)
+        return self._schemas
+
+    @property
+    def extractors(self):
+        if self._extractors is None:
+            self._schemas, self._extractors = _load_items_and_extractors(
+                {}, self.socket)
+        return self._extractors
+
+    def data(self):
+        return {
+            'project': self.project,
+            'spider': self.spider,
+            'sample': self.sample
+        }
+
+    def extract(self):
+        check = self._check_items_with_sample if self.sample else \
+            self._check_items
+        return check()
+
+    def _load_items(self, body_field='original_body', live=False):
+        socket, raw_html, html = self.socket, self.raw_html, self.html
+        schemas, extractors, url = self.schemas, self.extractors, self.url
+        spider = socket.spiderspec.spider.copy()
+        spider['body'] = body_field
+        if self.sample:
+            samples = [_update_sample(self.data(), socket, use_live=live)]
+        else:
+            samples = socket.spiderspec.templates
+        spider['templates'] = samples
+        extraction = BotAnnotations()
+        extraction.setup_bot(_SETTINGS, spider, schemas, extractors,
+                             _SPIDER_LOG)
+        self.socket.spider.plugins['Annotations'] = extraction
+        live_items, js_links = extract_data(url, html, socket.spider, samples)
+        raw_items, links = extract_data(url, raw_html, socket.spider, samples)
+        return live_items, raw_items, links, js_links
+
+    def _check_items(self):
+        js_live_items, js_raw_items, links, js_links = self._load_items(
+            'rendered_body', True)
+        live_items, raw_items, _, _ = self._load_items()
+        raw_links = {l: 'raw' for l in links}
+        links = {l: 'js' for l in js_links}
+        links.update(raw_links)
+        # Decide which items to use
+        if self.using_js:
+            changes, changed_values = _compare_items(js_live_items, raw_items)
+            items = js_live_items
+            if items and not raw_items:
+                changes.append('no_items')
+        else:
+            changes, changed_values = _compare_items(raw_items, js_raw_items)
+            changes.extend(_compare_items(live_items, js_live_items)[0])
+            items = raw_items if raw_items else live_items
+        items = _process_items(items)
+        return items, changes, changed_values, links
+
+    def _check_items_with_sample(self):
+        with _restore(self.socket.spider):
+            return self._check_items()

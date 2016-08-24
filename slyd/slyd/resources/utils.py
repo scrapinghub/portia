@@ -48,9 +48,6 @@ def _handle_sample_updates(manager, sample, spider_id, sample_id,
 
 
 def sample_uses_js(spider, sample):
-    print(dir(spider))
-    print(spider)
-    print(vars(spider))
     if not spider.js_enabled:
         return False
     enable_patterns = spider.js_enable_patterns

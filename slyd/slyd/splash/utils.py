@@ -4,6 +4,7 @@ import six
 
 from scrapy.http import HtmlResponse, Request
 from scrapy.item import DictItem
+from w3lib.encoding import html_body_declared_encoding
 
 from slyd.html import descriptify
 from slyd.errors import BaseHTTPError
@@ -98,8 +99,12 @@ def _load_items_and_extractors(data, socket):
 
 
 def _decode(html, default=None):
-    if default is None:
-        default = []
+    if not default:
+        encoding = html_body_declared_encoding(html)
+        if encoding:
+            default = [encoding]
+        else:
+            default = []
     elif isinstance(default, six.string_types):
         default = [default]
     for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
