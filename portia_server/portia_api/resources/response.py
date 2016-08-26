@@ -1,8 +1,10 @@
 import json
 
+from django.http.response import HttpResponse
+from wsgiref.util import FileWrapper
+
 from six.moves import map
 from twisted.python.compat import intToBytes
-from twisted.web.server import NOT_DONE_YET
 
 
 class BaseApiResource(object):
@@ -38,19 +40,9 @@ class JsonApiResource(BaseApiResource):
             return json.dumps(data, indent=2)
 
 
-class ProjectDownloadResponse(BaseApiResource):
-    def __init__(self, project_id, spider_ids, fmt, project_manager):
-        self.command = {
-            'cmd': 'download',
-            'args': [project_id, spider_ids]
-        }
-        self.file_content = project_manager.download_project(
-            project_id, spider_ids, fmt=fmt)
-        self.project_manager = project_manager
-
-    def render(self, request):
-        file_content = self.project_manager._render_file(
-            request, self.command, self.file_content)
-        request.write(file_content)
-        request.finish()
-        return NOT_DONE_YET
+class FileResponse(HttpResponse):
+    def __init__(self, name, content, *args, **kwargs):
+        content = FileWrapper(content)
+        super(FileResponse, self).__init__(
+            content=content, content_type='application/zip')
+        self['Content-Disposition'] = 'attachment; filename="%s"' % name
