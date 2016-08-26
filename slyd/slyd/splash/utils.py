@@ -85,17 +85,16 @@ def _get_viewport(viewport):
     return viewport
 
 
-def _load_items_and_extractors(data, socket):
+def _load_res(socket, resource):
     spec = socket.manager
     try:
-        items = spec.resource('items')
+        return spec.resource(resource)
     except IOError:
-        items = {}
-    try:
-        extractors = spec.resource('extractors')
-    except IOError:
-        extractors = {}
-    return items, extractors
+        return {}
+
+
+def _load_items_and_extractors(data, socket):
+    return _load_res(socket, 'items'), _load_res(socket, 'extractors')
 
 
 def _decode(html, default=None):
@@ -114,6 +113,20 @@ def _decode(html, default=None):
             pass
     encoding = chardet.detect(html).get('encoding')
     return html.decode(encoding)
+
+
+def lazy_property(func):
+     attribute = '_{}'.format(func.__name__)
+ 
+     @property
+     def _lazy_property(self):
+         try:
+             return getattr(self, attribute)
+         except AttributeError:
+             value = func(self)
+             setattr(self, attribute, value)
+             return value
+     return _lazy_property
 
 
 class BaseWSError(BaseHTTPError):

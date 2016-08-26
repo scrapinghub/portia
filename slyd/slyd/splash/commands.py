@@ -15,8 +15,8 @@ from splash.har.qt import cookies2har
 from slyd.resources.utils import _load_sample
 from slybot.plugins.scrapely_annotations.builder import Annotations
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
-from .utils import (open_tab, extract_data, _get_viewport, _decode,
-                    _load_items_and_extractors)
+from .utils import (open_tab, extract_data, lazy_property, _get_viewport,
+                    _decode, _load_res)
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
 _SETTINGS = Settings()
@@ -269,39 +269,27 @@ class ItemChecker(object):
                 self._raw_html = self.html
         return self._raw_html
 
-    @property
+    @lazy_property
     def html(self):
-        if self._html is None:
-            self._html = self.socket.tab.html()
-        return self._html
+        return self.socket.tab.html()
 
-    @property
+    @lazy_property
     def url(self):
-        if self._url is None:
-            self._url = self.socket.tab.evaljs('location.href')
-        return self._url
+        return self.socket.tab.evaljs('location.href')
 
-    @property
+    @lazy_property
     def using_js(self):
-        if self._using_js is None:
-            add_splash_meta = self.socket.spider._add_splash_meta
-            url = self.url
-            self._using_js = 'splash' in add_splash_meta(Request(url)).meta
-        return self._using_js
+        add_splash_meta = self.socket.spider._add_splash_meta
+        url = self.url
+        return 'splash' in add_splash_meta(Request(url)).meta
 
-    @property
+    @lazy_property
     def schemas(self):
-        if self._schemas is None:
-            self._schemas, self._extractors = _load_items_and_extractors(
-                {}, self.socket)
-        return self._schemas
+        return _load_res(self.socket, 'items')
 
-    @property
+    @lazy_property
     def extractors(self):
-        if self._extractors is None:
-            self._schemas, self._extractors = _load_items_and_extractors(
-                {}, self.socket)
-        return self._extractors
+        return _load_res(self.socket, 'extractors')
 
     def data(self):
         return {
