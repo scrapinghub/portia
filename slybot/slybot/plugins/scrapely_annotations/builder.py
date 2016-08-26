@@ -331,10 +331,10 @@ def apply_selector_annotations(annotations, target_page):
 def tagid_for_annotation(annotation, page):
     selector = annotation.get('selector')
     if not selector:
-        return None
+        return None, None
     elems = [elem._root for elem in page.css(selector)]
     if not elems:
-        return None
+        return None, None
 
     tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
     return min(tagids), elems
