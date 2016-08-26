@@ -2,6 +2,6 @@
     {{#if (eq tooltip.section 'tooltip')}}
         {{yield}}
     {{else}}
-        {{icon-button id=(concat "help-icon-" elementId) class="help-icon" icon='help'}}
+        {{icon-button id=(concat "help-icon-" elementId) class=classes icon=icon}}
     {{/if}}
 {{/tooltip-container}}
