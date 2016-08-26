@@ -25,7 +25,7 @@ function computedRouteModels(mapping) {
             properties.forEach(property => {
                 const routeProperty = mapping[property];
                 const routeName = this.get(`${routeProperty}.routeName`);
-                const startsWithRoute = currentRouteName && currentRouteName.startsWith(routeName)
+                const startsWithRoute = currentRouteName && currentRouteName.startsWith(routeName);
                 models[property] = startsWithRoute ?
                     this.get(routeProperty).modelFor(routeName) :
                     null;

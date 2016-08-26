@@ -28,7 +28,7 @@ export default Ember.Component.extend({
     }),
 
     style: Ember.computed('value', 'depth', 'key', 'from', function () {
-        var textIndent = '', margin = '', width = '', marginLeft = 0,
+        var textIndent = '', margin = '', width = '',
             characterTest = Ember.$('.json-character-size'),
             textWidth = characterTest.width(),
             extractedBox = Ember.$('.extracted-items-json'),
@@ -43,7 +43,7 @@ export default Ember.Component.extend({
                 indent = 2 * (depth + 1);
                 textIndent = `text-indent: -${indent}ch;`;
                 margin = `margin: 0 0 0 ${indent}ch;`;
-                width = extractedBoxWidth
+                width = extractedBoxWidth;
             } else {
                 textIndent = 'text-indent: -1ch;';
                 margin = 'margin: 0 0 0 1ch;';
