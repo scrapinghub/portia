@@ -1,6 +1,7 @@
 from collections import Sequence, OrderedDict
 from operator import attrgetter
 
+from django.db import transaction
 from django.http.response import Http404
 from django.utils.functional import cached_property
 from marshmallow import ValidationError
@@ -63,6 +64,10 @@ class JsonApiRoute(ViewSet):
             return create_project_storage(
                 self.kwargs['project_id'], author=self.user)
         return None
+
+    @transaction.atomic
+    def dispatch(self, request, *args, **kwargs):
+        return super(JsonApiRoute, self).dispatch(request, *args, **kwargs)
 
     def handle_exception(self, exc):
         response = super(JsonApiRoute, self).handle_exception(exc)
