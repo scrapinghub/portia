@@ -175,7 +175,7 @@ const BrowserIFrame = Ember.Component.extend({
     },
 
     loadCookies(){
-        let cookieId = this.get('cookieId')
+        let cookieId = this.get('cookieId');
         if(cookieId){
             let cookies = this.get(`cookiesStore.${cookieId}`);
             if (cookies) {
