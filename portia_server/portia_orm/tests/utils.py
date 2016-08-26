@@ -1,6 +1,15 @@
 import mock
+import unittest
 
 from storage.backends import ContentFile
+from ..datastore import data_store_context
+
+
+class DataStoreTestCase(unittest.TestCase):
+    def setUp(self):
+        context_manager = data_store_context()
+        self.addCleanup(context_manager.__exit__, None, None, None)
+        context_manager.__enter__()
 
 
 def mock_storage(files):

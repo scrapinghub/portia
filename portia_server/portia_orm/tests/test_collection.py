@@ -1,11 +1,10 @@
-import unittest
-
 from .models import (ExampleModel, ChildModel, PolymorphicChildBase,
                      PolymorphicChildModel1, PolymorphicChildModel2)
+from .utils import DataStoreTestCase
 from ..exceptions import ValidationError
 
 
-class ModelCollectionTests(unittest.TestCase):
+class ModelCollectionTests(DataStoreTestCase):
     def test_create_(self):
         collection = ExampleModel.collection()
 
@@ -410,7 +409,7 @@ class ModelCollectionTests(unittest.TestCase):
             ']')
 
 
-class PolymorphicCollectionTests(unittest.TestCase):
+class PolymorphicCollectionTests(DataStoreTestCase):
     def test_create_(self):
         collection = PolymorphicChildBase.collection()
 

@@ -1,15 +1,14 @@
-import unittest
-
 import mock
 
 from .models import (ExampleModel, RequiredFieldModel, SingleFileModel,
                      ManyFileModel, ParamFileModel, PolymorphicChildModel1)
-from .utils import mock_storage
+from .utils import DataStoreTestCase, mock_storage
 from ..exceptions import PathResolutionError, ValidationError
 
 
-class BasicModelTests(unittest.TestCase):
+class BasicModelTests(DataStoreTestCase):
     def setUp(self):
+        super(BasicModelTests, self).setUp()
         self.storage = mock_storage({
             'single.json':
                 '{'
@@ -237,8 +236,9 @@ class BasicModelTests(unittest.TestCase):
             '}')
 
 
-class PolymorphicModelTests(unittest.TestCase):
+class PolymorphicModelTests(DataStoreTestCase):
     def setUp(self):
+        super(PolymorphicModelTests, self).setUp()
         self.storage = mock_storage({
             'children.json':
                 '['
