@@ -1,16 +1,15 @@
-import unittest
-
 import mock
 
-from .utils import mock_storage
+from .utils import DataStoreTestCase, mock_storage
 from ..exceptions import ValidationError
 from ..models import (
     Project, Schema, Field, Extractor, Spider, Sample, BaseAnnotation, Item,
     Annotation, SLYBOT_VERSION)
 
 
-class ProjectTestCase(unittest.TestCase):
+class ProjectTestCase(DataStoreTestCase):
     def setUp(self):
+        super(ProjectTestCase, self).setUp()
         self.storage = mock_storage(self.get_storage_files())
 
     def get_storage_files(self):

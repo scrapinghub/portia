@@ -7,7 +7,9 @@ from weakref import WeakKeyDictionary
 from six import iteritems, iterkeys, string_types, with_metaclass
 from toposort import toposort_flatten
 
+from storage.backends import ContentFile
 from .collection import ModelCollection
+from .datastore import shared_data
 from .deletion import Collector
 from .exceptions import (ImproperlyConfigured, PathResolutionError,
                          ValidationError)
@@ -18,7 +20,6 @@ from .serializers import FileSerializer
 from .snapshots import ModelSnapshots
 from .utils import (cached_property, class_property, short_guid, unspecified,
                     AttributeDict)
-from storage.backends import ContentFile
 
 __all__ = [
     'Model',
@@ -154,11 +155,6 @@ class Model(with_metaclass(ModelMeta)):
     file_schema = None
     opts = None
 
-    # share data between instances of the same model, to simplify relationships
-    shared_data_store = WeakKeyDictionary()
-    # keeps track of files that are loading
-    loaded = WeakKeyDictionary()
-
     snapshot_class = ModelSnapshots
 
     class Meta:
@@ -252,6 +248,16 @@ class Model(with_metaclass(ModelMeta)):
         if copy.data_store is not self.data_store:
             copy.data_store.copy_from(self.data_store)
         return copy
+
+    # share data between instances of the same model, to simplify relationships
+    @class_property
+    def shared_data_store(cls):
+        return shared_data.data_store
+
+    # keeps track of files that are loading
+    @class_property
+    def loaded(cls):
+        return shared_data.loaded
 
     @class_property
     def _file_model(cls):

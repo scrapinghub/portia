@@ -1,15 +1,14 @@
-import unittest
-
 import mock
 
 from .models import (OneToOneModel1, OneToOneModel2, ParentModel, ChildModel,
                      ManyToManyModel1, ManyToManyModel2, PolymorphicParentModel,
                      PolymorphicChildModel1, PolymorphicChildModel2)
-from .utils import mock_storage
+from .utils import DataStoreTestCase, mock_storage
 
 
-class OneToOneRelationshipTests(unittest.TestCase):
+class OneToOneRelationshipTests(DataStoreTestCase):
     def setUp(self):
+        super(OneToOneRelationshipTests, self).setUp()
         self.storage = mock_storage({
             'o2o-model-1.json':
                 '{'
@@ -293,8 +292,9 @@ class OneToOneRelationshipTests(unittest.TestCase):
             '}')
 
 
-class OneToManyRelationshipTests(unittest.TestCase):
+class OneToManyRelationshipTests(DataStoreTestCase):
     def setUp(self):
+        super(OneToManyRelationshipTests, self).setUp()
         self.storage = mock_storage({
             'parents.json':
                 '{'
@@ -825,8 +825,9 @@ class OneToManyRelationshipTests(unittest.TestCase):
             '}')
 
 
-class ManyToManyRelationshipTests(unittest.TestCase):
+class ManyToManyRelationshipTests(DataStoreTestCase):
     def setUp(self):
+        super(ManyToManyRelationshipTests, self).setUp()
         self.storage = mock_storage({
             'm2m-model-1.json':
                 '{'
@@ -1303,8 +1304,9 @@ class ManyToManyRelationshipTests(unittest.TestCase):
             ']')
 
 
-class PolymorphicRelationshipTests(unittest.TestCase):
+class PolymorphicRelationshipTests(DataStoreTestCase):
     def setUp(self):
+        super(PolymorphicRelationshipTests, self).setUp()
         self.storage = mock_storage({
             'parents.json':
                 '{'

@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'portia_orm.middleware.ORMDataStoreMiddleware',
 ]
 
 ROOT_URLCONF = 'portia_server.urls'
