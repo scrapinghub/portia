@@ -239,12 +239,6 @@ class ItemChecker(object):
         self.project = project
         self.spider = spider
         self.sample = sample
-        self._html = None
-        self._url = None
-        self._raw_html = None
-        self._using_js = None
-        self._schemas = None
-        self._extractors = None
         if (self.spider and (not self.socket.spider or
                              self.socket.spiderspec.name != spider)):
             self.socket.open_spider({'project': self.project,
@@ -252,16 +246,15 @@ class ItemChecker(object):
 
     @property
     def raw_html(self):
-        if self._raw_html is None:
-            stated_encoding = self.socket.tab.evaljs('document.characterSet')
-            try:
-                self._raw_html = _decode(
-                    self.socket.tab.network_manager._raw_html, stated_encoding)
-                # XXX: Some pages only show a 301 page. Load the browser html
-                assert len(self._raw_html) > 500
-            except (AttributeError, TypeError, AssertionError):
-                self._raw_html = self.html
-        return self._raw_html
+        stated_encoding = self.socket.tab.evaljs('document.characterSet')
+        try:
+            html = _decode(
+                self.socket.tab.network_manager._raw_html, stated_encoding)
+            # XXX: Some pages only show a 301 page. Load the browser html
+            assert len(html) > 500
+            return html
+        except (AttributeError, TypeError, AssertionError):
+            return self.html
 
     @lazy_property
     def html(self):

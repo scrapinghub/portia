@@ -116,17 +116,17 @@ def _decode(html, default=None):
 
 
 def lazy_property(func):
-     attribute = '_{}'.format(func.__name__)
- 
-     @property
-     def _lazy_property(self):
-         try:
-             return getattr(self, attribute)
-         except AttributeError:
-             value = func(self)
-             setattr(self, attribute, value)
-             return value
-     return _lazy_property
+    attribute = '_{}'.format(func.__name__)
+
+    @property
+    def _lazy_property(self):
+        try:
+            return getattr(self, attribute)
+        except AttributeError:
+            value = func(self)
+            setattr(self, attribute, value)
+            return value
+    return _lazy_property
 
 
 class BaseWSError(BaseHTTPError):
