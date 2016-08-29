@@ -34,7 +34,7 @@ export default Ember.Service.extend({
         this.set('items', data.items);
         this.set('links', data.links);
         this.set('changes', data.changes);
-        this.set('type', data.type)
+        this.set('type', data.type);
         this.set('changed_values', data.changed_values);
     }
 });

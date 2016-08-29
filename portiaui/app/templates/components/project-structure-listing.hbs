@@ -49,9 +49,6 @@
                         {{else}}
                             {{list-item-editable value=(mut spider.name) onChange=(action 'saveSpiderName' spider) validate=(action 'validateSpiderName')}}
                         {{/if}}
-                        {{#tooltip-container tooltipFor=(concat 'run-spider-' (guid spider)) text='Run this spider.' tooltipContainer='body'}}
-                            {{list-item-icon id=(concat 'run-spider-' (guid spider)) icon='play' action=(action 'runSpider' spider)}}
-                        {{/tooltip-container}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}
                             {{list-item-icon icon='remove' action=(action 'removeSpider' spider) bubbles=false}}
                         {{/animation-container}}
