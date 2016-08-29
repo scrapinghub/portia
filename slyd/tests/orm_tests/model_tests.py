@@ -94,7 +94,10 @@ class ProjectTestCase(unittest.TestCase):
                 '    "project": "example",'
                 '    "respect_nofollow": true,'
                 '    "start_urls": ['
-                '        "http://owlkingdom.com/"'
+                '        {'
+                '            "type": "url",'
+                '            "url": "http://owlkingdom.com/"'
+                '        }'
                 '    ],'
                 '    "template_names": ['
                 '        "1ddc-4043-ac4d"'
@@ -109,6 +112,7 @@ class ProjectTestCase(unittest.TestCase):
                 '    "page_type": "item",'
                 '    "original_body": "<html></html>",'
                 '    "annotated_body": "<html></html>",'
+                '    "body": "original_body",'
                 '    "spider": "shop-crawler",'
                 '    "scrapes": "1664-4f20-b657",'
                 '    "plugins": {'
@@ -1274,13 +1278,15 @@ class ExtractorTests(ProjectTestCase):
 class SpiderTests(ProjectTestCase):
     def test_minimal_spider(self):
         spider = Spider(id='spider-1')
-        spider.start_urls.append('http://example.com')
+        start_url = {
+            'type': 'url',
+            'url': 'http://example.com'
+        }
+        spider.start_urls.append(start_url)
 
         self.assertEqual(spider.dump(), {
             'id': 'spider-1',
-            'start_urls': [
-                'http://example.com',
-            ],
+            'start_urls': [start_url],
             'links_to_follow': "all",
             'allowed_domains': [],
             'respect_nofollow': True,
@@ -1293,9 +1299,14 @@ class SpiderTests(ProjectTestCase):
         })
 
     def test_full_spider(self):
+        start_url = {
+            'type': 'url',
+            'url': 'http://example.com'
+        }
+
         spider = Spider(
             id='spider-1',
-            start_urls=['http://example.com'],
+            start_urls=[start_url],
             links_to_follow="none",
             allowed_domains=['example.com'],
             respect_nofollow=False,
@@ -1315,9 +1326,7 @@ class SpiderTests(ProjectTestCase):
 
         self.assertEqual(spider.dump(), {
             'id': 'spider-1',
-            'start_urls': [
-                'http://example.com',
-            ],
+            'start_urls': [start_url],
             'links_to_follow': "none",
             'allowed_domains': [
                 'example.com',
@@ -1375,9 +1384,7 @@ class SpiderTests(ProjectTestCase):
             {
                 "id": "shop-crawler",
                 # "name": "shop-crawler",
-                "start_urls": [
-                    "http://owlkingdom.com/"
-                ],
+                "start_urls": [{"type": "url", "url": "http://owlkingdom.com/"}],
                 "links_to_follow": "all",
                 "allowed_domains": [],
                 "respect_nofollow": True,
@@ -1406,9 +1413,7 @@ class SpiderTests(ProjectTestCase):
         self.assertEqual(spider.dump(), {
             "id": "shop-crawler",
             # "name": "shop-crawler",
-            "start_urls": [
-                "http://owlkingdom.com/"
-            ],
+            "start_urls": [{"type": "url", "url": "http://owlkingdom.com/"}],
             "links_to_follow": "all",
             "allowed_domains": [],
             "respect_nofollow": True,
@@ -1467,7 +1472,10 @@ class SpiderTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "type": "url", \n'
+            '            "url": "http://owlkingdom.com/"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "1ddc-4043-ac4d"\n'
@@ -1513,7 +1521,10 @@ class SpiderTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "type": "url", \n'
+            '            "url": "http://owlkingdom.com/"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "1ddc-4043-ac4d"\n'
@@ -1600,7 +1611,8 @@ class SampleTests(ProjectTestCase):
         sample = Sample(
             id='sample-1',
             name='example',
-            url='http://example.com')
+            url='http://example.com',
+            body='original_body')
 
         self.assertEqual(sample.dump(), {
             'id': 'sample-1',
@@ -1610,6 +1622,8 @@ class SampleTests(ProjectTestCase):
             'page_type': 'item',
             'original_body': '',
             'annotated_body': '',
+            'rendered_body': '',
+            'body': 'original_body',
             'spider': None,
             'scrapes': None,
             'plugins': {
@@ -1629,6 +1643,7 @@ class SampleTests(ProjectTestCase):
             page_id='test-id',
             original_body='original_body',
             annotated_body='annotated_body',
+            body='original_body',
             spider=Spider(id='spider-1'))
 
         self.assertEqual(sample.dump(), {
@@ -1639,6 +1654,8 @@ class SampleTests(ProjectTestCase):
             'page_type': 'item',
             'original_body': 'original_body',
             'annotated_body': 'annotated_body',
+            'rendered_body': '',
+            'body': 'original_body',
             'spider': 'spider-1',
             'scrapes': None,
             'plugins': {
@@ -1665,6 +1682,8 @@ class SampleTests(ProjectTestCase):
                 'page_type': 'item',
                 'original_body': '<html></html>',
                 'annotated_body': '<html></html>',
+                'rendered_body': '',
+                'body': 'original_body',
                 'spider': 'shop-crawler',
                 'scrapes': '1664-4f20-b657',
                 'plugins': {
@@ -1773,6 +1792,8 @@ class SampleTests(ProjectTestCase):
             'page_type': 'item',
             'original_body': '<html></html>',
             'annotated_body': '<html></html>',
+            'rendered_body': '',
+            'body': 'original_body',
             'spider': 'shop-crawler',
             'scrapes': '1664-4f20-b657',
             'plugins': {
@@ -1893,6 +1914,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -1985,6 +2007,7 @@ class SampleTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -2009,6 +2032,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/test-id.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test-id", \n'
             '    "name": "example", \n'
@@ -2101,6 +2125,7 @@ class SampleTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -2127,7 +2152,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "type": "url", \n'
+            '            "url": "http://owlkingdom.com/"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "test-id"\n'
@@ -2138,7 +2166,8 @@ class SampleTests(ProjectTestCase):
         spider = Spider(self.storage, id='shop-crawler',
                         project=Project(self.storage, id='example'))
         sample = Sample(self.storage, id='test1', name='test sample 1',
-                        url='http://example.com/test1', spider=spider)
+                        url='http://example.com/test1', spider=spider,
+                        body='original_body')
         sample.save()
 
         self.storage.open.assert_called_once_with('spiders/shop-crawler.json')
@@ -2150,6 +2179,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/test1.json'],
             '{\n'
             '    "annotated_body": "", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test1", \n'
             '    "name": "test sample 1", \n'
@@ -2161,6 +2191,7 @@ class SampleTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com/test1", \n'
@@ -2187,7 +2218,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "type": "url", \n'
+            '            "url": "http://owlkingdom.com/"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "1ddc-4043-ac4d", \n'
@@ -2197,6 +2231,7 @@ class SampleTests(ProjectTestCase):
 
         spider.samples.insert(0, Sample(self.storage, id='test2',
                                         name='test sample 2',
+                                        body='original_body',
                                         url='http://example.com/test2'))
         spider.samples[0].save()
 
@@ -2211,6 +2246,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/test2.json'],
             '{\n'
             '    "annotated_body": "", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test2", \n'
             '    "name": "test sample 2", \n'
@@ -2222,6 +2258,7 @@ class SampleTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com/test2", \n'
@@ -2248,7 +2285,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "type": "url", \n'
+            '            "url": "http://owlkingdom.com/"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "test2", \n'
@@ -2297,7 +2337,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "type": "url", \n'
+            '            "url": "http://owlkingdom.com/"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": []\n'
             '}')
@@ -2364,6 +2407,7 @@ class ItemTests(ProjectTestCase):
                 '    "page_type": "item",'
                 '    "original_body": "<html></html>",'
                 '    "annotated_body": "<html></html>",'
+                '    "body": "original_body",'
                 '    "spider": "shop-crawler",'
                 '    "scrapes": "1664-4f20-b657",'
                 '    "plugins": {'
@@ -2897,6 +2941,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3027,6 +3072,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3048,6 +3094,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3178,6 +3225,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3202,6 +3250,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3347,6 +3396,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3370,6 +3420,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3545,6 +3596,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3576,6 +3628,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3587,6 +3640,7 @@ class ItemTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3831,6 +3885,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3923,6 +3978,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3944,6 +4000,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4036,6 +4093,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4061,6 +4119,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4174,6 +4233,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4195,6 +4255,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4329,6 +4390,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4363,6 +4425,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4431,6 +4494,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
