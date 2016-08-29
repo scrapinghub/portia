@@ -3,6 +3,7 @@ import { getAttributeList } from './inspector-panel';
 
 export default Ember.Component.extend({
     uiState: Ember.inject.service(),
+    dispatcher: Ember.inject.service(),
 
     tagName: '',
 
@@ -57,7 +58,7 @@ export default Ember.Component.extend({
                 return this.get('cssSelector');
             } else {
                 const annotation = this.get('annotation');
-                annotation.setSelector(value);
+                this.setAnnotationSelector(annotation, value);
                 return value;
             }
         }
@@ -71,7 +72,7 @@ export default Ember.Component.extend({
             const annotation = this.get('annotation');
             if (value === null) {
                 this.set('invalidSelector', false);
-                annotation.setSelector(this.get('cssSelector'));
+                this.setAnnotationSelector(annotation, this.get('cssSelector'));
             } else {
                 let invalidSelector = false;
 
@@ -83,7 +84,7 @@ export default Ember.Component.extend({
 
                 this.set('invalidSelector', invalidSelector);
                 if (!invalidSelector) {
-                    annotation.setSelector(value);
+                    this.setAnnotationSelector(annotation, value);
                 }
             }
             return value;
@@ -96,9 +97,42 @@ export default Ember.Component.extend({
         }
     }),
 
+    setAnnotationSelector(annotation, selector) {
+        return annotation.get('sample').then(sample => {
+            annotation.setSelector(selector);
+            return this.updateSelector(sample);
+        });
+    },
+
+    updateSelector(sample) {
+        if (!this._updateSelectorPromise) {
+            this._updateSelectorPromise = this._updateSelector(sample);
+        } else if (!this._updateSelectorPromise.pending) {
+            this._updateSelectorPromise.pending = true;
+            this._updateSelectorPromise.then(() => {
+                return (this._updateSelectorPromise = this._updateSelector(sample));
+            });
+        }
+
+        return this._updateSelectorPromise;
+    },
+
+    _updateSelector(sample) {
+        const dispatcher = this.get('dispatcher');
+        const promise = dispatcher.updateSampleSelectors(sample).then(() => {
+            if (this._updateSelectorPromise === promise) {
+                delete this._updateSelectorPromise;
+            }
+        });
+        return promise;
+    },
+
     actions: {
         save() {
-            this.get('annotation').save();
+            const promise = this.get('annotation').save();
+            return this._updateSelectorPromise ?
+                this._updateSelectorPromise.then(() => promise) :
+                promise;
         }
     }
 });

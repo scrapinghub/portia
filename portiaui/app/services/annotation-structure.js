@@ -1,8 +1,5 @@
 import Ember from 'ember';
-import {
-    AnnotationSelectorGenerator,
-    ContainerSelectorGenerator
-} from '../utils/selectors';
+import { AnnotationSelectorGenerator, ContainerSelectorGenerator } from '../utils/selectors';
 
 const ElementStructure = Ember.Object.extend({
     definition: null,
@@ -77,36 +74,10 @@ const ElementStructure = Ember.Object.extend({
                     if (selector) {
                         selectorMatcher.unRegister(selector, setElements);
                     }
-                    selector = annotation.get('selectorGenerator.selector');
-                    const containerSelector = annotation.get(
-                        'selectorGenerator.containerSelector');
-                    const siblings = annotation.get('selectorGenerator.siblings');
+                    selector = annotation.get('repeatedSelector') || annotation.get('selector');
                     if (selector) {
                         selectorMatcher.register(selector, setElements);
-                        const element = selectorMatcher.query(selector);
-                        setElements(element);
-
-                        if (!annotation.get('isDeleted')) {
-                            if (!element.length) {
-                                annotation.setProperties({
-                                    selector: null,
-                                    repeatedSelector: null,
-                                    siblings: 0
-                                });
-                            } else if (element.length > 1) {
-                                annotation.setProperties({
-                                    selector: containerSelector,
-                                    repeatedSelector: selector,
-                                    siblings
-                                });
-                            } else {
-                                annotation.setProperties({
-                                    selector,
-                                    repeatedSelector: null,
-                                    siblings
-                                });
-                            }
-                        }
+                        setElements(selectorMatcher.query(selector));
                     }
                 };
 
@@ -116,7 +87,8 @@ const ElementStructure = Ember.Object.extend({
                     setup() {
                         const selectorGenerator = ContainerSelectorGenerator.create({});
                         selectorGenerator.addChildren(
-                            children.map(child => child.annotation.get('selectorGenerator')));
+                            children.map(child => child.annotation.get('containerGenerator') ||
+                                                  child.annotation.get('selectorGenerator')));
                         annotation.set('selectorGenerator', selectorGenerator);
                     },
                     teardown() {
@@ -124,12 +96,7 @@ const ElementStructure = Ember.Object.extend({
                         if (selector) {
                             selectorMatcher.unRegister(selector, setElements);
                         }
-                        const selectorGenerator = annotation.get('selectorGenerator');
-                        if(selectorGenerator) {
-                            selectorGenerator.destroy();
-                        }
                         annotation.setProperties({
-                            selectorGenerator: undefined,
                             elements: undefined
                         });
                     },
@@ -137,7 +104,7 @@ const ElementStructure = Ember.Object.extend({
                         // allow the bindings to sync first
                         scheduledObserver = Ember.run.scheduleOnce('sync', observer);
                     },
-                    observerPaths: ['selectorGenerator.selector']
+                    observerPaths: ['selector', 'repeatedSelector']
                 });
             } else {
                 let selector = null;
@@ -149,7 +116,8 @@ const ElementStructure = Ember.Object.extend({
                     if (!annotation.get('isDeleted')) {
                         annotation.setProperties({
                             selector,
-                            xpath: annotation.get('selectorGenerator.xpath')
+                            xpath: annotation.get('selectorGenerator.xpath'),
+                            repeated: annotation.get('selectorGenerator.repeatedAnnotation')
                         });
                     }
                     if (selector) {
@@ -162,10 +130,16 @@ const ElementStructure = Ember.Object.extend({
                 bindings.push({
                     annotation,
                     setup() {
-                        annotation.set('selectorGenerator', AnnotationSelectorGenerator.create({
-                            selectorMatcher,
-                            annotation
-                        }));
+                        const selectorGenerator = AnnotationSelectorGenerator.create({
+                             selectorMatcher,
+                             annotation
+                        });
+                        let containerGenerator = ContainerSelectorGenerator.create({});
+                        containerGenerator.addChildren([selectorGenerator]);
+                        annotation.setProperties({
+                            selectorGenerator,
+                            containerGenerator
+                        });
                     },
                     teardown() {
                         Ember.run.cancel(scheduledObserver);
@@ -173,57 +147,24 @@ const ElementStructure = Ember.Object.extend({
                             selectorMatcher.unRegister(selector, setElements);
                         }
                         const selectorGenerator = annotation.get('selectorGenerator');
-                        if(selectorGenerator) {
-                            selectorGenerator.destroy();
+                        const containerGenerator = annotation.get('containerGenerator');
+                        if (selectorGenerator) {
+                             selectorGenerator.destroy();
+                         }
+                        if (containerGenerator) {
+                            containerGenerator.destroy();
                         }
                         annotation.setProperties({
-                            selectorGenerator: undefined,
-                            elements: undefined
+                             selectorGenerator: undefined,
+                             containerGenerator: undefined,
+                             elements: undefined
                         });
                     },
                     observer() {
                         // allow the bindings to sync first
                         scheduledObserver = Ember.run.scheduleOnce('sync', observer);
                     },
-                    observerPaths: ['selectorGenerator.selector']
-                });
-
-                // force a re-computation if the elements matched by acceptSelectors or
-                // rejectSelectors change (when the page is loading).
-                // TODO: remove when the selector will be synced with the backend
-                let watchSelector = null;
-                const triggerUpdate = () => {
-                    annotation.notifyPropertyChange('acceptSelectors');
-                    annotation.notifyPropertyChange('rejectSelectors');
-                };
-                const stopWatching = () => {
-                    if (watchSelector) {
-                        selectorMatcher.unRegister(watchSelector, triggerUpdate);
-                        watchSelector = null;
-                    }
-                };
-                bindings.push({
-                    annotation,
-                    setup() {
-                        watchSelector = [].concat(
-                            annotation.get('acceptSelectors'),
-                            annotation.get('rejectSelectors')).join(', ');
-                        if (watchSelector) {
-                            selectorMatcher.register(watchSelector, triggerUpdate);
-                        }
-                    },
-                    teardown: stopWatching,
-                    observer() {
-                        if (watchSelector) {
-                            const newWatchSelector = [].concat(
-                                annotation.get('acceptSelectors'),
-                                annotation.get('rejectSelectors')).join(', ');
-                            if (newWatchSelector !== watchSelector) {
-                                stopWatching();
-                            }
-                        }
-                    },
-                    observerPaths: ['acceptSelectors.[]', 'rejectSelectors.[]']
+                    observerPaths: ['selector']
                 });
             }
         };
@@ -270,23 +211,58 @@ const ElementStructure = Ember.Object.extend({
 
 const DataElementStructure = ElementStructure.extend({
     model: null,  // a sample
+    definition: [],
 
-    definition: Ember.computed('model.orderedAnnotations.[]', function() {
-        return (this.get('model.items') || []).filter(
-            item => !!item).map(function mapper(annotation) {
-                if (annotation.constructor.modelName === 'annotation') {
-                    return {
-                        annotation
-                    };
-                } else if (annotation.constructor.modelName === 'item') {
-                    return {
-                        annotation,
-                        children: (annotation.get('annotations') || []).map(mapper)
-                    };
-                }
-            });
-    })
+    setDefinition: Ember.on('init', Ember.observer('model.orderedAnnotations.[]', function() {
+        const sample = this.get('model');
+        if (!sample) {
+            this.set('definition', []);
+        }
+        const structurePromise = createStructure(sample);
+        this.currentPromise = structurePromise;
+        structurePromise.then(structure => {
+            if (structurePromise === this.currentPromise) {
+                delete this.currentPromise;
+                this.set('definition', structure);
+            }
+        });
+    }))
 });
+
+export function createStructure(sample) {
+    return sample.get('items').then(items =>
+        Ember.RSVP.filter(items.toArray(), item =>
+            item && !item.get('isDeleted')
+        ).then(filteredItems =>
+            Ember.RSVP.map(filteredItems, item =>
+                Ember.RSVP.hash({
+                    annotation: item,
+                    children: item.get('annotations').then(function mapper(annotations) {
+                        if (!annotations) {
+                            return [];
+                        }
+                        return Ember.RSVP.filter(annotations.toArray(), annotation =>
+                            !annotation.get('isDeleted')
+                        ).then(filteredAnnotations =>
+                            Ember.RSVP.map(filteredAnnotations, annotation => {
+                                if (annotation.constructor.modelName === 'annotation') {
+                                    return {
+                                        annotation
+                                    };
+                                } else if (annotation.constructor.modelName === 'item') {
+                                    return Ember.RSVP.hash({
+                                        annotation,
+                                        children: annotation.get('annotations').then(mapper)
+                                    });
+                                }
+                            })
+                        );
+                    })
+                })
+            )
+        )
+    );
+}
 
 export default Ember.Service.extend({
     selectorMatcher: Ember.inject.service(),

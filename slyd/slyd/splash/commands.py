@@ -71,12 +71,6 @@ def _update_sample(data, socket, sample=None, save=False, use_live=False):
             sample['original_body'] = socket.tab.html()
         except (TypeError, ValueError):
             pass
-    try:
-        Annotations().save_extraction_data(
-            sample['plugins']['annotations-plugin'], sample,
-            options={'body': 'original_body'})
-    except (StopIteration, KeyError):
-        sample['annotated_body'] = sample.get('original_body', u'')
     if save:
         spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample
@@ -205,7 +199,7 @@ def _process_items(items):
                     else value
             items[i] = new
         elif isinstance(item, list):
-            items[i] = _process_items(value)
+            items[i] = _process_items(item)
     return items
 
 

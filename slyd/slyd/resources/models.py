@@ -249,6 +249,7 @@ class BaseAnnotationSchema(SlydSchema):
     attribute = fields.Str(required=True)
     accept_selectors = fields.List(fields.Str(), default=[])
     reject_selectors = fields.List(fields.Str(), default=[])
+    repeated = fields.Boolean(default=False)
     tagid = fields.Integer(required=True)
     text_content = fields.Str()
     selector = fields.Str()
@@ -323,7 +324,6 @@ class AnnotationSchema(BaseAnnotationSchema):
 class ItemAnnotationSchema(BaseAnnotationSchema):
     item_container = fields.Boolean(default=True)
     container_id = fields.Str()
-    repeated = fields.Boolean()
     repeated_container_id = fields.Str(dump_only=True)
     repeated_accept_selectors = fields.Str(dump_only=True)
     siblings = fields.Integer()

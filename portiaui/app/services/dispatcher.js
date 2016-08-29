@@ -1,8 +1,10 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
-import { getDefaultAttribute } from '../components/inspector-panel';
 import { includesUrl } from '../utils/start-urls';
 import startUrl from '../models/start-url';
+import {createStructure} from './annotation-structure';
+import {getDefaultAttribute} from '../components/inspector-panel';
+import {updateStructureSelectors} from '../utils/selectors';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -42,6 +44,7 @@ export function computedCanAddStartUrl(spiderPropertyName) {
 export default Ember.Service.extend({
     browser: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
+    selectorMatcher: Ember.inject.service(),
     store: Ember.inject.service(),
     uiState: Ember.inject.service(),
     webSocket: Ember.inject.service(),
@@ -98,9 +101,9 @@ export default Ember.Service.extend({
         const matches = url.match('//([a-zA-Z0-9\._-]*)');
         const store = this.get('store');
         if (matches && matches.length) {
-            name = matches.slice(-1)[0]
+            name = matches.slice(-1)[0];
         } else {
-            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '')
+            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '');
         }
         let baseName = name;
         let counter = 1;
@@ -239,34 +242,35 @@ export default Ember.Service.extend({
     },
 
     saveAnnotationAndRelatedSelectors(annotation) {
-        return annotation.get('ownerSample').then(sample => {
-            const coalesce = [];
-            for (let child of sample.get('orderedChildren')) {
-                if (child === annotation) {
-                    continue;
+        return annotation.get('ownerSample').then(sample =>
+            this.updateSampleSelectors(sample).then(() => {
+                const coalesce = [];
+                for (let child of sample.get('orderedChildren')) {
+                    if (child === annotation) {
+                        continue;
+                    }
+                    if (child.constructor.modelName === 'item') {
+                        coalesce.push({
+                            model: child,
+                            options: {
+                                partial: ['selector', 'repeatedSelector', 'siblings']
+                            }
+                        });
+                    } else if (child.constructor.modelName === 'annotation') {
+                        coalesce.push({
+                            model: child,
+                            options: {
+                                partial: ['selectionMode', 'selector', 'xpath']
+                            }
+                        });
+                    }
                 }
-                if (child.constructor.modelName === 'item') {
-                    coalesce.push({
-                        model: child,
-                        options: {
-                            partial: ['selector', 'repeatedSelector', 'siblings']
-                        }
-                    });
-                } else if (child.constructor.modelName === 'annotation') {
-                    coalesce.push({
-                        model: child,
-                        options: {
-                            partial: ['selectionMode', 'selector', 'xpath']
-                        }
-                    });
-                }
-            }
-            return annotation.save(coalesce.length ? {
-                coalesce
-            } : undefined);
-        });
+                return annotation.save(coalesce.length ? {
+                    coalesce
+                } : undefined);
+            }));
     },
-    
+
     addAnnotationTypeExtractor(annotation, type) {
         const store = this.get('store');
         const project = annotation.get('ownerSample.spider.project');
@@ -452,5 +456,13 @@ export default Ember.Service.extend({
         annotation.removeElement(element);
         this.selectAnnotation(annotation);
         this.saveAnnotationAndRelatedSelectors(annotation);
+    },
+
+    updateSampleSelectors(sample) {
+        const selectorMatcher = this.get('selectorMatcher');
+        return createStructure(sample).then(structure => {
+            updateStructureSelectors(structure, selectorMatcher);
+            return null;
+        });
     }
 });

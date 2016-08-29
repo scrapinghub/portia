@@ -423,6 +423,46 @@ export const BaseSelectorGenerator = Ember.Object.extend({
 
     getElementIndices(elements) {
         return Array.from(new Set(elements.map(positionInParent))).sort((a, b) => a - b);
+    },
+
+    generalizationDistance(element) {
+        const paths = this.get('paths');
+        const groupedPaths = this.get('groupedPaths');
+        const newPath = elementPath(element);
+        const newGroupedPaths = this.groupPaths([newPath].concat(paths));
+
+        if (newGroupedPaths.length > groupedPaths.length) {
+            return Infinity;
+        }
+
+        const group = newGroupedPaths.find(group => group[0] === newPath);
+        const pathLength = group[0].length;
+        let distance = 0;
+        let i = 0;
+        const rejectElements = element => element === newPath[i];
+        for (i = 0; i < pathLength; i++) {
+            const elements = this.getGroupElementsAtIndex(group, i);
+            if (elements.length === 1) {
+                continue;
+            }
+            const currentElements = elements.reject(rejectElements);
+            const newClassSelectors = this.getElementClassSelectors(elements);
+            const currentClassSelectors = this.getElementClassSelectors(currentElements);
+            if (currentClassSelectors.length > newClassSelectors.length) {
+                if (newClassSelectors.length >= 1 &&
+                        (currentClassSelectors.length - newClassSelectors.length === 1)) {
+                    distance++;
+                } else {
+                    return Infinity;
+                }
+            }
+            const newIndices = this.getElementIndices(elements);
+            const currentIndices = this.getElementIndices(currentElements);
+            if (currentIndices.length < newIndices.length) {
+                distance++;
+            }
+        }
+        return distance;
     }
 });
 
@@ -477,6 +517,42 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
             return this.mergeSelectors(filteredSelectors);
         }),
 
+    repeatedAnnotation: Ember.computed('selector', 'parent.repeatedContainers', function() {
+        const parent = this.get('parent');
+        if (!parent) {
+            return false;
+        }
+        const selector = this.get('selector');
+        const repeatedContainers = parent.get('repeatedContainers');
+        const selectorMatcher = this.get('selectorMatcher');
+        const elements = selectorMatcher.query(selector);
+        if (!(selector && elements && elements.length > 1)) {
+            return false;
+        }
+        if (repeatedContainers.length > 1) {
+            for (let container of repeatedContainers) {
+                let i = 0;
+                for (let child of elements) {
+                    if (container.contains(child)) {
+                        i += 1;
+                    }
+                    if (i > 1) {
+                        break;
+                    }
+                }
+                if (i > 1) {
+                    return true;
+                }
+            }
+        }
+        const container = parent.get('container');
+        if (container) {
+            const otherAnnotations = parent.get('parent.children').filter(s => s !== parent);
+            return !otherAnnotations.any(a => a.get('container') === container);
+        }
+        return false;
+    }),
+
     createGeneralizedSelectors(groupedPaths) {
         const selectors = groupedPaths.map(group => this.createGroupSelectors(group, null, true));
         return this.filterRejectedSelectors(selectors);
@@ -497,46 +573,6 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
             const allowedSelectors = this.createSelectors([paths]);
             return allowedSelectors[0];
         });
-    },
-
-    generalizationDistance(element) {
-        const paths = this.get('paths');
-        const groupedPaths = this.get('groupedPaths');
-        const newPath = elementPath(element);
-        const newGroupedPaths = this.groupPaths([newPath].concat(paths));
-
-        if (newGroupedPaths.length > groupedPaths.length) {
-            return Infinity;
-        }
-
-        const group = newGroupedPaths.find(group => group[0] === newPath);
-        const pathLength = group[0].length;
-        let distance = 0;
-        let i = 0;
-        const rejectElements = element => element === newPath[i];
-        for (i = 0; i < pathLength; i++) {
-            const elements = this.getGroupElementsAtIndex(group, i);
-            if (elements.length === 1) {
-                continue;
-            }
-            const currentElements = elements.reject(rejectElements);
-            const newClassSelectors = this.getElementClassSelectors(elements);
-            const currentClassSelectors = this.getElementClassSelectors(currentElements);
-            if (currentClassSelectors.length > newClassSelectors.length) {
-                if (newClassSelectors.length >= 1 &&
-                        (currentClassSelectors.length - newClassSelectors.length === 1)) {
-                    distance++;
-                } else {
-                    return Infinity;
-                }
-            }
-            const newIndices = this.getElementIndices(elements);
-            const currentIndices = this.getElementIndices(currentElements);
-            if (currentIndices.length < newIndices.length) {
-                distance++;
-            }
-        }
-        return distance;
     }
 });
 
@@ -879,6 +915,71 @@ export function makeItemsFromGroups(groups) {
     return items;
 }
 
+function createSelectorGenerators(structure, selectorMatcher, accumulator) {
+    const generators = [];
+
+    for (let element of structure) {
+        const {annotation, children} = element;
+        let selectorGenerator;
+        if (children) {
+            selectorGenerator = ContainerSelectorGenerator.create({});
+            selectorGenerator.addChildren(
+                createSelectorGenerators(children, selectorMatcher, accumulator));
+
+        } else {
+            selectorGenerator = AnnotationSelectorGenerator.create({
+                selectorMatcher,
+                annotation
+            });
+        }
+        generators.push(selectorGenerator);
+        accumulator.push([annotation, selectorGenerator]);
+    }
+
+    return generators;
+}
+
+export function updateStructureSelectors(structure, selectorMatcher) {
+    const accumulator = [];
+    createSelectorGenerators(structure, selectorMatcher, accumulator);
+    for (let [annotation, selectorGenerator] of accumulator) {
+        const selector = selectorGenerator.get('selector');
+        if (selectorGenerator instanceof AnnotationSelectorGenerator) {
+            annotation.setProperties({
+                selector,
+                xpath: selectorGenerator.get('xpath')
+            });
+            if (annotation.get('selectionMode') === 'css') {
+                annotation.setSelector(selector);
+            }
+        } else if (selectorGenerator instanceof ContainerSelectorGenerator) {
+            const containerSelector = selectorGenerator.get('containerSelector');
+            const siblings = selectorGenerator.get('siblings');
+            const element = selector ? selectorMatcher.query(selector) : [];
+            if (!element.length) {
+                annotation.setProperties({
+                    selector: null,
+                    repeatedSelector: null,
+                    siblings: 0
+                });
+            } else if (element.length > 1) {
+                annotation.setProperties({
+                    selector: containerSelector,
+                    repeatedSelector: selector,
+                    siblings
+                });
+            } else {
+                annotation.setProperties({
+                    selector,
+                    repeatedSelector: null,
+                    siblings
+                });
+            }
+        }
+        selectorGenerator.destroy();
+    }
+}
+
 export default {
     BaseSelectorGenerator,
     AnnotationSelectorGenerator,
@@ -888,5 +989,6 @@ export default {
     smartSelector,
     cssToXpath,
     findContainer,
-    findRepeatedContainers
+    findRepeatedContainers,
+    updateStructureSelectors
 };

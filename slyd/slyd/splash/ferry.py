@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from functools import partial
 import json
 import os
+import copy
 
 from six.moves.urllib_parse import urlparse
 
@@ -117,9 +118,21 @@ class SpiderSpec(object):
     def __init__(self, project, name, spider, items, extractors):
         self.project = project
         self.name = name
-        self.spider = spider
-        self.items = items
-        self.extractors = extractors
+        self._spider = spider
+        self._items = items
+        self._extractors = extractors
+
+    @property
+    def spider(self):
+        return copy.deepcopy(self._spider)
+
+    @property
+    def items(self):
+        return copy.deepcopy(self.items)
+
+    @property
+    def extractors(self):
+        return copy.deepcopy(self._extractors)
 
     @property
     def templates(self):
