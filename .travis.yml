@@ -34,7 +34,6 @@ script:
 - cd ./slybot
 - nosetests --with-doctest
 - cd ../slyd
-- npm test
 - nosetests --with-doctest
 - cd ../
 before_deploy:
