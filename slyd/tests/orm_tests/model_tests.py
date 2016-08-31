@@ -96,7 +96,7 @@ class ProjectTestCase(unittest.TestCase):
                 '    "start_urls": ['
                 '        {'
                 '            "type": "url",'
-                '            "url": "http://owlkingdom.com/"'
+                '            "url": "http://example.com/"'
                 '        }'
                 '    ],'
                 '    "template_names": ['
@@ -1384,7 +1384,7 @@ class SpiderTests(ProjectTestCase):
             {
                 "id": "shop-crawler",
                 # "name": "shop-crawler",
-                "start_urls": [{"type": "url", "url": "http://owlkingdom.com/"}],
+                "start_urls": [{"type": "url", "url": "http://example.com/"}],
                 "links_to_follow": "all",
                 "allowed_domains": [],
                 "respect_nofollow": True,
@@ -1413,7 +1413,7 @@ class SpiderTests(ProjectTestCase):
         self.assertEqual(spider.dump(), {
             "id": "shop-crawler",
             # "name": "shop-crawler",
-            "start_urls": [{"type": "url", "url": "http://owlkingdom.com/"}],
+            "start_urls": [{"type": "url", "url": "http://example.com/"}],
             "links_to_follow": "all",
             "allowed_domains": [],
             "respect_nofollow": True,
@@ -1473,8 +1473,8 @@ class SpiderTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "type": "url", \n'
-            '            "url": "http://owlkingdom.com/"\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
             '        }\n'
             '    ], \n'
             '    "template_names": [\n'
@@ -1522,8 +1522,8 @@ class SpiderTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "type": "url", \n'
-            '            "url": "http://owlkingdom.com/"\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
             '        }\n'
             '    ], \n'
             '    "template_names": [\n'
@@ -2153,8 +2153,8 @@ class SampleTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "type": "url", \n'
-            '            "url": "http://owlkingdom.com/"\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
             '        }\n'
             '    ], \n'
             '    "template_names": [\n'
@@ -2219,8 +2219,8 @@ class SampleTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "type": "url", \n'
-            '            "url": "http://owlkingdom.com/"\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
             '        }\n'
             '    ], \n'
             '    "template_names": [\n'
@@ -2286,8 +2286,8 @@ class SampleTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "type": "url", \n'
-            '            "url": "http://owlkingdom.com/"\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
             '        }\n'
             '    ], \n'
             '    "template_names": [\n'
@@ -2338,8 +2338,8 @@ class SampleTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "type": "url", \n'
-            '            "url": "http://owlkingdom.com/"\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
             '        }\n'
             '    ], \n'
             '    "template_names": []\n'

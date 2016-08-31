@@ -252,13 +252,6 @@ class Spider(Model):
         return data
 
     @post_dump
-    def order_start_urls(self, data):
-        if 'start_urls' in data:
-            data['start_urls'] = [OrderedDict(sorted(iteritems(start_url)))
-                                  for start_url in data['start_urls']]
-        return data
-
-    @post_dump
     def set_init_requests(self, data):
         if data.pop('perform_login', None) and self._is_perform_login(data):
             data['init_requests'] = [OrderedDict([
