@@ -5,7 +5,7 @@ from io import BytesIO
 
 from dulwich.errors import NoIndexPresent, ObjectMissing
 from dulwich.object_store import BaseObjectStore
-from dulwich.objects import sha_to_hex
+from dulwich.objects import sha_to_hex, ShaFile
 from dulwich.pack import (PackData, PackInflater, write_pack_header,
                           write_pack_object, PackIndexer, PackStreamCopier,
                           compute_file_sha)
@@ -104,8 +104,9 @@ class ReconnectionPool(ConnectionPool):
         try:
             if (not hasattr(manager, 'storage') and
                     hasattr(manager, '_open_repo') and
-                    hasattr(manager, 'project_name')):
-                manager._open_repo()
+                    hasattr(manager, 'project_name') and
+                    manager.project_name):
+                manager._open_repo(name=manager.project_name)
             result = func(conn, *args, **kw)
             conn.commit()
             return result
@@ -177,7 +178,8 @@ class MysqlObjectStore(BaseObjectStore):
     statements = {
         "HAS": "SELECT EXISTS(SELECT 1 FROM objs WHERE `oid`=%s AND `repo`=%s)",
         "ALL": "SELECT `oid` FROM objs WHERE `repo`=%s",
-        "GET": "SELECT `type`, UNCOMPRESS(`data`) FROM objs WHERE `oid`=%s AND `repo`=%s",
+        "GET": "SELECT `type`, UNCOMPRESS(`data`), `oid` FROM objs WHERE `oid`=%s AND `repo`=%s",
+        "GET_SHORT": "SELECT `type`, UNCOMPRESS(`data`), `oid` FROM objs WHERE `oid` LIKE CONCAT(%s, '%%') AND `repo`=%s LIMIT 1",
         "ADD": "INSERT IGNORE INTO objs values(%s, %s, %s, COMPRESS(%s), %s)",
         "DEL": "DELETE FROM objs WHERE `oid`=%s AND `repo`=%s",
     }
@@ -192,8 +194,15 @@ class MysqlObjectStore(BaseObjectStore):
             return sha
         elif len(sha) == 20:
             return sha_to_hex(sha)
-        else:
-            raise ValueError("Invalid sha %r" % (sha,))
+        # Check if the sha is a valid partial sha, if not raise ValueError
+        elif 7 <= len(sha) < 40:
+            try:
+                int(sha, 16)
+                # Raise Assertion error as the sha is too short
+                assert len(sha) == 40
+            except ValueError:
+                pass
+        raise ValueError("Invalid sha %r" % (sha,))
 
     def _has_sha(self, sha):
         """Look for the sha in the database."""
@@ -227,6 +236,11 @@ class MysqlObjectStore(BaseObjectStore):
         """List with pack objects."""
         return []
 
+    def __getitem__(self, sha):
+        """Obtain an object by SHA1."""
+        type_num, uncomp, sha = self.get_raw(sha)
+        return ShaFile.from_raw_string(type_num, uncomp, sha=sha)
+
     def get_raw(self, name):
         """Obtain the raw text for an object.
 
@@ -234,8 +248,13 @@ class MysqlObjectStore(BaseObjectStore):
         :return: tuple with numeric type and object contents.
         """
         with closing_cursor(self.connection) as cursor:
-            cursor.execute(MysqlObjectStore.statements["GET"],
-                           (self._to_hexsha(name), self._repo))
+            statement = MysqlObjectStore.statements["GET"]
+            try:
+                sha = self._to_hexsha(name)
+            except AssertionError:
+                sha = name
+                statement = MysqlObjectStore.statements["GET_SHORT"]
+            cursor.execute(statement, (sha, self._repo))
             row = cursor.fetchone()
         if row is None:
             # last resort fallback, this exception will cause a retry

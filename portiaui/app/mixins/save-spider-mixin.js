@@ -12,6 +12,6 @@ export default Ember.Mixin.create({
                 '_command': 'update_spider'
             })
         );
-        return savePromise
+        return savePromise;
     }
 });

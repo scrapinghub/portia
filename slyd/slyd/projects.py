@@ -123,7 +123,7 @@ def allowed_project_name(name):
 class ProjectsManager(object):
 
     @classmethod
-    def setup(cls, location):
+    def setup(cls, location, **kwargs):
         cls.base_dir = location
 
     def __init__(self, auth_info):
@@ -188,7 +188,7 @@ class ProjectsManager(object):
     def copy_data(self, source, destination, spiders, items):
         raise NotImplementedError
 
-    def download_project(self, name, spiders=None, version=None):
+    def download_project(self, name, spiders=None, version=None, **kwargs):
         raise NotImplementedError
 
     def commit_changes(self):
@@ -235,7 +235,8 @@ class FileSystemProjectsManager(ProjectsManager):
         copier = FileSystemSpiderCopier(source, destination, self.projectsdir)
         return json.dumps(copier.copy(spiders, items))
 
-    def download_project(self, name, spiders=None, version=None, fmt=None):
+    def download_project(self, name, spiders=None, version=None, fmt=None,
+                         **kwargs):
         storage = self.storage_class(self.project_filename(name))
         if fmt == u'code':
             archiver = CodeProjectArchiver(storage, name=name)

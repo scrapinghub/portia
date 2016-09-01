@@ -31,8 +31,10 @@ class ProjectDownloadMixin(object):
         spider_id = self.args.get('spider_id', None)
         spider_ids = [spider_id] if spider_id is not None else '*'
         fmt = self.query.get('format', ['spec'])[0]
+        version = self.query.get('version', [None])[0]
+        branch = self.query.get('branch', ['master'])[0]
         return ProjectDownloadResponse(
-            project_id, spider_ids, fmt, project_manager)
+            project_id, spider_ids, fmt, version, branch, project_manager)
 
 
 class ProjectDataMixin(object):
@@ -81,8 +83,8 @@ class ProjectRoute(ProjectDownloadMixin, JsonApiRoute, ProjectDataMixin,
 
     @classmethod
     def get_resources(cls):
-        for resouce in super(ProjectRoute, cls).get_resources():
-            yield resouce
+        for resource in super(ProjectRoute, cls).get_resources():
+            yield resource
         yield 'get', cls.status_path
         yield 'put', cls.publish_path
         yield 'patch', cls.reset_path

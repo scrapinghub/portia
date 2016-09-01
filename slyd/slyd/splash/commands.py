@@ -7,6 +7,8 @@ import socket as _socket
 
 from six.moves.urllib.parse import urlparse
 
+from django.utils.functional import cached_property
+
 from scrapy import Request
 from scrapy.settings import Settings
 from splash.browser_tab import JsError
@@ -15,8 +17,7 @@ from splash.har.qt import cookies2har
 from slyd.resources.utils import _load_sample
 from slybot.plugins.scrapely_annotations.builder import Annotations
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
-from .utils import (open_tab, extract_data, lazy_property, _get_viewport,
-                    _decode, _load_res)
+from .utils import (open_tab, extract_data, _get_viewport, _decode, _load_res)
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
 _SETTINGS = Settings()
@@ -239,12 +240,6 @@ class ItemChecker(object):
         self.project = project
         self.spider = spider
         self.sample = sample
-        self._html = None
-        self._url = None
-        self._raw_html = None
-        self._using_js = None
-        self._schemas = None
-        self._extractors = None
         if (self.spider and (not self.socket.spider or
                              self.socket.spiderspec.name != spider)):
             self.socket.open_spider({'project': self.project,
@@ -252,36 +247,35 @@ class ItemChecker(object):
 
     @property
     def raw_html(self):
-        if self._raw_html is None:
-            stated_encoding = self.socket.tab.evaljs('document.characterSet')
-            try:
-                self._raw_html = _decode(
-                    self.socket.tab.network_manager._raw_html, stated_encoding)
-                # XXX: Some pages only show a 301 page. Load the browser html
-                assert len(self._raw_html) > 500
-            except (AttributeError, TypeError, AssertionError):
-                self._raw_html = self.html
-        return self._raw_html
+        stated_encoding = self.socket.tab.evaljs('document.characterSet')
+        try:
+            raw_html = _decode(
+                self.socket.tab.network_manager._raw_html, stated_encoding)
+            # XXX: Some pages only show a 301 page. Load the browser html
+            assert len(raw_html) > 500
+        except (AttributeError, TypeError, AssertionError):
+            raw_html = self.html
+        return raw_html
 
-    @lazy_property
+    @cached_property
     def html(self):
         return self.socket.tab.html()
 
-    @lazy_property
+    @cached_property
     def url(self):
         return self.socket.tab.evaljs('location.href')
 
-    @lazy_property
+    @cached_property
     def using_js(self):
         add_splash_meta = self.socket.spider._add_splash_meta
         url = self.url
         return 'splash' in add_splash_meta(Request(url)).meta
 
-    @lazy_property
+    @cached_property
     def schemas(self):
         return _load_res(self.socket, 'items')
 
-    @lazy_property
+    @cached_property
     def extractors(self):
         return _load_res(self.socket, 'extractors')
 
