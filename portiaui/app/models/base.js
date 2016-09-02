@@ -38,13 +38,8 @@ function runActions() {
 }
 
 function mergeSaveOptions(dst, src) {
-    if (!dst) {
-        return src;
-    }
-
-    if (!src) {
-        src = {};
-    }
+    if (!dst) { return src; }
+    src = src || {};
 
     if (src.coalesce) {
         if (dst.coalesce) {
@@ -87,10 +82,12 @@ export default DS.Model.extend({
     }).readOnly(),
 
     save(options) {
-        if (currentActionModel && currentActionModel.get('isSaving') &&
-                // allow coalesced requests through since we're inside the main save call
-                !(options && options.adapterOptions && options.adapterOptions.coalesce &&
-                  options.adapterOptions.coalesce.type === 'extra')) {
+        const isSaving = currentActionModel && currentActionModel.get('isSaving');
+        const isExtra = options && options.adapterOptions &&
+                        options.adapterOptions.coalesce &&
+                        options.adapterOptions.coalesce.type === 'extra';
+        if (isSaving && !isExtra) {
+            // allow coalesced requests through since we're inside the main save call
             let pendingSave = this.get('pendingSave');
             if (pendingSave) {
                 pendingSave.options = mergeSaveOptions(pendingSave.options, options);
