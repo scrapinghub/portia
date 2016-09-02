@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 import json
 import re
 
@@ -58,7 +59,8 @@ class ProjectSpec(object):
         return callback(**kwargs)
 
     def list_spiders(self):
-        for fname in self.storage.listdir(join(self.project_dir, "spiders")):
+        _, files = self.storage.listdir(join(self.project_dir, "spiders"))
+        for fname in files:
             if fname.endswith(".json"):
                 yield splitext(fname)[0]
 
