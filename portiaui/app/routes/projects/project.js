@@ -2,15 +2,18 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     browser: Ember.inject.service(),
+    capabilities: Ember.inject.service(),
 
     model(params) {
         return this.store.peekRecord('project', params.project_id);
     },
 
     afterModel(model) {
-        return Ember.RSVP.all([
-            model.reload(),
-            model.checkChanges()]);
+        let promises = [model.reload()];
+        if (this.get('capabilities.capabilities.version_control')) {
+            promises.push(model.checkChanges());
+        }
+        return Ember.RSVP.all(promises);
     },
 
     setupController(controller, model) {

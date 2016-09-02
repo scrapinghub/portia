@@ -636,7 +636,7 @@ class Annotation(BaseAnnotation):
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
             'required': annotation_data['required'] or False,
-            'repeated': annotation_data.get('repeated',  False),
+            'repeated': annotation_data.get('repeated', False),
             'selection_mode': data.get('selection_mode') or 'auto',
             'selector': data['selector'] or None,
             'xpath': data.get('xpath') or None,

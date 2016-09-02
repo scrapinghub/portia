@@ -17,6 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.realpath(os.path.join(BASE_DIR, '../portiaui/dist'))
 STATIC_URL = '/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+MEDIA_ROOT = '../slyd/slyd/data/projects'
 
 
 # Quick-start development settings - unsuitable for production
@@ -106,3 +107,9 @@ USE_TZ = True
 PORTIA_STORAGE_BACKEND = 'storage.backends.FsStorage'
 
 SCHEDULE_URL = 'http://localhost:6800/schedule.json'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'portia_server.backends.LocalAuthentication',
+    )
+}

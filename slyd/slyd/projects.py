@@ -221,9 +221,8 @@ class FileSystemProjectsManager(ProjectsManager):
 
     def all_projects(self):
         try:
-            for fname in self.storage.listdir(self.projectsdir):
-                if os.path.isdir(join(self.projectsdir, fname)):
-                    yield {'id': fname, 'name': fname}
+            dirs, _ = self.storage.listdir(self.projectsdir)
+            return [{'id': project, 'name': project}for project in dirs]
         except OSError as ex:
             if ex.errno != errno.ENOENT:
                 raise

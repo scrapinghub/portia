@@ -36,12 +36,14 @@
                     {{#list-item-text}}
                         {{project.name}}
                     {{/list-item-text}}
-                    {{#tooltip-container tooltipFor="project-publish-button" text="Publish project" tooltipContainer='body'}}
-                        {{list-item-icon id="project-publish-button" class=(if project.hasChanges 'active') icon='publish' action=(action 'publish')}}
-                    {{/tooltip-container}}
-                    {{#tooltip-container tooltipFor="project-discard-button" text="Discard changes" tooltipContainer='body'}}
-                        {{list-item-icon id="project-discard-button" class=(if project.hasChanges 'active') icon='rollback' action=(action 'discard')}}
-                    {{/tooltip-container}}
+                    {{#if versionControlled}}
+                        {{#tooltip-container tooltipFor="project-publish-button" text="Publish project" tooltipContainer='body'}}
+                            {{list-item-icon id="project-publish-button" class=(if project.hasChanges 'active') icon='publish' action=(action 'publish')}}
+                        {{/tooltip-container}}
+                        {{#tooltip-container tooltipFor="project-discard-button" text="Discard changes" tooltipContainer='body'}}
+                            {{list-item-icon id="project-discard-button" class=(if project.hasChanges 'active') icon='rollback' action=(action 'discard')}}
+                        {{/tooltip-container}}
+                    {{/if}}
                     {{#tooltip-container tooltipFor="project-close-button" text="Close project" tooltipContainer='body'}}
                         {{#link-to 'projects' id="project-close-button"}}
                             {{list-item-icon icon='close'}}
