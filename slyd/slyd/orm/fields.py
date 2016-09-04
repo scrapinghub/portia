@@ -260,5 +260,5 @@ class Fragment(ValidatedField, Field):
 
 class StartUrl(Schema):
     url = String(default='', required=True)
-    type = String(validate=OneOf(['url', 'generated']), required=True)
+    type = String(validate=OneOf(['url', 'feed', 'generated']), required=True)
     fragments = List(Fragment)

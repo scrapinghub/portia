@@ -2,20 +2,48 @@ import Ember from 'ember';
 import { flatten } from '../utils/utils';
 import { augmentFragmentList, fragmentToString } from '../utils/start-urls';
 
-export default function startUrl(spec) {
-    function buildUrlObject() {
-        if (spec.type === 'generated') {
-            return generatedURL();
-        }
-        return { url: spec.url, type: 'url' };
+function saveStartUrl(urlObject) {
+    return function(spider) {
+        spider.get('startUrls').pushObject(urlObject);
+        spider.save();
+        return urlObject;
+    };
+}
+
+function startUrl(spec) {
+    function toString() {
+        return urlObject.url;
     }
 
-    function generatedURL() {
-        let fragments = spec.fragments || [{type: 'fixed', value: spec.url}];
+    function serialize() {
         return {
-            url: spec.url,
-            type: 'generated',
-            fragments: fragments
+            'url': urlObject.url,
+            'type': urlObject.type
+        };
+    }
+
+    let urlObject = { url: spec.url, type: 'url' };
+
+    urlObject.isGenerated = false;
+    urlObject.componentName = 'project-structure-spider-url';
+
+    urlObject.save = saveStartUrl(urlObject);
+    urlObject.toString = toString;
+    urlObject.serialize = serialize;
+
+    return urlObject;
+}
+
+function generatedUrl(spec) {
+    function toString() {
+        return urlObject.fragments.map(fragmentToString).join('');
+    }
+
+    function serialize() {
+        return {
+            'url': urlObject.toString(),
+            'type': urlObject.type,
+            'fragments': urlObject.fragments,
         };
     }
 
@@ -34,40 +62,55 @@ export default function startUrl(spec) {
         return urlList;
     }
 
-    function save(spider) {
-        const urls = spider.get('startUrls');
-        urls.pushObject(urlObject);
-        spider.save();
-        return urlObject;
-    }
+    let fragments = spec.fragments || [{type: 'fixed', value: spec.url}];
+    let urlObject = {
+        url: spec.url,
+        type: 'generated',
+        fragments: fragments
+    };
 
-    function toString() {
-        if (urlObject.isGenerated) {
-            return urlObject.fragments.map(fragmentToString).join('');
-        } else {
-            return urlObject.url;
-        }
-    }
+    urlObject.isGenerated = true;
+    urlObject.componentName = 'project-structure-spider-generated-url';
+    urlObject.optionsComponentName = 'generated-url-options';
 
-    function serialize() {
-        let base = {
-            'url': urlObject.toString(),
-            'type': urlObject.type
-        };
-        if (urlObject.isGenerated) {
-            base.fragments = urlObject.fragments;
-        }
-        return base;
-    }
-
-    let urlObject = buildUrlObject();
-    urlObject.isGenerated = urlObject.type === 'generated';
-
-    urlObject.save = save;
-    urlObject.getUrl = toString;
+    urlObject.save = saveStartUrl(urlObject);
     urlObject.toString = toString;
     urlObject.serialize = serialize;
     urlObject.generateList = generateList;
 
     return urlObject;
+}
+
+function feedUrl(spec) {
+    function toString() {
+        return urlObject.url;
+    }
+
+    function serialize() {
+        return {
+            'url': urlObject.url,
+            'type': urlObject.type
+        };
+    }
+
+    let urlObject = { url: spec.url, type: 'feed' };
+
+    urlObject.isGenerated = false;
+    urlObject.componentName = 'project-structure-spider-feed-url';
+    urlObject.optionsComponentName = 'feed-url-options';
+
+    urlObject.save = saveStartUrl(urlObject);
+    urlObject.toString = toString;
+    urlObject.serialize = serialize;
+
+    return urlObject;
+}
+
+export default function buildStartUrl(spec) {
+    const urls = {
+        'url': startUrl,
+        'feed': feedUrl,
+        'generated': generatedUrl
+    };
+    return urls[spec.type || 'url'](spec);
 }

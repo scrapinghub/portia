@@ -17,7 +17,8 @@ from six.moves.urllib_parse import urlparse
 from slybot.generic_form import GenericForm
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.starturls import (
-    FragmentGenerator, IdentityGenerator, StartUrlCollection, UrlGenerator
+    FragmentGenerator, FeedGenerator, IdentityGenerator, StartUrlCollection,
+    UrlGenerator
 )
 from slybot.utils import (
     include_exclude_filter, IndexedDict, iter_unique_scheme_hostname,
@@ -38,8 +39,8 @@ class IblSpider(SitemapSpider):
             'generated_urls': UrlGenerator(settings, kw),
 
             'url': IdentityGenerator(),
+            'feed': FeedGenerator(self.parse),
             'generated': FragmentGenerator(),
-            # 'feed_urls': FeedUrls(self, settings, kw)
         }
         self.generic_form = GenericForm(**kw)
         super(IblSpider, self).__init__(name, **kw)
@@ -67,7 +68,6 @@ class IblSpider(SitemapSpider):
         return StartUrlCollection(
             arg_to_iter(spec[url_type]),
             self.start_url_generators,
-            url_type
         )
 
     def _create_start_requests(self, spec):
