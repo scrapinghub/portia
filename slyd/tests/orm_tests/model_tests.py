@@ -1738,6 +1738,7 @@ class SampleTests(ProjectTestCase):
                                 'pre_text': None,
                                 'reject_selectors': [],
                                 'required': [],
+                                'repeated': False,
                                 'selection_mode': 'auto',
                                 'selector': '.main > h1',
                                 'tagid': None,
@@ -1764,6 +1765,7 @@ class SampleTests(ProjectTestCase):
                                 'pre_text': None,
                                 'reject_selectors': [],
                                 'required': [],
+                                'repeated': False,
                                 'selection_mode': 'auto',
                                 'selector': '.main > img',
                                 'tagid': None,
@@ -1848,6 +1850,7 @@ class SampleTests(ProjectTestCase):
                             'pre_text': None,
                             'reject_selectors': [],
                             'required': [],
+                            'repeated': False,
                             'selection_mode': 'auto',
                             'selector': '.main > h1',
                             'tagid': None,
@@ -1874,6 +1877,7 @@ class SampleTests(ProjectTestCase):
                             'pre_text': None,
                             'reject_selectors': [],
                             'required': [],
+                            'repeated': False,
                             'selection_mode': 'auto',
                             'selector': '.main > img',
                             'tagid': None,
@@ -1973,6 +1977,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -1999,6 +2004,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -2091,6 +2097,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -2117,6 +2124,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -2610,6 +2618,7 @@ class ItemTests(ProjectTestCase):
                     "pre_text": None,
                     "reject_selectors": [],
                     "required": [],
+                    'repeated': False,
                     "selection_mode": "auto",
                     "selector": None,
                     "tagid": None,
@@ -2703,6 +2712,7 @@ class ItemTests(ProjectTestCase):
                         'pre_text': None,
                         'reject_selectors': [],
                         'required': [],
+                        'repeated': False,
                         'selection_mode': 'auto',
                         'selector': '.main > h1',
                         'tagid': None,
@@ -2731,6 +2741,7 @@ class ItemTests(ProjectTestCase):
                                 'pre_text': None,
                                 'reject_selectors': [],
                                 'required': [],
+                                'repeated': False,
                                 'selection_mode': 'auto',
                                 'selector': '.main > div > span',
                                 'tagid': None,
@@ -2770,6 +2781,7 @@ class ItemTests(ProjectTestCase):
                         'pre_text': None,
                         'reject_selectors': [],
                         'required': [],
+                        'repeated': False,
                         'selection_mode': 'auto',
                         'selector': '.main > img',
                         'tagid': None,
@@ -2824,6 +2836,7 @@ class ItemTests(ProjectTestCase):
                     'pre_text': None,
                     'reject_selectors': [],
                     'required': [],
+                    'repeated': False,
                     'selection_mode': 'auto',
                     'selector': '.main > h1',
                     'tagid': None,
@@ -2852,6 +2865,7 @@ class ItemTests(ProjectTestCase):
                             'pre_text': None,
                             'reject_selectors': [],
                             'required': [],
+                            'repeated': False,
                             'selection_mode': 'auto',
                             'selector': '.main > div > span',
                             'tagid': None,
@@ -2891,6 +2905,7 @@ class ItemTests(ProjectTestCase):
                     'pre_text': None,
                     'reject_selectors': [],
                     'required': [],
+                    'repeated': False,
                     'selection_mode': 'auto',
                     'selector': '.main > img',
                     'tagid': None,
@@ -3000,6 +3015,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -3038,6 +3054,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3064,6 +3081,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3153,6 +3171,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -3191,6 +3210,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3217,6 +3237,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3309,6 +3330,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -3347,6 +3369,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3373,6 +3396,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3509,6 +3533,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -3547,6 +3572,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3573,6 +3599,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3702,6 +3729,7 @@ class AnnotationTests(ProjectTestCase):
             'pre_text': None,
             'reject_selectors': [],
             'required': [],
+            'repeated': False,
             'selection_mode': 'auto',
             'selector': None,
             'tagid': None,
@@ -3742,6 +3770,7 @@ class AnnotationTests(ProjectTestCase):
                 'video',
             ],
             'required': [],
+            'repeated': False,
             'selection_mode': 'css',
             'selector': 'img',
             'tagid': None,
@@ -3780,6 +3809,7 @@ class AnnotationTests(ProjectTestCase):
                 'pre_text': None,
                 'reject_selectors': [],
                 'required': [],
+                'repeated': False,
                 'selection_mode': 'auto',
                 'selector': '.main > h1',
                 'tagid': None,
@@ -3806,6 +3836,7 @@ class AnnotationTests(ProjectTestCase):
                 'pre_text': None,
                 'reject_selectors': [],
                 'required': [],
+                'repeated': False,
                 'selection_mode': 'auto',
                 'selector': '.main > img',
                 'tagid': None,
@@ -3846,6 +3877,7 @@ class AnnotationTests(ProjectTestCase):
             'pre_text': None,
             'reject_selectors': [],
             'required': [],
+            'repeated': False,
             'selection_mode': 'auto',
             'selector': '.main > img',
             'tagid': None,
@@ -3944,6 +3976,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".test", \n'
             '                    "tagid": null, \n'
@@ -3970,6 +4003,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4059,6 +4093,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".test", \n'
             '                    "tagid": null, \n'
@@ -4085,6 +4120,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4178,6 +4214,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -4204,6 +4241,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4225,6 +4263,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": null, \n'
             '                    "tagid": null, \n'
@@ -4311,6 +4350,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": null, \n'
             '                    "tagid": null, \n'
@@ -4335,6 +4375,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -4361,6 +4402,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4382,6 +4424,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": null, \n'
             '                    "tagid": null, \n'
@@ -4486,6 +4529,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'

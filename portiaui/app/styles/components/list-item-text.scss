@@ -1,6 +1,7 @@
 .list-item-text {
     display: inline;
     flex: 1 1 auto;
+    flex-basis: 100%;
     padding: 0;
     overflow: hidden;
     white-space: nowrap;
