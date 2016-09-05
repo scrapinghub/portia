@@ -1,5 +1,9 @@
 import Ember from 'ember';
-import { AnnotationSelectorGenerator, ContainerSelectorGenerator } from '../utils/selectors';
+import {
+    AnnotationSelectorGenerator,
+    ContainerSelectorGenerator,
+    createSelectorGenerators
+} from '../utils/selectors';
 
 const ElementStructure = Ember.Object.extend({
     definition: null,
@@ -84,13 +88,7 @@ const ElementStructure = Ember.Object.extend({
                 let scheduledObserver = null;
                 bindings.push({
                     annotation,
-                    setup() {
-                        const selectorGenerator = ContainerSelectorGenerator.create({});
-                        selectorGenerator.addChildren(
-                            children.map(child => child.annotation.get('containerGenerator') ||
-                                                  child.annotation.get('selectorGenerator')));
-                        annotation.set('selectorGenerator', selectorGenerator);
-                    },
+                    setup() {},
                     teardown() {
                         Ember.run.cancel(scheduledObserver);
                         if (selector) {
@@ -112,14 +110,7 @@ const ElementStructure = Ember.Object.extend({
                     if (selector) {
                         selectorMatcher.unRegister(selector, setElements);
                     }
-                    selector = annotation.get('selectorGenerator.selector');
-                    if (!annotation.get('isDeleted')) {
-                        annotation.setProperties({
-                            selector,
-                            xpath: annotation.get('selectorGenerator.xpath'),
-                            repeated: annotation.get('selectorGenerator.repeatedAnnotation')
-                        });
-                    }
+                    selector = annotation.get('selector');
                     if (selector) {
                         selectorMatcher.register(selector, setElements);
                         setElements(selectorMatcher.query(selector));
@@ -129,35 +120,14 @@ const ElementStructure = Ember.Object.extend({
                 let scheduledObserver = null;
                 bindings.push({
                     annotation,
-                    setup() {
-                        const selectorGenerator = AnnotationSelectorGenerator.create({
-                             selectorMatcher,
-                             annotation
-                        });
-                        let containerGenerator = ContainerSelectorGenerator.create({});
-                        containerGenerator.addChildren([selectorGenerator]);
-                        annotation.setProperties({
-                            selectorGenerator,
-                            containerGenerator
-                        });
-                    },
+                    setup() {},
                     teardown() {
                         Ember.run.cancel(scheduledObserver);
                         if (selector) {
                             selectorMatcher.unRegister(selector, setElements);
                         }
-                        const selectorGenerator = annotation.get('selectorGenerator');
-                        const containerGenerator = annotation.get('containerGenerator');
-                        if (selectorGenerator) {
-                             selectorGenerator.destroy();
-                         }
-                        if (containerGenerator) {
-                            containerGenerator.destroy();
-                        }
                         annotation.setProperties({
-                             selectorGenerator: undefined,
-                             containerGenerator: undefined,
-                             elements: undefined
+                            elements: undefined
                         });
                     },
                     observer() {
@@ -262,6 +232,46 @@ export function createStructure(sample) {
             )
         )
     );
+}
+
+export function updateStructureSelectors(structure, selectorMatcher) {
+    const selectorGenerators = createSelectorGenerators(structure, selectorMatcher);
+    for (let [annotation, selectorGenerator] of selectorGenerators) {
+        const selector = selectorGenerator.get('selector');
+        if (selectorGenerator instanceof AnnotationSelectorGenerator) {
+            annotation.setProperties({
+                selector,
+                xpath: selectorGenerator.get('xpath')
+            });
+            if (annotation.get('selectionMode') === 'css') {
+                annotation.setSelector(selector);
+            }
+        } else if (selectorGenerator instanceof ContainerSelectorGenerator) {
+            const containerSelector = selectorGenerator.get('containerSelector');
+            const siblings = selectorGenerator.get('siblings');
+            const element = selector ? selectorMatcher.query(selector) : [];
+            if (!element.length) {
+                annotation.setProperties({
+                    selector: null,
+                    repeatedSelector: null,
+                    siblings: 0
+                });
+            } else if (element.length > 1) {
+                annotation.setProperties({
+                    selector: containerSelector,
+                    repeatedSelector: selector,
+                    siblings
+                });
+            } else {
+                annotation.setProperties({
+                    selector,
+                    repeatedSelector: null,
+                    siblings
+                });
+            }
+        }
+        selectorGenerator.destroy();
+    }
 }
 
 export default Ember.Service.extend({

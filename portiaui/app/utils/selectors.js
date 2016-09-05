@@ -915,7 +915,13 @@ export function makeItemsFromGroups(groups) {
     return items;
 }
 
-function createSelectorGenerators(structure, selectorMatcher, accumulator) {
+export function createSelectorGenerators(structure, selectorMatcher) {
+    const accumulator = [];
+    accumulateSelectorGenerators(structure, selectorMatcher, accumulator);
+    return accumulator;
+}
+
+function accumulateSelectorGenerators(structure, selectorMatcher, accumulator) {
     const generators = [];
 
     for (let element of structure) {
@@ -924,7 +930,7 @@ function createSelectorGenerators(structure, selectorMatcher, accumulator) {
         if (children) {
             selectorGenerator = ContainerSelectorGenerator.create({});
             selectorGenerator.addChildren(
-                createSelectorGenerators(children, selectorMatcher, accumulator));
+                accumulateSelectorGenerators(children, selectorMatcher, accumulator));
 
         } else {
             selectorGenerator = AnnotationSelectorGenerator.create({
@@ -937,47 +943,6 @@ function createSelectorGenerators(structure, selectorMatcher, accumulator) {
     }
 
     return generators;
-}
-
-export function updateStructureSelectors(structure, selectorMatcher) {
-    const accumulator = [];
-    createSelectorGenerators(structure, selectorMatcher, accumulator);
-    for (let [annotation, selectorGenerator] of accumulator) {
-        const selector = selectorGenerator.get('selector');
-        if (selectorGenerator instanceof AnnotationSelectorGenerator) {
-            annotation.setProperties({
-                selector,
-                xpath: selectorGenerator.get('xpath')
-            });
-            if (annotation.get('selectionMode') === 'css') {
-                annotation.setSelector(selector);
-            }
-        } else if (selectorGenerator instanceof ContainerSelectorGenerator) {
-            const containerSelector = selectorGenerator.get('containerSelector');
-            const siblings = selectorGenerator.get('siblings');
-            const element = selector ? selectorMatcher.query(selector) : [];
-            if (!element.length) {
-                annotation.setProperties({
-                    selector: null,
-                    repeatedSelector: null,
-                    siblings: 0
-                });
-            } else if (element.length > 1) {
-                annotation.setProperties({
-                    selector: containerSelector,
-                    repeatedSelector: selector,
-                    siblings
-                });
-            } else {
-                annotation.setProperties({
-                    selector,
-                    repeatedSelector: null,
-                    siblings
-                });
-            }
-        }
-        selectorGenerator.destroy();
-    }
 }
 
 export default {
