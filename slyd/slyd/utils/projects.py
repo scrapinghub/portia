@@ -1,12 +1,10 @@
 import errno
 import re
 
-from collections import OrderedDict as ODict
-
 from slybot.starturls import StartUrlCollection
 from slybot.validation.schema import get_schema_validator
 
-from slyd.utils import short_guid
+from portia_orm.utils import short_guid
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
 _INVALID_FILE_RE = re.compile('[^A-Za-z0-9._\-~]|^\.*$')
 
@@ -43,14 +41,6 @@ def unique_name(base_name, disallow=(), initial_suffix=''):
         except TypeError:
             suffix = 1
     return name
-
-
-def init_project(manager):
-    if hasattr(manager.pm, 'edit_project'):
-        manager.pm.edit_project(manager.project_name, 'master')
-    if hasattr(manager, 'add_tag') and hasattr(manager.pm, '_has_tag'):
-        if not manager.pm._has_tag(manager.project_name, 'portia_2.0'):
-            manager.add_tag('portia_2.0')
 
 
 def clean_spider(obj):

@@ -1,4 +1,4 @@
-django==1.10
+django==1.10.1
 djangorestframework==3.4.1
 dj-database-url==0.4.1
 drf-nested-routers==0.11.1

@@ -2,18 +2,21 @@ import json
 
 from collections import deque, OrderedDict
 
+from marshmallow.fields import Nested
 from six import iteritems, iterkeys, itervalues
 
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slybot.plugins.scrapely_annotations.migration import (port_sample,
                                                            load_annotations)
+from slybot.starturls import StartUrlCollection
+
 from .base import Model
 from .decorators import pre_load, post_dump
 from .exceptions import PathResolutionError
 from .fields import (
     Boolean, Domain, Integer, List, Regexp, String, Url, DependantField,
-    BelongsTo, HasMany, CASCADE, CLEAR, PROTECT)
+    BelongsTo, HasMany, CASCADE, CLEAR, PROTECT, StartUrl)
 from .utils import unwrap_envelopes, short_guid, wrap_envelopes
 from .validators import OneOf
 
@@ -189,7 +192,7 @@ class Extractor(Model):
 class Spider(Model):
     # TODO: validate id against allowed file name
     id = String(primary_key=True)
-    start_urls = List(Url)
+    start_urls = List(Nested(StartUrl))
     # TODO: generated urls
     links_to_follow = String(default='all', validate=OneOf(
         ['none', 'patterns', 'all', 'auto']))
@@ -229,6 +232,20 @@ class Spider(Model):
 
         return super(Spider, cls).load(
             storage, instance, project=project, **kwargs)
+
+    @pre_load
+    def normalize_template_names(self, data):
+        if 'template_names' in data:
+            names = list(OrderedDict((v, 1) for v in data['template_names']))
+            data['template_names'] = names
+        return data
+
+    @pre_load
+    def normalize_start_urls(self, data):
+        if 'start_urls' in data or 'generated_urls' in data:
+            start_urls = data.get('start_urls', []) + data.get('generated_urls', [])
+            data['start_urls'] = StartUrlCollection(start_urls).normalize()
+        return data
 
     @pre_load
     def get_init_requests(self, data):
@@ -300,6 +317,8 @@ class Sample(Model, OrderedAnnotationsMixin):
     page_type = String(default='item', validate=OneOf(['item']))
     original_body = String(default='')
     annotated_body = String(default='')
+    rendered_body = String(default='')
+    body = String(validate=OneOf(['original_body', 'rendered_body']))
     spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
                        only='id')
     items = HasMany('Item', related_name='sample', on_delete=CLEAR)
@@ -344,9 +363,10 @@ class Sample(Model, OrderedAnnotationsMixin):
         if items:
             return data
         schemas = json.load(self.context['storage'].open('items.json'))
+        extractors = json.load(self.context['storage'].open('extractors.json'))
         annotations = load_annotations(data.get('annotated_body', u''))
         data['plugins'] = annotations
-        return port_sample(data, schemas)
+        return port_sample(data, schemas, extractors)
 
     @staticmethod
     def get_items(self, data):
@@ -383,7 +403,10 @@ class Sample(Model, OrderedAnnotationsMixin):
                 container_id = item['container_id'] = parent['container_id']
                 item['repeated_selector'] = item['selector']
                 item['selector'] = parent['selector']
-                item['siblings'] = parent['siblings'] or item['siblings']
+                try:
+                    item['siblings'] = parent['siblings'] or item['siblings']
+                except KeyError:
+                    item['siblings'] = 0
                 item['schema_id'] = parent['schema_id'] or item['schema_id']
                 if container_id:
                     containers[container_id]['children'].remove(parent)
@@ -557,6 +580,7 @@ class Annotation(BaseAnnotation):
     xpath = String(allow_none=True, default=None)
     accept_selectors = List(String)
     reject_selectors = List(String)
+    repeated = Boolean(default=False)
     pre_text = String(allow_none=True, default=None)
     post_text = String(allow_none=True, default=None)
     field = BelongsTo(Field, related_name='annotations', on_delete=PROTECT,
@@ -611,16 +635,20 @@ class Annotation(BaseAnnotation):
                     'id': field
                 }
             }
+
+        extractors = json.load(self.context['storage'].open('extractors.json'))
         extractors = OrderedDict([
             (extractor, {
                 'id': extractor
-            }) for extractor in annotation_data['extractors'] or []])
+            }) for extractor in annotation_data['extractors'] or []
+            if extractor in extractors])
 
         return {
             'id': '{}|{}'.format(data['id'], data_id),
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
             'required': annotation_data['required'] or False,
+            'repeated': annotation_data.get('repeated', False),
             'selection_mode': data.get('selection_mode') or 'auto',
             'selector': data['selector'] or None,
             'xpath': data.get('xpath') or None,
@@ -651,6 +679,7 @@ class Annotation(BaseAnnotation):
             ('pre_text', data['pre_text']),
             ('reject_selectors', data['reject_selectors']),
             ('required', []),
+            ('repeated', data['repeated']),
             ('selection_mode', data['selection_mode']),
             ('selector', data['selector']),
             ('tagid', None),

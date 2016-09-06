@@ -1,5 +1,5 @@
 from .route import JsonApiModelRoute
-from ..orm.models import Project, Schema
+from portia_orm.models import Project, Schema
 
 
 class SchemaRoute(JsonApiModelRoute):

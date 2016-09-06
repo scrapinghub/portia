@@ -12,12 +12,12 @@ from twisted.web.http import RESPONSES, OK, CREATED, NO_CONTENT, CONFLICT
 from .response import (JsonApiResource, JsonApiErrorResponse,
                        JsonApiNotFoundResponse, JsonApiValidationErrorResponse)
 from ..errors import BadRequest, BaseError
-from ..jsonapi.serializers import JsonApiPolymorphicSerializer
-from ..jsonapi.registry import get_serializer
-from ..jsonapi.utils import type_from_model_name
-from ..orm.collection import ModelCollection
-from ..orm.exceptions import ProtectedError
-from ..orm.relationships import BelongsTo, HasMany
+from portia_api.jsonapi.serializers import JsonApiPolymorphicSerializer
+from portia_api.jsonapi.registry import get_schema
+from portia_api.jsonapi.utils import type_from_model_name
+from portia_orm.collection import ModelCollection
+from portia_orm.exceptions import ProtectedError
+from portia_orm.relationships import BelongsTo, HasMany
 
 
 class JsonApiRoute(object):
@@ -170,8 +170,8 @@ class JsonApiRoute(object):
                 instance=instance, data=data, many=many, **params)
 
         type_ = type_from_model_name(self.default_model.__name__)
-        return get_serializer(type_)(
-            instance=instance, data=data, many=many, **params)
+        return get_schema(type_)(instance=instance, data=data, many=many,
+                                 **params)
 
     def get_detail_kwargs(self):
         return {}

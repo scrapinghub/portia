@@ -1,7 +1,7 @@
 from .route import JsonApiModelRoute
 from .serializers import SampleSerializer
-from ..jsonapi.utils import cached_property
-from ..orm.models import Project, Sample
+from portia_orm.utils import cached_property
+from portia_orm.models import Project, Sample
 
 
 class SampleRoute(JsonApiModelRoute):

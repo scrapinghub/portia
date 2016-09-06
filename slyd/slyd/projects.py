@@ -1,19 +1,18 @@
 from __future__ import absolute_import
 import errno
 import json
-import os
 import re
 
 from os.path import join
 from twisted.internet.defer import Deferred
 from twisted.web.resource import NoResource
 from twisted.web.server import NOT_DONE_YET
-from .errors import BaseError, BaseHTTPError, BadRequest
-from .projecttemplates import templates
+from portia_api.errors import BaseError, BaseHTTPError, BadRequest
+from portia_api.utils.download import ProjectArchiver, CodeProjectArchiver
+
+from storage.backends import ContentFile, FsStorage
+from storage.projecttemplates import templates
 from .resource import SlydJsonObjectResource, SlydJsonErrorPage
-from .utils.copy import FileSystemSpiderCopier
-from .utils.download import ProjectArchiver, CodeProjectArchiver
-from .utils.storage import ContentFile, FsStorage
 
 
 # stick to alphanum . and _. Do not allow only .'s (so safe for FS path)
@@ -136,7 +135,6 @@ class ProjectsManager(object):
             'create': self.create_project,
             'mv': self.rename_project,
             'rm': self.remove_project,
-            'copy': self.copy_data,
             'download': self.download_project
         }
 
@@ -216,7 +214,7 @@ class FileSystemProjectsManager(ProjectsManager):
 
     def __init__(self, auth_info):
         super(FileSystemProjectsManager, self).__init__(auth_info)
-        self.storage = self.storage_class(self.base_dir)
+        self.storage = self.storage_class('')
         self.projectsdir = self.base_dir
 
     def all_projects(self):
@@ -229,10 +227,6 @@ class FileSystemProjectsManager(ProjectsManager):
 
     def project_filename(self, name):
         return join(self.projectsdir, name)
-
-    def copy_data(self, source, destination, spiders, items):
-        copier = FileSystemSpiderCopier(source, destination, self.projectsdir)
-        return json.dumps(copier.copy(spiders, items))
 
     def download_project(self, name, spiders=None, version=None, fmt=None,
                          **kwargs):

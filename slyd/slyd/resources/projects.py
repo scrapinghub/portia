@@ -8,7 +8,7 @@ from .models import ProjectSchema
 from .response import JsonApiResource, ProjectDownloadResponse
 from .route import JsonApiRoute, ListModelMixin, RetrieveModelMixin
 from ..errors import BadRequest, BaseError, NotFound
-from ..orm.models import Project
+from portia_orm.models import Project
 
 NOT_AVAILABLE_ERROR = 'This feature is not available for your project.'
 

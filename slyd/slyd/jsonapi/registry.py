@@ -1,4 +1,4 @@
-from slyd.orm.exceptions import ImproperlyConfigured
+from portia_orm.exceptions import ImproperlyConfigured
 
 
 __all__ = [

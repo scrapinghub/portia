@@ -101,8 +101,8 @@ class BasePortiaStorage(CommittingStorage, Storage):
 class FsStorage(BasePortiaStorage, FileSystemStorage):
     base_dir = settings.MEDIA_ROOT
 
-    def __init__(self, name, *args, **kwargs):
-        self.author = kwargs.pop('author', '')
+    def __init__(self, name, author=None, *args, **kwargs):
+        self.author = author
         super(FsStorage, self).__init__(name, *args, **kwargs)
         FileSystemStorage.__init__(self, os.path.join(
             self.base_dir, self.name))

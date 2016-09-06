@@ -4,7 +4,7 @@ from django.utils.text import camel_case_to_spaces
 from six import iteritems
 from six.moves import reduce
 
-from slyd.orm.utils import cached_property, cached_property_ignore_set
+from portia_orm.utils import cached_property, cached_property_ignore_set
 
 __all__ = [
     'cached_property',

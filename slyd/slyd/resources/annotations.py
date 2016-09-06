@@ -1,6 +1,6 @@
 from .route import JsonApiModelRoute
-from ..jsonapi.utils import cached_property
-from ..orm.models import Project, BaseAnnotation, Annotation
+from portia_orm.utils import cached_property
+from portia_orm.models import Project, BaseAnnotation, Annotation
 
 
 class AnnotationRoute(JsonApiModelRoute):
