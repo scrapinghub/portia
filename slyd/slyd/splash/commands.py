@@ -167,8 +167,7 @@ def extract(socket):
             'items': [],
             'links': {},
         }
-    c = ItemChecker(socket, socket.spiderspec.project,
-                    socket.spiderspec.name)
+    c = ItemChecker(socket, socket.spiderspec.project, socket.spiderspec.name)
     items, changes, changed_values, links = c.extract()
     return {'links': links, 'items': items, 'changes': changes,
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}

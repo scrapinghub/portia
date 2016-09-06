@@ -22,7 +22,10 @@ class JSONApiRenderer(JSONRenderer):
         response = renderer_context['response']
 
         content_type = self.media_type
-        profiles = data.get('links', {}).get('profile', [])
+        try:
+            profiles = data['links']['profile']
+        except KeyError:
+            profiles = []
         if profiles:
             content_type += '; profile="{}"'.format(' '.join(profiles))
         response['Content-Type'] = content_type

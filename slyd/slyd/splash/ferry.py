@@ -20,9 +20,9 @@ from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
-from slyd.gitstorage.projects import wrap_callback
-from slyd.gitstorage.repoman import Repoman
 from slyd.errors import BaseHTTPError
+
+from storage.repoman import Repoman
 
 from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
@@ -40,6 +40,12 @@ txaio.use_twisted()
 
 _DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 '
                        '(KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36')
+
+
+def wrap_callback(connection, callback, manager, retries=0, **parsed):
+    result = callback(**parsed)
+    manager.commit_changes()
+    return result
 
 
 def create_ferry_resource(spec_manager, factory):

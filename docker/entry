@@ -6,13 +6,14 @@ shift
 _run() {
   service nginx start
   _set_env
+  echo $PYTHONPATH
   /app/slyd/bin/slyd -p 9002 -r /app/portiaui/dist &
   /app/portia_server/manage.py runserver
 }
 
 _set_env() {
-  path='/app/portia_server:/app/portia/portia_server:/app/slyd:/app/portia/slyd:/app/portia/slybot'
-  export PYTHONPATH="$PYTHONPATH:$path"
+  path='/app/portia_server:/app/slyd:/app/slybot'
+  export PYTHONPATH="$path"
 }
 
 if [ -z "$action" ]; then

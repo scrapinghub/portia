@@ -55,10 +55,12 @@ def gen_id(disallow=None):
     return _id
 
 
-def port_sample(sample, schemas=None):
+def port_sample(sample, schemas=None, extractors=None):
     """Convert slybot samples made before slybot 0.13 to new format."""
     if schemas is None:
         schemas = {}
+    if extractors is None:
+        extractors = {}
     container_id = gen_id()
     default_annotations = [_create_container('body', container_id)]
     if not sample.get('annotated_body') and not sample.get('plugins'):
@@ -360,7 +362,7 @@ def _create_container(element, container_id, repeated=False, siblings=0,
     return data
 
 
-def _add_annotation_data(annotation, sample):
+def _add_annotation_data(annotation, sample, extractors):
     if 'data' in annotation:
         return annotation
     annotations = sample['plugins']['annotations-plugin']['extracts']
@@ -370,11 +372,13 @@ def _add_annotation_data(annotation, sample):
         if field == '#dummy':
             continue
         _id = gen_id(disallow=existing_ids)
+        extractors = [e for e in sample.get('extractors', {}).get(field, [])
+                      if e in extractors]
         annotation['data'][_id] = {
             'attribute': attribute,
             'field': field,
             'required': field in annotation.get('required', []),
-            'extractors': sample.get('extractors', {}).get(field, [])
+            'extractors': extractors
         }
     return annotation
 
@@ -429,7 +433,7 @@ def port_generated(generated_annotations, sel):
     return generated_annotations
 
 
-def port_standard(standard_annotations, sel, sample):
+def port_standard(standard_annotations, sel, sample, extractors):
     """Add accept selectors for existing annotations."""
     new_annotations = []
     for annotation in standard_annotations:
@@ -444,7 +448,7 @@ def port_standard(standard_annotations, sel, sample):
         annotation['accept_selectors'] = [selector]
         annotation['selector'] = selector
         annotation['reject_selectors'] = []
-        annotation = _add_annotation_data(annotation, sample)
+        annotation = _add_annotation_data(annotation, sample, extractors)
         for _id, data in annotation.get('data', {}).items():
             a = copy.deepcopy(annotation)
             a['id'] = gen_id()

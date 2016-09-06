@@ -1,5 +1,5 @@
 from .route import JsonApiModelRoute
-from ..orm.models import Project, Extractor
+from portia_orm.models import Project, Extractor
 
 
 class ExtractorRoute(JsonApiModelRoute):

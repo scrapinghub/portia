@@ -1,6 +1,6 @@
 import re
 
-from marshmallow import fields, validate
+from marshmallow import fields, Schema, validate
 from marshmallow.utils import get_value, missing
 from six import iteritems, itervalues
 
@@ -8,6 +8,7 @@ from .collection import ListDescriptor
 from .deletion import CASCADE, CLEAR, PROTECT
 from .exceptions import ImproperlyConfigured, ValidationError
 from .relationships import BelongsTo, HasMany
+from .validators import OneOf
 
 __all__ = [
     'Boolean',
@@ -20,6 +21,7 @@ __all__ = [
     'Url',
     'BelongsTo',
     'HasMany',
+    'StartUrl',
     'CASCADE',
     'CLEAR',
     'PROTECT',
@@ -223,3 +225,37 @@ class DependantField(Field):
 class List(fields.List, Field):
     def contribute_to_class(self, cls, attrname):
         setattr(cls, attrname, ListDescriptor(attrname=attrname))
+
+
+class Fragment(ValidatedField, Field):
+    class ValidType(ValidatedField.Validator):
+        default_message = u'The fragment type is not list, range or fixed'
+
+        def __call__(self, value):
+            if value['type'] in ['list', 'range', 'fixed']:
+                return value
+
+            self.fail(value)
+
+    class ValidValue(ValidatedField.Validator):
+        default_message = u"Invalid value for the given fragment type"
+        VALID_RANGE = '^\d+-\d+$'
+
+        def invalid_range(self, value):
+            invalid = not re.match(self.VALID_RANGE, value['value'])
+            return value['type'] == 'range' and invalid
+
+        def __call__(self, value):
+            if self.invalid_range(value):
+                self.fail(value)
+            return value
+
+    def __init__(self, *args, **kwargs):
+        super(Fragment, self).__init__(*args, **kwargs)
+        self.validators = [self.ValidType(), self.ValidValue()]
+
+
+class StartUrl(Schema):
+    url = String(default='', required=True)
+    type = String(validate=OneOf(['url', 'generated']), required=True)
+    fragments = List(Fragment)

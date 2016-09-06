@@ -2,11 +2,11 @@ from operator import attrgetter
 
 from six.moves import map
 
-from slyd.jsonapi.serializers import JsonApiSerializer
-from slyd.orm.base import AUTO_PK
-from slyd.orm.exceptions import ProtectedError
-from slyd.orm.models import (Project, Schema, Field, Extractor, Spider, Sample,
-                             Item, Annotation)
+from portia_api.jsonapi.serializers import JsonApiSerializer
+from portia_orm.base import AUTO_PK
+from portia_orm.exceptions import ProtectedError
+from portia_orm.models import (
+    Project, Schema, Field, Extractor, Spider, Sample, Item, Annotation)
 from slyd.resources.utils import sample_uses_js
 from slyd.utils.projects import unique_name
 

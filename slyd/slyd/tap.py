@@ -42,6 +42,7 @@ def create_root(config, settings_module):
     from scrapy.settings import Settings
     from .specmanager import SpecManager
     from .authmanager import AuthManager
+    SpecManager.configure_django_settings()
     from .projectspec import create_project_resource
     from slyd.api import APIResource
     from slyd.bot import create_bot_resource
