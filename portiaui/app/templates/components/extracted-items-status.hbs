@@ -1,0 +1,14 @@
+{{#link-to 'projects.project.spider.options' bubbles=false}}
+    {{#help-icon icon=icon placement='left'}}
+        {{#if hasWarning}}
+            {{#if (eq type 'js')}}
+                Javascript is enabled for this sample and may not be needed.
+                Your spider may run faster if Javascript is not run on pages like this
+            {{else}}
+                Javascript is not enabled for this sample. It may extract more accurate data if it is enabled
+            {{/if}}
+        {{else}}
+            Your sample is correctly configured for extraction
+        {{/if}}
+    {{/help-icon}}
+{{/link-to}}

@@ -9,10 +9,10 @@ export default Ember.Component.extend({
     actions: {
         clear() {
             this.set('value', '');
-            this.attrs.clear()
+            this.get('clear')();
         },
 
-        keyUp(value) {
+        keyUp() {
             this.update(this.get('value'));
         }
     }

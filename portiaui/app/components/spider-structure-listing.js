@@ -10,6 +10,7 @@ export default Ember.Component.extend({
 
     project: null,
     spider: null,
+    newStartUrl: null,
 
     canAddSample: computedCanAddSample('spider'),
     currentSample: Ember.computed.readOnly('uiState.models.sample'),
@@ -19,21 +20,47 @@ export default Ember.Component.extend({
         this.set('newUrl', false);
     },
 
+    getNewStartUrl(newUrl) {
+        let newStartUrl = '';
+        if (newUrl) {
+            const spider = this.get('spider');
+            newStartUrl = this.get('dispatcher').addStartUrl(spider, newUrl);
+        }
+        return newStartUrl;
+    },
+
+    getNewUrl() {
+        let newUrl = this.get('browser.url') || '';
+        const urls = this.get('spider.startUrls').mapBy('url');
+        if (newUrl && urls.includes(newUrl)) {
+            newUrl = '';
+        }
+        return newUrl;
+    },
+
     actions: {
         addStartUrl() {
-            const spider = this.get('spider');
-            let newUrl = this.get('browser.url') || '';
-            const urls = spider.get('startUrls');
-            if (newUrl && urls.includes(newUrl)) {
-                newUrl = '';
-            }
-            if (newUrl) {
-                this.get('dispatcher').addStartUrl(spider, newUrl);
-            }
+            this.get('closeOptions')();
+
+            const newUrl = this.getNewUrl();
+
             this.setProperties({
                 newUrl: true,
-                urlValue: newUrl
+                urlValue: newUrl,
+                newStartUrl: this.getNewStartUrl(newUrl)
             });
+        },
+
+        addGenerationUrl() {
+            const spider = this.get('spider');
+            let newUrl = this.get('browser.url') || '';
+            let newStartUrl = this.get('dispatcher').addGeneratedUrl(spider, newUrl);
+            this.get('transitionToFragments')(spider.get('startUrls').indexOf(newStartUrl));
+        },
+
+        removeStartUrl(startUrl) {
+            this.get('dispatcher').removeStartUrl(this.get('spider'), startUrl);
+            this.get('closeOptions')();
         },
 
         addSample() {

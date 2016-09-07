@@ -31,6 +31,7 @@
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item}}
                 {{#link-to 'projects.project' project}}
+                    {{indentation-spacer}}
                     {{list-item-icon icon='project'}}
                     {{#list-item-text}}
                         {{project.name}}

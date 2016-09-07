@@ -1,2 +1,7 @@
-{{spider-structure-listing project=model.project spider=model}}
+{{spider-structure-listing
+  project=model.project
+  spider=model
+  closeOptions=(route-action 'closeOptions')
+  transitionToFragments=(route-action 'transitionToFragments')
+}}
 {{outlet 'spider-structure'}}

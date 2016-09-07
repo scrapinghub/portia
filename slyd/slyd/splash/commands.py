@@ -1,81 +1,65 @@
-from __future__ import absolute_import
+import contextlib
 import hashlib
 import json
 import logging
 import re
 import socket as _socket
-import six.moves.urllib_parse as urlparse
-import traceback
-import chardet
-import six
-import itertools
-from monotonic import monotonic
 
+from six.moves.urllib.parse import urlparse
+
+from django.utils.functional import cached_property
+
+from scrapy import Request
 from scrapy.settings import Settings
-
-import slyd.splash.utils
-
-from twisted.python import log
-from jsonschema.exceptions import ValidationError
-
 from splash.browser_tab import JsError
+from splash.har.qt import cookies2har
 
-from slyd.utils.projects import ProjectModifier
 from slyd.resources.utils import _load_sample
 from slybot.plugins.scrapely_annotations.builder import Annotations
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
-from .utils import open_tab, extract_data, BaseWSError, BadRequest, NotFound
-
-
+from .utils import (open_tab, extract_data, _get_viewport, _decode, _load_res)
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
+_SETTINGS = Settings()
+_SETTINGS.set('SPLASH_URL', 'http://splash')
+
+
+def cookies(socket):
+    cookies_list = socket.tab.network_manager.cookiejar.allCookies()
+    message = {
+        '_command': 'cookies',
+        'cookies': cookies2har(cookies_list)
+    }
+    socket.sendMessage(message)
 
 
 def save_html(data, socket):
+    c = ItemChecker(socket, data['project'], data['spider'],
+                    data['sample'])
     manager = socket.manager
     path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
     sample = _load_sample(manager, *path)
-    stated_encoding = socket.tab.evaljs('document.characterSet')
-    try:
-        sample['original_body'] = _decode(socket.tab.network_manager._raw_html,
-                                          stated_encoding)
-        # XXX: Some pages only show a 301 page. Load the browser html instead
-        assert len(sample['original_body']) > 500
-    except (AttributeError, AssertionError):
-        sample['original_body'] = socket.tab.html()
+    if sample.get('rendered_body') and not data.get('update'):
+        return
+    if 'use_live' not in data:
+        data['use_live'] = c.using_js
+    if data.get('use_live'):
+        sample['body'] = 'rendered_body'
+    else:
+        sample['body'] = 'original_body'
+    sample['rendered_body'] = c.html
+    sample['original_body'] = c.raw_html
     _update_sample(data, socket, sample, save=True)
 
 
 def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
-    if not socket.tab:
-        return {}
-    url = socket.tab.evaljs('location.href')
-    html = socket.tab.html()
-    if (socket.spiderspec is None or
-            (data['spider'] and socket.spiderspec.name != data['spider'])):
-        result = socket.open_spider(data)
-        if result and result.get('error'):
-            return {}
-    sample_names = socket.spiderspec.templates
-    annotations = socket.spider.plugins['Annotations']
-    sid = data.get('sample')
-    if sid:
-        sample_names = [_update_sample(data, socket, use_live=True)]
-        spider = {k: sample_names if k == 'templates' else v
-                  for k, v in socket.spiderspec.spider.items()}
-        items, extractors = _load_items_and_extractors(data, socket)
-        extraction = BotAnnotations()
-        extraction.setup_bot(Settings(), spider, items, extractors,
-                             _SPIDER_LOG)
-        socket.spider.plugins['Annotations'] = extraction
-    items, links = extract_data(url, html, socket.spider, sample_names)
-    if not items:
-        items, links = extract_data(url, socket.tab.network_manager._raw_html,
-                                    socket.spider, sample_names)
-    socket.spider.plugins['Annotations'] = annotations
-    items = _process_items(items)
-    return {'links': links, 'items': items}
+    c = ItemChecker(socket, data['project'], data['spider'],
+                    data.get('sample'))
+    # TODO: add option for user to view raw and js items in UI from WS
+    items, changes, changed_values, links = c.extract()
+    return {'links': links, 'items': items, 'changes': changes,
+            'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
 def _update_sample(data, socket, sample=None, save=False, use_live=False):
@@ -83,58 +67,25 @@ def _update_sample(data, socket, sample=None, save=False, use_live=False):
     spec = socket.manager
     if sample is None:
         sample = spec.resource('spiders', data['spider'], data['sample'])
-    # TODO: Handle js enabled
     if use_live:
         try:
             sample['original_body'] = socket.tab.html()
         except (TypeError, ValueError):
             pass
-    try:
-        Annotations().save_extraction_data(
-            sample['plugins']['annotations-plugin'], sample,
-            options={'body': 'original_body'})
-    except (StopIteration, KeyError):
-        sample['annotated_body'] = sample.get('original_body', u'')
     if save:
         spec.savejson(sample, ['spiders', data['spider'], data['sample']])
     return sample
 
 
 def update_spider(data, socket, spider=None):
-    if not socket.spider:
+    if not socket.spiderspec:
         return
     spec = socket.manager
     if spider is None:
         spider = spec.resource('spiders', data['spider'])
+    socket.spider._configure_js(spider, _SETTINGS)
     socket.spider.plugins['Annotations'].build_url_filter(spider)
     return extract(socket)
-
-
-def _load_items_and_extractors(data, socket):
-    spec = socket.manager
-    try:
-        items = spec.resource('items')
-    except IOError:
-        items = {}
-    try:
-        extractors = spec.resource('extractors')
-    except IOError:
-        extractors = {}
-    return items, extractors
-
-
-def _decode(html, default=None):
-    if default is None:
-        default = []
-    elif isinstance(default, six.string_types):
-        default = [default]
-    for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
-        try:
-            return html.decode(encoding)
-        except UnicodeDecodeError:
-            pass
-    encoding = chardet.detect(html).get('encoding')
-    return html.decode(encoding)
 
 
 @open_tab
@@ -154,6 +105,7 @@ def load_page(data, socket):
         else:
             socket.tab.loaded = True
         socket.sendMessage(metadata(socket, extra_meta))
+        cookies(socket)
 
     # Specify the user agent directly in the headers
     # Workaround for https://github.com/scrapinghub/splash/issues/290
@@ -176,13 +128,14 @@ def interact_page(data, socket):
         socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
     except JsError as e:
         print(e)
+    cookies(socket)
 
 
 def resolve(data, socket):
     result = {'id': data.get('_meta', {}).get('id')}
     try:
         url = data['url']
-        parsed = urlparse.urlparse(url)
+        parsed = urlparse(url)
         port = 443 if parsed.scheme == 'https' else 80
         _socket.getaddrinfo(parsed.hostname, port)
     except KeyError:
@@ -194,75 +147,37 @@ def resolve(data, socket):
 
 def metadata(socket, extra={}):
     if not socket.tab:
-        return {
-            '_command': 'metadata',
-            'loaded': False
-        }
-    res = {
-        '_command': 'metadata',
-        'loaded': socket.tab.loaded
-    }
+        return {'_command': 'metadata', 'loaded': False}
+    res = {'_command': 'metadata', 'loaded': socket.tab.loaded}
     if socket.tab.loaded:
-        # Workarround for https://github.com/scrapinghub/splash/issues/259
-        url = socket.tab.evaljs('location.href')
-        res.update(
-            url=url,
-            fp=hashlib.sha1(url.encode('utf8')).hexdigest(),
-            response={
-                'headers': {},  # TODO: Get headers
-                'status': socket.tab.last_http_status()
-            }
-        )
-        if socket.spiderspec:
-            res.update(extract(socket))
+        url = socket.tab.url
+        response = {'headers': {},  # TODO: Get headers
+                    'status': socket.tab.last_http_status()}
+        res.update(url=url, fp=hashlib.sha1(url.encode('utf8')).hexdigest(),
+                   response=response)
+        res.update(extract(socket))
     res.update(extra)
     return res
 
 
 def extract(socket):
     """Run spider on page URL to get extracted links and items"""
-    if socket.tab is None or not socket.tab.loaded:
+    if socket.tab is None or not socket.tab.loaded or not socket.spider:
         return {
             'items': [],
             'links': {},
         }
-    templates = socket.spiderspec.templates
-    # Workarround for https://github.com/scrapinghub/splash/issues/259
-    url = socket.tab.evaljs('location.href')
-    html = socket.tab.html()
-    js_items, js_links = extract_data(url, html, socket.spider, templates)
-    raw_html = socket.tab.network_manager._raw_html
-    if raw_html:
-        raw_items, links = extract_data(url, raw_html, socket.spider,
-                                        templates)
-    else:
-        raw_items = []
-        links = []
-    raw = {l: 'raw' for l in links}
-    js = {l: 'js' for l in js_links}
-    js.update(raw)
-    items = js_items
-    if not (socket.spider.js_enabled and socket.spider._filter_js_urls(url)):
-        items = raw_items
-    return {
-        'items': items,
-        'links': js,
-    }
-
-
-def pause(data, socket):
-    socket.spent_time += monotonic() - socket.start_time
-
-
-def resume(data, socket):
-    socket.start_time = monotonic()
+    c = ItemChecker(socket, socket.spiderspec.project,
+                    socket.spiderspec.name)
+    items, changes, changed_values, links = c.extract()
+    return {'links': links, 'items': items, 'changes': changes,
+            'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
 def resize(data, socket):
     """Resize virtual tab viewport to match user's viewport"""
     try:
-        if 'size' in data and _VIEWPORT_RE.search(data['size']):
-            socket.tab.set_viewport(data['size'])
+        socket.tab.set_viewport(_get_viewport(data['size']))
     except (KeyError, AttributeError):
         pass  # Tab isn't open. The size will be set when opened
 
@@ -272,174 +187,6 @@ def close_tab(data, socket):
     if socket.tab is not None:
         socket.tab.close()
         socket.factory[socket].tab = None
-
-_valid_params = {
-    "suggestions.title": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
-    "suggestions.image": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
-    "suggestions.microdata": ('accepted', 'rejected', 'accepted_all', 'rejected_all'),
-    "suggestions.all": ('accepted', 'rejected'),
-}
-def log_event(data, socket):
-    event = data.get('event')
-    param = data.get('param')
-
-    if event not in _valid_params or param not in _valid_params[event]:
-        return
-
-    msg_data = {'session': socket.session_id,
-                'session_time': 0,
-                'user': socket.user.name,
-                'command': '%s.%s' % (event, param)}
-    msg = (u'Stat: id=%(session)s t=%(session_time)s '
-           u'user=%(user)s command=%(command)s' % (msg_data))
-    log.err(msg)
-
-
-class ProjectData(ProjectModifier):
-    errors = slyd.splash.utils
-
-    def save_spider(self, data, socket):
-        spider, meta = data.get('spider'), data.get('_meta')
-        return self.save_data(['spiders', meta.get('spider')], 'spider',
-                              data=spider, socket=socket, meta=meta)
-
-    def save_template(self, data, socket):
-        sample, meta = data.get('template'), data.get('_meta')
-        path = ['spiders', meta.get('spider'), sample.get('name')]
-        creating = sample.pop('_new', False)
-        if creating:
-            if socket.spider is None:
-                socket.open_spider(meta)
-            uses_js = bool(socket.spider._filter_js_urls(sample['url']))
-            if uses_js:
-                sample['original_body'] = socket.tab.html()
-            else:
-                stated_encoding = socket.tab.evaljs('document.characterSet')
-                sample['original_body'] = self._decode(socket.tab.network_manager._raw_html,
-                                                       stated_encoding)
-        obj = self.save_data(path, 'template', data=sample, socket=socket,
-                             meta=meta)
-        if creating and obj:
-            obj['_uses_js'] = uses_js
-
-        return obj
-
-    def save_extractors(self, data, socket):
-        extractors, meta = data.get('extractors'), data.get('_meta')
-        return self.save_data(['extractors'], data=extractors, socket=socket,
-                              meta=meta)
-
-    def save_items(self, data, socket):
-        items, meta = data.get('items'), data.pop('_meta', None)
-        return self.save_data(['items'], data=items, socket=socket, meta=meta)
-
-    def save_data(self, path, type=None, data=None, socket=None, meta=None):
-        if type is None:
-            type = path[0]
-        if any(v is None for v in (data, meta, socket)):
-            raise BadRequest('No data provided')
-        spec = socket.manager
-        try:
-            obj = self.verify_data(path, data, spec)
-        except (KeyError, IndexError) as ex:
-            raise NotFound('"%s.json" could not be found' % '/'.join(path))
-        except ValidationError as ex:
-            print(('Not Valid: %s' % ex))
-            raise BadRequest(str(ex))
-        except BaseWSError as ex:
-            print(('Other: %s' % ex))
-            raise ex
-        else:
-            spec.savejson(obj, [s.encode('utf-8') for s in path])
-            socket.update_spider(meta, **{type: obj})
-            return obj
-
-    def _decode(self, html, default=None):
-        if default is None:
-            default = []
-        elif isinstance(default, six.string_types):
-            default = [default]
-        for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
-            try:
-                return html.decode(encoding)
-            except UnicodeDecodeError:
-                pass
-        encoding = chardet.detect(html).get('encoding')
-        return html.decode(encoding)
-
-
-def update_project_data(data, socket):
-    try:
-        updater = ProjectData()
-        meta = data['_meta'] or {}
-        option = meta.get('type', '')
-        command = getattr(updater, 'save_%s' % option)
-    except KeyError:
-        raise BadRequest('No metadata received')
-    except AttributeError:
-        raise BadRequest('Unknown option "%s" received' % option)
-    else:
-        resp = {'saved': {option: command(data, socket)}}
-    _id = meta.get('id')
-    if _id:
-        resp['id'] = _id
-    resp.update(extract(socket))
-    return resp
-
-
-def delete_project_data(data, socket):
-    """Use project and spider metadata along with a resource name to delete
-    spiders and templates
-    """
-    try:
-        meta = data['_meta']
-        spec = socket.manager
-        option = meta.get('type', '')
-        command = getattr(spec, 'remove_%s' % option)
-        spider = meta['spider'].encode('utf-8')
-        name = data.get('name').encode('utf-8')
-    except KeyError:
-        raise BadRequest('No or incorrect metadata received')
-    except AttributeError:
-        raise BadRequest('Unknown option "%s" received' % option)
-    else:
-        if option == 'spider':
-            command(spider)
-        else:
-            command(spider, name)
-            if socket.spiderspec:
-                socket.open_spider(meta)
-    resp = {'id': meta.get('id')}
-    resp.update(extract(socket))
-    return resp
-
-
-def rename_project_data(data, socket):
-    """Use project and spider metadata along with old and new names to rename
-    spiders and templates
-    """
-    try:
-        meta = data['_meta']
-        spec = socket.manager
-        option = meta.get('type', '')
-        command = getattr(spec, 'rename_%s' % option)
-        spider = meta['spider'].encode('utf-8')
-        old = data['old'].encode('utf-8')
-        new = data['new'].encode('utf-8')
-    except KeyError:
-        raise BadRequest('No or incorrect metadata received')
-    except AttributeError:
-        raise BadRequest('Unknown option "%s" received' % option)
-    else:
-        if option == 'spider':
-            command(old, new)
-            if socket.spiderspec:
-                socket.spiderspec.name = new
-        else:
-            command(spider, old, new)
-            if socket.spiderspec:
-                socket.open_spider(meta)
-    return {'id': meta.get('id')}
 
 
 def _process_items(items):
@@ -453,5 +200,135 @@ def _process_items(items):
                     else value
             items[i] = new
         elif isinstance(item, list):
-            items[i] = _process_items(value)
+            items[i] = _process_items(item)
     return items
+
+
+@contextlib.contextmanager
+def _restore(spider):
+    annotations = spider.plugins['Annotations']
+    yield
+    spider.plugins['Annotations'] = annotations
+
+
+def _compare_items(a, b):
+    change, changes = set(), []
+    lena, lenb = len(a), len(b)
+    if lenb > lena:
+        change = {'missing_items'}
+    for aitem, bitem in zip(a, b):
+        item_changes = {}
+        if aitem == bitem:
+            continue
+        afields, bfields = set(aitem.keys()), set(bitem.keys())
+        b_not_a = bfields ^ afields
+        if b_not_a:
+            change.add('missing_fields')
+            item_changes.update({k: None for k in b_not_a})
+        for field in afields:
+            afield, bfield = aitem.get(field), bitem.get(field)
+            if afield == bfield:
+                continue
+            item_changes.update({field: (afield, bfield)})
+        changes.append(item_changes)
+    return list(change), changes
+
+
+class ItemChecker(object):
+    def __init__(self, socket, project, spider=None, sample=None):
+        self.socket = socket
+        self.project = project
+        self.spider = spider
+        self.sample = sample
+        if (self.spider and (not self.socket.spider or
+                             self.socket.spiderspec.name != spider)):
+            self.socket.open_spider({'project': self.project,
+                                     'spider': self.spider})
+
+    @property
+    def raw_html(self):
+        stated_encoding = self.socket.tab.evaljs('document.characterSet')
+        try:
+            raw_html = _decode(
+                self.socket.tab.network_manager._raw_html, stated_encoding)
+            # XXX: Some pages only show a 301 page. Load the browser html
+            assert len(raw_html) > 500
+        except (AttributeError, TypeError, AssertionError):
+            raw_html = self.html
+        return raw_html
+
+    @cached_property
+    def html(self):
+        return self.socket.tab.html()
+
+    @cached_property
+    def url(self):
+        return self.socket.tab.evaljs('location.href')
+
+    @cached_property
+    def using_js(self):
+        add_splash_meta = self.socket.spider._add_splash_meta
+        url = self.url
+        return 'splash' in add_splash_meta(Request(url)).meta
+
+    @cached_property
+    def schemas(self):
+        return _load_res(self.socket, 'items')
+
+    @cached_property
+    def extractors(self):
+        return _load_res(self.socket, 'extractors')
+
+    def data(self):
+        return {
+            'project': self.project,
+            'spider': self.spider,
+            'sample': self.sample
+        }
+
+    def extract(self):
+        check = self._check_items_with_sample if self.sample else \
+            self._check_items
+        return check()
+
+    def _load_items(self, body_field='original_body', live=False):
+        socket, raw_html, html = self.socket, self.raw_html, self.html
+        schemas, extractors, url = self.schemas, self.extractors, self.url
+        spider = socket.spiderspec.spider.copy()
+        spider['body'] = body_field
+        if self.sample:
+            samples = [_update_sample(self.data(), socket, use_live=live)]
+        else:
+            samples = socket.spiderspec.templates
+        spider['templates'] = samples
+        extraction = BotAnnotations()
+        extraction.setup_bot(_SETTINGS, spider, schemas, extractors,
+                             _SPIDER_LOG)
+        self.socket.spider.plugins['Annotations'] = extraction
+        live_items, js_links = extract_data(url, html, socket.spider, samples)
+        raw_items, links = extract_data(url, raw_html, socket.spider, samples)
+        return live_items, raw_items, links, js_links
+
+    def _check_items(self):
+        js_live_items, js_raw_items, links, js_links = self._load_items(
+            'rendered_body', True)
+        live_items, raw_items, _, _ = self._load_items()
+        raw_links = {l: 'raw' for l in links}
+        links = {l: 'js' for l in js_links}
+        links.update(raw_links)
+        # Decide which items to use
+        if self.using_js:
+            changes, changed_values = _compare_items(js_live_items, raw_items)
+            items = js_live_items
+            if items and not raw_items:
+                changes.append('no_items')
+        else:
+            changes, changed_values = _compare_items(raw_items, js_raw_items)
+            changes.extend(_compare_items(live_items, js_live_items)[0])
+            items = raw_items if raw_items else live_items
+        items = _process_items(items)
+        return items, changes, changed_values, links
+
+    def _check_items_with_sample(self):
+        with _restore(self.socket.spider):
+            return self._check_items()

@@ -6,7 +6,7 @@ import argparse
 
 
 DEFAULT_PORTIA_PORT = 9001
-DEFAULT_PORTIA_ROOT = './dist'
+DEFAULT_PORTIA_ROOT = '../portiaui/dist'
 splash.defaults.SPLASH_PORT = DEFAULT_PORTIA_PORT
 
 def parse_args():

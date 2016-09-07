@@ -1,7 +1,8 @@
 {{#tree-list-item as |options|}}
     {{#link-to 'projects.project.spider' spider (query-params url=url baseurl=null) active=false}}
+        {{indentation-spacer}}
         {{list-item-icon icon='url'}}
         {{list-item-editable value=(mut viewUrl) editing=(mut urlAdded) spellcheck=false}}
-        {{list-item-icon icon='remove' action=(action 'removeStartUrl') bubbles=false}}
+        {{list-item-icon icon='remove' action=(action removeStartUrl) bubbles=false}}
     {{/link-to}}
 {{/tree-list-item}}

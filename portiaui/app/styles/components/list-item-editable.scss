@@ -6,13 +6,6 @@
     flex: 1 1 auto;
     min-width: 0;
 
-    .list-item-icon + &,
-    .list-item-badge + &,
-    .list-item-selectable + &,
-    & + & {
-        margin-left: $space-width;
-    }
-
     > span {
         flex: 0 1 auto;
         white-space: nowrap;

@@ -1,5 +1,5 @@
 {
-  "name": "portia-web",
+  "name": "portia-ui",
   "ignore": [
     "*",
     "!bower.json"
@@ -20,7 +20,8 @@
     "fetch": "~0.10.1",
     "es6-promise": "~3.0.2",
     "uri-templates": "~0.1.9",
-    "css-escape": "~1.5.0"
+    "css-escape": "~1.5.0",
+    "animation-frame": "~0.2.4"
   },
   "private": true
 }

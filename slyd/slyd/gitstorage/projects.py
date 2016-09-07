@@ -1,6 +1,9 @@
 import json
+import re
 
 from os.path import splitext, split, exists
+
+from dulwich.errors import ObjectMissing
 
 from slyd.projects import ProjectsManager
 from slyd.errors import BadRequest
@@ -8,6 +11,7 @@ from slyd.utils.copy import GitSpiderCopier
 from slyd.utils.download import ProjectArchiver, CodeProjectArchiver
 from slyd.utils.storage import ContentFile, GitStorage
 from .repoman import Repoman
+_SHA = re.compile('[a-f0-9]{7,40}')
 
 
 def wrap_callback(connection, callback, manager, retries=0, **parsed):
@@ -53,11 +57,29 @@ class GitProjectMixin(object):
             repo = self._init_or_open_project(name)
         if repo.has_branch(self.user):
             return self.user, repo
-        elif not read_only:
+        elif not read_only and self.user:
             repo.create_branch(self.user, repo.get_branch('master'))
             return self.user, repo
         else:
             return 'master', repo
+
+    def _checkout_commit_or_head(self, name=None, commit_id=None,
+                                 branch='master'):
+        branch_name, repo = self._get_branch_and_repo(
+            read_only=True, name=name)
+        commit = None
+        try:
+            if commit_id:
+                commit = repo._repo.get_object(commit_id)
+            elif branch:
+                branch_name = branch
+                commit_id = repo.refs['refs/heads/%s' % branch_name]
+                commit = repo._repo.get_object(commit_id)
+        except (ValueError, ObjectMissing) as e:
+            raise BadRequest(str(e))
+        except KeyError as e:
+            raise BadRequest('Could not find ref: %s' % e)
+        self.storage = self.storage_class(repo, branch_name, commit=commit)
 
     def _get_branch(self, repo=None, read_only=False, name=None):
         return self._get_branch_and_repo(repo, read_only, name)[0]
@@ -183,8 +205,15 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         copier = GitSpiderCopier(source, destination, branch)
         return json.dumps(copier.copy(spiders, items))
 
-    def download_project(self, name, spiders=None, version=None, fmt=None):
-        self._open_repo(name, read_only=True)
+    def download_project(self, name, spiders=None, version=None, fmt=None,
+                         branch=None, **kwargs):
+        if branch or version and _SHA.match(version):
+            try:
+                self._checkout_commit_or_head(name, version, branch)
+            except (ValueError, ObjectMissing, KeyError) as e:
+                raise BadRequest(str(e))
+        else:
+            self._open_repo(name, read_only=True)
         if (self.auth_info.get('staff') or
                 ('authorized_projects' in self.auth_info and
                  name in self.auth_info['authorized_projects'])):

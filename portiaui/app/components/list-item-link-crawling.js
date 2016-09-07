@@ -1,6 +1,7 @@
 import Ember from 'ember';
+import SaveSpiderMixin from '../mixins/save-spider-mixin';
 
-export default Ember.Component.extend({
+export default Ember.Component.extend(SaveSpiderMixin, {
     routing: Ember.inject.service('-routing'),
     tagName: '',
 
@@ -38,7 +39,7 @@ export default Ember.Component.extend({
 
     actions: {
         saveSpider() {
-            this.get('spider').save().then(() => {
+            this.saveSpider().then(() => {
                 if (this.get('linksToFollow.value') === 'patterns') {
                     this.get('routing').transitionTo('projects.project.spider.link-options');
                 } else if (this.get('linksToFollow.value') === 'none' &&

@@ -31,9 +31,13 @@
     background-color: $panel-bg;
 
     > .nav-tabs {
+        i {
+            padding: 10px 3px;
+        }
         border-color: $navbar-default-border;
 
         > li {
+
             > a {
                 margin-top: -1px;
 

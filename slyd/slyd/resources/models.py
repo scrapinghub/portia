@@ -132,11 +132,10 @@ class FieldSchema(SlydSchema):
     class Meta:
         type_ = 'fields'
 
-
 class SpiderSchema(SlydSchema):
     id = fields.Str(dump_only=True, load_from='name')
     name = fields.Str(load_from='id')
-    start_urls = fields.List(fields.Str(), default=[])
+    start_urls = fields.Raw()
     links_to_follow = fields.Str(default='patterns')
     follow_patterns = fields.List(fields.Str(), default=[])
     exclude_patterns = fields.List(fields.Str(), default=[])
@@ -201,6 +200,8 @@ class SampleSchema(SlydSchema):
     extractors = fields.Dict(default={})
     original_body = fields.Str(default='')
     annotated_body = fields.Str(default='')
+    rendered_body = fields.Str(default='')
+    body = fields.Str(default='original_body')
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
@@ -248,6 +249,7 @@ class BaseAnnotationSchema(SlydSchema):
     attribute = fields.Str(required=True)
     accept_selectors = fields.List(fields.Str(), default=[])
     reject_selectors = fields.List(fields.Str(), default=[])
+    repeated = fields.Boolean(default=False)
     tagid = fields.Integer(required=True)
     text_content = fields.Str()
     selector = fields.Str()
@@ -322,7 +324,6 @@ class AnnotationSchema(BaseAnnotationSchema):
 class ItemAnnotationSchema(BaseAnnotationSchema):
     item_container = fields.Boolean(default=True)
     container_id = fields.Str()
-    repeated = fields.Boolean()
     repeated_container_id = fields.Str(dump_only=True)
     repeated_accept_selectors = fields.Str(dump_only=True)
     siblings = fields.Integer()

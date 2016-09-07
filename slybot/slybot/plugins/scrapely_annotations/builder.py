@@ -254,7 +254,7 @@ def _filter_annotations(annotations):
     selector, tagid = [], []
     for ann in annotations:
         if ann:
-            if ann.get('selector') or ann.get('accept_selectors'):
+            if ann.get('selector'):
                 selector.append(ann)
             elif ann.get('tagid') and (ann.get('annotations') or
                                        ann.get('ignore')):
@@ -264,7 +264,7 @@ def _filter_annotations(annotations):
 
 def _merge_annotations_by_selector(annotations):
     def grouper(x):
-        return x.get('selector', x.get('accept_selectors', [None])[0])
+        return x.get('selector')
     annotations.sort(key=grouper)
     new_annotations = []
     for sel, annos in groupby(annotations, key=grouper):
@@ -294,51 +294,71 @@ def apply_selector_annotations(annotations, target_page):
     page = Selector(text=target_page)
     converted_annotations = []
     annotations = _merge_annotations_by_selector(annotations)
+    tagid_selector_map = {}
+    added_repeated = {}
+    containers = {}
     for annotation in annotations:
-        if not annotation.get('selector'):
-            accepted_elements = set(
-                chain(*[[elem._root for elem in page.css(sel)]
-                        for sel in annotation.get('accept_selectors', [])
-                        if sel])
-            )
-            rejected_elements = set(
-                chain(*[[elem._root for elem in page.css(sel)]
-                        for sel in annotation.get('reject_selectors', [])
-                        if sel])
-            )
-            elems = accepted_elements - rejected_elements
-        else:
-            elems = [elem._root for elem in page.css(annotation['selector'])]
-        if not elems:
-            continue
-
-        tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
-        tagid = min(tagids)
+        if annotation.get('item_container'):
+            containers[annotation['id']] = annotation
+        selector = annotation.get('selector')
+        tagid, elems = tagid_for_annotation(annotation, page)
         if tagid is not None:
             annotation['tagid'] = tagid
+            if selector:
+                tagid_selector_map[tagid] = selector
             converted_annotations.append(annotation)
 
         # Create container for repeated field annotation
         if (annotation.get('repeated') and
                 not annotation.get('item_container') and
                 len(annotation.get('annotations')) == 1):
-            parent = _get_parent(elems, page)
-            field = annotation['annotations'].values()[0][0]['field']
-            container_id = '%s#parent' % annotation['id']
-            if len(parent):
-                converted_annotations.append({
-                    'item_container': True,
-                    'id': container_id,
-                    'annotations': {'#portia-content': '#dummy'},
-                    'text-content': '#portia-content',
-                    'container_id': annotation['container_id'],
-                    'field': field,
-                    'tagid': parent.attrib.get('data-tagid')
-                })
-                annotation['item_container'] = True
-                annotation['field'] = field
-                annotation['container_id'] = container_id
+            repeated_parent = add_repeated_field(annotation, elems, page)
+            if repeated_parent:
+                converted_annotations.append(repeated_parent)
+                container_id = repeated_parent['container_id']
+                added_repeated[container_id] = repeated_parent
+    if added_repeated:
+        for container_id, child in added_repeated.items():
+            container = containers[container_id]
+            if container['tagid'] != child['tagid']:
+                continue
+            _, elems = tagid_for_annotation(container, page)
+            parent = elems[0].getparent()
+            container['tagid'] = int(parent.attrib.get('data-tagid', 1e9))
     return converted_annotations
+
+
+def tagid_for_annotation(annotation, page):
+    selector = annotation.get('selector')
+    if not selector:
+        return None, None
+    elems = [elem._root for elem in page.css(selector)]
+    if not elems:
+        return None, None
+
+    tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
+    return min(tagids), elems
+
+
+def add_repeated_field(annotation, elems, page):
+    parent = _get_parent(elems, page)
+    field = annotation['annotations'].values()[0][0]['field']
+    container_id = '%s#parent' % annotation['id']
+    if len(parent):
+        tagid = int(parent.attrib.get('data-tagid', 1e9))
+        parent_annotation = {
+            'item_container': True,
+            'id': container_id,
+            'annotations': {'#portia-content': '#dummy'},
+            'text-content': '#portia-content',
+            'container_id': annotation['container_id'],
+            'field': field,
+            'tagid': tagid
+        }
+        annotation['item_container'] = True
+        annotation['field'] = field
+        annotation['container_id'] = container_id
+        return parent_annotation
 
 
 def apply_annotations(annotations, target_page):

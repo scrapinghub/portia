@@ -176,3 +176,284 @@ class StartUrlCollectionTest(TestCase):
         ]
         collection_domains = StartUrlCollection(start_urls, self.generators).allowed_domains
         self.assertEqual(collection_domains, [])
+
+    def test_normalize_string_url(self):
+        legacy = ['https://github.com/scrapinghub']
+        normalized = [{
+            'url': 'https://github.com/scrapinghub',
+            'type': 'url',
+        }]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(legacy[0], normalized[0]['url'])
+        self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_normalize_start_url(self):
+        start_urls = [{
+            'url': 'https://github.com/scrapinghub',
+            'type': 'fixed',
+        }]
+        collection = StartUrlCollection(start_urls, self.generators)
+
+        self.assertEqual(list(collection.normalize()), start_urls)
+
+    def test_normalize_generated_options(self):
+        legacy = [{
+            "template": "https://github.com/{}",
+            "paths": [{
+                "type": "options",
+                "values": ["scrapinghub", "scrapy", "scrapy-plugins"],
+            }],
+            "params": [],
+            "params_template": {}
+        }]
+        normalized = [{
+            'url': 'https://github.com/[...]',
+            'type': 'generated',
+            'fragments': [
+                {'type': 'fixed', 'value': 'https://github.com/'},
+                {
+                    'type': 'list',
+                    'value': 'scrapinghub scrapy scrapy-plugins',
+                },
+            ]
+        }]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(generator_set(UrlGenerator, legacy[0]),
+                         generator_set(FragmentGenerator, normalized[0]))
+        self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_normalize_generated_default(self):
+        legacy = [{
+            "template": "https://github.com/{}/fixed",
+            "paths": [{
+                "type": "default",
+                "values": ["scrapinghub", "scrapy", "scrapy-plugins"],
+            }],
+            "params": [],
+            "params_template": {}
+        }]
+        normalized = [{
+            'url': 'https://github.com/scrapinghub/fixed',
+            'type': 'generated',
+            'fragments': [
+                {'type': 'fixed', 'value': 'https://github.com/'},
+                {
+                    'type': 'fixed',
+                    'value': 'scrapinghub',
+                },
+                {'type': 'fixed', 'value': '/fixed'},
+            ]
+        }]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(generator_set(UrlGenerator, legacy[0]),
+                         generator_set(FragmentGenerator, normalized[0]))
+        self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_normalize_generated_dates(self):
+        legacy = [{
+            "template": "http://www.commitstrip.com/{}/{}/{}",
+            "paths": [{
+                "type": "default",
+                "values": ["en"]
+            }, {
+                "type": "date",
+                "values": ["%Y"],
+            }, {
+                "type": "date",
+                "values": ["%m"]
+            }],
+            "params": [],
+            "params_template": {}
+        }]
+        normalized = [{
+            'url': 'http://www.commitstrip.com/en/[...]/[...]',
+            'type': 'generated',
+            'fragments': [
+                {'type': 'fixed', 'value': 'http://www.commitstrip.com/'},
+                {'type': 'fixed', 'value': 'en'},
+                {'type': 'fixed', 'value': '/'},
+                {'type': 'date', 'value': '%Y'},
+                {'type': 'fixed', 'value': '/'},
+                {'type': 'date', 'value': '%m'},
+            ]
+        }]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(generator_set(UrlGenerator, legacy[0]),
+                         generator_set(FragmentGenerator, normalized[0]))
+        self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_normalized_generated_range(self):
+        legacy = [{
+            "template": "https://www.donedeal.ie/{}/{}/{}",
+            "paths": [{
+                "type": "default",
+                "values": ["cars-for-sale"]
+            }, {
+                "type": "options",
+                "values": ["i"],
+            }, {
+                "type": "range",
+                "values": [10, 20]
+            }],
+            "params": [],
+            "params_template": {}
+        }]
+        normalized = [{
+            'url': 'https://www.donedeal.ie/cars-for-sale/[...]/10-19',
+            'type': 'generated',
+            'fragments': [
+                {'type': 'fixed', 'value': 'https://www.donedeal.ie/'},
+                {'type': 'fixed', 'value': 'cars-for-sale'},
+                {'type': 'fixed', 'value': '/'},
+                {'type': 'list', 'value': 'i'},
+                {'type': 'fixed', 'value': '/'},
+                {'type': 'range', 'value': '10-19'},
+            ]
+        }]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(generator_set(UrlGenerator, legacy[0]),
+                         generator_set(FragmentGenerator, normalized[0]))
+        self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_normalized_generated_params_range(self):
+        legacy = [{
+            "template": "http://www.smbc-comics.com/{}",
+            "paths": [{
+                "type": "default",
+                "values": ["index.php"]
+            }],
+            "params": [{
+                "name": "p",
+                "type": "range",
+                "values": [20, 31]
+            }, {
+                "name": "q",
+                "type": "options",
+                "values": ['comic']
+            }],
+            "params_template": {}
+        }]
+        normalized = [{
+            'url': 'http://www.smbc-comics.com/index.php?p=20-30&q=[...]',
+            'type': 'generated',
+            'fragments': [
+                {'type': 'fixed', 'value': 'http://www.smbc-comics.com/'},
+                {'type': 'fixed', 'value': 'index.php'},
+                {'type': 'fixed', 'value': '?p='},
+                {'type': 'range', 'value': '20-30'},
+                {'type': 'fixed', 'value': '&q='},
+                {'type': 'list', 'value': 'comic'},
+            ]
+        }]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(generator_set(UrlGenerator, legacy[0]),
+                         generator_set(FragmentGenerator, normalized[0]))
+        self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_normalized_generated_template_params(self):
+        legacy = [{
+            "template": "https://encrypted.google.com/search",
+            "paths": [],
+            "params": [{
+                "name": "q",
+                "type": "options",
+                "values": ["nosetests", "tox"]
+            }, {
+                "name": "location",
+                "type": "options",
+                "values": ["dublin", "cork"]
+            }],
+            "params_template": [
+                ("hl", "en"),
+                ("q", "python unittest")
+            ]
+        }]
+        normalized = [{
+            'url': 'https://encrypted.google.com/search?hl=en&q=[...]&location=[...]',
+            'type': 'generated',
+            'fragments': [
+                {'type': 'fixed', 'value': 'https://encrypted.google.com/search'},
+                {'type': 'fixed', 'value': '?hl='},
+                {'type': 'fixed', 'value': 'en'},
+                {'type': 'fixed', 'value': '&q='},
+                {'type': 'list', 'value': 'nosetests tox'},
+                {'type': 'fixed', 'value': '&location='},
+                {'type': 'list', 'value': 'dublin cork'},
+            ]
+        }]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(generator_set(UrlGenerator, legacy[0]),
+                         generator_set(FragmentGenerator, normalized[0]))
+        self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_normalized_mixed(self):
+        legacy = [
+            {
+                "template": "http://www.smbc-comics.com/{}",
+                "paths": [{
+                    "type": "default",
+                    "values": ["index.php"]
+                }],
+                "params": [{
+                    "name": "p",
+                    "type": "range",
+                    "values": [20, 31]
+                }, {
+                    "name": "q",
+                    "type": "options",
+                    "values": ['comic']
+                }],
+                "params_template": {}
+            },
+            'http://github.com/scrapinghub.com',
+            {
+                'url': 'https://github.com/[...]',
+                'type': 'generated',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://github.com/'},
+                    {
+                        'type': 'list',
+                        'value': 'scrapinghub scrapy scrapy-plugins',
+                    },
+                ]
+            }
+        ]
+        normalized = [
+            {
+                'url': 'http://www.smbc-comics.com/index.php?p=20-30&q=[...]',
+                'type': 'generated',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'http://www.smbc-comics.com/'},
+                    {'type': 'fixed', 'value': 'index.php'},
+                    {'type': 'fixed', 'value': '?p='},
+                    {'type': 'range', 'value': '20-30'},
+                    {'type': 'fixed', 'value': '&q='},
+                    {'type': 'list', 'value': 'comic'},
+                ]
+            },
+            {'url': 'http://github.com/scrapinghub.com', 'type': 'url'},
+            {
+                'url': 'https://github.com/[...]',
+                'type': 'generated',
+                'fragments': [
+                    {'type': 'fixed', 'value': 'https://github.com/'},
+                    {
+                        'type': 'list',
+                        'value': 'scrapinghub scrapy scrapy-plugins',
+                    },
+                ]
+            },
+        ]
+        collection = StartUrlCollection(legacy, self.generators)
+
+        self.assertEqual(list(collection.normalize()), normalized)
+
+def generator_set(generator, start_urls):
+    return set(list(generator()(start_urls)))

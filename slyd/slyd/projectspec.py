@@ -2,6 +2,8 @@ from __future__ import absolute_import
 import json
 import re
 
+import requests
+
 import slyd.errors
 
 from os.path import join, splitext
@@ -37,6 +39,8 @@ class ProjectSpec(object):
     @classmethod
     def setup(cls, location, **kwargs):
         cls.base_dir = location
+        cls.SCHEDULE_URL = kwargs.get(
+            'schedule_url', 'http://localhost:6800/schedule.json')
 
     def __init__(self, project_name, auth_info):
         self.project_dir = join(self.base_dir, project_name)
@@ -99,8 +103,15 @@ class ProjectSpec(object):
             self.storage.move(dirname, self._rdirname('spiders', to_name))
 
     def remove_spider(self, name):
-        self.storage.delete(self._rfilename('spiders', name))
-        self.storage.rmtree(self._rdirname('spiders', name))
+        filename = self._rfilename('spiders', name)
+        assert filename.endswith('.json')
+        dirname = filename[:-len('.json')]
+
+        self.storage.delete(filename)
+        try:
+            self.storage.rmtree(dirname)
+        except IOError:
+            pass
 
     def rename_template(self, spider_name, from_name, to_name):
         template = self.resource('spiders', spider_name, from_name)
@@ -151,6 +162,21 @@ class ProjectSpec(object):
         fname = self._rfilename(*resources)
         self.storage.save(fname, ContentFile(
             json.dumps(obj, sort_keys=True, indent=4), fname))
+
+    def schedule(self, spider, args):
+        if spider not in set(self.list_spiders()):
+            raise BadRequest('"%s" does not exist in this project' % spider)
+        schedule_data = self._schedule_data(spider, args)
+        req = requests.post(self.SCHEDULE_URL, data=schedule_data)
+        if req.status_code != 200:
+            raise BaseHTTPError(req.status_code, req.content)
+        return req.json()
+
+    def _schedule_data(self, spider, args):
+        return {
+            'project': self.project_name,
+            'spider': spider
+        }
 
     def commit_changes(self):
         if getattr(self, 'storage', None):

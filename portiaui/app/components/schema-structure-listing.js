@@ -45,7 +45,7 @@ export default Ember.Component.extend({
         saveField(field) {
             ensurePromise(field).then(field => {
                 if (!!field) {
-                    field.save()
+                    field.save();
                 }
             });
         }

@@ -21,7 +21,14 @@
                 {{/help-icon}}
             {{/list-item-text}}
             {{#tooltip-container tooltipFor="add-start-url-button" text="Start crawling from the current page" tooltipContainer='body'}}
-                {{list-item-icon id="add-start-url-button" icon='add' action=(action 'addStartUrl')}}
+                {{#list-item-icon-menu icon='add-dropdown' as |options|}}
+                    {{#options.item value="Add fixed URL" action=(chain-actions (action 'addStartUrl') options.closeMenu) as |value|}}
+                        {{list-item-icon class="icon" icon="url"}}{{value}}
+                    {{/options.item}}
+                    {{#options.item value="Add generation URL" action=(chain-actions (action 'addGenerationUrl') options.closeMenu) as |value|}}
+                        {{list-item-icon class="icon" icon="url-generated"}}{{value}}
+                    {{/options.item}}
+                {{/list-item-icon-menu}}
             {{/tooltip-container}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item hide=spider.startUrls.length as |options|}}
@@ -36,13 +43,31 @@
                     </p>
                 </div>
             {{/tree-list-item}}
-            {{#each spider.startUrls key="@index" as |url|}}
-                {{#if (or (not newUrl) (not-eq urlValue url))}}
-                    {{project-structure-spider-url spider=spider url=url}}
+            {{#each spider.startUrls key="@index" as |startUrl index|}}
+                {{#if (or (not newUrl) (not-eq urlValue startUrl.url))}}
+                    {{#if startUrl.isGenerated}}
+                        {{project-structure-spider-generation-url
+                          index=index
+                          startUrl=startUrl
+                          removeStartUrl=(action 'removeStartUrl' startUrl)
+                        }}
+                    {{else}}
+                        {{project-structure-spider-url
+                          spider=spider
+                          startUrl=startUrl
+                          removeStartUrl=(action 'removeStartUrl' startUrl)
+                        }}
+                    {{/if}}
                 {{/if}}
             {{/each}}
             {{#if newUrl}}
-                {{project-structure-spider-url spider=spider url=urlValue urlAdded=(mut newUrl)}}
+                {{project-structure-spider-url
+                  spider=spider
+                  startUrl=newStartUrl
+                  url=urlValue
+                  urlAdded=(mut newUrl)
+                  removeStartUrl=(action 'removeStartUrl' newUrl)
+                }}
             {{/if}}
         {{/if}}
     {{/tree-list-item}}
@@ -56,6 +81,7 @@
             {{/list-item-text}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item as |options|}}
+                {{indentation-spacer}}
                 {{list-item-icon icon='link'}}
                 {{list-item-link-crawling spider=spider}}
                 {{#if (not-eq spider.linksToFollow 'none')}}
@@ -113,6 +139,7 @@
             {{#each spider.samples as |sample|}}
                 {{#tree-list-item hide=(and currentSample (not-eq sample currentSample)) as |options|}}
                     {{#link-to 'projects.project.spider.sample' sample (query-params url=sample.url baseurl=null) current-when='projects.project.spider.sample'}}
+                        {{indentation-spacer}}
                         {{list-item-icon icon='sample'}}
                         {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}

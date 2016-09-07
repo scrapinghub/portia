@@ -1,6 +1,10 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
+import { includesUrl } from '../utils/start-urls';
+import startUrl from '../models/start-url';
+import {createStructure} from './annotation-structure';
 import {getDefaultAttribute} from '../components/inspector-panel';
+import {updateStructureSelectors} from '../utils/selectors';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -40,6 +44,7 @@ export function computedCanAddStartUrl(spiderPropertyName) {
 export default Ember.Service.extend({
     browser: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
+    selectorMatcher: Ember.inject.service(),
     store: Ember.inject.service(),
     uiState: Ember.inject.service(),
     webSocket: Ember.inject.service(),
@@ -96,9 +101,9 @@ export default Ember.Service.extend({
         const matches = url.match('//([a-zA-Z0-9\._-]*)');
         const store = this.get('store');
         if (matches && matches.length) {
-            name = matches.slice(-1)[0]
+            name = matches.slice(-1)[0];
         } else {
-            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '')
+            name = url.replace(/[^a-zA-Z0-9_\.-]/g, '');
         }
         let baseName = name;
         let counter = 1;
@@ -108,7 +113,7 @@ export default Ember.Service.extend({
         }
         const spider = store.createRecord('spider', {
             id: name,
-            startUrls: [url],
+            startUrls: [startUrl({ url: url })],
             project
         });
         spider.set('project', project);
@@ -123,11 +128,21 @@ export default Ember.Service.extend({
     },
 
     addStartUrl(spider, url) {
-        const urls = spider.get('startUrls');
-        if (url && !urls.includes(url)) {
-            urls.pushObject(url);
-            spider.save();
-            return url;
+        if (url && !includesUrl(spider, url)) {
+            return startUrl({ url: url }).save(spider);
+        }
+    },
+
+    addGeneratedUrl(spider, url) {
+        let spec = { type: 'generated' };
+
+        if (!url || includesUrl(spider, url)) {
+            spec.url = 'http://';
+            return startUrl(spec).save(spider);
+        }
+        if (!includesUrl(spider, url)) {
+            spec.url = url;
+            return startUrl(spec).save(spider);
         }
     },
 
@@ -143,6 +158,7 @@ export default Ember.Service.extend({
         const name = Sample.normalizeTitle(this.get('browser.document').title);
         const sample = store.createRecord('sample', {
             name,
+            body: 'original_body',
             url,
             spider
         });
@@ -226,34 +242,35 @@ export default Ember.Service.extend({
     },
 
     saveAnnotationAndRelatedSelectors(annotation) {
-        return annotation.get('ownerSample').then(sample => {
-            const coalesce = [];
-            for (let child of sample.get('orderedChildren')) {
-                if (child === annotation) {
-                    continue;
+        return annotation.get('ownerSample').then(sample =>
+            this.updateSampleSelectors(sample).then(() => {
+                const coalesce = [];
+                for (let child of sample.get('orderedChildren')) {
+                    if (child === annotation) {
+                        continue;
+                    }
+                    if (child.constructor.modelName === 'item') {
+                        coalesce.push({
+                            model: child,
+                            options: {
+                                partial: ['selector', 'repeatedSelector', 'siblings']
+                            }
+                        });
+                    } else if (child.constructor.modelName === 'annotation') {
+                        coalesce.push({
+                            model: child,
+                            options: {
+                                partial: ['selectionMode', 'selector', 'xpath']
+                            }
+                        });
+                    }
                 }
-                if (child.constructor.modelName === 'item') {
-                    coalesce.push({
-                        model: child,
-                        options: {
-                            partial: ['selector', 'repeatedSelector', 'siblings']
-                        }
-                    });
-                } else if (child.constructor.modelName === 'annotation') {
-                    coalesce.push({
-                        model: child,
-                        options: {
-                            partial: ['selectionMode', 'selector', 'xpath']
-                        }
-                    });
-                }
-            }
-            return annotation.save(coalesce.length ? {
-                coalesce
-            } : undefined);
-        });
+                return annotation.save(coalesce.length ? {
+                    coalesce
+                } : undefined);
+            }));
     },
-    
+
     addAnnotationTypeExtractor(annotation, type) {
         const store = this.get('store');
         const project = annotation.get('ownerSample.spider.project');
@@ -297,6 +314,11 @@ export default Ember.Service.extend({
             annotation.get('extractors').pushObject(extractor);
             return annotation.save().then(() => extractor);
         });
+    },
+
+    addFragment(startUrl) {
+        let emptyFragment = { type: 'fixed', value: '' };
+        startUrl.fragments.addObject(emptyFragment);
     },
 
     changeAnnotationSource(annotation, attribute) {
@@ -343,8 +365,13 @@ export default Ember.Service.extend({
 
     replaceStartUrl(spider, oldUrl, newUrl) {
         const urls = spider.get('startUrls');
-        urls.removeObject(oldUrl);
-        urls.addObject(newUrl);
+
+        let oldStartUrl = urls.filterBy('url', oldUrl)[0];
+        urls.removeObject(oldStartUrl);
+
+        if (!includesUrl(spider, newUrl)) {
+            urls.addObject(startUrl({url: newUrl, type: 'url'}));
+        }
         spider.save();
     },
 
@@ -381,6 +408,10 @@ export default Ember.Service.extend({
     removeAnnotationExtractor(annotation, extractor) {
         annotation.get('extractors').removeObject(extractor);
         annotation.save();
+    },
+
+    removeFragment(startUrl, fragment) {
+        startUrl.fragments.removeObject(fragment);
     },
 
     selectAnnotation(annotation) {
@@ -425,5 +456,13 @@ export default Ember.Service.extend({
         annotation.removeElement(element);
         this.selectAnnotation(annotation);
         this.saveAnnotationAndRelatedSelectors(annotation);
+    },
+
+    updateSampleSelectors(sample) {
+        const selectorMatcher = this.get('selectorMatcher');
+        return createStructure(sample).then(structure => {
+            updateStructureSelectors(structure, selectorMatcher);
+            return null;
+        });
     }
 });

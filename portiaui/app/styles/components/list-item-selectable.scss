@@ -6,13 +6,6 @@
     flex: 0 1 auto;
 
     .list-item-icon + &,
-    .list-item-badge + &,
-    .list-item-editable + &,
-    & + & {
-        margin-left: $space-width;
-    }
-
-    .list-item-icon + &,
     .list-item-badge + & {
         flex-grow: 1;
     }

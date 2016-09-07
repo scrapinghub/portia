@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { storageFor } from 'ember-local-storage';
 import { cleanUrl, shortGuid } from '../utils/utils';
 import interactionEvent from '../utils/interaction-event';
 import treeMirrorDelegate from '../utils/tree-mirror-delegate';
@@ -10,6 +11,7 @@ const BrowserIFrame = Ember.Component.extend({
     overlays: Ember.inject.service(),
     webSocket: Ember.inject.service(),
     uiState: Ember.inject.service(),
+    cookiesStore: storageFor('cookies'),
 
     tagName: 'iframe',
     classNames: ['browser-iframe'],
@@ -22,6 +24,8 @@ const BrowserIFrame = Ember.Component.extend({
     loading: Ember.computed.alias('browser.loading'),
     url: Ember.computed.readOnly('browser.url'),
     baseurl: Ember.computed.readOnly('browser.baseurl'),
+    spider: Ember.computed.readOnly('uiState.models.spider.id'),
+    project: Ember.computed.readOnly('uiState.models.project.id'),
 
     init() {
         this._super();
@@ -116,9 +120,9 @@ const BrowserIFrame = Ember.Component.extend({
                 id: shortGuid(),
                 viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
-                cookies: this.cookies,
-                project: this.get('uiState.models.project.id'),
-                spider: this.get('uiState.models.spider.id'),
+                cookies: this.loadCookies(),
+                project: this.get('project'),
+                spider: this.get('spider'),
             },
             _command: 'load',
             url: url,
@@ -156,18 +160,29 @@ const BrowserIFrame = Ember.Component.extend({
         });
     },
 
+    cookieId: Ember.computed('spider', 'project', function() {
+        if (this.get('project') && this.get('spider')) {
+            return `cookies:${this.get('project')}/${this.get('spider')}`.replace(/\./g, '_');
+        }
+    }),
+
     msgCookies(data) {
-        let cookies = data._data;
-        this.cookies = cookies;
-        if(window.sessionStorage){
-            window.sessionStorage.portia_cookies = JSON.stringify(cookies);
+        let cookies = data.cookies,
+            cookieId = this.get('cookieId');
+        if (cookies && cookies.length) {
+            this.set(`cookiesStore.${cookieId}`, cookies);
         }
     },
 
     loadCookies(){
-        if(window.sessionStorage && sessionStorage.portia_cookies){
-            this.cookies = JSON.parse(sessionStorage.portia_cookies);
+        let cookieId = this.get('cookieId');
+        if(cookieId){
+            let cookies = this.get(`cookiesStore.${cookieId}`);
+            if (cookies) {
+                return cookies;
+            }
         }
+        return {};
     },
 
     unbindEventHandlers() {

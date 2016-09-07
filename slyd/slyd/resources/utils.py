@@ -4,6 +4,7 @@ from collections import namedtuple
 import slybot
 import slybot.plugins.scrapely_annotations.extraction as extraction
 
+from slybot.utils import include_exclude_filter
 from slybot.validation.schema import get_schema_validator
 
 from .models import (SchemaSchema, FieldSchema, ItemSchema, AnnotationSchema,
@@ -44,6 +45,15 @@ def _handle_sample_updates(manager, sample, spider_id, sample_id,
     _, sample = _create_default_item(manager, sample)
     manager.savejson(sample, ['spiders', spider_id, sample_id])
     return sample
+
+
+def sample_uses_js(spider, sample):
+    if not spider.js_enabled:
+        return False
+    enable_patterns = spider.js_enable_patterns
+    disable_patterns = spider.js_disable_patterns
+    js_filter = include_exclude_filter(enable_patterns, disable_patterns)
+    return js_filter(sample.url)
 
 
 def _create_default_item(manager, sample):

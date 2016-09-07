@@ -1,0 +1,35 @@
+.fragment-span {
+    margin-left: -3px;
+}
+
+.start-url-list {
+    overflow-y: auto;
+    min-height: 200px;
+    margin-bottom: 5px;
+}
+
+.start-url-list-title {
+    margin-bottom: 0;
+}
+
+.start-url-generation-list {
+    p {
+        white-space: nowrap;
+        position: relative;
+        margin: 0;
+    }
+}
+
+.fragments-title {
+    line-height: 30px;
+    margin-bottom: 10px;
+    display: inline-block;
+    color: $navbar-default-color;
+}
+
+#add-fragment-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    line-height: 30px;
+}

@@ -1,0 +1,5 @@
+{{#if hasSpider}}
+    {{#tooltip-container tooltipFor='run-spider-button' text='Run this spider.' tooltipContainer='body'}}
+        {{list-item-icon id='run-spider-button' icon='play' action=(action 'runSpider' currentSpider)}}
+    {{/tooltip-container}}
+{{/if}}
