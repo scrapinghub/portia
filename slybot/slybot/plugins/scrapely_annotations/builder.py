@@ -4,11 +4,10 @@ from scrapy import Selector
 from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 
 from collections import defaultdict
-from itertools import tee, count, chain, groupby
+from itertools import tee, count, groupby
 from operator import itemgetter
-from uuid import uuid4
 
-from .migration import _get_parent
+from .migration import _get_parent, short_guid
 from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
                     OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
 
@@ -97,7 +96,7 @@ def _gen_annotation_info(annotation):
     data = {}
     if 'annotations' in annotation:
         data['data-scrapy-annotate'] = json.dumps({
-            'id': annotation.get('id', _gen_id()),
+            'id': annotation.get('id', short_guid()),
             'annotations': annotation.get('annotations', {}),
             'required': annotation.get('required', []),
             'required_fields': annotation.get('required', []),
@@ -118,10 +117,6 @@ def _gen_annotation_info(annotation):
         elif annotation.get('ignore'):
             data['data-scrapy-ignore'] = 'true'
     return data
-
-
-def _gen_id():
-    return '-'.join(str(uuid4()).split('-')[1:-1])
 
 
 def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
