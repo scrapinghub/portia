@@ -357,7 +357,8 @@ class Sample(Model, OrderedAnnotationsMixin):
         schemas = json.load(self.context['storage'].open('items.json'))
         annotations = load_annotations(data.get('annotated_body', u''))
         data['plugins'] = annotations
-        return port_sample(data, schemas)
+        sample, new_schemas = port_sample(data, schemas)
+        return sample
 
     @staticmethod
     def get_items(self, data):

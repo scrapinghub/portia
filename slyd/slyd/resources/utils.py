@@ -28,8 +28,9 @@ def _handle_sample_updates(manager, sample, spider_id, sample_id,
         sample['name'] = sample_id
     sample['id'] = sample_id
     if 'version' not in sample or sample['version'] < '0.13.0':
-        sample = port_sample(sample)
+        sample, schemas = port_sample(sample)
         sample['version'] = SLYBOT_VERSION
+        manager.savejson(schemas, ['items'])
         manager.savejson(sample, ['spiders', spider_id, sample_id])
     if 'plugins' in sample:
         annotations = sample['plugins']['annotations-plugin']['extracts']

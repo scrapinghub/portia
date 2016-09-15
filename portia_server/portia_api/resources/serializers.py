@@ -188,6 +188,12 @@ class SampleSerializer(JsonApiSerializer):
 
         return sample
 
+    def update(self, instance, validated_data):
+        sample = super(SampleSerializer, self).update(instance, validated_data)
+        for schema in sample.spider.project.schemas:
+            schema.save()
+        return sample
+
 
 class ItemSerializer(JsonApiSerializer):
     class Meta:

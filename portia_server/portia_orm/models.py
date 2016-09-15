@@ -8,6 +8,8 @@ from six import iteritems, iterkeys, itervalues
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slybot.plugins.scrapely_annotations.migration import (port_sample,
+                                                           guess_schema,
+                                                           repair_ids,
                                                            load_annotations)
 from slybot.starturls import StartUrlCollection
 
@@ -318,7 +320,8 @@ class Sample(Model, OrderedAnnotationsMixin):
     original_body = String(default='')
     annotated_body = String(default='')
     rendered_body = String(default='')
-    body = String(validate=OneOf(['original_body', 'rendered_body']))
+    body = String(default='original_body',
+                  validate=OneOf(['original_body', 'rendered_body']))
     spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
                        only='id')
     items = HasMany('Item', related_name='sample', on_delete=CLEAR)
@@ -346,6 +349,8 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @pre_load
     def chain_load(self, data):
+        if set(data) == {'id'}:
+            return data
         methods = (self.migrate_sample, self.get_items)
         for method in methods:
             data = method(self, data)
@@ -353,20 +358,29 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @staticmethod
     def migrate_sample(self, data):
+        if not data.get('body'):
+            data['body'] = 'original_body'
         if not data.get('name'):
             data['name'] = data.get('id', data.get('page_id', u'')[:20])
-        if 'scrapes' not in data or data.get('version', '') > '0.13.0':
+        if data.get('version', '') >= '0.13.1':
+            return data
+        schemas = json.load(self.context['storage'].open('items.json'))
+        if data.get('version', '') > '0.13.0':
+            _, new_schemas = guess_schema(data, schemas)
+            self._add_schemas(self, new_schemas)
+            data = repair_ids(data)
             return data
         annotations = (data.pop('plugins', {}).get('annotations-plugin', {})
                            .get('extracts', []))
         items = [a for a in annotations if a.get('item_container')]
         if items:
             return data
-        schemas = json.load(self.context['storage'].open('items.json'))
         extractors = json.load(self.context['storage'].open('extractors.json'))
         annotations = load_annotations(data.get('annotated_body', u''))
         data['plugins'] = annotations
-        return port_sample(data, schemas, extractors)
+        sample, new_schemas = port_sample(data, schemas, extractors)
+        self._add_schemas(self, new_schemas)
+        return sample
 
     @staticmethod
     def get_items(self, data):
@@ -395,7 +409,6 @@ class Sample(Model, OrderedAnnotationsMixin):
                         },
                         'type': 'Annotation',
                     }))
-
         for item in items:
             container_id = item.get('container_id')
             if item.pop('repeated', False):
@@ -417,6 +430,20 @@ class Sample(Model, OrderedAnnotationsMixin):
                          for container in itervalues(containers)
                          if container.get('container_id') is None]
         return data
+
+    @staticmethod
+    def _add_schemas(serializer, schemas):
+        storage = serializer.context['storage']
+        project = Project(storage, id=storage.name, name=storage.name)
+        schema_collection = project.schemas
+        for schema_id, schema in iteritems(schemas):
+            model = Schema(storage, id=schema_id, project=project,
+                           name=schema.get('name', schema_id))
+            for field_id, field in iteritems(schema['fields']):
+                field.pop('id', None)
+                model.fields.add(Field(storage, id=field_id, schema=model,
+                                       **field))
+            schema_collection.add(model)
 
     @post_dump
     def add_fields(self, data):

@@ -37,6 +37,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'django_extensions',
     'db_repo.apps.DbRepoConfig',
     'storage.apps.StorageConfig',
     'portia_orm.apps.PortiaOrmConfig',
@@ -111,5 +112,6 @@ SCHEDULE_URL = 'http://localhost:6800/schedule.json'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'portia_server.backends.LocalAuthentication',
-    )
+    ),
+    'URL_FORMAT_OVERRIDE': None
 }
