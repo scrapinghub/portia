@@ -547,7 +547,7 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
         }
         const container = parent.get('container');
         if (container) {
-            const otherAnnotations = parent.get('parent.children').filter(s => s !== parent);
+            const otherAnnotations = parent.get('children').filter(s => s !== parent);
             return !otherAnnotations.any(a => a.get('container') === container);
         }
         return false;

@@ -409,9 +409,11 @@ class Sample(Model, OrderedAnnotationsMixin):
                         },
                         'type': 'Annotation',
                     }))
+
         for item in items:
             container_id = item.get('container_id')
-            if item.pop('repeated', False):
+            if item.get('repeated') and item.get('item_container'):
+                del item['repeated']
                 parent = containers.pop(container_id)
                 container_id = item['container_id'] = parent['container_id']
                 item['repeated_selector'] = item['selector']
@@ -675,7 +677,7 @@ class Annotation(BaseAnnotation):
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
             'required': annotation_data['required'] or False,
-            'repeated': annotation_data.get('repeated', False),
+            'repeated': data.get('repeated', False),
             'selection_mode': data.get('selection_mode') or 'auto',
             'selector': data['selector'] or None,
             'xpath': data.get('xpath') or None,
