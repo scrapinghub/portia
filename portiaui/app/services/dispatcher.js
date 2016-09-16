@@ -4,7 +4,7 @@ import { includesUrl } from '../utils/start-urls';
 import startUrl from '../models/start-url';
 import {createStructure} from './annotation-structure';
 import {getDefaultAttribute} from '../components/inspector-panel';
-import {updateStructureSelectors} from '../utils/selectors';
+import {updateStructureSelectors} from '../services/annotation-structure';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
