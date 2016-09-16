@@ -58,6 +58,8 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
     def createRequest(self, operation, request, outgoingData=None):
         reply = super(PortiaNetworkManager, self).createRequest(
             operation, request, outgoingData)
+        if getattr(self, 'closed', False):
+            return reply
         try:
             url = six.binary_type(request.url().toEncoded())
             frame_url = six.binary_type(
@@ -270,6 +272,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if self in self.factory:
             if self.tab is not None:
                 self.tab.close()
+                self.tab.network_manager.closed = True
             msg_data = {'session': self.session_id,
                         'session_time': 0,
                         'user': self.user.name}
