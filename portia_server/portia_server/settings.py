@@ -37,7 +37,6 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'django_extensions',
     'db_repo.apps.DbRepoConfig',
     'storage.apps.StorageConfig',
     'portia_orm.apps.PortiaOrmConfig',
