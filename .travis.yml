@@ -33,8 +33,8 @@ before_script:
 script:
 - cd ./slybot
 - nosetests --with-doctest
-- cd ../slyd
-- nosetests --with-doctest
+- cd ../portia_server
+- ./manage.py test portia_orm.tests
 - cd ../
 before_deploy:
 - cd ./slybot

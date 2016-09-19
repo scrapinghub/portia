@@ -23,17 +23,6 @@ class InvalidFilename(Exception):
 
 
 class CommittingStorage(object):
-    def get_available_name(self, name, max_length=None):
-        return name
-
-    def commit(self, message='Saving multiple files'):
-        pass
-
-    def changed_files(self):
-        return []
-
-
-class BasePortiaStorage(CommittingStorage, Storage):
     version_control = False
     create_projects = True
     delete_projects = True
@@ -50,30 +39,6 @@ class BasePortiaStorage(CommittingStorage, Storage):
         os.path.join('spiders', '__init__.py'): None,
         os.path.join('spiders', 'settings.py'): 'SETTINGS',
     }
-
-    def __init__(self, name, author=None):
-        self.name = text_type(name)
-
-    @classmethod
-    def setup(cls):
-        pass
-
-    @staticmethod
-    def is_valid_filename(s):
-        # based on Django's Storage.get_valid_filename
-        if s.strip() != s:
-            return False
-        if re.sub(r'(?u)[^- \w.]', '', s) != s:
-            return False
-        return True
-
-    @classmethod
-    def validate_filename(cls, s):
-        s = text_type(s)
-        if not cls.is_valid_filename(s):
-            raise InvalidFilename(
-                u"The string '{}' is not a valid filename.".format(s))
-        return s
 
     def init_project(self):
         self.validate_filename(self.name)
@@ -96,6 +61,41 @@ class BasePortiaStorage(CommittingStorage, Storage):
         except OSError as ex:
             if ex.errno != errno.ENOENT:
                 raise
+
+    @classmethod
+    def setup(cls):
+        pass
+
+    def get_available_name(self, name, max_length=None):
+        return name
+
+    def commit(self, message='Saving multiple files'):
+        pass
+
+    def changed_files(self):
+        return []
+
+
+class BasePortiaStorage(CommittingStorage, Storage):
+    def __init__(self, name, author=None):
+        self.name = text_type(name)
+
+    @staticmethod
+    def is_valid_filename(s):
+        # based on Django's Storage.get_valid_filename
+        if s.strip() != s:
+            return False
+        if re.sub(r'(?u)[^- \w.]', '', s) != s:
+            return False
+        return True
+
+    @classmethod
+    def validate_filename(cls, s):
+        s = text_type(s)
+        if not cls.is_valid_filename(s):
+            raise InvalidFilename(
+                u"The string '{}' is not a valid filename.".format(s))
+        return s
 
 
 class FsStorage(BasePortiaStorage, FileSystemStorage):

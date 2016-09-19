@@ -358,8 +358,7 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @staticmethod
     def migrate_sample(self, data):
-        if not data.get('body'):
-            data['body'] = 'original_body'
+        data['body'] = data.get('body') or 'original_body'
         if not data.get('name'):
             data['name'] = data.get('id', data.get('page_id', u'')[:20])
         if data.get('version', '') >= '0.13.1':
@@ -436,7 +435,7 @@ class Sample(Model, OrderedAnnotationsMixin):
     @staticmethod
     def _add_schemas(serializer, schemas):
         storage = serializer.context['storage']
-        project = Project(storage, id=storage.name, name=storage.name)
+        project = Project(storage, id=str(storage.name))
         schema_collection = project.schemas
         for schema_id, schema in iteritems(schemas):
             model = Schema(storage, id=schema_id, project=project,
@@ -446,6 +445,7 @@ class Sample(Model, OrderedAnnotationsMixin):
                 model.fields.add(Field(storage, id=field_id, schema=model,
                                        **field))
             schema_collection.add(model)
+        project.schemas = schema_collection
 
     @post_dump
     def add_fields(self, data):

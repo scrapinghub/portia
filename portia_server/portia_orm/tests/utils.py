@@ -46,6 +46,7 @@ def mock_storage(files):
         return sorted(dir_set), sorted(file_set)
 
     storage = mock.MagicMock()
+    storage.name = 'example'
     storage.files = files
     storage.exists.side_effect = exists
     storage.open.side_effect = open_

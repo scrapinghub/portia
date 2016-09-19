@@ -73,6 +73,7 @@ install_python_deps(){
     activate_venv
     pip install -r "$APP_ROOT/slyd/requirements.txt"
     pip install -r "$APP_ROOT/slybot/requirements.txt"
+    pip install -r "$APP_ROOT/portia_server/requirements.txt"
     pip install -e "$APP_ROOT/slyd"
     pip install -e "$APP_ROOT/slybot"
 }
