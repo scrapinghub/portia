@@ -85,18 +85,6 @@ def _get_viewport(viewport):
     return viewport
 
 
-def _load_res(socket, resource):
-    spec = socket.manager
-    try:
-        return spec.resource(resource)
-    except IOError:
-        return {}
-
-
-def _load_items_and_extractors(data, socket):
-    return _load_res(socket, 'items'), _load_res(socket, 'extractors')
-
-
 def _decode(html, default=None):
     if not default:
         encoding = html_body_declared_encoding(html)
@@ -135,3 +123,30 @@ class NotFound(BaseWSError):
 
 class InternalServerError(BaseWSError):
     _status = 500
+
+
+class ProjectsDict(dict):
+    def __init__(self, auth):
+        self.allow_all = False
+        if 'projects_data' in auth:
+            for project in auth['projects_data']:
+                self[project['id']] = project['name']
+        elif 'authorized_projects' in auth:
+            for project_id in auth['authorized_projects']:
+                self[project_id] = project_id
+        else:
+            self.allow_all = True
+        self.staff = auth.get('staff', False)
+
+    def __getitem__(self, key):
+        try:
+            return super(ProjectsDict, self).__getitem__(key)
+        except KeyError:
+            if self.allow_all or self.staff:
+                return key
+            raise
+
+    def __contains__(self, key):
+        if self.allow_all or self.staff:
+            return True
+        return super(ProjectsDict, self).__contains__(key)

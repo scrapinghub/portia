@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.realpath(os.path.join(BASE_DIR, '../portiaui/dist'))
 STATIC_URL = '/'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-MEDIA_ROOT = '../slyd/slyd/data/projects'
+MEDIA_ROOT = os.path.abspath('../slyd/slyd/data/projects')
 
 
 # Quick-start development settings - unsuitable for production
