@@ -1,11 +1,8 @@
-from os.path import abspath, join
+import os
 
-from scrapy.utils.misc import load_object
-try:
-    from slyd.local_settings import MEDIA_ROOT
-    MEDIA_ROOT = abspath(MEDIA_ROOT)
-except ImportError:
-    MEDIA_ROOT = abspath(join(__file__, '../data/projects'))
+from scrapy.utils.misc import load_object, import_module
+module = os.environ.get('DJANGO_SETTINGS_MODULE', 'portia_server.settings')
+settings_module = import_module(module)
 
 
 class SpecManager(object):
@@ -45,4 +42,6 @@ class SpecManager(object):
     def configure_django_settings():
         from django.conf import settings
         if not settings.configured:
-            settings.configure(MEDIA_ROOT=MEDIA_ROOT)
+            settings.configure(
+                MEDIA_ROOT=settings_module.MEDIA_ROOT,
+                PORTIA_STORAGE_BACKEND=settings_module.PORTIA_STORAGE_BACKEND)

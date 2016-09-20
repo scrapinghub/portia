@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 import re
+import six
 import socket as _socket
 
 from six.moves.urllib.parse import urlparse
@@ -14,10 +15,11 @@ from scrapy.settings import Settings
 from splash.browser_tab import JsError
 from splash.har.qt import cookies2har
 
-from slyd.resources.utils import _load_sample
-from slybot.plugins.scrapely_annotations.builder import Annotations
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
-from .utils import (open_tab, extract_data, _get_viewport, _decode, _load_res)
+
+from portia_orm.models import Sample, Project
+
+from .utils import open_tab, extract_data, _get_viewport, _decode
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
 _SETTINGS = Settings()
@@ -36,19 +38,18 @@ def cookies(socket):
 def save_html(data, socket):
     c = ItemChecker(socket, data['project'], data['spider'],
                     data['sample'])
-    manager = socket.manager
-    path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
-    sample = _load_sample(manager, *path)
-    if sample.get('rendered_body') and not data.get('update'):
+    ss = socket.spiderspec
+    ss.project.spiders
+    spider = ss.project.spiders[data['spider']]
+    samples = spider.samples
+    sample = samples[data['sample']]
+    if sample.rendered_body and not data.get('update'):
         return
     if 'use_live' not in data:
         data['use_live'] = c.using_js
-    if data.get('use_live'):
-        sample['body'] = 'rendered_body'
-    else:
-        sample['body'] = 'original_body'
-    sample['rendered_body'] = c.html
-    sample['original_body'] = c.raw_html
+    sample.body = 'rendered_body' if data.get('use_live') else 'original_body'
+    sample.rendered_body = c.html
+    sample.original_body = c.raw_html
     _update_sample(data, socket, sample, save=True)
 
 
@@ -64,25 +65,28 @@ def extract_items(data, socket):
 
 def _update_sample(data, socket, sample=None, save=False, use_live=False):
     """Recompile sample with latest annotations"""
-    spec = socket.manager
     if sample is None:
-        sample = spec.resource('spiders', data['spider'], data['sample'])
+        project = socket.spiderspec.project
+        spiders = project.spiders
+        spider = spiders[data['spider']]
+        samples = spider.samples
+        sample = samples[data['sample']].dump()
     if use_live:
         try:
             sample['original_body'] = socket.tab.html()
         except (TypeError, ValueError):
             pass
-    if save:
-        spec.savejson(sample, ['spiders', data['spider'], data['sample']])
+    if save and hasattr(sample, 'save'):
+        sample.save()
+        return sample.dump()
     return sample
 
 
 def update_spider(data, socket, spider=None):
     if not socket.spiderspec:
         return
-    spec = socket.manager
     if spider is None:
-        spider = spec.resource('spiders', data['spider'])
+        spider = socket.spiderspec.project.spiders[data['spider']].dump()
     socket.spider._configure_js(spider, _SETTINGS)
     socket.spider.plugins['Annotations'].build_url_filter(spider)
     return extract(socket)
@@ -236,7 +240,12 @@ def _compare_items(a, b):
 class ItemChecker(object):
     def __init__(self, socket, project, spider=None, sample=None):
         self.socket = socket
+        if isinstance(project, six.string_types):
+            project_name = socket.user.project_map.get(project, project)
+            project = Project(socket.storage, id=project, name=project_name)
         self.project = project
+        if not socket.spiderspec:
+            socket.open_spider({'project': self.project.id, 'spider': spider})
         self.spider = spider
         self.sample = sample
         if (self.spider and (not self.socket.spider or
@@ -272,11 +281,11 @@ class ItemChecker(object):
 
     @cached_property
     def schemas(self):
-        return _load_res(self.socket, 'items')
+        return self.project.schemas.dump()
 
     @cached_property
     def extractors(self):
-        return _load_res(self.socket, 'extractors')
+        return self.project.extractors.dump()
 
     def data(self):
         return {

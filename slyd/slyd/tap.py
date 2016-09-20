@@ -91,7 +91,7 @@ def create_root(config, settings_module):
     factory = FerryServerFactory("ws://127.0.0.1:%s" % config['port'],
                                  assets=config['docroot'])
     factory.protocol = FerryServerProtocol
-    websocket = create_ferry_resource(spec_manager, factory)
+    websocket = create_ferry_resource(factory)
     root.putChild("ws", websocket)
 
     root.putChild('proxy', ProxyResource())
