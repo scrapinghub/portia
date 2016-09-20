@@ -2,18 +2,23 @@ import json
 
 from collections import deque, OrderedDict
 
+from marshmallow.fields import Nested
 from six import iteritems, iterkeys, itervalues
 
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slybot.plugins.scrapely_annotations.migration import (port_sample,
+                                                           guess_schema,
+                                                           repair_ids,
                                                            load_annotations)
+from slybot.starturls import StartUrlCollection
+
 from .base import Model
 from .decorators import pre_load, post_dump
 from .exceptions import PathResolutionError
 from .fields import (
     Boolean, Domain, Integer, List, Regexp, String, Url, DependantField,
-    BelongsTo, HasMany, CASCADE, CLEAR, PROTECT)
+    BelongsTo, HasMany, CASCADE, CLEAR, PROTECT, StartUrl)
 from .utils import unwrap_envelopes, short_guid, wrap_envelopes
 from .validators import OneOf
 
@@ -189,7 +194,7 @@ class Extractor(Model):
 class Spider(Model):
     # TODO: validate id against allowed file name
     id = String(primary_key=True)
-    start_urls = List(Url)
+    start_urls = List(Nested(StartUrl))
     # TODO: generated urls
     links_to_follow = String(default='all', validate=OneOf(
         ['none', 'patterns', 'all', 'auto']))
@@ -229,6 +234,20 @@ class Spider(Model):
 
         return super(Spider, cls).load(
             storage, instance, project=project, **kwargs)
+
+    @pre_load
+    def normalize_template_names(self, data):
+        if 'template_names' in data:
+            names = list(OrderedDict((v, 1) for v in data['template_names']))
+            data['template_names'] = names
+        return data
+
+    @pre_load
+    def normalize_start_urls(self, data):
+        if 'start_urls' in data or 'generated_urls' in data:
+            start_urls = data.get('start_urls', []) + data.get('generated_urls', [])
+            data['start_urls'] = StartUrlCollection(start_urls).normalize()
+        return data
 
     @pre_load
     def get_init_requests(self, data):
@@ -300,6 +319,9 @@ class Sample(Model, OrderedAnnotationsMixin):
     page_type = String(default='item', validate=OneOf(['item']))
     original_body = String(default='')
     annotated_body = String(default='')
+    rendered_body = String(default='')
+    body = String(default='original_body',
+                  validate=OneOf(['original_body', 'rendered_body']))
     spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
                        only='id')
     items = HasMany('Item', related_name='sample', on_delete=CLEAR)
@@ -327,6 +349,8 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @pre_load
     def chain_load(self, data):
+        if set(data) == {'id'}:
+            return data
         methods = (self.migrate_sample, self.get_items)
         for method in methods:
             data = method(self, data)
@@ -334,19 +358,28 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @staticmethod
     def migrate_sample(self, data):
+        data['body'] = data.get('body') or 'original_body'
         if not data.get('name'):
             data['name'] = data.get('id', data.get('page_id', u'')[:20])
-        if 'scrapes' not in data or data.get('version', '') > '0.13.0':
+        if data.get('version', '') >= '0.13.1':
+            return data
+        schemas = json.load(self.context['storage'].open('items.json'))
+        if data.get('version', '') > '0.13.0':
+            _, new_schemas = guess_schema(data, schemas)
+            self._add_schemas(self, new_schemas)
+            data = repair_ids(data)
             return data
         annotations = (data.pop('plugins', {}).get('annotations-plugin', {})
                            .get('extracts', []))
         items = [a for a in annotations if a.get('item_container')]
         if items:
             return data
-        schemas = json.load(self.context['storage'].open('items.json'))
+        extractors = json.load(self.context['storage'].open('extractors.json'))
         annotations = load_annotations(data.get('annotated_body', u''))
         data['plugins'] = annotations
-        return port_sample(data, schemas)
+        sample, new_schemas = port_sample(data, schemas, extractors)
+        self._add_schemas(self, new_schemas)
+        return sample
 
     @staticmethod
     def get_items(self, data):
@@ -378,12 +411,16 @@ class Sample(Model, OrderedAnnotationsMixin):
 
         for item in items:
             container_id = item.get('container_id')
-            if item.pop('repeated', False):
+            if item.get('repeated') and item.get('item_container'):
+                del item['repeated']
                 parent = containers.pop(container_id)
                 container_id = item['container_id'] = parent['container_id']
                 item['repeated_selector'] = item['selector']
                 item['selector'] = parent['selector']
-                item['siblings'] = parent['siblings'] or item['siblings']
+                try:
+                    item['siblings'] = parent['siblings'] or item['siblings']
+                except KeyError:
+                    item['siblings'] = 0
                 item['schema_id'] = parent['schema_id'] or item['schema_id']
                 if container_id:
                     containers[container_id]['children'].remove(parent)
@@ -394,6 +431,21 @@ class Sample(Model, OrderedAnnotationsMixin):
                          for container in itervalues(containers)
                          if container.get('container_id') is None]
         return data
+
+    @staticmethod
+    def _add_schemas(serializer, schemas):
+        storage = serializer.context['storage']
+        project = Project(storage, id=str(storage.name))
+        schema_collection = project.schemas
+        for schema_id, schema in iteritems(schemas):
+            model = Schema(storage, id=schema_id, project=project,
+                           name=schema.get('name', schema_id))
+            for field_id, field in iteritems(schema['fields']):
+                field.pop('id', None)
+                model.fields.add(Field(storage, id=field_id, schema=model,
+                                       **field))
+            schema_collection.add(model)
+        project.schemas = schema_collection
 
     @post_dump
     def add_fields(self, data):
@@ -557,6 +609,7 @@ class Annotation(BaseAnnotation):
     xpath = String(allow_none=True, default=None)
     accept_selectors = List(String)
     reject_selectors = List(String)
+    repeated = Boolean(default=False)
     pre_text = String(allow_none=True, default=None)
     post_text = String(allow_none=True, default=None)
     field = BelongsTo(Field, related_name='annotations', on_delete=PROTECT,
@@ -611,16 +664,20 @@ class Annotation(BaseAnnotation):
                     'id': field
                 }
             }
+
+        extractors = json.load(self.context['storage'].open('extractors.json'))
         extractors = OrderedDict([
             (extractor, {
                 'id': extractor
-            }) for extractor in annotation_data['extractors'] or []])
+            }) for extractor in annotation_data['extractors'] or []
+            if extractor in extractors])
 
         return {
             'id': '{}|{}'.format(data['id'], data_id),
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
             'required': annotation_data['required'] or False,
+            'repeated': data.get('repeated', False),
             'selection_mode': data.get('selection_mode') or 'auto',
             'selector': data['selector'] or None,
             'xpath': data.get('xpath') or None,
@@ -651,6 +708,7 @@ class Annotation(BaseAnnotation):
             ('pre_text', data['pre_text']),
             ('reject_selectors', data['reject_selectors']),
             ('required', []),
+            ('repeated', data['repeated']),
             ('selection_mode', data['selection_mode']),
             ('selector', data['selector']),
             ('tagid', None),

@@ -1,19 +1,28 @@
 FROM ubuntu:14.04
-
-ADD . /app
-
-RUN /app/provision.sh \
-        install_deps \
-        install_splash \
-        install_python_deps \
-        configure_nginx \
-        cleanup
-
-ENV PYTHONPATH /app/slybot:/app/slyd
-
-EXPOSE 9001
-
 WORKDIR /app/slyd
 
-# TODO(dangra): fix handling of nginx service, it won't be restarted in case if crashed.
-CMD service nginx start; bin/slyd -p 9002 -r /app/portiaui/dist
+COPY provision.sh /app/provision.sh
+RUN /app/provision.sh install_deps
+RUN /app/provision.sh install_splash
+
+COPY slybot/requirements.txt /app/slybot/requirements.txt
+RUN pip install -r /app/slybot/requirements.txt
+COPY slyd/requirements.txt /app/slyd/requirements.txt
+RUN pip install -r /app/slyd/requirements.txt
+
+COPY portia_server/requirements.txt /app/portia_server/requirements.txt
+RUN pip install -r /app/portia_server/requirements.txt
+
+ADD slyd /app/slyd
+RUN pip install -e /app/slyd
+
+ADD slybot /app/slybot
+RUN pip install -e /app/slybot
+
+RUN /app/provision.sh cleanup
+
+ADD nginx /etc/nginx
+ADD . /app
+
+EXPOSE 9001
+ENTRYPOINT ["/app/docker/entry"]

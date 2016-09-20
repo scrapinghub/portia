@@ -11,16 +11,18 @@ from marshmallow_jsonapi.exceptions import IncorrectTypeError
 from six import iteritems, iterkeys, string_types, with_metaclass
 from six.moves import map, zip
 
-from slyd.jsonapi.registry import serializers, get_serializer
-from slyd.jsonapi.relationships import Relationship, PolymorphicRelationship
-from slyd.jsonapi.utils import (RESOURCE_OBJECT_ORDER, TOP_LEVEL_OBJECT_ORDER,
-                                cached_property, deep_getattr, dasherize,
-                                order_dict, should_include_field,
-                                type_from_model_name)
-from slyd.orm.base import AUTO_PK, Model
-from slyd.orm.exceptions import ImproperlyConfigured
-from slyd.orm.fields import Field as OrmField
-from slyd.orm.relationships import BaseRelationship, HasMany
+from portia_api.jsonapi.registry import (get_schema as get_serializer,
+                                         schemas as serializers)
+from portia_api.jsonapi.relationships import (Relationship,
+                                              PolymorphicRelationship)
+from portia_api.jsonapi.utils import (
+    RESOURCE_OBJECT_ORDER, TOP_LEVEL_OBJECT_ORDER, cached_property,
+    deep_getattr, dasherize, order_dict, should_include_field,
+    type_from_model_name)
+from portia_orm.base import AUTO_PK, Model
+from portia_orm.exceptions import ImproperlyConfigured
+from portia_orm.fields import Field as OrmField
+from portia_orm.relationships import BaseRelationship, HasMany
 
 __all__ = [
     'JsonApiSerializer',
@@ -114,7 +116,7 @@ class JsonApiSerializerOpts(SchemaOpts):
         # the model from which the Schema was created, required
         self.model = getattr(meta, 'model', None)
         if not issubclass(self.model, Model):
-            raise ValueError("'model' option must be a slyd.orm.Model.")
+            raise ValueError("'model' option must be a portia_orm.Model.")
         # url for an object instance
         self.url = getattr(meta, 'url', None)
         if not isinstance(self.url, string_types):

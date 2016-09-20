@@ -20,9 +20,9 @@ from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
-from slyd.gitstorage.projects import wrap_callback
-from slyd.gitstorage.repoman import Repoman
 from slyd.errors import BaseHTTPError
+
+from storage.repoman import Repoman
 
 from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
@@ -42,6 +42,12 @@ _DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 '
                        '(KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36')
 
 
+def wrap_callback(connection, callback, manager, retries=0, **parsed):
+    result = callback(**parsed)
+    manager.commit_changes()
+    return result
+
+
 def create_ferry_resource(spec_manager, factory):
     return FerryWebSocketResource(spec_manager, factory)
 
@@ -52,6 +58,8 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
     def createRequest(self, operation, request, outgoingData=None):
         reply = super(PortiaNetworkManager, self).createRequest(
             operation, request, outgoingData)
+        if getattr(self, 'closed', False):
+            return reply
         try:
             url = six.binary_type(request.url().toEncoded())
             frame_url = six.binary_type(
@@ -264,6 +272,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if self in self.factory:
             if self.tab is not None:
                 self.tab.close()
+                self.tab.network_manager.closed = True
             msg_data = {'session': self.session_id,
                         'session_time': 0,
                         'user': self.user.name}

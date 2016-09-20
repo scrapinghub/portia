@@ -2,7 +2,7 @@ from collections import OrderedDict
 from .projects import ProjectDataMixin, ProjectDownloadMixin
 from .response import JsonApiResource
 from .route import JsonApiModelRoute
-from ..orm.models import Project, Spider
+from portia_orm.models import Project, Spider
 
 
 class SpiderRoute(ProjectDownloadMixin, ProjectDataMixin, JsonApiModelRoute):

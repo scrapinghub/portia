@@ -1,4 +1,11 @@
+from os.path import abspath, join
+
 from scrapy.utils.misc import load_object
+try:
+    from slyd.local_settings import MEDIA_ROOT
+    MEDIA_ROOT = abspath(MEDIA_ROOT)
+except ImportError:
+    MEDIA_ROOT = abspath(join(__file__, '../data/projects'))
 
 
 class SpecManager(object):
@@ -27,7 +34,15 @@ class SpecManager(object):
             self.api_routes = load_object(factory_settings['API_ROUTES'])
 
     def project_spec(self, project, auth_info):
+        self.configure_django_settings()
         return self.spec_class(str(project), auth_info)
 
     def project_manager(self, auth_info):
+        self.configure_django_settings()
         return self.manager_class(auth_info)
+
+    @staticmethod
+    def configure_django_settings():
+        from django.conf import settings
+        if not settings.configured:
+            settings.configure(MEDIA_ROOT=MEDIA_ROOT)

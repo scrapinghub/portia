@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+
+import getpass
 import json
 import re
 
@@ -17,7 +19,7 @@ from .html import html4annotation
 from .errors import BaseHTTPError, BadRequest
 from .utils.projects import allowed_file_name, ProjectModifier
 from .utils.extraction import extract_items
-from .utils.storage import ContentFile, FsStorage
+from storage.backends import ContentFile, FsStorage
 
 
 def create_project_resource(spec_manager):
@@ -58,7 +60,8 @@ class ProjectSpec(object):
         return callback(**kwargs)
 
     def list_spiders(self):
-        for fname in self.storage.listdir(join(self.project_dir, "spiders")):
+        _, files = self.storage.listdir(join(self.project_dir, "spiders"))
+        for fname in files:
             if fname.endswith(".json"):
                 yield splitext(fname)[0]
 
@@ -194,7 +197,8 @@ class FileSystemProjectSpec(ProjectSpec):
 
     def __init__(self, project_name, auth_info):
         super(FileSystemProjectSpec, self).__init__(project_name, auth_info)
-        self.storage = self.storage_class(self.project_dir)
+        self.storage = self.storage_class(project_name,
+                                          author=getpass.getuser())
 
 
 class ProjectResource(SlydJsonObjectResource, ProjectModifier):

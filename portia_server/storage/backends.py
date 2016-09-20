@@ -1,12 +1,15 @@
+import errno
 import os
 import os.path
 import re
 import shutil
 
+from collections import OrderedDict
+
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.move import file_move_safe
-from django.core.files.storage import Storage, FileSystemStorage
+from django.core.files.storage import FileSystemStorage, Storage
 from dulwich.diff_tree import tree_changes
 from dulwich.objects import Blob, Tree
 from six import iteritems, text_type, string_types
@@ -20,17 +23,6 @@ class InvalidFilename(Exception):
 
 
 class CommittingStorage(object):
-    def get_available_name(self, name, max_length=None):
-        return name
-
-    def commit(self, message='Saving multiple files'):
-        pass
-
-    def changed_files(self):
-        return []
-
-
-class BasePortiaStorage(CommittingStorage, Storage):
     version_control = False
     create_projects = True
     delete_projects = True
@@ -48,12 +40,45 @@ class BasePortiaStorage(CommittingStorage, Storage):
         os.path.join('spiders', 'settings.py'): 'SETTINGS',
     }
 
-    def __init__(self, name, author=None):
-        self.name = text_type(name)
+    def init_project(self):
+        self.validate_filename(self.name)
+
+        # TODO: add portia 2.0 tag
+
+        for filename, templatename in iteritems(self.default_files):
+            if not self.exists(filename):
+                template = templates.get(templatename, '') % {
+                    'name': self.name,
+                }
+                self.save(filename, ContentFile(template, filename))
+
+    @classmethod
+    def get_projects(cls, user):
+        # return an OrderedDict of id => name pairs
+        try:
+            dirs, _ = cls('').listdir('')
+            return OrderedDict((project, project) for project in dirs)
+        except OSError as ex:
+            if ex.errno != errno.ENOENT:
+                raise
 
     @classmethod
     def setup(cls):
         pass
+
+    def get_available_name(self, name, max_length=None):
+        return name
+
+    def commit(self, message='Saving multiple files'):
+        pass
+
+    def changed_files(self):
+        return []
+
+
+class BasePortiaStorage(CommittingStorage, Storage):
+    def __init__(self, name, author=None):
+        self.name = text_type(name)
 
     @staticmethod
     def is_valid_filename(s):
@@ -72,32 +97,17 @@ class BasePortiaStorage(CommittingStorage, Storage):
                 u"The string '{}' is not a valid filename.".format(s))
         return s
 
-    def init_project(self):
-        self.validate_filename(self.name)
-
-        # TODO: add portia 2.0 tag
-
-        for filename, templatename in iteritems(self.default_files):
-            if not self.exists(filename):
-                template = templates.get(templatename, '') % {
-                    'name': self.name,
-                }
-                self.save(filename, ContentFile(template, filename))
-
-    @classmethod
-    def get_projects(cls, user):
-        # return an OrderedDict of id => name pairs
-        raise NotImplementedError
-
 
 class FsStorage(BasePortiaStorage, FileSystemStorage):
-    base_dir = '.'
+    base_dir = settings.MEDIA_ROOT
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name, author=None, *args, **kwargs):
+        self.author = author
         super(FsStorage, self).__init__(name, *args, **kwargs)
         FileSystemStorage.__init__(self, os.path.join(
             self.base_dir, self.name))
-        self.init_project()
+        if name:
+            self.init_project()
 
     def isdir(self, name):
         return os.path.isdir(self.path(name))
@@ -112,12 +122,46 @@ class FsStorage(BasePortiaStorage, FileSystemStorage):
     def rmtree(self, name):
         shutil.rmtree(self.path(name))
 
+    def _save(self, name, content):
+        # Taken from django.core.files.storage.FileSystemStorage._save
+        # Need to allow overwrite
+        full_path = self.path(name)
+        directory = os.path.dirname(full_path)
+        if not os.path.exists(directory):
+            try:
+                if self.directory_permissions_mode is not None:
+                    # os.makedirs applies the global umask, so we reset it,
+                    # for consistency with file_permissions_mode behavior.
+                    old_umask = os.umask(0)
+                    try:
+                        os.makedirs(directory, self.directory_permissions_mode)
+                    finally:
+                        os.umask(old_umask)
+                else:
+                    os.makedirs(directory)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+        if not os.path.isdir(directory):
+            raise IOError("%s exists and is not a directory." % directory)
+
+        with open(full_path, 'w') as f:
+            for chunk in content.chunks():
+                f.write(chunk)
+
+        if self.file_permissions_mode is not None:
+            os.chmod(full_path, self.file_permissions_mode)
+
+        return name
+
 
 class GitStorage(BasePortiaStorage):
     version_control = True
 
     def __init__(self, name, author=None):
         super(GitStorage, self).__init__(name)
+        if not name:
+            return
         self._tree, self._working_tree = None, None
         self.author = author
         repo = Repoman.open_repo(name, author)

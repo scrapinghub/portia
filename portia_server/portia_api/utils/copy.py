@@ -15,6 +15,9 @@ class ModelCopier(object):
                                               author=storage.author)
         self.from_project = Project(self.from_storage, id=from_project_id,
                                     name=from_project_id)
+        # Populating projects to avoid overwrites
+        self.project.schemas
+        self.project.extractors
         self.from_project.schemas
         self.from_project.extractors
 
@@ -46,11 +49,21 @@ class ModelCopier(object):
             for sample in spider.samples:
                 for item in sample.items:
                     schema = item.schema.with_storage(self.storage)
+                    schema.fields = item.schema.fields
                     self.project.schemas.add(schema)
                     for annotation in item.annotations:
+                        extractors = []
                         for extractor in annotation.extractors:
+                            # TODO: Skip missing extractors in ORM
+                            try:
+                                self.from_project.extractors[extractor]
+                            except TypeError:
+                                continue
                             extractor = extractor.with_storage(self.storage)
                             self.project.extractors.add(extractor)
+                            extractors.append(extractor)
+                        # Remove unavailable extractors
+                        annotation.extractors = extractors
                 sample = sample.with_storage(self.storage)
                 sample.spider = new_spider
                 models.append(sample)

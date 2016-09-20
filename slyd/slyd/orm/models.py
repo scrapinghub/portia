@@ -357,7 +357,8 @@ class Sample(Model, OrderedAnnotationsMixin):
         schemas = json.load(self.context['storage'].open('items.json'))
         annotations = load_annotations(data.get('annotated_body', u''))
         data['plugins'] = annotations
-        return port_sample(data, schemas)
+        sample, new_schemas = port_sample(data, schemas)
+        return sample
 
     @staticmethod
     def get_items(self, data):
@@ -636,7 +637,7 @@ class Annotation(BaseAnnotation):
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
             'required': annotation_data['required'] or False,
-            'repeated': annotation_data.get('repeated',  False),
+            'repeated': annotation_data.get('repeated', False),
             'selection_mode': data.get('selection_mode') or 'auto',
             'selector': data['selector'] or None,
             'xpath': data.get('xpath') or None,

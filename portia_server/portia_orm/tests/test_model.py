@@ -93,9 +93,12 @@ class ProjectTestCase(DataStoreTestCase):
                 '    "name": "shop-crawler",'
                 '    "project": "example",'
                 '    "respect_nofollow": true,'
-                '    "start_urls": ['
-                '        "http://owlkingdom.com/"'
-                '    ],'
+                '    "start_urls": [\n'
+                '        {\n'
+                '            "url": "http://example.com/", \n'
+                '            "type": "url"\n'
+                '        }\n'
+                '    ], \n'
                 '    "template_names": ['
                 '        "1ddc-4043-ac4d"'
                 '    ]'
@@ -109,6 +112,7 @@ class ProjectTestCase(DataStoreTestCase):
                 '    "page_type": "item",'
                 '    "original_body": "<html></html>",'
                 '    "annotated_body": "<html></html>",'
+                '    "rendered_body": "<html></html>",'
                 '    "spider": "shop-crawler",'
                 '    "scrapes": "1664-4f20-b657",'
                 '    "plugins": {'
@@ -1274,13 +1278,14 @@ class ExtractorTests(ProjectTestCase):
 class SpiderTests(ProjectTestCase):
     def test_minimal_spider(self):
         spider = Spider(id='spider-1')
-        spider.start_urls.append('http://example.com')
+        spider.start_urls.append({'type': 'url', 'url': 'http://example.com'})
 
         self.assertEqual(spider.dump(), {
             'id': 'spider-1',
-            'start_urls': [
-                'http://example.com',
-            ],
+            'start_urls': [{
+                'type': 'url',
+                'url': 'http://example.com',
+            }],
             'links_to_follow': "all",
             'allowed_domains': [],
             'respect_nofollow': True,
@@ -1295,7 +1300,7 @@ class SpiderTests(ProjectTestCase):
     def test_full_spider(self):
         spider = Spider(
             id='spider-1',
-            start_urls=['http://example.com'],
+            start_urls=[{'type': 'url', 'url': 'http://example.com'}],
             links_to_follow="none",
             allowed_domains=['example.com'],
             respect_nofollow=False,
@@ -1315,9 +1320,10 @@ class SpiderTests(ProjectTestCase):
 
         self.assertEqual(spider.dump(), {
             'id': 'spider-1',
-            'start_urls': [
-                'http://example.com',
-            ],
+            'start_urls': [{
+                'type': 'url',
+                'url': 'http://example.com'
+            }],
             'links_to_follow': "none",
             'allowed_domains': [
                 'example.com',
@@ -1375,9 +1381,10 @@ class SpiderTests(ProjectTestCase):
             {
                 "id": "shop-crawler",
                 # "name": "shop-crawler",
-                "start_urls": [
-                    "http://owlkingdom.com/"
-                ],
+                "start_urls": [{
+                    "type": "url",
+                    "url": "http://example.com/"
+                }],
                 "links_to_follow": "all",
                 "allowed_domains": [],
                 "respect_nofollow": True,
@@ -1406,9 +1413,10 @@ class SpiderTests(ProjectTestCase):
         self.assertEqual(spider.dump(), {
             "id": "shop-crawler",
             # "name": "shop-crawler",
-            "start_urls": [
-                "http://owlkingdom.com/"
-            ],
+            "start_urls": [{
+                "type": "url",
+                "url": "http://example.com/"
+            }],
             "links_to_follow": "all",
             "allowed_domains": [],
             "respect_nofollow": True,
@@ -1467,7 +1475,10 @@ class SpiderTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "1ddc-4043-ac4d"\n'
@@ -1477,7 +1488,7 @@ class SpiderTests(ProjectTestCase):
         spider.id = 'test-id'
         spider.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1513,7 +1524,10 @@ class SpiderTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "1ddc-4043-ac4d"\n'
@@ -1574,7 +1588,7 @@ class SpiderTests(ProjectTestCase):
         spider = project.spiders['shop-crawler']
         spider.delete()
 
-        self.assertEqual(self.storage.open.call_count, 3)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('items.json'),
             mock.call('spiders/shop-crawler.json'),
@@ -1610,6 +1624,8 @@ class SampleTests(ProjectTestCase):
             'page_type': 'item',
             'original_body': '',
             'annotated_body': '',
+            'body': 'original_body',
+            'rendered_body': '',
             'spider': None,
             'scrapes': None,
             'plugins': {
@@ -1637,8 +1653,10 @@ class SampleTests(ProjectTestCase):
             'url': 'http://example.com',
             'page_id': 'test-id',
             'page_type': 'item',
+            'body': 'original_body',
             'original_body': 'original_body',
             'annotated_body': 'annotated_body',
+            'rendered_body': '',
             'spider': 'spider-1',
             'scrapes': None,
             'plugins': {
@@ -1663,8 +1681,10 @@ class SampleTests(ProjectTestCase):
                 'url': 'http://example.com',
                 'page_id': 'ab5bbf650b32ca41af6f8e9976fc3c85eee87f67',
                 'page_type': 'item',
+                "body": "original_body",
                 'original_body': '<html></html>',
                 'annotated_body': '<html></html>',
+                'rendered_body': '<html></html>',
                 'spider': 'shop-crawler',
                 'scrapes': '1664-4f20-b657',
                 'plugins': {
@@ -1718,6 +1738,7 @@ class SampleTests(ProjectTestCase):
                                 'post_text': None,
                                 'pre_text': None,
                                 'reject_selectors': [],
+                                'repeated': False,
                                 'required': [],
                                 'selection_mode': 'auto',
                                 'selector': '.main > h1',
@@ -1744,6 +1765,7 @@ class SampleTests(ProjectTestCase):
                                 'post_text': None,
                                 'pre_text': None,
                                 'reject_selectors': [],
+                                'repeated': False,
                                 'required': [],
                                 'selection_mode': 'auto',
                                 'selector': '.main > img',
@@ -1757,7 +1779,7 @@ class SampleTests(ProjectTestCase):
                 'version': SLYBOT_VERSION,
             },
         ])
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1771,8 +1793,10 @@ class SampleTests(ProjectTestCase):
             'url': 'http://example.com',
             'page_id': 'ab5bbf650b32ca41af6f8e9976fc3c85eee87f67',
             'page_type': 'item',
+            'body': 'original_body',
             'original_body': '<html></html>',
             'annotated_body': '<html></html>',
+            'rendered_body': '<html></html>',
             'spider': 'shop-crawler',
             'scrapes': '1664-4f20-b657',
             'plugins': {
@@ -1827,6 +1851,7 @@ class SampleTests(ProjectTestCase):
                             'pre_text': None,
                             'reject_selectors': [],
                             'required': [],
+                            'repeated': False,
                             'selection_mode': 'auto',
                             'selector': '.main > h1',
                             'tagid': None,
@@ -1853,6 +1878,7 @@ class SampleTests(ProjectTestCase):
                             'pre_text': None,
                             'reject_selectors': [],
                             'required': [],
+                            'repeated': False,
                             'selection_mode': 'auto',
                             'selector': '.main > img',
                             'tagid': None,
@@ -1864,7 +1890,7 @@ class SampleTests(ProjectTestCase):
             'extractors': {},
             'version': SLYBOT_VERSION,
         })
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1874,7 +1900,7 @@ class SampleTests(ProjectTestCase):
                         spider=Spider(self.storage, id='shop-crawler'))
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1883,7 +1909,7 @@ class SampleTests(ProjectTestCase):
         sample.original_body = '<html id="#test"></html>'
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1893,6 +1919,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -1951,6 +1978,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -1977,6 +2005,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -1985,6 +2014,7 @@ class SampleTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -1994,7 +2024,7 @@ class SampleTests(ProjectTestCase):
         sample.id = 'test-id'
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2009,6 +2039,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/test-id.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test-id", \n'
             '    "name": "example", \n'
@@ -2067,6 +2098,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -2093,6 +2125,7 @@ class SampleTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -2101,6 +2134,7 @@ class SampleTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -2127,7 +2161,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "test-id"\n'
@@ -2150,6 +2187,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/test1.json'],
             '{\n'
             '    "annotated_body": "", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test1", \n'
             '    "name": "test sample 1", \n'
@@ -2161,6 +2199,7 @@ class SampleTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com/test1", \n'
@@ -2187,7 +2226,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "1ddc-4043-ac4d", \n'
@@ -2211,6 +2253,7 @@ class SampleTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/test2.json'],
             '{\n'
             '    "annotated_body": "", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test2", \n'
             '    "name": "test sample 2", \n'
@@ -2222,6 +2265,7 @@ class SampleTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com/test2", \n'
@@ -2248,7 +2292,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": [\n'
             '        "test2", \n'
@@ -2264,7 +2311,7 @@ class SampleTests(ProjectTestCase):
         sample = spider.samples['1ddc-4043-ac4d']
         sample.delete()
 
-        self.assertEqual(self.storage.open.call_count, 3)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('items.json'),
             mock.call('spiders/shop-crawler.json'),
@@ -2297,7 +2344,10 @@ class SampleTests(ProjectTestCase):
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
-            '        "http://owlkingdom.com/"\n'
+            '        {\n'
+            '            "url": "http://example.com/", \n'
+            '            "type": "url"\n'
+            '        }\n'
             '    ], \n'
             '    "template_names": []\n'
             '}')
@@ -2565,6 +2615,7 @@ class ItemTests(ProjectTestCase):
                     "post_text": None,
                     "pre_text": None,
                     "reject_selectors": [],
+                    "repeated": False,
                     "required": [],
                     "selection_mode": "auto",
                     "selector": None,
@@ -2630,7 +2681,7 @@ class ItemTests(ProjectTestCase):
         items = project.spiders['shop-crawler'].samples['1ddc-4043-ac4d'].items
         self.assertListEqual(items.keys(), ['1e47-4833-a4d4'])
         self.assertIsInstance(items, Item.collection)
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2659,6 +2710,7 @@ class ItemTests(ProjectTestCase):
                         'pre_text': None,
                         'reject_selectors': [],
                         'required': [],
+                        'repeated': False,
                         'selection_mode': 'auto',
                         'selector': '.main > h1',
                         'tagid': None,
@@ -2686,6 +2738,7 @@ class ItemTests(ProjectTestCase):
                                 'post_text': None,
                                 'pre_text': None,
                                 'reject_selectors': [],
+                                'repeated': False,
                                 'required': [],
                                 'selection_mode': 'auto',
                                 'selector': '.main > div > span',
@@ -2726,6 +2779,7 @@ class ItemTests(ProjectTestCase):
                         'pre_text': None,
                         'reject_selectors': [],
                         'required': [],
+                        'repeated': False,
                         'selection_mode': 'auto',
                         'selector': '.main > img',
                         'tagid': None,
@@ -2745,7 +2799,7 @@ class ItemTests(ProjectTestCase):
                 'text-content': '#portia-content',
             },
         ])
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2780,6 +2834,7 @@ class ItemTests(ProjectTestCase):
                     'pre_text': None,
                     'reject_selectors': [],
                     'required': [],
+                    'repeated': False,
                     'selection_mode': 'auto',
                     'selector': '.main > h1',
                     'tagid': None,
@@ -2807,6 +2862,7 @@ class ItemTests(ProjectTestCase):
                             'post_text': None,
                             'pre_text': None,
                             'reject_selectors': [],
+                            'repeated': False,
                             'required': [],
                             'selection_mode': 'auto',
                             'selector': '.main > div > span',
@@ -2847,6 +2903,7 @@ class ItemTests(ProjectTestCase):
                     'pre_text': None,
                     'reject_selectors': [],
                     'required': [],
+                    'repeated': False,
                     'selection_mode': 'auto',
                     'selector': '.main > img',
                     'tagid': None,
@@ -2865,7 +2922,7 @@ class ItemTests(ProjectTestCase):
             'tagid': None,
             'text-content': '#portia-content',
         })
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2878,7 +2935,7 @@ class ItemTests(ProjectTestCase):
                 spider=Spider(self.storage, id='shop-crawler')))
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2887,7 +2944,7 @@ class ItemTests(ProjectTestCase):
         item.selector = '#test'
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2897,6 +2954,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -2955,6 +3013,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -2993,6 +3052,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3019,6 +3079,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3027,6 +3088,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3036,7 +3098,7 @@ class ItemTests(ProjectTestCase):
         item.id = 'test-id'
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3048,6 +3110,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3106,6 +3169,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -3144,6 +3208,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3170,6 +3235,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3178,6 +3244,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3192,7 +3259,7 @@ class ItemTests(ProjectTestCase):
         item = Item(self.storage, id='test1', sample=sample)
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3202,6 +3269,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3260,6 +3328,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -3298,6 +3367,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3324,6 +3394,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3347,6 +3418,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3358,7 +3430,7 @@ class ItemTests(ProjectTestCase):
                                     repeated_selector='.yyy'))
         sample.items[0].save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3370,6 +3442,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3458,6 +3531,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -3496,6 +3570,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > div > span", \n'
             '                    "tagid": null, \n'
@@ -3522,6 +3597,7 @@ class ItemTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3545,6 +3621,7 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3561,7 +3638,7 @@ class ItemTests(ProjectTestCase):
         item = sample.items['1e47-4833-a4d4']
         item.delete()
 
-        self.assertEqual(self.storage.open.call_count, 3)
+        self.assertEqual(self.storage.open.call_count, 7)
         self.storage.open.assert_has_calls([
             mock.call('items.json'),
             mock.call('spiders/shop-crawler.json'),
@@ -3576,6 +3653,7 @@ class ItemTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3587,6 +3665,7 @@ class ItemTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3647,6 +3726,7 @@ class AnnotationTests(ProjectTestCase):
             'post_text': None,
             'pre_text': None,
             'reject_selectors': [],
+            'repeated': False,
             'required': [],
             'selection_mode': 'auto',
             'selector': None,
@@ -3687,6 +3767,7 @@ class AnnotationTests(ProjectTestCase):
             'reject_selectors': [
                 'video',
             ],
+            'repeated': False,
             'required': [],
             'selection_mode': 'css',
             'selector': 'img',
@@ -3702,7 +3783,7 @@ class AnnotationTests(ProjectTestCase):
                              ['3606-4d68-a6a0|d1e2-4673-a72a',
                               '5c18-40cf-8809|de35-49b5-b90b'])
         self.assertIsInstance(annotations, BaseAnnotation.collection)
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3725,6 +3806,7 @@ class AnnotationTests(ProjectTestCase):
                 'post_text': None,
                 'pre_text': None,
                 'reject_selectors': [],
+                'repeated': False,
                 'required': [],
                 'selection_mode': 'auto',
                 'selector': '.main > h1',
@@ -3751,6 +3833,7 @@ class AnnotationTests(ProjectTestCase):
                 'post_text': None,
                 'pre_text': None,
                 'reject_selectors': [],
+                'repeated': False,
                 'required': [],
                 'selection_mode': 'auto',
                 'selector': '.main > img',
@@ -3758,7 +3841,7 @@ class AnnotationTests(ProjectTestCase):
                 'xpath': None,
             },
         ])
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3791,13 +3874,14 @@ class AnnotationTests(ProjectTestCase):
             'post_text': None,
             'pre_text': None,
             'reject_selectors': [],
+            'repeated': False,
             'required': [],
             'selection_mode': 'auto',
             'selector': '.main > img',
             'tagid': None,
             'xpath': None,
         })
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3812,7 +3896,7 @@ class AnnotationTests(ProjectTestCase):
                     spider=Spider(self.storage, id='shop-crawler'))))
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3821,7 +3905,7 @@ class AnnotationTests(ProjectTestCase):
         annotation.selector = '.test'
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3831,6 +3915,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -3889,6 +3974,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".test", \n'
             '                    "tagid": null, \n'
@@ -3915,6 +4001,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -3923,6 +4010,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3932,7 +4020,7 @@ class AnnotationTests(ProjectTestCase):
         annotation.id = 'test-id|data-id'
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3944,6 +4032,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4002,6 +4091,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".test", \n'
             '                    "tagid": null, \n'
@@ -4028,6 +4118,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4036,6 +4127,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4051,7 +4143,7 @@ class AnnotationTests(ProjectTestCase):
         annotation = Annotation(self.storage, id='test1|data1', parent=item)
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -4061,6 +4153,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4119,6 +4212,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -4145,6 +4239,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4166,6 +4261,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": null, \n'
             '                    "tagid": null, \n'
@@ -4174,6 +4270,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4183,7 +4280,7 @@ class AnnotationTests(ProjectTestCase):
         item.annotations.insert(0, Annotation(self.storage, id='test2|data2'))
         item.annotations[0].save()
 
-        self.assertEqual(self.storage.open.call_count, 2)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -4195,6 +4292,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4250,6 +4348,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": null, \n'
             '                    "tagid": null, \n'
@@ -4274,6 +4373,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > h1", \n'
             '                    "tagid": null, \n'
@@ -4300,6 +4400,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4321,6 +4422,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": null, \n'
             '                    "tagid": null, \n'
@@ -4329,6 +4431,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4347,7 +4450,7 @@ class AnnotationTests(ProjectTestCase):
         annotation = item.annotations['3606-4d68-a6a0|d1e2-4673-a72a']
         annotation.delete()
 
-        self.assertEqual(self.storage.open.call_count, 3)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('items.json'),
             mock.call('spiders/shop-crawler.json'),
@@ -4363,6 +4466,7 @@ class AnnotationTests(ProjectTestCase):
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
             '    "annotated_body": "<html></html>", \n'
+            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
@@ -4423,6 +4527,7 @@ class AnnotationTests(ProjectTestCase):
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
             '                    "required": [], \n'
+            '                    "repeated": false, \n'
             '                    "selection_mode": "auto", \n'
             '                    "selector": ".main > img", \n'
             '                    "tagid": null, \n'
@@ -4431,6 +4536,7 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
+            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'

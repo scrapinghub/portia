@@ -1,9 +1,9 @@
 from marshmallow_jsonapi.fields import Relationship as BaseRelationship
 
-from slyd.jsonapi.registry import get_serializer
-from slyd.jsonapi.utils import (TOP_LEVEL_OBJECT_ORDER, LINKS_OBJECT_ORDER,
-                                type_from_model_name, order_dict,
-                                cached_property, cached_property_ignore_set)
+from portia_api.jsonapi.registry import get_serializer
+from portia_api.jsonapi.utils import (
+    TOP_LEVEL_OBJECT_ORDER, LINKS_OBJECT_ORDER, type_from_model_name,
+    order_dict, cached_property, cached_property_ignore_set)
 
 
 class Relationship(BaseRelationship):
