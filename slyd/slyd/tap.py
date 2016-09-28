@@ -4,7 +4,7 @@ The module is used by the Twisted plugin system
 slyd server. The command can be used with 'twistd slyd'.
 """
 from __future__ import absolute_import
-from os import listdir
+from os import listdir, environ
 from os.path import join, dirname, isfile, abspath
 from twisted.python import usage
 from twisted.web.resource import Resource
@@ -38,11 +38,20 @@ class Capabilities(SlydJsonObjectResource):
         }
 
 
+def configure_django(settings):
+    import django
+    environ.setdefault("DJANGO_SETTINGS_MODULE", settings['DJANGO_SETTINGS'])
+    django.setup()
+
+
 def create_root(config, settings_module):
     from scrapy.settings import Settings
+    settings = Settings()
+    settings.setmodule(settings_module)
+    configure_django(settings)
+
     from .specmanager import SpecManager
     from .authmanager import AuthManager
-    SpecManager.configure_django_settings()
     from .projectspec import create_project_resource
     from slyd.api import APIResource
     from slyd.bot import create_bot_resource
@@ -65,8 +74,6 @@ def create_root(config, settings_module):
     root.putChild('fonts', File(join(config['docroot'], 'assets', 'fonts')))
     root.putChild('', File(join(config['docroot'], 'index.html')))
 
-    settings = Settings()
-    settings.setmodule(settings_module)
     spec_manager = SpecManager(settings)
 
     # add server capabilities at /server_capabilities

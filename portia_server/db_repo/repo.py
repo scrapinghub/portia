@@ -69,7 +69,7 @@ class MysqlObjectStore(BaseObjectStore):
         oid = obj.id
         tnum = obj.get_type()
         try:
-            Objs.objects.create(
+            Objs.objects.update_or_create(
                 repo=self._repo, oid=oid, type=tnum, size=len(data), data=data)
         except IntegrityError:
             pass

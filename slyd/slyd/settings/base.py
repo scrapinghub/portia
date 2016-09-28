@@ -15,6 +15,8 @@ SCHEDULE_URL = 'http://localhost:6800/schedule.json'
 DATA_DIR = join(dirname(dirname(__file__)), 'data')
 SPEC_DATA_DIR = join(DATA_DIR, 'projects')
 
+DJANGO_SETTINGS = 'portia_server.settings'
+
 SPEC_FACTORY = {
     'PROJECT_SPEC': 'slyd.projectspec.FileSystemProjectSpec',
     'PROJECT_MANAGER': 'slyd.projects.FileSystemProjectsManager',

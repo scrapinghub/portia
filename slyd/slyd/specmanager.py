@@ -1,8 +1,4 @@
-import os
-
-from scrapy.utils.misc import load_object, import_module
-module = os.environ.get('DJANGO_SETTINGS_MODULE', 'portia_server.settings')
-settings_module = import_module(module)
+from scrapy.utils.misc import load_object
 
 
 class SpecManager(object):
@@ -31,17 +27,7 @@ class SpecManager(object):
             self.api_routes = load_object(factory_settings['API_ROUTES'])
 
     def project_spec(self, project, auth_info):
-        self.configure_django_settings()
         return self.spec_class(str(project), auth_info)
 
     def project_manager(self, auth_info):
-        self.configure_django_settings()
         return self.manager_class(auth_info)
-
-    @staticmethod
-    def configure_django_settings():
-        from django.conf import settings
-        if not settings.configured:
-            settings.configure(
-                MEDIA_ROOT=settings_module.MEDIA_ROOT,
-                PORTIA_STORAGE_BACKEND=settings_module.PORTIA_STORAGE_BACKEND)
