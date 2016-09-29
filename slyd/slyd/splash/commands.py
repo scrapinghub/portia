@@ -17,7 +17,7 @@ from splash.har.qt import cookies2har
 
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
 
-from portia_orm.models import Sample, Project
+from portia_orm.models import Project
 
 from .utils import open_tab, extract_data, _get_viewport, _decode
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
@@ -38,9 +38,9 @@ def cookies(socket):
 def save_html(data, socket):
     c = ItemChecker(socket, data['project'], data['spider'],
                     data['sample'])
-    ss = socket.spiderspec
-    ss.project.spiders
-    spider = ss.project.spiders[data['spider']]
+    project = Project(socket.storage, id=data['project'])
+    socket.spiderspec.project = project
+    spider = project.spiders[data['spider']]
     samples = spider.samples
     sample = samples[data['sample']]
     if sample.rendered_body and not data.get('update'):
@@ -63,10 +63,11 @@ def extract_items(data, socket):
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
-def _update_sample(data, socket, sample=None, save=False, use_live=False):
+def _update_sample(data, socket, sample=None, project=None, save=False,
+                   use_live=False):
     """Recompile sample with latest annotations"""
     if sample is None:
-        project = socket.spiderspec.project
+        project = project or socket.spiderspec.project
         spiders = project.spiders
         spider = spiders[data['spider']]
         samples = spider.samples
@@ -305,7 +306,8 @@ class ItemChecker(object):
         spider = socket.spiderspec.spider.copy()
         spider['body'] = body_field
         if self.sample:
-            samples = [_update_sample(self.data(), socket, use_live=live)]
+            samples = [_update_sample(self.data(), socket,
+                                      project=self.project, use_live=live)]
         else:
             samples = socket.spiderspec.templates
         spider['templates'] = samples
