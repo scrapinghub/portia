@@ -192,7 +192,8 @@ class PortiaJSApi(QObject):
             '_data': data
         })
         if command == 'mutation':
-            self.protocol.sendMessage(metadata(self.protocol))
+            with data_store_context():
+                self.protocol.sendMessage(metadata(self.protocol))
 
 
 class FerryServerProtocol(WebSocketServerProtocol):
