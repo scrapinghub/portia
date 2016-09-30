@@ -1,3 +1,4 @@
+import errno
 import mock
 import unittest
 
@@ -22,6 +23,14 @@ def mock_storage(files):
         except KeyError:
             raise IOError(2, 'No file or directory', name)
         return ContentFile(data, name)
+
+    def open_with_default(name, default=None, *args, **kwargs):
+        try:
+            return open_(name, *args, **kwargs)
+        except IOError as error:
+            if error.errno == errno.ENOENT:
+                return ContentFile(json.dumps(default), name)
+            raise error
 
     def save(name, content):
         files[name] = content.read()
@@ -50,6 +59,7 @@ def mock_storage(files):
     storage.files = files
     storage.exists.side_effect = exists
     storage.open.side_effect = open_
+    storage.open_with_default.side_effect = open_with_default
     storage.save.side_effect = save
     storage.delete.side_effect = delete
     storage.listdir.side_effect = listdir
