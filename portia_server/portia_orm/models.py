@@ -374,7 +374,9 @@ class Sample(Model, OrderedAnnotationsMixin):
         items = [a for a in annotations if a.get('item_container')]
         if items:
             return data
-        extractors = json.load(self.context['storage'].open('extractors.json'))
+
+        json_file = self.context['storage'].open_with_default('extractors.json')
+        extractors = json.load(json_file) if json_file else None
         annotations = load_annotations(data.get('annotated_body', u''))
         data['plugins'] = annotations
         sample, new_schemas = port_sample(data, schemas, extractors)
@@ -665,7 +667,8 @@ class Annotation(BaseAnnotation):
                 }
             }
 
-        extractors = json.load(self.context['storage'].open('extractors.json'))
+        json_file = self.context['storage'].open_with_default('extractors.json')
+        extractors = json.load(json_file) if json_file else None
         extractors = OrderedDict([
             (extractor, {
                 'id': extractor

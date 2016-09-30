@@ -97,6 +97,14 @@ class BasePortiaStorage(CommittingStorage, Storage):
                 u"The string '{}' is not a valid filename.".format(s))
         return s
 
+    def open_with_default(self, name, default=None):
+        try:
+            return self.open(name)
+        except IOError as error:
+            if error.errno == errno.ENOENT:
+                return default
+            raise error
+
 
 class FsStorage(BasePortiaStorage, FileSystemStorage):
     base_dir = settings.MEDIA_ROOT
