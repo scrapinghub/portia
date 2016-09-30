@@ -1,4 +1,5 @@
 import errno
+import json
 import os
 import os.path
 import re
@@ -102,7 +103,7 @@ class BasePortiaStorage(CommittingStorage, Storage):
             return self.open(name)
         except IOError as error:
             if error.errno == errno.ENOENT:
-                return default
+                return ContentFile(json.dumps(default), name)
             raise error
 
 

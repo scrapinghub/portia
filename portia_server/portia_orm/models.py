@@ -376,7 +376,7 @@ class Sample(Model, OrderedAnnotationsMixin):
             return data
 
         json_file = self.context['storage'].open_with_default('extractors.json')
-        extractors = json.load(json_file) if json_file else None
+        extractors = json.load(json_file)
         annotations = load_annotations(data.get('annotated_body', u''))
         data['plugins'] = annotations
         sample, new_schemas = port_sample(data, schemas, extractors)
@@ -667,8 +667,9 @@ class Annotation(BaseAnnotation):
                 }
             }
 
-        json_file = self.context['storage'].open_with_default('extractors.json')
-        extractors = json.load(json_file) if json_file else None
+        json_file = self.context['storage'].open_with_default(
+            'extractors.json', default={})
+        extractors = json.load(json_file)
         extractors = OrderedDict([
             (extractor, {
                 'id': extractor
