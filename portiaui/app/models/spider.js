@@ -3,8 +3,17 @@ import DS from 'ember-data';
 import BaseModel from './base';
 
 export default BaseModel.extend({
-    name: Ember.computed.alias('id'),
-    // name: DS.attr('string'),
+    name: DS.attr('string'),
+    nameAlias: Ember.computed('id', 'name', {
+        get() {
+            return this.get('name') || this.get('id');
+        },
+        set(key, value) {
+            this.set('name', value);
+            return value;
+        }
+    }),
+
     startUrls: DS.attr('startUrl', {
         defaultValue() {
             return [];

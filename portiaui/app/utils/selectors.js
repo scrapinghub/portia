@@ -954,6 +954,5 @@ export default {
     smartSelector,
     cssToXpath,
     findContainer,
-    findRepeatedContainers,
-    updateStructureSelectors
+    findRepeatedContainers
 };
