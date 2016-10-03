@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from django.http.response import Http404
 
 import requests
 
@@ -23,6 +24,19 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
 
     def get_collection(self):
         return self.project.spiders
+
+    @detail_route(methods=['post'])
+    def rename(self, *args, **kwargs):
+        try:
+            spider = self.get_instance()
+            spider.id = self.data['name']
+            spider.save()
+            self.storage.commit()
+        except (TypeError, IndexError, KeyError):
+            raise Http404
+
+        data = self.get_serializer(spider).data
+        return Response(data, status=HTTP_200_OK)
 
     @detail_route(methods=['post'])
     def schedule(self):

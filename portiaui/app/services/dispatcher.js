@@ -42,6 +42,7 @@ export function computedCanAddStartUrl(spiderPropertyName) {
 }
 
 export default Ember.Service.extend({
+    api: Ember.inject.service(),
     browser: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
     selectorMatcher: Ember.inject.service(),
@@ -319,6 +320,36 @@ export default Ember.Service.extend({
     addFragment(startUrl) {
         let emptyFragment = { type: 'fixed', value: '' };
         startUrl.fragments.addObject(emptyFragment);
+    },
+
+    changeId(model, json) {
+        // HACK: Ember data does not support changing a record's id
+        // This mechanism bypasses this contraint.
+
+        const store = this.get('store');
+
+        let internalModel = model._internalModel;
+        const newId = json.data.id;
+
+        // Update internal store with internal model
+        const recordMap = store.typeMapFor(internalModel.type).idToRecord;
+        delete recordMap[internalModel.id];
+        recordMap[newId] = internalModel;
+
+        // Allows changing ED model id
+        internalModel.id = newId;
+        // Allows adapters to infer the correct url
+        internalModel._links.self = json.data.links.self;
+
+        model.set('id', newId);
+    },
+
+    changeSpiderName(spider) {
+        const data = { name: spider.get('name') };
+        return this.get('api').post('rename', {
+            model: spider,
+            jsonData: data
+        });
     },
 
     changeAnnotationSource(annotation, attribute) {

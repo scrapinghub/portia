@@ -4,9 +4,10 @@ import {computedCanAddSpider} from '../services/dispatcher';
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
-    uiState: Ember.inject.service(),
     notificationManager: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
+    savingNotification: Ember.inject.service(),
+    uiState: Ember.inject.service(),
 
     tagName: '',
 
@@ -23,6 +24,13 @@ export default Ember.Component.extend({
             }
         }
     }),
+
+    notifyError(spider) {
+        const msg = `Renaming the spider '${spider.get('id')}' failed.`;
+        this.get('notificationManager').showErrorNotification(msg);
+
+        spider.set('name', spider.get('id'));
+    },
 
     actions: {
         addSchema() {
@@ -56,14 +64,15 @@ export default Ember.Component.extend({
         },
 
         saveSpiderName(spider) {
-            // HACK: Renaming the spider will change it's ID, changing the ID
-            // of a record is not supported in Ember data, so we return a new
-            // record from the server and mark the original as deleted.
-            spider.save().then(() => {
-                if(spider.get('name') === '_deleted') {
-                    spider.unloadRecord();
-                }
-            });
+            const dispatcher = this.get('dispatcher');
+            const saving = this.get('savingNotification');
+
+            saving.start();
+
+            dispatcher.changeSpiderName(spider)
+                .then((data) => dispatcher.changeId(spider, data))
+                .catch(() => this.notifyError(spider))
+                .finally(() => saving.end());
         }
     }
 });
