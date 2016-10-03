@@ -41,16 +41,8 @@ export function computedCanAddStartUrl(spiderPropertyName) {
     });
 }
 
-function jsonPayload(data) {
-    return {
-        dataType: 'json',
-        contentType: 'application/json; charset=UTF-8',
-        data: JSON.stringify(data)
-    };
-}
-
 export default Ember.Service.extend({
-    ajax: Ember.inject.service(),
+    api: Ember.inject.service(),
     browser: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
     selectorMatcher: Ember.inject.service(),
@@ -353,11 +345,11 @@ export default Ember.Service.extend({
     },
 
     changeSpiderName(spider) {
-        const url = `api/projects/${spider.get('project.id')}/` +
-                    `spiders/${spider.get('id')}/rename`;
-        const data = jsonPayload({name: spider.get('name')});
-
-        return this.get('ajax').post(url, data);
+        const data = { name: spider.get('name') };
+        return this.get('api').post('rename', {
+            model: spider,
+            jsonData: data
+        });
     },
 
     changeAnnotationSource(annotation, attribute) {
