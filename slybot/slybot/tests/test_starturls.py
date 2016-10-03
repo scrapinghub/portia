@@ -33,7 +33,7 @@ class StartUrlCollectionTest(TestCase):
             'https://github.com/2',
         ]
 
-        generated = StartUrlCollection(start_urls, self.generators, 'start_urls')
+        generated = StartUrlCollection(start_urls, self.generators)
         self.assertEqual(list(generated), generated_start_urls)
 
     def test_generated_type(self):
@@ -53,7 +53,7 @@ class StartUrlCollectionTest(TestCase):
                 "params_template": {}
             },
         ]
-        generated = StartUrlCollection(start_urls, self.generators, 'generated_urls')
+        generated = StartUrlCollection(start_urls, self.generators)
 
         self.assertEqual(list(generated), generated_start_urls)
 
