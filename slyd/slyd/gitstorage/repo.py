@@ -178,7 +178,8 @@ class MysqlObjectStore(BaseObjectStore):
         "HAS": "SELECT EXISTS(SELECT 1 FROM objs WHERE `oid`=%s AND `repo`=%s)",
         "ALL": "SELECT `oid` FROM objs WHERE `repo`=%s",
         "GET": "SELECT `type`, UNCOMPRESS(`data`) FROM objs WHERE `oid`=%s AND `repo`=%s",
-        "ADD": "INSERT IGNORE INTO objs values(%s, %s, %s, COMPRESS(%s), %s)",
+        "GET_SHORT": "SELECT `type`, UNCOMPRESS(`data`) FROM objs WHERE `oid` LIKE CONCAT(%s, '%%') AND `repo`=%s LIMIT 1",
+        "ADD": "INSERT IGNORE INTO objs (`oid`, `type`, `size`, `data`, `repo`) values(%s, %s, %s, COMPRESS(%s), %s)",
         "DEL": "DELETE FROM objs WHERE `oid`=%s AND `repo`=%s",
     }
 
@@ -350,7 +351,7 @@ class MysqlRefsContainer(RefsContainer):
         "DEL": "DELETE FROM `refs` WHERE `ref`=%s AND `repo`=%s",
         "ALL": "SELECT `ref` FROM `refs` WHERE `repo`=%s",
         "GET": "SELECT `value` FROM `refs` WHERE `ref` = %s AND `repo`=%s FOR UPDATE",
-        "ADD": "REPLACE INTO `refs` VALUES(%s, %s, %s)",
+        "ADD": "REPLACE INTO `refs` (`ref`, `value`, `repo`) VALUES(%s, %s, %s)",
     }
 
     def __init__(self, repo, connection):
