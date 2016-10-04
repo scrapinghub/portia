@@ -1,42 +1,13 @@
-{{#list-item-text class="title fragments-title"}}
-    Fragments
-    {{#help-icon}}
-        Fragments
-        <p>
-            A generated url is made up of one or more fragments. A fragment can be a single value,
-            a list of different values or a range of numbers.
-        </p>
-        <p>
-            Using fragments you can create a large number of urls.
-        </p>
-    {{/help-icon}}
-{{/list-item-text}}
-
-{{#tooltip-container tooltipFor="add-fragment-button" text="Create a new fragment to generate URLs" tooltipContainer='body'}}
-    {{list-item-icon id="add-fragment-button" icon='add' action=(action 'addFragment')}}
-{{/tooltip-container}}
-
-{{#each fragments as |fragment index|}}
-    {{fragment-options
-      removeFragment=(action 'removeFragment')
-      index=index
-      fragment=fragment
-      fragmentColor=(array-get fragmentColors index)
-      saveSpider=(action saveSpider)
-    }}
-{{/each}}
-
-<h3 class="start-url-list-title">Generation List</h3>
-<div class="start-url-list form-control">
-    <section class="start-url-generation-list">
-    {{#each generatedUrlLists as |generatedUrlList|}}
-        <p>
-        {{#each generatedUrlList as |fragment index|}}
-            {{#colored-span class="fragment-span" color=(array-get fragmentColors index)}}
-                {{fragment}}
-            {{/colored-span}}
-        {{/each}}
-        </p>
-    {{/each}}
-    </section>
-</div>
+{{#tool-group id="fragments-options-group" collapsible=false onClose=(route-action 'closeOptions') as |group|}}
+    {{#if (eq group.section "tabs")}}
+    {{#group.tab toolId="annotation-options"}}{{title}}{{/group.tab}}
+    {{else if (eq group.section "panels")}}
+        {{#group.panel class="extracted-items container-fluid" toolId="annotation-options" as |active|}}
+            {{component startUrl.optionsComponentName
+              spider=spider
+              startUrl=startUrl
+              saveSpider=(action saveSpider)
+            }}
+        {{/group.panel}}
+    {{/if}}
+{{/tool-group}}

@@ -6,16 +6,16 @@ from scrapy.utils.spider import arg_to_iter
 import six
 from six.moves.urllib_parse import urlparse
 
+from .feed_generator import FeedGenerator
 from .fragment_generator import FragmentGenerator
 from .generated_url import GeneratedUrl
 from .generator import IdentityGenerator, UrlGenerator
 
 
 class StartUrlCollection(object):
-    def __init__(self, start_urls, generators=None, generator_type='start_urls'):
-        self.generators = generators
-        self.generator_type = generator_type
-        self.start_urls = [self._url_type(url) for url in start_urls]
+    def __init__(self, start_urls, generators=None):
+        self.generators = generators or []
+        self.start_urls = [self._from_type(url) for url in start_urls]
 
     def __iter__(self):
         generated = (self._generate_urls(url) for url in self.start_urls)
@@ -37,11 +37,11 @@ class StartUrlCollection(object):
         generator = self.generators[start_url.generator_type]
         return generator(start_url.generator_value)
 
-    def _url_type(self, start_url):
+    def _from_type(self, start_url):
         if isinstance(start_url, six.string_types):
-            return StringUrl(start_url, self.generator_type)
-        if not (start_url.get('url') and start_url.get('type')):
-            return GeneratedUrl(start_url, self.generator_type)
+            return StringUrl(start_url)
+        if start_url.get('paths') or start_url.get('template'):
+            return GeneratedUrl(start_url)
         return StartUrl(start_url, self.generators)
 
 
@@ -98,11 +98,11 @@ class StartUrl(object):
 
 
 class StringUrl(object):
-    def __init__(self, spec, generator_type):
+    def __init__(self, spec):
         self.key = spec
         self.spec = spec
         self.generator_value = spec
-        self.generator_type = generator_type
+        self.generator_type = 'start_urls'
 
     @property
     def allowed_domains(self):

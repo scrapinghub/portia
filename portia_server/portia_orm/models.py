@@ -676,7 +676,7 @@ class Annotation(BaseAnnotation):
             }) for extractor in annotation_data['extractors'] or []
             if extractor in extractors])
 
-        return {
+        data = {
             'id': '{}|{}'.format(data['id'], data_id),
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
@@ -690,8 +690,11 @@ class Annotation(BaseAnnotation):
             'pre_text': data.get('pre_text') or None,
             'post_text': data.get('post_text') or None,
             'field': field,
-            'extractors': extractors,
         }
+
+        if extractors:
+            data.update({'extractors': extractors})
+        return data
 
     @post_dump
     def set_annotation_data(self, data):

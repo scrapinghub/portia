@@ -1,10 +1,10 @@
 import DS from 'ember-data';
-import startUrl from '../models/start-url';
+import buildStartUrl from '../models/start-url';
 
 export default DS.Transform.extend({
   deserialize: function(serialized) {
     if (Array.isArray(serialized)) {
-        return serialized.map((url) => startUrl(url));
+        return serialized.map((url) => buildStartUrl(url));
     }
     return [];
   },
