@@ -61,5 +61,8 @@ export default BaseModel.extend({
         async: true
     }),
 
-    firstUrl: Ember.computed.readOnly('startUrls.firstObject')
+    firstUrl: Ember.computed('startUrls.firstObject', function() {
+        const urls = this.get('startUrls').filterBy('type', 'url');
+        return (urls.length !== 0) ? urls[0].url : undefined;
+    })
 });

@@ -5,6 +5,7 @@ class SpecManager(object):
 
     def __init__(self, settings):
         self.settings = settings
+
         factory_settings = settings['SPEC_FACTORY']
         self.spec_class = load_object(factory_settings['PROJECT_SPEC'])
         plugins = []
