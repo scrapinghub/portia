@@ -2,11 +2,11 @@ from itertools import chain
 
 
 class GeneratedUrl(object):
-    def __init__(self, spec, generator_type):
+    def __init__(self, spec):
         self.key = spec
         self.spec = spec
         self.generator_value = spec
-        self.generator_type = generator_type
+        self.generator_type = 'generated_urls'
 
     @property
     def allowed_domains(self):
