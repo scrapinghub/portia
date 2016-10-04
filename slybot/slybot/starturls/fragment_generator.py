@@ -16,8 +16,14 @@ class FragmentGenerator(object):
         return [now.strftime(fragment)]
 
     def _process_range(self, fragment):
-        a, b = map(int, fragment.split('-'))
-        return (str(i) for i in six.moves.range(a, b + 1))
+        a, b = fragment.split('-')
+
+        if a.isalpha() and b.isalpha():
+            a, b = [ord(w.lower()) for w in [a, b]]
+            return (chr(w) for w in six.moves.range(a, b + 1))
+        else:
+            a, b = int(a), int(b)
+            return (str(i) for i in six.moves.range(a, b + 1))
 
     def _process_fragment(self, fragment):
         processor = getattr(self, '_process_{}'.format(fragment['type']))
