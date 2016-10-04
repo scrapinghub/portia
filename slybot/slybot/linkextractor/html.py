@@ -2,7 +2,7 @@
 Link extraction for auto scraping
 """
 import re
-from urlparse import urljoin
+from six.moves.urllib.parse import urljoin
 from scrapy.utils.markup import replace_entities
 from scrapy.link import Link
 from scrapy.http import HtmlResponse
@@ -33,7 +33,7 @@ class HtmlLinkExtractor(BaseLinkExtractor):
         htmlpage = htmlpage_from_response(response_or_htmlpage) if \
                     isinstance(response_or_htmlpage, HtmlResponse) else response_or_htmlpage
         return iterlinks(htmlpage)
- 
+
 def iterlinks(htmlpage):
     """Iterate through the links in the HtmlPage passed
 
@@ -45,7 +45,7 @@ def iterlinks(htmlpage):
     >>> p = HtmlPage(body=u"Go <a href='home.html'>Home</a>")
     >>> iterlinks(p).next()
     Link(url='home.html', text=u'Home', fragment='', nofollow=False)
-    
+
     When a url is specified, absolute urls are made:
     >>> p.url = 'http://scrapinghub.com/'
     >>> iterlinks(p).next()
@@ -63,17 +63,17 @@ def iterlinks(htmlpage):
     >>> p = HtmlPage(body=u"<html><frameset><frame src=frame1.html><frame src=frame2.html></frameset><iframe src='iframe.html'/></html>")
     >>> [l.url for l in iterlinks(p)]
     ['frame1.html', 'frame2.html', 'iframe.html']
-    
+
     As are meta refresh tags:
     >>> p = HtmlPage(body=u"<html><head><meta http-equiv='refresh' content='5;url=http://example.com/' />")
     >>> iterlinks(p).next().url
     'http://example.com/'
-    
+
     nofollow is set to True if the link has a rel='nofollow' attribute:
     >>> p = HtmlPage(body=u"<a href='somewhere.html' rel='nofollow'>somewhere</a>")
     >>> list(iterlinks(p))
     [Link(url='somewhere.html', text=u'somewhere', fragment='', nofollow=True)]
-    
+
     It does not require well formed HTML and behaves similar to many browsers
     >>> p = HtmlPage(body=u"<a href='foo'>foo <a href=bar>bar</a><a href='baz'/>baz")
     >>> list(iterlinks(p))
@@ -151,7 +151,7 @@ def iterlinks(htmlpage):
                     if href:
                         joined_base = urljoin(htmlpage.url, href.strip(),
                             htmlpage.encoding)
-                        base_href = replace_entities(joined_base, 
+                        base_href = replace_entities(joined_base,
                             encoding=htmlpage.encoding)
                 elif tagname == 'meta':
                     attrs = nexttag.attributes
