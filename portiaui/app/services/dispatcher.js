@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
 import { includesUrl } from '../utils/start-urls';
-import startUrl from '../models/start-url';
+import buildStartUrl from '../models/start-url';
 import {createStructure} from './annotation-structure';
 import {getDefaultAttribute} from '../components/inspector-panel';
 import {updateStructureSelectors} from '../services/annotation-structure';
@@ -113,7 +113,7 @@ export default Ember.Service.extend({
         }
         const spider = store.createRecord('spider', {
             id: name,
-            startUrls: [startUrl({ url: url })],
+            startUrls: [buildStartUrl({ url: url })],
             project
         });
         spider.set('project', project);
@@ -129,7 +129,7 @@ export default Ember.Service.extend({
 
     addStartUrl(spider, url) {
         if (url && !includesUrl(spider, url)) {
-            return startUrl({ url: url }).save(spider);
+            return buildStartUrl({ url: url }).save(spider);
         }
     },
 
@@ -138,12 +138,16 @@ export default Ember.Service.extend({
 
         if (!url || includesUrl(spider, url)) {
             spec.url = 'http://';
-            return startUrl(spec).save(spider);
+            return buildStartUrl(spec).save(spider);
         }
         if (!includesUrl(spider, url)) {
             spec.url = url;
-            return startUrl(spec).save(spider);
+            return buildStartUrl(spec).save(spider);
         }
+    },
+
+    addFeedUrl(spider, url) {
+        return buildStartUrl({ url: url, type: 'feed' }).save(spider);
     },
 
     addSample(spider, redirect = false) {
@@ -370,7 +374,7 @@ export default Ember.Service.extend({
         urls.removeObject(oldStartUrl);
 
         if (!includesUrl(spider, newUrl)) {
-            urls.addObject(startUrl({url: newUrl, type: 'url'}));
+            urls.addObject(buildStartUrl({url: newUrl, type: 'url'}));
         }
         spider.save();
     },

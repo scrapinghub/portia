@@ -1,15 +1,5 @@
-{{#tool-group id="fragments-options-group" collapsible=false onClose=(route-action 'closeOptions') as |group|}}
-    {{#if (eq group.section "tabs")}}
-        {{#group.tab toolId="annotation-options"}}
-            URL Generation
-        {{/group.tab}}
-    {{else if (eq group.section "panels")}}
-        {{#group.panel class="extracted-items container-fluid" toolId="annotation-options" as |active|}}
-            {{start-url-options
-              spider=model.spider
-              startUrlId=model.startUrlId
-              saveSpider=(route-action 'saveSpider')
-            }}
-        {{/group.panel}}
-    {{/if}}
-{{/tool-group}}
+{{start-url-options
+  spider = model.spider
+  startUrlId = model.startUrlId
+  saveSpider = (route-action 'saveSpider')
+}}
