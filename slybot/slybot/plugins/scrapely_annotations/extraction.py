@@ -100,6 +100,18 @@ def _count_annotations(extractor):
 
 class SlybotTemplatePageParser(TemplatePageParser):
     def to_template(self, descriptors=None):
+        if self.labelled_tag_stacks:
+            tags = sorted(
+                filter(bool, chain(*self.labelled_tag_stacks.values())),
+                key=lambda a: a.start_index, reverse=True)
+            try:
+                next_tag_index = self.annotations[-1].end_index + 1
+            except IndexError:
+                next_tag_index = self.next_tag_index - len(tags) - 2
+            for tag in tags:
+                tag.end_index = next_tag_index
+                next_tag_index += 1
+            self.annotations.extend(tags)
         if descriptors is None:
             descriptors = {}
         return SlybotTemplatePage(self.html_page, self.token_dict,
@@ -478,11 +490,12 @@ class BaseContainerExtractor(object):
                 not self.schema._item_validates(new_item_fields)):
             return {}
         merged_item = defaultdict(list)
-        for f, v in new_item.iteritems():
+        for f, v in new_item.items():
             fieldname = getattr(f, 'description', f)
             try:
+                assert not fieldname.startswith('_')
                 merged_item[fieldname] += v
-            except TypeError:
+            except (TypeError, AssertionError):
                 merged_item[fieldname] = v
         if _type:
             merged_item[u'_type'] = _type
