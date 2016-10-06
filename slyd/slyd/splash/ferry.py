@@ -23,6 +23,8 @@ from splash.render_options import RenderOptions
 from slybot.spider import IblSpider
 from slyd.errors import BaseHTTPError
 
+from django.db import close_old_connections
+
 from storage import create_project_storage
 from storage.repoman import Repoman
 
@@ -243,6 +245,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                  'parameters')
 
     def onMessage(self, payload, isbinary):
+        close_old_connections()
         pool = getattr(Repoman, 'pool', None)
         payload = payload.decode('utf-8')
         data = json.loads(payload)

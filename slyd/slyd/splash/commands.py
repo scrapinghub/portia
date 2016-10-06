@@ -7,7 +7,6 @@ import six
 import socket as _socket
 
 from six.moves.urllib.parse import urlparse
-
 from django.utils.functional import cached_property
 
 from scrapy import Request
@@ -55,8 +54,10 @@ def save_html(data, socket):
 
 def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
-    c = ItemChecker(socket, data['project'], data['spider'],
-                    data.get('sample'))
+    project, spider, sample = data['project'], data['spider'], data.get('sample')
+    if not all((project, spider)):
+        return {'type': 'raw'}
+    c = ItemChecker(socket, project, spider, sample)
     # TODO: add option for user to view raw and js items in UI from WS
     items, changes, changed_values, links = c.extract()
     return {'links': links, 'items': items, 'changes': changes,
