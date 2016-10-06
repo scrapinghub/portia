@@ -4,7 +4,6 @@ import splash.server
 import splash.defaults
 import argparse
 
-
 DEFAULT_PORTIA_PORT = 9001
 DEFAULT_PORTIA_ROOT = './dist'
 splash.defaults.SPLASH_PORT = DEFAULT_PORTIA_PORT

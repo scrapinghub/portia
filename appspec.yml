@@ -1,0 +1,17 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/portia/
+hooks:
+  AfterInstall:
+    - location: change_permissions.sh
+      timeout: 180
+      runas: root
+    - location: initial_setup.sh
+      timeout: 1800
+      runas: ubuntu
+  ApplicationStart:
+    - location: start_server.sh
+      timeout: 300
+      runas: ubuntu
