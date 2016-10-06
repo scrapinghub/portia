@@ -104,3 +104,11 @@ test('it rawifies a google shareable link', function(assert) {
       'https://docs.google.com/document/d/drive-id/export?format=txt'
   );
 });
+
+test('it does not rawify a non drive google link', function(assert) {
+  assertFeedsEqual(
+      assert,
+      'http://google.com/sitemap.xml',
+      'http://google.com/sitemap.xml'
+  );
+});

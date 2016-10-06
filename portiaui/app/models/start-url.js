@@ -92,7 +92,7 @@ const FeedUrl = StartUrl.extend({
             return url + '&raw=1';
         }
 
-        if (url.includes('google.com') && !url.includes('export')) {
+        if (url.includes('docs.google.com') && !url.includes('export')) {
             return url.split('/')
                       .slice(0, -1)
                       .concat('export?format=txt')
