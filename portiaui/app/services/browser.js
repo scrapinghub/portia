@@ -6,6 +6,7 @@ export const ANNOTATION_MODE = 'data-annotation';
 export const INTERACTION_MODES = new Set([ANNOTATION_MODE]);
 export const DEFAULT_MODE = NAVIGATION_MODE;
 
+/* jshint ignore:start */
 const META_STYLE = `<style title="portia-show-meta">
     head {
         display: block;
@@ -56,6 +57,7 @@ const META_STYLE = `<style title="portia-show-meta">
         content: 'Link: rel: "' attr(rel) '" href: "' attr(data-portia-href) '" type: "' attr(type) '" media: "' attr(data-portia-hidden-media) '"';
     }
 </style>`;
+/* jshint ignore:end */
 
 export default Ember.Service.extend(Ember.Evented, {
     webSocket: Ember.inject.service(),
@@ -180,7 +182,7 @@ export default Ember.Service.extend(Ember.Evented, {
             // disable stylesheets using an impossible media query
             $styles.attr('media', '(width: -1px)');
             renameAttr($iframe.find('[style]'), 'style', 'data-portia-hidden-style');
-            $iframe.find('body').append(META_STYLE);
+            $iframe.find('body').append(META_STYLE); // jshint ignore:line
             this.set('cssEnabled', false);
         }
     },
