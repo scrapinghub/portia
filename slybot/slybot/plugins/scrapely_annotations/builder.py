@@ -110,7 +110,8 @@ def _gen_annotation_info(annotation):
             'repeated': annotation.get('repeated'),
             'siblings': annotation.get('siblings'),
             'field': annotation.get('field'),
-            'selector': annotation.get('selector')
+            'selector': annotation.get('selector'),
+            'selection_mode': annotation.get('selection_mode')
         }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):

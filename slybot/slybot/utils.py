@@ -5,9 +5,9 @@ import re
 
 from collections import OrderedDict
 
-from scrapy.utils.misc import load_object
-
 from scrapely.htmlpage import HtmlPage
+from scrapy.utils.misc import load_object
+from slybot.plugins.scrapely_annotations.utils import add_tagids as _add_tagids
 
 
 def iter_unique_scheme_hostname(urls):
@@ -69,6 +69,14 @@ def load_external_templates(spec_base, spider_name, template_names):
     for name in template_names:
         with open(os.path.join(spec_base, spider_name, name + ".json")) as f:
             sample = json.load(f)
+            samples_sub_dir = os.path.join(spec_base, spider_name, name)
+            if (os.path.exists(samples_sub_dir) and
+                    os.path.isdir(samples_sub_dir)):
+                for fname in os.listdir(samples_sub_dir):
+                    if fname.endswith('.html'):
+                        with open(os.path.join(samples_sub_dir, fname)) as f:
+                            attr = fname[:-len('.html')]
+                            sample[attr] = f.read().decode('utf-8')
             yield _build_sample(sample)
 
 
@@ -80,9 +88,12 @@ def _build_sample(sample):
     return sample
 
 
-def htmlpage_from_response(response):
-    return HtmlPage(response.url, response.headers,
-                    response.body_as_unicode(), encoding=response.encoding)
+def htmlpage_from_response(response, add_tagids=False):
+    body = response.body_as_unicode()
+    if add_tagids:
+        body = _add_tagids(body)
+    return HtmlPage(response.url, response.headers, body,
+                    encoding=response.encoding)
 
 
 def load_plugins(settings):

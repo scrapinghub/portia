@@ -9,9 +9,13 @@ from scrapy.settings import Settings
 from scrapy.http.response.html import HtmlResponse
 from scrapy.utils.spider import arg_to_iter
 from slybot.plugins.scrapely_annotations.extraction import (
-    parse_template, BaseContainerExtractor, group_tree, ContainerExtractor,
-    RepeatedContainerExtractor, TemplatePageMultiItemExtractor,
+    TemplatePageMultiItemExtractor,
     SlybotIBLExtractor)
+from slybot.plugins.scrapely_annotations.extraction.pageparsing import (
+    parse_template)
+from slybot.plugins.scrapely_annotations.extraction.container_extractors import (
+    BaseContainerExtractor, ContainerExtractor, RepeatedContainerExtractor)
+from slybot.plugins.scrapely_annotations.extraction.utils import group_tree
 from slybot.extractors import add_extractors_to_descriptors
 from slybot.item import create_slybot_item_descriptor
 from slybot.plugins.scrapely_annotations.builder import (
@@ -168,25 +172,30 @@ class ContainerExtractorTest(TestCase):
         data = {'price': ['10']}
         self.assertEqual(bce._validate_and_adapt_item(data, template), {})
         data['_type'] = 'skip_checks'
-        self.assertEqual(bce._validate_and_adapt_item(data, template),
+        result = bce._validate_and_adapt_item(data, template).dump()
+        self.assertEqual(result,
                          {'price': ['10'], '_type': 'skip_checks'})
         data = {
             'price': ['10'],
-            'description': ['It can do everything except make calls'],
-            'name': ['Smartphone 6']
+            u'description': [u'It can do everything except make calls'],
+            u'name': ['Smartphone 6']
         }
         result = data.copy()
         result['_type'] = 'default'
-        self.assertEqual(bce._validate_and_adapt_item(data, template), result)
+        extracted = bce._validate_and_adapt_item(data, template).dump()
+        self.assertEqual(extracted,
+                         result)
         bce.extra_requires = ['pid']
         self.assertEqual(bce._validate_and_adapt_item(data, template), {})
         data['pid'] = ['13532']
         result = data.copy()
         result['_type'] = 'default'
-        self.assertEqual(bce._validate_and_adapt_item(data, template), result)
+        extracted = bce._validate_and_adapt_item(data, template).dump()
+        self.assertEqual(extracted, result)
         bce.extra_requires = ['pid', '_sticky1']
         data['_sticky1'] = True
-        self.assertEqual(bce._validate_and_adapt_item(data, template), result)
+        extracted = bce._validate_and_adapt_item(data, template).dump()
+        self.assertEqual(extracted, result)
 
     def test_find_tokens(self):
         htt = HtmlTagType
@@ -204,11 +213,11 @@ class ContainerExtractorTest(TestCase):
                                               basic_extractors)
         ibl_extractor = TemplatePageMultiItemExtractor(unvalidated_template,
                                                        extractors)
-        data = ibl_extractor.extract(extraction_page)
+        data = [i.dump() for i in ibl_extractor.extract(extraction_page)]
         self.assertEqual(len(data), 96)
         self.assertEqual(
             {tuple(sorted(i.keys())) for i in data},
-            {('_index', '_template', u'date', u'text', u'title', u'url')})
+            {(u'_index', u'_template', u'date', u'text', u'title', u'url')})
         self.assertDictEqual(data[0], {
             u'_index': 1,
             u'_template': u'stack_overflow_test',
@@ -222,7 +231,7 @@ class ContainerExtractorTest(TestCase):
         })
         self.assertDictEqual(data[50], {
             u'_index': 51,
-            u'_template': 'stack_overflow_test',
+            u'_template': u'stack_overflow_test',
             u'date': [u'2015-08-07 10:01:03Z'],
             u'text': [u'Rails in production with Apache+passenger error'],
             u'title': [u"Last days i'm trying to put my rails app in "
@@ -235,7 +244,7 @@ class ContainerExtractorTest(TestCase):
         })
         self.assertDictEqual(data[-1], {
             u'_index': 96,
-            u'_template': 'stack_overflow_test',
+            u'_template': u'stack_overflow_test',
             u'date': [u'2015-08-07 08:16:43Z'],
             u'text': [u'iPython + Spark + Cassandra - Py4JJavaError and How to'
                       u' connect to Cassandra from Spark?'],
@@ -260,19 +269,19 @@ class ContainerExtractorTest(TestCase):
             'address': {'type': 'text', 'required': False, 'vary': False}}})}
         add_extractors_to_descriptors(descriptors, extractors)
         extractor = SlybotIBLExtractor([(sample_411, descriptors, '0.13.0')])
-        data = extractor.extract(page_411)[0]
-        self.assertEqual(data[1]['full_name'], [u'Joe Smith'])
-        self.assertEqual(data[1][u'prénom'], [u'Joe'])
-        self.assertEqual(data[1]['nom'], [u'Smith'])
+        data = extractor.extract(page_411)[0][1].dump()
+        self.assertEqual(data['full_name'], [u'Joe Smith'])
+        self.assertEqual(data[u'prénom'], [u'Joe'])
+        self.assertEqual(data['nom'], [u'Smith'])
 
     def test_extract_missing_schema(self):
         extractor = SlybotIBLExtractor([(sample_411, {}, '0.13.0')])
-        data = extractor.extract(page_411)[0]
+        data = extractor.extract(page_411)[0][1].dump()
         raw_html = ('<span itemprop="name"><span itemprop="givenName">Joe'
                     '</span> <span itemprop="familyName">Smith</span></span>')
-        self.assertEqual(data[1]['full_name'], [raw_html])
-        self.assertEqual(data[1]['first_name'], [raw_html])
-        self.assertEqual(data[1]['last_name'], [raw_html])
+        self.assertEqual(data['full_name'], [raw_html])
+        self.assertEqual(data['first_name'], [raw_html])
+        self.assertEqual(data['last_name'], [raw_html])
 
     def test_extract_multiple_item_types(self):
         spider = IblSpider('xceed', xceed_spider, xceed_spider['items'], {},
@@ -323,11 +332,13 @@ class ContainerExtractorTest(TestCase):
             (simple_template, simple_descriptors, '0.13.0')
         ])
         data, _ = ibl_extractor.extract(target1)
+        data = [i.dump() for i in data]
         self.assertEqual(len(data), 10)
         self.assertTrue(all('rank' in item and item['rank'] for item in data))
         self.assertTrue(all('description' in item and item['description']
                             for item in data))
         data, _ = ibl_extractor.extract(target2)
+        data = [i.dump() for i in data]
         self.assertEqual(len(data), 5)
         self.assertTrue(all('rank' in item and item['rank'] for item in data))
         self.assertTrue(all('description' in item and item['description']

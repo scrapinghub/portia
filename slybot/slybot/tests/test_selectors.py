@@ -25,3 +25,14 @@ class SpiderTest(TestCase):
         self.assertEqual(item['breadcrumbs'], [u'Seeds & Supplies', u'Seeds', u'Vegetables', u'Squash & Pumpkins'])
         self.assertEqual(item['image'], [u'previous data', u'/images/product_shots/PPS14165B.jpg'])
 
+    def test_spider_with_inbuilt_selectors(self):
+        name = 'books.toscrape.com'
+        spider = self.smanager.create(name)
+        spec = self.smanager._specs["spiders"][name]
+        t = spec["templates"][0]
+        response = HtmlResponse(t['url'], body=t['original_body'].encode('utf-8'))
+        results = [i for i in spider.parse(response)
+                   if hasattr(i, '__getitem__')]
+        for result in results:
+            result['posted'] = [result['posted'][0].strftime('%Y-%m-%d %H:%M')]
+        self.assertEqual(results, t['_results'])
