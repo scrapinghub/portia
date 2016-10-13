@@ -19,3 +19,7 @@
         max-width: $tooltip-max-width * 1.5;
     }
 }
+
+.tooltip-for {
+    pointer-events: auto;
+}

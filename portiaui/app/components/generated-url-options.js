@@ -5,6 +5,12 @@ import { getColors } from '../utils/colors';
 export default Ember.Component.extend({
     dispatcher: Ember.inject.service(),
 
+    allValidFragments: computed('fragments.@each.valid', function() {
+      return this.get('fragments').reduce((a, b) => {
+        return (a.valid === undefined || a.valid) &&
+               (b.valid === undefined || b.valid);
+      });
+    }),
     generatedUrlLists: computed('fragments.@each.type', 'fragments.@each.value', function() {
         return this.get('startUrl').generateList();
     }),

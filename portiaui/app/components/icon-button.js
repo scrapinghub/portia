@@ -38,6 +38,7 @@ export const ICON_CLASSES = {
     'tool-add': 'fa fa-plus',
     'tool-remove': 'fa fa-minus',
     'tool-multiple': 'fa fa-th-large',
+    'triangle-error': 'structure-list-error fa fa-exclamation-triangle',
     url: 'fa fa-globe',
     'url-generated': 'portia-icon portia-icon-generated-url',
     'url-feed': 'portia-icon portia-icon-feed-url',

@@ -13,21 +13,26 @@
 {{/list-item-text}}
 
 {{#tooltip-container tooltipFor="add-fragment-button" text="Create a new fragment to generate URLs" tooltipContainer='body'}}
-    {{list-item-icon id="add-fragment-button" icon='add' action=(action 'addFragment')}}
+    {{list-item-icon
+      icon='add'
+      id="add-fragment-button"
+      action=(action 'addFragment')
+      disabled=(not allValidFragments)}}
 {{/tooltip-container}}
 
 {{#each fragments as |fragment index|}}
     {{fragment-options
-      removeFragment=(action 'removeFragment')
-      index=index
-      fragment=fragment
-      fragmentColor=(array-get fragmentColors index)
-      saveSpider=(action saveSpider)
+      index          = index
+      fragment       = fragment
+      allValidFragments = allValidFragments
+      fragmentColor  = (array-get fragmentColors index)
+      saveSpider     = (action saveSpider)
+      removeFragment = (action 'removeFragment')
     }}
 {{/each}}
 
 <h3 class="start-url-list-title">Generation List</h3>
-<div class="start-url-list form-control">
+<div class="start-url-list form-control {{unless allValidFragments 'has-error'}}">
     <section class="start-url-generation-list">
     {{#each generatedUrlLists as |generatedUrlList|}}
         <p>
