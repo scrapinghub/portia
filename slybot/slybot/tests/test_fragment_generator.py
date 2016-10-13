@@ -62,3 +62,20 @@ class FragmentGeneratorTest(TestCase):
         generator = FragmentGenerator()
 
         self.assertEqual(list(generator(url_spec)), donedeal_start_urls)
+
+    def test_generated_letters(self):
+        github_start_urls = [
+            'https://github.com/scrapinghub/a',
+            'https://github.com/scrapinghub/b',
+            'https://github.com/scrapinghub/c',
+            'https://github.com/scrapinghub/d',
+        ]
+        url_spec = {
+            'fragments': [
+                {'type': 'fixed', 'value': 'https://github.com/scrapinghub/'},
+                {'type': 'range', 'value': 'a-d'},
+            ]
+        }
+        generator = FragmentGenerator()
+
+        self.assertEqual(list(generator(url_spec)), github_start_urls)
