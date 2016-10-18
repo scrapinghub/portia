@@ -33,7 +33,7 @@ class HtmlLinkExtractor(BaseLinkExtractor):
         htmlpage = htmlpage_from_response(response_or_htmlpage) if \
                     isinstance(response_or_htmlpage, HtmlResponse) else response_or_htmlpage
         return iterlinks(htmlpage)
- 
+
 def iterlinks(htmlpage):
     """Iterate through the links in the HtmlPage passed
 
@@ -45,7 +45,7 @@ def iterlinks(htmlpage):
     >>> p = HtmlPage(body=u"Go <a href='home.html'>Home</a>")
     >>> iterlinks(p).next()
     Link(url='home.html', text=u'Home', fragment='', nofollow=False)
-    
+
     When a url is specified, absolute urls are made:
     >>> p.url = 'http://scrapinghub.com/'
     >>> iterlinks(p).next()
@@ -55,25 +55,25 @@ def iterlinks(htmlpage):
     >>> p.body = u"<html><head><base href='myproject/'/></head><body>see my <a href='index.html'>project</a></body>"
     >>> iterlinks(p).next()
     Link(url='http://scrapinghub.com/myproject/index.html', text=u'project', fragment='', nofollow=False)
-    >>> p.body = u"<html><head><base href='http://scrape.io/myproject/'/></head><body>see my <a href='index.html'>project</a></body>"
+    >>> p.body = u"<html><head><base href='http://scrape.io\\\\' /></head><body>see my <a href='index.html'>project</a></body>"
     >>> iterlinks(p).next()
-    Link(url='http://scrape.io/myproject/index.html', text=u'project', fragment='', nofollow=False)
+    Link(url='http://scrape.io/index.html', text=u'project', fragment='', nofollow=False)
 
     Frameset and iframe urls are extracted
     >>> p = HtmlPage(body=u"<html><frameset><frame src=frame1.html><frame src=frame2.html></frameset><iframe src='iframe.html'/></html>")
     >>> [l.url for l in iterlinks(p)]
     ['frame1.html', 'frame2.html', 'iframe.html']
-    
+
     As are meta refresh tags:
     >>> p = HtmlPage(body=u"<html><head><meta http-equiv='refresh' content='5;url=http://example.com/' />")
     >>> iterlinks(p).next().url
     'http://example.com/'
-    
+
     nofollow is set to True if the link has a rel='nofollow' attribute:
     >>> p = HtmlPage(body=u"<a href='somewhere.html' rel='nofollow'>somewhere</a>")
     >>> list(iterlinks(p))
     [Link(url='somewhere.html', text=u'somewhere', fragment='', nofollow=True)]
-    
+
     It does not require well formed HTML and behaves similar to many browsers
     >>> p = HtmlPage(body=u"<a href='foo'>foo <a href=bar>bar</a><a href='baz'/>baz")
     >>> list(iterlinks(p))
@@ -112,11 +112,15 @@ def iterlinks(htmlpage):
     >>> list(iterlinks(p))
     [Link(url='http://www.blogger.com/profile/987372', text=None, fragment='', nofollow=False)]
     """
-    base_href = replace_entities(htmlpage.url, encoding=htmlpage.encoding)
+    base_href = replace_entities(
+        htmlpage.url, encoding=htmlpage.encoding).strip('\\')
+
     def mklink(url, anchortext=None, nofollow=False):
         url = url.strip()
-        fullurl = urljoin(base_href, replace_entities(url, encoding=htmlpage.encoding))
-        return Link(fullurl.encode(htmlpage.encoding), text=anchortext, nofollow=nofollow)
+        fullurl = urljoin(
+            base_href, replace_entities(url, encoding=htmlpage.encoding))
+        return Link(fullurl.encode(htmlpage.encoding),
+                    text=anchortext, nofollow=nofollow)
 
     # iter to quickly scan only tags
     tag_iter = (t for t in htmlpage.parsed_body if isinstance(t, HtmlTag))
@@ -149,10 +153,11 @@ def iterlinks(htmlpage):
                 if tagname == 'base':
                     href = nexttag.attributes.get('href')
                     if href:
-                        joined_base = urljoin(htmlpage.url, href.strip(),
-                            htmlpage.encoding)
-                        base_href = replace_entities(joined_base, 
-                            encoding=htmlpage.encoding)
+                        joined_base = urljoin(htmlpage.url,
+                                              href.strip().strip('\\'),
+                                              htmlpage.encoding)
+                        base_href = replace_entities(
+                            joined_base, encoding=htmlpage.encoding)
                 elif tagname == 'meta':
                     attrs = nexttag.attributes
                     if attrs.get('http-equiv') == 'refresh':
