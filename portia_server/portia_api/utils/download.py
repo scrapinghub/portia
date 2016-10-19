@@ -9,7 +9,7 @@ from os.path import join
 from six import StringIO
 from datetime import datetime
 
-from slyd.projecttemplates import templates
+from storage.projecttemplates import templates
 from portia2code.porter import load_project_data, port_project
 import six
 

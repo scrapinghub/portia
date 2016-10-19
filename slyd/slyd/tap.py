@@ -50,12 +50,7 @@ def create_root(config, settings_module):
     settings.setmodule(settings_module)
     configure_django(settings)
 
-    from .specmanager import SpecManager
     from .authmanager import AuthManager
-    from .projectspec import create_project_resource
-    from slyd.api import APIResource
-    from slyd.bot import create_bot_resource
-    from slyd.projects import create_projects_manager_resource
 
     from slyd.splash.ferry import (FerryServerProtocol, FerryServerFactory,
                                    create_ferry_resource)
@@ -73,26 +68,6 @@ def create_root(config, settings_module):
     root.putChild('assets', File(join(config['docroot'], 'assets')))
     root.putChild('fonts', File(join(config['docroot'], 'assets', 'fonts')))
     root.putChild('', File(join(config['docroot'], 'index.html')))
-
-    spec_manager = SpecManager(settings)
-
-    # add server capabilities at /server_capabilities
-    capabilities = Capabilities(spec_manager)
-    root.putChild('server_capabilities', capabilities)
-
-    # add projects manager at /projects
-    projects = create_projects_manager_resource(spec_manager)
-    root.putChild('projects', projects)
-
-    # # add json api routes
-    root.putChild('api', APIResource(spec_manager))
-
-    # add crawler at /projects/PROJECT_ID/bot
-    projects.putChild('bot', create_bot_resource(spec_manager))
-
-    # add project spec at /projects/PROJECT_ID/spec
-    spec = create_project_resource(spec_manager)
-    projects.putChild('spec', spec)
 
     # add websockets for communicating with splash
     factory = FerryServerFactory("ws://127.0.0.1:%s" % config['port'],

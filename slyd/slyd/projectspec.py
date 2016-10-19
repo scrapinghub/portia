@@ -6,24 +6,12 @@ import re
 
 import requests
 
-import slyd.errors
-
 from os.path import join, splitext
 
 from scrapy.http import HtmlResponse
-from twisted.web.resource import NoResource, ForbiddenResource
-from twisted.web.server import NOT_DONE_YET
-from jsonschema.exceptions import ValidationError
-from .resource import SlydJsonObjectResource
 from .html import html4annotation
 from .errors import BaseHTTPError, BadRequest
-from .utils.projects import allowed_file_name, ProjectModifier
-from .utils.extraction import extract_items
 from storage.backends import ContentFile, FsStorage
-
-
-def create_project_resource(spec_manager):
-    return ProjectResource(spec_manager)
 
 
 def convert_template(template):
@@ -154,8 +142,7 @@ class ProjectSpec(object):
         return [(url, HtmlResponse(url, body=html))]
 
     def extract_data(self, spider_name, url_info, request):
-        urls = self._process_extraction_urls(url_info)
-        extract_items(self, spider_name, urls, request)
+        pass
 
     def resource(self, *resources):
         return json.load(self.storage.open(self._rfilename(*resources)))
@@ -199,71 +186,3 @@ class FileSystemProjectSpec(ProjectSpec):
         super(FileSystemProjectSpec, self).__init__(project_name, auth_info)
         self.storage = self.storage_class(project_name,
                                           author=getpass.getuser())
-
-
-class ProjectResource(SlydJsonObjectResource, ProjectModifier):
-    isLeaf = True
-    errors = slyd.errors
-
-    def __init__(self, spec_manager):
-        SlydJsonObjectResource.__init__(self)
-        self.spec_manager = spec_manager
-
-    def render(self, request):
-        # make sure the path is safe
-        for pathelement in request.postpath:
-            if pathelement and not allowed_file_name(pathelement):
-                resource_class = NoResource if request.method == 'GET' \
-                    else ForbiddenResource
-                resource = resource_class("Bad path element %r." % pathelement)
-                return resource.render(request)
-        return SlydJsonObjectResource.render(self, request)
-
-    def render_GET(self, request):
-        project_spec = self.spec_manager.project_spec(
-            request.project, request.auth_info)
-        rpath = request.postpath
-        if not rpath:
-            return self.not_found()
-        elif len(rpath) == 1 and rpath[0] == 'spiders':
-            spiders = project_spec.list_spiders()
-            return {"spiders": list(spiders)}
-        else:
-            try:
-                if rpath[0] == 'spiders' and len(rpath) == 2:
-                    spider = project_spec.spider_json(rpath[1])
-                    return {'spider': spider}
-                elif rpath[0] == 'spiders' and len(rpath) == 3:
-                    template = project_spec.template_json(rpath[1], rpath[2])
-                    template['original_body'] = ''
-                    return {'sample': template}
-                elif len(rpath) == 1 and rpath[0] in project_spec.resources:
-                    return {rpath[0]: project_spec.resource(*rpath)}
-            # Trying to access non existent path
-            except (KeyError, IndexError, IOError):
-                self.not_found()
-        self.not_found()
-
-    def render_POST(self, request, merge=False):
-        obj = self.read_json(request)
-        project_spec = self.spec_manager.project_spec(
-            request.project, request.auth_info)
-        resource = None
-        rpath = request.postpath
-        if rpath and rpath[0] == 'extract':
-            project_spec.extract_data(rpath[1], obj, request)
-            return NOT_DONE_YET
-        try:
-            # validate the request path and data
-            obj = self.verify_data(request.postpath, obj, project_spec)
-        except (KeyError, IndexError):
-            self.not_found()
-        except (AssertionError, ValidationError) as ex:
-            self.bad_request(
-                "The %s data was not valid. Validation failed with the error: %s."
-                % (resource or 'input', ex.message))
-        except BaseHTTPError as ex:
-            self.error(ex.status, ex.title, ex.body)
-        else:
-            project_spec.savejson(obj, request.postpath)
-            return '{}'

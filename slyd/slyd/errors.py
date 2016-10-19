@@ -32,15 +32,3 @@ class BaseHTTPError(BaseError):
 
 class BadRequest(BaseHTTPError):
     _status = 400
-
-
-class Forbidden(BaseHTTPError):
-    _status = 403
-
-
-class NotFound(BaseHTTPError):
-    _status = 404
-
-
-class InternalServerError(BaseHTTPError):
-    _status = 500
