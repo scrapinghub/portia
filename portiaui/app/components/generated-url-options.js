@@ -24,12 +24,12 @@ export default Ember.Component.extend({
     actions: {
         addFragment() {
             this.get('dispatcher').addFragment(this.get('startUrl'));
-            this.get('saveSpider')();
+            this.get('saveSpider').perform();
         },
 
         removeFragment(fragment) {
             this.get('dispatcher').removeFragment(this.get('startUrl'), fragment);
-            this.get('saveSpider')();
+            this.get('saveSpider').perform();
         }
     }
 });

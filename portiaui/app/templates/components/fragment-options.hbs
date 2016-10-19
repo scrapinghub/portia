@@ -5,7 +5,7 @@
         {{#if (eq tooltip.section 'tooltip')}}
             {{changeset.error.value.validation}}
         {{else}}
-            {{icon-button id=(concat 'error-icon-' elementId) icon='triangle-error' class='fragment-error tooltip-for'}}
+            {{icon-button id=(concat 'error-icon-' elementId) icon='error-triangle' class='fragment-error tooltip-for'}}
         {{/if}}
     {{/tooltip-container}}
 {{/if}}
@@ -27,6 +27,7 @@
       valueAttribute='label'
       choices=fragmentTypes
       isDisabled=(eq index 0)
+      onClick=(action 'changeFragmentType')
     }}
 </div>
 

@@ -14,14 +14,14 @@ function isRangeIncomplete(endpoints) {
 
 function validateIncreasing(endpoints, isIncreasing) {
     const [a, b] = endpoints.split('-');
-    const msg = `Range must be increasing. Try swapping to ${b}-${a}.`;
+    const msg = `A range must be increasing. Try swapping to ${b}-${a}.`;
     return isIncreasing(a, b) || msg;
 }
 
 export default function validateRange() {
     return (key, newValue/*, oldValue, changes */) => {
         if (isRangeIncomplete(newValue)) {
-            return 'Range is incomplete. It must have two endpoints.';
+            return 'A range must have both a start and an end.';
         }
 
         if (allDigits(newValue)) {
@@ -38,6 +38,6 @@ export default function validateRange() {
             return validateIncreasing(newValue, (a, b) => a <= b);
         }
 
-        return 'Unable to mix numbers and letters.';
+        return 'A range must not mix numbers and letters.';
     };
 }

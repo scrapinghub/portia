@@ -14,29 +14,29 @@ test('it tests valid ranges', function(assert) {
 });
 
 test('it tests all digits or all letters', function(assert) {
-    const MIX_ERROR = 'Unable to mix numbers and letters.';
+    const error = 'A range must not mix numbers and letters.';
 
     const key = 'value';
     const validator = validateRange();
 
-    assert.equal(validator(key, '1-a'), MIX_ERROR);
-    assert.equal(validator(key, 'w-3'), MIX_ERROR);
+    assert.equal(validator(key, '1-a'), error);
+    assert.equal(validator(key, 'w-3'), error);
 });
 
 test('it tests completeness', function(assert) {
-    const INCOMPLETE_ERROR = 'Range is incomplete. It must have two endpoints.';
+    const error = 'A range must have both a start and an end.';
 
     const key = 'value';
     const validator = validateRange();
 
-    assert.equal(validator(key, '-1'), INCOMPLETE_ERROR);
-    assert.equal(validator(key, '1-'), INCOMPLETE_ERROR);
-    assert.equal(validator(key, '-'), INCOMPLETE_ERROR);
-    assert.equal(validator(key, ''), INCOMPLETE_ERROR);
+    assert.equal(validator(key, '-1'), error);
+    assert.equal(validator(key, '1-'), error);
+    assert.equal(validator(key, '-'), error);
+    assert.equal(validator(key, ''), error);
 });
 
 test('it tests completeness', function(assert) {
-    const error = 'Range must be increasing.';
+    const error = 'A range must be increasing.';
 
     const key = 'value';
     const validator = validateRange();

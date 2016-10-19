@@ -143,12 +143,16 @@ export default Ember.Component.extend({
             this.updateFragment();
 
             if (this.get('changeset.isValid') && this.get('allValidFragments')) {
-                this.get('saveSpider')();
+                this.get('saveSpider').perform();
             }
         },
 
         updateValue() {
             this.updateFragment();
+        },
+
+        changeFragmentType() {
+            this.get('saveSpider').cancelAll();
         }
     }
 });

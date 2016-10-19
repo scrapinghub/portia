@@ -69,6 +69,10 @@ export default Ember.Component.extend({
             }
         },
 
+        menuClicked() {
+            this.get('onClick')();
+        },
+
         menuClosed(reason) {
             if (this.get('open')) {
                 if (reason === 'escape') {
