@@ -50,9 +50,12 @@ def extract(extractor, selector):
                 for k, xpath in extractor.selectors.items()}
         item = {k: v for k, v in item.items() if v}
         validated = validate(item, html_page)
-        if validated:
-            validated['_template'] = None
-            items.append(validated)
+        if not validated:
+            continue
+        if hasattr(validated, 'dump'):
+            validated = validated.dump()
+        validated['_template'] = None
+        items.append(validated)
     items = list(filter(bool, items))
     return [i for i in items if '_type' in i]
 
@@ -69,6 +72,7 @@ class FakeContainer(BaseContainerExtractor):
         self.schema = schema
         self.extra_requires = []
         self.legacy = legacy
+        self.modifiers = {}
 
 
 schema = FakeContainer(descriptors['#default'])
