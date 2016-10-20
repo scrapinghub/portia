@@ -54,5 +54,13 @@ export default Ember.Component.extend({
     destroyTooltip() {
         this.$tooltipElement.tooltip('destroy');
         this.$tooltipElement = null;
-    }
+    },
+
+    toggleChanged: Ember.observer('toggleTooltip', function() {
+        const e = this.$tooltipElement;
+        if (e) {
+            const action = this.get('toggleTooltip') ? 'show' : 'hide';
+            e.tooltip(action);
+        }
+    })
 });

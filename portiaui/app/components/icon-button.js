@@ -9,6 +9,7 @@ export const ICON_CLASSES = {
     publish: 'structure-list-publish fa fa-cloud-upload',
     edit: 'fa fa-pencil',
     error: 'structure-list-error fa fa-exclamation-circle',
+    'error-triangle': 'structure-list-error fa fa-exclamation-triangle',
     file: 'fa fa-file',
     geopoint: 'fa fa-map-marker',
     help: 'icon-button-help fa fa-question-circle',

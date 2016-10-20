@@ -37,6 +37,19 @@ test('it generates a list with a range fragment', function(assert) {
   assert.deepEqual(url.generateList(), result);
 });
 
+test('it generates a list with a letter range fragment', function(assert) {
+  const urlString = 'http://domain.com';
+  const url = buildStartUrl({ type: 'generated', url: urlString});
+  url.fragments.addObject({type: 'range', value: 'a-c'});
+  const result = [
+      [urlString, 'a'],
+      [urlString, 'b'],
+      [urlString, 'c']
+  ];
+
+  assert.deepEqual(url.generateList(), result);
+});
+
 test('it generates a combined fragment correctly', function(assert) {
   const urlString = 'http://domain.com';
   const url = buildStartUrl({ type: 'generated', url: urlString});

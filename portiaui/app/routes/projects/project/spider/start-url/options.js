@@ -35,10 +35,6 @@ export default Ember.Route.extend(OptionsRoute, {
     actions: {
         closeOptions() {
             this.transitionToSpider();
-        },
-
-        saveSpider() {
-            this.getSpider().save();
         }
     }
 });

@@ -1,96 +1,158 @@
 import Ember from 'ember';
-const { computed } = Ember;
-import { multiplicityFragment } from '../utils/start-urls';
+const { computed, run } = Ember;
 
-const VALID_RANGE = /^\d+-\d+$/;
+import { task, timeout } from 'ember-concurrency';
+import Changeset from 'ember-changeset';
+import lookupValidator from 'ember-changeset-validations';
+
+import { multiplicityFragment } from '../utils/start-urls';
+import FixedFragmentValidations from '../validations/fixed-fragment';
+import RangeFragmentValidations from '../validations/range-fragment';
+import ListFragmentValidations  from '../validations/list-fragment';
+
+const TOOLTIP_DEBOUNCE = 1000;
+const TOOLTIP_DELAY = 2000;
+
+const VALIDATIONS = {
+    'fixed': FixedFragmentValidations,
+    'range': RangeFragmentValidations,
+    'list': ListFragmentValidations
+};
+
 
 export default Ember.Component.extend({
     tagName: 'form',
     classNames: ['fragment-form', 'form-inline'],
 
-    fragmentTypeOptions: [
-        {
-            value: 'fixed',
-            label: 'Fixed'
-        },
-        {
-            value: 'range',
-            label: 'Range'
-        },
-        {
-            value: 'list',
-            label: 'List'
-        }
+    toggleTooltip: false,
+    fragmentTypes: [
+        { value: 'fixed', label: 'Fixed' },
+        { value: 'range', label: 'Range' },
+        { value: 'list',  label: 'List' }
     ],
-
-    getLimits() {
-        let fragmentValue = this.get('fragment.value');
-
-        if (fragmentValue.match(/\d*-\d*/)) {
-            return this.get('fragment.value').split('-');
-        } else {
-            return ["", ""];
-        }
-    },
 
     fragmentType: computed('fragment.type', {
         get() {
-            return this.fragmentTypeOptions.findBy('value', this.get('fragment.type'));
+            return this.get('fragmentTypes').findBy('value', this.get('fragment.type'));
         },
         set(key, value) {
-            this.set('fragment.type', value.value);
+            this.changeFragmentType(value);
+            this.focusFragment();
+
             return value;
         }
     }),
-    multiplicity: computed('fragmentType', 'fragment.value', function() {
-        return multiplicityFragment(this.get('fragment'));
+
+    changeset: computed('fragment.type', function() {
+        const validations = VALIDATIONS[this.get('fragment.type')];
+        return new Changeset(
+           this.get('fragment'),
+           lookupValidator(validations),
+           validations
+        );
     }),
 
     isList: computed.equal('fragment.type', 'list'),
+    isRange: computed.equal('fragment.type', 'range'),
+
     listPlaceholder: computed('isList', function() {
         return this.get('isList') ? 'val1 val2 val3' : '';
     }),
 
-    isRange: computed.equal('fragment.type', 'range'),
-    lower: computed('isRange', 'fragment.value', {
+    multiplicity: computed('fragmentType', 'fragment.value', function() {
+        return multiplicityFragment(this.get('fragment'));
+    }),
+
+    limits() {
+        const limits = this.get('changeset.value').split('-');
+        return limits.length !== 2 ? ['', ''] : limits;
+    },
+    lower: computed('isRange', 'changeset.value', {
         get() {
-            return this.getLimits()[0];
+            return this.limits()[0];
         },
         set(key, value) {
-            const limits = this.getLimits();
-            limits[0] = value;
-            if (!limits[1] || limits[0] !== limits[1]) {
-                limits[1] = value;
-            }
-            this.set('fragment.value', limits.join('-'));
+            this.updateLimit(value, 0);
             return value;
         }
     }),
-    higher: computed('isRange', 'fragment.value', {
+    higher: computed('isRange', 'changeset.value', {
         get() {
-            return this.getLimits()[1];
+            return this.limits()[1];
         },
         set(key, value) {
-            const limits = this.getLimits();
-            limits[1] = value;
-            this.set('fragment.value', limits.join('-'));
+            this.updateLimit(value, 1);
             return value;
         }
     }),
 
-    saveRange() {
-        if (VALID_RANGE.exec(this.get('fragment.value'))) {
-            this.get('saveSpider')();
+    // helpers
+    updateFragment() {
+        this.saveChangeset();
+        this.set('toggleTooltip', false);
+        this.get('flashTooltip').perform();
+        this.set('fragment.valid', this.get('changeset.isValid'));
+    },
+
+    updateLimit(value, index) {
+        let limits = this.limits();
+        limits[index] = value;
+
+        const changeset = this.get('changeset');
+        changeset.set('value', limits.join('-'));
+
+        this.updateFragment();
+    },
+
+    changeFragmentType(value) {
+        this.set('fragment.value', '');
+        this.set('fragment.valid', true);
+        this.set('fragment.type', value.value);
+    },
+
+    focusFragment() {
+        run.scheduleOnce('afterRender', this.context, () => {
+            this.$('.focus-control').focus();
+        });
+    },
+
+    saveChangeset() {
+        const changeset = this.get('changeset');
+
+        if (changeset.get('value') === '') {
+            changeset.set('value', '');
+        }
+
+        if (changeset.get('isValid')) {
+            changeset.save();
         }
     },
 
+    flashTooltip: task(function * () {
+        yield timeout(TOOLTIP_DEBOUNCE);
+
+        if (this.get('changeset.isInvalid')) {
+            this.set('toggleTooltip', true);
+            yield timeout(TOOLTIP_DELAY);
+            this.set('toggleTooltip', false);
+        }
+    }).restartable(),
+
     actions: {
         saveFragment() {
-            if (this.get('isRange')) {
-                this.saveRange();
-            } else {
-                this.get('saveSpider')();
+            this.updateFragment();
+
+            if (this.get('changeset.isValid') && this.get('allValidFragments')) {
+                this.get('saveSpider').perform();
             }
+        },
+
+        updateValue() {
+            this.updateFragment();
+        },
+
+        changeFragmentType() {
+            this.get('saveSpider').cancelAll();
         }
     }
 });

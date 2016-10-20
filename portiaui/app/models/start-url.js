@@ -5,6 +5,7 @@ import { augmentFragmentList, fragmentToString } from '../utils/start-urls';
 const StartUrl = Ember.Object.extend({
     type: 'url',
     isGenerated: false,
+    optionsTitle: '',
     componentName: 'project-structure-spider-url',
 
     show() {
@@ -30,6 +31,7 @@ const StartUrl = Ember.Object.extend({
 const GeneratedUrl = StartUrl.extend({
     type: 'generated',
     isGenerated: true,
+    optionsTitle: 'URL Generation',
     componentName: 'project-structure-spider-generated-url',
     optionsComponentName: 'generated-url-options',
 
@@ -72,6 +74,7 @@ const GeneratedUrl = StartUrl.extend({
 
 const FeedUrl = StartUrl.extend({
     type: 'feed',
+    optionsTitle: 'Feed',
     componentName: 'project-structure-spider-feed-url',
     optionsComponentName: 'feed-url-options',
 

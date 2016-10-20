@@ -1,4 +1,45 @@
 const SAMPLE_SIZE = 20;
+const ALL_DIGITS = /^\d+-\d+$/;
+const ALL_LETTERS = /^[a-zA-Z]+-[a-zA-Z]+$/;
+
+function nextLetter(letter) {
+    return String.fromCharCode(letter.charCodeAt(0) + 1);
+}
+
+function numberRange(a, b) {
+    const numbers = [];
+    let upperLimit = Math.min(b, a + SAMPLE_SIZE);
+
+    for(let i = a; i < upperLimit + 1; i += 1) {
+        numbers.push(i.toString());
+    }
+    return numbers;
+}
+
+function letterRange(a, b) {
+    const letters = [];
+    letters.push(a);
+
+    while(!letters.contains(b)) {
+        const lastLetter = letters.get('lastObject');
+        letters.pushObject(nextLetter(lastLetter));
+    }
+    return letters;
+}
+
+function augmentRange(fragment_value) {
+    const endpoints = fragment_value.split('-');
+
+    if (allDigits(fragment_value)) {
+      const [a, b] = endpoints.map(x => parseInt(x));
+      return numberRange(a, b);
+    }
+
+    if (allLetters(fragment_value)) {
+      const [a, b] = endpoints;
+      return letterRange(a, b);
+    }
+}
 
 function augmentFragment(fragment) {
     switch(fragment.type) {
@@ -7,16 +48,22 @@ function augmentFragment(fragment) {
         case('list'):
             return fragment.value.split(' ');
         case('range'):
-            if (!fragment.value.match(/\d+-\d+/)) { return ['']; }
+            const value = fragment.value;
 
-            const result = [];
-            let [a, b] = fragment.value.split('-').map(x => parseInt(x));
-            let upperLimit = Math.min(b, a + SAMPLE_SIZE);
-            for(let i = a; i < upperLimit + 1; i += 1) {
-                result.push(i.toString());
+            if (allLetters(value) || allDigits(value)) {
+                return augmentRange(value);
             }
-            return result;
+
+            return [''];
     }
+}
+
+export function allLetters(value) {
+    return value.match(ALL_LETTERS);
+}
+
+export function allDigits(value) {
+    return value.match(ALL_DIGITS);
 }
 
 export function fragmentToString(fragment) {
@@ -51,16 +98,22 @@ export function multiplicityFragment(fragment) {
         case('list'):
             return fragment.value.split(' ').length;
         case('range'):
-            if (!fragment.value.match(/\d+-\d+/)) {
-                return 1;
-            } else {
-                let [a, b] = fragment.value.split('-').map(x => parseInt(x));
-                return b - a + 1;
+            const value = fragment.value;
+            const [a, b] = value.split('-');
+
+            if (allLetters(value)) {
+                return letterRange(a, b).length;
             }
+            if (allDigits(value)) {
+                return numberRange(a, b).length;
+            }
+            return 1;
     }
 }
 
 export default {
+    allDigits,
+    allLetters,
     augmentFragmentList,
     fragmentToString,
     includesUrl,

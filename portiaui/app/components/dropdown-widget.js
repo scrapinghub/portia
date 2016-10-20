@@ -110,6 +110,13 @@ export default Ember.Component.extend({
         });
     },
 
+    click() {
+        const action = this.get('onClick');
+        if (action) {
+            action();
+        }
+    },
+
     actions: {
         openMenu() {
             if (!this.get('isDisabled')) {

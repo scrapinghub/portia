@@ -239,11 +239,14 @@ class Fragment(ValidatedField, Field):
 
     class ValidValue(ValidatedField.Validator):
         default_message = u"Invalid value for the given fragment type"
-        VALID_RANGE = '^\d+-\d+$'
+        ALL_LETTERS = r'^[a-zA-Z]+-[a-zA-Z]+$'
+        ALL_NUMBERS = r'^\d+-\d+$'
 
         def invalid_range(self, value):
-            invalid = not re.match(self.VALID_RANGE, value['value'])
-            return value['type'] == 'range' and invalid
+            all_letters = re.match(self.ALL_LETTERS, value['value'])
+            all_numbers = re.match(self.ALL_NUMBERS, value['value'])
+
+            return value['type'] == 'range' and not (all_letters or all_numbers)
 
         def __call__(self, value):
             if self.invalid_range(value):
