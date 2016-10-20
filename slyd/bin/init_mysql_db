@@ -18,7 +18,7 @@ except ImportError:
         sys.stderr.write("Error: Can't find the project package 'slyd'.\n")
         sys.exit(1)
 
-from slyd.gitstorage.repoman import Repoman
+from portia_server.storage.repoman import Repoman
 
 
 def main():

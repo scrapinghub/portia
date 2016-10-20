@@ -7,8 +7,6 @@ from dulwich.errors import ObjectMissing
 
 from slyd.projects import ProjectsManager
 from slyd.errors import BadRequest
-from slyd.utils.copy import GitSpiderCopier
-from slyd.utils.download import ProjectArchiver, CodeProjectArchiver
 
 from storage.backends import ContentFile, GitStorage
 from storage.repoman import Repoman
@@ -199,41 +197,6 @@ class GitProjectsManager(GitProjectMixin, ProjectsManager):
         self._open_repo(name)
         self.storage.save(file_path, ContentFile(
             json.dumps(file_contents, sort_keys=True, indent=4), file_path))
-
-    def copy_data(self, source, destination, spiders, items):
-        source = self._open_repo(source)
-        branch = self._get_branch(source)
-        destination = self._open_repo(destination)
-        copier = GitSpiderCopier(source, destination, branch)
-        return json.dumps(copier.copy(spiders, items))
-
-    def download_project(self, name, spiders=None, version=None, fmt=None,
-                         branch=None, **kwargs):
-        if branch or version and _SHA.match(version):
-            try:
-                self._checkout_commit_or_head(name, version, branch)
-            except (ValueError, ObjectMissing, KeyError) as e:
-                raise BadRequest(str(e))
-        else:
-            self._open_repo(name, read_only=True)
-        if (self.auth_info.get('staff') or
-                ('authorized_projects' in self.auth_info and
-                 name in self.auth_info['authorized_projects'])):
-            request = self.request
-
-            etag_str = (request.getHeader('If-None-Match') or '').split(',')
-            etags = [etag.strip() for etag in etag_str]
-            etag_data = {'args': [name, spiders]}
-            if self._gen_etag(etag_data) in etags:
-                return ''
-            readablename = self._get_project_name(name)
-            if fmt == u'code':
-                archiver = CodeProjectArchiver(self.storage, name=readablename)
-            else:
-                archiver = ProjectArchiver(self.storage, name=readablename)
-            return archiver.archive(spiders).read()
-        return json.dumps({'status': 404,
-                           'error': 'Project "%s" not found' % name})
 
     def _render_file(self, request, request_data, body):
         if len(body) == 0:
