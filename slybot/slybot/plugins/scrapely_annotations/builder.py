@@ -4,13 +4,14 @@ from scrapy import Selector
 from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 
 from collections import defaultdict
-from itertools import tee, count, chain, groupby
+from itertools import tee, count, groupby
 from operator import itemgetter
 from uuid import uuid4
 
+from slybot.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
+                          OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
+
 from .migration import _get_parent
-from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
-                    OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
 
 
 class Annotations(object):

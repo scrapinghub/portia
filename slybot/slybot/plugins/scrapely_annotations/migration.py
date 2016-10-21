@@ -35,7 +35,7 @@ from uuid import uuid4
 from lxml.etree import _Element, Comment
 from scrapy import Selector
 
-from slybot.plugins.scrapely_annotations.utils import add_tagids
+from slybot.utils import add_tagids
 SLYBOT_VERSION = slybot.__version__
 IGNORE_ATTRIBUTES = ['data-scrapy-ignore', 'data-scrapy-ignore-beneath']
 
