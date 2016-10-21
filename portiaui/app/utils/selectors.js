@@ -545,10 +545,10 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
                 }
             }
         }
-        const container = parent.get('container');
+        const container = findContainers(elements)[0];
         if (container) {
             const otherAnnotations = parent.get('children').filter(s => s !== parent);
-            return !otherAnnotations.any(a => a.get('container') === container);
+            return !otherAnnotations.any(a => a.get('parent.container') === container);
         }
         return false;
     }),
@@ -646,6 +646,9 @@ export function setDifference(a, b) {
 }
 
 export function getParents(element, upto) {
+    if (!element) {
+        return [];
+    }
     var parents = [],
         parent = element.parentElement;
     while (parent) {
@@ -797,7 +800,7 @@ export function groupItems(extracted, upto) {
         groups[id] = elements;
         id += 1;
     }
-    // If all groups are the same length page hass a regular structure where
+    // If all groups are the same length page has a regular structure where
     // all items have the necessary fields and share a common repeating parent
     let groupLengths = new Set(Object.keys(groups).map((key) => groups[key].length));
     if (groupLengths.size === 1) {
