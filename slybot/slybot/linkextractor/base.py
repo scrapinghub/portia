@@ -1,7 +1,9 @@
 """
 Link extraction for auto scraping
 """
-import re, os, posixpath
+import re
+import os
+import posixpath
 from six.moves.urllib.parse import urlparse
 from scrapy.linkextractors import IGNORED_EXTENSIONS
 
