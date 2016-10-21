@@ -1,8 +1,10 @@
 """
 Link extraction for auto scraping
 """
-import re, os, posixpath
-from urlparse import urlparse
+import re
+import os
+import posixpath
+from six.moves.urllib.parse import urlparse
 from scrapy.linkextractors import IGNORED_EXTENSIONS
 
 _ONCLICK_LINK_RE = re.compile("(?P<sep>('|\"))(?P<url>.+?)(?P=sep)")

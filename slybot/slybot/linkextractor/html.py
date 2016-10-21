@@ -2,7 +2,7 @@
 Link extraction for auto scraping
 """
 import re
-from urlparse import urljoin
+from six.moves.urllib.parse import urljoin
 from scrapy.utils.markup import replace_entities
 from scrapy.link import Link
 from scrapy.http import HtmlResponse

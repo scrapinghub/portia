@@ -1,9 +1,23 @@
+from itertools import chain
+
 from scrapely.extraction.pageparsing import TemplatePageParser
 from scrapely.extraction.pageobjects import TemplatePage
 
 
 class SlybotTemplatePageParser(TemplatePageParser):
     def to_template(self, descriptors=None):
+        if self.labelled_tag_stacks:
+            tags = sorted(
+                filter(bool, chain(*self.labelled_tag_stacks.values())),
+                key=lambda a: a.start_index, reverse=True)
+            try:
+                next_tag_index = self.annotations[-1].end_index + 1
+            except IndexError:
+                next_tag_index = self.next_tag_index - len(tags) - 2
+            for tag in tags:
+                tag.end_index = next_tag_index
+                next_tag_index += 1
+            self.annotations.extend(tags)
         if descriptors is None:
             descriptors = {}
         return SlybotTemplatePage(self.html_page, self.token_dict,
