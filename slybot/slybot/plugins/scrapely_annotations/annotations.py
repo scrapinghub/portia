@@ -13,9 +13,10 @@ from scrapy.utils.misc import arg_to_iter
 from scrapely.extraction import InstanceBasedLearningExtractor
 from scrapely.htmlpage import HtmlPage, dict_to_page
 
-from slybot.linkextractor import (HtmlLinkExtractor, SitemapLinkExtractor,
-                                  PaginationExtractor)
 from slybot.linkextractor import create_linkextractor_from_specs
+from slybot.linkextractor.html import HtmlLinkExtractor
+from slybot.linkextractor.xml import SitemapLinkExtractor
+from slybot.linkextractor.pagination import PaginationExtractor
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors, add_extractors_to_descriptors
 from slybot.utils import (htmlpage_from_response, include_exclude_filter,
@@ -117,7 +118,7 @@ class Annotations(object):
         return template
 
     def handle_html(self, response, seen=None):
-        htmlpage = htmlpage_from_response(response, add_tagids=True)
+        htmlpage = htmlpage_from_response(response, _add_tagids=True)
         items, link_regions = self.extract_items(htmlpage, response)
         htmlpage.headers['n_items'] = len(items)
         try:

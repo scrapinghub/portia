@@ -7,9 +7,10 @@ from collections import defaultdict
 from itertools import tee, count, groupby
 from operator import itemgetter
 
+from slybot.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
+                          OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
+
 from .migration import _get_parent, short_guid
-from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
-                    OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
 
 
 class Annotations(object):
