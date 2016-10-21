@@ -211,6 +211,38 @@ test('AnnotationSelectorGenerator generates generalized selectors', function(ass
     assert.equal(selector2.get('selector'), '#div2, li');
 });
 
+test('AnnotationSelectorGenerator generates repeated selectors for repeated field', function(assert) {
+    const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
+    const selectorMatcher = SelectorMatcher.create({
+        browser: new MockBrowser($elements)
+    });
+    const selectorParent = ContainerSelectorGenerator.create({});
+    const repeatedSelector = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            acceptSelectors: ["#li1", "#li2"],
+            rejectSelectors: []
+        })
+    });
+    const standardSelector = AnnotationSelectorGenerator.create({
+        selectorMatcher,
+        annotation: Ember.Object.create({
+            acceptSelectors: ["#div2"],
+            rejectSelectors: []
+        })
+    });
+    selectorParent.addChildren([standardSelector, repeatedSelector]);
+    assert.equal(repeatedSelector.get('generalizedSelector'), '#ul1 > li');
+    assert.equal(repeatedSelector.get('repeatedAnnotation'), true);
+    assert.equal(repeatedSelector.get('selector'), '#div1 > ul > li');
+    assert.equal(standardSelector.get('generalizedSelector'), '#div2');
+    assert.equal(standardSelector.get('repeatedAnnotation'), false);
+    assert.equal(standardSelector.get('selector'), '#div1 > div');
+    assert.equal(selectorParent.get('containerSelector'), '#div1');
+    assert.equal(selectorParent.get('selector'), '#div1');
+});
+
+
 test('AnnotationSelectorGenerator supports rejecting selectors', function(assert) {
     const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
     const selectorMatcher = SelectorMatcher.create({
@@ -602,7 +634,7 @@ var testPage = `
                     <span data-tagid="16">$215000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="17" id="item_1">
                 <div data-tagid="18" class="image">
                     <img src="/images/1.jpg" data-tagid="19">
@@ -621,7 +653,7 @@ var testPage = `
                     <span data-tagid="27">$353000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="28" id="item_2">
                 <div data-tagid="29" class="image">
                     <img src="/images/2.jpg" data-tagid="30">
@@ -640,7 +672,7 @@ var testPage = `
                     <span data-tagid="38">$300000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="39" id="item_3">
                 <div data-tagid="40" class="image">
                     <img src="/images/3.jpg" data-tagid="41">
@@ -659,7 +691,7 @@ var testPage = `
                     <span data-tagid="49">$428000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="50" id="item_4">
                 <div data-tagid="51" class="image">
                     <img src="/images/4.jpg" data-tagid="52">
@@ -678,7 +710,7 @@ var testPage = `
                     <span data-tagid="60">$364000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="61" id="item_5">
                 <div data-tagid="62" class="image">
                     <img src="/images/5.jpg" data-tagid="63">
@@ -697,7 +729,7 @@ var testPage = `
                     <span data-tagid="71">$418000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="72" id="item_6">
                 <div data-tagid="73" class="image">
                     <img src="/images/6.jpg" data-tagid="74">
@@ -716,7 +748,7 @@ var testPage = `
                     <span data-tagid="82">$552000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="83" id="item_7">
                 <div data-tagid="84" class="image">
                     <img src="/images/7.jpg" data-tagid="85">
@@ -735,7 +767,7 @@ var testPage = `
                     <span data-tagid="93">$586000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="94" id="item_8">
                 <div data-tagid="95" class="image">
                     <img src="/images/8.jpg" data-tagid="96">
@@ -754,7 +786,7 @@ var testPage = `
                     <span data-tagid="104">$342000.00</span>
                 </div>
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="105">Regular Structure With additonal unimportant rows</h2>
@@ -930,7 +962,7 @@ var testPage = `
                     <span data-tagid="222">$342000.00</span>
                 </div>
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="223">Nested Rows and Columns</h2>
@@ -955,7 +987,7 @@ var testPage = `
                         <span data-tagid="237">$215000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="238" id="item_1">
                     <div data-tagid="239" class="image">
                         <img src="/images/1.jpg" data-tagid="240">
@@ -974,7 +1006,7 @@ var testPage = `
                         <span data-tagid="248">$353000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="249" id="item_2">
                     <div data-tagid="250" class="image">
                         <img src="/images/2.jpg" data-tagid="251">
@@ -993,9 +1025,9 @@ var testPage = `
                         <span data-tagid="259">$300000.00</span>
                     </div>
                 </div>
-                
+
             </div>
-            
+
             <div data-tagid="260" class="row">
                 <div data-tagid="261" id="item_3">
                     <div data-tagid="262" class="image">
@@ -1015,7 +1047,7 @@ var testPage = `
                         <span data-tagid="271">$428000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="272" id="item_4">
                     <div data-tagid="273" class="image">
                         <img src="/images/4.jpg" data-tagid="274">
@@ -1034,7 +1066,7 @@ var testPage = `
                         <span data-tagid="282">$364000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="283" id="item_5">
                     <div data-tagid="284" class="image">
                         <img src="/images/5.jpg" data-tagid="285">
@@ -1053,9 +1085,9 @@ var testPage = `
                         <span data-tagid="293">$418000.00</span>
                     </div>
                 </div>
-                
+
             </div>
-            
+
             <div data-tagid="294" class="row">
                 <div data-tagid="295" id="item_6">
                     <div data-tagid="296" class="image">
@@ -1075,7 +1107,7 @@ var testPage = `
                         <span data-tagid="305">$552000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="306" id="item_7">
                     <div data-tagid="307" class="image">
                         <img src="/images/7.jpg" data-tagid="308">
@@ -1094,7 +1126,7 @@ var testPage = `
                         <span data-tagid="316">$586000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="317" id="item_8">
                     <div data-tagid="318" class="image">
                         <img src="/images/8.jpg" data-tagid="319">
@@ -1113,9 +1145,9 @@ var testPage = `
                         <span data-tagid="327">$342000.00</span>
                     </div>
                 </div>
-                
+
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="328">Items with Some Fields Missing</h2>
@@ -1135,7 +1167,7 @@ var testPage = `
                     <span data-tagid="338">$215000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="339" id="item_1">
                 <div data-tagid="340" class="image">
                     <img src="/images/1.jpg" data-tagid="341">
@@ -1154,7 +1186,7 @@ var testPage = `
                     <span data-tagid="349">$353000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="350" id="item_2">
                 <div data-tagid="351" class="image">
                     <img src="/images/2.jpg" data-tagid="352">
@@ -1173,7 +1205,7 @@ var testPage = `
                     <span data-tagid="360">$300000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="361" id="item_3">
                 <div data-tagid="362" class="image">
                     <img src="/images/3.jpg" data-tagid="363">
@@ -1192,7 +1224,7 @@ var testPage = `
                     <span data-tagid="371">$428000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="372" id="item_4">
                 <div data-tagid="373" class="image">
                     <img src="/images/4.jpg" data-tagid="374">
@@ -1211,7 +1243,7 @@ var testPage = `
                     <span data-tagid="382">$364000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="383" id="item_5">
                 <div data-tagid="384" class="image">
                     <img src="/images/5.jpg" data-tagid="385">
@@ -1226,7 +1258,7 @@ var testPage = `
                     <span data-tagid="390">$418000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="391" id="item_6">
                 <div data-tagid="392" class="image">
                     <img src="/images/6.jpg" data-tagid="393">
@@ -1245,7 +1277,7 @@ var testPage = `
                     <span data-tagid="401">$552000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="402" id="item_7">
                 <div data-tagid="403" class="image">
                     <img src="/images/7.jpg" data-tagid="404">
@@ -1260,7 +1292,7 @@ var testPage = `
                     <span data-tagid="409">$586000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="410" id="item_8">
                 <div data-tagid="411" class="image">
                     <img src="/images/8.jpg" data-tagid="412">
@@ -1279,7 +1311,7 @@ var testPage = `
                     <span data-tagid="420">$342000.00</span>
                 </div>
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="421">Items Spread across siblings</h2>
@@ -1303,12 +1335,12 @@ var testPage = `
                     <span data-tagid="434">$215000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="435" class="views">
                 <span data-tagid="436">Number of views:</span>
                 <span data-tagid="437">0</span>
             </div>
-            
+
             <div data-tagid="438" id="item_1">
                 <div data-tagid="439" class="image">
                     <img src="/images/1.jpg" data-tagid="440">
@@ -1327,12 +1359,12 @@ var testPage = `
                     <span data-tagid="448">$353000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="449" class="views">
                 <span data-tagid="450">Number of views:</span>
                 <span data-tagid="451">1</span>
             </div>
-            
+
             <div data-tagid="452" id="item_2">
                 <div data-tagid="453" class="image">
                     <img src="/images/2.jpg" data-tagid="454">
@@ -1351,12 +1383,12 @@ var testPage = `
                     <span data-tagid="462">$300000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="463" class="views">
                 <span data-tagid="464">Number of views:</span>
                 <span data-tagid="465">2</span>
             </div>
-            
+
             <div data-tagid="466" id="item_3">
                 <div data-tagid="467" class="image">
                     <img src="/images/3.jpg" data-tagid="468">
@@ -1375,12 +1407,12 @@ var testPage = `
                     <span data-tagid="476">$428000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="477" class="views">
                 <span data-tagid="478">Number of views:</span>
                 <span data-tagid="479">3</span>
             </div>
-            
+
             <div data-tagid="480" id="item_4">
                 <div data-tagid="481" class="image">
                     <img src="/images/4.jpg" data-tagid="482">
@@ -1399,12 +1431,12 @@ var testPage = `
                     <span data-tagid="490">$364000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="491" class="views">
                 <span data-tagid="492">Number of views:</span>
                 <span data-tagid="493">4</span>
             </div>
-            
+
             <div data-tagid="494" id="item_5">
                 <div data-tagid="495" class="image">
                     <img src="/images/5.jpg" data-tagid="496">
@@ -1423,12 +1455,12 @@ var testPage = `
                     <span data-tagid="504">$418000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="505" class="views">
                 <span data-tagid="506">Number of views:</span>
                 <span data-tagid="507">5</span>
             </div>
-            
+
             <div data-tagid="508" id="item_6">
                 <div data-tagid="509" class="image">
                     <img src="/images/6.jpg" data-tagid="510">
@@ -1447,12 +1479,12 @@ var testPage = `
                     <span data-tagid="518">$552000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="519" class="views">
                 <span data-tagid="520">Number of views:</span>
                 <span data-tagid="521">6</span>
             </div>
-            
+
             <div data-tagid="522" id="item_7">
                 <div data-tagid="523" class="image">
                     <img src="/images/7.jpg" data-tagid="524">
@@ -1471,12 +1503,12 @@ var testPage = `
                     <span data-tagid="532">$586000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="533" class="views">
                 <span data-tagid="534">Number of views:</span>
                 <span data-tagid="535">7</span>
             </div>
-            
+
             <div data-tagid="536" id="item_8">
                 <div data-tagid="537" class="image">
                     <img src="/images/8.jpg" data-tagid="538">
@@ -1495,12 +1527,12 @@ var testPage = `
                     <span data-tagid="546">$342000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="547" class="views">
                 <span data-tagid="548">Number of views:</span>
                 <span data-tagid="549">8</span>
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="550">Items spread across siblings with some fields missing</h2>
@@ -1520,12 +1552,12 @@ var testPage = `
                     <span data-tagid="560">$215000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="561" class="views">
                 <span data-tagid="562">Number of views:</span>
                 <span data-tagid="563">0</span>
             </div>
-            
+
             <div data-tagid="564" id="item_1">
                 <div data-tagid="565" class="image">
                     <img src="/images/1.jpg" data-tagid="566">
@@ -1544,12 +1576,12 @@ var testPage = `
                     <span data-tagid="574">$353000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="575" class="views">
                 <span data-tagid="576">Number of views:</span>
                 <span data-tagid="577">1</span>
             </div>
-            
+
             <div data-tagid="578" id="item_2">
                 <div data-tagid="579" class="image">
                     <img src="/images/2.jpg" data-tagid="580">
@@ -1568,12 +1600,12 @@ var testPage = `
                     <span data-tagid="588">$300000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="589" class="views">
                 <span data-tagid="590">Number of views:</span>
                 <span data-tagid="591">2</span>
             </div>
-            
+
             <div data-tagid="592" id="item_3">
                 <div data-tagid="593" class="image">
                     <img src="/images/3.jpg" data-tagid="594">
@@ -1592,12 +1624,12 @@ var testPage = `
                     <span data-tagid="602">$428000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="603" class="views">
                 <span data-tagid="604">Number of views:</span>
                 <span data-tagid="605">3</span>
             </div>
-            
+
             <div data-tagid="606" id="item_4">
                 <div data-tagid="607" class="image">
                     <img src="/images/4.jpg" data-tagid="608">
@@ -1616,12 +1648,12 @@ var testPage = `
                     <span data-tagid="616">$364000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="617" class="views">
                 <span data-tagid="618">Number of views:</span>
                 <span data-tagid="619">4</span>
             </div>
-            
+
             <div data-tagid="620" id="item_5">
                 <div data-tagid="621" class="image">
                     <img src="/images/5.jpg" data-tagid="622">
@@ -1636,12 +1668,12 @@ var testPage = `
                     <span data-tagid="627">$418000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="628" class="views">
                 <span data-tagid="629">Number of views:</span>
                 <span data-tagid="630">5</span>
             </div>
-            
+
             <div data-tagid="631" id="item_6">
                 <div data-tagid="632" class="image">
                     <img src="/images/6.jpg" data-tagid="633">
@@ -1660,12 +1692,12 @@ var testPage = `
                     <span data-tagid="641">$552000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="642" class="views">
                 <span data-tagid="643">Number of views:</span>
                 <span data-tagid="644">6</span>
             </div>
-            
+
             <div data-tagid="645" id="item_7">
                 <div data-tagid="646" class="image">
                     <img src="/images/7.jpg" data-tagid="647">
@@ -1680,12 +1712,12 @@ var testPage = `
                     <span data-tagid="652">$586000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="653" class="views">
                 <span data-tagid="654">Number of views:</span>
                 <span data-tagid="655">7</span>
             </div>
-            
+
             <div data-tagid="656" id="item_8">
                 <div data-tagid="657" class="image">
                     <img src="/images/8.jpg" data-tagid="658">
@@ -1704,12 +1736,12 @@ var testPage = `
                     <span data-tagid="666">$342000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="667" class="views">
                 <span data-tagid="668">Number of views:</span>
                 <span data-tagid="669">8</span>
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="670">Items with Some Field Missing at End</h2>
@@ -1732,7 +1764,7 @@ var testPage = `
                     </p>
                 </div>
             </div>
-            
+
             <div data-tagid="683" id="item_1">
                 <div data-tagid="684" class="image">
                     <img src="/images/1.jpg" data-tagid="685">
@@ -1751,7 +1783,7 @@ var testPage = `
                     <span data-tagid="693">$353000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="694" id="item_2">
                 <div data-tagid="695" class="image">
                     <img src="/images/2.jpg" data-tagid="696">
@@ -1770,7 +1802,7 @@ var testPage = `
                     <span data-tagid="704">$300000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="705" id="item_3">
                 <div data-tagid="706" class="image">
                     <img src="/images/3.jpg" data-tagid="707">
@@ -1789,7 +1821,7 @@ var testPage = `
                     <span data-tagid="715">$428000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="716" id="item_4">
                 <div data-tagid="717" class="image">
                     <img src="/images/4.jpg" data-tagid="718">
@@ -1808,7 +1840,7 @@ var testPage = `
                     <span data-tagid="726">$364000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="727" id="item_5">
                 <div data-tagid="728" class="image">
                     <img src="/images/5.jpg" data-tagid="729">
@@ -1826,7 +1858,7 @@ var testPage = `
                     </p>
                 </div>
             </div>
-            
+
             <div data-tagid="737" id="item_6">
                 <div data-tagid="738" class="image">
                     <img src="/images/6.jpg" data-tagid="739">
@@ -1845,7 +1877,7 @@ var testPage = `
                     <span data-tagid="747">$552000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="748" id="item_7">
                 <div data-tagid="749" class="image">
                     <img src="/images/7.jpg" data-tagid="750">
@@ -1863,7 +1895,7 @@ var testPage = `
                     </p>
                 </div>
             </div>
-            
+
             <div data-tagid="758" id="item_8">
                 <div data-tagid="759" class="image">
                     <img src="/images/8.jpg" data-tagid="760">
@@ -1882,7 +1914,7 @@ var testPage = `
                     <span data-tagid="768">$342000.00</span>
                 </div>
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="769">Nested items with internal siblings</h2>
@@ -1907,12 +1939,12 @@ var testPage = `
                         <span data-tagid="783">$215000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="784" class="views">
                     <span data-tagid="785">Number of views:</span>
                     <span data-tagid="786">0</span>
                 </div>
-                
+
                 <div data-tagid="787" id="item_1">
                     <div data-tagid="788" class="image">
                         <img src="/images/1.jpg" data-tagid="789">
@@ -1931,12 +1963,12 @@ var testPage = `
                         <span data-tagid="797">$353000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="798" class="views">
                     <span data-tagid="799">Number of views:</span>
                     <span data-tagid="800">1</span>
                 </div>
-                
+
                 <div data-tagid="801" id="item_2">
                     <div data-tagid="802" class="image">
                         <img src="/images/2.jpg" data-tagid="803">
@@ -1955,14 +1987,14 @@ var testPage = `
                         <span data-tagid="811">$300000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="812" class="views">
                     <span data-tagid="813">Number of views:</span>
                     <span data-tagid="814">2</span>
                 </div>
-                
+
             </div>
-            
+
             <div data-tagid="815" class="row">
                 <div data-tagid="816" id="item_3">
                     <div data-tagid="817" class="image">
@@ -1982,12 +2014,12 @@ var testPage = `
                         <span data-tagid="826">$428000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="827" class="views">
                     <span data-tagid="828">Number of views:</span>
                     <span data-tagid="829">0</span>
                 </div>
-                
+
                 <div data-tagid="830" id="item_4">
                     <div data-tagid="831" class="image">
                         <img src="/images/4.jpg" data-tagid="832">
@@ -2006,12 +2038,12 @@ var testPage = `
                         <span data-tagid="840">$364000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="841" class="views">
                     <span data-tagid="842">Number of views:</span>
                     <span data-tagid="843">1</span>
                 </div>
-                
+
                 <div data-tagid="844" id="item_5">
                     <div data-tagid="845" class="image">
                         <img src="/images/5.jpg" data-tagid="846">
@@ -2030,14 +2062,14 @@ var testPage = `
                         <span data-tagid="854">$418000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="855" class="views">
                     <span data-tagid="856">Number of views:</span>
                     <span data-tagid="857">2</span>
                 </div>
-                
+
             </div>
-            
+
             <div data-tagid="858" class="row">
                 <div data-tagid="859" id="item_6">
                     <div data-tagid="860" class="image">
@@ -2057,12 +2089,12 @@ var testPage = `
                         <span data-tagid="869">$552000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="870" class="views">
                     <span data-tagid="871">Number of views:</span>
                     <span data-tagid="872">0</span>
                 </div>
-                
+
                 <div data-tagid="873" id="item_7">
                     <div data-tagid="874" class="image">
                         <img src="/images/7.jpg" data-tagid="875">
@@ -2081,12 +2113,12 @@ var testPage = `
                         <span data-tagid="883">$586000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="884" class="views">
                     <span data-tagid="885">Number of views:</span>
                     <span data-tagid="886">1</span>
                 </div>
-                
+
                 <div data-tagid="887" id="item_8">
                     <div data-tagid="888" class="image">
                         <img src="/images/8.jpg" data-tagid="889">
@@ -2105,14 +2137,14 @@ var testPage = `
                         <span data-tagid="897">$342000.00</span>
                     </div>
                 </div>
-                
+
                 <div data-tagid="898" class="views">
                     <span data-tagid="899">Number of views:</span>
                     <span data-tagid="900">2</span>
                 </div>
-                
+
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="901">Items spread across multiple siblings</h2>
@@ -2136,17 +2168,17 @@ var testPage = `
                     <span data-tagid="914">$215000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="915" class="views">
                 <span data-tagid="916">Number of views:</span>
                 <span data-tagid="917">0</span>
             </div>
-            
+
             <div data-tagid="918" class="info">
                 <span data-tagid="919">Posted on:</span>
                 <span data-tagid="920">January 06 2016</span>
             </div>
-            
+
             <div data-tagid="921" id="item_1">
                 <div data-tagid="922" class="image">
                     <img src="/images/1.jpg" data-tagid="923">
@@ -2165,17 +2197,17 @@ var testPage = `
                     <span data-tagid="931">$353000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="932" class="views">
                 <span data-tagid="933">Number of views:</span>
                 <span data-tagid="934">1</span>
             </div>
-            
+
             <div data-tagid="935" class="info">
                 <span data-tagid="936">Posted on:</span>
                 <span data-tagid="937">January 02 2016</span>
             </div>
-            
+
             <div data-tagid="938" id="item_2">
                 <div data-tagid="939" class="image">
                     <img src="/images/2.jpg" data-tagid="940">
@@ -2194,17 +2226,17 @@ var testPage = `
                     <span data-tagid="948">$300000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="949" class="views">
                 <span data-tagid="950">Number of views:</span>
                 <span data-tagid="951">2</span>
             </div>
-            
+
             <div data-tagid="952" class="info">
                 <span data-tagid="953">Posted on:</span>
                 <span data-tagid="954">December 22 2015</span>
             </div>
-            
+
             <div data-tagid="955" id="item_3">
                 <div data-tagid="956" class="image">
                     <img src="/images/3.jpg" data-tagid="957">
@@ -2223,17 +2255,17 @@ var testPage = `
                     <span data-tagid="965">$428000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="966" class="views">
                 <span data-tagid="967">Number of views:</span>
                 <span data-tagid="968">3</span>
             </div>
-            
+
             <div data-tagid="969" class="info">
                 <span data-tagid="970">Posted on:</span>
                 <span data-tagid="971">December 15 2015</span>
             </div>
-            
+
             <div data-tagid="972" id="item_4">
                 <div data-tagid="973" class="image">
                     <img src="/images/4.jpg" data-tagid="974">
@@ -2252,17 +2284,17 @@ var testPage = `
                     <span data-tagid="982">$364000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="983" class="views">
                 <span data-tagid="984">Number of views:</span>
                 <span data-tagid="985">4</span>
             </div>
-            
+
             <div data-tagid="986" class="info">
                 <span data-tagid="987">Posted on:</span>
                 <span data-tagid="988">December 12 2015</span>
             </div>
-            
+
             <div data-tagid="989" id="item_5">
                 <div data-tagid="990" class="image">
                     <img src="/images/5.jpg" data-tagid="991">
@@ -2281,17 +2313,17 @@ var testPage = `
                     <span data-tagid="999">$418000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="1000" class="views">
                 <span data-tagid="1001">Number of views:</span>
                 <span data-tagid="1002">5</span>
             </div>
-            
+
             <div data-tagid="1003" class="info">
                 <span data-tagid="1004">Posted on:</span>
                 <span data-tagid="1005">January 03 2016</span>
             </div>
-            
+
             <div data-tagid="1006" id="item_6">
                 <div data-tagid="1007" class="image">
                     <img src="/images/6.jpg" data-tagid="1008">
@@ -2310,17 +2342,17 @@ var testPage = `
                     <span data-tagid="1016">$552000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="1017" class="views">
                 <span data-tagid="1018">Number of views:</span>
                 <span data-tagid="1019">6</span>
             </div>
-            
+
             <div data-tagid="1020" class="info">
                 <span data-tagid="1021">Posted on:</span>
                 <span data-tagid="1022">December 23 2015</span>
             </div>
-            
+
             <div data-tagid="1023" id="item_7">
                 <div data-tagid="1024" class="image">
                     <img src="/images/7.jpg" data-tagid="1025">
@@ -2339,17 +2371,17 @@ var testPage = `
                     <span data-tagid="1033">$586000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="1034" class="views">
                 <span data-tagid="1035">Number of views:</span>
                 <span data-tagid="1036">7</span>
             </div>
-            
+
             <div data-tagid="1037" class="info">
                 <span data-tagid="1038">Posted on:</span>
                 <span data-tagid="1039">January 03 2016</span>
             </div>
-            
+
             <div data-tagid="1040" id="item_8">
                 <div data-tagid="1041" class="image">
                     <img src="/images/8.jpg" data-tagid="1042">
@@ -2368,17 +2400,17 @@ var testPage = `
                     <span data-tagid="1050">$342000.00</span>
                 </div>
             </div>
-            
+
             <div data-tagid="1051" class="views">
                 <span data-tagid="1052">Number of views:</span>
                 <span data-tagid="1053">8</span>
             </div>
-            
+
             <div data-tagid="1054" class="info">
                 <span data-tagid="1055">Posted on:</span>
                 <span data-tagid="1056">January 05 2016</span>
             </div>
-            
+
         </div>
     </div>
     <h2 data-tagid="1057">Transposed Table Structure</h2>
