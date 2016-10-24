@@ -2,6 +2,7 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     browser: Ember.inject.service(),
+    extractedItems: Ember.inject.service(),
     capabilities: Ember.inject.service(),
 
     model(params) {
@@ -59,6 +60,15 @@ export default Ember.Route.extend({
 
         conflict() {
             this.transitionTo('projects.project.conflicts');
+        },
+
+        willTransition(transition) {
+            if (transition.targetName.match('spider')) {
+                console.info('Fire activation within willTransition');
+                console.info('***********************');
+                this.get('extractedItems').activateExtraction();
+                this.get('extractedItems').update();
+            }
         },
 
         reload() {

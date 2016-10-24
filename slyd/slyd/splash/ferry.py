@@ -194,6 +194,9 @@ class PortiaJSApi(QObject):
             '_data': data
         })
         if command == 'mutation':
+            print '----------------------------------'
+            print 'COMMAND: mutation + metadata'
+            print '----------------------------------'
             with data_store_context():
                 self.protocol.sendMessage(metadata(self.protocol))
 
@@ -269,6 +272,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
         command = data['_command']
+        print '----------------------------------'
+        print 'COMMAND:', command
+        print '----------------------------------'
         with data_store_context():
             result = self._handlers[command](data, self)
         if result:
@@ -384,7 +390,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             os.path.join(self.assets, 'splash_content_scripts'),
             handle_errors=False)
 
-    def open_spider(self, meta):
+    def open_spider(self, meta, project=None):
         if not (meta.get('project') and meta.get('spider')):
             return {'error': 4005, 'reason': 'No project specified'}
 
@@ -394,7 +400,14 @@ class FerryServerProtocol(WebSocketServerProtocol):
             return {'error': 4004,
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
-        project = Project(self.storage, id=meta.get('project'))
+
+        # project_meta = meta.get('project')
+        # project_id = (project_meta if isinstance(project_meta, six.string_types)
+        #               else project_meta.id)
+        # project = Project(self.storage, id=project_id)
+
+        if project is None:
+            project = Project(self.storage, id=meta.get('project'))
 
         try:
             spider_model = project.spiders[spider_name]

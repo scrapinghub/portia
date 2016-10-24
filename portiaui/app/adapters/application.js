@@ -371,7 +371,7 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
             this.get('savingNotification').start();
             promise.finally(() => {
                 this.get('savingNotification').end();
-                this.get('extractedItems').update();
+                // this.get('extractedItems').update();
                 const project = this.get('uiState.models.project');
                 if (project) {
                     project.markChanged();

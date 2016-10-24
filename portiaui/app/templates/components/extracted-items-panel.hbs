@@ -1,4 +1,11 @@
-{{#if selected}}
+{{#if isExtracting}}
+  <div class="mid-align twice-x spaced">
+    <span class="fa fa-spin fa-refresh"></span>
+  </div>
+  <div class="mid-align one-half-x spaced">Extracting data...</div>
+{{/if}}
+
+{{#if (and selected (not isExtracting))}}
     {{#each extractedItems.items key='@index' as |item|}}
         {{extracted-item-table item=item}}
     {{/each}}

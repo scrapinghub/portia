@@ -19,8 +19,10 @@ def clean(html, url):
 def open_tab(func):
     def wrapper(data, socket):
         if socket.tab is None:
-            socket.open_tab(data.get('_meta'))
-            socket.open_spider(data.get('_meta'))
+            print 'data:', data
+            meta = data.get('_meta', data)
+            socket.open_tab(meta)
+            socket.open_spider(meta)
         return func(data, socket)
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__

@@ -52,6 +52,7 @@ def save_html(data, socket):
     _update_sample(data, socket, sample, save=True)
 
 
+@open_tab
 def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
     project, spider, sample = data['project'], data['spider'], data.get('sample')
@@ -60,6 +61,9 @@ def extract_items(data, socket):
     c = ItemChecker(socket, project, spider, sample)
     # TODO: add option for user to view raw and js items in UI from WS
     items, changes, changed_values, links = c.extract()
+    print '----------------------------------'
+    print 'Items:', items
+    print '----------------------------------'
     return {'links': links, 'items': items, 'changes': changes,
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
@@ -118,7 +122,6 @@ def load_page(data, socket):
     headers = {}
     if "user_agent" in meta:
         headers['User-Agent'] = meta['user_agent']
-    socket.open_spider(meta)
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda err=None: on_complete(True, err),
@@ -247,13 +250,15 @@ class ItemChecker(object):
             project = Project(socket.storage, id=project, name=project_name)
         self.project = project
         if not socket.spiderspec:
-            socket.open_spider({'project': self.project.id, 'spider': spider})
+            socket.open_spider({'project': self.project.id, 'spider': spider},
+                               project)
         self.spider = spider
         self.sample = sample
         if (self.spider and (not self.socket.spider or
                              self.socket.spiderspec.name != spider)):
             self.socket.open_spider({'project': self.project,
-                                     'spider': self.spider})
+                                     'spider': self.spider},
+                                    project)
 
     @property
     def raw_html(self):

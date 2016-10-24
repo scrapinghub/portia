@@ -8,6 +8,7 @@ import { NAVIGATION_MODE } from '../services/browser';
 
 const BrowserIFrame = Ember.Component.extend({
     browser: Ember.inject.service(),
+    extractedItems: Ember.inject.service(),
     overlays: Ember.inject.service(),
     webSocket: Ember.inject.service(),
     uiState: Ember.inject.service(),
@@ -55,7 +56,7 @@ const BrowserIFrame = Ember.Component.extend({
         ws.connect();
         ws.addCommand('loadStarted', this, this.msgLoadStarted);
         ws.addCommand('metadata', this, this.msgMetadata);
-        ws.addCommand('load', this, this.msgMetadata);
+        ws.addCommand('load', this, this.msgLoad);
         ws.addCommand('cookies', this, this.msgCookies);
         ws.addCommand('mutation', this, this.msgMutation);
     },
@@ -74,7 +75,7 @@ const BrowserIFrame = Ember.Component.extend({
         const ws = this.get('webSocket');
         ws.removeCommand('loadStarted', this, this.msgLoadStarted);
         ws.removeCommand('metadata', this, this.msgMetadata);
-        ws.removeCommand('load', this, this.msgMetadata);
+        ws.removeCommand('load', this, this.msgLoad);
         ws.removeCommand('cookies', this, this.msgCookies);
         ws.removeCommand('mutation', this, this.msgMutation);
         ws.close();
@@ -114,6 +115,8 @@ const BrowserIFrame = Ember.Component.extend({
         }
 
         this.set('loading', true);
+        this.get('extractedItems').activateExtraction();
+
         this.get('webSocket').send({
             _meta: {
                 // TODO: Send current project and spider to see followed links and extracted items?
@@ -132,6 +135,10 @@ const BrowserIFrame = Ember.Component.extend({
 
     msgLoadStarted() {
         this.set('loading', true);
+    },
+
+    msgLoad(data) {
+        this.msgMetadata(data);
     },
 
     msgMetadata(data) {
