@@ -349,6 +349,13 @@ export default Ember.Service.extend({
     },
 
     changeSpiderName(spider) {
+        if (!spider.get('name') || spider.get('name') === spider.get('id')) {
+            return new Ember.RSVP.Promise(resolve => resolve({
+                data: {
+                    links: {self: spider._internalModel._links.self},
+                    id: spider.get('id')
+            }}));
+        }
         const data = { name: spider.get('name') };
         return this.get('api').post('rename', {
             model: spider,

@@ -53,11 +53,20 @@ export default Ember.Component.extend({
             this.get('dispatcher').removeSpider(spider);
         },
 
-        validateSpiderName(name) {
+        validateSpiderName(spider, name) {
             const nm = this.get('notificationManager');
             if(!/^[a-zA-Z0-9][a-zA-Z0-9_\.-]*$/.test(name)) {
                 nm.showWarningNotification(`Invalid spider name.
                     Only letters, numbers, underscores, dashes and dots are allowed.`);
+                return false;
+            }
+            if (spider.get('id') === name) {
+                return true;
+            }
+            const spiders = this.get('project.spiders').mapBy('id');
+            if(spiders.indexOf(name) >= 0) {
+                nm.showWarningNotification(`Invalid spider name.
+                    A spider already exists with the name "${name}"`);
                 return false;
             }
             return true;
