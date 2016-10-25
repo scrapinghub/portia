@@ -78,7 +78,7 @@ class ItemProcessor(object):
 
     @property
     def region_id(self):
-        return ', '.join(str(r.start_index) for r in self.regions)
+        return ', '.join(str(r) for r in self.regions)
 
     @cached_property
     def metadata(self):

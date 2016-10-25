@@ -281,7 +281,7 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
             start_index, end_index, self.best_match, **kwargs))
         if region.score < 1:
             return []
-        surrounding = Region(1.0, start_index, end_index)
+        surrounding = element_from_page_index(page, start_index)
         items = self._extract_items_from_region(
             region, page, ignored_regions, surrounding, **kwargs)
         tag = element_from_page_index(page, region.start_index)

@@ -2,12 +2,10 @@
 import json
 import re
 
-from os.path import dirname
 from unittest import TestCase
 from scrapy import Request
 from scrapy.settings import Settings
 from scrapy.http.response.html import HtmlResponse
-from scrapy.utils.spider import arg_to_iter
 from slybot.plugins.scrapely_annotations.extraction import (
     TemplatePageMultiItemExtractor,
     SlybotIBLExtractor)
@@ -28,11 +26,9 @@ from scrapely.extraction.regionextract import BasicTypeExtractor
 from scrapely.extraction.pageparsing import parse_extraction_page
 from scrapely.htmlpage import HtmlTagType
 
+from .utils import (open_spec, open_sample_and_page, make_spider, PATH,
+                    open_spider_page_and_results)
 
-def _spider(start_urls=None, sample=None):
-    sample = [] if sample is None else arg_to_iter(sample)
-    start_urls = [] if start_urls is None else arg_to_iter(start_urls)
-    return {'start_urls': start_urls, 'templates': sample}
 
 base_page = u"""<html><body>
     <ul>{}</ul>
@@ -89,28 +85,12 @@ target2 = HtmlPage(url="http://www.test.com/a", body=target2)
 simple_descriptors = {k: create_slybot_item_descriptor(v)
                       for k, v in schemas.items()}
 add_extractors_to_descriptors(simple_descriptors, {})
-_PATH = dirname(__file__)
 
-
-def _open_spec(name):
-    use_json = True if name.endswith('.json') else False
-    with open('%s/data/templates/%s' % (_PATH, name)) as f:
-        return json.load(f) if use_json else f.read()
-
-
-def _open_sample_and_page(name):
-    sample_spec = _open_spec(name)
-    annotations = sample_spec['plugins']['annotations-plugin']['extracts']
-    annotated = apply_annotations(_clean_annotation_data(annotations),
-                                  sample_spec['original_body'])
-    url = sample_spec['url']
-    return (HtmlPage(url=url, body=annotated),
-            HtmlPage(url=url, body=sample_spec['original_body']))
 
 td = TokenDict()
-html_page = HtmlPage(body=_open_spec('stack_overflow.html').decode('utf-8'))
+html_page = HtmlPage(body=open_spec('stack_overflow.html').decode('utf-8'))
 extraction_page = parse_extraction_page(td, html_page)
-with open('%s/data/SampleProject/items.json' % _PATH) as f:
+with open('%s/data/SampleProject/items.json' % PATH) as f:
     items = json.load(f)
 descriptors = {'#default': create_slybot_item_descriptor(items['default'],
                                                          'default')}
@@ -123,8 +103,8 @@ root_container = basic_extractors[1]
 child_container = basic_extractors[2]
 child_annotations = basic_extractors[3:]
 
-sample_411, page_411 = _open_sample_and_page('411_list.json')
-xceed_spider = _open_spec('xceed.json')
+sample_411, page_411 = open_sample_and_page('411_list.json')
+xceed_spider = open_spec('xceed.json')
 
 
 def _annotation_tag_to_dict(tag):
@@ -304,10 +284,10 @@ class ContainerExtractorTest(TestCase):
             'page_id': '507f520c3bf361f4c5cd55c44307a271bccb2218',
             'version': '0.13.0'
         }
-        data = _open_spec('so_annotations.json')
+        data = open_spec('so_annotations.json')
         annos, items, results = data['annos'], data['items'], data['results']
         sample['plugins']['annotations-plugin']['extracts'] = annos
-        spider = IblSpider('so', _spider(sample=sample),
+        spider = IblSpider('so', make_spider(sample=sample),
                            items, {}, Settings())
         page = HtmlResponse('http://url', body=sample['original_body'],
                             encoding='utf-8')
@@ -319,22 +299,12 @@ class ContainerExtractorTest(TestCase):
         self.assertEqual(items[52], results[1])
         self.assertEqual(items[-1], results[2])
         self.assertEqual(len(items), 96)
-        data = _open_spec('autoevolution.json')
-        schemas = data['schemas']
-        results = data['results']
-        page = HtmlResponse('http://url', body=data['original_body'],
-                            encoding='utf-8')
-        spider = IblSpider('ae', _spider(sample=data), schemas, {}, Settings())
+        spider, page, results = open_spider_page_and_results('autoevolution.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
 
     def test_item_merging_in_container(self):
-        data = _open_spec('autoevolution2.json')
-        page = HtmlResponse('http://url', body=data['original_body'],
-                            encoding='utf-8')
-        results = data['results']
-        schemas = data['schemas']
-        spider = IblSpider('ae', _spider(sample=data), schemas, {}, Settings())
+        spider, page, results = open_spider_page_and_results('autoevolution2.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
 
@@ -356,11 +326,6 @@ class ContainerExtractorTest(TestCase):
                             for item in data))
 
     def test_missing_selectors(self):
-        data = _open_spec('cars.com.json')
-        schemas = data['schemas']
-        results = data['results']
-        page = HtmlResponse('http://url', body=data['original_body'],
-                            encoding='utf-8')
-        spider = IblSpider('ae', _spider(sample=data), schemas, {}, Settings())
+        spider, page, results = open_spider_page_and_results('cars.com.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
