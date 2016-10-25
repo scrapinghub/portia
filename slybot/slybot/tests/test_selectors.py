@@ -1,11 +1,12 @@
 from unittest import TestCase
-from scrapy.http import HtmlResponse
+from scrapy.http import HtmlResponse, Request
 from slybot.spidermanager import SlybotSpiderManager
-from os.path import dirname
-_PATH = dirname(__file__)
+
+from .utils import open_spider_page_and_results, PATH
+
 
 class SpiderTest(TestCase):
-    smanager = SlybotSpiderManager("%s/data/SampleProject" % _PATH)
+    smanager = SlybotSpiderManager("%s/data/SampleProject" % PATH)
 
     def test_spider_with_selectors(self):
         name = "seedsofchange"
@@ -36,3 +37,8 @@ class SpiderTest(TestCase):
         for result in results:
             result['posted'] = [result['posted'][0].strftime('%Y-%m-%d %H:%M')]
         self.assertEqual(results, t['_results'])
+
+    def test_spider_with_surrounded_selectors(self):
+        spider, page, results = open_spider_page_and_results('cs-cart.json')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, results)
