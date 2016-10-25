@@ -330,7 +330,10 @@ def tagid_for_annotation(annotation, page):
     selector = annotation.get('selector')
     if not selector:
         return None, None
-    elems = [elem._root for elem in page.css(selector)]
+    elems = []
+    while not elems:
+        elems = [elem._root for elem in page.css(selector)]
+        selector = ' > '.join(selector.split(' > ')[1:])
     if not elems:
         return None, None
 

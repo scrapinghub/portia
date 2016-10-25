@@ -301,6 +301,7 @@ class ContainerExtractorTest(TestCase):
             'original_body': re.sub(
                 'data-scrapy-annotate=".*"', '', html_page._body),
             'scrapes': 'default',
+            'page_id': '507f520c3bf361f4c5cd55c44307a271bccb2218',
             'version': '0.13.0'
         }
         data = _open_spec('so_annotations.json')
@@ -353,3 +354,13 @@ class ContainerExtractorTest(TestCase):
         self.assertTrue(all('rank' in item and item['rank'] for item in data))
         self.assertTrue(all('description' in item and item['description']
                             for item in data))
+
+    def test_missing_selectors(self):
+        data = _open_spec('cars.com.json')
+        schemas = data['schemas']
+        results = data['results']
+        page = HtmlResponse('http://url', body=data['original_body'],
+                            encoding='utf-8')
+        spider = IblSpider('ae', _spider(sample=data), schemas, {}, Settings())
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, results)
