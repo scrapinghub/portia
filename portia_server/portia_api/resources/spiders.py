@@ -5,7 +5,7 @@ import requests
 
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from django.conf import settings
 
@@ -29,7 +29,14 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
     def rename(self, *args, **kwargs):
         try:
             spider = self.get_instance()
-            spider.id = self.data['name']
+            name = self.data['name']
+            self.project.spiders
+            possible_spider = Spider(self.storage, id=name)
+            if possible_spider in self.project.spiders and name != spider.id:
+                raise JsonApiGeneralException(
+                    'Spider already exists in this project with the name, '
+                    '"%s"' % name, HTTP_400_BAD_REQUEST)
+            spider.id = name
             spider.save()
             self.storage.commit()
         except (TypeError, IndexError, KeyError):
@@ -43,7 +50,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         schedule_data = self._schedule_data()
         request = requests.post(settings.SCHEDULE_URL, data=schedule_data)
         if request.status_code != 200:
-            return JsonApiGeneralException(
+            raise JsonApiGeneralException(
                 request.status_code, request.content)
         response = self.retrieve()
         data = OrderedDict()
