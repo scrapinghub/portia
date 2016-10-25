@@ -281,22 +281,24 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
             start_index, end_index, self.best_match, **kwargs))
         if region.score < 1:
             return []
-        items = self._extract_items_from_region(region, page, ignored_regions,
-                                                **kwargs)
+        surrounding = element_from_page_index(page, start_index)
+        items = self._extract_items_from_region(
+            region, page, ignored_regions, surrounding, **kwargs)
         tag = element_from_page_index(page, region.start_index)
         items = [self._validate_and_adapt_item(i, page, tag) for i in items]
         if self.many:
             return items
         return self._merge_items(items)
 
-    def _extract_items_from_region(self, region, page, ignored_regions, **kw):
+    def _extract_items_from_region(self, region, page, ignored_regions,
+                                   surrounding, **kwargs):
         items = []
         for extractor in self.extractors:
             try:
                 try:
                     item = extractor.extract(
                         page, region.start_index, region.end_index,
-                        ignored_regions, **kw
+                        ignored_regions, **kwargs
                     )
                 except TypeError:
                     ex = SlybotRecordExtractor(
@@ -304,17 +306,17 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
                     )
                     item = ex.extract(
                         page, region.start_index, region.end_index,
-                        ignored_regions, **kw
+                        ignored_regions, **kwargs
                     )
             except MissingRequiredError:
                 return []
-            if (isinstance(extractor, RepeatedContainerExtractor) or
+            if (isinstance(extractor, BaseContainerExtractor) and
                     isinstance(item, list)):
-                if item and isinstance(item[0], ItemProcessor):
-                    items.extend(item)
-                else:
-                    items.append(item)
+                items.extend(item)
             else:
+                if not isinstance(item, ItemProcessor):
+                    item = ItemProcessor(item, self, [region], surrounding,
+                                         page)
                 items.append(item)
         return items
 
@@ -445,7 +447,10 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         suffix = self._trim_prefix(suffix, prefix, template, 3)
         tokens = template.page_tokens[child.start_index + 1:
                                       child.end_index][::-1]
-        max_separator = int(len(tokens) * MAX_RELATIVE_SEPARATOR_MULTIPLIER)
+        max_separator = child.metadata.get('max_separator', -1)
+        if max_separator == -1:
+            max_separator = int(
+                len(tokens) * MAX_RELATIVE_SEPARATOR_MULTIPLIER)
         tokens = self._find_tokens(tokens, open_tags, template)
         prefix = self._trim_prefix(
             prefix + tokens, suffix, template, 3, True)
@@ -455,8 +460,10 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         self.offset = 1 if not tokens else 0
         suffix = self._trim_prefix(suffix + tokens, prefix, template, 3, True)
         # Heuristic to reduce chance of false positives
-        self.min_jump = int((child.end_index - child.start_index -
-                             len(suffix)) * MIN_JUMP_DISTANCE)
+        self.min_jump = child.metadata.get('min_jump', -1)
+        if self.min_jump == -1:
+            self.min_jump = int((child.end_index - child.start_index -
+                                 len(suffix)) * MIN_JUMP_DISTANCE)
         return (array(prefix), array(suffix))
 
     def _find_siblings(self, template, containers, container_contents):

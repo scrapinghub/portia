@@ -91,6 +91,7 @@ def _build_sample(sample):
     data = sample.get('plugins', {}).get('annotations-plugin')
     if data:
         Annotations().save_extraction_data(data, sample)
+    sample['page_id'] = sample.get('page_id') or sample.get('id') or ""
     return sample
 
 

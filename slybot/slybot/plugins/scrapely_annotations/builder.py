@@ -6,12 +6,11 @@ from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 from collections import defaultdict
 from itertools import tee, count, groupby
 from operator import itemgetter
-from uuid import uuid4
 
 from slybot.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
                           OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
 
-from .migration import _get_parent
+from .migration import _get_parent, short_guid
 
 
 class Annotations(object):
@@ -98,7 +97,7 @@ def _gen_annotation_info(annotation):
     data = {}
     if 'annotations' in annotation:
         data['data-scrapy-annotate'] = json.dumps({
-            'id': annotation.get('id', _gen_id()),
+            'id': annotation.get('id', short_guid()),
             'annotations': annotation.get('annotations', {}),
             'required': annotation.get('required', []),
             'required_fields': annotation.get('required', []),
@@ -112,7 +111,9 @@ def _gen_annotation_info(annotation):
             'siblings': annotation.get('siblings'),
             'field': annotation.get('field'),
             'selector': annotation.get('selector'),
-            'selection_mode': annotation.get('selection_mode')
+            'selection_mode': annotation.get('selection_mode'),
+            'min_jump': annotation.get('min_jump', -1),
+            'max_separator': annotation.get('max_separator', -1)
         }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):
@@ -120,10 +121,6 @@ def _gen_annotation_info(annotation):
         elif annotation.get('ignore'):
             data['data-scrapy-ignore'] = 'true'
     return data
-
-
-def _gen_id():
-    return '-'.join(str(uuid4()).split('-')[1:-1])
 
 
 def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
@@ -334,7 +331,10 @@ def tagid_for_annotation(annotation, page):
     selector = annotation.get('selector')
     if not selector:
         return None, None
-    elems = [elem._root for elem in page.css(selector)]
+    elems = []
+    while not elems:
+        elems = [elem._root for elem in page.css(selector)]
+        selector = ' > '.join(selector.split(' > ')[1:])
     if not elems:
         return None, None
 
