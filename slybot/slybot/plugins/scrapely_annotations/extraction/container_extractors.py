@@ -447,7 +447,10 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         suffix = self._trim_prefix(suffix, prefix, template, 3)
         tokens = template.page_tokens[child.start_index + 1:
                                       child.end_index][::-1]
-        max_separator = int(len(tokens) * MAX_RELATIVE_SEPARATOR_MULTIPLIER)
+        max_separator = child.metadata.get('max_separator', -1)
+        if max_separator == -1:
+            max_separator = int(
+                len(tokens) * MAX_RELATIVE_SEPARATOR_MULTIPLIER)
         tokens = self._find_tokens(tokens, open_tags, template)
         prefix = self._trim_prefix(
             prefix + tokens, suffix, template, 3, True)
@@ -457,8 +460,10 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         self.offset = 1 if not tokens else 0
         suffix = self._trim_prefix(suffix + tokens, prefix, template, 3, True)
         # Heuristic to reduce chance of false positives
-        self.min_jump = int((child.end_index - child.start_index -
-                             len(suffix)) * MIN_JUMP_DISTANCE)
+        self.min_jump = child.metadata.get('min_jump', -1)
+        if self.min_jump == -1:
+            self.min_jump = int((child.end_index - child.start_index -
+                                 len(suffix)) * MIN_JUMP_DISTANCE)
         return (array(prefix), array(suffix))
 
     def _find_siblings(self, template, containers, container_contents):
