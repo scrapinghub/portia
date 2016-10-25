@@ -78,7 +78,7 @@ class ItemProcessor(object):
 
     @property
     def region_id(self):
-        return ', '.join(str(r.start) for r in self.regions)
+        return ', '.join(str(r.start_index) for r in self.regions)
 
     @cached_property
     def metadata(self):
@@ -282,6 +282,8 @@ class ItemProcessor(object):
             raise ItemNotValidError
         # Rename fields from unique names to display names
         new_item = self._item_with_names(item)
+        if all(fname.startswith('_') for fname in new_item):
+            raise ItemNotValidError
         return new_item
 
     def _item_with_names(self, item, attribute=u'description'):
@@ -426,7 +428,7 @@ class ItemField(object):
     def _adapt(self, values):
         for adaptor in self.adaptors:
             if values:
-                values = [adaptor(v, self.htmlpage) for v in values]
+                values = [adaptor(v, self.htmlpage) for v in values if v]
         if self._meta.get(u'required') and not values:
             raise MissingRequiredError
         return values

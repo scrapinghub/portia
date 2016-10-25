@@ -281,22 +281,24 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
             start_index, end_index, self.best_match, **kwargs))
         if region.score < 1:
             return []
-        items = self._extract_items_from_region(region, page, ignored_regions,
-                                                **kwargs)
+        surrounding = Region(1.0, start_index, end_index)
+        items = self._extract_items_from_region(
+            region, page, ignored_regions, surrounding, **kwargs)
         tag = element_from_page_index(page, region.start_index)
         items = [self._validate_and_adapt_item(i, page, tag) for i in items]
         if self.many:
             return items
         return self._merge_items(items)
 
-    def _extract_items_from_region(self, region, page, ignored_regions, **kw):
+    def _extract_items_from_region(self, region, page, ignored_regions,
+                                   surrounding, **kwargs):
         items = []
         for extractor in self.extractors:
             try:
                 try:
                     item = extractor.extract(
                         page, region.start_index, region.end_index,
-                        ignored_regions, **kw
+                        ignored_regions, **kwargs
                     )
                 except TypeError:
                     ex = SlybotRecordExtractor(
@@ -304,17 +306,17 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
                     )
                     item = ex.extract(
                         page, region.start_index, region.end_index,
-                        ignored_regions, **kw
+                        ignored_regions, **kwargs
                     )
             except MissingRequiredError:
                 return []
-            if (isinstance(extractor, RepeatedContainerExtractor) or
+            if (isinstance(extractor, BaseContainerExtractor) and
                     isinstance(item, list)):
-                if item and isinstance(item[0], ItemProcessor):
-                    items.extend(item)
-                else:
-                    items.append(item)
+                items.extend(item)
             else:
+                if not isinstance(item, ItemProcessor):
+                    item = ItemProcessor(item, self, [region], surrounding,
+                                         page)
                 items.append(item)
         return items
 

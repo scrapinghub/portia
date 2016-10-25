@@ -327,6 +327,16 @@ class ContainerExtractorTest(TestCase):
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
 
+    def test_item_merging_in_container(self):
+        data = _open_spec('autoevolution2.json')
+        page = HtmlResponse('http://url', body=data['original_body'],
+                            encoding='utf-8')
+        results = data['results']
+        schemas = data['schemas']
+        spider = IblSpider('ae', _spider(sample=data), schemas, {}, Settings())
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, results)
+
     def test_required_annotation(self):
         ibl_extractor = SlybotIBLExtractor([
             (simple_template, simple_descriptors, '0.13.0')
