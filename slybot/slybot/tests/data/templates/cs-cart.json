@@ -143,6 +143,28 @@
         },
         {
           "accept_selectors": [
+            "#notinpage"
+          ],
+          "container_id": "b99f-4e2d-8397",
+          "data": {
+            "9a25-4104-ad86": {
+              "attribute": "src",
+              "extractors": {},
+              "field": "19f1-4e56-a3de",
+              "required": true
+            }
+          },
+          "id": "22e7-4c49-ad0d",
+          "post_text": null,
+          "pre_text": null,
+          "reject_selectors": [],
+          "required": [],
+          "selection_mode": "auto",
+          "selector": "#notinpage",
+          "tagid": null
+        },
+        {
+          "accept_selectors": [
             ".content-grid"
           ],
           "annotations": {

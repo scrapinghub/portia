@@ -1,7 +1,7 @@
 import hashlib
 from collections import defaultdict, namedtuple
 
-from scrapy.item import DictItem, Field
+from scrapy.item import DictItem, Field, Item
 from scrapely.descriptor import ItemDescriptor, FieldDescriptor
 
 from slybot.fieldtypes import FieldTypeManager
@@ -19,7 +19,8 @@ class SlybotItem(DictItem):
 
     @classmethod
     def create_iblitem_class(cls, schema):
-        class IblItem(cls):
+
+        class IblItem(cls, Item):
             fields = defaultdict(dict)
             version_fields = []
             _display_name = schema.get('name')
