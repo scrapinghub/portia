@@ -24,16 +24,6 @@ SPEC_FACTORY = {
         'location': SPEC_DATA_DIR,
         'schedule_url': SCHEDULE_URL
     },
-    'CAPABILITIES': {
-        'version_control': False,
-        'create_projects': True,
-        'delete_projects': True,
-        'rename_projects': True,
-        'deploy_projects': False,
-        'rename_spiders': True,
-        'rename_templates': True
-    },
-    'CUSTOM': {}
 }
 
 PLUGINS = [{
