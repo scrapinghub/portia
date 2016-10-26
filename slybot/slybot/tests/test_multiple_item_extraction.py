@@ -3,7 +3,7 @@ import json
 import re
 
 from unittest import TestCase
-from scrapy import Request
+from scrapy import Request, Item
 from scrapy.settings import Settings
 from scrapy.http.response.html import HtmlResponse
 from slybot.plugins.scrapely_annotations.extraction import (
@@ -295,9 +295,7 @@ class ContainerExtractorTest(TestCase):
         keys = {(u'_index', u'_template', u'_type', u'answered', u'tags',
                  u'title', 'url')}
         self.assertEqual({tuple(sorted(i.keys())) for i in items}, keys)
-        self.assertEqual(items[0], results[0])
-        self.assertEqual(items[52], results[1])
-        self.assertEqual(items[-1], results[2])
+        self.assertEqual([items[0], items[52], items[-1]], results)
         self.assertEqual(len(items), 96)
         spider, page, results = open_spider_page_and_results('autoevolution.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
@@ -307,6 +305,12 @@ class ContainerExtractorTest(TestCase):
         spider, page, results = open_spider_page_and_results('autoevolution2.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
+
+    def test_extracted_items_are_scrapy_items(self):
+        spider, page, results = open_spider_page_and_results('autoevolution2.json')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertTrue(len(items) > 0)
+        self.assertTrue(all(isinstance(i, Item) for i in items))
 
     def test_required_annotation(self):
         ibl_extractor = SlybotIBLExtractor([
