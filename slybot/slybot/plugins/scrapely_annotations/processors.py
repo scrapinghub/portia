@@ -189,11 +189,13 @@ class ItemProcessor(object):
             pquery = '[data-tagid="%s"]' % self.parent_region
             containers = {e._root for e in selector.css(pquery)}
         for i, a in enumerate(annotations, start=len(self.fields)):
-            mode, query = a.get(u'selection_mode'), a.get(u'selector')
-            if not query:
+            mode = a.get(u'selection_mode')
+            query = a.get(mode if mode != 'css' else u'selector')
+            try:
+                elems = self._pick_elems(
+                    getattr(selector, mode)(query), parents, containers)
+            except ValueError:
                 continue
-            elems = self._pick_elems(getattr(selector, mode)(query), parents,
-                                     containers)
             extracted = elems.xpath(self.attribute_query(a)).extract()
             value = list(map(six.text_type.strip, extracted))
             if value:
@@ -204,7 +206,11 @@ class ItemProcessor(object):
         closest_elements, closest_set = SelectorList(), set()
         other_elements = SelectorList()
         for element in elements:
-            for parent in element._root.iterancestors():
+            try:
+                element_parents = element._root.iterancestors()
+            except AttributeError:
+                continue
+            for parent in element_parents:
                 if parent in parents:
                     closest_elements.append(element)
                     closest_set.add(element)

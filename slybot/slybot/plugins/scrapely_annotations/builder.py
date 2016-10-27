@@ -113,7 +113,8 @@ def _gen_annotation_info(annotation):
             'selector': annotation.get('selector'),
             'selection_mode': annotation.get('selection_mode'),
             'min_jump': annotation.get('min_jump', -1),
-            'max_separator': annotation.get('max_separator', -1)
+            'max_separator': annotation.get('max_separator', -1),
+            'xpath': annotation.get('xpath')
         }).replace('"', '&quot;')
     if 'ignore' in annotation or 'ignore_beneath' in annotation:
         if annotation.get('ignore_beneath'):
