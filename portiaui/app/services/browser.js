@@ -60,6 +60,7 @@ const META_STYLE = `<style title="portia-show-meta">
 /* jshint ignore:end */
 
 export default Ember.Service.extend(Ember.Evented, {
+    extractedItems: Ember.inject.service(),
     webSocket: Ember.inject.service(),
 
     backBuffer: [],
@@ -108,7 +109,7 @@ export default Ember.Service.extend(Ember.Evented, {
             });
         });
     },
-    
+
     resetUrl: Ember.observer('document', function() {
         if (!this.get('document')) {
             this.setProperties({
@@ -122,6 +123,8 @@ export default Ember.Service.extend(Ember.Evented, {
         const currentUrl = this.get('_url');
         url = cleanUrl(url);
         if (url && url !== currentUrl) {
+            this.get('extractedItems').activateExtraction();
+
             this.beginPropertyChanges();
             if (currentUrl) {
                 this.get('backBuffer').pushObject(currentUrl);

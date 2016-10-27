@@ -270,6 +270,7 @@ export default Ember.Service.extend({
                         });
                     }
                 }
+
                 return annotation.save(coalesce.length ? {
                     coalesce
                 } : undefined);

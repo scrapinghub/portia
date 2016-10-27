@@ -3,6 +3,7 @@ const { computed } = Ember;
 import { task, timeout } from 'ember-concurrency';
 
 const INITIAL_TIMEOUT = 2000;
+const FOUR_MINUTES = 200000;
 
 function print(msg, debug=true) {
     if(debug) { console.info(msg); }
@@ -15,13 +16,12 @@ export default Ember.Service.extend({
     items: [],
     links: {},
 
-    syncedLoading: true,
     isExtracting: false,
     extractionTimeout: 0,
 
     spider: computed.alias('uiState.models.spider'),
-    hasSamples: computed.gt('spider.samples.length', 0),
-    lacksSamples: computed.not('hasSamples'),
+    sample: computed.alias('uiState.models.sample'),
+    notReadyForExtraction: computed.equal('spider.samples.length', 0),
 
     init() {
         this._super();
@@ -36,7 +36,6 @@ export default Ember.Service.extend({
 
         this.set('items', []);
         this.set('extractionTimeout', 0);
-        this.set('syncedLoading', false);
         this.set('isExtracting', true);
         this.get('_extract').cancelAll();
     },
@@ -59,15 +58,21 @@ export default Ember.Service.extend({
         }
     },
 
+    _finishExtracting() {
+        this.set('isExtracting', false);
+        this.get('_extract').cancelAll();
+    },
+
     _setExtraction(data) {
         print("'extract_items' callback called.");
 
-        if (this.get('lacksSamples')) {
-            print('Lacks samples. Finish extraction.');
-            this.set('isExtracting', false);
+        if (this.get('notReadyForExtraction')) {
+            print('notReadyForExtraction');
+            this._finishExtracting();
             return;
         }
 
+        this._updateItems(data);
         this._updateExtraction(data);
         this._setItems(data);
     },
@@ -85,9 +90,7 @@ export default Ember.Service.extend({
     _setItems(data) {
         print(data);
 
-        this._syncLoading(data);
         this._startExtraction(data);
-        this._updateItems(data);
 
         this.setProperties({
             'links': data.links,
@@ -97,15 +100,8 @@ export default Ember.Service.extend({
         });
     },
 
-    _syncLoading(data) {
-        if (!data.loaded && !this.get('syncedLoading')) {
-            print('Synced Loading!');
-            this.set('syncedLoading', true);
-        }
-    },
-
     _startExtraction(data) {
-        if (data.loaded && this.get('isExtracting') && this.get('syncedLoading')) {
+        if (data.loaded && this.get('isExtracting')) {
             this.get('_extract').perform();
         }
     },
@@ -114,7 +110,11 @@ export default Ember.Service.extend({
         const items = data.items;
         const newItems = items && items.length >= this.get('items.length');
 
-        if (newItems && this.get('syncedLoading')) {
+        print('_updateItems');
+        print(this.get('items'));
+        print(items);
+        print(`New Items: ${newItems}`);
+        if (newItems) {
             this.set('items', items);
         }
     },
@@ -122,11 +122,15 @@ export default Ember.Service.extend({
     _updateExtraction(data) {
         const receivedItems = data.items && data.items.length > 0;
         // Ensures the wait time is 254 seconds ~ 4 minutes
-        const exceedWait = this.get('extractionTimeout') > 200000;
+        const exceedWait = this.get('extractionTimeout') > FOUR_MINUTES;
 
-        if ((this.get('syncedLoading') && receivedItems) || exceedWait) {
-            this.get('_extract').cancelAll();
-            this.set('isExtracting', false);
+        print('----------------------------');
+        print('_updateExtraction');
+        print('ReceivedItems:', receivedItems);
+        print('----------------------------');
+
+        if (receivedItems || exceedWait) {
+            this._finishExtracting();
         } else {
             this.get('_extract').perform();
         }

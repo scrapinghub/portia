@@ -2,7 +2,6 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     browser: Ember.inject.service(),
-    extractedItems: Ember.inject.service(),
 
     model(params) {
         return this.store.peekRecord('sample', params.sample_id);

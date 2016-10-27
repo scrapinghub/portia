@@ -5,5 +5,7 @@ export default Ember.Component.extend({
     tagName: '',
 
     extractedItems: service(),
-    isExtracting: computed.alias('extractedItems.isExtracting')
+    isExtracting: computed.alias('extractedItems.isExtracting'),
+    notExtracting: computed.not('isExtracting'),
+    notReadyForExtraction: computed.alias('extractedItems.notReadyForExtraction')
 });

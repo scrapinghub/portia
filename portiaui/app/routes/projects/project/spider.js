@@ -8,9 +8,7 @@ export default Ember.Route.extend({
     },
 
     afterModel(model) {
-        return model.reload().then(() => {
-            model.get('samples')
-        });
+        return model.reload().then(() => model.get('samples'));
     },
 
     redirect(model, {queryParams}) {
