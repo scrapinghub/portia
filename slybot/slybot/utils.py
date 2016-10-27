@@ -273,7 +273,7 @@ def _modify_tagids(source, add=True):
             output.append(serialize_tag(element))
         else:
             output.append(source.body[element.start:element.end])
-    return ''.join(output)
+    return u''.join(output)
 
 
 def add_tagids(source):
