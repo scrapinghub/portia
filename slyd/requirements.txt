@@ -2,7 +2,7 @@
 twisted==16.1.1
 service_identity==16.0.0
 requests==2.9.1
-autobahn==0.13.0
+autobahn==0.16.0
 six==1.10.0
 chardet==2.3.0
 marshmallow==2.8.0
