@@ -384,7 +384,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             os.path.join(self.assets, 'splash_content_scripts'),
             handle_errors=False)
 
-    def open_spider(self, meta):
+    def open_spider(self, meta, project=None):
         if not (meta.get('project') and meta.get('spider')):
             return {'error': 4005, 'reason': 'No project specified'}
 
@@ -394,7 +394,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
             return {'error': 4004,
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
-        project = Project(self.storage, id=meta.get('project'))
+        if project is None:
+            project = Project(self.storage, id=meta.get('project'))
 
         try:
             spider_model = project.spiders[spider_name]

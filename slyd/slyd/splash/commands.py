@@ -118,7 +118,6 @@ def load_page(data, socket):
     headers = {}
     if "user_agent" in meta:
         headers['User-Agent'] = meta['user_agent']
-    socket.open_spider(meta)
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda err=None: on_complete(True, err),
@@ -247,13 +246,15 @@ class ItemChecker(object):
             project = Project(socket.storage, id=project, name=project_name)
         self.project = project
         if not socket.spiderspec:
-            socket.open_spider({'project': self.project.id, 'spider': spider})
+            socket.open_spider({'project': self.project.id, 'spider': spider},
+                               project)
         self.spider = spider
         self.sample = sample
         if (self.spider and (not self.socket.spider or
                              self.socket.spiderspec.name != spider)):
             self.socket.open_spider({'project': self.project,
-                                     'spider': self.spider})
+                                     'spider': self.spider},
+                                    project)
 
     @property
     def raw_html(self):
