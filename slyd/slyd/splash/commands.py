@@ -34,9 +34,10 @@ def cookies(socket):
     socket.sendMessage(message)
 
 
-def save_html(data, socket):
-    c = ItemChecker(socket, data['project'], data['spider'],
-                    data['sample'])
+def save_html(data, socket, item_checker=None):
+    if item_checker is None:
+        item_checker = ItemChecker(socket, data['project'], data['spider'],
+                                   data['sample'])
     project = Project(socket.storage, id=data['project'])
     socket.spiderspec.project = project
     spider = project.spiders[data['spider']]
@@ -45,11 +46,11 @@ def save_html(data, socket):
     if sample.rendered_body and not data.get('update'):
         return
     if 'use_live' not in data:
-        data['use_live'] = c.using_js
-    sample.body = 'rendered_body' if data.get('use_live') else 'original_body'
-    sample.rendered_body = c.html
-    sample.original_body = c.raw_html
-    _update_sample(data, socket, sample, save=True)
+        data['use_live'] = item_checker.using_js
+    sample.body = 'rendered_body' if data['use_live'] else 'original_body'
+    sample.rendered_body = item_checker.html
+    sample.original_body = item_checker.raw_html
+    return _update_sample(data, socket, sample, save=True)
 
 
 def extract_items(data, socket):
@@ -309,6 +310,10 @@ class ItemChecker(object):
         if self.sample:
             samples = [_update_sample(self.data(), socket,
                                       project=self.project, use_live=live)]
+            if not samples[0].get(body_field):
+                data = {'project': self.project.id, 'spider': self.spider,
+                        'sample': self.sample, 'update': True}
+                samples = [save_html(data, self.socket, self)]
         else:
             samples = socket.spiderspec.templates
         spider['templates'] = samples

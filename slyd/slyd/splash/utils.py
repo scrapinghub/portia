@@ -29,6 +29,8 @@ def open_tab(func):
 
 def extract_data(url, html, spider, templates):
     items, links = [], []
+    if isinstance(html, six.text_type):
+        html = _encode(html)
     for value in spider.parse(page(url, html)):
         if isinstance(value, Request):
             links.append(value.url)
@@ -85,7 +87,15 @@ def _get_viewport(viewport):
     return viewport
 
 
+def _encode(html, default=None):
+    return _encode_or_decode_string(html, type(html).encode, default)
+
+
 def _decode(html, default=None):
+    return _encode_or_decode_string(html, type(html).decode, default)
+
+
+def _encode_or_decode_string(html, method, default):
     if not default:
         encoding = html_body_declared_encoding(html)
         if encoding:
@@ -96,11 +106,11 @@ def _decode(html, default=None):
         default = [default]
     for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
         try:
-            return html.decode(encoding)
+            return method(html, encoding)
         except UnicodeDecodeError:
             pass
     encoding = chardet.detect(html).get('encoding')
-    return html.decode(encoding)
+    return method(html, encoding)
 
 
 class BaseWSError(BaseHTTPError):
