@@ -11,7 +11,7 @@ from django.conf import settings
 
 from .projects import BaseProjectModelRoute, ProjectDownloadMixin
 from ..jsonapi.exceptions import JsonApiGeneralException
-from ..utils.extract import Pages, load_spider, extract_items, FetchError
+from ..utils.extract import Pages, load_spider, FetchError
 from portia_orm.models import Spider
 
 
@@ -19,7 +19,6 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
     lookup_url_kwarg = 'spider_id'
     lookup_value_regex = '[^/]+'
     default_model = Spider
-    page_class = Pages
 
     def get_instance(self):
         return self.get_collection()[self.kwargs.get('spider_id')]
@@ -29,7 +28,6 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
 
     @detail_route(methods=['post'])
     def extract(self, *args, **kwargs):
-        pages = self.page_class(self.data, self.user)
         try:
             instance = self.get_instance()
             spider = load_spider(self.storage, instance)
@@ -38,11 +36,15 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
             traceback.print_exc()
             raise JsonApiGeneralException(
                 'Failed to load spider, "%s" correctly' % instance.id, 500)
+        pages = self._build_pages(spider)
         try:
-            data = extract_items(spider, pages)
+            data = pages.extract_items()
         except FetchError as e:
             raise JsonApiGeneralException(e.message, e.status)
         return Response(data, status=HTTP_200_OK)
+
+    def _build_pages(self, spider):
+        return Pages(self.data, spider)
 
     @detail_route(methods=['post'])
     def rename(self, *args, **kwargs):

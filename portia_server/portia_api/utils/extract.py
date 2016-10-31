@@ -58,13 +58,14 @@ def load_urls(urls):
 
 
 class Pages(object):
-    def __init__(self, urls, user=None):
+    def __init__(self, urls, spider):
         if hasattr(urls, 'get'):
             urls = urls.get('urls', [])
         if isinstance(urls, dict):
             self.urls = urls.items()
         else:
             self.urls = urls
+        self.spider = spider
 
     def fetch(self):
         try:
@@ -84,20 +85,19 @@ class Pages(object):
     def process(self, url, page):
         return (url, HtmlResponse(url, body=page))
 
-
-def extract_items(spider, pages):
-    responses = pages.fetch()
-    items = []
-    for url, response in responses:
-        item = {'key': url, 'items': None, 'templates': None}
-        extracted_items = [dict(i) for i in spider.parse(response)
-                           if not isinstance(i, Request)]
-        if extracted_items:
-            item['items'] = extracted_items
-            item['templates'] = [i['_template'] for i in extracted_items
-                                 if i.get('_template')]
-            items.append(item)
-    return items
+    def extract_items(self):
+        responses = self.fetch()
+        items = []
+        for url, response in responses:
+            item = {'key': url, 'items': None, 'templates': None}
+            extracted_items = [dict(i) for i in self.spider.parse(response)
+                               if not isinstance(i, Request)]
+            if extracted_items:
+                item['items'] = extracted_items
+                item['templates'] = [i['_template'] for i in extracted_items
+                                     if i.get('_template')]
+                items.append(item)
+        return items
 
 
 def load_spider(storage, model):
