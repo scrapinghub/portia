@@ -7,6 +7,8 @@ export default Ember.Component.extend({
 
     item: null,
 
+    allowNesting: Ember.computed.lt('item.depth', 4), 
+
     actions: {
         addAnnotation() {
             const item = this.get('item');
