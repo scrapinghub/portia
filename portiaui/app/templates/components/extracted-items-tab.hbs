@@ -1,1 +1,5 @@
-{{yield}} <span class="badge">{{numItems}}</span>
+{{yield}}
+
+{{#unless isExtracting}}
+    <span class="badge">{{numItems}}</span>
+{{/unless}}

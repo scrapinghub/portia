@@ -1,6 +1,5 @@
 import Ember from 'ember';
 
-
 export default Ember.Route.extend({
     uiState: Ember.inject.service(),
     selectedElement: Ember.computed.alias('uiState.viewPort.selectedElement'),

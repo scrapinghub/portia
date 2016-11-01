@@ -2,7 +2,6 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     browser: Ember.inject.service(),
-    extractedItems: Ember.inject.service(),
 
     model(params) {
         return this.store.peekRecord('sample', params.sample_id);
@@ -10,7 +9,6 @@ export default Ember.Route.extend({
 
     afterModel(model) {
         return model.reload().then(model => {
-            this.get('extractedItems').update();
             return model;
         });
     },
