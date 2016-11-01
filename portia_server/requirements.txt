@@ -1,3 +1,4 @@
+crochet==1.5.0
 django==1.10.1
 djangorestframework==3.4.1
 dj-database-url==0.4.1
@@ -9,4 +10,3 @@ MySQL-python==1.2.5
 requests==2.9.1
 toposort==1.4
 whitenoise==3.2
-hubstorage==0.23.1
