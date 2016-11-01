@@ -67,7 +67,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         return Response(data, status=HTTP_200_OK)
 
     @detail_route(methods=['post'])
-    def schedule(self):
+    def schedule(self, *args, **kwargs):
         schedule_data = self._schedule_data()
         request = requests.post(settings.SCHEDULE_URL, data=schedule_data)
         if request.status_code != 200:

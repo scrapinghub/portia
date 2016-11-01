@@ -2,9 +2,9 @@ import Ember from 'ember';
 import { NAMED_COLORS } from '../../../utils/colors';
 
 function filterLinkElements(filterFn) {
-    return Ember.computed('allLinkElements', 'followedLinks', function() {
+    return Ember.computed('allLinkElements', 'extractedItems.links', function() {
         const linkElements = this.get('allLinkElements');
-        const followed = this.getWithDefault('followedLinks', {});
+        const followed = this.getWithDefault('extractedItems.links', {});
         const filteredElements = [];
         for (let element of linkElements) {
             const url = URI(element.href).fragment('').toString();
@@ -32,7 +32,6 @@ export default Ember.Controller.extend({
     // only a tags with a non-empty href attribute
     linkSelector: 'a[href]:not([href=""]):not([href^="javascript:"])',
     allLinkElements: [],
-    followedLinks: {},
 
     showExtractedItems: Ember.computed.bool('extractedItems.items.length'),
 
@@ -69,10 +68,6 @@ export default Ember.Controller.extend({
 
     deactivate() {
         this.get('selectorMatcher').unRegister(this.linkSelector, this, this.updateLinkElements);
-    },
-
-    msgMetadata(data) {
-        this.set('followedLinks', data.links);
     },
 
     updateLinkElements(elements) {

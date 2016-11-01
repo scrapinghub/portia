@@ -299,6 +299,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 json.dumps(payload, cls=ScrapyJSONEncoder, sort_keys=True),
                 is_binary
             )
+        self.factory[self].spider, self.storage = None, None
 
     def send_error(self, data, failure):
         e = failure.value
