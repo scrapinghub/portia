@@ -250,7 +250,7 @@ class ItemChecker(object):
             project_name = socket.user.project_map.get(project, project)
             project = Project(socket.storage, id=project, name=project_name)
         self.project = project
-        if not socket.spiderspec:
+        if not socket.spider:
             socket.open_spider({'project': self.project.id, 'spider': spider},
                                project)
         self.spider = spider

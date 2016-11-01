@@ -10,7 +10,6 @@ export default Ember.Service.extend({
 
     start() {
         this.get('extractedItems').activateExtraction();
-        this.get('extractedItems').update();
 
         this.incrementProperty('counter');
     },
@@ -21,5 +20,6 @@ export default Ember.Service.extend({
         if (!counter) {
             this.set('lastSaved', new Date());
         }
+        this.get('extractedItems').update();
     }
 });
