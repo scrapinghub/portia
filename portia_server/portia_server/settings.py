@@ -112,6 +112,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'portia_server.backends.LocalAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'portia_api.jsonapi.exceptions.jsonapi_exception_handler',
     'URL_FORMAT_OVERRIDE': None
 }
 

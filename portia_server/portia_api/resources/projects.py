@@ -47,8 +47,11 @@ class BaseProjectRoute(JsonApiRoute):
     @cached_property
     def project(self):
         project_id = self.kwargs.get('project_id')
-        name = self.projects[project_id]
-        return Project(self.storage, id=project_id, name=name)
+        try:
+            name = self.projects[project_id]
+            return Project(self.storage, id=project_id, name=name)
+        except KeyError:
+            raise JsonApiNotFoundError()
 
 
 class BaseProjectModelRoute(BaseProjectRoute, JsonApiModelRoute):

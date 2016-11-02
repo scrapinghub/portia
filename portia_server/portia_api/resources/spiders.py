@@ -30,6 +30,11 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
     def extract(self, *args, **kwargs):
         try:
             instance = self.get_instance()
+        except TypeError:
+            raise JsonApiGeneralException(
+                'No spider found with the name "%s"' % kwargs.get('spider_id'),
+                404)
+        try:
             spider = load_spider(self.storage, instance)
         except (ValueError, KeyError, IndexError):
             import traceback
