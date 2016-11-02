@@ -15,6 +15,7 @@ function logErrorStack(e) {
 
 export function initialize(applicationInstance) {
     const notificationManager = applicationInstance.lookup('service:notification-manager');
+    var loggedErrors = new Set();
 
     function notifyError(err) {
         let logged = false;
@@ -33,13 +34,19 @@ export function initialize(applicationInstance) {
 
         if (err instanceof DS.AdapterError) {
             for (let error of err.errors) {
+                if (error.id && loggedErrors.has(error.id)) {
+                    continue;
+                }
                 Ember.Logger.warn(`AdapterError: ${error.title}\n${error.detail}`);
                 notificationManager.add({
                     title: error.title || 'Server error',
                     message: 'An error occurred while communicating with the server. ' +
-                        instructions,
+                        error.status >= 500 ? instructions : error.detail,
                     type: +error.status >= 500 ? 'danger' : 'warning'
                 });
+                if (error.id) {
+                    loggedErrors.add(error.id);
+                }
             }
         } else {
             logErrorStack(err);

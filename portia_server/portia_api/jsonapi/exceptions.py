@@ -1,8 +1,11 @@
 from collections import OrderedDict
+from uuid import uuid4
 
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.status import (HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT,
                                    HTTP_404_NOT_FOUND)
+from rest_framework.views import exception_handler
+
 
 from .utils import get_status_title
 
@@ -17,6 +20,15 @@ class JsonApiValidationError(ValidationError):
                 ('source', error['source']),
             ]) for error in detail.get('errors', [])]
         })
+
+
+def render_exception(exc):
+    return OrderedDict([
+        ('id', str(uuid4())),
+        ('status', exc.status_code),
+        ('title', get_status_title(exc.status_code)),
+        ('detail', exc.detail)
+    ])
 
 
 class JsonApiBadRequestError(APIException):
@@ -44,3 +56,14 @@ class JsonApiGeneralException(APIException):
         assert status_code is not None
         self.status_code = status_code
         super(JsonApiGeneralException, self).__init__(detail)
+
+
+def jsonapi_exception_handler(exc, context):
+    accepts = context['request'].accepted_media_type or ''
+    if accepts.startswith('application/vnd.api+json'):
+        try:
+            exc.detail = {'errors': [render_exception(exc)]}
+        except AttributeError:
+            pass  # Ignore django exceptions
+    response = exception_handler(exc, context)
+    return response
