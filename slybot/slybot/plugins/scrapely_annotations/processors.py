@@ -8,6 +8,7 @@ from itertools import chain
 from parsel import SelectorList
 from scrapely.extraction.regionextract import TextRegionDataExtractor
 from scrapely.htmlpage import HtmlPageParsedRegion, HtmlPageRegion
+from scrapely.extractors import htmlregion
 from scrapy.utils.spider import arg_to_iter
 from slybot.item import SlybotFieldDescriptor
 
@@ -89,7 +90,7 @@ class ItemProcessor(object):
         content_field = metadata.get(u'text-content', u'content')
         attribute = metadata.get(u'attribute', content_field)
         if attribute == content_field:
-            return u'.//text()'
+            return u'self::node()'
         return u'@%s' % attribute
 
     def _process_fields(self, data):
@@ -196,10 +197,13 @@ class ItemProcessor(object):
                     getattr(selector, mode)(query), parents, containers)
             except ValueError:
                 continue
+            for elem in elems:
+                elem._root.attrib.pop('data-tagid', None)
             extracted = elems.xpath(self.attribute_query(a)).extract()
             value = list(map(six.text_type.strip, extracted))
             if value:
                 aid = a.get(u'id') or i
+                value = [htmlregion(v) for v in arg_to_iter(value)]
                 self.fields[aid] = ItemField(value, a, schema, modifiers, page)
 
     def _pick_elems(self, elements, parents, containers):
@@ -288,7 +292,7 @@ class ItemProcessor(object):
             raise ItemNotValidError
         # Rename fields from unique names to display names
         new_item = self._item_with_names(item)
-        if all(fname.startswith('_') for fname in new_item):
+        if all(fname.startswith('_') or fname == 'url' for fname in new_item):
             raise ItemNotValidError
         return new_item
 
@@ -313,6 +317,11 @@ class ItemProcessor(object):
             if field_name == key:
                 values.extend(field.dump())
         return values
+
+    def __bool__(self):
+        return bool(self.dump())
+
+    __nonzero__ = __bool__
 
     def __hash__(self):
         return hash(str(self.id) + str(self.region_id))

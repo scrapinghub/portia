@@ -244,7 +244,13 @@
             "ddaf-46e3-8f33": {
                 "name": "breadcrumbs",
                 "required": false,
-                "type": "text",
+                "type": "safe html",
+                "vary": false
+            },
+            "ddaf-46e3-8f32": {
+                "name": "pager",
+                "required": false,
+                "type": "raw html",
                 "vary": false
             }
         }
