@@ -1,5 +1,7 @@
-from .projects import BaseProjectModelRoute
 from portia_orm.models import Schema
+
+from .projects import BaseProjectModelRoute
+from ..jsonapi.exceptions import JsonApiBadRequestError
 
 
 class SchemaRoute(BaseProjectModelRoute):
@@ -21,3 +23,24 @@ class SchemaRoute(BaseProjectModelRoute):
                 ],
             }
         }
+
+    def destroy(self, *args, **kwargs):
+        schema = self.get_instance()
+        for spider in self.project.spiders:
+            for sample in spider.samples:
+                for item in sample.items:
+                    if self._item_uses_schema(item):
+                        raise JsonApiBadRequestError(
+                            'Unable to delete the schema, "%s" as it is used '
+                            'by a sample' % schema.name)
+
+        return super(SchemaRoute, self).destroy(*args, **kwargs)
+
+    def _item_uses_schema(self, item):
+        schema = self.get_instance()
+        if item.schema.id == schema.id:
+            return True
+        for item in item.annotations:
+            if hasattr(item, 'schema') and self._item_uses_schema(item):
+                return True
+        return False
