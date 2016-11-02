@@ -26,8 +26,8 @@ from scrapely.extraction.regionextract import BasicTypeExtractor
 from scrapely.extraction.pageparsing import parse_extraction_page
 from scrapely.htmlpage import HtmlTagType
 
-from .utils import (open_spec, open_sample_and_page, make_spider, PATH,
-                    open_spider_page_and_results)
+from .utils import (open_spec, open_sample_and_page, open_page, make_spider,
+                    PATH, open_spider_page_and_results)
 
 
 base_page = u"""<html><body>
@@ -333,3 +333,9 @@ class ContainerExtractorTest(TestCase):
         spider, page, results = open_spider_page_and_results('cars.com.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
+
+    def test_against_false_positive(self):
+        page = open_page('autoevolution.html')
+        spider, _, _ = open_spider_page_and_results('autoevolution2.json')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, [])

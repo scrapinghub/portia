@@ -2,21 +2,23 @@
 Text types
 """
 from scrapely.extractors import text as extract_text, safehtml
+from w3lib.html import remove_tags
+
 
 class _BaseTextProcessor(object):
-    """basic text processor, defines identity functions, some of which 
+    """basic text processor, defines identity functions, some of which
     are overridden in subclasses
     """
     def extract(self, text):
         """Matches and extracts any string, as it is"""
         return text
-    
+
     def adapt(self, text, htmlpage=None):
         return text
-    
+
 class RawFieldTypeProcessor(_BaseTextProcessor):
     """Extracts the raw data, without processing. Data is escaped for presentation
-    
+
     >>> from scrapely.extractors import htmlregion
     >>> r = RawFieldTypeProcessor()
     >>> html = htmlregion(u'<p>test</p>')
@@ -45,11 +47,12 @@ class TextFieldTypeProcessor(_BaseTextProcessor):
     """
     name = 'text'
     description = 'extracts text from web pages, cleaning all markup'
-    
-    def extract(self, htmlregion):
-        return extract_text(htmlregion.text_content)
 
-    
+    def extract(self, htmlregion):
+        text = getattr(htmlregion, 'text_content', htmlregion)
+        return remove_tags(extract_text(text)).strip()
+
+
 class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
     """Extracts strings, with only a safe subset of HTML remaining
 
@@ -61,7 +64,12 @@ class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
     u'<p>test</p> <blink>foo'
     >>> p.adapt(html)
     u'<p>test</p> foo'
-    
+    >>> html = htmlregion(u'<p><a href="#">value</a><script>asdf</script>')
+    >>> p.extract(html)
+    u'<p><a href="#">value</a><script>asdf</script>'
+    >>> p.adapt(html)
+    u'<p>value</p>'
+
     html without text must not be extracted
     >>> html = htmlregion(u'<br/>')
 
@@ -75,4 +83,3 @@ class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
     def adapt(self, text, htmlpage=None):
         """Remove html markup"""
         return safehtml(text)
-
