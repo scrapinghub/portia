@@ -70,7 +70,11 @@ export default Ember.Component.extend({
         },
 
         menuClicked() {
-            this.get('onClick')();
+            const action = this.get('onClick');
+
+            if (action) {
+                action();
+            }
         },
 
         menuClosed(reason) {
