@@ -39,6 +39,10 @@ def open_sample_and_page(name):
             HtmlPage(url=url, body=sample_spec['original_body']))
 
 
+def open_page(name):
+    return HtmlResponse(url=name, body=open_spec(name), encoding='utf-8')
+
+
 def open_spider_page_and_results(name):
     sample_spec = open_spec(name)
     schemas = sample_spec['schemas']

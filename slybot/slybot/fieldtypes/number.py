@@ -1,7 +1,6 @@
 """
 Numeric data extraction
 """
-
 from scrapely.extractors import contains_any_numbers, extract_number
 
 class NumberTypeProcessor(object):
@@ -23,11 +22,10 @@ class NumberTypeProcessor(object):
     """
     name = 'number'
     description = 'extracts a single number in the text passed'
-    
+
     def extract(self, htmlregion):
         """Only matches and extracts strings with at least one number"""
         return contains_any_numbers(htmlregion.text_content)
-        
+
     def adapt(self, text, htmlpage=None):
         return extract_number(text)
-

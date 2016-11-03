@@ -27,6 +27,7 @@ class SpiderTest(TestCase):
         self.assertEqual(item['image'], [u'previous data', u'/images/product_shots/PPS14165B.jpg'])
 
     def test_spider_with_inbuilt_selectors(self):
+        """Test selectors for text, price, date and html extractors."""
         name = 'books.toscrape.com'
         spider = self.smanager.create(name)
         spec = self.smanager._specs["spiders"][name]

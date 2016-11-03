@@ -152,7 +152,7 @@ class ExtractorTest(TestCase):
 
         ibl_extractor = SlybotIBLExtractor([
             (self.template, {'#default': descriptor}, '0.12.0')])
-        self.assertEqual(ibl_extractor.extract(self.target)[0][0].dump(), {})
+        self.assertEqual(ibl_extractor.extract(self.target)[0], None)
 
     def test_text_type_w_regex(self):
         schema = {
