@@ -20,7 +20,7 @@ PLUGINS = [
     'slybot.plugins.selectors.Selectors'
 ]
 SLYDUPEFILTER_ENABLED = True
-DUPEFILTER_CLASS = 'scrapyjs.SplashAwareDupeFilter'
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 
 PROJECT_ZIPFILE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 

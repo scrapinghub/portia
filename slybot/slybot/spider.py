@@ -133,7 +133,7 @@ class IblSpider(SitemapSpider):
         form_descriptor = response.request.meta
         field_index = form_descriptor['field_index']
         field_descriptor = form_descriptor['fields'][field_index]
-        self.generic_form.set_values_url_field(field_descriptor, response.body)
+        self.generic_form.set_values_url_field(field_descriptor, response.text)
         yield self.get_generic_form_start_request(form_descriptor)
 
     def parse_form_page(self, response):

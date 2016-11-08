@@ -24,6 +24,7 @@ function main(splash) {
 }
 """
 
+
 def filter_for_url(url):
     def _filter(page_action):
         accept = page_action.get('accept')
@@ -35,15 +36,16 @@ def filter_for_url(url):
         return True
     return _filter
 
+
 class PageActionsMiddleware(object):
     def process_request(self, request, spider):
         splash_options = request.meta.get('splash', None)
-        if not splash_options: # Already processed or JS disabled
+        if not splash_options:  # Already processed or JS disabled
             return
         splash_args = splash_options.get('args', {})
         events = spider.page_actions
         url = splash_args['url']
-        events = filter(filter_for_url(url), events)
+        events = list(filter(filter_for_url(url), events))
         if len(events):
             splash_options['endpoint'] = 'execute'
             splash_args.update({
@@ -52,4 +54,3 @@ class PageActionsMiddleware(object):
             })
 
 __all__ = ['PageActionsMiddleware']
-

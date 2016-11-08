@@ -5,10 +5,9 @@ import json
 import re
 import socket
 
-from urlparse import urlparse, parse_qsl
-from urllib import urlencode
-from urllib2 import unquote
-from six.moves.urllib.parse import urlsplit, urlunsplit
+from six.moves.urllib.parse import (
+    urlsplit, urlunsplit
+)
 
 from jsonschema import (Draft3Validator, RefResolver, FormatChecker,
                         ValidationError)

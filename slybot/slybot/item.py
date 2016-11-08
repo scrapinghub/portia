@@ -99,5 +99,5 @@ def create_item_version(item):
         return
     _hash = hashlib.sha1()
     for attrname in item.version_fields:
-        _hash.update(repr(item.get(attrname)))
+        _hash.update(repr(item.get(attrname)).encode('utf-8'))
     return _hash.digest()

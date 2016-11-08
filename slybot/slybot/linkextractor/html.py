@@ -2,6 +2,7 @@
 Link extraction for auto scraping
 """
 import re
+import six
 from six.moves.urllib.parse import urljoin
 from six.moves.html_entities import name2codepoint
 from scrapy.link import Link
@@ -22,6 +23,7 @@ _ENTITIES_TO_KEEP = frozenset({c for c in name2codepoint} -
 
 def remove_entities(text, encoding):
     return replace_entities(text, keep=_ENTITIES_TO_KEEP, encoding=encoding)
+
 
 
 class HtmlLinkExtractor(BaseLinkExtractor):
@@ -48,25 +50,41 @@ def iterlinks(htmlpage):
     """Iterate through the links in the HtmlPage passed
 
     For example:
+    >>> import six
+    >>> from scrapy.link import Link
     >>> from scrapely.htmlpage import HtmlPage
+    >>> try:
+    ...     if type(unicode) == type:
+    ...         utext = lambda x: x
+    ... except NameError:
+    ...     class utext(str):
+    ...         def __repr__(self): return 'u{}'.format(super().__repr__())
+    >>> def link_repr(self):
+    ...      text = self.text
+    ...      if isinstance(text, six.text_type):
+    ...          text = utext(self.text)
+    ...      return (
+    ...         'Link(url={!r}, text={!r}, fragment={!r}, nofollow={!r})'
+    ...      ).format(self.url, text, self.fragment, self.nofollow)
+    >>> Link.__repr__ = link_repr
     >>> p = HtmlPage(body=u"Please visit <a href='http://scrapinghub.com/'>Scrapinghub</a>")
-    >>> iterlinks(p).next()
+    >>> next(iterlinks(p))
     Link(url='http://scrapinghub.com/', text=u'Scrapinghub', fragment='', nofollow=False)
     >>> p = HtmlPage(body=u"Go <a href='home.html'>Home</a>")
-    >>> iterlinks(p).next()
+    >>> next(iterlinks(p))
     Link(url='home.html', text=u'Home', fragment='', nofollow=False)
 
     When a url is specified, absolute urls are made:
     >>> p.url = 'http://scrapinghub.com/'
-    >>> iterlinks(p).next()
+    >>> next(iterlinks(p))
     Link(url='http://scrapinghub.com/home.html', text=u'Home', fragment='', nofollow=False)
 
     Base href attributes in the page are respected
     >>> p.body = u"<html><head><base href='myproject/'/></head><body>see my <a href='index.html'>project</a></body>"
-    >>> iterlinks(p).next()
+    >>> next(iterlinks(p))
     Link(url='http://scrapinghub.com/myproject/index.html', text=u'project', fragment='', nofollow=False)
     >>> p.body = u"<html><head><base href='http://scrape.io\\\\' /></head><body>see my <a href='index.html'>project</a></body>"
-    >>> iterlinks(p).next()
+    >>> next(iterlinks(p))
     Link(url='http://scrape.io/index.html', text=u'project', fragment='', nofollow=False)
 
     Frameset and iframe urls are extracted
@@ -76,7 +94,7 @@ def iterlinks(htmlpage):
 
     As are meta refresh tags:
     >>> p = HtmlPage(body=u"<html><head><meta http-equiv='refresh' content='5;url=http://example.com/' />")
-    >>> iterlinks(p).next().url
+    >>> next(iterlinks(p)).url
     'http://example.com/'
 
     nofollow is set to True if the link has a rel='nofollow' attribute:
@@ -132,9 +150,11 @@ def iterlinks(htmlpage):
 
     def mklink(url, anchortext=None, nofollow=False):
         url = url.strip()
-        path = remove_entities(url, encoding=encoding)
-        return Link(urljoin(base_href, path).encode(encoding),
-                    text=anchortext, nofollow=nofollow)
+        fullurl = urljoin(
+            base_href, remove_entities(url, encoding=htmlpage.encoding))
+        if not isinstance(fullurl, six.text_type):
+            fullurl = fullurl.encode(htmlpage.encoding)
+        return Link(fullurl, text=anchortext, nofollow=nofollow)
 
     # iter to quickly scan only tags
     tag_iter = (t for t in htmlpage.parsed_body if isinstance(t, HtmlTag))

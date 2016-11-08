@@ -34,7 +34,7 @@ before_script:
 - sleep 3 # give xvfb some time to start
 script:
 - cd ./slybot
-- nosetests --with-doctest
+- sudo -E tox
 - cd ../portia_server
 - ./manage.py test portia_orm.tests
 - ./manage.py test portia_api.tests

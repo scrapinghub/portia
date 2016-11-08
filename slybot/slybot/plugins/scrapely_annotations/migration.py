@@ -33,7 +33,7 @@ from collections import defaultdict
 from itertools import chain, combinations, groupby
 from operator import itemgetter
 from random import Random
-from urllib import unquote
+from six.moves.urllib.parse import unquote
 from uuid import uuid4
 
 from cssselect import SelectorSyntaxError
@@ -711,7 +711,7 @@ def _guess_schema_id(sample, schemas):
 
     # Use the schema with the most fields
     schemas = sorted(
-        schemas.items(), key=lambda (k, v): len(v.get('fields', {})))
+        schemas.items(), key=lambda x: len(x[1].get('fields', {})))
     return schemas[-1][0]
 
 

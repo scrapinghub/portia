@@ -1,8 +1,10 @@
 """
 Text types
 """
+import re
 from scrapely.extractors import text as extract_text, safehtml
 from w3lib.html import remove_tags
+_REMOVE_TAGID = re.compile(' data-tagid="\d+"').sub
 
 
 class _BaseTextProcessor(object):
@@ -11,10 +13,11 @@ class _BaseTextProcessor(object):
     """
     def extract(self, text):
         """Matches and extracts any string, as it is"""
-        return text
+        return _REMOVE_TAGID('', text)
 
     def adapt(self, text, htmlpage=None):
         return text
+
 
 class RawFieldTypeProcessor(_BaseTextProcessor):
     """Extracts the raw data, without processing. Data is escaped for presentation
@@ -29,6 +32,7 @@ class RawFieldTypeProcessor(_BaseTextProcessor):
     """
     name = 'raw html'
     description = 'raw html as it appears in the page'
+
 
 class TextFieldTypeProcessor(_BaseTextProcessor):
     """Extracts strings, removing all HTML markup
@@ -76,6 +80,7 @@ class SafeHtmlFieldTypeProcessor(_BaseTextProcessor):
     """
     name = 'safe html'
     description = 'removes all but a small subset of html tags'
+
     def extract(self, htmlregion):
         if extract_text(htmlregion.text_content):
             return htmlregion

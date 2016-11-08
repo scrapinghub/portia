@@ -13,7 +13,7 @@ def create_regex_extractor(pattern):
     Only groups from match are extracted and concatenated, so it
     is required to define at least one group. Ex:
     >>> extractor = create_regex_extractor("(\d+).*(\.\d+)")
-    >>> extractor(u"The price of this product is <div>45</div> </div class='small'>.50</div> pounds")
+    >>> extractor(u"The price is <b>45</b></i class='sm'>.50</i> $")
     u'45.50'
     """
     ereg = re.compile(pattern, re.S)
@@ -43,7 +43,7 @@ def create_type_extractor(_type):
         data = extractor.extract(txt)
         if data:
             return extractor.adapt(data, page)
-    _extractor.__name__ = ("Type Extractor: %s" % _type).encode('utf-8')
+    _extractor.__name__ = ("Type Extractor: %s" % _type)
     return _extractor
 
 

@@ -5,6 +5,7 @@ from collections import namedtuple
 from unittest import TestCase
 
 from slybot.item import create_slybot_item_descriptor
+from slybot.utils import read
 from slybot.plugins.scrapely_annotations.extraction import (
     SlybotIBLExtractor, BaseContainerExtractor)
 
@@ -82,8 +83,9 @@ ibl_extractors = {}
 ibl_pages = {}
 selector_pages = {}
 for template_name in ('daft_ie', 'hn', 'patchofland'):
-    with open('%s/data/templates/%s.html' % (_PATH, template_name)) as f:
-        html_page = HtmlPage(body=f.read().decode('utf-8'))
+    with open('%s/data/templates/%s.html' % (_PATH, template_name), 'rb') as f:
+
+        html_page = HtmlPage(body=read(f))
         name = _names_map.get(template_name, template_name)
         ibl_pages[name] = html_page
         ibl_extractors[name] = SlybotIBLExtractor([(html_page, descriptors,

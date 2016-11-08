@@ -12,7 +12,7 @@ PLUGINS = [
     'slybot.plugins.selectors.Selectors'
 ]
 SLYDUPEFILTER_ENABLED = True
-DUPEFILTER_CLASS = 'scrapyjs.SplashAwareDupeFilter'
+DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 PROJECT_DIR = 'slybot-project'
 FEED_EXPORTERS = {
     'csv': 'slybot.exporter.SlybotCSVItemExporter',

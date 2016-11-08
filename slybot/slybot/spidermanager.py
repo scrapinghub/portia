@@ -8,7 +8,7 @@ import slybot
 
 from zipfile import ZipFile
 
-from zope.interface import implements
+from zope.interface import implementer
 from scrapy.interfaces import ISpiderManager
 from scrapy.utils.misc import load_object
 from scrapy.utils.project import get_project_settings
@@ -17,9 +17,8 @@ from slybot.spider import IblSpider
 from slybot.utils import open_project_from_dir, load_plugins
 
 
+@implementer(ISpiderManager)
 class SlybotSpiderManager(object):
-
-    implements(ISpiderManager)
 
     def __init__(self, datadir, spider_cls=None, settings=None, **kwargs):
         logging.info('Slybot %s Spider', slybot.__version__)

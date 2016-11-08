@@ -2,7 +2,7 @@ import json
 
 from os.path import dirname
 from unittest import TestCase
-from scrapy.http import TextResponse, HtmlResponse, Request
+from scrapy.http import Request
 from scrapy.settings import Settings
 from slybot.utils import htmlpage_from_response
 
@@ -14,6 +14,7 @@ from slybot.plugins.scrapely_annotations.builder import (
 )
 from slybot.utils import load_plugins
 from slybot.spider import IblSpider
+from .utils import UTF8HtmlResponse, UTF8TextResponse
 
 
 class Test_RegexLinkExtractor(TestCase):
@@ -21,7 +22,7 @@ class Test_RegexLinkExtractor(TestCase):
         specs = {"type": "regex", "value": ''}
         lextractor = create_linkextractor_from_specs(specs)
         text = "Hello http://www.example.com/path, more text https://aws.amazon.com/product?id=23#tre?"
-        response = TextResponse(url='http://www.example.com/', body=text)
+        response = UTF8TextResponse(url='http://www.example.com/', body=text)
         links = list(lextractor.links_to_follow(response))
         self.assertEqual(len(links), 2)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
@@ -31,7 +32,7 @@ class Test_RegexLinkExtractor(TestCase):
         specs = {"type": "regex", "value": 'url: ((?:http|https)://www.example.com/[\w/]+)'}
         lextractor = create_linkextractor_from_specs(specs)
         text = "url: http://www.example.com/path, more text url: https://www.example.com/path2. And more text url: https://aws.amazon.com/product?id=23#tre"
-        response = TextResponse(url='http://www.example.com/', body=text)
+        response = UTF8TextResponse(url='http://www.example.com/', body=text)
         links = list(lextractor.links_to_follow(response))
         self.assertEqual(len(links), 2)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
@@ -41,7 +42,7 @@ class Test_RegexLinkExtractor(TestCase):
         specs = {"type": "regex", "value": 'url: ((?:http|https)://www.example.com/[\w/]+)', 'allowed_schemes': ['http']}
         lextractor = create_linkextractor_from_specs(specs)
         text = "url: http://www.example.com/path, more text url: https://www.example.com/path2. And more text url: https://aws.amazon.com/product?id=23#tre"
-        response = TextResponse(url='http://www.example.com/', body=text)
+        response = UTF8TextResponse(url='http://www.example.com/', body=text)
         links = list(lextractor.links_to_follow(response))
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
@@ -112,10 +113,10 @@ atomfeed = """
 
 class Test_XmlLinkExtractors(TestCase):
     def setUp(self):
-        self.response = TextResponse(url='http://www.example.com/', body=xmlfeed)
-        self.sitemap = TextResponse(url='http://www.example.com/sitemap.xml', body=sitemapfeed)
-        self.sitemapindex = TextResponse(url='http://www.example.com/sitemap.xml', body=sitemapindex)
-        self.atom = TextResponse(url='http://www.example.com/atom', body=atomfeed)
+        self.response = UTF8TextResponse(url='http://www.example.com/', body=xmlfeed)
+        self.sitemap = UTF8TextResponse(url='http://www.example.com/sitemap.xml', body=sitemapfeed)
+        self.sitemapindex = UTF8TextResponse(url='http://www.example.com/sitemap.xml', body=sitemapindex)
+        self.atom = UTF8TextResponse(url='http://www.example.com/atom', body=atomfeed)
 
     def test_rss(self):
         specs = {"type": "rss", "value": ""}
@@ -182,7 +183,7 @@ class Test_CsvLinkExtractor(TestCase):
     def test_simple(self):
         specs = {"type": "column", "value": 1}
         lextractor = create_linkextractor_from_specs(specs)
-        response = TextResponse(url='http://www.example.com/', body=csvfeed)
+        response = UTF8TextResponse(url='http://www.example.com/', body=csvfeed)
         links = list(lextractor.links_to_follow(response))
         self.assertEqual(len(links), 2)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
@@ -191,7 +192,7 @@ class Test_CsvLinkExtractor(TestCase):
     def test_extra_params(self):
         specs = {"type": "column", "value": 1, "delimiter": "|"}
         lextractor = create_linkextractor_from_specs(specs)
-        response = TextResponse(url='http://www.example.com/', body=csvfeed2)
+        response = UTF8TextResponse(url='http://www.example.com/', body=csvfeed2)
         links = list(lextractor.links_to_follow(response))
         self.assertEqual(len(links), 2)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
@@ -200,7 +201,7 @@ class Test_CsvLinkExtractor(TestCase):
     def test_header(self):
         specs = {"type": "column", "value": 1}
         lextractor = create_linkextractor_from_specs(specs)
-        response = TextResponse(url='http://www.example.com/', body=csvfeed3)
+        response = UTF8TextResponse(url='http://www.example.com/', body=csvfeed3)
         links = list(lextractor.links_to_follow(response))
         self.assertEqual(len(links), 2)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
@@ -220,7 +221,7 @@ class Test_HtmlLinkExtractor(TestCase):
     def test_simple(self):
         specs = {"type": "html", "value": None}
         lextractor = create_linkextractor_from_specs(specs)
-        response = HtmlResponse(url='http://www.example.com/', body=html)
+        response = UTF8HtmlResponse(url='http://www.example.com/', body=html)
         links = list(lextractor.links_to_follow(response))
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0].url, 'http://www.example.com/path')
@@ -232,7 +233,7 @@ class Test_PaginationExtractor(TestCase):
         specs = {"type": "pagination", "value": None}
         lextractor = create_linkextractor_from_specs(specs)
         html_page = htmlpage_from_response(
-            HtmlResponse(url='http://www.example.com/', body=html))
+            UTF8HtmlResponse(url='http://www.example.com/', body=html))
         html_page.headers['n_items'] = 1
         links = list(lextractor.links_to_follow(html_page))
         self.assertEqual(len(links), 1)
@@ -252,7 +253,7 @@ class Test_PaginationExtractor(TestCase):
         <a href="http://www.spam.com/?p=300">Click here 3</a>
         """
         html_page = htmlpage_from_response(
-            HtmlResponse(url='http://www.example.com/', body=html))
+            UTF8HtmlResponse(url='http://www.example.com/', body=html))
         links = list(lextractor.links_to_follow(html_page))
         links = sorted(links, key=lambda link: link.url)
         self.assertEqual(len(links), 3)
@@ -279,8 +280,8 @@ class Test_PaginationExtractor(TestCase):
         settings.set('LOADED_PLUGINS', load_plugins(settings))
         spider = IblSpider('hn', spec, {}, {}, settings=settings)
         request = Request(daft_url)
-        response = HtmlResponse(url=daft_url, body=daft_body, request=request,
-                                encoding="utf-8")
+        response = UTF8HtmlResponse(url=daft_url, body=daft_body,
+                                    request=request)
         data = {r.url for r in spider.handle_html(response)
                 if isinstance(r, Request)}
         self.assertEqual({base(i) for i in (90, 80, 70)}, data)
