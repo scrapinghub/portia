@@ -94,7 +94,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
             commit = self.query.get('commit_id', None)
             if not branch and self.storage.repo.has_branch(self.user):
                 branch = self.user
-            storage = self.storage.checkout(commit, branch)
-            commit_id = storage._commit.id
+            self.storage.checkout(commit, branch)
+            commit_id = self.storage._commit.id
             data['version'] = commit_id
         return data
