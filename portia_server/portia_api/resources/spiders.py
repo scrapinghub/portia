@@ -84,17 +84,17 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         data.setdefault('meta', {})['scheduled'] = True
         return Response(data, status=HTTP_200_OK)
 
-    def _schedule_data(self, spider, args):
+    def _schedule_data(self, spider_id, args):
         data = {
             'project': self.project.id,
-            'spider': self.spider.id
+            'spider': spider_id
         }
         if self.storage.version_control:
             branch = self.query.get('branch', None)
             commit = self.query.get('commit_id', None)
             if not branch and self.storage.repo.has_branch(self.user):
                 branch = self.user
-            storage = self.storage.checkout(commit, branch)
-            commit_id = storage._commit.id
+            self.storage.checkout(commit, branch)
+            commit_id = self.storage._commit.id
             data['version'] = commit_id
         return data
