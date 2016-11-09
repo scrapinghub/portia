@@ -84,10 +84,10 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         data.setdefault('meta', {})['scheduled'] = True
         return Response(data, status=HTTP_200_OK)
 
-    def _schedule_data(self, spider, args):
+    def _schedule_data(self, spider_id, args):
         data = {
             'project': self.project.id,
-            'spider': self.spider.id
+            'spider': spider_id
         }
         if self.storage.version_control:
             branch = self.query.get('branch', None)
