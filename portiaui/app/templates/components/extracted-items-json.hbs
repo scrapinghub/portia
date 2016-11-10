@@ -12,10 +12,11 @@
     {{~/if}}
     {{#if (is-array json) ~}}
         {{#each json as |value index| ~}}
-            {{#if fromKey}}{{#unless index}}<b class="new-line"></b>{{/unless}}{{/if}}
+            {{#if (and fromKey (not index))}}<b class="new-line"></b>{{/if}}
             {{extracted-items-json json=value position=index from='array' parent=json depth=depth ~}}
         {{~/each}}
     {{else if (is-object json) ~}}
+        {{#if (and fromKey (not index))}}<b class="new-line"></b>{{/if}}
         {{#each-in (indexed-object json) as |key v| ~}}
             <span class="json-key">{{depthPlus1Spaces}}"{{key}}": {{#if (is-array v.value)}}[{{/if}}{{#if (is-object v.value)}}{ {{/if}}</span>
             {{~extracted-items-json json=v.value position=v.index from='key' parent=json depth=depth key=key ~}}
