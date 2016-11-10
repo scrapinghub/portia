@@ -267,9 +267,9 @@
             "aee3-4653-945f": {
                 "id": "aee3-4653-945f",
                 "name": "image",
-                "required": false,
+                "required": true,
                 "type": "image",
-                "vary": false
+                "vary": true
             },
             "85cb-43ca-928b": {
                 "id": "85cb-43ca-928b",
@@ -316,7 +316,7 @@
             "1312-419b-afcd": {
                 "id": "1312-419b-afcd",
                 "name": "stock",
-                "required": false,
+                "required": true,
                 "type": "number",
                 "vary": false
             },

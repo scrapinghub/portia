@@ -106,7 +106,6 @@ class ItemProcessor(object):
                 field = {u'field': field, u'id': field_id,
                          u'attribute': u'content'}
             field_cls = self._field_class(field['field'])
-            print(field_cls)
             fields[field_id] = field_cls(value, field, schema, modifiers, page)
         return fields
 
@@ -164,7 +163,7 @@ class ItemProcessor(object):
         """Extract CSS and XPath annotations and dump item."""
         if selector is not None:
             self._process_selectors(selector)
-        return self.dump(include_meta)
+        return self.dump(include_meta, validate=True)
 
     def _process_selectors(self, selector):
         selector_modes = (u'css', u'xpath')
@@ -268,14 +267,14 @@ class ItemProcessor(object):
             else:
                 self.fields[field_id] = field
 
-    def dump(self, include_meta=False):
+    def dump(self, include_meta=False, validate=False):
         """Dump processed fields into a new item."""
         try:
-            return self._dump(include_meta)
+            return self._dump(include_meta, validate)
         except (MissingRequiredError, ItemNotValidError):
             return {}
 
-    def _dump(self, include_meta=False):
+    def _dump(self, include_meta=False, validate=False):
         item = defaultdict(list)
         meta = defaultdict(dict)
         schema_id = getattr(self.schema, u'id', None)
@@ -289,7 +288,11 @@ class ItemProcessor(object):
                 item[field.field].extend(value)
             if include_meta:
                 meta[field.id].update(dict(schema=schema_id, **field.metadata))
-        item = self._validate(item)
+        if validate:
+            self._validate(item)
+
+        # Rename fields to their human readable names
+        item = self._item_with_names(item)
         if include_meta:
             item[u'_meta'] = meta
         if u'_type' not in item:
@@ -300,17 +303,19 @@ class ItemProcessor(object):
 
     def _validate(self, item):
         item_fields = self._item_with_names(item, u'name')
+        # Bring keys from nested items into primary item for required check
+        for key, value in item_fields.items():
+            if isinstance(value, dict):
+                for sub_key in value:
+                    item_fields[sub_key] = True
         # Check if a pre prcessed item has been provided
         if u'_type' in item_fields:
             return item_fields
         if (hasattr(self.schema, u'_item_validates') and
                 not self.schema._item_validates(item_fields)):
             raise ItemNotValidError
-        # Rename fields from unique names to display names
-        new_item = self._item_with_names(item)
-        if all(fname.startswith('_') or fname == 'url' for fname in new_item):
+        if all(fname[0] == '_' or fname == 'url' for fname in item_fields):
             raise ItemNotValidError
-        return new_item
 
     def _item_with_names(self, item, attribute=u'description'):
         item_dict = {}
@@ -338,6 +343,9 @@ class ItemProcessor(object):
         return bool(self.dump())
 
     __nonzero__ = __bool__
+
+    def __len__(self):
+        return len(self.fields)
 
     def __hash__(self):
         return hash(str(self.id) + str(self.region_id))
@@ -397,6 +405,10 @@ class ItemField(object):
             self._field, self.value, self.dump())
         return meta
 
+    @cached_property
+    def required(self):
+        return self._meta.get('required') or False
+
     def dump(self):
         """Process and adapt extracted data for field."""
         values = self._process()
@@ -453,7 +465,7 @@ class ItemField(object):
         for adaptor in self.adaptors:
             if values:
                 values = [adaptor(v, self.htmlpage) for v in values if v]
-        if self._meta.get(u'required') and not values:
+        if self.required and not values:
             raise MissingRequiredError
         return values
 

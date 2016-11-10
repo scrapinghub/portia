@@ -152,7 +152,6 @@ class ContainerExtractorTest(TestCase):
     def test_validate_and_adapt_item(self):
         bce = BaseContainerExtractor(basic_extractors, template)
         data = {'price': ['10']}
-        self.assertEqual(bce._validate_and_adapt_item(data, template), {})
         data['_type'] = 'skip_checks'
         result = bce._validate_and_adapt_item(data, template).dump()
         self.assertEqual(result,
@@ -167,8 +166,6 @@ class ContainerExtractorTest(TestCase):
         extracted = bce._validate_and_adapt_item(data, template).dump()
         self.assertEqual(extracted,
                          result)
-        bce.extra_requires = ['pid']
-        self.assertEqual(bce._validate_and_adapt_item(data, template), {})
         data['pid'] = ['13532']
         result = data.copy()
         result['_type'] = 'default'
@@ -251,14 +248,14 @@ class ContainerExtractorTest(TestCase):
             'address': {'type': 'text', 'required': False, 'vary': False}}})}
         add_extractors_to_descriptors(descriptors, extractors)
         extractor = SlybotIBLExtractor([(sample_411, descriptors, '0.13.0')])
-        data = extractor.extract(page_411)[0][1].dump()
+        data = extractor.extract(page_411)[0][1]
         self.assertEqual(data['full_name'], [u'Joe Smith'])
         self.assertEqual(data[u'prénom'], [u'Joe'])
         self.assertEqual(data['nom'], [u'Smith'])
 
     def test_extract_missing_schema(self):
         extractor = SlybotIBLExtractor([(sample_411, {}, '0.13.0')])
-        data = extractor.extract(page_411)[0][1].dump()
+        data = extractor.extract(page_411)[0][1]
         raw_html = ('<span itemprop="name"><span itemprop="givenName">Joe'
                     '</span> <span itemprop="familyName">Smith</span></span>')
         self.assertEqual(data['full_name'], [raw_html])
@@ -319,13 +316,11 @@ class ContainerExtractorTest(TestCase):
             (simple_template, simple_descriptors, '0.13.0')
         ])
         data, _ = ibl_extractor.extract(target1)
-        data = [i.dump() for i in data]
         self.assertEqual(len(data), 10)
         self.assertTrue(all('rank' in item and item['rank'] for item in data))
         self.assertTrue(all('description' in item and item['description']
                             for item in data))
         data, _ = ibl_extractor.extract(target2)
-        data = [i.dump() for i in data]
         self.assertEqual(len(data), 5)
         self.assertTrue(all('rank' in item and item['rank'] for item in data))
         self.assertTrue(all('description' in item and item['description']

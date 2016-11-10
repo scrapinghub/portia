@@ -4,6 +4,7 @@ from scrapely.extraction.pageparsing import parse_extraction_page
 from scrapely.extraction.pageobjects import TokenDict
 from scrapely.extraction.regionextract import (TraceExtractor,
                                                TemplatePageExtractor)
+from scrapy.selector import Selector
 from scrapy.utils.spider import arg_to_iter
 
 from .container_extractors import BaseContainerExtractor, ContainerExtractor
@@ -23,7 +24,8 @@ class TemplatePageMultiItemExtractor(TemplatePageExtractor):
                 if item:
                     if isinstance(item, (ItemProcessor, dict)):
                         item[u'_template'] = self.template.id
-            items.extend(filter(bool, arg_to_iter(extracted)))
+                    items.append(item)
+
         return items
 
 
@@ -95,6 +97,7 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
             extraction_trees = sorted(
                 self.extraction_trees,
                 key=lambda x: x.template.id != pref_template_id)
+        sel = Selector(text=html.body)
         for extraction_tree in extraction_trees:
             template_id = extraction_tree.template.id
             extracted = extraction_tree.extract(extraction_page)
@@ -102,11 +105,12 @@ class SlybotIBLExtractor(InstanceBasedLearningExtractor):
             for item in extracted:
                 if (isinstance(item, ItemProcessor) or
                         not hasattr(self, 'validated')):
-                    correctly_extracted.append(item)
+                    if hasattr(item, 'process'):
+                        item = item.process(sel)
                 else:
-                    validated = self.validated[template_id]([item])
-                    if validated:
-                        correctly_extracted.append(validated)
+                    item = self.validated[template_id]([item])
+                if item:
+                    correctly_extracted.append(item)
             if len(correctly_extracted) > 0:
                 return correctly_extracted, extraction_tree.template
         return None, None
