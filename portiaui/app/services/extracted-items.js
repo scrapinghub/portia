@@ -2,8 +2,9 @@ import Ember from 'ember';
 const { computed } = Ember;
 import { task, timeout } from 'ember-concurrency';
 
-const INITIAL_TIMEOUT = 2000;
-const FOUR_MINUTES = 200000;
+const SECOND = 1000;
+const INITIAL_TIMEOUT = 2 * SECOND;
+const MAX_TIMEOUT = 30 * SECOND;
 
 function print(msg, debug=true) {
     if(debug) { console.info(msg); }
@@ -122,7 +123,7 @@ export default Ember.Service.extend({
     _updateExtraction(data) {
         const receivedItems = data.items && data.items.length > 0;
         // Ensures the wait time is 254 seconds ~ 4 minutes
-        const exceedWait = this.get('extractionTimeout') > FOUR_MINUTES;
+        const exceedWait = this.get('extractionTimeout') > MAX_TIMEOUT;
 
         print('----------------------------');
         print('_updateExtraction');
