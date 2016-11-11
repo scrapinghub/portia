@@ -20,6 +20,7 @@ from slybot.plugins.scrapely_annotations.builder import (
     apply_annotations, _clean_annotation_data
 )
 from slybot.spider import IblSpider
+from slybot.spidermanager import SlybotSpiderManager
 from scrapely.extraction.pageobjects import TokenDict
 from scrapely.htmlpage import HtmlPage
 from scrapely.extraction.regionextract import BasicTypeExtractor
@@ -115,6 +116,7 @@ def _annotation_tag_to_dict(tag):
 
 
 class ContainerExtractorTest(TestCase):
+
     def test_get_container_info(self):
         containers, annotations, remaining_annotations = \
             BaseContainerExtractor._get_container_data(basic_extractors)
@@ -339,3 +341,14 @@ class ContainerExtractorTest(TestCase):
         spider, _, _ = open_spider_page_and_results('autoevolution2.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, [])
+
+    def test_nested_items(self):
+        smanager = SlybotSpiderManager("%s/data/SampleProject" % PATH)
+        name = 'books.toscrape.com'
+        spider = smanager.create(name)
+        spec = smanager._specs["spiders"][name]
+        t = [t for t in spec["templates"] if t['page_id'] == '3617-44af-a2f0'][0]
+        response = HtmlResponse(t['url'], body=t['original_body'].encode('utf-8'))
+        results = [i for i in spider.parse(response)
+                   if hasattr(i, '__getitem__')]
+        self.assertEqual(results, t['results'])

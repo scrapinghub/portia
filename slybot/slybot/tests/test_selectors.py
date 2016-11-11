@@ -31,7 +31,8 @@ class SpiderTest(TestCase):
         name = 'books.toscrape.com'
         spider = self.smanager.create(name)
         spec = self.smanager._specs["spiders"][name]
-        t = spec["templates"][0]
+        t = [t for t in spec["templates"]
+             if t['page_id'] == "0a96a4dba3c62275ecf13903f42a007dd06718d8"][0]
         response = HtmlResponse(t['url'], body=t['original_body'].encode('utf-8'))
         results = [i for i in spider.parse(response)
                    if hasattr(i, '__getitem__')]

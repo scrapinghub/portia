@@ -254,5 +254,80 @@
                 "vary": false
             }
         }
+    },
+    "9c67-4898-9d96": {
+        "fields": {
+            "d7c3-412c-ad4e": {
+                "id": "d7c3-412c-ad4e",
+                "name": "description",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "aee3-4653-945f": {
+                "id": "aee3-4653-945f",
+                "name": "image",
+                "required": false,
+                "type": "image",
+                "vary": false
+            },
+            "85cb-43ca-928b": {
+                "id": "85cb-43ca-928b",
+                "name": "breadcrumbs",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "965b-4060-a104": {
+                "id": "965b-4060-a104",
+                "name": "upc",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "71ed-4634-b777": {
+                "id": "71ed-4634-b777",
+                "name": "type",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "e711-4838-a687": {
+                "id": "e711-4838-a687",
+                "name": "price",
+                "required": false,
+                "type": "price",
+                "vary": false
+            },
+            "bbed-4317-b686": {
+                "id": "bbed-4317-b686",
+                "name": "price+tax",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "b616-4d53-9386": {
+                "id": "b616-4d53-9386",
+                "name": "tax",
+                "required": false,
+                "type": "price",
+                "vary": false
+            },
+            "1312-419b-afcd": {
+                "id": "1312-419b-afcd",
+                "name": "stock",
+                "required": false,
+                "type": "number",
+                "vary": false
+            },
+            "ad73-4b2b-9bd8": {
+                "id": "ad73-4b2b-9bd8",
+                "name": "reviews",
+                "required": false,
+                "type": "text",
+                "vary": false
+            }
+        },
+        "name": "Sharp Objects Books to Scrape - Sandbox"
     }
 }

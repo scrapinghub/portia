@@ -323,6 +323,7 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
     def _merge_items(self, items):
         if not items:
             return []
+        items = sorted(items, key=lambda x: x.name or '')
         item = items[0]
         for other_item in items[1:]:
             item.merge(other_item)

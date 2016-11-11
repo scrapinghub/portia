@@ -113,7 +113,8 @@ class Annotations(object):
             self.clustering = None
 
     def _get_annotated_template(self, template):
-        if template.get('version', '0.12.0') >= '0.13.0':
+        if (template.get('version', '0.12.0') >= '0.13.0' and
+                not template.get('annotated')):
             _build_sample(template)
         return template
 
