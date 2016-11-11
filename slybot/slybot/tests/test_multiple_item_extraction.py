@@ -20,6 +20,7 @@ from slybot.plugins.scrapely_annotations.builder import (
     apply_annotations, _clean_annotation_data
 )
 from slybot.spider import IblSpider
+from slybot.spidermanager import SlybotSpiderManager
 from scrapely.extraction.pageobjects import TokenDict
 from scrapely.htmlpage import HtmlPage
 from scrapely.extraction.regionextract import BasicTypeExtractor
@@ -115,6 +116,7 @@ def _annotation_tag_to_dict(tag):
 
 
 class ContainerExtractorTest(TestCase):
+
     def test_get_container_info(self):
         containers, annotations, remaining_annotations = \
             BaseContainerExtractor._get_container_data(basic_extractors)
@@ -150,7 +152,6 @@ class ContainerExtractorTest(TestCase):
     def test_validate_and_adapt_item(self):
         bce = BaseContainerExtractor(basic_extractors, template)
         data = {'price': ['10']}
-        self.assertEqual(bce._validate_and_adapt_item(data, template), {})
         data['_type'] = 'skip_checks'
         result = bce._validate_and_adapt_item(data, template).dump()
         self.assertEqual(result,
@@ -165,8 +166,6 @@ class ContainerExtractorTest(TestCase):
         extracted = bce._validate_and_adapt_item(data, template).dump()
         self.assertEqual(extracted,
                          result)
-        bce.extra_requires = ['pid']
-        self.assertEqual(bce._validate_and_adapt_item(data, template), {})
         data['pid'] = ['13532']
         result = data.copy()
         result['_type'] = 'default'
@@ -249,14 +248,14 @@ class ContainerExtractorTest(TestCase):
             'address': {'type': 'text', 'required': False, 'vary': False}}})}
         add_extractors_to_descriptors(descriptors, extractors)
         extractor = SlybotIBLExtractor([(sample_411, descriptors, '0.13.0')])
-        data = extractor.extract(page_411)[0][1].dump()
+        data = extractor.extract(page_411)[0][1]
         self.assertEqual(data['full_name'], [u'Joe Smith'])
         self.assertEqual(data[u'prénom'], [u'Joe'])
         self.assertEqual(data['nom'], [u'Smith'])
 
     def test_extract_missing_schema(self):
         extractor = SlybotIBLExtractor([(sample_411, {}, '0.13.0')])
-        data = extractor.extract(page_411)[0][1].dump()
+        data = extractor.extract(page_411)[0][1]
         raw_html = ('<span itemprop="name"><span itemprop="givenName">Joe'
                     '</span> <span itemprop="familyName">Smith</span></span>')
         self.assertEqual(data['full_name'], [raw_html])
@@ -317,13 +316,11 @@ class ContainerExtractorTest(TestCase):
             (simple_template, simple_descriptors, '0.13.0')
         ])
         data, _ = ibl_extractor.extract(target1)
-        data = [i.dump() for i in data]
         self.assertEqual(len(data), 10)
         self.assertTrue(all('rank' in item and item['rank'] for item in data))
         self.assertTrue(all('description' in item and item['description']
                             for item in data))
         data, _ = ibl_extractor.extract(target2)
-        data = [i.dump() for i in data]
         self.assertEqual(len(data), 5)
         self.assertTrue(all('rank' in item and item['rank'] for item in data))
         self.assertTrue(all('description' in item and item['description']
@@ -339,3 +336,14 @@ class ContainerExtractorTest(TestCase):
         spider, _, _ = open_spider_page_and_results('autoevolution2.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, [])
+
+    def test_nested_items(self):
+        smanager = SlybotSpiderManager("%s/data/SampleProject" % PATH)
+        name = 'books.toscrape.com'
+        spider = smanager.create(name)
+        spec = smanager._specs["spiders"][name]
+        t = [t for t in spec["templates"] if t['page_id'] == '3617-44af-a2f0'][0]
+        response = HtmlResponse(t['url'], body=t['original_body'].encode('utf-8'))
+        results = [i for i in spider.parse(response)
+                   if hasattr(i, '__getitem__')]
+        self.assertEqual(results, t['results'])

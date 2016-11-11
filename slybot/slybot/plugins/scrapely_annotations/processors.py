@@ -17,10 +17,6 @@ from w3lib.html import remove_tags
 from .utils import (cached_property, load_annotations, region_id,
                     _DEFAULT_EXTRACTOR)
 from .exceptions import ItemNotValidError, MissingRequiredError
-ITEM_FIELD = -1
-DEFAULT_FIELD = 0
-META_FIELD = 1
-PROCESSING_FIELD = 2
 
 
 def _compose(f, g):
@@ -38,7 +34,6 @@ def _compose(f, g):
 class ItemProcessor(object):
     """Processor for extracted data."""
     ignore = False
-    fieldtype = ITEM_FIELD
     should_overwrite = True
 
     def __init__(self, data, extractor, regions, parent_region=None,
@@ -79,7 +74,7 @@ class ItemProcessor(object):
 
     @property
     def region_id(self):
-        return ', '.join(str(r.start) for r in self.regions)
+        return ', '.join(str(r) for r in self.regions)
 
     @cached_property
     def metadata(self):
@@ -100,13 +95,7 @@ class ItemProcessor(object):
         for field_num, (field, value) in enumerate(self._normalize_data(data)):
             # Repeated Fields and nested items support
             if hasattr(field, 'fields'):
-                child = None
-                if len(field.fields) == 1:
-                    child = field.fields.values()[0]
-                if child and field.descriptor == child.extractor:
-                    fields[child.id] = child
-                else:
-                    fields[field.name] = field
+                self._add_item(field, fields)
                 continue
             # New style annotation field
             elif isinstance(field, dict):
@@ -116,8 +105,26 @@ class ItemProcessor(object):
                 field_id = field_num
                 field = {u'field': field, u'id': field_id,
                          u'attribute': u'content'}
-            fields[field_id] = ItemField(value, field, schema, modifiers, page)
+            field_cls = self._field_class(field['field'])
+            fields[field_id] = field_cls(value, field, schema, modifiers, page)
         return fields
+
+    def _field_class(self, field):
+        if not field or field.startswith('#'):
+            return ScrapelyField
+        if field.startswith('_'):
+            return ProcessedField
+        return ItemField
+
+    def _add_item(self, item, fields=None):
+        fields = self.fields if fields is None else fields
+        child = None
+        if len(item.fields) == 1:
+            child = item.fields.values()[0]
+        if child and item.descriptor == child.extractor:
+            fields[child.id] = child
+        else:
+            fields[item.name] = item
 
     def _normalize_data(self, data):
         """Normalize extracted data for conversion into ItemFields."""
@@ -156,7 +163,7 @@ class ItemProcessor(object):
         """Extract CSS and XPath annotations and dump item."""
         if selector is not None:
             self._process_selectors(selector)
-        return self.dump(include_meta)
+        return self.dump(include_meta, validate=True)
 
     def _process_selectors(self, selector):
         selector_modes = (u'css', u'xpath')
@@ -172,9 +179,14 @@ class ItemProcessor(object):
         )
         for field_id, field in self.fields.items():
             if hasattr(field, 'fields'):
-                field.process(selector)
-                self.fields[field_id] = ItemField(
-                    field.dump(), {'id': field.id, 'field': field._field})
+                value = field.process(selector)
+                if not value:
+                    continue
+                meta = {'id': field.id, 'field': field.name,
+                        'attribute': 'content'}
+                self.fields[field_id] = ProcessedField(
+                    value, meta, self.schema,
+                    self.modifiers, self.htmlpage)
         all_selector_annotations = list(
             chain(selector_annotations, field_annotations))
         if all_selector_annotations:
@@ -246,20 +258,23 @@ class ItemProcessor(object):
             id_ = annotation.metadata.get(u'id')
             if id_ and id_ in missing_ids:
                 self.annotations.append(annotation)
+        if other.name:
+            self._add_item(other)
+            return
         for field_id, field in other.fields.items():
             if field_id in self.fields:
                 self.fields[field_id].merge(field)
             else:
                 self.fields[field_id] = field
 
-    def dump(self, include_meta=False):
+    def dump(self, include_meta=False, validate=False):
         """Dump processed fields into a new item."""
         try:
-            return self._dump(include_meta)
+            return self._dump(include_meta, validate)
         except (MissingRequiredError, ItemNotValidError):
             return {}
 
-    def _dump(self, include_meta=False):
+    def _dump(self, include_meta=False, validate=False):
         item = defaultdict(list)
         meta = defaultdict(dict)
         schema_id = getattr(self.schema, u'id', None)
@@ -273,7 +288,11 @@ class ItemProcessor(object):
                 item[field.field].extend(value)
             if include_meta:
                 meta[field.id].update(dict(schema=schema_id, **field.metadata))
-        item = self._validate(item)
+        if validate:
+            self._validate(item)
+
+        # Rename fields to their human readable names
+        item = self._item_with_names(item)
         if include_meta:
             item[u'_meta'] = meta
         if u'_type' not in item:
@@ -284,17 +303,19 @@ class ItemProcessor(object):
 
     def _validate(self, item):
         item_fields = self._item_with_names(item, u'name')
+        # Bring keys from nested items into primary item for required check
+        for key, value in item_fields.items():
+            if isinstance(value, dict):
+                for sub_key in value:
+                    item_fields[sub_key] = True
         # Check if a pre prcessed item has been provided
         if u'_type' in item_fields:
             return item_fields
         if (hasattr(self.schema, u'_item_validates') and
                 not self.schema._item_validates(item_fields)):
             raise ItemNotValidError
-        # Rename fields from unique names to display names
-        new_item = self._item_with_names(item)
-        if all(fname.startswith('_') or fname == 'url' for fname in new_item):
+        if all(fname[0] == '_' or fname == 'url' for fname in item_fields):
             raise ItemNotValidError
-        return new_item
 
     def _item_with_names(self, item, attribute=u'description'):
         item_dict = {}
@@ -323,12 +344,15 @@ class ItemProcessor(object):
 
     __nonzero__ = __bool__
 
+    def __len__(self):
+        return len(self.fields)
+
     def __hash__(self):
         return hash(str(self.id) + str(self.region_id))
 
     def __setitem__(self, key, value):
-        self.fields[key] = ItemField(value, {u'id': key, u'field': key,
-                                             u'attribute': u'content'})
+        self.fields[key] = ProcessedField(value, {u'id': key, u'field': key,
+                                                  u'attribute': u'content'})
 
     def __str__(self):
         return u'%s, %s' % (self.id, self.region_id)
@@ -339,6 +363,8 @@ class ItemProcessor(object):
 
 
 class ItemField(object):
+    should_overwrite = False
+
     def __init__(self, value, meta, schema=None, modifiers=None,
                  htmlpage=None):
         self.htmlpage = htmlpage
@@ -346,7 +372,6 @@ class ItemField(object):
         self._meta = meta
         self.id = meta.get(u'id')
         self._field = meta[u'field']
-        self.fieldtype = self._fieldtype()
         self.attribute = meta[u'attribute']
         self.selection_mode = meta.get(u'selection_mode', u'auto')
         self.extractor, self.adaptors = self._load_extractors(
@@ -354,17 +379,11 @@ class ItemField(object):
 
     @cached_property
     def field(self):
-        return self._field if self.fieldtype == META_FIELD else self
+        return self
 
     @cached_property
     def ignore(self):
-        if self.fieldtype == PROCESSING_FIELD or not self._field:
-            return True
-        return False
-
-    @cached_property
-    def should_overwrite(self):
-        if self.fieldtype == META_FIELD:
+        if not self._field:
             return True
         return False
 
@@ -386,10 +405,12 @@ class ItemField(object):
             self._field, self.value, self.dump())
         return meta
 
+    @cached_property
+    def required(self):
+        return self._meta.get('required') or False
+
     def dump(self):
         """Process and adapt extracted data for field."""
-        if self.fieldtype == META_FIELD:
-            return self.value
         values = self._process()
         return self._adapt(values)
 
@@ -444,16 +465,9 @@ class ItemField(object):
         for adaptor in self.adaptors:
             if values:
                 values = [adaptor(v, self.htmlpage) for v in values if v]
-        if self._meta.get(u'required') and not values:
+        if self.required and not values:
             raise MissingRequiredError
         return values
-
-    def _fieldtype(self):
-        if not self._field or self._field.startswith('#'):
-            return PROCESSING_FIELD
-        if self._field.startswith('_'):
-            return META_FIELD
-        return DEFAULT_FIELD
 
     def __hash__(self):
         return hash(str(self.id) + str(self._field))
@@ -465,3 +479,20 @@ class ItemField(object):
         return u'%s(%s, field=%s, extractor=%s, adaptors=%s)' % (
             self.__class__.__name__, str(self), self._field, self.extractor,
             self.adaptors)
+
+
+class ProcessedField(ItemField):
+    """Field without any transformations."""
+    should_overwrite = True
+
+    @cached_property
+    def field(self):
+        return self._field
+
+    def dump(self):
+        return self.value
+
+
+class ScrapelyField(ItemField):
+    """Field used for guiding extraction but not used for extracting data."""
+    ignore = True
