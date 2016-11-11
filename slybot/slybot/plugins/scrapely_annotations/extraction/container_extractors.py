@@ -213,8 +213,7 @@ class BaseContainerExtractor(object):
                                   htmlpage)
 
         # Check if item is valid
-        dumped = processor.dump()
-        if dumped:
+        if len(processor):
             return processor
         else:
             return {}
@@ -321,9 +320,10 @@ class ContainerExtractor(BaseContainerExtractor, BasicTypeExtractor):
         return items
 
     def _merge_items(self, items):
+        items = sorted((i for i in items if len(i)),
+                       key=lambda x: x.name or '')
         if not items:
             return []
-        items = sorted(items, key=lambda x: x.name or '')
         item = items[0]
         for other_item in items[1:]:
             item.merge(other_item)

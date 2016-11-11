@@ -134,7 +134,7 @@ class ExtractorTest(TestCase):
 
         ibl_extractor = SlybotIBLExtractor([
             (self.template, {'#default': descriptor}, '0.12.0')])
-        self.assertEqual(ibl_extractor.extract(self.target)[0][0].dump()['gender'], [u'<td >Male</td>'])
+        self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'<td >Male</td>'])
 
     def test_negative_hit_w_regex(self):
         schema = {
@@ -170,7 +170,7 @@ class ExtractorTest(TestCase):
 
         ibl_extractor = SlybotIBLExtractor([
             (self.template, {'#default': descriptor}, '0.12.0')])
-        self.assertEqual(ibl_extractor.extract(self.target)[0][0].dump()['gender'], [u'Male'])
+        self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Male'])
 
     def test_type_extractor(self):
         schema = {
@@ -191,7 +191,7 @@ class ExtractorTest(TestCase):
 
         ibl_extractor = SlybotIBLExtractor([
             (self.template, {'#default': descriptor}, '0.12.0')])
-        self.assertEqual(ibl_extractor.extract(self.target)[0][0].dump()['gender'], [u'Male'])
+        self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Male'])
 
     def test_default_type_extractor(self):
         schema = {
@@ -205,7 +205,7 @@ class ExtractorTest(TestCase):
 
         ibl_extractor = SlybotIBLExtractor([
             (self.template, {'#default': descriptor}, '0.12.0')])
-        self.assertEqual(ibl_extractor.extract(self.target)[0][0].dump()['gender'], [u'Male'])
+        self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Male'])
 
     def test_text_type_w_regex_and_no_groups(self):
         schema = {
@@ -225,7 +225,7 @@ class ExtractorTest(TestCase):
 
         ibl_extractor = SlybotIBLExtractor([
             (self.template, {'#default': descriptor}, '0.12.0')])
-        self.assertEqual(ibl_extractor.extract(self.target)[0][0].dump()['gender'], [u'Gender'])
+        self.assertEqual(ibl_extractor.extract(self.target)[0][0]['gender'], [u'Gender'])
 
     def test_extractor_w_empty_string_extraction(self):
         schema = {
@@ -252,7 +252,7 @@ class ExtractorTest(TestCase):
 
         ibl_extractor = SlybotIBLExtractor([
             (self.template2, {'#default': descriptor}, '0.12.0')])
-        self.assertEqual(ibl_extractor.extract(self.target2)[0][0].dump()['name'], [u'Name Olivia'])
+        self.assertEqual(ibl_extractor.extract(self.target2)[0][0]['name'], [u'Name Olivia'])
 
     def test_per_annotation_extractors(self):
         schema = {
@@ -304,5 +304,5 @@ class ExtractorTest(TestCase):
                   'name': [u'Olivia'], 'url': [u'http://www.test.com/olivia'],
                   'title': [u'Name: Olivia'], 'price': [u'2016'],
                   'date': [datetime(2016, 3, 17, 20, 25)]}
-        data = ibl_extractor.extract(self.target3)[0][0].dump()
+        data = ibl_extractor.extract(self.target3)[0][0]
         self.assertEqual(data, result)

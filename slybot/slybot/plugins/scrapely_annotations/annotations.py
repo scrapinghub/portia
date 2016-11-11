@@ -7,7 +7,6 @@ import re
 from collections import OrderedDict
 
 from scrapy.http import Request
-from scrapy.selector import Selector
 from scrapy.utils.misc import arg_to_iter
 
 from scrapely.extraction import InstanceBasedLearningExtractor
@@ -143,16 +142,10 @@ class Annotations(object):
     def _do_extract_items_from(self, htmlpage, extractor, response=None):
         # Try to predict template to use
         template_cluster, pref_template_id = self._cluster_page(htmlpage)
-        extracted_data, template = extractor.extract(htmlpage, pref_template_id)
-        extracted = []
-        sel = Selector(text=htmlpage.body)
-        for item in arg_to_iter(extracted_data):
-            try:
-                extracted.append(item.process(sel))
-            except AttributeError:
-                extracted.append(item)
+        extracted, template = extractor.extract(htmlpage, pref_template_id)
+        extracted = extracted or []
         link_regions = []
-        for ddict in extracted or []:
+        for ddict in extracted:
             link_regions.extend(arg_to_iter(ddict.pop("_links", [])))
         descriptor = None
         unprocessed = False

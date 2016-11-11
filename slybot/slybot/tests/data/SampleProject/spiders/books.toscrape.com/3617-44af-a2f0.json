@@ -42,7 +42,7 @@
               "attribute": "src",
               "extractors": {},
               "field": "aee3-4653-945f",
-              "required": true
+              "required": false
             }
           },
           "id": "9fec-4790-86d9",
@@ -97,7 +97,7 @@
               "attribute": "content",
               "extractors": {},
               "field": "71ed-4634-b777",
-              "required": false
+              "required": true
             }
           },
           "id": "5c6c-49b4-b4c2",
