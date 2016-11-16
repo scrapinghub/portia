@@ -347,3 +347,9 @@ class ContainerExtractorTest(TestCase):
         results = [i for i in spider.parse(response)
                    if hasattr(i, '__getitem__')]
         self.assertEqual(results, t['results'])
+
+    def test_nested_items_without_nested_structure(self):
+        spider, page, results = open_spider_page_and_results(
+            'cars.com_nested.json')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, results)
