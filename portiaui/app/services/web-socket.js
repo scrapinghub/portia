@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import config from '../config/environment';
-import { logError, shortGuid } from '../utils/utils';
+import { logError } from '../utils/utils';
 
 const APPLICATION_UNLOADING_CODE = 4001;
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
@@ -163,59 +163,5 @@ export default Ember.Service.extend(Ember.Evented, {
             }
             return this.get('ws').send(data);
         }
-    },
-
-    save: function(type, obj) {
-        var data = {
-            _meta: this._metadata(type),
-            _command: 'saveChanges'
-        };
-        if (obj.serialize) {
-            data[type] = obj.serialize();
-        } else {
-            data[type] = obj;
-        }
-        return this._sendPromise(data);
-    },
-
-    delete: function(type, name) {
-        return this._sendPromise({
-            _meta: this._metadata(type),
-            _command: 'delete',
-            name: name
-        });
-    },
-
-    rename: function(type, from, to) {
-        return this._sendPromise({
-            _meta: this._metadata(type),
-            _command: 'rename',
-            old: from,
-            new: to
-        });
-    },
-
-    _sendPromise: function(data) {
-        var deferred = new Ember.RSVP.defer();
-        if (!data._meta) {
-            data._meta = this._metadata(null);
-        } else if (!data._meta.id) {
-            data._meta.id = shortGuid();
-        }
-        if(this.get('opened')) {
-            this.set('deferreds.' + data._meta.id, deferred);
-            this.send(data);
-        } else {
-            deferred.reject('Websocket is closed');
-        }
-        return deferred.promise;
-    },
-
-    _metadata: function(type) {
-        return {
-            // TODO: send current spider and project?
-            type: type,
-            id: shortGuid()
-        };
     }
 });

@@ -272,9 +272,11 @@ const BrowserIFrame = Ember.Component.extend({
     },
 
     iframeSize() {
-        var iframeWindow = this.element.contentWindow;
-        if (iframeWindow) {
-            return iframeWindow.innerWidth + 'x' + iframeWindow.innerHeight;
+        const iframe = Ember.$(this.element);
+        const height = Math.max(iframe.innerHeight(), 10);
+
+        if (iframe) {
+            return iframe.innerWidth() + 'x' + height;
         }
         return null;
     }
