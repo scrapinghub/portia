@@ -90,12 +90,6 @@ def _update_sample(data, socket, sample=None, project=None, save=False,
 
 
 def update_spider(data, socket, spider=None):
-    if not socket.spiderspec:
-        return
-    if spider is None:
-        spider = socket.spiderspec.project.spiders[data['spider']].dump()
-    socket.spider._configure_js(spider, _SETTINGS)
-    socket.spider.plugins['Annotations'].build_url_filter(spider)
     return extract(socket)
 
 
