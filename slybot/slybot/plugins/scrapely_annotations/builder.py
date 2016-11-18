@@ -303,6 +303,7 @@ def apply_selector_annotations(annotations, target_page):
         # Create container for repeated field annotation
         if (annotation.get('repeated') and
                 not annotation.get('item_container') and
+                elems is not None and len(elems) and
                 len(annotation.get('annotations')) == 1):
             repeated_parent = add_repeated_field(annotation, elems, page)
             if repeated_parent:

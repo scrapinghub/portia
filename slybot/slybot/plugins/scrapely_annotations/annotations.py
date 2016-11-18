@@ -31,11 +31,12 @@ class Annotations(object):
     Base Class for adding plugins to Portia Web and Slybot.
     """
 
-    def setup_bot(self, settings, spec, items, extractors, logger):
+    def setup_bot(self, settings, spider, spec, items, extractors, logger):
         """
         Perform any initialization needed for crawling using this plugin
         """
         self.logger = logger
+        self.spider = spider
         templates = map(self._get_annotated_template, spec['templates'])
 
         _item_template_pages = sorted((
@@ -114,6 +115,8 @@ class Annotations(object):
     def _get_annotated_template(self, template):
         if (template.get('version', '0.12.0') >= '0.13.0' and
                 not template.get('annotated')):
+            using_js = self.spider._filter_js_urls(template['url'])
+            template['body'] = 'rendered_body' if using_js else 'original_body'
             _build_sample(template)
         return template
 
