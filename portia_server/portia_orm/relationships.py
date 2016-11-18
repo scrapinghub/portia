@@ -11,6 +11,7 @@ from .utils import cached_property, cached_property_ignore_set, validate_type
 __all__ = [
     'BelongsTo',
     'HasMany',
+    'HasOne'
 ]
 
 
@@ -87,6 +88,21 @@ class HasManyDescriptor(ListDescriptor, BaseRelationshipDescriptor):
     def replace_collection(self, collection, values):
         del collection[:]
         collection.update(values)
+
+
+class HasOneDescriptor(BelongsToDescriptor, BaseRelationshipDescriptor):
+    def __get__(self, instance, instance_type=None):
+        try:
+            field = instance.get_data(self.attrname)
+            assert field is not None
+        except (AttributeError, AssertionError):
+            field = self.model.load(instance.storage, **{
+                self.related_name: instance
+            })
+            if field and not getattr(field, self.related_name, None):
+                setattr(field, self.related_name, instance)
+            instance.data_store.set(self.attrname, field, 'committed')
+        return field
 
 
 class BaseRelationship(fields.Nested):
@@ -234,3 +250,7 @@ class HasMany(BaseRelationship):
     def __init__(self, *args, **kwargs):
         kwargs['many'] = True
         super(HasMany, self).__init__(*args, **kwargs)
+
+
+class HasOne(BaseRelationship):
+    descriptor_class = HasOneDescriptor

@@ -1,19 +1,25 @@
-import chardet
-import itertools
 import six
 
 from scrapy.http import HtmlResponse, Request
 from scrapy.item import DictItem
-from w3lib.encoding import html_body_declared_encoding
 
 from slyd.html import descriptify
 from slyd.errors import BaseHTTPError
 from slybot.baseurl import insert_base_url
+
+from portia_orm.utils import encode, decode
 _DEFAULT_VIEWPORT = '1240x680'
 
 
 def clean(html, url):
     return insert_base_url(descriptify(html, url), url)
+
+
+def decoded_html(tab, type_=None):
+    if type_ == 'raw':
+        stated_encoding = tab.evaljs('document.characterSet')
+        return decode(tab.network_manager._raw_html)
+    return tab.html()
 
 
 def open_tab(func):
@@ -32,7 +38,7 @@ def open_tab(func):
 def extract_data(url, html, spider, templates):
     items, links = [], []
     if isinstance(html, six.text_type):
-        html = _encode(html)
+        html = encode(html)
     for value in spider.parse(page(url, html)):
         if isinstance(value, Request):
             links.append(value.url)
@@ -48,6 +54,11 @@ def extract_data(url, html, spider, templates):
 
 def page(url, html):
     return HtmlResponse(url, 200, {}, html, encoding='utf-8')
+
+
+def _html_path(sample):
+    path = sample.storage_path(sample)[:-len('.json')].strip('/')
+    return '{}/{{}}.html'.format(path)
 
 
 def _get_template_name(template_id, templates):
@@ -87,32 +98,6 @@ def _get_viewport(viewport):
     except (AssertionError, TypeError, ValueError):
         return _DEFAULT_VIEWPORT
     return viewport
-
-
-def _encode(html, default=None):
-    return _encode_or_decode_string(html, type(html).encode, default)
-
-
-def _decode(html, default=None):
-    return _encode_or_decode_string(html, type(html).decode, default)
-
-
-def _encode_or_decode_string(html, method, default):
-    if not default:
-        encoding = html_body_declared_encoding(html)
-        if encoding:
-            default = [encoding]
-        else:
-            default = []
-    elif isinstance(default, six.string_types):
-        default = [default]
-    for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
-        try:
-            return method(html, encoding)
-        except UnicodeDecodeError:
-            pass
-    encoding = chardet.detect(html).get('encoding')
-    return method(html, encoding)
 
 
 class BaseWSError(BaseHTTPError):

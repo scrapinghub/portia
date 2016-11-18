@@ -7,7 +7,7 @@ from six import iteritems, itervalues
 from .collection import ListDescriptor
 from .deletion import CASCADE, CLEAR, PROTECT
 from .exceptions import ImproperlyConfigured, ValidationError
-from .relationships import BelongsTo, HasMany
+from .relationships import BelongsTo, HasMany, HasOne
 from .validators import OneOf
 
 __all__ = [
@@ -21,6 +21,7 @@ __all__ = [
     'Url',
     'BelongsTo',
     'HasMany',
+    'HasOne',
     'StartUrl',
     'CASCADE',
     'CLEAR',
