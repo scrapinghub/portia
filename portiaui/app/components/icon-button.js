@@ -42,17 +42,19 @@ export const ICON_CLASSES = {
     url: 'fa fa-globe',
     'url-generated': 'portia-icon portia-icon-generated-url',
     'url-feed': 'portia-icon portia-icon-feed-url',
+    'vertical-ellipsis': 'fa fa-ellipsis-v',
     'warning-triangle': 'structure-list-warning fa fa-exclamation-triangle'
 };
 
 export default Ember.Component.extend({
     attributeBindings: ['tabindex'],
     classNames: ['icon-button'],
-    classNameBindings: ['iconClasses', 'disabled', 'hasAction'],
+    classNameBindings: ['iconClasses', 'disabled', 'hasAction', 'modifyClasses'],
     tagName: 'i',
 
     bubbles: true,
     disabled: false,
+    modifyClasses: '',
 
     hasAction: Ember.computed.bool('action'),
 
