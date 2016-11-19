@@ -355,6 +355,7 @@ class RenderedBodySerializer(JsonApiSerializer):
             },
         }
 
+
 class OriginalBodySerializer(JsonApiSerializer):
     class Meta:
         model = OriginalBody
@@ -368,4 +369,3 @@ class OriginalBodySerializer(JsonApiSerializer):
                             '{self.sample.id}'),
             },
         }
-

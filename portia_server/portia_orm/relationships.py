@@ -90,10 +90,11 @@ class HasManyDescriptor(ListDescriptor, BaseRelationshipDescriptor):
         collection.update(values)
 
 
-class HasOneDescriptor(BelongsToDescriptor, BaseRelationshipDescriptor):
+class HasOneDescriptor(BelongsToDescriptor):
     def __get__(self, instance, instance_type=None):
         try:
-            field = instance.get_data(self.attrname)
+            field = super(HasOneDescriptor, self).__get__(instance,
+                                                          instance_type)
             assert field is not None
         except (AttributeError, AssertionError):
             field = self.model.load(instance.storage, **{

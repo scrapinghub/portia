@@ -45,15 +45,15 @@ class ModelOpts(object):
         if not isinstance(self.polymorphic, (bool, string_types)):
             raise ValueError(
                 "'polymorphic' option must be a string or boolean.")
-        self.raw = getattr(meta, 'raw', False)
-        if not isinstance(self.raw, bool):
-            raise ValueError("'raw' option must be a boolean")
-        self.single = getattr(meta, 'single', False)
-        if not isinstance(self.single, bool):
-            raise ValueError("'single' option must be a boolean")
-        self.ignore_if_missing = getattr(meta, 'ignore_if_missing', False)
-        if not isinstance(self.ignore_if_missing, bool):
-            raise ValueError("'ignore_if_missing' option must be a boolean")
+        self.initialize_boolean('raw', meta)
+        self.initialize_boolean('single', meta)
+        self.initialize_boolean('ignore_if_missing', meta)
+
+    def initialize_boolean(self, key, meta):
+        value = getattr(meta, key, False)
+        if not isinstance(value, bool):
+            raise ValueError("'{}' option must be a boolean".format(key))
+        setattr(self, key, value)
 
 
 class ModelMeta(type):
