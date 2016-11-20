@@ -42,6 +42,7 @@ class BaseProjectRoute(JsonApiRoute):
     @cached_property
     def projects(self):
         storage_class = get_storage_class()
+        print 'Storage Class:', storage_class
         return storage_class.get_projects(self.request.user)
 
     @cached_property
