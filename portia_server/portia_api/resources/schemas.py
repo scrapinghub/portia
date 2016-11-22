@@ -31,8 +31,8 @@ class SchemaRoute(BaseProjectModelRoute):
                 for item in sample.items:
                     if self._item_uses_schema(item):
                         raise JsonApiBadRequestError(
-                            'Unable to delete the schema, "%s" as it is used '
-                            'by a sample' % schema.name)
+                            'Unable to delete the data format "%s" as it is used '
+                            "by a spider's sample." % schema.name)
 
         return super(SchemaRoute, self).destroy(*args, **kwargs)
 
