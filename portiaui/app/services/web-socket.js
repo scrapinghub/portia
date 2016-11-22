@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import config from '../config/environment';
-import { logError } from '../utils/utils';
+import { logError, shortGuid } from '../utils/utils';
 
 const APPLICATION_UNLOADING_CODE = 4001;
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
@@ -163,5 +163,29 @@ export default Ember.Service.extend(Ember.Evented, {
             }
             return this.get('ws').send(data);
         }
+    },
+
+    _sendPromise: function(data) {
+        var deferred = new Ember.RSVP.defer();
+        if (!data._meta) {
+            data._meta = this._metadata(null);
+        } else if (!data._meta.id) {
+            data._meta.id = shortGuid();
+        }
+        if(this.get('opened')) {
+            this.set('deferreds.' + data._meta.id, deferred);
+            this.send(data);
+        } else {
+            deferred.reject('Websocket is closed');
+        }
+        return deferred.promise;
+    },
+
+    _metadata: function(type) {
+        return {
+            // TODO: send current spider and project?
+            type: type,
+            id: shortGuid()
+        };
     }
 });
