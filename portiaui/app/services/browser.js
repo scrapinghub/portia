@@ -1,4 +1,5 @@
 import Ember from 'ember';
+const { computed } = Ember;
 import { cleanUrl, renameAttr } from '../utils/utils';
 
 export const NAVIGATION_MODE = 'navigation';
@@ -72,6 +73,9 @@ export default Ember.Service.extend(Ember.Evented, {
     _disabled: true,
     _url: null,
     baseurl: null,
+    validUrl: true,
+
+    invalidUrl: computed.not('validUrl'),
 
     disabled: Ember.computed('_disabled', 'webSocket.closed', 'mode', {
         get() {
@@ -119,11 +123,16 @@ export default Ember.Service.extend(Ember.Evented, {
         }
     }),
 
+    invalidateUrl() {
+        this.set('validUrl', false);
+    },
+
     go(url) {
+        this.set('validUrl', true);
         const currentUrl = this.get('_url');
         url = cleanUrl(url);
         if (url && url !== currentUrl) {
-            this.get('extractedItems').activateExtraction();
+            this._extract();
 
             this.beginPropertyChanges();
             if (currentUrl) {
@@ -137,27 +146,13 @@ export default Ember.Service.extend(Ember.Evented, {
     },
 
     back() {
-        if (this.get('backBuffer.length')) {
-            this.beginPropertyChanges();
-            this.get('forwardBuffer').pushObject(this.get('_url'));
-            this.setProperties({
-                '_url': this.get('backBuffer').popObject(),
-                'baseurl': null
-            });
-            this.endPropertyChanges();
-        }
+        this._updateBuffers(this.get('backBuffer'),
+                            this.get('forwardBuffer'));
     },
 
     forward() {
-        if (this.get('forwardBuffer.length')) {
-            this.beginPropertyChanges();
-            this.get('backBuffer').pushObject(this.get('_url'));
-            this.setProperties({
-                '_url': this.get('forwardBuffer').popObject(),
-                'baseurl': null
-            });
-            this.endPropertyChanges();
-        }
+        this._updateBuffers(this.get('forwardBuffer'),
+                            this.get('backBuffer'));
     },
 
     reload() {
@@ -218,5 +213,23 @@ export default Ember.Service.extend(Ember.Evented, {
             this.set('mode', DEFAULT_MODE);
             this.enableCSS();
         }
+    },
+
+    _updateBuffers(currentBuffer, otherBuffer) {
+        if (currentBuffer.length) {
+            this.beginPropertyChanges();
+            otherBuffer.pushObject(this.get('_url'));
+            const url = currentBuffer.popObject();
+            this._extract();
+            this.setProperties({
+                '_url': url,
+                'baseurl': null
+            });
+            this.endPropertyChanges();
+        }
+    },
+
+    _extract() {
+        this.get('extractedItems').activateExtraction();
     }
 });

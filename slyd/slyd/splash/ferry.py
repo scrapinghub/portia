@@ -197,8 +197,7 @@ class PortiaJSApi(QObject):
             print '----------------------------------'
             print 'COMMAND: mutation + metadata'
             print '----------------------------------'
-            with data_store_context():
-                self.protocol.sendMessage(metadata(self.protocol))
+            self.protocol.sendMessage(metadata(self.protocol))
 
 
 class FerryServerProtocol(WebSocketServerProtocol):

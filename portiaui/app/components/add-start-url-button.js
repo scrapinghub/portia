@@ -1,27 +1,42 @@
 import Ember from 'ember';
-import { computedCanAddStartUrl } from '../services/dispatcher';
+const { computed, inject: { service } } = Ember;
 
 export default Ember.Component.extend({
-    browser: Ember.inject.service(),
-    dispatcher: Ember.inject.service(),
-
     tagName: '',
 
-    spider: null,
+    browser: service(),
+    dispatcher: service(),
 
-    canAddStartUrl: computedCanAddStartUrl('spider'),
+    url: computed.readOnly('browser.url'),
+    emptyUrl: computed.not('url'),
+    disableStartUrl: computed.or('emptyUrl', 'browser.invalidUrl'),
+
+    newStartUrl: computed('url', 'spider.startUrls.[]', function() {
+        const url = this.get('url');
+        const startUrls = this.get('spider.startUrls').mapBy('url');
+        return url && !startUrls.includes(url);
+    }),
 
     actions: {
         toggleStartUrl() {
-            const url = this.get('browser.url');
-            if (!url) {
+            if (this.get('emptyUrl')) {
                 return;
             }
-            if (this.get('canAddStartUrl')) {
-                this.get('dispatcher').addStartUrl(this.get('spider'), url);
-            } else {
-                this.get('dispatcher').removeStartUrl(this.get('spider'), url);
-            }
+            this._toggleStartUrl();
         }
-    }
+    },
+
+    _toggleStartUrl() {
+        if (this.get('newStartUrl')) {
+            this.get('dispatcher').addStartUrl(this.get('spider'),
+                                               this.get('url'));
+        } else {
+            this.get('dispatcher').removeStartUrl(this.get('spider'),
+                                                  this.get('_startUrl'));
+        }
+    },
+    _startUrl: computed('spider.startUrls.[]', 'url', function() {
+        return this.get('spider.startUrls')
+                   .findBy('url', this.get('url'));
+    })
 });

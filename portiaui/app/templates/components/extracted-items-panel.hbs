@@ -5,11 +5,13 @@
     <div class="mid-align one-half-x spaced">Extracting data...</div>
 {{/if}}
 
-{{#if (and notReadyForExtraction notExtracting)}}
+{{#if failedExtraction}}
     <div class="mid-align twice-x spaced">
       <span class="fa fa-ban"></span>
     </div>
-    <div class="mid-align one-half-x spaced">Samples are needed for extracting data.</div>
+    <div class="mid-align one-half-x spaced">
+      {{failedMsg}}
+    </div>
 {{/if}}
 
 {{#if (and selected (not isExtracting))}}
