@@ -51,6 +51,7 @@ def extract_items(data, socket):
     if not socket.tab:
         return {}
     url = socket.tab.evaljs('location.href')
+    log.msg('Extract Items URL: ', url)
     html = socket.tab.html()
     if (socket.spiderspec is None or
             (data['spider'] and socket.spiderspec.name != data['spider'])):
@@ -143,6 +144,7 @@ def load_page(data, socket):
     if 'url' not in data:
         return {'error': 4001, 'message': 'Required parameter url'}
 
+    log.msg('Loading URL: ', data['url'])
     socket.tab.loaded = False
     meta = data.get('_meta', {})
 

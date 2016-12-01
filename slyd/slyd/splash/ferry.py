@@ -263,6 +263,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             return
 
         command = data['_command']
+        log.msg('Command: ', command)
         result = self._handlers[command](data, self)
         if result:
             result.setdefault('_command', data.get('_callback', command))
