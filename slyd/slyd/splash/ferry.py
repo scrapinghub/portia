@@ -200,6 +200,18 @@ class PortiaJSApi(QObject):
             self.protocol.sendMessage(metadata(self.protocol))
 
 
+def is_blacklisted(url, settings):
+    from urlparse import urlparse
+    return urlparse(url).netloc in settings.get('BLACKLIST_URLS', [])
+
+def blacklist_error(data, socket):
+    meta = data.get('_meta', {})
+    extra_meta = {'id': meta.get('id')}
+    msg = "Sorry Portia doesn't support this page :("
+    extra_meta.update(error=4500, reason=msg)
+    socket.sendMessage(metadata(socket, extra_meta))
+
+
 class FerryServerProtocol(WebSocketServerProtocol):
 
     _handlers = {
@@ -270,6 +282,11 @@ class FerryServerProtocol(WebSocketServerProtocol):
     def _on_message(self, data):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
+
+        if is_blacklisted(data.get('url', ''), self.settings):
+            blacklist_error(data, self)
+            return
+
         command = data['_command']
         print '----------------------------------'
         print 'COMMAND:', command
