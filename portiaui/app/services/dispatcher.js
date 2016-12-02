@@ -5,6 +5,7 @@ import buildStartUrl from '../models/start-url';
 import {createStructure} from './annotation-structure';
 import {getDefaultAttribute} from '../components/inspector-panel';
 import {updateStructureSelectors} from '../services/annotation-structure';
+import { task } from 'ember-concurrency';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -240,6 +241,10 @@ export default Ember.Service.extend({
     },
 
     saveAnnotationAndRelatedSelectors(annotation) {
+        if (!annotation.get('ownerSample')) {
+          return new Ember.RSVP.Promise.resolve();
+        }
+
         return annotation.get('ownerSample').then(sample =>
             this.updateSampleSelectors(sample).then(() => {
                 const coalesce = [];
@@ -432,14 +437,18 @@ export default Ember.Service.extend({
     },
 
     removeAnnotation(annotation) {
+        this.get('_removeAnnotationTask').perform(annotation);
+    },
+
+    _removeAnnotationTask: task(function * (annotation) {
         const currentAnnotation = this.get('uiState.models.annotation');
         if (annotation === currentAnnotation) {
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
         annotation.deleteRecord();
-        this.saveAnnotationAndRelatedSelectors(annotation);
-    },
+        yield this.saveAnnotationAndRelatedSelectors(annotation);
+    }).drop(),
 
     removeAnnotationExtractor(annotation, extractor) {
         annotation.get('extractors').removeObject(extractor);
