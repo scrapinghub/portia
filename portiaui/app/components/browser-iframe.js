@@ -96,9 +96,7 @@ const BrowserIFrame = Ember.Component.extend({
      * Can only be called in "browse" mode.
      */
     loadUrl: Ember.observer('url', 'baseurl', 'webSocket.closed', function() {
-        Ember.run(() => {
-            Ember.run.scheduleOnce('sync', this, this._loadUrl);
-        });
+        Ember.run.scheduleOnce('sync', this, this._loadUrl);
     }),
 
     _loadUrl() {
