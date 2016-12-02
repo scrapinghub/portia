@@ -18,11 +18,12 @@ export default Ember.Service.extend({
     links: {},
 
     isExtracting: false,
+    failedExtraction: false,
     extractionTimeout: 0,
 
-    spider: computed.alias('uiState.models.spider'),
-    sample: computed.alias('uiState.models.sample'),
-    notReadyForExtraction: computed.equal('spider.samples.length', 0),
+    spider: computed.readOnly('uiState.models.spider'),
+    sample: computed.readOnly('uiState.models.sample'),
+    noSamples: computed.equal('spider.samples.length', 0),
 
     init() {
         this._super();
@@ -38,7 +39,14 @@ export default Ember.Service.extend({
         this.set('items', []);
         this.set('extractionTimeout', 0);
         this.set('isExtracting', true);
+        this.set('failedExtraction', false);
         this.get('_extract').cancelAll();
+    },
+
+    failExtraction(msg) {
+        this._finishExtraction();
+        this.set('failedExtraction', true);
+        this.set('failedExtractionMsg', msg);
     },
 
     update() {
@@ -48,28 +56,23 @@ export default Ember.Service.extend({
     _getitems() {
         print("Sending 'extract_items' command...");
 
-        const spiderId = this.get('uiState.models.spider.id');
+        const spiderId = this.get('spider.id');
         if (spiderId) {
             this.get('webSocket').send({
                 _command: 'extract_items',
                 project: this.get('uiState.models.project.id'),
                 spider: spiderId,
-                sample: this.get('uiState.models.sample.id')
+                sample: this.get('sample.id')
             });
         }
-    },
-
-    _finishExtracting() {
-        this.set('isExtracting', false);
-        this.get('_extract').cancelAll();
     },
 
     _setExtraction(data) {
         print("'extract_items' callback called.");
 
-        if (this.get('notReadyForExtraction')) {
-            print('notReadyForExtraction');
-            this._finishExtracting();
+        if (this.get('noSamples')) {
+            print('noSamples');
+            this.failExtraction('Samples are needed for extracting data.');
             return;
         }
 
@@ -131,10 +134,14 @@ export default Ember.Service.extend({
         print('----------------------------');
 
         if (receivedItems || exceedWait) {
-            this._finishExtracting();
+            this._finishExtraction();
         } else {
             this.get('_extract').perform();
         }
     },
 
+    _finishExtraction() {
+        this.set('isExtracting', false);
+        this.get('_extract').cancelAll();
+    }
 });

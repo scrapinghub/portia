@@ -12,6 +12,7 @@ const BrowserIFrame = Ember.Component.extend({
     webSocket: Ember.inject.service(),
     uiState: Ember.inject.service(),
     cookiesStore: storageFor('cookies'),
+    extractedItems: Ember.inject.service(),
 
     tagName: 'iframe',
     classNames: ['browser-iframe'],
@@ -95,7 +96,9 @@ const BrowserIFrame = Ember.Component.extend({
      * Can only be called in "browse" mode.
      */
     loadUrl: Ember.observer('url', 'baseurl', 'webSocket.closed', function() {
-        Ember.run.scheduleOnce('sync', this, this._loadUrl);
+        Ember.run(() => {
+            Ember.run.scheduleOnce('sync', this, this._loadUrl);
+        });
     }),
 
     _loadUrl() {
@@ -147,6 +150,23 @@ const BrowserIFrame = Ember.Component.extend({
             this.splashUrl = data.url;
             this.set('browser.url', data.url);
         }
+        if (data.error) {
+            this.handleMetadataError();
+        }
+    },
+
+    handleMetadataError() {
+        this.set('loading', false);
+        this.set('splashUrl', null);
+        this.get('extractedItems').failExtraction('Failed Loading Page');
+        this.get('browser').invalidateUrl();
+        this.get('webSocket').send({
+            _meta: {
+                spider: this.get('spider'),
+                project: this.get('project')
+            },
+            _command: 'interact'
+        });
     },
 
     msgMutation(data) {
@@ -242,8 +262,8 @@ const BrowserIFrame = Ember.Component.extend({
     postEvent(evt) {
         this.get('webSocket').send({
             _meta: {
-                spider: this.get('slyd.spider'),
-                project: this.get('slyd.project')
+                spider: this.get('spider'),
+                project: this.get('project')
             },
             _command: 'interact',
             interaction: interactionEvent(evt)

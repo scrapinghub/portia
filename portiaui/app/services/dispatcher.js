@@ -34,13 +34,6 @@ export function computedEditableSample(spiderPropertyName) {
     });
 }
 
-export function computedCanAddStartUrl(spiderPropertyName) {
-    return Ember.computed('browser.url', `${spiderPropertyName}.startUrls.[]`, function() {
-        const url = this.get('browser.url');
-        return url && !this.get(`${spiderPropertyName}.startUrls`).includes(url);
-    });
-}
-
 export default Ember.Service.extend({
     api: Ember.inject.service(),
     browser: Ember.inject.service(),

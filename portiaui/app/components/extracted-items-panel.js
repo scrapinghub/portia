@@ -5,7 +5,8 @@ export default Ember.Component.extend({
     tagName: '',
 
     extractedItems: service(),
-    isExtracting: computed.alias('extractedItems.isExtracting'),
-    notExtracting: computed.not('isExtracting'),
-    notReadyForExtraction: computed.alias('extractedItems.notReadyForExtraction')
+
+    isExtracting: computed.readOnly('extractedItems.isExtracting'),
+    failedMsg: computed.readOnly('extractedItems.failedExtractionMsg'),
+    failedExtraction: computed.readOnly('extractedItems.failedExtraction')
 });

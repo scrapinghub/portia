@@ -14,7 +14,7 @@
                 {{/unless}}
             {{/unless}}
         {{else}}
-            <button id="add-spider-browser-button" type="button" class="btn btn-primary" disabled={{not canAddSample}} {{action "addSample"}}>
+            <button id="add-spider-browser-button" type="button" class="btn btn-primary" disabled={{disableSample}} {{action "addSample"}}>
                 {{icon-button icon='sample'}} New sample
             </button>
         {{/if}}
