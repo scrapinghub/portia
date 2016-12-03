@@ -40,5 +40,10 @@ export default BaseAnnotation.extend({
                         []
                 )
             )));
-        })
+        }),
+
+    depth: Ember.computed('parent.depth', function() {
+        let parentDepth = this.get('parent.depth');
+        return (parentDepth || 0) + 1;
+    })
 });

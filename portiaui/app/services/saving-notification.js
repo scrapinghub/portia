@@ -1,12 +1,16 @@
 import Ember from 'ember';
 
 export default Ember.Service.extend({
+    extractedItems: Ember.inject.service(),
+
     counter: 0,
     lastSaved: null,
 
     isSaving: Ember.computed.bool('counter'),
 
     start() {
+        this.get('extractedItems').activateExtraction();
+
         this.incrementProperty('counter');
     },
 
@@ -16,5 +20,6 @@ export default Ember.Service.extend({
         if (!counter) {
             this.set('lastSaved', new Date());
         }
+        this.get('extractedItems').update();
     }
 });

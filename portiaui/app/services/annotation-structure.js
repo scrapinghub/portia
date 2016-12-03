@@ -241,7 +241,8 @@ export function updateStructureSelectors(structure, selectorMatcher) {
         if (selectorGenerator instanceof AnnotationSelectorGenerator) {
             annotation.setProperties({
                 selector,
-                xpath: selectorGenerator.get('xpath')
+                xpath: selectorGenerator.get('xpath'),
+                repeated: selectorGenerator.get('repeatedAnnotation')
             });
             if (annotation.get('selectionMode') === 'css') {
                 annotation.setSelector(selector);

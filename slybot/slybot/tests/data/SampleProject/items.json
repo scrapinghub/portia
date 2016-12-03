@@ -1,80 +1,80 @@
 {
     "default": {
         "fields": {
-            "determinate": { 
-                "required": false, 
-                "vary": false, 
+            "determinate": {
+                "required": false,
+                "vary": false,
                 "type": "text"
             },
-            "description": { 
-                "required": true, 
-                "vary": false, 
+            "description": {
+                "required": true,
+                "vary": false,
                 "type": "safe html"
             },
-            "weight": { 
-                "required": false, 
-                "vary": false, 
+            "weight": {
+                "required": false,
+                "vary": false,
                 "type": "number"
             },
-            "color": { 
-                "required": false, 
-                "vary": false, 
+            "color": {
+                "required": false,
+                "vary": false,
                 "type": "text"
             },
             "season": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "text"
             },
             "aaaa-aaaa": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "price",
                 "name": "price"
             },
             "lifecycle": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "text"
             },
             "categories": {
-                "required": false, 
-                "vary": true, 
+                "required": false,
+                "vary": true,
                 "type": "safe html"
             },
             "product_id": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "text"
             },
             "name": {
-                "required": true, 
-                "vary": false, 
+                "required": true,
+                "vary": false,
                 "type": "text"
             },
             "url": {
-                "required": false, 
-                "vary": true, 
+                "required": false,
+                "vary": true,
                 "type": "url"
             },
             "days": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "number"
             },
             "species": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "text"
             },
             "size": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "number"
             },
             "type": {
-                "required": false, 
-                "vary": false, 
+                "required": false,
+                "vary": false,
                 "type": "text"
             }
         }
@@ -82,130 +82,252 @@
     "doctor": {
         "fields": {
             "body": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "raw html"
-            }, 
+            },
             "area_interest": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "address_state": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "address_line2": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "address_line3": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "address_line1": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "title": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "orgname": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "languages": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "fellowship": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "location": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "safe html"
-            }, 
+            },
             "phone_number": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "internship": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "fax_number": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "specialty": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "clinical_interest": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "key": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "address_city": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "name": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "url": {
-                "vary": true, 
-                "required": false, 
+                "vary": true,
+                "required": false,
                 "type": "url"
-            }, 
+            },
             "other_certifications": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "residency": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "graduate_education": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "medical_education": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
-            }, 
+            },
             "address_zipcode": {
-                "vary": false, 
-                "required": false, 
+                "vary": false,
+                "required": false,
                 "type": "text"
             }
         }
+    },
+    "8fab-4682-a3c7": {
+        "name": "book",
+        "fields": {
+            "a3ab-4a47-a423": {
+                "name": "image",
+                "required": false,
+                "type": "image",
+                "vary": false
+            },
+            "cb8b-445e-b85b": {
+                "name": "title",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "ddaf-46e3-8f36": {
+                "name": "price",
+                "required": false,
+                "type": "price",
+                "vary": false
+            },
+            "ddaf-46e3-8f35": {
+                "name": "counts",
+                "required": false,
+                "type": "price",
+                "vary": false
+            },
+            "ddaf-46e3-8f34": {
+                "name": "posted",
+                "required": false,
+                "type": "date",
+                "vary": false
+            },
+            "ddaf-46e3-8f33": {
+                "name": "breadcrumbs",
+                "required": false,
+                "type": "safe html",
+                "vary": false
+            },
+            "ddaf-46e3-8f32": {
+                "name": "pager",
+                "required": false,
+                "type": "raw html",
+                "vary": false
+            }
+        }
+    },
+    "9c67-4898-9d96": {
+        "fields": {
+            "d7c3-412c-ad4e": {
+                "id": "d7c3-412c-ad4e",
+                "name": "description",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "aee3-4653-945f": {
+                "id": "aee3-4653-945f",
+                "name": "image",
+                "required": true,
+                "type": "image",
+                "vary": true
+            },
+            "85cb-43ca-928b": {
+                "id": "85cb-43ca-928b",
+                "name": "breadcrumbs",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "965b-4060-a104": {
+                "id": "965b-4060-a104",
+                "name": "upc",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "71ed-4634-b777": {
+                "id": "71ed-4634-b777",
+                "name": "type",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "e711-4838-a687": {
+                "id": "e711-4838-a687",
+                "name": "price",
+                "required": false,
+                "type": "price",
+                "vary": false
+            },
+            "bbed-4317-b686": {
+                "id": "bbed-4317-b686",
+                "name": "price+tax",
+                "required": false,
+                "type": "text",
+                "vary": false
+            },
+            "b616-4d53-9386": {
+                "id": "b616-4d53-9386",
+                "name": "tax",
+                "required": false,
+                "type": "price",
+                "vary": false
+            },
+            "1312-419b-afcd": {
+                "id": "1312-419b-afcd",
+                "name": "stock",
+                "required": true,
+                "type": "number",
+                "vary": false
+            },
+            "ad73-4b2b-9bd8": {
+                "id": "ad73-4b2b-9bd8",
+                "name": "reviews",
+                "required": false,
+                "type": "text",
+                "vary": false
+            }
+        },
+        "name": "Sharp Objects Books to Scrape - Sandbox"
     }
 }

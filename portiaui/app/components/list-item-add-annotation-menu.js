@@ -7,6 +7,8 @@ export default Ember.Component.extend({
 
     item: null,
 
+    allowNesting: false,
+
     actions: {
         addAnnotation() {
             const item = this.get('item');

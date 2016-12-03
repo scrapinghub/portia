@@ -22,7 +22,6 @@ function filter_update_errors(errors, pointer) {
 }
 
 export default DS.JSONAPIAdapter.extend(UrlTemplates, {
-    extractedItems: Ember.inject.service(),
     savingNotification: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
@@ -371,7 +370,6 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
             this.get('savingNotification').start();
             promise.finally(() => {
                 this.get('savingNotification').end();
-                this.get('extractedItems').update();
                 const project = this.get('uiState.models.project');
                 if (project) {
                     project.markChanged();

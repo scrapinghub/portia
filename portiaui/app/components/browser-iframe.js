@@ -12,6 +12,7 @@ const BrowserIFrame = Ember.Component.extend({
     webSocket: Ember.inject.service(),
     uiState: Ember.inject.service(),
     cookiesStore: storageFor('cookies'),
+    extractedItems: Ember.inject.service(),
 
     tagName: 'iframe',
     classNames: ['browser-iframe'],
@@ -55,7 +56,7 @@ const BrowserIFrame = Ember.Component.extend({
         ws.connect();
         ws.addCommand('loadStarted', this, this.msgLoadStarted);
         ws.addCommand('metadata', this, this.msgMetadata);
-        ws.addCommand('load', this, this.msgMetadata);
+        ws.addCommand('load', this, this.msgLoad);
         ws.addCommand('cookies', this, this.msgCookies);
         ws.addCommand('mutation', this, this.msgMutation);
     },
@@ -74,7 +75,7 @@ const BrowserIFrame = Ember.Component.extend({
         const ws = this.get('webSocket');
         ws.removeCommand('loadStarted', this, this.msgLoadStarted);
         ws.removeCommand('metadata', this, this.msgMetadata);
-        ws.removeCommand('load', this, this.msgMetadata);
+        ws.removeCommand('load', this, this.msgLoad);
         ws.removeCommand('cookies', this, this.msgCookies);
         ws.removeCommand('mutation', this, this.msgMutation);
         ws.close();
@@ -114,6 +115,7 @@ const BrowserIFrame = Ember.Component.extend({
         }
 
         this.set('loading', true);
+
         this.get('webSocket').send({
             _meta: {
                 // TODO: Send current project and spider to see followed links and extracted items?
@@ -134,6 +136,10 @@ const BrowserIFrame = Ember.Component.extend({
         this.set('loading', true);
     },
 
+    msgLoad(data) {
+        this.msgMetadata(data);
+    },
+
     msgMetadata(data) {
         if (data.loaded) {
             this.set('loading', false);
@@ -142,6 +148,23 @@ const BrowserIFrame = Ember.Component.extend({
             this.splashUrl = data.url;
             this.set('browser.url', data.url);
         }
+        if (data.error) {
+            this.handleMetadataError();
+        }
+    },
+
+    handleMetadataError() {
+        this.set('loading', false);
+        this.set('splashUrl', null);
+        this.get('extractedItems').failExtraction('Failed Loading Page');
+        this.get('browser').invalidateUrl();
+        this.get('webSocket').send({
+            _meta: {
+                spider: this.get('spider'),
+                project: this.get('project')
+            },
+            _command: 'interact'
+        });
     },
 
     msgMutation(data) {
@@ -237,8 +260,8 @@ const BrowserIFrame = Ember.Component.extend({
     postEvent(evt) {
         this.get('webSocket').send({
             _meta: {
-                spider: this.get('slyd.spider'),
-                project: this.get('slyd.project')
+                spider: this.get('spider'),
+                project: this.get('project')
             },
             _command: 'interact',
             interaction: interactionEvent(evt)
@@ -267,9 +290,11 @@ const BrowserIFrame = Ember.Component.extend({
     },
 
     iframeSize() {
-        var iframeWindow = this.element.contentWindow;
-        if (iframeWindow) {
-            return iframeWindow.innerWidth + 'x' + iframeWindow.innerHeight;
+        const iframe = Ember.$(this.element);
+        const height = Math.max(iframe.innerHeight(), 10);
+
+        if (iframe) {
+            return iframe.innerWidth() + 'x' + height;
         }
         return null;
     }

@@ -1,0 +1,33 @@
+#!/bin/bash
+set -x
+action=$1
+shift
+
+_run() {
+  service nginx start
+  _set_env
+  echo $PYTHONPATH
+  /app/slyd/bin/slyd -p 9002 -r /app/portiaui/dist &
+  /app/portia_server/manage.py runserver
+}
+
+_set_env() {
+  path='/app/portia_server:/app/slyd:/app/slybot'
+  export PYTHONPATH="$path"
+}
+
+if [ -z "$action" ]; then
+  _run
+else
+  case $action in
+    start-dev|start-prod)
+      _run
+      ;;
+    start-webshell)
+      _run_webshell "$@"
+      ;;
+    *)
+      exec $action "$@"
+      ;;
+  esac
+fi

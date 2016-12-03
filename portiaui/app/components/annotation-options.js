@@ -98,7 +98,7 @@ export default Ember.Component.extend({
     }),
 
     setAnnotationSelector(annotation, selector) {
-        return annotation.get('sample').then(sample => {
+        return annotation.get('parent.sample').then(sample => {
             annotation.setSelector(selector);
             return this.updateSelector(sample);
         });

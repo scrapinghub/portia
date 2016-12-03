@@ -44,7 +44,7 @@ class ExtractorTest(TestCase):
 </body>"""
 
     annotations = _clean_annotation_data([{
-        'id': 'annotation',
+        'id': 'annotation1',
         'selector': 'td > a',
         'container_id': 'parent',
         'data': {
@@ -68,7 +68,7 @@ class ExtractorTest(TestCase):
             }
         }
     }, {
-        'id': 'annotation',
+        'id': 'annotation2',
         'selector': 'span',
         'container_id': 'parent',
         'data': {
@@ -300,9 +300,9 @@ class ExtractorTest(TestCase):
         ibl_extractor = SlybotIBLExtractor([
             (self.template3, descriptors, '0.13.0')
         ])
-        result = {'name': [u'Olivia'], 'url': [u'http://www.test.com/olivia'],
+        result = {u'_template': '6223d000057491040e4f411cf1f0734ea802eeb6',
+                  'name': [u'Olivia'], 'url': [u'http://www.test.com/olivia'],
                   'title': [u'Name: Olivia'], 'price': [u'2016'],
                   'date': [datetime(2016, 3, 17, 20, 25)]}
         data = ibl_extractor.extract(self.target3)[0][0]
-        del data['_template']
         self.assertEqual(data, result)

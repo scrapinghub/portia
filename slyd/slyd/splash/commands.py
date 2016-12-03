@@ -3,10 +3,10 @@ import hashlib
 import json
 import logging
 import re
+import six
 import socket as _socket
 
 from six.moves.urllib.parse import urlparse
-
 from django.utils.functional import cached_property
 
 from scrapy import Request
@@ -14,10 +14,11 @@ from scrapy.settings import Settings
 from splash.browser_tab import JsError
 from splash.har.qt import cookies2har
 
-from slyd.resources.utils import _load_sample
-from slybot.plugins.scrapely_annotations.builder import Annotations
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
-from .utils import (open_tab, extract_data, _get_viewport, _decode, _load_res)
+
+from portia_orm.models import Project
+
+from .utils import open_tab, extract_data, _get_viewport, _decode
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
 _SETTINGS = Settings()
@@ -33,58 +34,62 @@ def cookies(socket):
     socket.sendMessage(message)
 
 
-def save_html(data, socket):
-    c = ItemChecker(socket, data['project'], data['spider'],
-                    data['sample'])
-    manager = socket.manager
-    path = [s.encode('utf-8') for s in (data['spider'], data['sample'])]
-    sample = _load_sample(manager, *path)
-    if sample.get('rendered_body') and not data.get('update'):
+def save_html(data, socket, item_checker=None):
+    if item_checker is None:
+        item_checker = ItemChecker(socket, data['project'], data['spider'],
+                                   data['sample'])
+    project = Project(socket.storage, id=data['project'])
+    socket.spiderspec.project = project
+    spider = project.spiders[data['spider']]
+    samples = spider.samples
+    sample = samples[data['sample']]
+    if sample.rendered_body and not data.get('update'):
         return
     if 'use_live' not in data:
-        data['use_live'] = c.using_js
-    if data.get('use_live'):
-        sample['body'] = 'rendered_body'
-    else:
-        sample['body'] = 'original_body'
-    sample['rendered_body'] = c.html
-    sample['original_body'] = c.raw_html
-    _update_sample(data, socket, sample, save=True)
+        data['use_live'] = item_checker.using_js
+    sample.body = 'rendered_body' if data['use_live'] else 'original_body'
+    sample.rendered_body = item_checker.html
+    sample.original_body = item_checker.raw_html
+    return _update_sample(data, socket, sample, save=True)
 
 
+@open_tab
 def extract_items(data, socket):
     """Use latest annotations to extract items from current page"""
-    c = ItemChecker(socket, data['project'], data['spider'],
-                    data.get('sample'))
+    project, spider, sample = data['project'], data['spider'], data.get('sample')
+    if not all((project, spider)):
+        return {'type': 'raw'}
+    c = ItemChecker(socket, project, spider, sample)
     # TODO: add option for user to view raw and js items in UI from WS
     items, changes, changed_values, links = c.extract()
+    print '----------------------------------'
+    print 'Items:', items
+    print '----------------------------------'
     return {'links': links, 'items': items, 'changes': changes,
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
-def _update_sample(data, socket, sample=None, save=False, use_live=False):
+def _update_sample(data, socket, sample=None, project=None, save=False,
+                   use_live=False):
     """Recompile sample with latest annotations"""
-    spec = socket.manager
     if sample is None:
-        sample = spec.resource('spiders', data['spider'], data['sample'])
+        project = project or socket.spiderspec.project
+        spiders = project.spiders
+        spider = spiders[data['spider']]
+        samples = spider.samples
+        sample = samples[data['sample']].dump()
     if use_live:
         try:
             sample['original_body'] = socket.tab.html()
         except (TypeError, ValueError):
             pass
-    if save:
-        spec.savejson(sample, ['spiders', data['spider'], data['sample']])
+    if save and hasattr(sample, 'save'):
+        sample.save()
+        return sample.dump()
     return sample
 
 
 def update_spider(data, socket, spider=None):
-    if not socket.spiderspec:
-        return
-    spec = socket.manager
-    if spider is None:
-        spider = spec.resource('spiders', data['spider'])
-    socket.spider._configure_js(spider, _SETTINGS)
-    socket.spider.plugins['Annotations'].build_url_filter(spider)
     return extract(socket)
 
 
@@ -112,7 +117,6 @@ def load_page(data, socket):
     headers = {}
     if "user_agent" in meta:
         headers['User-Agent'] = meta['user_agent']
-    socket.open_spider(meta)
     socket.tab.go(data['url'],
                   lambda: on_complete(False),
                   lambda err=None: on_complete(True, err),
@@ -167,8 +171,7 @@ def extract(socket):
             'items': [],
             'links': {},
         }
-    c = ItemChecker(socket, socket.spiderspec.project,
-                    socket.spiderspec.name)
+    c = ItemChecker(socket, socket.spiderspec.project, socket.spiderspec.name)
     items, changes, changed_values, links = c.extract()
     return {'links': links, 'items': items, 'changes': changes,
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
@@ -237,13 +240,20 @@ def _compare_items(a, b):
 class ItemChecker(object):
     def __init__(self, socket, project, spider=None, sample=None):
         self.socket = socket
+        if isinstance(project, six.string_types):
+            project_name = socket.user.project_map.get(project, project)
+            project = Project(socket.storage, id=project, name=project_name)
         self.project = project
+        if not socket.spider:
+            socket.open_spider({'project': self.project.id, 'spider': spider},
+                               project)
         self.spider = spider
         self.sample = sample
         if (self.spider and (not self.socket.spider or
                              self.socket.spiderspec.name != spider)):
             self.socket.open_spider({'project': self.project,
-                                     'spider': self.spider})
+                                     'spider': self.spider},
+                                    project)
 
     @property
     def raw_html(self):
@@ -273,11 +283,11 @@ class ItemChecker(object):
 
     @cached_property
     def schemas(self):
-        return _load_res(self.socket, 'items')
+        return self.project.schemas.dump()
 
     @cached_property
     def extractors(self):
-        return _load_res(self.socket, 'extractors')
+        return self.project.extractors.dump()
 
     def data(self):
         return {
@@ -297,7 +307,12 @@ class ItemChecker(object):
         spider = socket.spiderspec.spider.copy()
         spider['body'] = body_field
         if self.sample:
-            samples = [_update_sample(self.data(), socket, use_live=live)]
+            samples = [_update_sample(self.data(), socket,
+                                      project=self.project, use_live=live)]
+            if not samples[0].get(body_field):
+                data = {'project': self.project.id, 'spider': self.spider,
+                        'sample': self.sample, 'update': True}
+                samples = [save_html(data, self.socket, self)]
         else:
             samples = socket.spiderspec.templates
         spider['templates'] = samples

@@ -1,10 +1,11 @@
 import Ember from 'ember';
 import Sample from '../models/sample';
 import { includesUrl } from '../utils/start-urls';
-import startUrl from '../models/start-url';
+import buildStartUrl from '../models/start-url';
 import {createStructure} from './annotation-structure';
 import {getDefaultAttribute} from '../components/inspector-panel';
 import {updateStructureSelectors} from '../services/annotation-structure';
+import { task } from 'ember-concurrency';
 
 export function computedCanAddSpider() {
     return Ember.computed('browser.url', function() {
@@ -34,14 +35,8 @@ export function computedEditableSample(spiderPropertyName) {
     });
 }
 
-export function computedCanAddStartUrl(spiderPropertyName) {
-    return Ember.computed('browser.url', `${spiderPropertyName}.startUrls.[]`, function() {
-        const url = this.get('browser.url');
-        return url && !this.get(`${spiderPropertyName}.startUrls`).includes(url);
-    });
-}
-
 export default Ember.Service.extend({
+    api: Ember.inject.service(),
     browser: Ember.inject.service(),
     routing: Ember.inject.service('-routing'),
     selectorMatcher: Ember.inject.service(),
@@ -113,7 +108,7 @@ export default Ember.Service.extend({
         }
         const spider = store.createRecord('spider', {
             id: name,
-            startUrls: [startUrl({ url: url })],
+            startUrls: [buildStartUrl({ url: url })],
             project
         });
         spider.set('project', project);
@@ -129,7 +124,7 @@ export default Ember.Service.extend({
 
     addStartUrl(spider, url) {
         if (url && !includesUrl(spider, url)) {
-            return startUrl({ url: url }).save(spider);
+            return buildStartUrl({ url: url }).save(spider);
         }
     },
 
@@ -138,12 +133,16 @@ export default Ember.Service.extend({
 
         if (!url || includesUrl(spider, url)) {
             spec.url = 'http://';
-            return startUrl(spec).save(spider);
+            return buildStartUrl(spec).save(spider);
         }
         if (!includesUrl(spider, url)) {
             spec.url = url;
-            return startUrl(spec).save(spider);
+            return buildStartUrl(spec).save(spider);
         }
+    },
+
+    addFeedUrl(spider, url) {
+        return buildStartUrl({ url: url, type: 'feed' }).save(spider);
     },
 
     addSample(spider, redirect = false) {
@@ -242,6 +241,10 @@ export default Ember.Service.extend({
     },
 
     saveAnnotationAndRelatedSelectors(annotation) {
+        if (!annotation.get('ownerSample')) {
+          return new Ember.RSVP.Promise.resolve();
+        }
+
         return annotation.get('ownerSample').then(sample =>
             this.updateSampleSelectors(sample).then(() => {
                 const coalesce = [];
@@ -265,6 +268,7 @@ export default Ember.Service.extend({
                         });
                     }
                 }
+
                 return annotation.save(coalesce.length ? {
                     coalesce
                 } : undefined);
@@ -321,6 +325,43 @@ export default Ember.Service.extend({
         startUrl.fragments.addObject(emptyFragment);
     },
 
+    changeId(model, json) {
+        // HACK: Ember data does not support changing a record's id
+        // This mechanism bypasses this contraint.
+
+        const store = this.get('store');
+
+        let internalModel = model._internalModel;
+        const newId = json.data.id;
+
+        // Update internal store with internal model
+        const recordMap = store.typeMapFor(internalModel.type).idToRecord;
+        delete recordMap[internalModel.id];
+        recordMap[newId] = internalModel;
+
+        // Allows changing ED model id
+        internalModel.id = newId;
+        // Allows adapters to infer the correct url
+        internalModel._links.self = json.data.links.self;
+
+        model.set('id', newId);
+    },
+
+    changeSpiderName(spider) {
+        if (!spider.get('name') || spider.get('name') === spider.get('id')) {
+            return new Ember.RSVP.Promise(resolve => resolve({
+                data: {
+                    links: {self: spider._internalModel._links.self},
+                    id: spider.get('id')
+            }}));
+        }
+        const data = { name: spider.get('name') };
+        return this.get('api').post('rename', {
+            model: spider,
+            jsonData: data
+        });
+    },
+
     changeAnnotationSource(annotation, attribute) {
         if (annotation) {
             annotation.set('attribute', attribute);
@@ -370,7 +411,7 @@ export default Ember.Service.extend({
         urls.removeObject(oldStartUrl);
 
         if (!includesUrl(spider, newUrl)) {
-            urls.addObject(startUrl({url: newUrl, type: 'url'}));
+            urls.addObject(buildStartUrl({url: newUrl, type: 'url'}));
         }
         spider.save();
     },
@@ -396,14 +437,18 @@ export default Ember.Service.extend({
     },
 
     removeAnnotation(annotation) {
+        this.get('_removeAnnotationTask').perform(annotation);
+    },
+
+    _removeAnnotationTask: task(function * (annotation) {
         const currentAnnotation = this.get('uiState.models.annotation');
         if (annotation === currentAnnotation) {
             const routing = this.get('routing');
             routing.transitionTo('projects.project.spider.sample.data', [], {}, true);
         }
         annotation.deleteRecord();
-        this.saveAnnotationAndRelatedSelectors(annotation);
-    },
+        yield this.saveAnnotationAndRelatedSelectors(annotation);
+    }).drop(),
 
     removeAnnotationExtractor(annotation, extractor) {
         annotation.get('extractors').removeObject(extractor);

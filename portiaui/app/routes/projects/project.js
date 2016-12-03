@@ -2,15 +2,20 @@ import Ember from 'ember';
 
 export default Ember.Route.extend({
     browser: Ember.inject.service(),
+    capabilities: Ember.inject.service(),
+    notificationManager: Ember.inject.service(),
 
     model(params) {
-        return this.store.peekRecord('project', params.project_id);
+        this.set('projectId', params.project_id);
+        return this.store.findRecord('project', params.project_id);
     },
 
     afterModel(model) {
-        return Ember.RSVP.all([
-            model.reload(),
-            model.checkChanges()]);
+        let promises = [model.reload()];
+        if (this.get('capabilities.capabilities.version_control')) {
+            promises.push(model.checkChanges());
+        }
+        return Ember.RSVP.all(promises);
     },
 
     setupController(controller, model) {
@@ -49,8 +54,15 @@ export default Ember.Route.extend({
         });
     },
 
+    projectNotFound() {
+        const id = this.get('projectId');
+        const errorMsg = `Project with id '${id}' not found.`;
+        this.get('notificationManager').showErrorNotification(errorMsg);
+    },
+
     actions: {
         error: function() {
+            this.projectNotFound();
             this.transitionTo('projects');
         },
 

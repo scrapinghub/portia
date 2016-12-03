@@ -1,4 +1,5 @@
 import Ember from 'ember';
+const { computed } = Ember;
 import {
     computedCanAddSample,
     computedEditableSample
@@ -13,6 +14,9 @@ export default Ember.Component.extend({
     spider: null,
 
     canAddSample: computedCanAddSample('spider'),
+    disableSample: computed('canAddSample', 'browser.invalidUrl', function() {
+        return !this.get('canAddSample') || this.get('browser.invalidUrl');
+    }),
     editableSample: computedEditableSample('spider'),
     startUrlDomains: Ember.computed('spider.startUrls', function() {
         let startUrlDomains = new Set();

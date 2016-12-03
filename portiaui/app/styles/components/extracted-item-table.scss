@@ -39,9 +39,5 @@
             padding-right: ($grid-gutter-width / 2);
             color: $text-muted;
         }
-
-        &:last-child {
-            word-break: break-all;
-        }
     }
 }

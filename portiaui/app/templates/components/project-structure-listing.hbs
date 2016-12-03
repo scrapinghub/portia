@@ -45,9 +45,9 @@
                         {{list-item-icon icon='spider'}}
 
                         {{#if currentSpider}}
-                            {{#list-item-text}}{{spider.name}}{{/list-item-text}}
+                            {{#list-item-text}}{{spider.nameAlias}}{{/list-item-text}}
                         {{else}}
-                            {{list-item-editable value=(mut spider.name) onChange=(action 'saveSpiderName' spider) validate=(action 'validateSpiderName')}}
+                            {{list-item-editable value=(mut spider.nameAlias) onChange=(action 'saveSpiderName' spider) validate=(action 'validateSpiderName' spider)}}
                         {{/if}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}
                             {{list-item-icon icon='remove' action=(action 'removeSpider' spider) bubbles=false}}

@@ -1,14 +1,12 @@
 import Ember from 'ember';
 import AnimationContainer from './animation-container';
 
-const $ = Ember.$;
-
 export default AnimationContainer.extend({
     tagName: 'div',
     classNames: ['tree-list'],
     reorderable: false,
     classNameBindings: ['reorderable:reorderable-list'],
-    
+
     setWidth: false,
 
     drop: function(event) {
@@ -25,8 +23,8 @@ export default AnimationContainer.extend({
                 return;
             }
             var originalIndex = $moved.prevAll().length;
-            var newIndex = $(target).prevAll().length + (after?1:0);
-            if($(target).prevAll().filter($moved).length) {
+            var newIndex = Ember.$(target).prevAll().length + (after?1:0);
+            if(Ember.$(target).prevAll().filter($moved).length) {
                 // If dropping after the original position, remove one to
                 // compensate for the removed element
                 newIndex -= 1;
@@ -46,7 +44,8 @@ export default AnimationContainer.extend({
         var container = this.$()[0];
         if(event.target === container){ return [null, null]; }
 
-        var overTarget = event.target.parentNode === container ? event.target: $(event.target).parentsUntil(this.$()).get(-1);
+        var lastParent = Ember.$(event.target).parentsUntil(this.$()).get(-1);
+        var overTarget = event.target.parentNode === container ? event.target: lastParent;
 
         var clientRect = overTarget.getBoundingClientRect();
         var targetY = event.clientY - clientRect.top;
@@ -60,7 +59,7 @@ export default AnimationContainer.extend({
             var [target, after] = this.getDropTarget(event.originalEvent);
             if(target){
                 event.preventDefault();
-                var helper = $('<div/>').addClass('drop-helper');
+                var helper = Ember.$('<div/>').addClass('drop-helper');
                 helper[after?'insertAfter':'insertBefore'](target);
             }
         }

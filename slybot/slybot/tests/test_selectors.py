@@ -1,11 +1,12 @@
 from unittest import TestCase
-from scrapy.http import HtmlResponse
+from scrapy.http import HtmlResponse, Request
 from slybot.spidermanager import SlybotSpiderManager
-from os.path import dirname
-_PATH = dirname(__file__)
+
+from .utils import open_spider_page_and_results, PATH
+
 
 class SpiderTest(TestCase):
-    smanager = SlybotSpiderManager("%s/data/SampleProject" % _PATH)
+    smanager = SlybotSpiderManager("%s/data/SampleProject" % PATH)
 
     def test_spider_with_selectors(self):
         name = "seedsofchange"
@@ -25,3 +26,21 @@ class SpiderTest(TestCase):
         self.assertEqual(item['breadcrumbs'], [u'Seeds & Supplies', u'Seeds', u'Vegetables', u'Squash & Pumpkins'])
         self.assertEqual(item['image'], [u'previous data', u'/images/product_shots/PPS14165B.jpg'])
 
+    def test_spider_with_inbuilt_selectors(self):
+        """Test selectors for text, price, date and html extractors."""
+        name = 'books.toscrape.com'
+        spider = self.smanager.create(name)
+        spec = self.smanager._specs["spiders"][name]
+        t = [t for t in spec["templates"]
+             if t['page_id'] == "0a96a4dba3c62275ecf13903f42a007dd06718d8"][0]
+        response = HtmlResponse(t['url'], body=t['original_body'].encode('utf-8'))
+        results = [i for i in spider.parse(response)
+                   if hasattr(i, '__getitem__')]
+        for result in results:
+            result['posted'] = [result['posted'][0].strftime('%Y-%m-%d %H:%M')]
+        self.assertEqual(results, t['_results'])
+
+    def test_spider_with_surrounded_selectors(self):
+        spider, page, results = open_spider_page_and_results('cs-cart.json')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, results)

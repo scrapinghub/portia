@@ -4,7 +4,8 @@
     flex-wrap: nowrap;
     align-items: center;
     flex: 1 1 auto;
-    min-width: 0;
+    min-width: 90px;
+    margin-left: 5px;
 
     > span {
         flex: 0 1 auto;

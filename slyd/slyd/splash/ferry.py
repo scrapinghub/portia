@@ -13,6 +13,7 @@ from weakref import WeakKeyDictionary, WeakValueDictionary
 from twisted.internet import defer
 from twisted.python import log
 
+from scrapy.settings import Settings
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
 from splash.browser_tab import BrowserTab
@@ -20,18 +21,22 @@ from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
-from slyd.gitstorage.projects import wrap_callback
-from slyd.gitstorage.repoman import Repoman
 from slyd.errors import BaseHTTPError
+
+from django.db import close_old_connections
+
+from storage import create_project_storage
+from storage.repoman import Repoman
+
+from portia_orm.models import Project
+from portia_orm.datastore import data_store_context
 
 from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
 from .commands import (load_page, interact_page, close_tab, metadata, resize,
-                       resolve, extract_items,
-                       save_html, _update_sample, update_spider)
+                       resolve, extract_items, save_html, update_spider)
 from .css_utils import process_css, wrap_url
-from .utils import (_should_load_sample, _load_items_and_extractors,
-                    _DEFAULT_VIEWPORT)
+from .utils import _DEFAULT_VIEWPORT, ProjectsDict
 import six
 text = six.text_type  # unicode in py2, str in py3
 
@@ -42,8 +47,15 @@ _DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 '
                        '(KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36')
 
 
-def create_ferry_resource(spec_manager, factory):
-    return FerryWebSocketResource(spec_manager, factory)
+def wrap_callback(connection, callback, storage, retries=0, **parsed):
+    result = callback(**parsed)
+    if hasattr(storage, '_working_tree'):
+        storage.commit()
+    return result
+
+
+def create_ferry_resource(factory):
+    return FerryWebSocketResource(factory)
 
 
 class PortiaNetworkManager(SplashQNetworkAccessManager):
@@ -52,6 +64,8 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
     def createRequest(self, operation, request, outgoingData=None):
         reply = super(PortiaNetworkManager, self).createRequest(
             operation, request, outgoingData)
+        if getattr(self, 'closed', False):
+            return reply
         try:
             url = six.binary_type(request.url().toEncoded())
             frame_url = six.binary_type(
@@ -71,12 +85,7 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
 
 
 class FerryWebSocketResource(WebSocketResource):
-    def __init__(self, spec_manager, factory):
-        self.spec_manager = spec_manager
-        settings = spec_manager.settings
-        self.settings = spec_manager.settings
-        FerryServerProtocol.spec_manager = spec_manager
-        FerryServerProtocol.settings = settings
+    def __init__(self, factory):
         FerryServerProtocol.assets = factory.assets
         WebSocketResource.__init__(self, factory)
 
@@ -92,6 +101,7 @@ class User(object):
     def __init__(self, auth, tab=None, spider=None, spiderspec=None):
         self.auth = auth
         self.authorized_projects = auth.get('authorized_projects', None)
+        self.project_map = ProjectsDict(auth)
         self.tab = tab
         self.spider = spider
         self.spiderspec = spiderspec
@@ -184,6 +194,9 @@ class PortiaJSApi(QObject):
             '_data': data
         })
         if command == 'mutation':
+            print '----------------------------------'
+            print 'COMMAND: mutation + metadata'
+            print '----------------------------------'
             self.protocol.sendMessage(metadata(self.protocol))
 
 
@@ -200,9 +213,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         'save_html': save_html,
         'update_spider': update_spider
     }
-    spec_manager = None
-    settings = None
     assets = './'
+    settings = Settings()
 
     @property
     def tab(self):
@@ -235,19 +247,23 @@ class FerryServerProtocol(WebSocketServerProtocol):
                                  'parameters')
 
     def onMessage(self, payload, isbinary):
+        close_old_connections()
         pool = getattr(Repoman, 'pool', None)
         payload = payload.decode('utf-8')
         data = json.loads(payload)
         project = data.get('project', data.get('_meta', {}).get('project'))
-        self.manager = self.spec_manager.project_spec(project, self.auth_info)
-        self.manager.pm = self.spec_manager.project_manager(self.auth_info)
+        self.storage = create_project_storage(project, author=self.user)
+        projects = self.storage.__class__.get_projects(self.user)
+        if project and str(project) not in projects:
+            self.sendMessage({'status': 4004, 'message': 'Project not found'})
+            return
         if pool is not None:
             deferred = defer.maybeDeferred(
                 pool.run_deferred_with_connection, wrap_callback,
-                self._on_message, self.manager, data=data)
+                self._on_message, self.storage, data=data)
         else:
             deferred = defer.maybeDeferred(
-                wrap_callback, None, self._on_message, self.manager, data=data)
+                wrap_callback, None, self._on_message, self.storage, data=data)
         deferred.addCallbacks(self.sendMessage,
                               partial(self.send_error, data))
 
@@ -255,7 +271,11 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
         command = data['_command']
-        result = self._handlers[command](data, self)
+        print '----------------------------------'
+        print 'COMMAND:', command
+        print '----------------------------------'
+        with data_store_context():
+            result = self._handlers[command](data, self)
         if result:
             result.setdefault('_command', data.get('_callback', command))
         return result
@@ -264,6 +284,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if self in self.factory:
             if self.tab is not None:
                 self.tab.close()
+                self.tab.network_manager.closed = True
             msg_data = {'session': self.session_id,
                         'session_time': 0,
                         'user': self.user.name}
@@ -277,6 +298,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 json.dumps(payload, cls=ScrapyJSONEncoder, sort_keys=True),
                 is_binary
             )
+        self.factory[self].spider, self.storage = None, None
 
     def send_error(self, data, failure):
         e = failure.value
@@ -368,7 +390,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             os.path.join(self.assets, 'splash_content_scripts'),
             handle_errors=False)
 
-    def open_spider(self, meta):
+    def open_spider(self, meta, project=None):
         if not (meta.get('project') and meta.get('spider')):
             return {'error': 4005, 'reason': 'No project specified'}
 
@@ -378,25 +400,35 @@ class FerryServerProtocol(WebSocketServerProtocol):
             return {'error': 4004,
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
-        spec = self.manager
+
+        # project_meta = meta.get('project')
+        # project_id = (project_meta if isinstance(project_meta, six.string_types)
+        #               else project_meta.id)
+        # project = Project(self.storage, id=project_id)
+
+        if project is None:
+            project = Project(self.storage, id=meta.get('project'))
 
         try:
-            spider = spec.spider_with_templates(spider_name)
+            spider_model = project.spiders[spider_name]
         except IOError:
             return {'error': 4003,
                     'reason': 'Spider "%s" not found' % spider_name}
-
-        spider.setdefault('templates', [])
-        spider['templates'] = [_update_sample(meta, self, s)
-                               for s in spider.get('templates', [])
-                               if _should_load_sample(s)]
-        items, extractors = _load_items_and_extractors({}, self)
+        spider = spider_model.dump()
+        spider['templates'] = []
+        for sample in spider_model.samples:
+            sample = sample.dump()
+            for key in ('original_body', 'rendered_body'):
+                if not (sample.get(key) or '').strip():
+                    sample[key] = u'<html></html>'
+            spider['templates'].append(sample)
+        items, extractors = project.schemas.dump(), project.extractors.dump()
         if not self.settings.get('SPLASH_URL'):
             self.settings.set('SPLASH_URL', 'portia')
         self.factory[self].spider = IblSpider(spider_name, spider, items,
                                               extractors, self.settings)
         self.factory[self].spiderspec = SpiderSpec(
-            meta['project'], spider_name, spider, items, extractors)
+            project, spider_name, spider, items, extractors)
 
     def update_spider(self, meta, spider=None, template=None, items=None,
                       extractors=None):
@@ -422,7 +454,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.factory[self].spider = IblSpider(meta['spider'], spider, items,
                                               extractors, self.settings)
         self.factory[self].spiderspec = SpiderSpec(
-            meta['project'], meta['spider'], spider, items, extractors)
+            spec.project, meta['spider'], spider, items, extractors)
 
 
 class FerryServerFactory(WebSocketServerFactory):

@@ -5,6 +5,11 @@ import sys
 
 try:
     import slyd
+    import slyd.settings as settings_module
+    from scrapy.settings import Settings
+    settings = Settings()
+    settings.setmodule(settings_module)
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings['DJANGO_SETTINGS'])
 except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
     try:
@@ -13,7 +18,7 @@ except ImportError:
         sys.stderr.write("Error: Can't find the project package 'slyd'.\n")
         sys.exit(1)
 
-from slyd.gitstorage.repoman import Repoman
+from portia_server.storage.repoman import Repoman
 
 
 def main():

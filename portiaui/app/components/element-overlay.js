@@ -8,7 +8,7 @@ export default Ember.Component.extend({
     tagName: '',
 
     positionMode: 'size',  // or 'edges'
-    
+
     init() {
         this._super(...arguments);
         this.set('rects', []);
@@ -54,10 +54,13 @@ export default Ember.Component.extend({
     },
 
     readContainerSize(rects, boundingRect, element) {
-        this.containerSize = {
-            width: element.ownerDocument.defaultView.innerWidth,
-            height: element.ownerDocument.defaultView.innerHeight
-        };
+        const view = element.ownerDocument.defaultView;
+        if (view) {
+            this.containerSize = {
+                width:  view.innerWidth,
+                height: view.innerHeight
+            };
+        }
     },
 
     updatePosition(rects) {

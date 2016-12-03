@@ -165,36 +165,6 @@ export default Ember.Service.extend(Ember.Evented, {
         }
     },
 
-    save: function(type, obj) {
-        var data = {
-            _meta: this._metadata(type),
-            _command: 'saveChanges'
-        };
-        if (obj.serialize) {
-            data[type] = obj.serialize();
-        } else {
-            data[type] = obj;
-        }
-        return this._sendPromise(data);
-    },
-
-    delete: function(type, name) {
-        return this._sendPromise({
-            _meta: this._metadata(type),
-            _command: 'delete',
-            name: name
-        });
-    },
-
-    rename: function(type, from, to) {
-        return this._sendPromise({
-            _meta: this._metadata(type),
-            _command: 'rename',
-            old: from,
-            new: to
-        });
-    },
-
     _sendPromise: function(data) {
         var deferred = new Ember.RSVP.defer();
         if (!data._meta) {

@@ -1,16 +1,17 @@
 import json
 
 from scrapy import Selector
+from scrapy.utils.spider import arg_to_iter
 from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 
 from collections import defaultdict
-from itertools import tee, count, chain, groupby
+from itertools import tee, count, groupby
 from operator import itemgetter
-from uuid import uuid4
 
-from .migration import _get_parent
-from .utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
-                    OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
+from slybot.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
+                          OPEN_TAG, CLOSE_TAG, UNPAIRED_TAG, GENERATEDTAGID)
+
+from .migration import _get_parent, short_guid
 
 
 class Annotations(object):
@@ -43,9 +44,17 @@ class Annotations(object):
         """
         annotation_data = _clean_annotation_data(data.get('extracts', []))
         data['extracts'] = annotation_data
-        template['annotated_body'] = apply_annotations(
-            annotation_data,
-            template[options.get('body', 'original_body')])
+        body = template.get('body') or 'original_body'
+        if body not in template:
+            if 'original_body' in template:
+                body = 'original_body'
+            else:
+                bodies = [k for k, v in template.items()
+                          if v and k.endswith('_body')]
+                if bodies:
+                    body = bodies[0]
+        html = template[body]
+        template['annotated_body'] = apply_annotations(annotation_data, html)
         return data
 
 
@@ -93,35 +102,40 @@ def _get_data_id(annotation):
         return annotation.attributes[TAGID]
 
 
-def _gen_annotation_info(annotation):
+def _gen_annotation_info(annotations):
     data = {}
-    if 'annotations' in annotation:
-        data['data-scrapy-annotate'] = json.dumps({
-            'id': annotation.get('id', _gen_id()),
-            'annotations': annotation.get('annotations', {}),
-            'required': annotation.get('required', []),
-            'required_fields': annotation.get('required', []),
-            'variant': int(annotation.get('variant', 0)),
-            'generated': annotation.get('generated', False),
-            'text-content': annotation.get('text-content', 'content'),
-            'item_container': annotation.get('item_container', False),
-            'container_id': annotation.get('container_id'),
-            'schema_id': annotation.get('schema_id'),
-            'repeated': annotation.get('repeated'),
-            'siblings': annotation.get('siblings'),
-            'field': annotation.get('field'),
-            'selector': annotation.get('selector')
-        }).replace('"', '&quot;')
-    if 'ignore' in annotation or 'ignore_beneath' in annotation:
-        if annotation.get('ignore_beneath'):
-            data['data-scrapy-ignore-beneath'] = 'true'
-        elif annotation.get('ignore'):
-            data['data-scrapy-ignore'] = 'true'
+    annotation_data = []
+    for annotation in arg_to_iter(annotations):
+        if 'annotations' in annotation:
+            annotation_data.append({
+                'id': annotation.get('id', short_guid()),
+                'annotations': annotation.get('annotations', {}),
+                'required': annotation.get('required', []),
+                'required_fields': annotation.get('required', []),
+                'variant': int(annotation.get('variant', 0)),
+                'generated': annotation.get('generated', False),
+                'text-content': annotation.get('text-content', 'content'),
+                'item_container': annotation.get('item_container', False),
+                'container_id': annotation.get('container_id'),
+                'schema_id': annotation.get('schema_id'),
+                'repeated': annotation.get('repeated'),
+                'siblings': annotation.get('siblings'),
+                'field': annotation.get('field'),
+                'selector': annotation.get('selector'),
+                'selection_mode': annotation.get('selection_mode'),
+                'min_jump': annotation.get('min_jump', -1),
+                'max_separator': annotation.get('max_separator', -1),
+                'xpath': annotation.get('xpath')
+            })
+        if 'ignore' in annotation or 'ignore_beneath' in annotation:
+            if annotation.get('ignore_beneath'):
+                data['data-scrapy-ignore-beneath'] = 'true'
+            elif annotation.get('ignore'):
+                data['data-scrapy-ignore'] = 'true'
+    if annotation_data:
+        serialized = json.dumps(annotation_data).replace('"', '&quot;')
+        data['data-scrapy-annotate'] = serialized
     return data
-
-
-def _gen_id():
-    return '-'.join(str(uuid4()).split('-')[1:-1])
 
 
 def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
@@ -266,34 +280,12 @@ def _merge_annotations_by_selector(annotations):
     def grouper(x):
         return x.get('selector')
     annotations.sort(key=grouper)
-    new_annotations = []
-    for sel, annos in groupby(annotations, key=grouper):
-        annos = list(annos)
-        anno = annos[0]
-        if len(annos) == 1:
-            new_annotations.append(anno)
-            continue
-        for other_anno in annos[1:]:
-            # TODO: Handle annotations pointing to different containers
-            for attribute, data in other_anno['annotations'].items():
-                if attribute in anno['annotations']:
-                    attr_data = anno['annotations'][attribute]
-                    if isinstance(attr_data, list):
-                        attr_data.extend(data)
-                    else:
-                        current = {'field': attr_data, 'attribute': attribute,
-                                   'required': False, 'extractors': []}
-                        attr_data = [current, data]
-                else:
-                    anno['annotations'][attribute] = data
-        new_annotations.append(anno)
-    return new_annotations
+    return [list(annos) for _, annos in groupby(annotations, key=grouper)]
 
 
 def apply_selector_annotations(annotations, target_page):
     page = Selector(text=target_page)
     converted_annotations = []
-    annotations = _merge_annotations_by_selector(annotations)
     tagid_selector_map = {}
     added_repeated = {}
     containers = {}
@@ -325,14 +317,17 @@ def apply_selector_annotations(annotations, target_page):
             _, elems = tagid_for_annotation(container, page)
             parent = elems[0].getparent()
             container['tagid'] = int(parent.attrib.get('data-tagid', 1e9))
-    return converted_annotations
+    return _merge_annotations_by_selector(converted_annotations)
 
 
 def tagid_for_annotation(annotation, page):
     selector = annotation.get('selector')
     if not selector:
         return None, None
-    elems = [elem._root for elem in page.css(selector)]
+    elems = []
+    while selector and not elems:
+        elems = [elem._root for elem in page.css(selector)]
+        selector = ' > '.join(selector.split(' > ')[1:])
     if not elems:
         return None, None
 
@@ -376,8 +371,9 @@ def apply_annotations(annotations, target_page):
     # XXX: A dummy element is added to the end so if the last annotation is
     #      generated it will be added to the output
     filtered = defaultdict(list)
-    for ann in tagid_annotations:
-        filtered[ann['tagid']].append(ann)
+    for grouped in tagid_annotations:
+        for ann in arg_to_iter(grouped):
+            filtered[ann['tagid']].append(ann)
     dummy = [(1e9, [{}])]
     sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +
                                 dummy)
@@ -424,6 +420,7 @@ def apply_annotations(annotations, target_page):
 
             generated = []
             next_generated = []
+            regular_annotations = []
             # Place generated annotations at the end and sort by slice
             for annotation in sorted(annotation_data, key=_annotation_key):
                 if annotation.get('generated'):
@@ -432,10 +429,12 @@ def apply_annotations(annotations, target_page):
                     else:
                         generated.append(annotation)
                 else:
-                    # Add annotations data as required
-                    annotation_info = _gen_annotation_info(annotation)
-                    for key, val in annotation_info.items():
-                        element.attributes[key] = val
+                    regular_annotations.append(annotation)
+            # Add annotations data as required
+            if regular_annotations:
+                annotation_info = _gen_annotation_info(regular_annotations)
+                for key, val in annotation_info.items():
+                    element.attributes[key] = val
             next_text_section = ''
             if generated:
                 inner_data, target = tee(target)

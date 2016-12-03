@@ -73,13 +73,14 @@ install_python_deps(){
     activate_venv
     pip install -r "$APP_ROOT/slyd/requirements.txt"
     pip install -r "$APP_ROOT/slybot/requirements.txt"
+    pip install -r "$APP_ROOT/portia_server/requirements.txt"
     pip install -e "$APP_ROOT/slyd"
     pip install -e "$APP_ROOT/slybot"
 }
 
 install_splash(){
     cd /tmp
-    curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/2.1.x.tar.gz'
+    curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/2.2.x.tar.gz'
     tar -xvf splash.tar.gz --keep-newer-files
     cd splash-*
     activate_venv

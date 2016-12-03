@@ -1,4 +1,5 @@
 import Ember from 'ember';
+const { computed } = Ember;
 import { cleanUrl, renameAttr } from '../utils/utils';
 
 export const NAVIGATION_MODE = 'navigation';
@@ -6,6 +7,7 @@ export const ANNOTATION_MODE = 'data-annotation';
 export const INTERACTION_MODES = new Set([ANNOTATION_MODE]);
 export const DEFAULT_MODE = NAVIGATION_MODE;
 
+/* jshint ignore:start */
 const META_STYLE = `<style title="portia-show-meta">
     head {
         display: block;
@@ -56,8 +58,10 @@ const META_STYLE = `<style title="portia-show-meta">
         content: 'Link: rel: "' attr(rel) '" href: "' attr(data-portia-href) '" type: "' attr(type) '" media: "' attr(data-portia-hidden-media) '"';
     }
 </style>`;
+/* jshint ignore:end */
 
 export default Ember.Service.extend(Ember.Evented, {
+    extractedItems: Ember.inject.service(),
     webSocket: Ember.inject.service(),
 
     backBuffer: [],
@@ -69,6 +73,9 @@ export default Ember.Service.extend(Ember.Evented, {
     _disabled: true,
     _url: null,
     baseurl: null,
+    validUrl: true,
+
+    invalidUrl: computed.not('validUrl'),
 
     disabled: Ember.computed('_disabled', 'webSocket.closed', 'mode', {
         get() {
@@ -106,7 +113,7 @@ export default Ember.Service.extend(Ember.Evented, {
             });
         });
     },
-    
+
     resetUrl: Ember.observer('document', function() {
         if (!this.get('document')) {
             this.setProperties({
@@ -116,10 +123,17 @@ export default Ember.Service.extend(Ember.Evented, {
         }
     }),
 
+    invalidateUrl() {
+        this.set('validUrl', false);
+    },
+
     go(url) {
+        this.set('validUrl', true);
         const currentUrl = this.get('_url');
         url = cleanUrl(url);
         if (url && url !== currentUrl) {
+            this._extract();
+
             this.beginPropertyChanges();
             if (currentUrl) {
                 this.get('backBuffer').pushObject(currentUrl);
@@ -132,27 +146,13 @@ export default Ember.Service.extend(Ember.Evented, {
     },
 
     back() {
-        if (this.get('backBuffer.length')) {
-            this.beginPropertyChanges();
-            this.get('forwardBuffer').pushObject(this.get('_url'));
-            this.setProperties({
-                '_url': this.get('backBuffer').popObject(),
-                'baseurl': null
-            });
-            this.endPropertyChanges();
-        }
+        this._updateBuffers(this.get('backBuffer'),
+                            this.get('forwardBuffer'));
     },
 
     forward() {
-        if (this.get('forwardBuffer.length')) {
-            this.beginPropertyChanges();
-            this.get('backBuffer').pushObject(this.get('_url'));
-            this.setProperties({
-                '_url': this.get('forwardBuffer').popObject(),
-                'baseurl': null
-            });
-            this.endPropertyChanges();
-        }
+        this._updateBuffers(this.get('forwardBuffer'),
+                            this.get('backBuffer'));
     },
 
     reload() {
@@ -180,7 +180,7 @@ export default Ember.Service.extend(Ember.Evented, {
             // disable stylesheets using an impossible media query
             $styles.attr('media', '(width: -1px)');
             renameAttr($iframe.find('[style]'), 'style', 'data-portia-hidden-style');
-            $iframe.find('body').append(META_STYLE);
+            $iframe.find('body').append(META_STYLE); // jshint ignore:line
             this.set('cssEnabled', false);
         }
     },
@@ -213,5 +213,23 @@ export default Ember.Service.extend(Ember.Evented, {
             this.set('mode', DEFAULT_MODE);
             this.enableCSS();
         }
+    },
+
+    _updateBuffers(currentBuffer, otherBuffer) {
+        if (currentBuffer.length) {
+            this.beginPropertyChanges();
+            otherBuffer.pushObject(this.get('_url'));
+            const url = currentBuffer.popObject();
+            this._extract();
+            this.setProperties({
+                '_url': url,
+                'baseurl': null
+            });
+            this.endPropertyChanges();
+        }
+    },
+
+    _extract() {
+        this.get('extractedItems').activateExtraction();
     }
 });

@@ -11,16 +11,17 @@ import six
 from six.moves.urllib_parse import urljoin
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
-from slybot.utils import htmlpage_from_response
 from .splash.css_utils import process_css, wrap_url
-from slybot.plugins.scrapely_annotations.utils import serialize_tag, add_tagids
+from slybot.utils import serialize_tag, add_tagids
 
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
                   "data", "href", "longdesc", "profile", "src", "usemap")
 
 BLOCKED_TAGNAMES = ('script', 'noscript', 'object', 'embed')
 
-_ALLOWED_CHARS_RE = re.compile('[^!-~]') # [!-~] = ascii printable characters
+_ALLOWED_CHARS_RE = re.compile('[^!-~]')  # [!-~] = ascii printable characters
+
+
 def _contains_js(url):
     return _ALLOWED_CHARS_RE.sub('', url).lower().startswith('javascript:')
 
@@ -30,6 +31,7 @@ except ImportError:
     # https://html.spec.whatwg.org/multipage/syntax.html#character-references
     # http://stackoverflow.com/questions/18689230/why-do-html-entity-names-with-dec-255-not-require-semicolon
     _ENTITY_RE = re.compile("&#(\d+|x[a-f\d]+);?", re.I)
+
     def _replace_entity(match):
         entity = match.group(1)
         if entity[0].lower() == 'x':
@@ -42,6 +44,7 @@ except ImportError:
         """
         return _ENTITY_RE.sub(_replace_entity, mystr)
 
+
 def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     """Convert the given html document for the annotation UI
 
@@ -50,12 +53,6 @@ def html4annotation(htmlpage, baseurl=None, proxy_resources=None):
     htmlpage = add_tagids(htmlpage)
     cleaned_html = descriptify(htmlpage, baseurl, proxy=proxy_resources)
     return cleaned_html
-
-
-def extract_html(response):
-    """Extracts an html page from the response.
-    """
-    return htmlpage_from_response(response).body
 
 
 def descriptify(doc, base=None, proxy=None):
