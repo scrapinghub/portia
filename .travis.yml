@@ -38,7 +38,7 @@ script:
 - cd ../portia_server
 - ./manage.py test portia_orm.tests
 - cd ../portiaui
-- ember test
+- npm test
 before_deploy:
 - cd ./slybot
 - pip install twine
