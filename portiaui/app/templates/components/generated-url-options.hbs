@@ -43,5 +43,14 @@
         {{/each}}
         </p>
     {{/each}}
+
+    {{#if (not isComplete)}}
+        {{tooltip-icon
+          icon='vertical-ellipsis'
+          text='This list only shows the first few generated urls.'
+          modifyClasses='one-half-x full-width'
+        }}
+    {{/if}}
+
     </section>
 </div>

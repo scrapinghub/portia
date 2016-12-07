@@ -8,9 +8,7 @@ function nextLetter(letter) {
 
 function numberRange(a, b) {
     const numbers = [];
-    let upperLimit = Math.min(b, a + SAMPLE_SIZE);
-
-    for(let i = a; i < upperLimit + 1; i += 1) {
+    for(let i = a; i < b + 1; i += 1) {
         numbers.push(i.toString());
     }
     return numbers;
@@ -27,16 +25,21 @@ function letterRange(a, b) {
     return letters;
 }
 
-function augmentRange(fragment_value) {
-    const endpoints = fragment_value.split('-');
+function _processDigitRange(value) {
+    const endpoints = value.split('-');
+    let [a, b] = endpoints.map(x => parseInt(x));
+    b = Math.min(b, a + SAMPLE_SIZE);
+    return [a, b];
+}
 
+function augmentRange(fragment_value) {
     if (allDigits(fragment_value)) {
-      const [a, b] = endpoints.map(x => parseInt(x));
+      const [a, b] = _processDigitRange(fragment_value);
       return numberRange(a, b);
     }
 
     if (allLetters(fragment_value)) {
-      const [a, b] = endpoints;
+      const [a, b] = fragment_value.split('-');
       return letterRange(a, b);
     }
 }
@@ -105,7 +108,7 @@ export function multiplicityFragment(fragment) {
                 return letterRange(a, b).length;
             }
             if (allDigits(value)) {
-                return numberRange(a, b).length;
+                return numberRange(parseInt(a), parseInt(b)).length;
             }
             return 1;
     }
