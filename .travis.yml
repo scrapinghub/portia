@@ -37,6 +37,7 @@ script:
 - nosetests --with-doctest
 - cd ../portia_server
 - ./manage.py test portia_orm.tests
+- ./manage.py test portia_api.tests
 - cd ../portiaui
 - npm test
 before_deploy:

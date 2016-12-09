@@ -35,6 +35,9 @@ class JsonApiRoute(ViewSet):
     parser_classes = (JSONApiParser, JSONParser)
     renderer_classes = (JSONApiRenderer, JSONRenderer)
 
+    def __str__(self):
+        return '{} {}'.format(self.method.upper(), self.path)
+
     def __repr__(self):
         return 'Route(%s)' % str(self)
 
