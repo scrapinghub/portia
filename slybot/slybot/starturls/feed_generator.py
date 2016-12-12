@@ -2,7 +2,7 @@ from scrapy import Request
 
 
 class FeedGenerator(object):
-    def __init__(self, callback):
+    def __init__(self, callback=None):
         self.callback = callback
 
     def __call__(self, url):
