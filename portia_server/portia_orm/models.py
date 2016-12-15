@@ -239,6 +239,37 @@ class Spider(Model):
             storage, instance, project=project, **kwargs)
 
     @pre_load
+    def populate_id(self, data):
+        if 'id' in data:
+            return data
+        path = self.context['path']
+        name = path.split('/')[-1]
+        if name.endswith('.json'):
+            name = name[:-len('.json')]
+        data['id'] = name
+        return data
+
+    @pre_load
+    def dump_templates_to_file(self, data):
+        if 'template_names' in data or 'templates' not in data:
+            return data
+        template_names = []
+        for template in data['templates']:
+            template['id'] = template.get('page_id') or template.get('name')
+            template_names.append(template['id'])
+            path = self.context['path']
+            path = '/'.join((path[:-len('.json')].strip('/'),
+                            '{}.json'.format(template['id'])))
+            sample = json.dumps(template, sort_keys=True, indent=4)
+            self.context['storage'].save(path, ContentFile(sample, path))
+        data['template_names'] = template_names
+        del data['templates']
+        path, storage = self.context['path'], self.context['storage']
+        spider = json.dumps(data, indent=4, sort_keys=True)
+        storage.save(path, ContentFile(spider, path))
+        return data
+
+    @pre_load
     def normalize_template_names(self, data):
         if 'template_names' in data:
             names = list(OrderedDict((v, 1) for v in data['template_names']))
@@ -364,6 +395,8 @@ class Sample(Model, OrderedAnnotationsMixin):
             data['name'] = data.get('id', data.get('page_id', u'')[:20])
         if data.get('version', '') >= '0.13.1':
             return data
+        if any(body in data for body in ('original_body', 'rendered_body')):
+            self._migrate_html(self, data)
         schemas = json.load(self.context['storage'].open('items.json'))
         if data.get('version', '') > '0.13.0':
             _, new_schemas = guess_schema(data, schemas)
@@ -378,10 +411,9 @@ class Sample(Model, OrderedAnnotationsMixin):
 
         json_file = self.context['storage'].open_with_default('extractors.json')
         extractors = json.load(json_file)
-        annotations = load_annotations(data.get('annotated_body', u''))
-        data['plugins'] = annotations
         sample, new_schemas = port_sample(data, schemas, extractors)
         self._add_schemas(self, new_schemas)
+        self.save_raw(self, sample)
         return sample
 
     @staticmethod
@@ -429,7 +461,6 @@ class Sample(Model, OrderedAnnotationsMixin):
                     containers[container_id]['children'].remove(parent)
             if container_id:
                 containers[container_id]['children'].append(item)
-
         data['items'] = [container
                          for container in itervalues(containers)
                          if container.get('container_id') is None]
@@ -450,18 +481,19 @@ class Sample(Model, OrderedAnnotationsMixin):
             schema_collection.add(model)
         project.schemas = schema_collection
 
-    @post_load
+    @staticmethod
     def _migrate_html(self, sample):
         for key, value in sample.items():
-            if not key.endswith('_body'):
+            if not key.endswith('_body') or key == 'annotated_body':
                 continue
             path = self.context['path']
             path = '/'.join((path[:-len('.json')].strip('/'),
                             '{}.html'.format(key)))
-            html = value.html.encode('utf-8')
+            html = value.encode('utf-8')
             if hasattr(html, 'encode') and isinstance(html, six.text_type):
                 html = encode(html).decode('utf-8')
             self.context['storage'].save(path, ContentFile(html, path))
+        return sample
 
     @post_dump
     def add_fields(self, data):
@@ -507,6 +539,14 @@ class Sample(Model, OrderedAnnotationsMixin):
         })
 
         return OrderedDict(sorted(iteritems(data)))
+
+    @staticmethod
+    def save_raw(serializer, data):
+        context = serializer.context
+        path, storage = context['path'], context['storage']
+        data = {k: v for k, v in data.items() if not k.endswith('_body')}
+        sample = json.dumps(data, indent=4, sort_keys=True)
+        storage.save(path, ContentFile(sample, path))
 
 
 class BaseAnnotation(Model):
