@@ -243,9 +243,11 @@ class GitStorage(BasePortiaStorage):
         return False
 
     def listdir(self, path):
-        path = self.path(path)
+        path = '{}/'.format(self.path(path))
         # All paths should be relative to the project directory
-        path_parts = len(path.split('/'))
+        path_parts = len(path.strip('/').split('/'))
+        if path == '/':
+            path = ''
         if path:
             path_parts += 1
         dirs, files = set(), set()
