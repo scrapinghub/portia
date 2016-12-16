@@ -110,9 +110,6 @@ class ProjectTestCase(DataStoreTestCase):
                 '    "url": "http://example.com",'
                 '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67",'
                 '    "page_type": "item",'
-                '    "original_body": "<html></html>",'
-                '    "annotated_body": "<html></html>",'
-                '    "rendered_body": "<html></html>",'
                 '    "spider": "shop-crawler",'
                 '    "scrapes": "1664-4f20-b657",'
                 '    "plugins": {'
@@ -201,6 +198,10 @@ class ProjectTestCase(DataStoreTestCase):
                 '    },'
                 '    "version": "' + SLYBOT_VERSION + '"'
                 '}',
+            'spiders/shop-crawler/1ddc-4043-ac4d/original_body.html': (
+                '<html></html>'),
+            'spiders/shop-crawler/1ddc-4043-ac4d/rendered_body.html': (
+                '<html></html>'),
         }
 
 
@@ -1622,10 +1623,6 @@ class SampleTests(ProjectTestCase):
             'url': 'http://example.com',
             'page_id': '',
             'page_type': 'item',
-            'original_body': '',
-            'annotated_body': '',
-            'body': 'original_body',
-            'rendered_body': '',
             'spider': None,
             'scrapes': None,
             'plugins': {
@@ -1643,8 +1640,6 @@ class SampleTests(ProjectTestCase):
             name='example',
             url='http://example.com',
             page_id='test-id',
-            original_body='original_body',
-            annotated_body='annotated_body',
             spider=Spider(id='spider-1'))
 
         self.assertEqual(sample.dump(), {
@@ -1653,10 +1648,6 @@ class SampleTests(ProjectTestCase):
             'url': 'http://example.com',
             'page_id': 'test-id',
             'page_type': 'item',
-            'body': 'original_body',
-            'original_body': 'original_body',
-            'annotated_body': 'annotated_body',
-            'rendered_body': '',
             'spider': 'spider-1',
             'scrapes': None,
             'plugins': {
@@ -1681,10 +1672,6 @@ class SampleTests(ProjectTestCase):
                 'url': 'http://example.com',
                 'page_id': 'ab5bbf650b32ca41af6f8e9976fc3c85eee87f67',
                 'page_type': 'item',
-                "body": "original_body",
-                'original_body': '<html></html>',
-                'annotated_body': '<html></html>',
-                'rendered_body': '<html></html>',
                 'spider': 'shop-crawler',
                 'scrapes': '1664-4f20-b657',
                 'plugins': {
@@ -1793,10 +1780,6 @@ class SampleTests(ProjectTestCase):
             'url': 'http://example.com',
             'page_id': 'ab5bbf650b32ca41af6f8e9976fc3c85eee87f67',
             'page_type': 'item',
-            'body': 'original_body',
-            'original_body': '<html></html>',
-            'annotated_body': '<html></html>',
-            'rendered_body': '<html></html>',
             'spider': 'shop-crawler',
             'scrapes': '1664-4f20-b657',
             'plugins': {
@@ -1906,25 +1889,24 @@ class SampleTests(ProjectTestCase):
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
         self.storage.save.assert_not_called()
 
-        sample.original_body = '<html id="#test"></html>'
+        sample.original_body.html = '<html id="#test"></html>'
+        sample.original_body.save()
+        self.storage.save.assert_called_once_with(
+            'spiders/shop-crawler/1ddc-4043-ac4d/original_body.html', mock.ANY)
+        sample.page_id = sample.id
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 5)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
-        self.storage.save.assert_called_once_with(
-            'spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY)
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html id=\\"#test\\"></html>", \n'
-            '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
+            '    "page_id": "1ddc-4043-ac4d", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
             '        "annotations-plugin": {\n'
@@ -2014,7 +1996,6 @@ class SampleTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -2024,27 +2005,22 @@ class SampleTests(ProjectTestCase):
         sample.id = 'test-id'
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 5)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
-        self.assertEqual(self.storage.save.call_count, 3)
+        self.assertEqual(self.storage.save.call_count, 5)
         self.storage.save.assert_has_calls([
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),
             mock.call('spiders/shop-crawler/test-id.json', mock.ANY),
             mock.call('spiders/shop-crawler.json', mock.ANY)])
-        self.storage.delete.assert_called_once_with(
-            'spiders/shop-crawler/1ddc-4043-ac4d.json')
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/test-id.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test-id", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html id=\\"#test\\"></html>", \n'
-            '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
+            '    "page_id": "1ddc-4043-ac4d", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
             '        "annotations-plugin": {\n'
@@ -2134,7 +2110,6 @@ class SampleTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -2186,12 +2161,9 @@ class SampleTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/test1.json'],
             '{\n'
-            '    "annotated_body": "", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test1", \n'
             '    "name": "test sample 1", \n'
-            '    "original_body": "", \n'
             '    "page_id": "", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -2199,7 +2171,6 @@ class SampleTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com/test1", \n'
@@ -2252,12 +2223,9 @@ class SampleTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/test2.json'],
             '{\n'
-            '    "annotated_body": "", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "test2", \n'
             '    "name": "test sample 2", \n'
-            '    "original_body": "", \n'
             '    "page_id": "", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -2265,7 +2233,6 @@ class SampleTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com/test2", \n'
@@ -2311,7 +2278,7 @@ class SampleTests(ProjectTestCase):
         sample = spider.samples['1ddc-4043-ac4d']
         sample.delete()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 6)
         self.storage.open.assert_has_calls([
             mock.call('items.json'),
             mock.call('spiders/shop-crawler.json'),
@@ -2412,8 +2379,6 @@ class ItemTests(ProjectTestCase):
                 '    "url": "http://example.com",'
                 '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67",'
                 '    "page_type": "item",'
-                '    "original_body": "<html></html>",'
-                '    "annotated_body": "<html></html>",'
                 '    "spider": "shop-crawler",'
                 '    "scrapes": "1664-4f20-b657",'
                 '    "plugins": {'
@@ -2539,6 +2504,8 @@ class ItemTests(ProjectTestCase):
                 '    },'
                 '    "version": "' + SLYBOT_VERSION + '"'
                 '}',
+            'spiders/shop-crawler/1ddc-4043-ac4d/original_body.html': (
+                '<html></html>')
         })
 
     def test_minimal_item(self):
@@ -2953,12 +2920,9 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -3088,7 +3052,6 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3109,12 +3072,9 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -3244,7 +3204,6 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3268,12 +3227,9 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -3418,7 +3374,6 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3441,12 +3396,9 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -3621,7 +3573,6 @@ class ItemTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3652,12 +3603,10 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
+
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -3665,7 +3614,6 @@ class ItemTests(ProjectTestCase):
             '            "extracts": []\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "", \n'
             '    "scrapes": null, \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -3914,12 +3862,9 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -4010,7 +3955,6 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4031,12 +3975,9 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -4127,7 +4068,6 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4152,12 +4092,9 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -4270,7 +4207,6 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4291,12 +4227,9 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -4431,7 +4364,6 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'
@@ -4465,12 +4397,9 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
-            '    "annotated_body": "<html></html>", \n'
-            '    "body": "original_body", \n'
             '    "extractors": {}, \n'
             '    "id": "1ddc-4043-ac4d", \n'
             '    "name": "example", \n'
-            '    "original_body": "<html></html>", \n'
             '    "page_id": "ab5bbf650b32ca41af6f8e9976fc3c85eee87f67", \n'
             '    "page_type": "item", \n'
             '    "plugins": {\n'
@@ -4536,7 +4465,6 @@ class AnnotationTests(ProjectTestCase):
             '            ]\n'
             '        }\n'
             '    }, \n'
-            '    "rendered_body": "<html></html>", \n'
             '    "scrapes": "1664-4f20-b657", \n'
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com", \n'

@@ -1,4 +1,5 @@
 import json
+import six
 
 from collections import deque, OrderedDict
 
@@ -13,13 +14,15 @@ from slybot.plugins.scrapely_annotations.migration import (port_sample,
                                                            load_annotations)
 from slybot.starturls import StartUrlCollection
 
+from storage.backends import ContentFile
+
 from .base import Model
-from .decorators import pre_load, post_dump
+from .decorators import pre_load, post_dump, post_load
 from .exceptions import PathResolutionError
 from .fields import (
     Boolean, Domain, Integer, List, Regexp, String, Url, DependantField,
-    BelongsTo, HasMany, CASCADE, CLEAR, PROTECT, StartUrl)
-from .utils import unwrap_envelopes, short_guid, wrap_envelopes
+    BelongsTo, HasMany, HasOne, CASCADE, CLEAR, PROTECT, StartUrl)
+from .utils import unwrap_envelopes, short_guid, wrap_envelopes, encode
 from .validators import OneOf
 
 FIELD_TYPES = FieldTypeManager().available_type_names()
@@ -236,6 +239,37 @@ class Spider(Model):
             storage, instance, project=project, **kwargs)
 
     @pre_load
+    def populate_id(self, data):
+        if 'id' in data:
+            return data
+        path = self.context['path']
+        name = path.split('/')[-1]
+        if name.endswith('.json'):
+            name = name[:-len('.json')]
+        data['id'] = name
+        return data
+
+    @pre_load
+    def dump_templates_to_file(self, data):
+        if 'template_names' in data or 'templates' not in data:
+            return data
+        template_names = []
+        for template in data['templates']:
+            template['id'] = template.get('page_id') or template.get('name')
+            template_names.append(template['id'])
+            path = self.context['path']
+            path = '/'.join((path[:-len('.json')].strip('/'),
+                            '{}.json'.format(template['id'])))
+            sample = json.dumps(template, sort_keys=True, indent=4)
+            self.context['storage'].save(path, ContentFile(sample, path))
+        data['template_names'] = template_names
+        del data['templates']
+        path, storage = self.context['path'], self.context['storage']
+        spider = json.dumps(data, indent=4, sort_keys=True)
+        storage.save(path, ContentFile(spider, path))
+        return data
+
+    @pre_load
     def normalize_template_names(self, data):
         if 'template_names' in data:
             names = list(OrderedDict((v, 1) for v in data['template_names']))
@@ -317,14 +351,13 @@ class Sample(Model, OrderedAnnotationsMixin):
     url = Url(required=True)
     page_id = String(default='')
     page_type = String(default='item', validate=OneOf(['item']))
-    original_body = String(default='')
-    annotated_body = String(default='')
-    rendered_body = String(default='')
-    body = String(default='original_body',
-                  validate=OneOf(['original_body', 'rendered_body']))
     spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
                        only='id')
     items = HasMany('Item', related_name='sample', on_delete=CLEAR)
+    original_body = HasOne('OriginalBody', related_name='sample',
+                           on_delete=CLEAR, ignore_in_file=True)
+    rendered_body = HasOne('RenderedBody', related_name='sample',
+                           on_delete=CLEAR, ignore_in_file=True)
 
     class Meta:
         path = u'spiders/{self.spider.id}/{self.id}.json'
@@ -358,11 +391,12 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @staticmethod
     def migrate_sample(self, data):
-        data['body'] = data.get('body') or 'original_body'
         if not data.get('name'):
             data['name'] = data.get('id', data.get('page_id', u'')[:20])
         if data.get('version', '') >= '0.13.1':
             return data
+        if any(body in data for body in ('original_body', 'rendered_body')):
+            self._migrate_html(self, data)
         schemas = json.load(self.context['storage'].open('items.json'))
         if data.get('version', '') > '0.13.0':
             _, new_schemas = guess_schema(data, schemas)
@@ -377,10 +411,9 @@ class Sample(Model, OrderedAnnotationsMixin):
 
         json_file = self.context['storage'].open_with_default('extractors.json')
         extractors = json.load(json_file)
-        annotations = load_annotations(data.get('annotated_body', u''))
-        data['plugins'] = annotations
         sample, new_schemas = port_sample(data, schemas, extractors)
         self._add_schemas(self, new_schemas)
+        self.save_raw(self, sample)
         return sample
 
     @staticmethod
@@ -428,7 +461,6 @@ class Sample(Model, OrderedAnnotationsMixin):
                     containers[container_id]['children'].remove(parent)
             if container_id:
                 containers[container_id]['children'].append(item)
-
         data['items'] = [container
                          for container in itervalues(containers)
                          if container.get('container_id') is None]
@@ -448,6 +480,20 @@ class Sample(Model, OrderedAnnotationsMixin):
                                        **field))
             schema_collection.add(model)
         project.schemas = schema_collection
+
+    @staticmethod
+    def _migrate_html(self, sample):
+        for key, value in sample.items():
+            if not key.endswith('_body') or key == 'annotated_body':
+                continue
+            path = self.context['path']
+            path = '/'.join((path[:-len('.json')].strip('/'),
+                            '{}.html'.format(key)))
+            html = value.encode('utf-8')
+            if hasattr(html, 'encode') and isinstance(html, six.text_type):
+                html = encode(html).decode('utf-8')
+            self.context['storage'].save(path, ContentFile(html, path))
+        return sample
 
     @post_dump
     def add_fields(self, data):
@@ -481,7 +527,6 @@ class Sample(Model, OrderedAnnotationsMixin):
             scrapes = annotation.get('schema_id')
             if scrapes:
                 break
-
         data.update({
             'extractors': data.get('extractors', {}),
             'plugins': {
@@ -494,6 +539,14 @@ class Sample(Model, OrderedAnnotationsMixin):
         })
 
         return OrderedDict(sorted(iteritems(data)))
+
+    @staticmethod
+    def save_raw(serializer, data):
+        context = serializer.context
+        path, storage = context['path'], context['storage']
+        data = {k: v for k, v in data.items() if not k.endswith('_body')}
+        sample = json.dumps(data, indent=4, sort_keys=True)
+        storage.save(path, ContentFile(sample, path))
 
 
 class BaseAnnotation(Model):
@@ -721,3 +774,45 @@ class Annotation(BaseAnnotation):
             ('tagid', None),
             ('xpath', data['xpath']),
         ])
+
+
+class OriginalBody(Model):
+    id = String(primary_key=True)
+    html = String(default='')
+    sample = BelongsTo(Sample, related_name='original_body', on_delete=CASCADE,
+                       ignore_in_file=True)
+
+    @pre_load
+    def populate_item(self, data):
+        split_path = self.context['path'].split('/')
+        sample_id = split_path[2]
+        if len(split_path) == 3 and sample_id.endswith('.json'):
+            sample_id = sample_id[:-len('.json')]
+        name = self.Meta.name
+        return {
+            'id': '{}_{}'.format(sample_id, name),
+            'html': data,
+        }
+
+    @post_dump
+    def return_html(self, data):
+        return data['html']
+
+    class Meta:
+        owner = 'sample'
+        raw = True
+        single = True
+        path = (u'spiders/{self.sample.spider.id}/{self.sample.id}/'
+                u'original_body.html')
+        name = 'original_body'
+
+
+class RenderedBody(OriginalBody):
+    sample = BelongsTo(Sample, related_name='rendered_body', on_delete=CASCADE,
+                       ignore_in_file=True)
+
+    class Meta:
+        ignore_if_missing = True
+        path = (u'spiders/{self.sample.spider.id}/{self.sample.id}/'
+                u'rendered_body.html')
+        name = 'rendered_body'

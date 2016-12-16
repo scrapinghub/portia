@@ -6,7 +6,8 @@ from portia_api.jsonapi.serializers import JsonApiSerializer
 from portia_orm.base import AUTO_PK
 from portia_orm.exceptions import ProtectedError
 from portia_orm.models import (Project, Schema, Field, Extractor, Spider,
-                                   Sample, Item, Annotation)
+                               Sample, Item, Annotation, RenderedBody,
+                               OriginalBody)
 from portia_api.utils.projects import unique_name
 
 
@@ -338,3 +339,33 @@ class AnnotationSerializer(JsonApiSerializer):
             clear_auto_created(new_field)
 
         return instance
+
+
+class RenderedBodySerializer(JsonApiSerializer):
+    class Meta:
+        model = RenderedBody
+        url = ('/api/projects/{self.sample.spider.project.id}/'
+               'spiders/{self.sample.spider.id}/samples/'
+               '{self.sample.id}/rendered_body')
+        links = {
+            'sample': {
+                'related': ('/api/projects/{self.sample.spider.project.id}/'
+                            'spiders/{self.sample.spider.id}/samples/'
+                            '{self.sample.id}'),
+            },
+        }
+
+
+class OriginalBodySerializer(JsonApiSerializer):
+    class Meta:
+        model = OriginalBody
+        url = ('/api/projects/{self.sample.spider.project.id}/'
+               'spiders/{self.sample.spider.id}/samples/'
+               '{self.sample.id}/original_body')
+        links = {
+            'sample': {
+                'related': ('/api/projects/{self.sample.spider.project.id}/'
+                            'spiders/{self.sample.spider.id}/samples/'
+                            '{self.sample.id}'),
+            },
+        }

@@ -199,8 +199,6 @@ class SampleSchema(SlydSchema):
     page_type = fields.Str(default='item')
     scrapes = fields.Str()
     extractors = fields.Dict(default={})
-    original_body = fields.Str(default='')
-    annotated_body = fields.Str(default='')
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
@@ -212,13 +210,21 @@ class SampleSchema(SlydSchema):
                             'spider_id': '<spider_id>'},
         type_='spiders', include_resource_linkage=True
     )
-    html = fields.Relationship(
+    original_body = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
-                    '{sample_id}/html',
+                    '{sample_id}/original_body',
         related_url_kwargs={'project_id': '<project_id>',
                             'spider_id': '<spider_id>',
                             'sample_id': '<id>'},
-        type_='html', include_resource_linkage=True
+        type_='html', include_resource_linkage=False
+    )
+    rendered_body = fields.Relationship(
+        related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
+                    '{sample_id}/rendered_body',
+        related_url_kwargs={'project_id': '<project_id>',
+                            'spider_id': '<spider_id>',
+                            'sample_id': '<id>'},
+        type_='html', include_resource_linkage=False
     )
     items = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples/'
@@ -368,6 +374,22 @@ class HtmlSchema(SlydSchema):
 
     class Meta:
         type_ = 'html'
+
+
+class RenderedBody(SlydSchema):
+    id = fields.Str()
+    html = fields.Str()
+
+    class Meta:
+        type_ = 'rendered-bodys'
+
+
+class OriginalBody(SlydSchema):
+    id = fields.Str()
+    html = fields.Str()
+
+    class Meta:
+        type_ = 'original-bodys'
 
 
 class ItemSchema(SlydSchema):

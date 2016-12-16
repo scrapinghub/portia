@@ -45,6 +45,15 @@ class ModelOpts(object):
         if not isinstance(self.polymorphic, (bool, string_types)):
             raise ValueError(
                 "'polymorphic' option must be a string or boolean.")
+        self.initialize_boolean('raw', meta)
+        self.initialize_boolean('single', meta)
+        self.initialize_boolean('ignore_if_missing', meta)
+
+    def initialize_boolean(self, key, meta):
+        value = getattr(meta, key, False)
+        if not isinstance(value, bool):
+            raise ValueError("'{}' option must be a boolean".format(key))
+        setattr(self, key, value)
 
 
 class ModelMeta(type):
@@ -440,7 +449,7 @@ class Model(with_metaclass(ModelMeta)):
                     else:
                         value = self.data_store.get(
                             name, ('staged', 'committed'))
-                except (AttributeError, KeyError):
+                except (AttributeError, KeyError, PathResolutionError):
                     continue
                 if value is None:
                     continue
@@ -488,7 +497,7 @@ class Model(with_metaclass(ModelMeta)):
         for model in collector.delete:
             path = model.storage_path(model, snapshots=('committed',))
             if model.opts.owner:
-                if path not in saved_paths and path not in deleted_paths:
+                if path and path not in saved_paths and path not in deleted_paths:
                     to_save = self._get_object_to_dump(
                         model, parent_snapshots=('committed',))
                     model.storage.save(path, ContentFile(
@@ -518,7 +527,7 @@ class Model(with_metaclass(ModelMeta)):
         if not path:
             return
 
-        many = bool(cls.opts.owner)
+        many = bool(cls.opts.owner) and not cls.opts.single
         if instance and many:
             try:
                 instance.data_store.get(instance._pk_field)
@@ -534,8 +543,9 @@ class Model(with_metaclass(ModelMeta)):
                 return cls.collection()
             return instance  # may be None
 
-        file_data = json.loads(storage.open(path).read(),
-                               object_pairs_hook=OrderedDict)
+        file_data = storage.open(path).read()
+        if not cls.opts.raw:
+            file_data = json.loads(file_data, object_pairs_hook=OrderedDict)
 
         if cls.opts.polymorphic:
             if not many:
@@ -555,7 +565,7 @@ class Model(with_metaclass(ModelMeta)):
 
         file_schema = cls._file_model.file_schema
         result = file_schema(
-            context={'storage': storage}).load(
+            context={'storage': storage, 'path': path}).load(
                 file_data, many=many).data
         return result
 
@@ -568,6 +578,8 @@ class Model(with_metaclass(ModelMeta)):
         try:
             path = (cls.opts.path or u'').format(self=data)
         except AttributeError as e:
+            if cls.opts.ignore_if_missing:
+                return
             raise PathResolutionError(
                 u"Could not resolve file path for model '{}':\n"
                 u"    {}".format(cls.__name__, e))

@@ -16,9 +16,11 @@ from splash.har.qt import cookies2har
 
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
 
+from storage.backends import ContentFile
 from portia_orm.models import Project
+from portia_orm.utils import decode
 
-from .utils import open_tab, extract_data, _get_viewport, _decode
+from .utils import open_tab, extract_data, _get_viewport, _html_path, decoded_html
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
 _SETTINGS = Settings()
@@ -43,14 +45,7 @@ def save_html(data, socket, item_checker=None):
     spider = project.spiders[data['spider']]
     samples = spider.samples
     sample = samples[data['sample']]
-    if sample.rendered_body and not data.get('update'):
-        return
-    if 'use_live' not in data:
-        data['use_live'] = item_checker.using_js
-    sample.body = 'rendered_body' if data['use_live'] else 'original_body'
-    sample.rendered_body = item_checker.html
-    sample.original_body = item_checker.raw_html
-    return _update_sample(data, socket, sample, save=True)
+    return _update_sample(data, socket, sample)
 
 
 @open_tab
@@ -69,23 +64,28 @@ def extract_items(data, socket):
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
-def _update_sample(data, socket, sample=None, project=None, save=False,
-                   use_live=False):
+def _update_sample(data, socket, sample=None, project=None):
     """Recompile sample with latest annotations"""
     if sample is None:
         project = project or socket.spiderspec.project
         spiders = project.spiders
         spider = spiders[data['spider']]
         samples = spider.samples
-        sample = samples[data['sample']].dump()
-    if use_live:
+        sample = samples[data['sample']]
+        path = 'spiders/{}/{}/{{}}.html'.format(data['spider'], data['sample'])
+    else:
+        path = _html_path(sample)
+    if hasattr(sample, 'dump'):
+        sample = sample.dump()
+    html_path = path.format
+    for name, type_ in (('original_body', 'raw'), ('rendered_body', None)):
         try:
-            sample['original_body'] = socket.tab.html()
-        except (TypeError, ValueError):
-            pass
-    if save and hasattr(sample, 'save'):
-        sample.save()
-        return sample.dump()
+            path = html_path(name)
+            html = decode(socket.storage.open(path).read())
+        except IOError:
+            html = decoded_html(socket.tab, type_)
+            socket.storage.save(path, ContentFile(html, path))
+        sample[name] = html
     return sample
 
 
@@ -257,10 +257,8 @@ class ItemChecker(object):
 
     @property
     def raw_html(self):
-        stated_encoding = self.socket.tab.evaljs('document.characterSet')
         try:
-            raw_html = _decode(
-                self.socket.tab.network_manager._raw_html, stated_encoding)
+            raw_html = decoded_html(self.tab)
             # XXX: Some pages only show a 301 page. Load the browser html
             assert len(raw_html) > 500
         except (AttributeError, TypeError, AssertionError):
@@ -308,17 +306,13 @@ class ItemChecker(object):
         spider['body'] = body_field
         if self.sample:
             samples = [_update_sample(self.data(), socket,
-                                      project=self.project, use_live=live)]
-            if not samples[0].get(body_field):
-                data = {'project': self.project.id, 'spider': self.spider,
-                        'sample': self.sample, 'update': True}
-                samples = [save_html(data, self.socket, self)]
+                                      project=self.project)]
         else:
             samples = socket.spiderspec.templates
         spider['templates'] = samples
         extraction = BotAnnotations()
-        extraction.setup_bot(_SETTINGS, spider, schemas, extractors,
-                             _SPIDER_LOG)
+        extraction.setup_bot(_SETTINGS, self.socket.spider, spider, schemas,
+                             extractors, _SPIDER_LOG)
         self.socket.spider.plugins['Annotations'] = extraction
         live_items, js_links = extract_data(url, html, socket.spider, samples)
         raw_items, links = extract_data(url, raw_html, socket.spider, samples)

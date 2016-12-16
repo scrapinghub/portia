@@ -352,6 +352,9 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
                     for (let alias of aliases) {
                         for (let deleted of response.meta[alias]) {
                             const normalized = serializer._normalizeResourceHelper(deleted);
+                            if (!normalized) {
+                                continue;
+                            }
                             const record = store.peekRecord(normalized.type, normalized.id);
                             if (record) {
                                 if (record.get('isSaving')) {

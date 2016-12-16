@@ -1,6 +1,11 @@
+import itertools
+import chardet
+import six
+
 from collections import OrderedDict
 from uuid import uuid4
 
+from w3lib.encoding import html_body_declared_encoding
 from django.utils.functional import cached_property
 from six import iteritems
 
@@ -86,3 +91,29 @@ class AttributeDict(dict):
             raise AttributeError(
                 u"'{}' object has no attribute '{}'".format(
                     self.__class__.__name__, name))
+
+
+def encode(html, default=None):
+    return _encode_or_decode_string(html, type(html).encode, default)
+
+
+def decode(html, default=None):
+    return _encode_or_decode_string(html, type(html).decode, default)
+
+
+def _encode_or_decode_string(html, method, default):
+    if not default:
+        encoding = html_body_declared_encoding(html)
+        if encoding:
+            default = [encoding]
+        else:
+            default = []
+    elif isinstance(default, six.string_types):
+        default = [default]
+    for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
+        try:
+            return method(html, encoding)
+        except UnicodeDecodeError:
+            pass
+    encoding = chardet.detect(html).get('encoding')
+    return method(html, encoding)
