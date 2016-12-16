@@ -46,9 +46,9 @@ class IblSpider(SitemapSpider):
         super(IblSpider, self).__init__(name, **kw)
         spec = deepcopy(spec)
         self._add_spider_args_to_spec(spec, kw)
+        self._configure_js(spec, settings)
         self.plugins = self._configure_plugins(
             settings, spec, item_schemas, all_extractors)
-        self._configure_js(spec, settings)
 
         self.login_requests, self.form_requests = [], []
         self._start_urls = self._create_start_urls(spec)
@@ -212,7 +212,8 @@ class IblSpider(SitemapSpider):
         for plugin_class, plugin_name in zip(load_plugins(settings),
                                              load_plugin_names(settings)):
             instance = plugin_class()
-            instance.setup_bot(settings, spec, schemas, extractors, self.logger)
+            instance.setup_bot(settings, self, spec, schemas, extractors,
+                               self.logger)
             plugins[plugin_name] = instance
         return plugins
 

@@ -117,6 +117,8 @@ def port_sample(sample, schemas=None, extractors=None):
         schemas = {}
     if extractors is None:
         extractors = {}
+    if sample.get('version') == SLYBOT_VERSION:
+        return sample, schemas
     container_id = gen_predictable_id(sample.get('id', 1), sample['page_id'])
     default_annotations = [_create_container('body', container_id)]
     if not sample.get('annotated_body') and not sample.get('plugins'):
@@ -125,12 +127,11 @@ def port_sample(sample, schemas=None, extractors=None):
                 'extracts': default_annotations
             }
         }
-        return sample
+        return sample, schemas
     if not sample.get('plugins'):
         sample['plugins'] = load_annotations(sample.get('annotated_body', u''))
     else:
         repair_ids(sample)
-    sample.pop('annotated_body', None)
 
     # Group annotations by type
     annotations = sample['plugins']['annotations-plugin']['extracts']
@@ -144,7 +145,8 @@ def port_sample(sample, schemas=None, extractors=None):
         except KeyError:
             tagged = u''
         sel = Selector(text=tagged)
-    annotations = port_standard(annotations, sel, sample)
+    sample.pop('annotated_body', None)
+    annotations = port_standard(annotations, sel, sample, extractors)
     standard_annos, generated_annos, variant_annos = [], [], []
     for a in annotations:
         if a.get('generated'):
@@ -159,7 +161,7 @@ def port_sample(sample, schemas=None, extractors=None):
                 'extracts': default_annotations
             }
         }
-        return sample
+        return sample, schemas
     new_annotations = []
     a = find_element(annotations[0], sel)
     for b in annotations[1:]:
@@ -176,6 +178,8 @@ def port_sample(sample, schemas=None, extractors=None):
     new_annotations.extend(port_variants(variant_annos, sel))
     for a in new_annotations:
         if not (a.get('item_container') and a.get('container_id')):
+            if container_id == a.get('id'):
+                continue
             a['container_id'] = container_id
         a.pop('tagid', None) or a.pop('data-tagid', None)
     # Update annotations
@@ -401,6 +405,7 @@ def _create_container(element, container_id, repeated=False, siblings=0,
         s = find_css_selector(element, selector)
     data = {
         'id': '%s%s' % (container_id, '#parent' if repeated else ''),
+        'container_id': None,
         'accept_selectors': [s],
         'reject_selectors': [],
         'selector': s,

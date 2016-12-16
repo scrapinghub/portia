@@ -31,7 +31,7 @@ class StartUrlCollection(object):
         return list(set(chain(*domains)))
 
     def normalize(self):
-        return (start_url.normalized for start_url in self.start_urls)
+        return [start_url.normalized for start_url in self.start_urls]
 
     def _generate_urls(self, start_url):
         generator = self.generators[start_url.generator_type]
