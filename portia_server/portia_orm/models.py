@@ -403,6 +403,8 @@ class Sample(Model, OrderedAnnotationsMixin):
             self._add_schemas(self, new_schemas)
             data = repair_ids(data)
             return data
+        if 'id' not in data:
+            data['id'] = data['name']
         annotations = (data.pop('plugins', {}).get('annotations-plugin', {})
                            .get('extracts', []))
         items = [a for a in annotations if a.get('item_container')]
