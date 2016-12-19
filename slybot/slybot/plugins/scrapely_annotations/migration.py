@@ -63,7 +63,10 @@ def gen_predictable_id(id1, id2, disallow=None):
         disallow = set(disallow)
     else:
         disallow = []
-    seed = id_to_int(id1) ^ id_to_int(id2)
+    id1, id2 = id_to_int(id1), id_to_int(id2)
+    if id1 == id2:
+        id2 = ~id2 - 1
+    seed = id1 ^ id2
     generator = Random(seed)
 
     def format_id():
