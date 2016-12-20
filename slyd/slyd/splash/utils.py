@@ -25,7 +25,6 @@ def decoded_html(tab, type_=None):
 def open_tab(func):
     def wrapper(data, socket):
         if socket.tab is None:
-            print 'data:', data
             meta = data.get('_meta', data)
             socket.open_tab(meta)
             socket.open_spider(meta)

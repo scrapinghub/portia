@@ -194,9 +194,6 @@ class PortiaJSApi(QObject):
             '_data': data
         })
         if command == 'mutation':
-            print '----------------------------------'
-            print 'COMMAND: mutation + metadata'
-            print '----------------------------------'
             self.protocol.sendMessage(metadata(self.protocol))
 
 
@@ -271,9 +268,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
         command = data['_command']
-        print '----------------------------------'
-        print 'COMMAND:', command
-        print '----------------------------------'
         with data_store_context():
             result = self._handlers[command](data, self)
         if result:

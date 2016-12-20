@@ -6,9 +6,6 @@ const SECOND = 1000;
 const INITIAL_TIMEOUT = 2 * SECOND;
 const MAX_TIMEOUT = 30 * SECOND;
 
-function print(msg, debug=true) {
-    if(debug) { console.info(msg); }
-}
 
 export default Ember.Service.extend({
     uiState: Ember.inject.service(),
@@ -34,8 +31,6 @@ export default Ember.Service.extend({
     },
 
     activateExtraction() {
-        print('ActivateExtraction');
-
         this.set('items', []);
         this.set('extractionTimeout', 0);
         this.set('isExtracting', true);
@@ -54,8 +49,6 @@ export default Ember.Service.extend({
     },
 
     _getitems() {
-        print("Sending 'extract_items' command...");
-
         const spiderId = this.get('spider.id');
         if (spiderId) {
             this.get('webSocket').send({
@@ -68,10 +61,7 @@ export default Ember.Service.extend({
     },
 
     _setExtraction(data) {
-        print("'extract_items' callback called.");
-
         if (this.get('noSamples')) {
-            print('noSamples');
             this.failExtraction('Samples are needed for extracting data.');
             return;
         }
@@ -82,9 +72,6 @@ export default Ember.Service.extend({
     },
 
     _extract: task(function * () {
-        print('Perform Extraction Task');
-        print(`Extraction Timeout: ${this.get('extractionTimeout')}`);
-
         const t = this.get('extractionTimeout');
         yield timeout(t);
         this.update();
@@ -92,8 +79,6 @@ export default Ember.Service.extend({
     }).drop(),
 
     _setItems(data) {
-        print(data);
-
         this._startExtraction(data);
 
         this.setProperties({
@@ -114,10 +99,6 @@ export default Ember.Service.extend({
         const items = data.items;
         const newItems = items && items.length >= this.get('items.length');
 
-        print('_updateItems');
-        print(this.get('items'));
-        print(items);
-        print(`New Items: ${newItems}`);
         if (newItems) {
             this.set('items', items);
         }
@@ -127,11 +108,6 @@ export default Ember.Service.extend({
         const receivedItems = data.items && data.items.length > 0;
         // Ensures the wait time is 254 seconds ~ 4 minutes
         const exceedWait = this.get('extractionTimeout') > MAX_TIMEOUT;
-
-        print('----------------------------');
-        print('_updateExtraction');
-        print('ReceivedItems:', receivedItems);
-        print('----------------------------');
 
         if (receivedItems || exceedWait) {
             this._finishExtraction();
