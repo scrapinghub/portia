@@ -57,9 +57,6 @@ def extract_items(data, socket):
     c = ItemChecker(socket, project, spider, sample)
     # TODO: add option for user to view raw and js items in UI from WS
     items, changes, changed_values, links = c.extract()
-    print '----------------------------------'
-    print 'Items:', items
-    print '----------------------------------'
     return {'links': links, 'items': items, 'changes': changes,
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 

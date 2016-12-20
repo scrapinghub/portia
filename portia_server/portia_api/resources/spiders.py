@@ -37,8 +37,6 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         try:
             spider = load_spider(self.storage, instance)
         except (ValueError, KeyError, IndexError):
-            import traceback
-            traceback.print_exc()
             raise JsonApiGeneralException(
                 'Failed to load spider, "%s" correctly' % instance.id, 500)
         pages = self._build_pages(spider)
