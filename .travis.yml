@@ -8,10 +8,9 @@ cache:
   directories:
   - "$HOME/.cache/pip"
   - "$HOME/.cache/wheelhouse"
-  - slyd/node_modules
-  - slyd/bower_components
   - portiaui/node_modules
   - portiaui/bower_components
+
 
 install:
 - source ${VIRTUAL_ENV}/bin/activate
