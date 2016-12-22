@@ -28,7 +28,12 @@ class ProjectDownloadMixin(object):
         spider_id = self.kwargs.get('spider_id', None)
         spiders = [spider_id] if spider_id is not None else None
         if hasattr(self.storage, 'checkout') and (version or branch):
-            self.storage.checkout(version, branch)
+            try:
+                self.storage.checkout(version, branch)
+            except IOError:
+                pass
+            except ValueError as e:
+                raise JsonApiNotFoundError(str(e))
         archiver = CodeProjectArchiver if fmt == u'code' else ProjectArchiver
         try:
             content = archiver(self.storage).archive(spiders)
