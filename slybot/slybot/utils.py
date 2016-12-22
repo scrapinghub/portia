@@ -55,7 +55,7 @@ def open_project_from_dir(project_dir):
                     else:
                         templates = []
                         for template in spec.get('templates', []):
-                            if template.get('version') < '0.13.0':
+                            if template.get('version', '') < '0.13.0':
                                 templates.append(template)
                             else:
                                 templates.append(_build_sample(template))
@@ -82,15 +82,23 @@ def load_external_templates(spec_base, spider_name, template_names):
                     if fname.endswith('.html'):
                         with open(os.path.join(samples_sub_dir, fname)) as f:
                             attr = fname[:-len('.html')]
-                            sample[attr] = f.read().decode('utf-8')
-            yield _build_sample(sample)
+                            sample[attr] = read(f)
+            version = sample.get('version', '')
+            yield _build_sample(sample, legacy=version < '0.13.0')
 
 
-def _build_sample(sample):
+def read(fp, encoding='utf-8'):
+    content = fp.read()
+    if hasattr(content, 'decode'):
+        content = content.decode('utf-8')
+    return content
+
+
+def _build_sample(sample, legacy=False):
     from slybot.plugins.scrapely_annotations.builder import Annotations
     data = sample.get('plugins', {}).get('annotations-plugin')
     if data:
-        Annotations().save_extraction_data(data, sample)
+        Annotations().save_extraction_data(data, sample, legacy=legacy)
     sample['page_id'] = sample.get('page_id') or sample.get('id') or ""
     sample['annotated'] = True
     return sample

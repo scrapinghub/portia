@@ -16,7 +16,7 @@ from .migration import _get_parent, short_guid
 
 class Annotations(object):
 
-    def save_extraction_data(self, data, template, options={}):
+    def save_extraction_data(self, data, template, **options):
         """
         data = {
             extracts: [
@@ -54,7 +54,8 @@ class Annotations(object):
                 if bodies:
                     body = bodies[0]
         html = template[body]
-        template['annotated_body'] = apply_annotations(annotation_data, html)
+        template['annotated_body'] = apply_annotations(
+            annotation_data, html, bool(options.get('legacy')))
         return data
 
 
@@ -102,7 +103,7 @@ def _get_data_id(annotation):
         return annotation.attributes[TAGID]
 
 
-def _gen_annotation_info(annotations):
+def _gen_annotation_info(annotations, legacy=False):
     data = {}
     annotation_data = []
     for annotation in arg_to_iter(annotations):
@@ -133,12 +134,15 @@ def _gen_annotation_info(annotations):
             elif annotation.get('ignore'):
                 data['data-scrapy-ignore'] = 'true'
     if annotation_data:
+        if legacy:
+            annotation_data = annotation_data[0]
         serialized = json.dumps(annotation_data).replace('"', '&quot;')
         data['data-scrapy-annotate'] = serialized
     return data
 
 
-def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
+def _get_generated_annotation(element, annotations, nodes, html_body, inserts,
+                              legacy=False):
     eid = insert_after_tag = _get_data_id(element)
     text_strings = _get_text_nodes(nodes, html_body)
     text_content = ''.join((s.lstrip() for s in text_strings))
@@ -173,7 +177,8 @@ def _get_generated_annotation(element, annotations, nodes, html_body, inserts):
                     if previous.strip() in pre:
                         pre_selected.pop(j - removed)
                         removed += 1
-                        generated = _generate_elem(annotation, selected)
+                        generated = _generate_elem(
+                            annotation, selected, legacy)
                         # Next immediate text node will be returned and added
                         # to the new document. Other text nodes within this
                         # node will be added after other child nodes have been
@@ -217,9 +222,9 @@ def _get_generated_slice(annotation):
     return annotation_slice
 
 
-def _generate_elem(annotation, text):
+def _generate_elem(annotation, text, legacy=False):
     sections = ['<ins']
-    annotation_info = _gen_annotation_info(annotation)
+    annotation_info = _gen_annotation_info(annotation, legacy)
     annotation_info[GENERATEDTAGID] = annotation.get('id')
     attributes = []
     for key, value in annotation_info.items():
@@ -357,7 +362,7 @@ def add_repeated_field(annotation, elems, page):
         return parent_annotation
 
 
-def apply_annotations(annotations, target_page):
+def apply_annotations(annotations, target_page, legacy=False):
     selector_annotations, tagid_annotations = _filter_annotations(annotations)
     inserts = defaultdict(list)
     numbered_html = add_tagids(target_page)
@@ -433,7 +438,8 @@ def apply_annotations(annotations, target_page):
                     regular_annotations.append(annotation)
             # Add annotations data as required
             if regular_annotations:
-                annotation_info = _gen_annotation_info(regular_annotations)
+                annotation_info = _gen_annotation_info(regular_annotations,
+                                                       legacy)
                 for key, val in annotation_info.items():
                     element.attributes[key] = val
             next_text_section = ''
@@ -441,14 +447,16 @@ def apply_annotations(annotations, target_page):
                 inner_data, target = tee(target)
                 nodes = _get_inner_nodes(inner_data)
                 next_text_section = _get_generated_annotation(
-                    element, generated, nodes, numbered_html, inserts)
+                    element, generated, nodes, numbered_html, inserts,
+                    legacy)
             if next_generated:
                 inner_data, target = tee(target)
                 open_tags = 0 if element.tag_type == UNPAIRED_TAG else 1
                 nodes = _get_inner_nodes(inner_data, open_tags=open_tags,
                                          insert_after=True)
                 next_text_section = _get_generated_annotation(
-                    element, next_generated, nodes, numbered_html, inserts)
+                    element, next_generated, nodes, numbered_html, inserts,
+                    legacy)
 
             if '__added' not in element.attributes:
                 output.append(serialize_tag(element))
