@@ -14,8 +14,14 @@ def build_js():
     files = ('waitAsync.js', 'perform_actions.js')
     fdata = []
     for fname in files:
-        with open(join(base_path, fname)) as f:
-            fdata.append(f.read())
+        try:
+            with open(join(base_path, fname)) as f:
+                fdata.append(f.read())
+        except IOError:
+            print(
+                'WARNING: Could not find JavaScript files to build splash '
+                'scripts. Using pre-built assets if available instead')
+            return
     js_file = abspath(join(root, 'slybot', 'splash-script-combined.js'))
     with open(js_file, 'w') as f:
         f.write(';(function(){\n%s\n})();' % '\n'.join(fdata))
