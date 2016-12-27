@@ -1,6 +1,5 @@
 import re
 from collections import defaultdict
-from itertools import chain
 
 from portia_orm.models import Project
 from portia_orm.utils import short_guid
@@ -26,8 +25,8 @@ class ModelCopier(object):
         self.from_project.extractors
         self.spider_ids = set(spider.id for spider in self.project.spiders)
 
-        self.copied_fields     = {}
-        self.copied_schemas    = {}
+        self.copied_fields = {}
+        self.copied_schemas = {}
         self.copied_extractors = {}
 
     def copy(self, models):
@@ -136,13 +135,12 @@ class ModelCopier(object):
         copied_field.save()
         self.copied_fields[field.id] = copied_field
 
-
     def _copy_extractor(self, extractor):
         extractor_id = extractor.id
         if extractor_id in self.copied_extractors:
             return self.copied_extractors[extractor_id]
 
-        copied_extractor = extractor.copy( short_guid(), storage=self.storage)
+        copied_extractor = extractor.copy(short_guid(), storage=self.storage)
         copied_extractor.project = self.project
 
         copied_extractor.save()
