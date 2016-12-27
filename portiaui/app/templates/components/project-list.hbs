@@ -1,10 +1,32 @@
 {{#if showSearch}}
     {{input-with-clear update=(action "search") clear=(action "clear") placeholder="Search..."}}
-    {{#each filteredProjects as |project|}}
-        {{link-to project.name 'projects.project' project class="list-group-item"}}
-    {{/each}}
+    <div class='project-list-items'>
+        {{#each filteredProjects as |project|}}
+            {{#if isSelecting}}
+                <div class='list-group-item'
+                 onclick={{action 'selectProject' project}}>
+                    {{project.name}}
+                </div>
+            {{else}}
+                {{link-to project.name 'projects.project' project
+                  class="list-group-item"
+                }}
+            {{/if}}
+        {{/each}}
+    </div>
 {{else}}
-    {{#each projects as |project|}}
-        {{link-to project.name 'projects.project' project class="list-group-item"}}
-    {{/each}}
+    <div class='project-list-items'>
+        {{#each projects as |project|}}
+            {{#if isSelecting}}
+                <div class='list-group-item'
+                 onclick={{action 'selectProject' project}}>
+                    {{project.name}}
+                </div>
+            {{else}}
+                {{link-to project.name 'projects.project' project
+                  class="list-group-item"
+                }}
+            {{/if}}
+        {{/each}}
+    </div>
 {{/if}}

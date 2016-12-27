@@ -1,0 +1,56 @@
+{{#tree-list-item hide=(and currentSpider (not-eq spider currentSpider)) as |options|}}
+    {{#link-to 'projects.project.spider' spider (query-params url=(or spider.firstUrl null) baseurl=null) current-when='projects.project.spider'}}
+        {{spider-indentation spider=spider currentSpider=currentSpider}}
+        {{list-item-icon icon='spider'}}
+
+        {{#if currentSpider}}
+            {{#list-item-text}}{{spider.nameAlias}}{{/list-item-text}}
+        {{else}}
+            {{list-item-editable value=(mut spider.nameAlias) onChange=(action 'saveSpiderName' spider) validate=(action 'validateSpiderName' spider)}}
+        {{/if}}
+    {{/link-to}}
+
+    {{#animation-container class="icon" setWidth=false setHeight=false}}
+        {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+            <li>
+              <a href={{downloadCodeUrl}} target='_blank'>
+                  {{list-item-icon class="icon" icon="code"}}Code
+                </a>
+            </li>
+            <li>
+              <a href={{downloadUrl}} target='_blank'>
+                  {{list-item-icon class="icon" icon="download"}}Download
+                </a>
+            </li>
+            {{#if isCopyingSpider}}
+                {{project-list
+                  projects=projects
+                  withinDropdown=true
+                  onClear=(action 'closeSpiderOptions')
+                  selectProject=(action 'copyToProject' options)
+                }}
+            {{else}}
+                {{#options.item value="Copy"
+                  action=(action 'copySpider') as |value|}}
+                    {{list-item-icon class="icon" icon="copy"}}{{value}}
+                {{/options.item}}
+            {{/if}}
+            {{dropdown-delete
+              onDelete=(action 'removeSpider' spider)
+              text='Delete Spider'
+            }}
+        {{/list-item-icon-menu}}
+    {{/animation-container}}
+
+    {{#animation-container class="icon" hide=(not-eq spider currentSpider) setWidth=false setHeight=false}}
+        {{#tooltip-container tooltipFor=(concat "spider-options-button" (guid spider)) text="Advanced spider options" tooltipContainer='body'}}
+            {{#link-to 'projects.project.spider' id=(concat "spider-options-button" (guid spider)) bubbles=false}}
+                {{#link-to 'projects.project.spider.options' bubbles=false class="ignore-active"}}
+                    {{list-item-icon icon='options'}}
+                {{/link-to}}
+            {{/link-to}}
+        {{/tooltip-container}}
+    {{/animation-container}}
+
+{{/tree-list-item}}
+

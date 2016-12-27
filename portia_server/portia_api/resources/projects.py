@@ -39,7 +39,7 @@ class ProjectDownloadMixin(object):
             content = archiver(self.storage).archive(spiders)
         except IOError as e:
             raise JsonApiNotFoundError(str(e))
-        return FileResponse('{}.zip'.format(self.storage.name), content,
+        return FileResponse('{}.zip'.format(self.project.name), content,
                             status=HTTP_200_OK)
 
 
@@ -152,7 +152,7 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
 
     @detail_route(methods=['post'])
     def copy(self, *args, **kwargs):
-        from_project_id = self.query.get('from')
+        from_project_id = self.query.get('from') or self.data.get('from')
         if not from_project_id:
             raise JsonApiBadRequestError('`from` parameter must be provided.')
         try:

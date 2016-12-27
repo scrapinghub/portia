@@ -44,8 +44,9 @@ class ModelCopier(object):
     def resolve(self, instances):
         models = []
         for spider in instances.get('spiders', []):
-            spider = spider
+            spider.start_urls
             new_spider = spider.with_storage(self.storage)
+            new_spider.project = self.project
             for sample in spider.samples:
                 for item in sample.items:
                     schema = item.schema.with_storage(self.storage)

@@ -117,9 +117,17 @@
                     {{/help-icon}}
                 {{/animation-container}}
             {{/list-item-text}}
-            {{#tooltip-container tooltipFor="add-sample-button" text="Create a new sample from the current page" tooltipContainer='body'}}
-                {{list-item-icon id="add-sample-button" icon='add' disabled=(not canAddSample) action=(action 'addSample')}}
-            {{/tooltip-container}}
+            {{#if currentSample}}
+                {{#animation-container}}
+                    {{#link-to 'projects.project.spider' spider}}
+                        Show all samples
+                    {{/link-to}}
+                {{/animation-container}}
+            {{else}}
+                {{#tooltip-container tooltipFor="add-sample-button" text="Create a new sample from the current page" tooltipContainer='body'}}
+                    {{list-item-icon id="add-sample-button" icon='add' disabled=(not canAddSample) action=(action 'addSample')}}
+                {{/tooltip-container}}
+            {{/if}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item hide=(or spider.samples.isPending spider.samples.length) as |options|}}
                 {{#list-item-text class="text-center"}}
@@ -140,17 +148,15 @@
                         {{indentation-spacer}}
                         {{list-item-icon icon='sample'}}
                         {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
-                        {{#animation-container class="icon" setWidth=false setHeight=false}}
-                            {{list-item-icon icon='remove' action=(action 'removeSample' sample) bubbles=false}}
-                        {{/animation-container}}
-                        {{#animation-container class="icon" hide=(not-eq sample currentSample) setWidth=false setHeight=false}}
-                            {{#tooltip-container tooltipFor=(concat "sample-close-button" (guid sample)) text="Close sample" tooltipContainer='body'}}
-                                {{#link-to 'projects.project.spider' id=(concat "sample-close-button" (guid sample)) bubbles=false}}
-                                    {{list-item-icon icon='close'}}
-                                {{/link-to}}
-                            {{/tooltip-container}}
-                        {{/animation-container}}
                     {{/link-to}}
+
+                    {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+                        {{dropdown-delete
+                          onDelete=(action 'removeSample' sample)
+                          text='Delete Sample'
+                        }}
+                    {{/list-item-icon-menu}}
+
                 {{/tree-list-item}}
             {{/each}}
         {{/if}}

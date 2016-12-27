@@ -3,7 +3,14 @@
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title project-listing"}}
                 Project
-                {{#animation-container hide=(or (not versionControlled) (not project.hasChanges)) id="project-changes-info" class="inline project-changes" setHeight=false}}
+                {{#animation-container
+                    hide=isPublished
+                    class="inline project-changes"
+                    setHeight=false
+                }}
+                    {{#link-to 'projects'}}Show all projects{{/link-to}}
+                {{/animation-container}}
+                {{#animation-container hide=notPublished id="project-changes-info" class="inline project-changes" setHeight=false}}
                     Not published
                     {{#help-icon tooltipClasses="tooltip-wide"}}
                         Not published
@@ -36,20 +43,34 @@
                     {{#list-item-text}}
                         {{project.name}}
                     {{/list-item-text}}
-                    {{#if versionControlled}}
-                        {{#tooltip-container tooltipFor="project-publish-button" text="Publish project" tooltipContainer='body'}}
-                            {{list-item-icon id="project-publish-button" class=(if project.hasChanges 'active') icon='publish' action=(action 'publish')}}
-                        {{/tooltip-container}}
-                        {{#tooltip-container tooltipFor="project-discard-button" text="Discard changes" tooltipContainer='body'}}
-                            {{list-item-icon id="project-discard-button" class=(if project.hasChanges 'active') icon='rollback' action=(action 'discard')}}
-                        {{/tooltip-container}}
-                    {{/if}}
-                    {{#tooltip-container tooltipFor="project-close-button" text="Close project" tooltipContainer='body'}}
-                        {{#link-to 'projects' id="project-close-button"}}
-                            {{list-item-icon icon='close'}}
-                        {{/link-to}}
-                    {{/tooltip-container}}
                 {{/link-to}}
+
+                {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+                    {{#if versionControlled}}
+                        {{#if project.hasChanges}}
+                            <li><a {{action (chain-actions (action 'publish')
+                                             options.closeMenu)}}>
+                                {{list-item-icon
+                                  class="icon"
+                                  icon="publish"}}Publish project
+                            </a></li>
+                            <li><a {{action (chain-actions (action 'discard')
+                                             options.closeMenu)}}>
+                                {{list-item-icon
+                                  class="icon"
+                                  icon="rollback"}}Discard changes
+                            </a></li>
+                        {{/if}}
+                        <li><a href={{downloadCodeUrl}} target='_blank'>
+                            {{list-item-icon class="icon" icon="code"}}Code
+                        </a> </li>
+                        <li> <a href={{downloadUrl}} target='_blank'>
+                            {{list-item-icon class="icon" icon="download"}}Download
+                        </a> </li>
+                    {{/if}}
+                {{/list-item-icon-menu}}
+                <div class={{if project.hasChanges 'droplet'}}></div>
+
             {{/tree-list-item}}
         {{/if}}
     {{/tree-list-item}}

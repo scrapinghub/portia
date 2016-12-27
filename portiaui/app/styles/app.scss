@@ -49,11 +49,13 @@
 @import "bower_components/bootstrap-sass/assets/stylesheets/bootstrap/responsive-utilities";
 
 @import "bower_components/font-awesome/scss/font-awesome";
+
 @import "variables";
 @import "generic";
 
 @import "animations";
 @import "icons";
+@import "droplet";
 
 @import "layout/clickable";
 @import "layout/forms";
@@ -101,3 +103,4 @@
 @import "components/fragment-options";
 @import "components/project-structure-spider-generation-url";
 @import "components/indentation-spacer";
+@import "components/dropdown-delete";

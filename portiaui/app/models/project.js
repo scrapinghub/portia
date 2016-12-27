@@ -23,6 +23,7 @@ const Project =  BaseModel.extend({
 
     status: memberAction({path: 'status', type: 'GET'}),
     publish: memberActionAndMarkClean({path: 'publish'}),
+    copy: memberActionAndMarkClean({path: 'copy', type: 'POST'}),
     reset:  memberActionAndMarkClean({path: 'reset'}),
 
     checkChanges() {
