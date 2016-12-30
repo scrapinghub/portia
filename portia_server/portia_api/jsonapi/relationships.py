@@ -7,9 +7,13 @@ from portia_api.jsonapi.utils import (
 
 
 class Relationship(BaseRelationship):
+    def __init__(self, **kwargs):
+        self._serializer = kwargs.get('serializer')
+        super(Relationship, self).__init__(**kwargs)
+
     @cached_property
     def schema(self):
-        schema = get_schema(self.type_)
+        schema = self._serializer or get_schema(self.type_)
         return schema(fields_map=self.root.fields_map,
                       exclude_map=self.root.exclude_map,
                       include_data=self.root.include_map.get(self.name, []),
