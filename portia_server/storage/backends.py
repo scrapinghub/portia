@@ -1,5 +1,6 @@
 import errno
 import json
+import logging
 import os
 import os.path
 import re
@@ -17,6 +18,9 @@ from six import iteritems, text_type, string_types
 
 from .projecttemplates import templates
 from .repoman import Repoman, DEFAULT_USER, FILE_MODE
+
+
+logger = logging.getLogger(__name__)
 
 
 class InvalidFilename(Exception):
@@ -212,6 +216,7 @@ class GitStorage(BasePortiaStorage):
 
     def _open(self, name, mode='rb'):
         name = self.path(name)
+        logger.debug('Dulwich open: {}'.format(name))
         if self.isfile(name):
             _, sha = self._working_tree[name]
             if sha in self._blobs:

@@ -17,6 +17,17 @@ def clear_auto_created(instance):
         instance.save(only=('auto_created',))
 
 
+class SpiderListSerializer(JsonApiSerializer):
+    class Meta:
+        model = Spider
+        url = '/api/projects/{self.project.id}/spiders/{self.id}'
+        links = {
+            'project': {
+                'related': '/api/projects/{self.project.id}',
+            },
+        }
+
+
 class ProjectSerializer(JsonApiSerializer):
     class Meta:
         model = Project
@@ -24,6 +35,7 @@ class ProjectSerializer(JsonApiSerializer):
         links = {
             'spiders': {
                 'related': '/api/projects/{self.id}/spiders',
+                'serializer': SpiderListSerializer,
             },
             'schemas': {
                 'related': '/api/projects/{self.id}/schemas',

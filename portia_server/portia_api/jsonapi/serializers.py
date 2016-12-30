@@ -16,8 +16,8 @@ from portia_api.jsonapi.relationships import (
     Relationship, PolymorphicRelationship)
 from portia_api.jsonapi.utils import (
     RESOURCE_OBJECT_ORDER, TOP_LEVEL_OBJECT_ORDER, cached_property,
-    deep_getattr, dasherize, order_dict, should_include_field,
-    type_from_model_name)
+    camel_case_to_dashes, deep_getattr, dasherize, order_dict,
+    should_include_field, type_from_model_name)
 from portia_orm.base import AUTO_PK, Model
 from portia_orm.exceptions import ImproperlyConfigured
 from portia_orm.fields import Field as OrmField
@@ -86,6 +86,7 @@ class JsonApiSerializerMeta(SchemaMeta):
                     schema_attrs[attrname] = Relationship(
                         type_=type_from_model_name(field.model.__name__),
                         id_field='pk',
+                        serializer=rel_links.get('serializer'),
                         **rel_options)
 
         if 'id' not in schema_attrs:
@@ -101,7 +102,9 @@ class JsonApiSerializerMeta(SchemaMeta):
         cls = super(JsonApiSerializerMeta, mcs).__new__(mcs, name, bases, attrs)
 
         # add new schema to registry by type
-        schemas[schema_type] = cls
+        is_custom = name.replace('Serializer', '') != model.__name__
+        key = camel_case_to_dashes(name) if is_custom else schema_type
+        schemas[key] = cls
         return cls
 
 
