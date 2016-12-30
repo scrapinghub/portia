@@ -535,7 +535,12 @@ def load_annotations(body):
     annotations = []
     for elem in sel.xpath('//*[@data-scrapy-annotate]'):
         attributes = elem.root.attrib
-        annotation = json.loads(unquote(attributes['data-scrapy-annotate']))
+        try:
+            # Load annotation json and skip malformed json strings
+            annotation = json.loads(
+                unquote(attributes['data-scrapy-annotate']))
+        except ValueError:
+            continue
         if (isinstance(elem.root, _Element) and
                 elem.root.tag.lower() == 'ins'):
             annotation.update(find_generated_annotation(elem))
@@ -598,10 +603,11 @@ def find_generated_annotation(elem):
         if (node is not None and isinstance(node, _Element) and
                 node.tag.lower() == 'ins'):
             last_node_ins = True
+            text_len = len(node.text or '')
             if node == elem:
-                annotation['slice'] = start, start + len(node.text)
+                annotation['slice'] = start, start + text_len
             else:
-                start += len(node.text)
+                start += text_len
         else:
             text = node.tail if annotation['insert_after'] else node.text
             text = '' if text is None else text

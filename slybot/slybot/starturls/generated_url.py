@@ -23,7 +23,18 @@ class GeneratedUrl(object):
     @property
     def normalized_url(self):
         paths = [normalize_url_path(path) for path in self.spec['paths']]
-        base_url = self.spec['template'].format(*paths)
+        try:
+            base_url = self.spec['template'].format(*paths)
+        except IndexError:
+            # Fix templates that have more sections than path pieces
+            template = self.spec['template']
+            while '{}' in template:
+                template = template.rsplit('{}', 1)[0]
+                try:
+                    base_url = template.format(*paths)
+                    break
+                except IndexError:
+                    continue
 
         query_params = [normalize_url_query_param(path, is_first=(i == 0))
                         for i, path in enumerate(self._query_params)]
