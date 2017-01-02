@@ -1,4 +1,5 @@
 import json
+import re
 import six
 
 from collections import deque, OrderedDict
@@ -25,6 +26,9 @@ from .fields import (
 from .utils import unwrap_envelopes, short_guid, wrap_envelopes, encode
 from .validators import OneOf
 
+_CLEAN_ANNOTATED_HTML = re.compile('( data-scrapy-[a-z]+="[^"]+")|'
+                                   '( data-tagid="\d+")')
+_ID_RE = re.compile('-'.join(['[a-f][0-9]{4}'] * 3), re.I)
 FIELD_TYPES = FieldTypeManager().available_type_names()
 
 
@@ -198,7 +202,6 @@ class Spider(Model):
     # TODO: validate id against allowed file name
     id = String(primary_key=True)
     start_urls = List(Nested(StartUrl))
-    # TODO: generated urls
     links_to_follow = String(default='all', validate=OneOf(
         ['none', 'patterns', 'all', 'auto']))
     allowed_domains = List(Domain)
@@ -240,7 +243,7 @@ class Spider(Model):
 
     @pre_load
     def populate_id(self, data):
-        if 'id' in data:
+        if 'id' in data and not _ID_RE.match(data['id']):
             return data
         path = self.context['path']
         name = path.split('/')[-1]
@@ -255,6 +258,9 @@ class Spider(Model):
             return data
         template_names = []
         for template in data['templates']:
+            # Only migrate item templates
+            if template.get('page_type') != 'item':
+                continue
             template['id'] = template.get('page_id') or template.get('name')
             template_names.append(template['id'])
             path = self.context['path']
@@ -399,8 +405,10 @@ class Sample(Model, OrderedAnnotationsMixin):
             self._migrate_html(self, data)
         schemas = json.load(self.context['storage'].open('items.json'))
         if data.get('version', '') > '0.13.0':
-            _, new_schemas = guess_schema(data, schemas)
+            schema_id, new_schemas = guess_schema(data, schemas)
             self._add_schemas(self, new_schemas)
+            # Add the most likely schema id to the base containers if needed
+            self._populate_schema_id(data, schema_id)
             data = repair_ids(data)
             return data
         if 'id' not in data:
@@ -460,7 +468,10 @@ class Sample(Model, OrderedAnnotationsMixin):
                     item['siblings'] = 0
                 item['schema_id'] = parent['schema_id'] or item['schema_id']
                 if container_id:
-                    containers[container_id]['children'].remove(parent)
+                    try:
+                        containers[container_id]['children'].remove(parent)
+                    except ValueError:
+                        pass
             if container_id:
                 containers[container_id]['children'].append(item)
         data['items'] = [container
@@ -484,17 +495,31 @@ class Sample(Model, OrderedAnnotationsMixin):
         project.schemas = schema_collection
 
     @staticmethod
+    def _populate_schema_id(data, schema_id):
+        annotations = data['plugins']['annotations-plugin']['extracts']
+        for anno in annotations:
+            if (anno.get('item_container') and
+                    anno.get('container_id') is None and
+                    anno.get('schema_id') is None):
+                anno['schema_id'] = schema_id
+
+    @staticmethod
     def _migrate_html(self, sample):
+        base_path = self.context['path'][:-len('.json')].strip('/')
+        # Clean and use annotated body if there is no original body present
+        if 'annotation_body' in sample and not sample.get('original_body'):
+            sample['original_body'] = self._clean(sample['annotated_body'])
+        storage = self.context['storage']
         for key, value in sample.items():
-            if not key.endswith('_body') or key == 'annotated_body':
+            if (not value or not key.endswith('_body') or
+                    key == 'annotated_body'):
                 continue
-            path = self.context['path']
-            path = '/'.join((path[:-len('.json')].strip('/'),
-                            '{}.html'.format(key)))
+            path = '/'.join((base_path, '{}.html'.format(key)))
             html = value.encode('utf-8')
             if hasattr(html, 'encode') and isinstance(html, six.text_type):
                 html = encode(html).decode('utf-8')
-            self.context['storage'].save(path, ContentFile(html, path))
+            if not storage.exists(path):
+                storage.save(path, ContentFile(html, path))
         return sample
 
     @post_dump
@@ -549,6 +574,9 @@ class Sample(Model, OrderedAnnotationsMixin):
         data = {k: v for k, v in data.items() if not k.endswith('_body')}
         sample = json.dumps(data, indent=4, sort_keys=True)
         storage.save(path, ContentFile(sample, path))
+
+    def clean(self, data):
+        return _CLEAN_ANNOTATED_HTML.sub('', data)
 
 
 class BaseAnnotation(Model):
