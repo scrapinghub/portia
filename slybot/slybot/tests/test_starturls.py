@@ -57,6 +57,29 @@ class StartUrlCollectionTest(TestCase):
 
         self.assertEqual(list(generated), generated_start_urls)
 
+    def test_malformed_generated_type(self):
+        expected_format = [
+            {'fragments': [{'type': 'fixed', 'value': 'https://github.com/'},
+                           {'type': 'list',
+                            'value': 'scrapinghub scrapy scrapy-plugins'}],
+             'type': 'generated',
+             'url': 'https://github.com/[...]/'}]
+        start_urls = [
+            {
+                "template": "https://github.com/{}/{}/{}",
+                "paths": [{
+                    "type": "options",
+                    "values": ["scrapinghub", "scrapy", "scrapy-plugins"],
+                }],
+                "params": [],
+                "params_template": {}
+            },
+        ]
+        normalized = StartUrlCollection(start_urls, self.generators).normalize()
+
+        self.assertEqual(normalized, expected_format)
+
+
     def test_unique_legacy_urls(self):
         start_urls = [
             'http://google.com',
