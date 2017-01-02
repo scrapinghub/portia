@@ -2011,8 +2011,12 @@ class SampleTests(ProjectTestCase):
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
         self.assertEqual(self.storage.save.call_count, 5)
         self.storage.save.assert_has_calls([
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d/original_body.html',
+                      mock.ANY),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),
             mock.call('spiders/shop-crawler/test-id.json', mock.ANY),
+            mock.call('spiders/shop-crawler/test-id/original_body.html',
+                      mock.ANY),
             mock.call('spiders/shop-crawler.json', mock.ANY)])
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/test-id.json'],
