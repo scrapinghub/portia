@@ -28,7 +28,7 @@ from .validators import OneOf
 
 _CLEAN_ANNOTATED_HTML = re.compile('( data-scrapy-[a-z]+="[^"]+")|'
                                    '( data-tagid="\d+")')
-_ID_RE = re.compile('-'.join(['[a-f][0-9]{4}'] * 3), re.I)
+_ID_RE = re.compile('-'.join(['[a-f0-9]{4}'] * 3), re.I)
 FIELD_TYPES = FieldTypeManager().available_type_names()
 
 
@@ -243,7 +243,7 @@ class Spider(Model):
 
     @pre_load
     def populate_id(self, data):
-        if 'id' in data and not _ID_RE.match(data['id']):
+        if not _ID_RE.match(data.get('id') or ''):
             return data
         path = self.context['path']
         name = path.split('/')[-1]
