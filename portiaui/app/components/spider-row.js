@@ -22,8 +22,8 @@ export default Ember.Component.extend({
 
     currentSpider: computed.readOnly('uiState.models.spider'),
 
-    downloadUrl: computed('currentSpider', function() {
-        const link = this.get('currentSpider._internalModel._links.self');
+    downloadUrl: computed('spider', function() {
+        const link = this.get('spider._internalModel._links.self');
         return `${link}/download`;
     }),
     downloadCodeUrl: computed('downloadUrl', function() {

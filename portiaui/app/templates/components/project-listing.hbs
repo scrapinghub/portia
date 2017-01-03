@@ -45,7 +45,10 @@
                     {{/list-item-text}}
                 {{/link-to}}
 
-                {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+                {{#list-item-icon-menu
+                  onClick=(action 'clickProjectOptions')
+                  icon='vertical-ellipsis' as |options|
+                }}
                     {{#if versionControlled}}
                         {{#if project.hasChanges}}
                             <li><a {{action (chain-actions (action 'publish')
@@ -69,7 +72,7 @@
                         </a> </li>
                     {{/if}}
                 {{/list-item-icon-menu}}
-                <div class={{if project.hasChanges 'droplet'}}></div>
+                <div class={{if isPulsing 'droplet'}}></div>
 
             {{/tree-list-item}}
         {{/if}}

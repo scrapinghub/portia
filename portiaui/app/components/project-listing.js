@@ -7,12 +7,15 @@ export default Ember.Component.extend({
 
     tagName: '',
     project: null,
+    isNoticed: false,
 
     versionControlled: computed.readOnly('capabilities.capabilities.version_control'),
     notVersionControlled: computed.not('versionControlled'),
     hasNoChanges: computed.not('project.hasChanges'),
     notPublished: computed.or('hasNoChanges', 'notVersionControlled'),
     isPublished: computed.not('notPublished'),
+    notNoticed: computed.not('isNoticed'),
+    isPulsing: computed.and('project.hasChanges', 'notNoticed'),
 
     downloadUrl: computed('project', function() {
         const link = this.get('project._internalModel._links.self');
@@ -51,6 +54,10 @@ export default Ember.Component.extend({
                 this.get('notificationManager').showNotification(error.title, error.detail);
             });
 
+        },
+
+        clickProjectOptions() {
+            this.set('isNoticed', true);
         }
     }
 });

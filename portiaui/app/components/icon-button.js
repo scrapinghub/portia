@@ -61,7 +61,10 @@ export default Ember.Component.extend({
 
     hasAction: Ember.computed.bool('action'),
 
+    beforeClick() {},
+
     click() {
+        this.beforeClick();
         if (this.attrs.action && !this.get('disabled')) {
             this.attrs.action();
             if (!this.get('bubbles')) {
