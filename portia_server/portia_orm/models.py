@@ -812,6 +812,14 @@ class OriginalBody(Model):
     sample = BelongsTo(Sample, related_name='original_body', on_delete=CASCADE,
                        ignore_in_file=True)
 
+    @classmethod
+    def load(cls, storage, instance=None, sample=None, **kwargs):
+        html = super(OriginalBody, cls).load(
+            storage, instance, sample=sample, **kwargs)
+        if html and sample:
+            html.sample = sample
+        return html
+
     @pre_load
     def populate_item(self, data):
         split_path = self.context['path'].split('/')
