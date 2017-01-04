@@ -123,7 +123,9 @@ def port_sample(sample, schemas=None, extractors=None):
     if sample.get('version') == SLYBOT_VERSION:
         return sample, schemas
     container_id = gen_predictable_id(sample.get('id', 1), sample['page_id'])
-    default_annotations = [_create_container('body', container_id)]
+    schema_id, schemas = guess_schema(sample, schemas)
+    default_annotations = [_create_container('body', container_id,
+                                             schema_id=schema_id)]
     if not sample.get('annotated_body') and not sample.get('plugins'):
         sample['plugins'] = {
             'annotations-plugin': {
@@ -172,7 +174,8 @@ def port_sample(sample, schemas=None, extractors=None):
         a = find_common_parent(a, b)
     parent = a.getparent()
     container = _create_container(
-        a if parent is None else parent, container_id, selector=sel)
+        a if parent is None else parent, container_id, selector=sel,
+        schema_id=schema_id)
     new_annotations.append(container)
     for a in standard_annos:
         a.pop('variant', None)
@@ -188,8 +191,6 @@ def port_sample(sample, schemas=None, extractors=None):
     # Update annotations
     sample['plugins']['annotations-plugin']['extracts'] = new_annotations
     sample['version'] = SLYBOT_VERSION
-    schema_id, schemas = guess_schema(sample, schemas)
-    container['schema_id'] = schema_id
     return sample, schemas
 
 
@@ -305,7 +306,7 @@ def find_common_parent(a, b):
                 return elem
 
 
-def port_variants(variant_annotations, sel):
+def port_variants(variant_annotations, sel, schema_id=None):
     """Port variant annotations to the MIE annotations."""
     # Group variants
     grouper = itemgetter('variants')
@@ -339,7 +340,8 @@ def port_variants(variant_annotations, sel):
             del annotation['variant']
         annotations.extend(first)
         annotations.append(_create_container(container, container_id,
-                                             field='variants', selector=sel))
+                                             field='variants', selector=sel,
+                                             schema_id=schema_id))
         annotations.append(_create_container(repeated_container, container_id,
                                              repeated=True, siblings=siblings,
                                              selector=sel))
@@ -401,7 +403,7 @@ def _get_highest(annotations, upto, sel):
 
 
 def _create_container(element, container_id, repeated=False, siblings=0,
-                      field=None, selector=None):
+                      field=None, selector=None, schema_id=None):
     if isinstance(element, str):
         s = element
     else:
@@ -415,6 +417,7 @@ def _create_container(element, container_id, repeated=False, siblings=0,
         'item_container': True,
         'repeated': repeated,
         'required': [],
+        'schema_id': schema_id,
         'siblings': siblings,
         'annotations': {'#portia-content': '#dummy'},
         'text-content': '#portia-content',
@@ -620,7 +623,10 @@ def find_generated_annotation(elem):
 
 def guess_schema(sample, schemas):
     schema_id = _guess_schema_id(sample, schemas)
-    annotations = sample['plugins']['annotations-plugin']['extracts']
+    try:
+        annotations = sample['plugins']['annotations-plugin']['extracts']
+    except KeyError:
+        annotations = []
     if schema_id not in schemas:
         schemas[schema_id] = create_schema(schemas, annotations)
     else:
