@@ -38,7 +38,21 @@
                     </p>
                 </div>
             {{/tree-list-item}}
-            {{#each project.spiders as |spider|}}
+
+            {{#if (and (not currentSpider) isLarge)}}
+                {{#tree-list-item}}
+                    <input
+                     class='form-control'
+                     placeholder='Search for your spider'
+                     oninput={{perform filterSpiders
+                              project.spiders
+                              value='target.value'}}
+                    />
+                {{/tree-list-item}}
+            {{/if}}
+
+            <div class={{if isFiltering 'very-opaque'}}>
+            {{#each sortedSpiders as |spider|}}
                 {{#tree-list-item hide=(and currentSpider (not-eq spider currentSpider)) as |options|}}
                     {{#link-to 'projects.project.spider' spider (query-params url=(or spider.firstUrl null) baseurl=null) current-when='projects.project.spider'}}
                         {{spider-indentation spider=spider currentSpider=currentSpider}}
@@ -71,6 +85,7 @@
                     {{/link-to}}
                 {{/tree-list-item}}
             {{/each}}
+            </div>
         {{/if}}
     {{/tree-list-item}}
 {{/tree-list}}

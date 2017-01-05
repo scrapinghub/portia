@@ -1,5 +1,9 @@
 import Ember from 'ember';
 import {computedCanAddSpider} from '../services/dispatcher';
+import { task, timeout } from 'ember-concurrency';
+
+const LIMIT = 15;
+const FILTER_DEBOUNCE = 800;
 
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
@@ -10,10 +14,39 @@ export default Ember.Component.extend({
     uiState: Ember.inject.service(),
 
     tagName: '',
+    isFiltering: false,
+
+    didReceiveAttrs() {
+        this._super(...arguments);
+
+        const spiders = this.get('project.spiders').slice(0, LIMIT);
+        const currentSpider = this.get('currentSpider');
+
+        if (currentSpider && !spiders.includes(currentSpider)) {
+            spiders.pushObject(currentSpider);
+        }
+        this.set('spiders', spiders);
+    },
 
     canAddSpider: computedCanAddSpider(),
     currentSpider: Ember.computed.readOnly('uiState.models.spider'),
     currentSchema: Ember.computed.readOnly('uiState.models.schema'),
+    spiderSorting: ['id'],
+    sortedSpiders: Ember.computed.sort('spiders', 'spiderSorting'),
+    isLarge: Ember.computed.gt('project.spiders.length', LIMIT),
+
+    filterSpiders: task(function * (spiders, term) {
+        if (term === '') {
+            this.set('isFiltering', false);
+            this.set('spiders', this.get('project.spiders').slice(0, LIMIT));
+        }
+
+        this.set('isFiltering', true);
+        yield timeout(FILTER_DEBOUNCE);
+        this.set('isFiltering', false);
+
+        this.set('spiders', this._fuzzyFilter(spiders, term));
+    }).restartable(),
 
     addSpiderTooltipText: Ember.computed('canAddSpider', {
         get() {
@@ -83,5 +116,12 @@ export default Ember.Component.extend({
                 .catch(() => this.notifyError(spider))
                 .finally(() => saving.end());
         }
+    },
+
+    _fuzzyFilter(items, term) {
+        const fuzzy = new RegExp(term.split('').join('.*'));
+        return items.filter((item) => {
+            return fuzzy.exec(item.get('id'));
+        }).slice(0, LIMIT);
     }
 });
