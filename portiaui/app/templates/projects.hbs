@@ -2,7 +2,10 @@
     <img src="/assets/images/portia-logo.svg" alt="Portia logo">
 
     <h3>What would you like to work on today?</h3>
-    <p>Choose a project from the list below.</p>
+    {{create-project-button projects=model}}
+    {{#if model}}
+        <p>Choose a project from the list below.</p>
 
-    {{project-list projects=model}}
+        {{project-list projects=model}}
+    {{/if}}
 </div>
