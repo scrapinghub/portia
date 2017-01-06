@@ -4,6 +4,7 @@ export default AnimationContainer.extend({
     tagName: 'li',
     classNames: ['tree-list-item'],
 
-    setWidth: false,
+    setWidth:    false,
+    isCentered:  false,
     hasChildren: false
 });

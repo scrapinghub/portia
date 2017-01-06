@@ -1,5 +1,9 @@
 <div class="animation-content">
-    {{#tree-list-item-row onMouseEnter=onMouseEnter onMouseLeave=onMouseLeave}}
+    {{#tree-list-item-row
+      isCentered=isCentered
+      onMouseEnter=onMouseEnter
+      onMouseLeave=onMouseLeave
+    }}
         {{yield (hash section="item")}}
     {{/tree-list-item-row}}
     {{#if hasChildren}}

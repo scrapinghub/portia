@@ -1,4 +1,5 @@
 import Ember from 'ember';
+const { computed } = Ember;
 import {computedCanAddSpider} from '../services/dispatcher';
 import { task, timeout } from 'ember-concurrency';
 
@@ -13,42 +14,58 @@ export default Ember.Component.extend({
     savingNotification: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
-    tagName: '',
-    isFiltering: false,
+    tagName:      '',
+    spiderSearch: '',
+    isFiltering:  false,
 
     didReceiveAttrs() {
-        this._super(...arguments);
-
-        const spiders = this.get('project.spiders').slice(0, LIMIT);
+        const spiders = this.get('sortedSpiders').slice(0, LIMIT);
         const currentSpider = this.get('currentSpider');
 
         if (currentSpider && !spiders.includes(currentSpider)) {
             spiders.pushObject(currentSpider);
         }
         this.set('spiders', spiders);
+        this.set('filteredSpiders', this.get('sortedSpiders'));
     },
 
+    currentPage: 0,
+    hasPreviousPage: computed.gte('currentPage', 1),
+    hasNextPage: computed('currentPage', 'filteredSpiders.length', function() {
+        const max = (this.get('currentPage') + 1) * LIMIT;
+        return max < this.get('filteredSpiders.length');
+    }),
+
+    numSpiders: computed.readOnly('project.spiders.length'),
     canAddSpider: computedCanAddSpider(),
-    currentSpider: Ember.computed.readOnly('uiState.models.spider'),
-    currentSchema: Ember.computed.readOnly('uiState.models.schema'),
-    spiderSorting: ['id'],
-    sortedSpiders: Ember.computed.sort('spiders', 'spiderSorting'),
-    isLarge: Ember.computed.gt('project.spiders.length', LIMIT),
+    currentSpider: computed.readOnly('uiState.models.spider'),
+    noCurrentSpider: computed.not('currentSpider'),
+    currentSchema: computed.readOnly('uiState.models.schema'),
+    isLarge: computed.gt('project.spiders.length', LIMIT),
+
+    sortedSpiders: computed.sort('project.spiders', function(spider, other_spider) {
+        const [a, b] = [spider, other_spider].map((spider) => {
+            return spider.get('id').toLowerCase();
+        });
+
+        if (a < b) {
+            return -1;
+        } else if (a > b) {
+            return 1;
+        }
+        return 0;
+    }),
 
     filterSpiders: task(function * (spiders, term) {
-        if (term === '') {
-            this.set('isFiltering', false);
-            this.set('spiders', this.get('project.spiders').slice(0, LIMIT));
-        }
-
         this.set('isFiltering', true);
-        yield timeout(FILTER_DEBOUNCE);
-        this.set('isFiltering', false);
 
-        this.set('spiders', this._fuzzyFilter(spiders, term));
+        yield timeout(FILTER_DEBOUNCE);
+
+        if (term === '') { this._updateFilter(this.get('sortedSpiders')); }
+        this._updateFilter(this._fuzzyFilter(spiders, term), term);
     }).restartable(),
 
-    addSpiderTooltipText: Ember.computed('canAddSpider', {
+    addSpiderTooltipText: computed('canAddSpider', {
         get() {
             if (this.get('canAddSpider')) {
                 return 'Create a new Spider';
@@ -115,13 +132,41 @@ export default Ember.Component.extend({
                 .then((data) => dispatcher.changeId(spider, data))
                 .catch(() => this.notifyError(spider))
                 .finally(() => saving.end());
+        },
+
+        nextPage() {
+            this._turnPage();
+        },
+        previousPage() {
+            this._turnPage(false);
         }
     },
 
+    _turnPage(isNext = true) {
+        if (this.get('isFiltering')) { return; }
+
+        const nextPage = isNext ? this.get('currentPage') + 1
+                                : this.get('currentPage') - 1;
+
+        let start = nextPage * LIMIT;
+        this.set('spiders', this.get('filteredSpiders')
+                                .slice(start, start + LIMIT));
+        this.set('currentPage', nextPage);
+    },
+
     _fuzzyFilter(items, term) {
-        const fuzzy = new RegExp(term.split('').join('.*'));
+        const fuzzy = new RegExp(term.split('').join('.*'), 'i');
         return items.filter((item) => {
             return fuzzy.exec(item.get('id'));
-        }).slice(0, LIMIT);
+        });
+    },
+
+    _updateFilter(spiders, term = '') {
+        this.set('spiderSearch', term);
+        this.set('currentPage',  0);
+        this.set('isFiltering',  false);
+
+        this.set('spiders',         spiders.slice(0, LIMIT));
+        this.set('filteredSpiders', spiders);
     }
 });
