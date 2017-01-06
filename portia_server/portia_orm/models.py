@@ -243,7 +243,8 @@ class Spider(Model):
 
     @pre_load
     def populate_id(self, data):
-        if not _ID_RE.match(data.get('id') or ''):
+        spider_id = data.get('id')
+        if spider_id and not _ID_RE.match(spider_id):
             return data
         path = self.context['path']
         name = path.split('/')[-1]
