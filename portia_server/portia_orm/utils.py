@@ -21,6 +21,11 @@ __all__ = [
     'validate_type',
     'AttributeDict',
 ]
+# Encodings: https://w3techs.com/technologies/overview/character_encoding/all
+ENCODINGS = ['UTF-8', 'ISO-8859-1', 'Windows-1251', 'Shift JIS',
+             'Windows-1252', 'GB2312', 'EUC-KR', 'EUC-JP', 'GBK', 'ISO-8859-2',
+             'Windows-1250', 'ISO-8859-15', 'Windows-1256', 'ISO-8859-9',
+             'Big5', 'Windows-1254', 'Windows-874']
 
 
 class cached_property_ignore_set(cached_property):
@@ -110,7 +115,7 @@ def _encode_or_decode_string(html, method, default):
             default = []
     elif isinstance(default, six.string_types):
         default = [default]
-    for encoding in itertools.chain(default, ('utf-8', 'windows-1252')):
+    for encoding in itertools.chain(default, ENCODINGS):
         try:
             return method(html, encoding)
         except UnicodeDecodeError:

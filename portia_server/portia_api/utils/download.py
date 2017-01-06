@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import itertools
 import json
 import os
+import six
 import zipfile
 
 from collections import defaultdict
@@ -11,7 +12,8 @@ from datetime import datetime
 
 from storage.projecttemplates import templates
 from portia2code.porter import load_project_data, port_project
-import six
+
+from portia_orm.utils import decode
 
 REQUIRED_FILES = {'setup.py', 'scrapy.cfg', 'extractors.json', 'items.json',
                   'project.json', 'spiders/__init__.py', 'spiders/settings.py'}
@@ -218,12 +220,14 @@ class CodeProjectArchiver(ProjectArchiver):
             len_json = len('.json')
             return [s[:-len_json] for s in spiders if s.endswith('.json')]
 
-        def open_file(*path):
+        def open_file(*path, **kwargs):
+            raw = kwargs.pop('raw', False)
             path = join(*path[1:])
-            if not path.endswith('json'):
+            if not raw and not path.endswith('.json'):
                 path = '%s.json' % path
             try:
-                return json.loads(self.storage.open(path).read())
+                content = self.storage.open(path).read()
+                return decode(content) if raw else json.loads(content)
             except IOError as e:
                 if path in ('items.json', 'extractors.json'):
                     return {}
