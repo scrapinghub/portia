@@ -645,7 +645,10 @@ def _guess_schema_id(sample, schemas):
         return schema_id
 
     # Check if a schema is explicitly mentioned
-    annotations = sample['plugins']['annotations-plugin']['extracts']
+    try:
+        annotations = sample['plugins']['annotations-plugin']['extracts']
+    except KeyError:
+        annotations = []
     annotations_with_schemas = [a for a in annotations if 'schema_id' in a]
     if annotations_with_schemas:
         parent = sorted(annotations_with_schemas, key=container_id_key)[0]
