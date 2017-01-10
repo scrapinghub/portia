@@ -213,12 +213,12 @@ class ProjectArchiver(object):
 
 class CodeProjectArchiver(ProjectArchiver):
     def archive(self, spiders=None):
-        def list_spiders(spiders):
+        def list_spiders(unused=None):
             if spiders:
                 return spiders
-            _, spiders = self.storage.listdir('spiders')
+            _, storage_spiders = self.storage.listdir('spiders')
             len_json = len('.json')
-            return [s[:-len_json] for s in spiders if s.endswith('.json')]
+            return [s[:-len_json] for s in storage_spiders if s.endswith('.json')]
 
         def open_file(*path, **kwargs):
             raw = kwargs.pop('raw', False)
