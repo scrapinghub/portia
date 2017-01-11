@@ -40,7 +40,7 @@ script:
 - cd ../portiaui
 - npm test
 before_deploy:
-- cd ./slybot
+- cd ../slybot
 - pip install twine
 deploy:
   provider: pypi
