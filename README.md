@@ -1,7 +1,7 @@
 Portia
 ======
 
-Portia is a tool that allows you to visually scrape websites without any programming knowledge required. With Portia you can annotate a web page to identify the data you wish to extract, and Portia will understand based on these annotations how to scrape data from similar pages.
+Portia is a tool that allows you to visually scrape websites without any programming knowledge required. You could say it is like a [WYSIWYG](https://en.wikipedia.org/wiki/WYSIWYG) web scraper. With Portia you can annotate a web page to identify the data you wish to extract, and Portia will understand based on these annotations how to scrape data from similar pages. 
 
 # Try it out
 
