@@ -1,10 +1,11 @@
 import Ember from 'ember';
-const { computed } = Ember;
+const { computed, observer } = Ember;
 import {computedCanAddSpider} from '../services/dispatcher';
 import { task, timeout } from 'ember-concurrency';
 
 const LIMIT = 15;
 const FILTER_DEBOUNCE = 800;
+const TURN_PAGE_DEBOUNCE = 200;
 
 export default Ember.Component.extend({
     browser: Ember.inject.service(),
@@ -20,21 +21,46 @@ export default Ember.Component.extend({
 
     didReceiveAttrs() {
         const spiders = this.get('sortedSpiders').slice(0, LIMIT);
-        const currentSpider = this.get('currentSpider');
-
-        if (currentSpider && !spiders.includes(currentSpider)) {
-            spiders.pushObject(currentSpider);
-        }
+        this._addCurrentSpider(spiders);
         this.set('spiders', spiders);
         this.set('filteredSpiders', this.get('sortedSpiders'));
     },
 
+    // Pagination
     currentPage: 0,
     hasPreviousPage: computed.gte('currentPage', 1),
     hasNextPage: computed('currentPage', 'filteredSpiders.length', function() {
         const max = (this.get('currentPage') + 1) * LIMIT;
         return max < this.get('filteredSpiders.length');
     }),
+    pagination: computed('currentSpider', 'currentPage', 'spiders.[]',
+                         function() {
+        if (this.get('currentSpider')) { return ''; }
+
+        const start = (this.get('currentPage') * LIMIT) + 1;
+        const end   = Math.min((this.get('currentPage') + 1) * LIMIT,
+                               start + this.get('spiders.length') - 1);
+        return `( ${start}-${end} )`;
+    }),
+    currentSpiderChanged: observer('currentSpider', function() {
+        Ember.run.next(() => {
+            this._addCurrentSpider(this.get('spiders'));
+            this._addCurrentSpider(this.get('filteredSpiders'));
+        });
+    }),
+    turnPage: task(function * (offset) {
+        this.set('isFiltering', true);
+
+        yield timeout(TURN_PAGE_DEBOUNCE);
+
+        this.set('isFiltering', false);
+        const nextPage = this.get('currentPage') + offset;
+        const start = nextPage * LIMIT;
+        this.set('spiders',
+                 this.get('filteredSpiders').slice(start, start + LIMIT));
+        this.set('currentPage', nextPage);
+    }).drop(),
+
 
     numSpiders: computed.readOnly('project.spiders.length'),
     canAddSpider: computedCanAddSpider(),
@@ -58,10 +84,7 @@ export default Ember.Component.extend({
 
     filterSpiders: task(function * (spiders, term) {
         this.set('isFiltering', true);
-
         yield timeout(FILTER_DEBOUNCE);
-
-        if (term === '') { this._updateFilter(this.get('sortedSpiders')); }
         this._updateFilter(this._fuzzyFilter(spiders, term), term);
     }).restartable(),
 
@@ -101,6 +124,8 @@ export default Ember.Component.extend({
 
         removeSpider(spider) {
             this.get('dispatcher').removeSpider(spider);
+            this.get('filteredSpiders').removeObject(spider);
+            this.get('spiders').removeObject(spider);
         },
 
         validateSpiderName(spider, name) {
@@ -132,33 +157,23 @@ export default Ember.Component.extend({
                 .then((data) => dispatcher.changeId(spider, data))
                 .catch(() => this.notifyError(spider))
                 .finally(() => saving.end());
-        },
-
-        nextPage() {
-            this._turnPage();
-        },
-        previousPage() {
-            this._turnPage(false);
         }
     },
 
-    _turnPage(isNext = true) {
-        if (this.get('isFiltering')) { return; }
-
-        const nextPage = isNext ? this.get('currentPage') + 1
-                                : this.get('currentPage') - 1;
-
-        let start = nextPage * LIMIT;
-        this.set('spiders', this.get('filteredSpiders')
-                                .slice(start, start + LIMIT));
-        this.set('currentPage', nextPage);
-    },
-
     _fuzzyFilter(items, term) {
+        if (term === '') { return this.get('sortedSpiders'); }
+
         const fuzzy = new RegExp(term.split('').join('.*'), 'i');
         return items.filter((item) => {
             return fuzzy.exec(item.get('id'));
         });
+    },
+
+    _addCurrentSpider(spiders) {
+        const currentSpider = this.get('currentSpider');
+        if (currentSpider && !spiders.includes(currentSpider)) {
+            spiders.pushObject(currentSpider);
+        }
     },
 
     _updateFilter(spiders, term = '') {

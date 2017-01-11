@@ -2,7 +2,7 @@
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
-                Spider{{#animation-container class="inline" hide=currentSpider setHeight=false}}s{{/animation-container}}
+              Spider{{#animation-container class="inline" hide=currentSpider setHeight=false}}s {{/animation-container}}&nbsp;{{pagination}}
                 {{#animation-container class="inline" setHeight=false}}
                     {{#help-icon}}
                         Spiders
@@ -54,7 +54,10 @@
 
             {{#if (and noCurrentSpider hasPreviousPage)}}
                 {{#tree-list-item isCentered=true}}
-                  <i {{action 'previousPage'}} class='fa fa-angle-up twice-x'></i>
+                    <i
+                     onclick={{perform turnPage -1}}
+                     class='fa fa-angle-up twice-x clickable'>
+                    </i>
                 {{/tree-list-item}}
             {{/if}}
 
@@ -96,7 +99,10 @@
 
             {{#if (and noCurrentSpider hasNextPage)}}
                 {{#tree-list-item isCentered=true}}
-                    <i {{action 'nextPage'}} class='fa fa-angle-down twice-x'></i>
+                    <i
+                     onclick={{perform turnPage 1}}
+                     class='fa fa-angle-down twice-x clickable'>
+                    </i>
                 {{/tree-list-item}}
             {{/if}}
 
