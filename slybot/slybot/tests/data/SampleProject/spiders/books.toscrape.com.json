@@ -14,9 +14,5 @@
     "start_urls": [
         "http://books.toscrape.com/"
     ],
-    "template_names": [
-        "4583-41b4-9edb",
-        "3617-44af-a2f0"
-    ],
-    "templates": []
+    "version": "0.13.0b32"
 }
