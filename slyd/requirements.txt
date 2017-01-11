@@ -8,6 +8,7 @@ chardet==2.3.0
 monotonic==0.3
 parse==1.6.6
 ndg-httpsclient==0.4.0
+lupa==1.3
 
 # Dulwich's MySQL backend
 http://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-1.2.3.zip#md5=6d42998cfec6e85b902d4ffa5a35ce86
