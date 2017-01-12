@@ -28,7 +28,7 @@ import re
 import slybot
 
 from collections import defaultdict
-from itertools import chain, groupby
+from itertools import chain, combinations, groupby
 from operator import itemgetter
 from random import Random
 from urllib import unquote
@@ -41,6 +41,7 @@ from slybot.utils import add_tagids
 SLYBOT_VERSION = slybot.__version__
 IGNORE_ATTRIBUTES = ['data-scrapy-ignore', 'data-scrapy-ignore-beneath']
 _ID_RE = re.compile('([0-9a-f]{4}-){2}[0-9a-f]{4}')
+_TABLE_RE = re.compile('((?:^|\s)table[^\s>]*[\s])', re.I)
 
 
 def short_guid():
@@ -213,6 +214,31 @@ def css_escape(s):
     return s
 
 
+def find_generalized_css_selector(elem, sel):
+    selector = find_css_selector(elem, sel)
+    return ', '.join(handle_tables(s) for s in selector.split(', '))
+
+
+def handle_tables(selector):
+    generalized, has_parts = [], False
+    for part in (part.strip() for part in _TABLE_RE.split(selector) if part):
+        if has_parts and part.startswith('table'):
+            generalized[-1] = ' '.join((generalized[-1], part))
+        else:
+            generalized.append(part)
+        has_parts = True
+    selectors = []
+    combined = (combinations(generalized[:-1], i + 1)
+                for i in range(len(generalized) - 1))
+    for section in chain(*combined):
+        sel = generalized[:]
+        for selection in section:
+            idx = sel.index(selection)
+            sel[idx] = sel[idx] + ' > *'
+        selectors.append(' '.join(sel))
+    return ', '.join([selector] + selectors)
+
+
 def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     """Find a unique selector for an element.
 
@@ -260,15 +286,17 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
         for class_name in classes:
             selector = '.%s' % css_escape(class_name)
             matches = sel.css(selector)
-            if len(matches) == 1:
+            if len(matches) == 1 and tag_name != 'table':
                 return selector
             # Maybe it's unique with a tag name?
             selector = tag_name + selector
             matches = sel.css(selector)
             if len(matches) == 1:
                 return selector
+            tag = tag_name if tag_name == 'table' else ''
+            child_idx = children_index(elem)
             # Maybe it's unique using a tag name and nth-child
-            selector = '%s:nth-child(%s)' % (selector, children_index(elem))
+            selector = '%s%s:nth-child(%s)' % (tag, selector, child_idx)
             matches = sel.css(selector)
             if len(matches) == 1:
                 return selector
@@ -407,7 +435,7 @@ def _create_container(element, container_id, repeated=False, siblings=0,
     if isinstance(element, str):
         s = element
     else:
-        s = find_css_selector(element, selector)
+        s = find_generalized_css_selector(element, selector)
     data = {
         'id': '%s%s' % (container_id, '#parent' if repeated else ''),
         'container_id': None,
@@ -465,7 +493,7 @@ def port_generated(generated_annotations, sel):
             continue
         pre_text, post_text = '', ''
         if annotation.get('insert_after'):
-            selector = find_css_selector(element.getparent(), sel)
+            selector = find_generalized_css_selector(element.getparent(), sel)
             if not selector:
                 continue
             annotation['accept_selectors'] = [selector]
@@ -512,7 +540,7 @@ def port_standard(standard_annotations, sel, sample, extractors):
         element = find_element(annotation, sel)
         if element is None:
             continue
-        selector = find_css_selector(element, sel)
+        selector = find_generalized_css_selector(element, sel)
         if not selector:
             continue
         annotation['accept_selectors'] = [selector]
