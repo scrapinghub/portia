@@ -22,13 +22,15 @@ class JsonApiValidationError(ValidationError):
         })
 
 
-def render_exception(exc):
-    return OrderedDict([
-        ('id', str(uuid4())),
-        ('status', exc.status_code),
-        ('title', get_status_title(exc.status_code)),
-        ('detail', exc.detail)
-    ])
+def render_exception(status_code, detail):
+    return {
+        'errors': [OrderedDict([
+            ('id', str(uuid4())),
+            ('status', status_code),
+            ('title', get_status_title(status_code)),
+            ('detail', detail)
+        ])]
+    }
 
 
 class JsonApiBadRequestError(APIException):
@@ -62,7 +64,7 @@ def jsonapi_exception_handler(exc, context):
     accepts = context['request'].accepted_media_type or ''
     if accepts.startswith('application/vnd.api+json'):
         try:
-            exc.detail = {'errors': [render_exception(exc)]}
+            exc.detail = render_exception(exc.status_code, exc.detail)
         except AttributeError:
             pass  # Ignore django exceptions
     response = exception_handler(exc, context)
