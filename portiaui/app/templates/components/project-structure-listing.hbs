@@ -2,7 +2,7 @@
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
             {{#list-item-text class="title"}}
-                Spider{{#animation-container class="inline" hide=currentSpider setHeight=false}}s{{/animation-container}}
+              Spider{{#animation-container class="inline" hide=currentSpider setHeight=false}}s {{/animation-container}}&nbsp;{{pagination}}
                 {{#animation-container class="inline" setHeight=false}}
                     {{#help-icon}}
                         Spiders
@@ -38,7 +38,31 @@
                     </p>
                 </div>
             {{/tree-list-item}}
-            {{#each project.spiders as |spider|}}
+
+            {{#if (and noCurrentSpider isLarge)}}
+                {{#tree-list-item}}
+                    <input
+                     class='form-control'
+                     placeholder='Search for your spider'
+                     value={{spiderSearch}}
+                     oninput={{perform filterSpiders
+                              sortedSpiders
+                              value='target.value'}}
+                    />
+                {{/tree-list-item}}
+            {{/if}}
+
+            {{#if (and noCurrentSpider hasPreviousPage)}}
+                {{#tree-list-item isCentered=true}}
+                    <i
+                     onclick={{perform turnPage -1}}
+                     class='fa fa-angle-up twice-x clickable'>
+                    </i>
+                {{/tree-list-item}}
+            {{/if}}
+
+            <div class={{if isFiltering 'very-opaque'}}>
+            {{#each spiders as |spider|}}
                 {{#tree-list-item hide=(and currentSpider (not-eq spider currentSpider)) as |options|}}
                     {{#link-to 'projects.project.spider' spider (query-params url=(or spider.firstUrl null) baseurl=null) current-when='projects.project.spider'}}
                         {{spider-indentation spider=spider currentSpider=currentSpider}}
@@ -71,6 +95,17 @@
                     {{/link-to}}
                 {{/tree-list-item}}
             {{/each}}
+            </div>
+
+            {{#if (and noCurrentSpider hasNextPage)}}
+                {{#tree-list-item isCentered=true}}
+                    <i
+                     onclick={{perform turnPage 1}}
+                     class='fa fa-angle-down twice-x clickable'>
+                    </i>
+                {{/tree-list-item}}
+            {{/if}}
+
         {{/if}}
     {{/tree-list-item}}
 {{/tree-list}}
