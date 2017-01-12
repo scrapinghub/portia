@@ -20,7 +20,8 @@ from portia_orm.relationships import BelongsTo, HasMany
 from storage import create_project_storage
 from ..jsonapi.exceptions import (JsonApiBadRequestError,
                                   JsonApiConflictError,
-                                  JsonApiValidationError)
+                                  JsonApiValidationError,
+                                  render_exception)
 from ..jsonapi.parsers import JSONApiParser, JSONParser
 from ..jsonapi.registry import get_schema
 from ..jsonapi.renderers import JSONApiRenderer, JSONRenderer
@@ -79,12 +80,7 @@ class JsonApiRoute(ViewSet):
         status_code = response.status_code
         if (isinstance(response.data, dict) and len(response.data) == 1 and
                 'detail' in response.data):
-            status_title = get_status_title(status_code)
-            response.data = OrderedDict([
-                ('status', text_type(status_code)),
-                ('title', status_title),
-                ('detail', response.data['detail']),
-            ])
+            response.data = render_exception(status_code, response.data['detail'])
         return response
 
     def get_instance(self):
