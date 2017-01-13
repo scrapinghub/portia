@@ -7,6 +7,7 @@ from twisted.web.client import getPage
 from scrapy import Request
 from scrapy.http import HtmlResponse
 from scrapy.settings import Settings
+from scrapy.utils.misc import arg_to_iter
 
 from slybot.spider import IblSpider
 
@@ -77,19 +78,19 @@ class Pages(object):
             if not success:
                 errors.append(result.value[1][-1])
             else:
-                results.append(self.process(*result))
+                results.extend(arg_to_iter(self.process(*result)))
         if errors and not results:
             raise FetchError(errors)
         return results
 
     def process(self, url, page):
-        return (url, HtmlResponse(url, body=page))
+        return HtmlResponse(url, body=page)
 
     def extract_items(self):
         responses = self.fetch()
         items = []
-        for url, response in responses:
-            item = {'key': url, 'items': None, 'templates': None}
+        for response in responses:
+            item = {'key': response.url, 'items': None, 'templates': None}
             extracted_items = [dict(i) for i in self.spider.parse(response)
                                if not isinstance(i, Request)]
             if extracted_items:
@@ -101,9 +102,14 @@ class Pages(object):
 
 
 def load_spider(storage, model):
-    items = json.load(storage.open_with_default('items.json', '{}'))
-    extractors = json.load(storage.open_with_default('extractors.json', '{}'))
+    items = json.load(storage.open_with_default('items.json', {}))
+    extractors = json.load(storage.open_with_default('extractors.json', {}))
     spider = json.loads(model.dumps())
-    samples = [json.loads(sample.dumps()) for sample in model.samples]
+    samples = []
+    for sample in model.samples:
+        json_sample = json.loads(sample.dumps())
+        json_sample['original_body'] = sample.original_body.html
+        json_sample['rendered_body'] = sample.original_body.html
+        samples.append(json_sample)
     spider['templates'] = samples
     return IblSpider(model.id, spider, items, extractors, Settings())
