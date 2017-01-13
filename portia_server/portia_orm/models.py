@@ -420,8 +420,8 @@ class Sample(Model, OrderedAnnotationsMixin):
         if items:
             return data
 
-        json_file = self.context['storage'].open_with_default('extractors.json')
-        extractors = json.load(json_file)
+        extractors = json.loads(self.context['storage'].open_with_default(
+            'extractors.json', {}))
         sample, new_schemas = port_sample(data, schemas, extractors)
         self._add_schemas(self, new_schemas)
         self.save_raw(self, sample)
