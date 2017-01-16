@@ -525,10 +525,10 @@ export default Ember.Component.extend(GuessTypes, {
         if(data.suggested) {
             text = 'Suggestion: ' + text;
         }
-        this.get('sprites').addSprite(this.get('mappedDOMElement'), text, {
+        this.get('sprites').addSprite(this.get('mappedDOMElement'), text, this.get('mappings'), {
             fillColor: data.suggested ? 'rgba(28, 171, 76, 0.4)' : this.get('sprites.fillColor'),
         });
-    }.observes('sprite', 'data.suggested'),
+    }.observes('sprite', 'data.suggested', 'mappings'),
 
     updateIgnore: function() {
         var data = this.get('data');

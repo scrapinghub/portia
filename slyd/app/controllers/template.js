@@ -109,6 +109,17 @@ export default BaseController.extend({
                     this.getWithDefault('extractionTools.' + key + '.data', {extracts: []}));
             }
         }
+        var mappedSprites = this.get('sprites._sprites');
+        var scrapelyData = {};
+        scrapelyData['url'] = this.get('model.url');
+        scrapelyData['flag'] = false;
+        scrapelyData['data'] = {};
+        for (var i=0; i<mappedSprites.length; i++) {
+            let field = mappedSprites[i].scrapelyData.field;
+            let content = mappedSprites[i].scrapelyData.content;
+            scrapelyData['data'][field] = content;
+        }
+        this.set('model.scrapely_data', scrapelyData);
         var missingFields = this.getMissingFields();
         if (missingFields.length > 0) {
             this.showWarningNotification('Required Fields Missing',

@@ -13,7 +13,7 @@ The easiest way to run Portia is using Vagrant.
 
 Clone the repository:
 
-    git clone https://github.com/scrapinghub/portia
+    git clone https://github.com/mraouf1/portia
 
 Then inside the Portia directory, run:
 
