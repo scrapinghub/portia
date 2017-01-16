@@ -30,6 +30,7 @@ export default Ember.Service.extend(Ember.Evented, {
     reconnectImminent: Ember.computed.lt('secondsUntilReconnect', 2),
 
     init: function(options) {
+        this._super(...arguments);
         if(options) { this.setProperties(options); }
 
         window.addEventListener('beforeunload', () => {
@@ -37,6 +38,7 @@ export default Ember.Service.extend(Ember.Evented, {
                 this.close(APPLICATION_UNLOADING_CODE);
             }
         });
+        this.connect();
     },
 
     connect: function() {
@@ -61,7 +63,9 @@ export default Ember.Service.extend(Ember.Evented, {
             clearInterval(this.heartbeat);
         }
         this.set('closed', true);
-        this.set('connecting', false);
+        if (this.get('connecting')) {
+            this.set('connecting', false);
+        }
         Ember.Logger.log('<Closed Websocket>');
         if(e.code !== APPLICATION_UNLOADING_CODE && e.code !== 1000) {
             var timeout = this._connectTimeout();
@@ -104,7 +108,9 @@ export default Ember.Service.extend(Ember.Evented, {
     _onopen() {
         Ember.Logger.log('<Opened Websocket>');
         this.set('closed', false);
-        this.set('connecting', false);
+        if (this.get('connecting')) {
+            this.set('connecting', false);
+        }
         this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
         this.heartbeat = setInterval(function() {
             this.send({_command: 'heartbeat'});
@@ -117,15 +123,19 @@ export default Ember.Service.extend(Ember.Evented, {
             this.set('reconnectTid', null);
         }
         this.set('secondsUntilReconnect', 0);
-        this.set('connecting', true);
+        let connecting = true;
         var ws;
         try {
             ws = new WebSocket(this.get('url'));
         } catch (err) {
             Ember.Logger.log('Error connecting to server: ' + err);
+            connecting = false;
+        }
+        if (!connecting) {
             this.set('connecting', false);
             return;
         }
+        this.set('connecting', true);
         ws.onclose = this._onclose.bind(this);
         ws.onmessage = this._onmessage.bind(this);
         ws.onopen = this._onopen.bind(this);

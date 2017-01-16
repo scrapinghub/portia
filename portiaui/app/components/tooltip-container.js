@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { shortGuid } from '../utils/utils';
 
 export default Ember.Component.extend({
     tagName: '',
@@ -21,6 +22,7 @@ export default Ember.Component.extend({
     init() {
         this._super();
         this.$tooltipElement = null;
+        this.set('uniqueId', `${shortGuid()}-tooltip`);
     },
 
     didInsertElement() {
@@ -40,7 +42,7 @@ export default Ember.Component.extend({
                 tooltip code will happily swallow this and insert it into the
                 DOM. Ember will keep this element updated as data changes.
              */
-            template: Ember.$(`[data-tooltip-id="${this.elementId}"]`).detach(),
+            template: Ember.$(`[data-tooltip-id="${this.get('uniqueId')}"]`).detach(),
             // title is checked for truthiness by bootstrap
             title: true,
             container: this.get('tooltipContainer'),

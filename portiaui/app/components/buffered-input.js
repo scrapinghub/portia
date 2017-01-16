@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import { ensurePromise } from '../utils/promises';
+import { shortGuid } from '../utils/utils';
 
 export default Ember.Component.extend({
     tagName: '',
@@ -12,6 +13,11 @@ export default Ember.Component.extend({
     value: null,
     viewValue: null,
 
+    init() {
+        this._super(...arguments);
+        this.set('inputId', `${shortGuid()}-input`);
+    },
+
     didInsertElement() {
         if (this.get('focused')) {
             Ember.run.schedule('afterRender', () => {
@@ -23,10 +29,6 @@ export default Ember.Component.extend({
         Ember.$('#' + this.get('inputId'))
              .keypress((e) => e.which !== 13);
     },
-
-    inputId: Ember.computed('elementId', function() {
-        return this.get('elementId') + '-input';
-    }),
 
     displayedValue: Ember.computed('value', 'viewValue', 'focused', {
         get() {

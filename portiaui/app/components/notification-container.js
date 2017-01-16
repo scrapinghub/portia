@@ -11,12 +11,6 @@ export default Ember.Component.extend({
     banners: Ember.computed('_banners.[]', 'notificationManager.banners.[]', function() {
         const lastBanners = this.get('_banners');
         const banners = this.get('notificationManager.banners');
-        for (let banner of lastBanners) {
-            Ember.set(banner, 'fading', true);
-        }
-        for (let banner of banners) {
-            Ember.set(banner, 'fading', undefined);
-        }
         lastBanners.addObjects(banners);
         return lastBanners;
     }),
@@ -24,12 +18,6 @@ export default Ember.Component.extend({
         function() {
             const lastNotifications = this.get('_notifications');
             const notifications = this.get('notificationManager.notifications');
-            for (let notification of lastNotifications) {
-                Ember.set(notification, 'fading', true);
-            }
-            for (let notification of notifications) {
-                Ember.set(notification, 'fading', undefined);
-            }
             lastNotifications.addObjects(notifications);
             return lastNotifications;
         }),
@@ -46,10 +34,12 @@ export default Ember.Component.extend({
         },
 
         fadeBanner(banner) {
+            Ember.set(banner, 'fading', true);
             this.get('_banners').removeObject(banner);
         },
 
         fadeNotification(notification) {
+            Ember.set(notification, 'fading', true);
             this.get('_notifications').removeObject(notification);
         }
     }
