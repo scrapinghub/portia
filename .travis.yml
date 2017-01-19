@@ -42,6 +42,7 @@ script:
 before_deploy:
 - cd ../slybot
 - pip install twine
+- sudo chown -R $USER .
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
