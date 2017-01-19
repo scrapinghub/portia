@@ -41,6 +41,7 @@ class CommittingStorage(object):
         'scrapy.cfg': 'SCRAPY',
         'setup.py': 'SETUP',
         'items.json': 'ITEMS',
+        'extractors.json': 'EXTRACTORS',
         os.path.join('spiders', '__init__.py'): None,
         os.path.join('spiders', 'settings.py'): 'SETTINGS',
     }

@@ -8,7 +8,7 @@ from six import iteritems
 
 from portia_orm.models import Project
 from storage import get_storage_class
-from .route import (JsonApiRoute, JsonApiModelRoute,
+from .route import (JsonApiRoute, JsonApiModelRoute, CreateModelMixin,
                     ListModelMixin, RetrieveModelMixin)
 from .response import FileResponse
 from ..jsonapi.exceptions import (JsonApiFeatureNotAvailableError,
@@ -64,7 +64,7 @@ class BaseProjectModelRoute(BaseProjectRoute, JsonApiModelRoute):
 
 
 class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
-                   ListModelMixin, RetrieveModelMixin):
+                   ListModelMixin, RetrieveModelMixin, CreateModelMixin):
     lookup_url_kwarg = 'project_id'
     default_model = Project
 
@@ -75,24 +75,29 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
         def listdir(self, *args, **kwargs):
             return [], []
 
-    def create(self):
+    def create(self, request):
         """Create a new project from the provided attributes"""
         try:
-            name = self.data['name']
+            name = self.data['data']['attributes']['name']
         except KeyError:
             raise JsonApiBadRequestError('No `name` provided')
+        self.kwargs['project_id'] = name
 
-        if not self.storage.is_valid_filename(name):
+        projects = self.projects
+        if not self.storage.is_valid_filename(name) or '.' in name:
             raise JsonApiBadRequestError(
-                '"{}" is not a valid project name'.format(name))
+                '"{}" is not a valid project name,\nProject names may only '
+                'contain letters and numbers'.format(name))
+        if name in projects:
+            raise JsonApiBadRequestError(
+                'A project with the name "{}" already exists'.format(name))
 
         # Bootstrap project
-        self.kwargs['project_id'] = name
         storage = self.storage
         storage.commit()
 
-        serializer = self.get_serializer(data=self.data, storage=storage,
-                                         partial={'id'})
+        project = Project(storage, id=name, name=name)
+        serializer = self.get_serializer(project, storage=storage)
         data = serializer.data
         headers = self.get_success_headers(data)
         return Response(data, status=HTTP_201_CREATED, headers=headers)
