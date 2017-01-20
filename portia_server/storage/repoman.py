@@ -6,6 +6,7 @@ from itertools import chain
 
 from scrapy.utils.misc import load_object
 
+from dulwich.errors import ObjectMissing
 from dulwich.objects import Blob, Tree, Commit, Tag, parse_timezone
 from dulwich.diff_tree import tree_changes, RenameDetector
 
@@ -448,7 +449,10 @@ class Repoman(object):
 
     def _is_ancestor_commit(self, descendant, ancestor):
         walker = self._repo.get_walker(include=descendant)
-        for entry in walker:
-            if entry.commit.id == ancestor:
-                return True
+        try:
+            for entry in walker:
+                if entry.commit.id == ancestor:
+                    return True
+        except ObjectMissing:
+            return True
         return False
