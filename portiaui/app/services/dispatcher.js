@@ -44,6 +44,20 @@ export default Ember.Service.extend({
     uiState: Ember.inject.service(),
     webSocket: Ember.inject.service(),
 
+    addProject(name, redirect = false) {
+        const store = this.get('store');
+        const project = store.createRecord('project', {
+            name,
+        });
+        return project.save().then(() => {
+            if (redirect) {
+                const routing = this.get('routing');
+                routing.transitionTo('projects.project', [project], {}, true);
+            }
+            return project;
+        });
+    },
+
     addSchema(project, redirect = false) {
         const name = `schema${project.get('schemas.length') + 1}`;
         return this.addNamedSchema(project, name, redirect);

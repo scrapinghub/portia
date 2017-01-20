@@ -1,6 +1,7 @@
 {
     "template_names": [
-        "networkhealthtemplate"
+        "networkhealthtemplate",
+        "doesnotexist"
     ],
     "start_urls": [
         "http://www.networkhealth.com/network-health-plan-info/all/find-a-doctor/index.aspx"

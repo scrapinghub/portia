@@ -3,17 +3,26 @@ Link extraction for auto scraping
 """
 import re
 from six.moves.urllib.parse import urljoin
-from scrapy.utils.markup import replace_entities
+from six.moves.html_entities import name2codepoint
 from scrapy.link import Link
 from scrapy.http import HtmlResponse
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType
+
+from w3lib.html import replace_entities
 
 from slybot.linkextractor.base import BaseLinkExtractor
 from slybot.utils import htmlpage_from_response
 
 _META_REFRESH_CONTENT_RE = re.compile(r"(?P<int>(\d*\.)?\d+)\s*;\s*url=(?P<url>.*)")
 _ONCLICK_LINK_RE = re.compile("(?P<sep>('|\"))(?P<url>.+?)(?P=sep)")
+_ENTITIES_TO_KEEP = frozenset({c for c in name2codepoint} -
+                              {'amp', 'quot', 'lt', 'gt'})
+
+
+def remove_entities(text, encoding):
+    return replace_entities(text, keep=_ENTITIES_TO_KEEP, encoding=encoding)
+
 
 class HtmlLinkExtractor(BaseLinkExtractor):
     """Link extraction for auto scraping
@@ -30,9 +39,10 @@ class HtmlLinkExtractor(BaseLinkExtractor):
 
         This uses `iterlinks` to read the links in the page.
         """
-        htmlpage = htmlpage_from_response(response_or_htmlpage) if \
-                    isinstance(response_or_htmlpage, HtmlResponse) else response_or_htmlpage
-        return iterlinks(htmlpage)
+        if isinstance(response_or_htmlpage, HtmlResponse):
+            response_or_htmlpage = htmlpage_from_response(response_or_htmlpage)
+        return iterlinks(response_or_htmlpage)
+
 
 def iterlinks(htmlpage):
     """Iterate through the links in the HtmlPage passed
@@ -107,19 +117,23 @@ def iterlinks(htmlpage):
     >>> list(iterlinks(p))
     []
 
+    Dont convert query params as if they were html entities
+    >>> p = HtmlPage("http://example.com", body=u"<html><a href='/api?title=1&prop=4&pound=GBP&amp;amp=7'></a>")
+    >>> list(iterlinks(p))
+    [Link(url='http://example.com/api?title=1&prop=4&pound=GBP&amp=7', text=u'', fragment='', nofollow=False)]
+
     Extract links from <link> tags in page header
     >>> p = HtmlPage("http://example.blogspot.com/", body=u"<html><head><link rel='me' href='http://www.blogger.com/profile/987372' /></head><body>This is my body!</body></html>")
     >>> list(iterlinks(p))
     [Link(url='http://www.blogger.com/profile/987372', text=None, fragment='', nofollow=False)]
     """
-    base_href = replace_entities(
-        htmlpage.url, encoding=htmlpage.encoding).strip('\\')
+    encoding = htmlpage.encoding
+    base_href = remove_entities(htmlpage.url, encoding=encoding).strip('\\')
 
     def mklink(url, anchortext=None, nofollow=False):
         url = url.strip()
-        fullurl = urljoin(
-            base_href, replace_entities(url, encoding=htmlpage.encoding))
-        return Link(fullurl.encode(htmlpage.encoding),
+        path = remove_entities(url, encoding=encoding)
+        return Link(urljoin(base_href, path).encode(encoding),
                     text=anchortext, nofollow=nofollow)
 
     # iter to quickly scan only tags
@@ -127,14 +141,15 @@ def iterlinks(htmlpage):
 
     # parse body
     astart = ahref = None
-    nofollow = False
+    body, CLOSE_TAG, nofollow = htmlpage.body, HtmlTagType.CLOSE_TAG, False
     for nexttag in tag_iter:
         tagname = nexttag.tag
         attributes = nexttag.attributes
-        if tagname == 'a' and (nexttag.tag_type == HtmlTagType.CLOSE_TAG or attributes.get('href') \
-                    and not attributes.get('href', '').startswith('#')):
+        if tagname == 'a' and (nexttag.tag_type == CLOSE_TAG or
+                               attributes.get('href') and
+                               not attributes.get('href', '').startswith('#')):
             if astart:
-                yield mklink(ahref, htmlpage.body[astart:nexttag.start], nofollow)
+                yield mklink(ahref, body[astart:nexttag.start], nofollow)
                 astart = ahref = None
                 nofollow = False
             href = attributes.get('href')
@@ -146,9 +161,9 @@ def iterlinks(htmlpage):
             # scan ahead until end of head section
             for nexttag in tag_iter:
                 tagname = nexttag.tag
-                if (tagname == 'head' and \
-                        nexttag.tag_type == HtmlTagType.CLOSE_TAG) or \
-                        tagname == 'body':
+                if ((tagname == 'head' and
+                        nexttag.tag_type == HtmlTagType.CLOSE_TAG) or
+                        tagname == 'body'):
                     break
                 if tagname == 'base':
                     href = nexttag.attributes.get('href')
@@ -156,12 +171,13 @@ def iterlinks(htmlpage):
                         joined_base = urljoin(htmlpage.url,
                                               href.strip().strip('\\'),
                                               htmlpage.encoding)
-                        base_href = replace_entities(
+                        base_href = remove_entities(
                             joined_base, encoding=htmlpage.encoding)
                 elif tagname == 'meta':
                     attrs = nexttag.attributes
                     if attrs.get('http-equiv') == 'refresh':
-                        m = _META_REFRESH_CONTENT_RE.search(attrs.get('content', ''))
+                        m = _META_REFRESH_CONTENT_RE.search(
+                            attrs.get('content', ''))
                         if m:
                             target = m.group('url')
                             if target:
@@ -189,5 +205,3 @@ def iterlinks(htmlpage):
 
     if astart:
         yield mklink(ahref, htmlpage.body[astart:])
-
-

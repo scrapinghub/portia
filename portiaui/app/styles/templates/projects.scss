@@ -1,14 +1,16 @@
+$project-list-max-width: 300px;
 .project-list-container {
     @extend .full-page-content;
 
     width: calc(100% - #{$sidebar-width * 2});
     margin: 0 auto;
     text-align: center;
+    > * {
+        width: 100%;
+    }
 }
 
 .project-list {
-    $project-list-max-width: 300px;
-
     margin: 3em auto 0;
     max-width: $project-list-max-width;
     min-height: 0;
@@ -37,4 +39,8 @@
             }
         }
     }
+}
+
+.project-create-input {
+    width: $project-list-max-width;
 }
