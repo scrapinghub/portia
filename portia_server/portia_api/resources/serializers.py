@@ -9,6 +9,7 @@ from portia_orm.models import (Project, Schema, Field, Extractor, Spider,
                                Sample, Item, Annotation, RenderedBody,
                                OriginalBody)
 from portia_api.utils.projects import unique_name
+from portia_api.utils.annotations import choose_field_type
 
 
 def clear_auto_created(instance):
@@ -332,7 +333,8 @@ class AnnotationSerializer(JsonApiSerializer):
             field_names = map(attrgetter('name'), schema.fields)
             field_name = unique_name('field', field_names, initial_suffix=1)
             field = Field(self.storage, id=AUTO_PK, name=field_name,
-                          schema=schema, auto_created=True)
+                          type=choose_field_type(annotation), schema=schema,
+                          auto_created=True)
             field.annotations.add(annotation)
             field.save()
 

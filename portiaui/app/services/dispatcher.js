@@ -181,13 +181,13 @@ export default Ember.Service.extend({
                 project: spider.get('project.id'),
                 spider: spider.get('id'),
                 sample: sample.get('id')
+            }).then(() => {
+                if (redirect) {
+                    sample.set('new', true);
+                    const routing = this.get('routing');
+                    routing.transitionTo('projects.project.spider.sample', [sample], {}, true);
+                }
             });
-
-            if (redirect) {
-                sample.set('new', true);
-                const routing = this.get('routing');
-                routing.transitionTo('projects.project.spider.sample', [sample], {}, true);
-            }
         });
         return sample;
     },

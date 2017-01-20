@@ -149,7 +149,6 @@ class SpiderSchema(SlydSchema):
     login_user = fields.Str()
     login_password = fields.Str()
     perform_login = fields.Boolean(default=False)
-    template_names = fields.List(fields.Str(), default=[])
     samples = fields.Relationship(
         related_url='/api/projects/{project_id}/spider/{spider_id}/samples',
         related_url_kwargs={'project_id': '<project_id>',

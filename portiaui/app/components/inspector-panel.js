@@ -54,12 +54,16 @@ export function getDefaultAttribute(element) {
         return attrList[0].attribute;
     }
 
-    if (attrList.findBy('attribute', 'content')) {
-        return 'content';
-    } else if (element.tagName === 'IMG' && attrList.findBy('attribute', 'src')) {
+    if (attrList.findBy('attribute', 'src')) {
         return 'src';
-    } else if (element.tagName === 'A' && attrList.findBy('attribute', 'href')) {
+    } else if (attrList.findBy('attribute', 'href')) {
         return 'href';
+    } else if (attrList.findBy('attribute', 'datetime')) {
+        return 'datetime';
+    } else if (attrList.findBy('attribute', 'content')) {
+        return 'content';
+    } else if (attrList.length) {
+        return attrList[0].attribute;
     }
 
     return null;

@@ -1,8 +1,10 @@
 import Ember from 'ember';
+const { inject: { service }, run } = Ember;
 
 export default Ember.Route.extend({
-    annotationStructure: Ember.inject.service(),
-    browser: Ember.inject.service(),
+    annotationStructure: service(),
+    extractedItems: service(),
+    browser: service(),
 
     init() {
         this._super(...arguments);
@@ -15,6 +17,7 @@ export default Ember.Route.extend({
 
     afterModel(model) {
         this.updateDataStructure(model);
+        this.get('extractedItems').update();
     },
 
     activate() {
@@ -26,7 +29,7 @@ export default Ember.Route.extend({
         this.updateDataStructure(null);
 
         if (this.scheduledRenderOverlays) {
-            Ember.run.cancel(this.scheduledRenderOverlays);
+            run.cancel(this.scheduledRenderOverlays);
         }
 
         this.get('browser').clearAnnotationMode();
@@ -49,7 +52,7 @@ export default Ember.Route.extend({
             outlet: 'browser-toolbar'
         });
 
-        this.scheduledRenderOverlays = Ember.run.next(this, this.renderOverlayTemplate);
+        this.scheduledRenderOverlays = run.next(this, this.renderOverlayTemplate);
     },
 
     renderOverlayTemplate() {

@@ -109,7 +109,10 @@ def load_spider(storage, model):
     for sample in model.samples:
         json_sample = json.loads(sample.dumps())
         json_sample['original_body'] = sample.original_body.html
-        json_sample['rendered_body'] = sample.original_body.html
+        try:
+            json_sample['rendered_body'] = sample.original_body.html
+        except IOError:
+            json_sample['rendered_body'] = json_sample['original_body']
         samples.append(json_sample)
     spider['templates'] = samples
     return IblSpider(model.id, spider, items, extractors, Settings())

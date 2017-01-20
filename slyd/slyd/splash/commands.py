@@ -45,7 +45,8 @@ def save_html(data, socket, item_checker=None):
     spider = project.spiders[data['spider']]
     samples = spider.samples
     sample = samples[data['sample']]
-    return _update_sample(data, socket, sample)
+    _update_sample(data, socket, sample)
+    return {'ok': True}
 
 
 @open_tab
@@ -61,14 +62,18 @@ def extract_items(data, socket):
             'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
 
 
+def _load_sample(data, socket, project=None):
+    project = project or socket.spiderspec.project
+    spiders = project.spiders
+    spider = spiders[data['spider']]
+    samples = spider.samples
+    return samples[data['sample']]
+
+
 def _update_sample(data, socket, sample=None, project=None):
     """Recompile sample with latest annotations"""
     if sample is None:
-        project = project or socket.spiderspec.project
-        spiders = project.spiders
-        spider = spiders[data['spider']]
-        samples = spider.samples
-        sample = samples[data['sample']]
+        sample = _load_sample(data, socket, project)
         path = 'spiders/{}/{}/{{}}.html'.format(data['spider'], data['sample'])
     else:
         path = _html_path(sample)
@@ -304,6 +309,7 @@ class ItemChecker(object):
         if self.sample:
             samples = [_update_sample(self.data(), socket,
                                       project=self.project)]
+            self._check_sample(samples[0])
         else:
             samples = socket.spiderspec.templates
         spider['templates'] = samples
@@ -316,9 +322,13 @@ class ItemChecker(object):
         return live_items, raw_items, links, js_links
 
     def _check_items(self):
-        js_live_items, js_raw_items, links, js_links = self._load_items(
-            'rendered_body', True)
-        live_items, raw_items, _, _ = self._load_items()
+        try:
+            js_live_items, js_raw_items, links, js_links = self._load_items(
+                'rendered_body', True)
+            live_items, raw_items, _, _ = self._load_items()
+        except MissingRequiredError as e:
+            data = [e.schema.id, list(e.fields)]
+            return [], ['missing_required_field'], data, []
         raw_links = {l: 'raw' for l in links}
         links = {l: 'js' for l in js_links}
         links.update(raw_links)
@@ -335,6 +345,29 @@ class ItemChecker(object):
         items = _process_items(items)
         return items, changes, changed_values, links
 
+    def _check_sample(self, sample):
+        sample = _load_sample(self.data(), self.socket)
+
+        def _check_item(item):
+            schema = item.schema
+            required = {field.id for field in schema.fields if field.required}
+            annotated = set()
+            for annotation in item.annotations:
+                if hasattr(annotation, 'field'):
+                    annotated.add(annotation.field.id)
+                else:
+                    _check_item(annotation)
+            missing = required - annotated
+            if missing:
+                raise MissingRequiredError(schema, missing)
+        for item in sample.items:
+            _check_item(item)
+
     def _check_items_with_sample(self):
         with _restore(self.socket.spider):
             return self._check_items()
+
+
+class MissingRequiredError(Exception):
+    def __init__(self, schema, fields):
+        self.schema, self.fields = schema, fields

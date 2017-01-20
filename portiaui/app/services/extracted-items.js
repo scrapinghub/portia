@@ -85,7 +85,7 @@ export default Ember.Service.extend({
             'links': data.links,
             'changes': data.changes,
             'type': data.type,
-            'changed_values': data.changed_values
+            'changed': data.changed
         });
     },
 

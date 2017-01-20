@@ -1,6 +1,7 @@
 import Ember from "ember";
 import DS from "ember-data";
 import UrlTemplates from "ember-data-url-templates";
+const { inject: { service } } = Ember;
 
 const DELETED_EXTENSION = 'https://portia.scrapinghub.com/jsonapi/extensions/deleted';
 const UPDATES_EXTENSION = 'https://portia.scrapinghub.com/jsonapi/extensions/updates';
@@ -22,8 +23,9 @@ function filter_update_errors(errors, pointer) {
 }
 
 export default DS.JSONAPIAdapter.extend(UrlTemplates, {
-    savingNotification: Ember.inject.service(),
-    uiState: Ember.inject.service(),
+    savingNotification: service(),
+    loadingSlider: service(),
+    uiState: service(),
 
     findRecordUrlTemplate: '{+host}{+selfLink}',
     createRecordUrlTemplate: '{+host}{+relatedLink}',
@@ -371,8 +373,10 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
 
             // update saving status
             this.get('savingNotification').start();
+            this.get('loadingSlider').startLoading();
             promise.finally(() => {
                 this.get('savingNotification').end();
+            this.get('loadingSlider').endLoading();
                 const project = this.get('uiState.models.project');
                 if (project) {
                     project.markChanged();

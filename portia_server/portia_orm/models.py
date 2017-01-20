@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import json
 import re
 import six
@@ -11,19 +12,19 @@ from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slybot.plugins.scrapely_annotations.migration import (port_sample,
                                                            guess_schema,
-                                                           repair_ids,
-                                                           load_annotations)
+                                                           repair_ids)
 from slybot.starturls import StartUrlCollection
 
 from storage.backends import ContentFile
 
 from .base import Model
-from .decorators import pre_load, post_dump, post_load
+from .decorators import pre_load, post_dump
 from .exceptions import PathResolutionError
 from .fields import (
     Boolean, Domain, Integer, List, Regexp, String, Url, DependantField,
     BelongsTo, HasMany, HasOne, CASCADE, CLEAR, PROTECT, StartUrl)
-from .utils import unwrap_envelopes, short_guid, wrap_envelopes, encode
+from .utils import (
+    unwrap_envelopes, short_guid, wrap_envelopes, encode, strip_json)
 from .validators import OneOf
 
 _CLEAN_ANNOTATED_HTML = re.compile('( data-scrapy-[a-z]+="[^"]+")|'
@@ -218,8 +219,7 @@ class Spider(Model):
     project = BelongsTo(Project, related_name='spiders', on_delete=CASCADE,
                         ignore_in_file=True)
     samples = HasMany('Sample', related_name='spider', on_delete=CLEAR,
-                      only='id', load_from='template_names',
-                      dump_to='template_names')
+                      only='id')
 
     class Meta:
         path = u'spiders/{self.id}.json'
@@ -234,7 +234,7 @@ class Spider(Model):
             directories, files = storage.listdir('spiders')
             return cls.collection(
                 cls(storage, snapshots=('committed',),
-                    id=filename[:-len('.json')]).with_snapshots()
+                    id=strip_json(filename)).with_snapshots()
                 for filename in files
                 if filename.endswith('.json'))
 
@@ -247,40 +247,39 @@ class Spider(Model):
         if spider_id and not _ID_RE.match(spider_id):
             return data
         path = self.context['path']
-        name = path.split('/')[-1]
-        if name.endswith('.json'):
-            name = name[:-len('.json')]
-        data['id'] = name
+        data['id'] = strip_json(path.split('/')[-1])
         return data
 
     @pre_load
-    def dump_templates_to_file(self, data):
-        if 'template_names' in data or 'templates' not in data:
-            return data
-        template_names = []
+    def dump_templates(self, data):
+        if 'templates' not in data:
+            path = '/'.join(strip_json(self.context['path']).split('/')[:2])
+            storage = self.context['storage']
+            try:
+                names = OrderedDict((strip_json(fname), 1)
+                                    for fname in storage.listdir(path)[1])
+                data['samples'] = list(names)
+                return data
+            except OSError:
+                # Directory does not exist
+                data['samples'] = []
+                return data
+        templates = []
         for template in data['templates']:
             # Only migrate item templates
             if template.get('page_type') != 'item':
                 continue
             template['id'] = template.get('page_id') or template.get('name')
-            template_names.append(template['id'])
+            templates.append(template['id'])
             path = self.context['path']
-            path = '/'.join((path[:-len('.json')].strip('/'),
+            path = '/'.join((strip_json(path).strip('/'),
                             '{}.json'.format(template['id'])))
             sample = json.dumps(template, sort_keys=True, indent=4)
             self.context['storage'].save(path, ContentFile(sample, path))
-        data['template_names'] = template_names
-        del data['templates']
+        data['samples'] = templates
         path, storage = self.context['path'], self.context['storage']
         spider = json.dumps(data, indent=4, sort_keys=True)
         storage.save(path, ContentFile(spider, path))
-        return data
-
-    @pre_load
-    def normalize_template_names(self, data):
-        if 'template_names' in data:
-            names = list(OrderedDict((v, 1) for v in data['template_names']))
-            data['template_names'] = names
         return data
 
     @pre_load
@@ -314,6 +313,7 @@ class Spider(Model):
         data.pop('login_url', None)
         data.pop('login_user', None)
         data.pop('login_password', None)
+        data.pop('samples', None)
         return OrderedDict(sorted(iteritems(data)))
 
     @staticmethod
@@ -506,7 +506,7 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @staticmethod
     def _migrate_html(self, sample):
-        base_path = self.context['path'][:-len('.json')].strip('/')
+        base_path = strip_json(self.context['path']).strip('/')
         # Clean and use annotated body if there is no original body present
         if 'annotation_body' in sample and not sample.get('original_body'):
             sample['original_body'] = self._clean(sample['annotated_body'])
@@ -751,14 +751,8 @@ class Annotation(BaseAnnotation):
                 }
             }
 
-        json_file = self.context['storage'].open_with_default(
-            'extractors.json', default={})
-        extractors = json.load(json_file)
-        extractors = OrderedDict([
-            (extractor, {
-                'id': extractor
-            }) for extractor in annotation_data['extractors'] or []
-            if extractor in extractors])
+        extractors = OrderedDict(
+            (ex, {'id': ex}) for ex in annotation_data['extractors'] or [])
 
         data = {
             'id': '{}|{}'.format(data['id'], data_id),
@@ -825,8 +819,8 @@ class OriginalBody(Model):
     def populate_item(self, data):
         split_path = self.context['path'].split('/')
         sample_id = split_path[2]
-        if len(split_path) == 3 and sample_id.endswith('.json'):
-            sample_id = sample_id[:-len('.json')]
+        if len(split_path) == 3:
+            sample_id = strip_json(sample_id)
         name = self.Meta.name
         return {
             'id': '{}_{}'.format(sample_id, name),
