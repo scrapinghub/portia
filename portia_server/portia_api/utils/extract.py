@@ -84,13 +84,14 @@ class Pages(object):
         return results
 
     def process(self, url, page):
-        return HtmlResponse(url, body=page)
+        return HtmlResponse(url, body=page, request=Request(url))
 
     def extract_items(self):
         responses = self.fetch()
         items = []
         for response in responses:
-            item = {'key': response.url, 'items': None, 'templates': None}
+            page_key = response.meta.get('page_key') or response.url
+            item = {'key': page_key, 'items': None, 'templates': None}
             extracted_items = [dict(i) for i in self.spider.parse(response)
                                if not isinstance(i, Request)]
             if extracted_items:
