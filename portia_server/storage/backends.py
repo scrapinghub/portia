@@ -168,6 +168,14 @@ class FsStorage(BasePortiaStorage, FileSystemStorage):
 
         return name
 
+    def delete(self, name):
+        super(FsStorage, self).delete(name)
+        name = self.path(name)
+        if name.endswith('.json'):
+            dir_path = name[:-len('.json')]
+            if self.isdir(dir_path):
+                self.rmtree(dir_path)
+
 
 class GitStorage(BasePortiaStorage):
     version_control = True
@@ -241,6 +249,10 @@ class GitStorage(BasePortiaStorage):
             del self._working_tree[name]
         else:
             raise IOError(2, 'No file or directory', name)
+        if name.endswith('.json'):
+            dir_path = name[:-len('.json')]
+            if self.isdir(dir_path):
+                self.rmtree(dir_path)
 
     def exists(self, name):
         name = self.path(name)
