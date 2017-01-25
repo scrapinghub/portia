@@ -1,11 +1,11 @@
 {{#if changeset.isValid}}
     {{list-item-badge value=multiplicity color=fragmentColor}}
 {{else}}
-    {{#tooltip-container toggleTooltip=toggleTooltip tooltipContainer='body' tooltipFor=(concat 'error-icon-' elementId) placement='left' as |tooltip|}}
+    {{#tooltip-container toggleTooltip=toggleTooltip tooltipContainer='body' tooltipFor=(concat 'error-icon-' uniqueId) placement='left' as |tooltip|}}
         {{#if (eq tooltip.section 'tooltip')}}
             {{changeset.error.value.validation}}
         {{else}}
-            {{icon-button id=(concat 'error-icon-' elementId) icon='error-triangle' class='fragment-error tooltip-for'}}
+            {{icon-button id=(concat 'error-icon-' uniqueId) icon='error-triangle' class='fragment-error tooltip-for'}}
         {{/if}}
     {{/tooltip-container}}
 {{/if}}

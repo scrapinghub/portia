@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { shortGuid } from '../utils/utils';
 
 export default Ember.Component.extend({
     tagName: '',
@@ -24,15 +25,16 @@ export default Ember.Component.extend({
         }
     }),
 
+    init() {
+        this._super(...arguments);
+        this.set('inputId', `${shortGuid()}-input`);
+    },
+
     didInsertElement() {
         if (this.get('open')) {
             Ember.run.next(this, this.setInputFocus);
         }
     },
-
-    inputId: Ember.computed('elementId', function() {
-        return this.get('elementId') + '-input';
-    }),
 
     updateInputFocus: Ember.observer('open', function() {
         Ember.run.scheduleOnce('afterRender', this, this.setInputFocus);

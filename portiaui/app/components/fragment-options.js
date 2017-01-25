@@ -10,6 +10,8 @@ import FixedFragmentValidations from '../validations/fixed-fragment';
 import RangeFragmentValidations from '../validations/range-fragment';
 import ListFragmentValidations  from '../validations/list-fragment';
 
+import { shortGuid } from '../utils/utils';
+
 const TOOLTIP_DEBOUNCE = 1000;
 const TOOLTIP_DELAY = 2000;
 
@@ -30,6 +32,11 @@ export default Ember.Component.extend({
         { value: 'range', label: 'Range' },
         { value: 'list',  label: 'List' }
     ],
+
+    init() {
+        this._super(...arguments);
+        this.set('uniqueId', shortGuid());
+    },
 
     fragmentType: computed('fragment.type', {
         get() {

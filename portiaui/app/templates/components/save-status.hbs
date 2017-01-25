@@ -1,8 +1,8 @@
-{{#tooltip-container tooltipFor=(concat "label-" elementId) tooltipContainer='body' as |tooltip|}}
+{{#tooltip-container tooltipFor=(concat "label-" uniqueId) tooltipContainer='body' as |tooltip|}}
     {{#if (eq tooltip.section 'tooltip')}}
         <p class="first">Every change you make is automatically saved by Portia</p>
     {{else}}
-        <span id="label-{{elementId}}" class="label label-{{labelColorClass}}">
+        <span id="label-{{uniqueId}}" class="label label-{{labelColorClass}}">
             {{#if isSaving}}
                 Saving <span>.</span><span>.</span><span>.</span>
             {{else if timeSinceLastSave}}

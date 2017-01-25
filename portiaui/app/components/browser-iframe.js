@@ -53,12 +53,12 @@ const BrowserIFrame = Ember.Component.extend({
         }
         BrowserIFrame.instances++;
         const ws = this.get('webSocket');
-        ws.connect();
         ws.addCommand('loadStarted', this, this.msgLoadStarted);
         ws.addCommand('metadata', this, this.msgMetadata);
         ws.addCommand('load', this, this.msgLoad);
         ws.addCommand('cookies', this, this.msgCookies);
         ws.addCommand('mutation', this, this.msgMutation);
+        ws.addCommand('save_html', this, this.noop);
     },
 
     didInsertElement() {
@@ -78,6 +78,7 @@ const BrowserIFrame = Ember.Component.extend({
         ws.removeCommand('load', this, this.msgLoad);
         ws.removeCommand('cookies', this, this.msgCookies);
         ws.removeCommand('mutation', this, this.msgMutation);
+        ws.removeCommand('save_html', this, this.noop);
         ws.close();
 
         this.setProperties({
@@ -195,6 +196,10 @@ const BrowserIFrame = Ember.Component.extend({
         if (cookies && cookies.length) {
             this.set(`cookiesStore.${cookieId}`, cookies);
         }
+    },
+
+    noop() {
+        return null;
     },
 
     loadCookies(){

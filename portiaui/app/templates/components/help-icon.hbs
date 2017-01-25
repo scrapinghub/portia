@@ -1,7 +1,7 @@
-{{#tooltip-container tooltipClasses=tooltipClasses tooltipFor=(concat "help-icon-" elementId) tooltipContainer=tooltipContainer placement=placement as |tooltip|}}
+{{#tooltip-container tooltipClasses=tooltipClasses tooltipFor=(concat "help-icon-" uniqueId) tooltipContainer=tooltipContainer placement=placement as |tooltip|}}
     {{#if (eq tooltip.section 'tooltip')}}
         {{yield}}
     {{else}}
-        {{icon-button id=(concat "help-icon-" elementId) class=classes icon=icon}}
+        {{icon-button id=(concat "help-icon-" uniqueId) class=classes icon=icon}}
     {{/if}}
 {{/tooltip-container}}

@@ -1,4 +1,5 @@
 import Ember from 'ember';
+import { shortGuid } from '../utils/utils';
 
 export default Ember.Component.extend({
     clock: Ember.inject.service(),
@@ -13,6 +14,7 @@ export default Ember.Component.extend({
     init() {
         this._super(...arguments);
         this.wasSaving = false;
+        this.set('uniqueId', `${shortGuid()}-saving`);
     },
 
     isSaving: Ember.computed('savingNotification.isSaving', {
@@ -39,7 +41,7 @@ export default Ember.Component.extend({
             return value;
         }
     }),
-    timeSinceLastSave: Ember.computed('clock.time', 'savingNotification.lastSaved', function() {
+    timeSinceLastSave: Ember.computed('savingNotification.lastSaved', function() {
         const current = this.get('clock.time');
         const last = this.get('savingNotification.lastSaved');
         if (!current || !last) {
