@@ -67,6 +67,7 @@ install_deps(){
             python-openssl \
             python-pip \
             python-software-properties
+    pip install -U pip setuptools
 }
 
 install_python_deps(){
