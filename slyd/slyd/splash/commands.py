@@ -4,6 +4,7 @@ import json
 import logging
 import re
 import six
+import sys
 import socket as _socket
 
 from six.moves.urllib.parse import urlparse
@@ -15,10 +16,10 @@ from splash.browser_tab import JsError
 from splash.har.qt import cookies2har
 
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
+from slybot.utils import decode
 
 from storage.backends import ContentFile
 from portia_orm.models import Project
-from portia_orm.utils import decode
 
 from .utils import open_tab, extract_data, _get_viewport, _html_path, decoded_html
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
@@ -45,7 +46,10 @@ def save_html(data, socket, item_checker=None):
     spider = project.spiders[data['spider']]
     samples = spider.samples
     sample = samples[data['sample']]
-    _update_sample(data, socket, sample)
+    try:
+        _update_sample(data, socket, sample)
+    except IOError:
+        pass
     return {'ok': True}
 
 
@@ -85,8 +89,13 @@ def _update_sample(data, socket, sample=None, project=None):
             path = html_path(name)
             html = decode(socket.storage.open(path).read())
         except IOError:
+            if not socket.tab:
+                six.reraise(*sys.exec_info())
             html = decoded_html(socket.tab, type_)
-            socket.storage.save(path, ContentFile(html, path))
+            if html:
+                socket.storage.save(path, ContentFile(html, path))
+            else:
+                html = '<html></html>'
         sample[name] = html
     return sample
 
@@ -156,7 +165,10 @@ def metadata(socket, extra={}):
         return {'_command': 'metadata', 'loaded': False}
     res = {'_command': 'metadata', 'loaded': socket.tab.loaded}
     if socket.tab.loaded:
-        url = socket.tab.url
+        try:
+            url = socket.tab.url
+        except RuntimeError:
+            url = ''
         response = {'headers': {},  # TODO: Get headers
                     'status': socket.tab.last_http_status()}
         res.update(url=url, fp=hashlib.sha1(url.encode('utf8')).hexdigest(),
@@ -273,7 +285,10 @@ class ItemChecker(object):
 
     @cached_property
     def url(self):
-        return self.socket.tab.evaljs('location.href')
+        try:
+            return self.socket.tab.evaljs('location.href')
+        except JsError:
+            return self.socket.tab.url
 
     @cached_property
     def using_js(self):
@@ -302,6 +317,9 @@ class ItemChecker(object):
         return check()
 
     def _load_items(self, body_field='original_body', live=False):
+        if not self.socket.spider:
+            # TODO: Investigate why spider is None
+            return [], [], [], []
         socket, raw_html, html = self.socket, self.raw_html, self.html
         schemas, extractors, url = self.schemas, self.extractors, self.url
         spider = socket.spiderspec.spider.copy()

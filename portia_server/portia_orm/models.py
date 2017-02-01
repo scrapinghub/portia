@@ -14,6 +14,7 @@ from slybot.plugins.scrapely_annotations.migration import (port_sample,
                                                            guess_schema,
                                                            repair_ids)
 from slybot.starturls import StartUrlCollection
+from slybot.utils import encode
 
 from storage.backends import ContentFile
 
@@ -23,8 +24,7 @@ from .exceptions import PathResolutionError
 from .fields import (
     Boolean, Domain, Integer, List, Regexp, String, Url, DependantField,
     BelongsTo, HasMany, HasOne, CASCADE, CLEAR, PROTECT, StartUrl)
-from .utils import (
-    unwrap_envelopes, short_guid, wrap_envelopes, encode, strip_json)
+from .utils import unwrap_envelopes, short_guid, wrap_envelopes, strip_json
 from .validators import OneOf
 
 _CLEAN_ANNOTATED_HTML = re.compile('( data-scrapy-[a-z]+="[^"]+")|'
@@ -420,7 +420,7 @@ class Sample(Model, OrderedAnnotationsMixin):
         if items:
             return data
 
-        extractors = json.loads(self.context['storage'].open_with_default(
+        extractors = json.load(self.context['storage'].open_with_default(
             'extractors.json', {}))
         sample, new_schemas = port_sample(data, schemas, extractors)
         self._add_schemas(self, new_schemas)

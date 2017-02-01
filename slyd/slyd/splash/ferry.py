@@ -30,6 +30,7 @@ from storage.repoman import Repoman
 
 from portia_orm.models import Project
 from portia_orm.datastore import data_store_context
+from portia_api.utils.spiders import load_spider_data
 
 from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
@@ -427,17 +428,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         except IOError:
             return {'error': 4003,
                     'reason': 'Spider "%s" not found' % spider_name}
-        spider = spider_model.dump()
-        spider['templates'] = []
-        for sample in spider_model.samples:
-            sample_json = sample.dump()
-            for key in ('original_body', 'rendered_body'):
-                try:
-                    sample_json[key] = getattr(sample, key).html
-                except (IOError, AttributeError):
-                    sample_json[key] = u'<html></html>'
-            spider['templates'].append(sample_json)
-        items, extractors = project.schemas.dump(), project.extractors.dump()
+        spider_name, spider, items, extractors = load_spider_data(spider_model)
         if not self.settings.get('SPLASH_URL'):
             self.settings.set('SPLASH_URL', 'portia')
         self.factory[self].spider = IblSpider(spider_name, spider, items,
@@ -465,7 +456,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
                     break
             else:
                 spider['templates'].append(template)
-            spider['template_names'] = [t['name'] for t in spider['templates']]
         self.factory[self].spider = IblSpider(meta['spider'], spider, items,
                                               extractors, self.settings)
         self.factory[self].spiderspec = SpiderSpec(

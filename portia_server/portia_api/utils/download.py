@@ -10,10 +10,10 @@ from os.path import join
 from six import StringIO
 from datetime import datetime
 
-from storage.projecttemplates import templates
+from slybot.utils import decode
 from portia2code.porter import load_project_data, port_project
 
-from portia_orm.utils import decode
+from storage.projecttemplates import templates
 
 REQUIRED_FILES = {'setup.py', 'scrapy.cfg', 'extractors.json', 'items.json',
                   'project.json', 'spiders/__init__.py', 'spiders/settings.py'}
@@ -213,27 +213,28 @@ class ProjectArchiver(object):
 
 class CodeProjectArchiver(ProjectArchiver):
     def archive(self, spiders=None):
-        def list_spiders(unused=None):
-            if spiders:
-                return spiders
-            _, storage_spiders = self.storage.listdir('spiders')
-            len_json = len('.json')
-            return [s[:-len_json] for s in storage_spiders if s.endswith('.json')]
 
-        def open_file(*path, **kwargs):
-            raw = kwargs.pop('raw', False)
-            path = join(*path[1:])
-            if not raw and not path.endswith('.json'):
-                path = '%s.json' % path
-            try:
-                content = self.storage.open(path).read()
-                return decode(content) if raw else json.loads(content)
-            except IOError as e:
-                if path in ('items.json', 'extractors.json'):
-                    return {}
-                raise e
-        schemas, extractors, spiders = load_project_data(
-            open_file, list_spiders, None)
+        class ArchivingStorage(object):
+            def __init__(self, storage):
+                self.storage = storage
+
+            def isdir(self, *args, **kwargs):
+                return self.storage.isdir(self.rel_path(*args))
+
+            def listdir(self, *args, **kwargs):
+                path = self.rel_path(*args)
+                return itertools.chain(*self.storage.listdir(path))
+
+            def rel_path(self, *args):
+                return '/'.join(args)
+
+            def open(self, *args, **kwargs):
+                raw = kwargs.get('raw')
+                fp = self.storage.open_with_default(self.rel_path(*args), {})
+                return decode(fp.read()) if raw else json.load(fp)
+
+        storage = ArchivingStorage(self.storage)
+        schemas, extractors, spiders = load_project_data(storage)
         name = self._process_name()
         return port_project(name, schemas, spiders, extractors)
 

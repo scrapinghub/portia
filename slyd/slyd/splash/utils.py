@@ -6,8 +6,7 @@ from scrapy.item import DictItem
 from slyd.html import descriptify
 from slyd.errors import BaseHTTPError
 from slybot.baseurl import insert_base_url
-
-from portia_orm.utils import encode, decode
+from slybot.utils import encode, decode
 _DEFAULT_VIEWPORT = '1240x680'
 
 
@@ -18,7 +17,8 @@ def clean(html, url):
 def decoded_html(tab, type_=None):
     if type_ == 'raw':
         stated_encoding = tab.evaljs('document.characterSet')
-        return decode(tab.network_manager._raw_html)
+        return decode(tab.network_manager._raw_html or tab.html(),
+                      default=stated_encoding)
     return tab.html()
 
 
@@ -58,7 +58,6 @@ def page(url, html):
 def _html_path(sample):
     path = sample.storage_path(sample)[:-len('.json')].strip('/')
     return '{}/{{}}.html'.format(path)
-
 
 def _get_template_name(template_id, templates):
     for template in templates:

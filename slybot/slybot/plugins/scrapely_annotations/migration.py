@@ -24,6 +24,8 @@ Handle generated annotations
 import copy
 import json
 import re
+import six
+import sys
 
 import slybot
 
@@ -769,7 +771,7 @@ class PartialKeyDict(dict):
                         key, full_key = self._add_parent(key, full_key)
                     self[key] = full_key
                     return full_key
-            raise
+            six.reraise(*sys.exec_info())
 
     def __setitem__(self, key, value):
         removed_parent, key = self._remove_parent(key)

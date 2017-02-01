@@ -1,7 +1,10 @@
 from collections import OrderedDict
 from itertools import chain
+import errno
 import json
 import re
+import six
+import sys
 from weakref import WeakKeyDictionary
 
 from six import iteritems, iterkeys, string_types, with_metaclass
@@ -508,7 +511,12 @@ class Model(with_metaclass(ModelMeta)):
                     saved_paths.add(path)
             else:
                 if path not in deleted_paths:
-                    model.storage.delete(path)
+                    try:
+                        model.storage.delete(path)
+                    except IOError as ex:
+                        # Assume missing files are already deleted
+                        if ex.errno != errno.ENOENT:
+                            six.reraise(*sys.exec_info())
                     deleted_paths.add(path)
 
         for model, fields in iteritems(collector.save):
