@@ -516,7 +516,7 @@ class Model(with_metaclass(ModelMeta)):
                     except IOError as ex:
                         # Assume missing files are already deleted
                         if ex.errno != errno.ENOENT:
-                            six.reraise(*sys.exec_info())
+                            six.reraise(*sys.exc_info())
                     deleted_paths.add(path)
 
         for model, fields in iteritems(collector.save):

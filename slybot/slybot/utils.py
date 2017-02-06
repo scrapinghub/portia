@@ -23,14 +23,18 @@ UNPAIRED_TAG = HtmlTagType.UNPAIRED_TAG
 ENCODINGS = ['UTF-8', 'ISO-8859-1', 'Windows-1251', 'Shift JIS',
              'Windows-1252', 'GB2312', 'EUC-KR', 'EUC-JP', 'GBK', 'ISO-8859-2',
              'Windows-1250', 'ISO-8859-15', 'Windows-1256', 'ISO-8859-9',
-             'Big5', 'Windows-1254']
+             'Big5', 'Windows-1254', 'Windows-874']
 
 
 def encode(html, default=None):
+    if isinstance(html, six.binary_type):
+        return html
     return _encode_or_decode_string(html, type(html).encode, default)
 
 
 def decode(html, default=None):
+    if isinstance(html, six.text_type):
+        return html
     return _encode_or_decode_string(html, type(html).decode, default)
 
 

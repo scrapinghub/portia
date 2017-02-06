@@ -2,6 +2,7 @@ import re
 import urllib
 from scrapy.utils.url import urljoin_rfc
 from six.moves.urllib_parse import urlparse
+from slybot.utils import decode, encode
 
 
 CSS_IMPORT = re.compile(r'''@import\s*["']([^"']+)["']''')
@@ -46,8 +47,8 @@ def process_css(css_source, tabid, base_uri):
         url = match.group(1).strip("\"'")
         return 'url("{}")'.format(wrap_url(url, tabid,
                                            base_uri).replace('"', '%22'))
-
+    css_source = decode(css_source)
     css_source = CSS_IMPORT.sub(_absolutize_css_import, css_source)
     css_source = CSS_URL.sub(_absolutize_css_url, css_source)
     css_source = BAD_CSS.sub('portia-blocked', css_source)
-    return css_source
+    return encode(css_source)

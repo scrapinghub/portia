@@ -52,7 +52,10 @@ export default Ember.Component.extend({
             ensurePromise(this.validateName(name)).then(isValid => {
                 if (isValid) {
                     const model = this.get('value');
-                    model.then(item => {
+                    ensurePromise(model).then(item => {
+                        if (!item) {
+                            return; // Model is null
+                        }
                         item.set('name', name);
                         item.save();
                     });

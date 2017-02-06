@@ -90,7 +90,7 @@ def _update_sample(data, socket, sample=None, project=None):
             html = decode(socket.storage.open(path).read())
         except IOError:
             if not socket.tab:
-                six.reraise(*sys.exec_info())
+                six.reraise(*sys.exc_info())
             html = decoded_html(socket.tab, type_)
             if html:
                 socket.storage.save(path, ContentFile(html, path))

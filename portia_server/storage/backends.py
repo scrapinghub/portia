@@ -68,7 +68,7 @@ class CommittingStorage(object):
             return OrderedDict((project, project) for project in dirs)
         except OSError as ex:
             if ex.errno != errno.ENOENT:
-                six.reraise(*sys.exec_info())
+                six.reraise(*sys.exc_info())
 
     @classmethod
     def setup(cls):
@@ -157,7 +157,8 @@ class FsStorage(BasePortiaStorage, FileSystemStorage):
                     os.makedirs(directory)
             except OSError as e:
                 if e.errno != errno.EEXIST:
-                    six.reraise(*sys.exec_info())
+                    six.reraise(*sys.exc_info())
+
         if not os.path.isdir(directory):
             raise IOError("%s exists and is not a directory." % directory)
 

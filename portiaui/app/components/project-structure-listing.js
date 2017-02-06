@@ -32,13 +32,13 @@ export default Ember.Component.extend({
     pagination: computed('currentSpider', 'currentPage', 'spiders.[]',
                          function() {
         if (this.get('currentSpider')) { return ''; }
-        const numSpiders = this.get('spiders.length');
-        if (numSpiders <= LIMIT) {
+        if (this.get('filteredSpiders.length') <= LIMIT) {
             return '';
         }
-        const start = (this.get('currentPage') * LIMIT) + 1;
-        const end   = Math.min((this.get('currentPage') + 1) * LIMIT,
-                               start + numSpiders - 1);
+        const numSpiders = this.get('spiders.length');
+        const currentPage = this.get('currentPage');
+        const start = (currentPage * LIMIT) + 1;
+        const end   = Math.min((currentPage + 1) * LIMIT, start + numSpiders - 1);
         return `( ${start}-${end} )`;
     }),
     currentSpiderChanged: observer('currentSpider', function() {

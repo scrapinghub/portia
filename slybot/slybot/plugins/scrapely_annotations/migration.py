@@ -771,7 +771,7 @@ class PartialKeyDict(dict):
                         key, full_key = self._add_parent(key, full_key)
                     self[key] = full_key
                     return full_key
-            six.reraise(*sys.exec_info())
+            six.reraise(*sys.exc_info())
 
     def __setitem__(self, key, value):
         removed_parent, key = self._remove_parent(key)

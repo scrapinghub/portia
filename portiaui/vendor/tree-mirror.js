@@ -88,7 +88,11 @@ var TreeMirror = (function () {
                 break;
 
             case Node.DOCUMENT_TYPE_NODE:
-                node = doc.implementation.createDocumentType(nodeData.name, nodeData.publicId, nodeData.systemId);
+                try {
+                    node = doc.implementation.createDocumentType(nodeData.name, nodeData.publicId, nodeData.systemId);
+                } catch (e) {
+                    // Ignore error from incorrect document type
+                }
                 break;
 
             case Node.ELEMENT_NODE:
@@ -182,7 +186,13 @@ var TreeMirrorClient = (function () {
         this.mutationSummary = new MutationSummary({
             rootNode: target,
             callback: function (summaries) {
-                _this.applyChanged(summaries);
+                try {
+                    _this.applyChanged(summaries);
+                } catch (e) {
+                    if (e.message !== 'No node with that id') {
+                        throw e;
+                    }
+                }
             },
             queries: queries
         });
