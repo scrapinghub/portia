@@ -11,7 +11,7 @@ from slybot.fieldtypes import TextFieldTypeProcessor
 from slybot.item import create_slybot_item_descriptor
 from slybot.plugins.scrapely_annotations.extraction import SlybotIBLExtractor
 from slybot.plugins.scrapely_annotations.builder import (
-    apply_annotations, _clean_annotation_data
+    Annotations, _clean_annotation_data
 )
 
 
@@ -105,8 +105,10 @@ class ExtractorTest(TestCase):
     target = HtmlPage(url="http://www.test.com/", body=_target)
     template2 = HtmlPage(url="http://www.test.com/", body=annotated2)
     target2 = HtmlPage(url="http://www.test.com/a", body=_target2)
+    sample3 = {'plugins': {'annotations-plugin': {'extracts': annotations}},
+               'original_body': target3}
     template3 = HtmlPage(url="http://www.test.com/a",
-                         body=apply_annotations(annotations, target3))
+                         body=Annotations(sample3).apply())
     target3 = HtmlPage(url="http://www.test.com/a", body=target3)
 
     def test_regex_extractor(self):

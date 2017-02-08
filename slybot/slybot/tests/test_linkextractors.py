@@ -10,7 +10,7 @@ from slybot.linkextractor import (
     create_linkextractor_from_specs, RssLinkExtractor, SitemapLinkExtractor,
 )
 from slybot.plugins.scrapely_annotations.builder import (
-    apply_annotations, _clean_annotation_data
+    Annotations, _clean_annotation_data
 )
 from slybot.utils import load_plugins
 from slybot.spider import IblSpider
@@ -212,9 +212,7 @@ html = """
 _PATH = dirname(__file__)
 with open('%s/data/templates/daft_list.json' % _PATH) as f:
     daft_sample = json.load(f)
-    annotations = daft_sample['plugins']['annotations-plugin']['extracts']
-    daft_body = apply_annotations(_clean_annotation_data(annotations),
-                                  daft_sample['original_body'])
+    daft_body = Annotations(daft_sample).apply()
     daft_sample['annotated_body'] = daft_body
 
 

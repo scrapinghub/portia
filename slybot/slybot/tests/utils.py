@@ -9,9 +9,7 @@ from scrapy.utils.spider import arg_to_iter
 from scrapely.htmlpage import HtmlPage
 
 from slybot.spider import IblSpider
-from slybot.plugins.scrapely_annotations.builder import (
-    apply_annotations, _clean_annotation_data
-)
+from slybot.plugins.scrapely_annotations.builder import Annotations
 
 
 PATH = dirname(__file__)
@@ -31,11 +29,8 @@ def open_spec(name):
 
 def open_sample_and_page(name):
     sample_spec = open_spec(name)
-    annotations = sample_spec['plugins']['annotations-plugin']['extracts']
-    annotated = apply_annotations(_clean_annotation_data(annotations),
-                                  sample_spec['original_body'])
     url = sample_spec['url']
-    return (HtmlPage(url=url, body=annotated),
+    return (HtmlPage(url=url, body=Annotations(sample_spec).apply()),
             HtmlPage(url=url, body=sample_spec['original_body']))
 
 

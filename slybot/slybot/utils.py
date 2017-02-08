@@ -89,9 +89,7 @@ def read(fp, encoding='utf-8'):
 
 def _build_sample(sample, legacy=False):
     from slybot.plugins.scrapely_annotations.builder import Annotations
-    data = sample.get('plugins', {}).get('annotations-plugin')
-    if data:
-        Annotations().save_extraction_data(data, sample, legacy=legacy)
+    Annotations(sample, legacy=legacy).build()
     sample['page_id'] = sample.get('page_id') or sample.get('id') or ""
     sample['annotated'] = True
     return sample

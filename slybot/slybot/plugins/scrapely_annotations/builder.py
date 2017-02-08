@@ -5,7 +5,7 @@ from scrapy.utils.spider import arg_to_iter
 from scrapely.htmlpage import parse_html, HtmlTag, HtmlDataFragment
 
 from collections import defaultdict
-from itertools import tee, count, groupby
+from itertools import tee, count, groupby, chain
 from operator import itemgetter
 
 from slybot.utils import (serialize_tag, add_tagids, remove_tagids, TAGID,
@@ -15,35 +15,20 @@ from .migration import _get_parent, short_guid
 
 
 class Annotations(object):
+    def __init__(self, sample, **options):
+        self.sample = sample
+        plugins = sample.setdefault('plugins', {})
+        self.data = plugins.setdefault('annotations-plugin', {'extracts': []})
+        self.annotations = self.data['extracts']
+        self.legacy = options.get('legacy') or False
+        self.data['extracts'] = _clean_annotation_data(self.annotations)
+        self._elems = {}
 
-    def save_extraction_data(self, data, template, **options):
-        """
-        data = {
-            extracts: [
-                {
-                    annotations: {"content": "Title"},
-                    id: "id-string",
-                    required: [],
-                    tagid: 12,
-                    # All keys below are optional
-                    variant: 0,
-                    text-content: "name-of-text-content-field",
-                    ignore: True,
-                    ignore_beneath: True,
-                    insert_after: True,
-                    slice: [2, 16],
-                    item_container: True,
-                    container_id: "parent-id-string",
-                    schema_id: "schema-id-string",
-                    repeated: true,
-                    siblings: 2,
-                    field: "field-id-to-be-added-to-in-parent-container"
-                }
-            ]
-        }
-        """
-        annotation_data = _clean_annotation_data(data.get('extracts', []))
-        data['extracts'] = annotation_data
+    @property
+    def html(self):
+        if hasattr(self, '_html'):
+            return self._html
+        template = self.sample
         body = template.get('body') or 'original_body'
         if body not in template:
             if 'original_body' in template:
@@ -53,10 +38,331 @@ class Annotations(object):
                           if v and k.endswith('_body')]
                 if bodies:
                     body = bodies[0]
-        html = template[body]
-        template['annotated_body'] = apply_annotations(
-            annotation_data, html, bool(options.get('legacy')))
+        self._html = template[body]
+        return self._html
+
+    @property
+    def selector(self):
+        if hasattr(self, '_selector'):
+            return self._selector
+        self._selector = Selector(text=self.numbered_html)
+        return self._selector
+
+    @property
+    def numbered_html(self):
+        if hasattr(self, '_numbered_html'):
+            return self._numbered_html
+        self._numbered_html = add_tagids(self.html)
+        return self._numbered_html
+
+    def build(self):
+        if not self.annotations and 'annotated_body' in self.sample:
+            return self.data
+        self.sample['annotated_body'] = self.apply()
+        return self.data
+
+    def verify(self, tagid_annotations):
+        def on_cid(a):
+            return a['id'] if a.get('item_container') else a['container_id']
+        containers = {a['id']: a for a in chain(*tagid_annotations)
+                      if a.get('item_container')}
+        missing = {}
+        groups = groupby(sorted(chain(*tagid_annotations), key=on_cid), on_cid)
+        for group, annotations in groups:
+            if group not in containers:
+                missing[group] = list(annotations)
+        if missing:
+            all_containers = {a['id']: a for a in self.annotations
+                              if a.get('item_container')}
+            for container_id, annnotations in missing.items():
+                container = all_containers[container_id]
+                elements = list(chain(*(self.elements(a)
+                                        for a in annotations)))
+                parent = _get_parent(elements, self.selector)
+                container['tagid'] = parent.attributes.get(self.tagid)
+                tagid_annotations.append(container)
+        return tagid_annotations
+
+    def generate(self, annotations):
+        data = {}
+        annotation_data = []
+        for annotation in arg_to_iter(annotations):
+            if 'annotations' in annotation:
+                annotation_data.append({
+                    'id': annotation.get('id', short_guid()),
+                    'annotations': annotation.get('annotations', {}),
+                    'required': annotation.get('required', []),
+                    'required_fields': annotation.get('required', []),
+                    'variant': int(annotation.get('variant', 0)),
+                    'generated': annotation.get('generated', False),
+                    'text-content': annotation.get('text-content', 'content'),
+                    'item_container': annotation.get('item_container', False),
+                    'container_id': annotation.get('container_id'),
+                    'schema_id': annotation.get('schema_id'),
+                    'repeated': annotation.get('repeated'),
+                    'siblings': annotation.get('siblings'),
+                    'field': annotation.get('field'),
+                    'selector': annotation.get('selector'),
+                    'selection_mode': annotation.get('selection_mode'),
+                    'min_jump': annotation.get('min_jump', -1),
+                    'max_separator': annotation.get('max_separator', -1),
+                    'xpath': annotation.get('xpath')
+                })
+            if 'ignore' in annotation or 'ignore_beneath' in annotation:
+                if annotation.get('ignore_beneath'):
+                    data['data-scrapy-ignore-beneath'] = 'true'
+                elif annotation.get('ignore'):
+                    data['data-scrapy-ignore'] = 'true'
+        if annotation_data:
+            if self.legacy:
+                annotation_data = annotation_data[0]
+            serialized = json.dumps(annotation_data).replace('"', '&quot;')
+            data['data-scrapy-annotate'] = serialized
         return data
+
+    def _generate_elem(self, annotation, text):
+        sections = ['<ins']
+        annotation_info = self.generate(annotation)
+        annotation_info[GENERATEDTAGID] = annotation.get('id')
+        attributes = []
+        for key, value in annotation_info.items():
+            attributes.append('%s="%s"' % (key, value))
+        sections.append(' '.join(attributes))
+        if len(sections) > 1:
+            sections[0] += ' '
+        sections.extend(['>', text, '</ins>'])
+        return ''.join(sections)
+
+    def _get_generated(self, element, annotations, nodes, inserts):
+        html_body = self.numbered_html
+        eid = insert_after_tag = _get_data_id(element)
+        text_strings = _get_text_nodes(nodes, html_body)
+        text_content = ''.join((s.lstrip() for s in text_strings))
+        pre_selected = []
+        for annotation in annotations:
+            start, end = _get_generated_slice(annotation)
+            pre_selected.append(
+                (text_content[0:start], text_content[start:end], annotation))
+        stack = [insert_after_tag]
+        next_text_node = ''
+        for i, node in enumerate(nodes):
+            if isinstance(node, HtmlTag):
+                if node.tag_type == OPEN_TAG:
+                    tagid = node.attributes.get(TAGID, '').strip()
+                    if tagid:
+                        stack.append(tagid)
+                elif node.tag_type == CLOSE_TAG and stack:
+                    insert_after_tag = stack.pop()
+            elif (isinstance(node, HtmlDataFragment) and len(stack) == 1):
+                text = html_body[node.start:node.end]
+                # This allows for a clean way to insert fragments up until the
+                # next tag in apply_annotations if we have already inserted a
+                # new generated tag
+                if not node.is_text_content and inserts.get(insert_after_tag):
+                    inserts[insert_after_tag].append(text)
+                    continue
+                removed = 0
+                inserted = False
+                for j, (pre, selected, anno) in enumerate(pre_selected[:]):
+                    if selected and selected in text:
+                        previous, post = text.split(selected, 1)
+                        if previous.strip() in pre:
+                            pre_selected.pop(j - removed)
+                            removed += 1
+                            generated = self._generate_elem(anno, selected)
+                            # Next immediate text node will be returned and
+                            # added to the new document. Other text nodes
+                            # within this node will be added after other child
+                            # nodes have been closed.
+                            if (insert_after_tag == eid and
+                                    not anno.get('insert_after')):
+                                next_text_node += previous + generated
+                                inserted = True
+                            else:
+                                inserts[insert_after_tag].extend([previous,
+                                                                  generated])
+                            text = post
+                if inserted:
+                    next_text_node += text
+                else:
+                    inserts[insert_after_tag].append(text)
+        return next_text_node
+
+    def apply(self):
+        selector_annotations, tagid_annotations = self.split()
+        inserts, numbered_html = defaultdict(list), self.numbered_html
+        if selector_annotations:
+            converted_annotations = self.apply_selector(selector_annotations)
+            tagid_annotations += converted_annotations
+        tagid_annotations = self.verify(tagid_annotations)
+        target = iter(parse_html(numbered_html))
+        output, stack = [], []
+        elem = next(target)
+        last_id = 0
+        # XXX: A dummy element is added to the end so if the last annotation is
+        #      generated it will be added to the output
+        filtered = defaultdict(list)
+        for grouped in tagid_annotations:
+            for ann in arg_to_iter(grouped):
+                filtered[ann['tagid']].append(ann)
+        dummy = [(1e9, [{}])]
+        sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()])
+        try:
+            for aid, annotation_data in chain(sorted_annotations, dummy):
+                # Move target until replacement/insertion point
+                while True:
+                    while not isinstance(elem, HtmlTag) or elem.tag == 'ins':
+                        output.append(numbered_html[elem.start:elem.end])
+                        elem = next(target)
+                    if elem.tag_type in {OPEN_TAG, UNPAIRED_TAG}:
+                        last_id = elem.attributes.get(TAGID)
+                        stack.append(last_id)
+                    if elem.tag_type in {CLOSE_TAG, UNPAIRED_TAG} and stack:
+                        if ('__added' not in elem.attributes and
+                                last_id is not None and aid is not None and
+                                int(last_id) < int(aid)):
+                            output.append(numbered_html[elem.start:elem.end])
+                            elem.attributes['__added'] = True
+                        last_inserted = stack.pop()
+                        to_insert = inserts.pop(last_inserted, None)
+                        if to_insert:
+                            output.extend(to_insert)
+                            # Skip all nodes up to the next HtmlTag as these
+                            # have already been added
+                            while True:
+                                elem = next(target)
+                                try:
+                                    last_id = elem.attributes.get(TAGID,
+                                                                  last_id)
+                                except AttributeError:
+                                    pass
+                                if isinstance(elem, HtmlTag):
+                                    break
+                            continue
+                    if (last_id is not None and aid is not None and
+                            int(last_id) < int(aid)):
+                        if '__added' not in elem.attributes:
+                            output.append(numbered_html[elem.start:elem.end])
+                            elem.attributes['__added'] = True
+                        elem = next(target)
+                    else:
+                        break
+
+                generated = []
+                next_generated = []
+                regular_annotations = []
+                # Place generated annotations at the end and sort by slice
+                for annotation in sorted(annotation_data, key=_annotation_key):
+                    if annotation.get('generated'):
+                        if annotation.get('insert_after'):
+                            next_generated.append(annotation)
+                        else:
+                            generated.append(annotation)
+                    else:
+                        regular_annotations.append(annotation)
+                # Add annotations data as required
+                if regular_annotations:
+                    annotation_info = self.generate(regular_annotations)
+                    for key, val in annotation_info.items():
+                        elem.attributes[key] = val
+                next_text_section = ''
+                if generated:
+                    inner_data, target = tee(target)
+                    nodes = _get_inner_nodes(inner_data)
+                    next_text_section = self._get_generated(
+                        elem, generated, nodes, inserts)
+                if next_generated:
+                    inner_data, target = tee(target)
+                    open_tags = 0 if elem.tag_type == UNPAIRED_TAG else 1
+                    nodes = _get_inner_nodes(inner_data, open_tags=open_tags,
+                                             insert_after=True)
+                    next_text_section = self._get_generated(
+                        elem, next_generated, nodes, inserts)
+
+                if '__added' not in elem.attributes:
+                    output.append(serialize_tag(elem))
+                    elem.attributes['__added'] = True
+                # If an <ins> tag has been inserted we need to move forward
+                if next_text_section:
+                    while True:
+                        elem = next(target)
+                        if (isinstance(elem, HtmlDataFragment) and
+                                elem.is_text_content):
+                            break
+                        output.append(numbered_html[elem.start:elem.end])
+                    output.append(next_text_section)
+        # Reached the end of the document
+        except StopIteration:
+            output.append(numbered_html[elem.start:elem.end])
+        else:
+            for element in target:
+                output.append(numbered_html[element.start:element.end])
+        return remove_tagids(''.join(output))
+
+    def split(self):
+        selector, tagid = [], []
+        for ann in self.annotations:
+            if ann:
+                if ann.get('selector'):
+                    selector.append(ann)
+                elif ann.get('tagid') and (ann.get('annotations') or
+                                           ann.get('ignore')):
+                    tagid.append(ann)
+        return selector, tagid
+
+    def apply_selector(self, annotations):
+        page = self.selector
+        converted_annotations = []
+        tagid_selector_map = {}
+        added_repeated = {}
+        containers = {}
+        for annotation in annotations:
+            if annotation.get('item_container'):
+                containers[annotation['id']] = annotation
+            selector = annotation.get('selector')
+            elems = self.elements(annotation)
+            if elems:
+                tagid = min([int(e.attrib.get('data-tagid', 1e9))
+                             for e in elems])
+                annotation['tagid'] = tagid
+                if selector:
+                    tagid_selector_map[tagid] = selector
+                converted_annotations.append(annotation)
+
+            # Create container for repeated field annotation
+            if (annotation.get('repeated') and
+                    not annotation.get('item_container') and
+                    elems is not None and len(elems) and
+                    len(annotation.get('annotations')) == 1):
+                repeated_parent = add_repeated_field(annotation, elems, page)
+                if repeated_parent:
+                    converted_annotations.append(repeated_parent)
+                    container_id = repeated_parent['container_id']
+                    added_repeated[container_id] = repeated_parent
+        if added_repeated:
+            for container_id, child in added_repeated.items():
+                container = containers[container_id]
+                if container['tagid'] != child['tagid']:
+                    continue
+                elems = self.elements(container)
+                parent = elems[0].getparent()
+                container['tagid'] = int(parent.attrib.get('data-tagid', 1e9))
+        return _merge_annotations_by_selector(converted_annotations)
+
+    def elements(self, annotation):
+        aid = annotation['id']
+        if aid in self._elems:
+            return self._elems[aid]
+        selector = annotation.get('selector')
+        if not selector:
+            return []
+        elems = []
+        while selector and not elems:
+            elems = [elem._root for elem in self.selector.css(selector)]
+            selector = ' > '.join(selector.split(' > ')[1:])
+        if not elems:
+            return []
+        return elems
 
 
 def _clean_annotation_data(data):
@@ -103,101 +409,6 @@ def _get_data_id(annotation):
         return annotation.attributes[TAGID]
 
 
-def _gen_annotation_info(annotations, legacy=False):
-    data = {}
-    annotation_data = []
-    for annotation in arg_to_iter(annotations):
-        if 'annotations' in annotation:
-            annotation_data.append({
-                'id': annotation.get('id', short_guid()),
-                'annotations': annotation.get('annotations', {}),
-                'required': annotation.get('required', []),
-                'required_fields': annotation.get('required', []),
-                'variant': int(annotation.get('variant', 0)),
-                'generated': annotation.get('generated', False),
-                'text-content': annotation.get('text-content', 'content'),
-                'item_container': annotation.get('item_container', False),
-                'container_id': annotation.get('container_id'),
-                'schema_id': annotation.get('schema_id'),
-                'repeated': annotation.get('repeated'),
-                'siblings': annotation.get('siblings'),
-                'field': annotation.get('field'),
-                'selector': annotation.get('selector'),
-                'selection_mode': annotation.get('selection_mode'),
-                'min_jump': annotation.get('min_jump', -1),
-                'max_separator': annotation.get('max_separator', -1),
-                'xpath': annotation.get('xpath')
-            })
-        if 'ignore' in annotation or 'ignore_beneath' in annotation:
-            if annotation.get('ignore_beneath'):
-                data['data-scrapy-ignore-beneath'] = 'true'
-            elif annotation.get('ignore'):
-                data['data-scrapy-ignore'] = 'true'
-    if annotation_data:
-        if legacy:
-            annotation_data = annotation_data[0]
-        serialized = json.dumps(annotation_data).replace('"', '&quot;')
-        data['data-scrapy-annotate'] = serialized
-    return data
-
-
-def _get_generated_annotation(element, annotations, nodes, html_body, inserts,
-                              legacy=False):
-    eid = insert_after_tag = _get_data_id(element)
-    text_strings = _get_text_nodes(nodes, html_body)
-    text_content = ''.join((s.lstrip() for s in text_strings))
-    pre_selected = []
-    for annotation in annotations:
-        start, end = _get_generated_slice(annotation)
-        pre_selected.append((text_content[0:start], text_content[start:end],
-                             annotation))
-    tag_stack = [insert_after_tag]
-    next_text_node = ''
-    for i, node in enumerate(nodes):
-        if isinstance(node, HtmlTag):
-            if node.tag_type == OPEN_TAG:
-                tagid = node.attributes.get(TAGID, '').strip()
-                if tagid:
-                    tag_stack.append(tagid)
-            elif node.tag_type == CLOSE_TAG and tag_stack:
-                insert_after_tag = tag_stack.pop()
-        elif (isinstance(node, HtmlDataFragment) and len(tag_stack) == 1):
-            text = html_body[node.start:node.end]
-            # This allows for a clean way to insert fragments up until the
-            # next tag in apply_annotations if we have already inserted a new
-            # generated tag
-            if not node.is_text_content and inserts.get(insert_after_tag):
-                inserts[insert_after_tag].append(text)
-                continue
-            removed = 0
-            inserted = False
-            for j, (pre, selected, annotation) in enumerate(pre_selected[:]):
-                if selected and selected in text:
-                    previous, post = text.split(selected, 1)
-                    if previous.strip() in pre:
-                        pre_selected.pop(j - removed)
-                        removed += 1
-                        generated = _generate_elem(
-                            annotation, selected, legacy)
-                        # Next immediate text node will be returned and added
-                        # to the new document. Other text nodes within this
-                        # node will be added after other child nodes have been
-                        # closed.
-                        if (insert_after_tag == eid and
-                                not annotation.get('insert_after')):
-                            next_text_node += previous + generated
-                            inserted = True
-                        else:
-                            inserts[insert_after_tag].extend([previous,
-                                                              generated])
-                        text = post
-            if inserted:
-                next_text_node += text
-            else:
-                inserts[insert_after_tag].append(text)
-    return next_text_node
-
-
 def _get_text_nodes(nodes, html_body):
     text = []
     open_tags = 0
@@ -220,20 +431,6 @@ def _get_generated_slice(annotation):
     elif len(annotation_slice) < 2:
         annotation_slice.append(annotation_slice[0])
     return annotation_slice
-
-
-def _generate_elem(annotation, text, legacy=False):
-    sections = ['<ins']
-    annotation_info = _gen_annotation_info(annotation, legacy)
-    annotation_info[GENERATEDTAGID] = annotation.get('id')
-    attributes = []
-    for key, value in annotation_info.items():
-        attributes.append('%s="%s"' % (key, value))
-    sections.append(' '.join(attributes))
-    if len(sections) > 1:
-        sections[0] += ' '
-    sections.extend(['>', text, '</ins>'])
-    return ''.join(sections)
 
 
 def _get_inner_nodes(target, open_tags=1, insert_after=False,
@@ -269,76 +466,11 @@ def _annotation_key(a):
     return a.get('generated', False) + sum(a.get('slice', []))
 
 
-def _filter_annotations(annotations):
-    selector, tagid = [], []
-    for ann in annotations:
-        if ann:
-            if ann.get('selector'):
-                selector.append(ann)
-            elif ann.get('tagid') and (ann.get('annotations') or
-                                       ann.get('ignore')):
-                tagid.append(ann)
-    return selector, tagid
-
-
 def _merge_annotations_by_selector(annotations):
     def grouper(x):
         return x.get('selector')
     annotations.sort(key=grouper)
     return [list(annos) for _, annos in groupby(annotations, key=grouper)]
-
-
-def apply_selector_annotations(annotations, target_page):
-    page = Selector(text=target_page)
-    converted_annotations = []
-    tagid_selector_map = {}
-    added_repeated = {}
-    containers = {}
-    for annotation in annotations:
-        if annotation.get('item_container'):
-            containers[annotation['id']] = annotation
-        selector = annotation.get('selector')
-        tagid, elems = tagid_for_annotation(annotation, page)
-        if tagid is not None:
-            annotation['tagid'] = tagid
-            if selector:
-                tagid_selector_map[tagid] = selector
-            converted_annotations.append(annotation)
-
-        # Create container for repeated field annotation
-        if (annotation.get('repeated') and
-                not annotation.get('item_container') and
-                elems is not None and len(elems) and
-                len(annotation.get('annotations')) == 1):
-            repeated_parent = add_repeated_field(annotation, elems, page)
-            if repeated_parent:
-                converted_annotations.append(repeated_parent)
-                container_id = repeated_parent['container_id']
-                added_repeated[container_id] = repeated_parent
-    if added_repeated:
-        for container_id, child in added_repeated.items():
-            container = containers[container_id]
-            if container['tagid'] != child['tagid']:
-                continue
-            _, elems = tagid_for_annotation(container, page)
-            parent = elems[0].getparent()
-            container['tagid'] = int(parent.attrib.get('data-tagid', 1e9))
-    return _merge_annotations_by_selector(converted_annotations)
-
-
-def tagid_for_annotation(annotation, page):
-    selector = annotation.get('selector')
-    if not selector:
-        return None, None
-    elems = []
-    while selector and not elems:
-        elems = [elem._root for elem in page.css(selector)]
-        selector = ' > '.join(selector.split(' > ')[1:])
-    if not elems:
-        return None, None
-
-    tagids = [int(e.attrib.get('data-tagid', 1e9)) for e in elems]
-    return min(tagids), elems
 
 
 def add_repeated_field(annotation, elems, page):
@@ -360,120 +492,3 @@ def add_repeated_field(annotation, elems, page):
         annotation['field'] = field
         annotation['container_id'] = container_id
         return parent_annotation
-
-
-def apply_annotations(annotations, target_page, legacy=False):
-    selector_annotations, tagid_annotations = _filter_annotations(annotations)
-    inserts = defaultdict(list)
-    numbered_html = add_tagids(target_page)
-    if selector_annotations:
-        converted_annotations = apply_selector_annotations(
-            selector_annotations, numbered_html)
-        tagid_annotations += converted_annotations
-    target = iter(parse_html(numbered_html))
-    output, tag_stack = [], []
-    element = next(target)
-    last_id = 0
-    # XXX: A dummy element is added to the end so if the last annotation is
-    #      generated it will be added to the output
-    filtered = defaultdict(list)
-    for grouped in tagid_annotations:
-        for ann in arg_to_iter(grouped):
-            filtered[ann['tagid']].append(ann)
-    dummy = [(1e9, [{}])]
-    sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()] +
-                                dummy)
-    try:
-        for aid, annotation_data in sorted_annotations:
-            # Move target until replacement/insertion point
-            while True:
-                while not isinstance(element, HtmlTag) or element.tag == 'ins':
-                    output.append(numbered_html[element.start:element.end])
-                    element = next(target)
-                if element.tag_type in {OPEN_TAG, UNPAIRED_TAG}:
-                    last_id = element.attributes.get(TAGID)
-                    tag_stack.append(last_id)
-                if element.tag_type in {CLOSE_TAG, UNPAIRED_TAG} and tag_stack:
-                    if ('__added' not in element.attributes and
-                            last_id is not None and aid is not None and
-                            int(last_id) < int(aid)):
-                        output.append(numbered_html[element.start:element.end])
-                        element.attributes['__added'] = True
-                    last_inserted = tag_stack.pop()
-                    to_insert = inserts.pop(last_inserted, None)
-                    if to_insert:
-                        output.extend(to_insert)
-                        # Skip all nodes up to the next HtmlTag as these
-                        # have already been added
-                        while True:
-                            element = next(target)
-                            try:
-                                last_id = element.attributes.get(TAGID,
-                                                                 last_id)
-                            except AttributeError:
-                                pass
-                            if isinstance(element, HtmlTag):
-                                break
-                        continue
-                if (last_id is not None and aid is not None and
-                        int(last_id) < int(aid)):
-                    if '__added' not in element.attributes:
-                        output.append(numbered_html[element.start:element.end])
-                        element.attributes['__added'] = True
-                    element = next(target)
-                else:
-                    break
-
-            generated = []
-            next_generated = []
-            regular_annotations = []
-            # Place generated annotations at the end and sort by slice
-            for annotation in sorted(annotation_data, key=_annotation_key):
-                if annotation.get('generated'):
-                    if annotation.get('insert_after'):
-                        next_generated.append(annotation)
-                    else:
-                        generated.append(annotation)
-                else:
-                    regular_annotations.append(annotation)
-            # Add annotations data as required
-            if regular_annotations:
-                annotation_info = _gen_annotation_info(regular_annotations,
-                                                       legacy)
-                for key, val in annotation_info.items():
-                    element.attributes[key] = val
-            next_text_section = ''
-            if generated:
-                inner_data, target = tee(target)
-                nodes = _get_inner_nodes(inner_data)
-                next_text_section = _get_generated_annotation(
-                    element, generated, nodes, numbered_html, inserts,
-                    legacy)
-            if next_generated:
-                inner_data, target = tee(target)
-                open_tags = 0 if element.tag_type == UNPAIRED_TAG else 1
-                nodes = _get_inner_nodes(inner_data, open_tags=open_tags,
-                                         insert_after=True)
-                next_text_section = _get_generated_annotation(
-                    element, next_generated, nodes, numbered_html, inserts,
-                    legacy)
-
-            if '__added' not in element.attributes:
-                output.append(serialize_tag(element))
-                element.attributes['__added'] = True
-            # If an <ins> tag has been inserted we need to move forward
-            if next_text_section:
-                while True:
-                    elem = next(target)
-                    if (isinstance(elem, HtmlDataFragment) and
-                            elem.is_text_content):
-                        break
-                    output.append(numbered_html[elem.start:elem.end])
-                output.append(next_text_section)
-    # Reached the end of the document
-    except StopIteration:
-        output.append(numbered_html[element.start:element.end])
-    else:
-        for element in target:
-            output.append(numbered_html[element.start:element.end])
-    return remove_tagids(''.join(output))
