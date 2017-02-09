@@ -412,9 +412,13 @@ class Model(with_metaclass(ModelMeta)):
                         to_save.dumps(state='staged'), path))
                     saved_paths.add(path)
                 if old_path != path and old_path not in deleted_paths:
-                    model.storage.delete(old_path)
+                    try:
+                        model.storage.delete(old_path)
+                    except IOError as ex:
+                        # Assume missing files are already deleted
+                        if ex.errno != errno.ENOENT:
+                            six.reraise(*sys.exc_info())
                     deleted_paths.add(old_path)
-
         for model in chain([self], (model for model, _
                                     in self._staged_model_references())):
             store = model.data_store

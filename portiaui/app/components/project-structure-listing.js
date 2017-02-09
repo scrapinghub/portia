@@ -81,6 +81,13 @@ export default Ember.Component.extend({
         return 0;
     }),
 
+    sawNewOrDeletedSpider: observer('project.spiders.length', function() {
+        Ember.run.once(() => {
+            let term = this.get('searchTerm') || '';
+            this.get('filterSpiders').perform(this.get('sortedSpiders'), term);
+        });
+    }),
+
     filterSpiders: task(function * (spiders, term) {
         this.set('isFiltering', true);
         yield timeout(FILTER_DEBOUNCE);

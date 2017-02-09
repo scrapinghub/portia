@@ -61,12 +61,17 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
                 raise JsonApiGeneralException(
                     'Spider already exists in this project with the name, '
                     '"%s"' % name, HTTP_400_BAD_REQUEST)
+            path = 'spiders/{}/{}'.format
+            for sample in spider.samples:
+                # Load sample and move html pages
+                sample.url
+                self.storage.move(path(spider.id, sample.id),
+                                  path(name, sample.id))
             spider.id = name
             spider.save()
             self.storage.commit()
         except (TypeError, IndexError, KeyError):
             raise Http404
-
         data = self.get_serializer(spider).data
         return Response(data, status=HTTP_200_OK)
 

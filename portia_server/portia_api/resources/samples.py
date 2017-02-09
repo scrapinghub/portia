@@ -18,10 +18,12 @@ class SampleRoute(BaseProjectModelRoute):
         project = self.project
         project.schemas  # preload schemas and fields
         project.extractors  # preload extractors
-        samples = project.spiders[self.kwargs.get('spider_id')].samples
-        for sample in samples:
-            samples.add(sample.load(sample.storage, sample))
-        return samples
+        spider = project.spiders[self.kwargs.get('spider_id')]
+        for sample in spider.samples:
+            sample = sample.load(sample.storage, sample)
+            sample.url
+            spider.samples.add(sample)
+        return spider.samples
 
     def get_detail_kwargs(self):
         return {
