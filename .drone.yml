@@ -1,0 +1,17 @@
+image: scrapinghub
+
+script:
+  - echo "Portia is at:"`git show -s --pretty=%d HEAD`
+  - git restore-mtime
+  - shopt -s extglob
+  - sudo mkdir -p ~/.npm ~/.node-gyp ~/.cache
+  - sudo chown -R ubuntu ~/.npm ~/.node-gyp ~/.cache
+  - npm install -g bower ember-cli --cache-min 999999
+  - docker/compile-assets.sh
+  - build_docker_image
+  - publish_to_dockerhub
+
+cache:
+  - /home/ubuntu/.npm
+  - /home/ubuntu/.node-gyp
+  - /home/ubuntu/.cache

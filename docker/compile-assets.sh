@@ -1,5 +1,5 @@
 #!/bin/bash
-cd slyd
+cd portiaui
 npm install
 bower install
 ember build -e production
