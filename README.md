@@ -15,7 +15,7 @@ You can run Portia using docker by running:
 
     docker run -v ~/portia_projects:/app/data/projects:rw -p 9001:9001 scrapinghub/portia
 
-For more detailed instructions, and alternatives to using Vagrant, see the [Installation](http://portia.readthedocs.org/en/latest/installation.html) docs.
+For more detailed instructions, and alternatives to using Docker, see the [Installation](http://portia.readthedocs.org/en/latest/installation.html) docs.
 
 # Documentation
 
