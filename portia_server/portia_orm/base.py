@@ -5,7 +5,6 @@ import json
 import re
 import six
 import sys
-from weakref import WeakKeyDictionary
 
 from six import iteritems, iterkeys, string_types, with_metaclass
 from toposort import toposort_flatten

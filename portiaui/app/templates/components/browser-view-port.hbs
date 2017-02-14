@@ -9,7 +9,7 @@
         Connecting ...
     {{/if}}
     {{#if webSocket.secondsUntilReconnect }}
-        Reconnecting to server in {{webSocket.secondsUntilReconnect}} seconds.
+        Reconnecting to Portia server in {{webSocket.secondsUntilReconnect}} seconds.
         {{#unless webSocket.reconnectImminent}}
             <a class="alert-link" {{action 'reconnectWebsocket'}}>Try Again</a>.
         {{/unless}}

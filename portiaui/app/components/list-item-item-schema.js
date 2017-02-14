@@ -22,6 +22,7 @@ export default Ember.Component.extend({
         changeSchema() {
             const item = this.get('item');
             item.get('schema').then(() => {
+                item.set('schema', item.get('schema')); // Used to trigger updates
                 item.save();
             });
         }

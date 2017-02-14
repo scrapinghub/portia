@@ -24,6 +24,7 @@ from .exceptions import PathResolutionError
 from .fields import (
     Boolean, Domain, Integer, List, Regexp, String, Url, DependantField,
     BelongsTo, HasMany, HasOne, CASCADE, CLEAR, PROTECT, StartUrl)
+from .snapshots import ModelSnapshots
 from .utils import unwrap_envelopes, short_guid, wrap_envelopes, strip_json
 from .validators import OneOf
 
@@ -819,7 +820,7 @@ class OriginalBody(Model):
     def populate_item(self, data):
         split_path = self.context['path'].split('/')
         sample_id = split_path[2]
-        if len(split_path) == 3:
+        if len(split_path) == 3 and sample_id.endswith('.json'):
             sample_id = strip_json(sample_id)
         name = self.Meta.name
         return {
@@ -830,6 +831,20 @@ class OriginalBody(Model):
     @post_dump
     def return_html(self, data):
         return data['html']
+
+    def dump(self, state='working'):
+        try:
+            index = ModelSnapshots.default_snapshots.index(state)
+        except ValueError:
+            raise ValueError(u"'{}' is not a valid state".format(state))
+
+        context = {
+            'snapshots': ModelSnapshots.default_snapshots[index:]
+        }
+        return self.file_schema(context=context).dump(self).data
+
+    def dumps(self, state='working'):
+        return self.dump(state=state)
 
     class Meta:
         raw = True
@@ -858,12 +873,30 @@ class RenderedBody(Model):
         split_path = self.context['path'].split('/')
         sample_id = split_path[2]
         if len(split_path) == 3 and sample_id.endswith('.json'):
-            sample_id = sample_id[:-len('.json')]
+            sample_id = strip_json(sample_id)
         name = self.Meta.name
         return {
             'id': '{}_{}'.format(sample_id, name),
             'html': data,
         }
+
+    @post_dump
+    def return_html(self, data):
+        return data['html']
+
+    def dump(self, state='working'):
+        try:
+            index = ModelSnapshots.default_snapshots.index(state)
+        except ValueError:
+            raise ValueError(u"'{}' is not a valid state".format(state))
+
+        context = {
+            'snapshots': ModelSnapshots.default_snapshots[index:]
+        }
+        return self.file_schema(context=context).dump(self).data
+
+    def dumps(self, state='working'):
+        return self.dump(state=state)
 
     class Meta:
         raw = True
