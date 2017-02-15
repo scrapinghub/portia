@@ -1,0 +1,11 @@
+{{#tool-group id="currency-options-group" collapsible=false onClose=(action 'closeOptions') as |group|}}
+    {{#if (eq group.section "tabs")}}
+        {{#group.tab toolId="currency-options"}}
+            Currency Options
+        {{/group.tab}}
+    {{else if (eq group.section "panels")}}
+        {{#group.panel class="extracted-items container-fluid" toolId="currency-options" as |active|}}
+            {{currency-options spider=model}}
+        {{/group.panel}}
+    {{/if}}
+{{/tool-group}}
