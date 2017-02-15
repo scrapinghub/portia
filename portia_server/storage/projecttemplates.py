@@ -75,3 +75,36 @@ templates = {
     'ITEMS': _ITEMS_TEMPLATE,
     'EXTRACTORS': _EXTRACTORS_TEMPLATE
 }
+
+MERCHANT_SETTING_BASE = """
+# Automatically created by: slyd
+# -*- coding: utf-8 -*-
+
+from scrapy.contrib.spiders import Rule
+from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
+
+LOG_FILE = '/var/kipp/logs/{merchant_name}.log'
+COUNTRY_CODE = "{country_code}"
+CURRENCY_CODE = "{currency_code}"
+USE_SCRAPELY = True
+START_URLS = "{start_urls}"
+ALLOWED_DOMAINS = {allowed_domains}
+MERCHANT_URLS_CONFIG = [{{"url": "{merchant_url}", 'cookie_config': {general_cookie} }}]
+RULES = [Rule(LxmlLinkExtractor(allow={allow_regex},
+                                deny={deny_regex}),
+              callback='parse_item', follow=True)]
+LOCAL_IMAGES = {local_images}
+RENDER_JS = {render_js}
+localization_config = {{
+    'english': {{
+        'url': {english_url},
+        'cookie_config': {english_language_cookie},
+        'url_args': {english_url_args}
+    }},
+    'arabic': {{
+        'url': {arabic_url},
+        'cookie_config': {arabic_language_cookie},
+        'url_args': {arabic_url_args}
+    }}
+}}
+"""
