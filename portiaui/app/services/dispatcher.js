@@ -111,8 +111,16 @@ export default Ember.Service.extend({
         const store = this.get('store');
         if (matches && matches.length) {
             name = matches.slice(-1)[0];
+            name = name.replace(/www\./,'');
+            name = name.replace(/\.com|\.net|\.co/,'');
+            name = name.replace(/\.eg|\.ae|\.sa|\.ke/,'');
+            name = name.replace(/^eg\.|^sa\.|^ae\.|^ke\.|^egypt\.|^saudi\.|^uae\.|^en-ae\.|^en-sa\./,'');
         } else {
+            name = name.replace(/www\./,'');
             name = url.replace(/[^a-zA-Z0-9_\.-]/g, '');
+            name = name.replace(/\.com|\.net|\.co/,'');
+            name = name.replace(/\.eg|\.ae|\.sa|\.ke/,'');
+            name = name.replace(/^eg\.|^sa\.|^ae\.|^ke\.|^egypt\.|^saudi\.|^uae\.|^en-ae\.|^en-sa\./,'');
         }
         let baseName = name;
         let counter = 1;
