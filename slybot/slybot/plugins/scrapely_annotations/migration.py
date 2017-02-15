@@ -36,6 +36,7 @@ from random import Random
 from urllib import unquote
 from uuid import uuid4
 
+from cssselect import SelectorSyntaxError
 from lxml.etree import _Element, Comment
 from scrapy import Selector
 
@@ -257,13 +258,19 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
             index = 0
         return index
 
+    def css(selector, query):
+        try:
+            return selector.css(query)
+        except SelectorSyntaxError:
+            return []
+
     def build_table_selector(elem):
         parent = find_css_selector(elem.getparent(), sel, depth + 1)
         join = '' if previous_tbody else ' >'
         selector = '%s%s %s:nth-child(%s)' % (
             parent, join, tag_name, children_index(elem)
         )
-        e = sel.css(selector)
+        e = css(sel, selector)
         if not e:
             join = '' if previous_tbody or tag_name == 'tr' else ' >'
             selector = '%s%s %s:nth-child(%s)' % (
@@ -273,7 +280,7 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     elem_id = elem.attrib.get('id')
     if elem_id:
         id_selector = '#%s' % css_escape(elem_id)
-        if len(sel.css(id_selector)) == 1 and depth <= 1:
+        if len(css(sel, id_selector)) == 1 and depth <= 1:
             return id_selector
 
     # Inherently unique by tag name
@@ -287,19 +294,19 @@ def find_css_selector(elem, sel, depth=0, previous_tbody=False):
     if classes:
         for class_name in classes:
             selector = '.%s' % css_escape(class_name)
-            matches = sel.css(selector)
+            matches = css(sel, selector)
             if len(matches) == 1 and tag_name != 'table':
                 return selector
             # Maybe it's unique with a tag name?
             selector = tag_name + selector
-            matches = sel.css(selector)
+            matches = css(sel, selector)
             if len(matches) == 1:
                 return selector
             tag = tag_name if tag_name == 'table' else ''
             child_idx = children_index(elem)
             # Maybe it's unique using a tag name and nth-child
             selector = '%s%s:nth-child(%s)' % (tag, selector, child_idx)
-            matches = sel.css(selector)
+            matches = css(sel, selector)
             if len(matches) == 1:
                 return selector
 
