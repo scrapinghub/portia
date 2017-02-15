@@ -1,0 +1,33 @@
+<h3>Currency Code</h3>
+<form {{action "save" on="change"}}>
+    <div class="form-group">
+        {{currency-list spider=spider}}
+    </div>
+</form>
+
+
+<h3>Cookies
+{{#tooltip-container tooltipFor="detect-cookies-button" text="Detect Cookies" tooltipContainer='body'}}
+    {{list-item-icon id="detect-cookies-button" icon='play' action=(action 'detectCookies' spider)}}
+{{/tooltip-container}}
+</h3>
+<div id="dvTable" style="align-text: center;">
+</div>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="useLanguageCookies" checked=(mut spider.useCurrencyCookies)}} Use Currency Cookies
+        </label>
+    </div>
+    {{#if spider.useCurrencyCookies}}
+        <div class="form-group">
+            <label>Currency Cookie Name</label>
+            {{input type="text" class="form-control" id="currencyCookieName" value=(mut spider.currencyCookieName)}}
+        </div>
+        <div class="form-group">
+            <label>Currency Cookie value</label>
+            {{input type="text" class="form-control" id="currencyCookieValue" value=(mut spider.currencyCookieValue)}}
+        </div>
+
+    {{/if}}
+</form>

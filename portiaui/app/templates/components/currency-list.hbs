@@ -1,0 +1,10 @@
+{{#list-item-selectable value=(mut currencyCode) valueAttribute='label' onChange=(action 'saveSpider') menuContainer="body" menuAlign="left" as |select|}}
+    {{#select.header}}
+        Select Currency
+    {{/select.header}}
+    {{#each currencyCodeOptions as |option|}}
+        {{#select.item value=option action=(action select.setValueAndClose option)}}
+            {{option.label}}
+        {{/select.item}}
+    {{/each}}
+{{/list-item-selectable}}

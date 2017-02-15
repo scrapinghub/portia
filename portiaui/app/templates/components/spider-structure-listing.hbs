@@ -94,6 +94,52 @@
     {{/tree-list-item}}
 {{/tree-list}}
 
+{{#tree-list hide=currentSample}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Language
+            {{/list-item-text}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item as |options|}}
+                {{indentation-spacer}}
+                {{list-item-icon icon='options'}}
+                {{list-item-language spider=spider}}
+                {{#if spider.useLanguageConfig }}
+                    {{#link-to 'projects.project.spider' bubbles=false}}
+                        {{#link-to 'projects.project.spider.language-options' bubbles=false class="ignore-active"}}
+                            {{list-item-icon icon='options'}}
+                        {{/link-to}}
+                    {{/link-to}}
+                {{/if}}
+            {{/tree-list-item}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}
+
+{{#tree-list hide=currentSample}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Currency
+            {{/list-item-text}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item as |options|}}
+                {{indentation-spacer}}
+                {{list-item-icon icon='options'}}
+                {{list-item-currency spider=spider}}
+                {{#if spider.useCurrencyConfig }}
+                    {{#link-to 'projects.project.spider' bubbles=false}}
+                        {{#link-to 'projects.project.spider.currency-options' bubbles=false class="ignore-active"}}
+                            {{list-item-icon icon='options'}}
+                        {{/link-to}}
+                    {{/link-to}}
+                {{/if}}
+            {{/tree-list-item}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}
+
 {{#tree-list}}
     {{#tree-list-item hasChildren=true as |options|}}
         {{#if (eq options.section "item")}}
@@ -155,4 +201,9 @@
             {{/each}}
         {{/if}}
     {{/tree-list-item}}
+{{/tree-list}}
+
+
+{{#tree-list hide=currentSample}}
+        {{train-scrapely-button spider=spider}}
 {{/tree-list}}

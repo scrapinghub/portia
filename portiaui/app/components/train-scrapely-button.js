@@ -4,7 +4,7 @@ const { computed } = Ember;
 export default Ember.Component.extend({
     api: Ember.inject.service(),
     notificationManager: Ember.inject.service(),
-    hasSpider: computed.bool('currentSpider'),
+    hasSpider: computed.bool('spider'),
 
     actions: {
         trainSpider(spider) {

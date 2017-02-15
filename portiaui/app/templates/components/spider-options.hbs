@@ -1,3 +1,34 @@
+<h3>Country</h3>
+<form {{action "save" on="change"}}>
+    <div class="form-group">
+        {{list-item-country spider=spider}}
+    </div>
+</form>
+
+<h3>Local Images</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="localImages" checked=(mut spider.local_images)}} Local Images
+        </label>
+    </div>
+</form>
+
+<h3>Javascript support</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="jsEnabled" checked=(mut spider.jsEnabled)}} Enable Javascript
+        </label>
+    </div>
+    {{#if spider.jsEnabled}}
+        <div>Enable Javascript for URLs that match these patterns</div>
+        {{regex-pattern-list list=spider.jsEnablePatterns onChange=(action 'save')}}
+        <div>Disable Javascript for URLs that match these patterns</div>
+        {{regex-pattern-list list=spider.jsDisablePatterns onChange=(action 'save')}}
+    {{/if}}
+</form>
+
 <h3>Initialization</h3>
 <form {{action "save" on="change"}}>
     <div class="checkbox">
@@ -18,20 +49,5 @@
             <label for="loginPassword">Password</label>
             {{input type="text" class="form-control" id="loginPassword" value=(mut spider.loginPassword)}}
         </div>
-    {{/if}}
-</form>
-
-<h3>Javascript support</h3>
-<form {{action "save" on="change"}}>
-    <div class="checkbox">
-        <label>
-            {{input type="checkbox" name="jsEnabled" checked=(mut spider.jsEnabled)}} Enable Javascript
-        </label>
-    </div>
-    {{#if spider.jsEnabled}}
-        <div>Enable Javascript for URLs that match these patterns</div>
-        {{regex-pattern-list list=spider.jsEnablePatterns onChange=(action 'save')}}
-        <div>Disable Javascript for URLs that match these patterns</div>
-        {{regex-pattern-list list=spider.jsDisablePatterns onChange=(action 'save')}}
     {{/if}}
 </form>

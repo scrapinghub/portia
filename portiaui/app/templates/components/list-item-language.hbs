@@ -1,0 +1,10 @@
+{{#list-item-selectable value=(mut useLanguageConfig) valueAttribute='label' onChange=(action 'saveSpider') menuContainer="body" menuAlign="left" as |select|}}
+    {{#select.header}}
+        Language configurations
+    {{/select.header}}
+    {{#each languageConfigOptions as |option|}}
+        {{#select.item value=option action=(action select.setValueAndClose option)}}
+            {{option.label}}
+        {{/select.item}}
+    {{/each}}
+{{/list-item-selectable}}

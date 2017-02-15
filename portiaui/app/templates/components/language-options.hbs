@@ -1,0 +1,48 @@
+<h3>URL Configs</h3>
+<form {{action "save" on="change"}}>
+    <div class="form-group">
+        <label>English URL</label>
+        {{input type="url" class="form-control" id="englishURL" value=(mut spider.englishURL)}}
+        <label>English URL Args</label>
+        {{input type="text" class="form-control" id="englishUrlArgs" value=(mut spider.englishUrlArgs)}}
+    </div>
+    <div class="form-group">
+        <label>Arabic URL</label>
+        {{input type="url" class="form-control" id="arabicURL" value=(mut spider.arabicURL)}}
+        <label>English URL Args</label>
+        {{input type="text" class="form-control" id="arabicUrlArgs" value=(mut spider.arabicUrlArgs)}}
+    </div>
+</form>
+
+<h3>Cookies
+{{#tooltip-container tooltipFor="detect-cookies-button" text="Detect Cookies" tooltipContainer='body'}}
+    {{list-item-icon id="detect-cookies-button" icon='play' action=(action 'detectCookies' spider)}}
+{{/tooltip-container}}
+</h3>
+<div id="dvTable" style="align-text: center;">
+</div>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="useLanguageCookies" checked=(mut spider.useLanguageCookies)}} Use Language Cookies
+        </label>
+    </div>
+    {{#if spider.useLanguageCookies}}
+        <div class="form-group">
+            <label>English Cookie Name</label>
+            {{input type="text" class="form-control" id="englishCookieName" value=(mut spider.englishCookieName)}}
+        </div>
+        <div class="form-group">
+            <label>English Cookie value</label>
+            {{input type="text" class="form-control" id="englishCookieValue" value=(mut spider.englishCookieValue)}}
+        </div>
+        <div class="form-group">
+            <label>Arabic Cookie Name</label>
+            {{input type="text" class="form-control" id="arabicCookieName" value=(mut spider.arabicCookieName)}}
+        </div>
+        <div class="form-group">
+            <label>Arabic Cookie value</label>
+            {{input type="text" class="form-control" id="arabicCookieValue" value=(mut spider.arabicCookieValue)}}
+        </div>
+    {{/if}}
+</form>
