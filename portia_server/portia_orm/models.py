@@ -181,6 +181,9 @@ class Extractor(Model):
         elif regular_expression:
             data['type'] = 'regex'
             data['value'] = regular_expression
+        else:
+            data['type'] = 'type'
+            data['value'] = 'text'
         return data
 
     @post_dump
@@ -193,6 +196,8 @@ class Extractor(Model):
                 data['type_extractor'] = value
             else:  # type_ == 'regex'
                 data['regular_expression'] = value
+        else:
+            data['type_extractor'] = 'text'
         return data
 
     @post_dump(pass_many=True)
