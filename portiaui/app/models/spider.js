@@ -73,5 +73,74 @@ export default BaseModel.extend({
     firstUrl: Ember.computed('startUrls.firstObject', function() {
         const urls = this.get('startUrls').filterBy('type', 'url');
         return (urls.length !== 0) ? urls[0].url : undefined;
-    })
+    }),
+
+    localImages: DS.attr('boolean', {
+        defaultValue: false
+    }),
+
+    // country and currency codes
+    countryCode: DS.attr('string', {
+        defaultValue: 'EG'
+    }),
+
+    currencyCode: DS.attr('string', {
+        defaultValue: 'EGP'
+    }),
+
+    useLanguageConfig: DS.attr('boolean', {
+        defaultValue: false
+    }),
+
+    useCurrencyConfig: DS.attr('boolean', {
+        defaultValue: false
+    }),
+
+    englishURL: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    englishUrlArgs: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    arabicURL: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    arabicUrlArgs: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    useLanguageCookies: DS.attr('boolean', {
+        defaultValue: false
+    }),
+
+    useCurrencyCookies: DS.attr('boolean', {
+        defaultValue: false
+    }),
+
+    englishCookieName: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    englishCookieValue: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    arabicCookieName: DS.attr('string', {
+        defaultValue: ''
+    }),
+    arabicCookieValue: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    currencyCookieName: DS.attr('string', {
+        defaultValue: ''
+    }),
+
+    currencyCookieValue: DS.attr('string', {
+        defaultValue: ''
+    }),
+
 });
