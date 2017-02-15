@@ -11,7 +11,9 @@ from django.conf import settings
 
 from .projects import BaseProjectModelRoute, ProjectDownloadMixin
 from ..jsonapi.exceptions import JsonApiGeneralException
-from ..utils.extract import Pages, load_spider, FetchError
+from ..utils.extract import Pages, load_spider,load_samples, FetchError
+from ..utils.train import train_scrapely
+from ..utils.cookies import CookiesFetcher
 from portia_orm.models import Spider
 
 
@@ -97,3 +99,23 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
             commit_id = self.storage._commit.id
             data['version'] = commit_id
         return data
+
+    @detail_route(methods=['post'])
+    def train(self, *args, **kwargs):
+        try:
+            instance = self.get_instance()
+        except TypeError:
+            raise JsonApiGeneralException(
+                'No spider found with the name "%s"' % kwargs.get('spider_id'), 404)
+        try:
+            templates = train_scrapely(self.storage, instance)
+        except (ValueError, KeyError, IndexError):
+            raise JsonApiGeneralException('Failed to load spider, "%s" correctly' % instance.id, 500)
+        return Response(templates, status=HTTP_200_OK)
+
+    @detail_route(methods=['post'])
+    def cookies(self, *args, **kwargs):
+        current_url = self.data['current_url']
+        fetcher = CookiesFetcher()
+        cookies = fetcher.fetch(current_url)
+        return Response(cookies, status=HTTP_200_OK)
