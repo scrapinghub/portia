@@ -310,13 +310,16 @@ class Repoman(object):
 
     def _merge_branches(self, base, mine, other, take_mine=False):
 
-        def load_json(path, branch):
+        def load_raw(path, branch):
             try:
                 blob = self.blob(path, branch)
             except (KeyError, TypeError):
-                return {}
+                return '{}'
             else:
-                return loads(blob.as_raw_string())
+                return blob.as_raw_string()
+
+        def load_json(path, branch):
+            return loads(load_raw(path, branch))
 
         merge_tree = Tree()
         base_tree, my_tree, other_tree = (self._get_tree(x)
@@ -358,7 +361,14 @@ class Repoman(object):
                     else:
                         continue
                 else:
-                    jsons = [load_json(path, x) for x in (base, mine, other)]
+                    try:
+                        jsons = [load_json(path, x)
+                                 for x in (base, mine, other)]
+                    except ValueError:  # Handle non json data
+                        blob = Blob.from_string(load_raw(path, mine))
+                        self._update_store(blob)
+                        merge_tree.add(path, FILE_MODE, blob.id)
+                        continue
                     base_json, my_json, other_json = jsons
                     # When dealing with renames, file contents are under the
                     # 'new' path. Note that the file will be finally stored
@@ -381,9 +391,14 @@ class Repoman(object):
                     self._update_store(merged_blob)
                     merge_tree.add(path, FILE_MODE, merged_blob.id)
             else:
-                data = (load_json(path, mine) or load_json(path, other) or
-                        load_json(path, base))
-                blob = Blob.from_string(dumps(data, sort_keys=True, indent=4))
+                try:
+                    data = (load_json(path, mine) or load_json(path, other) or
+                            load_json(path, base))
+                except ValueError:  # Loading a non json file
+                    blob = Blob.from_string(load_raw(path, mine))
+                else:
+                    blob = Blob.from_string(dumps(data, sort_keys=True,
+                                            indent=4))
                 self._update_store(blob)
                 merge_tree.add(path, FILE_MODE, blob.id)
         self._update_store(merge_tree)
