@@ -1295,7 +1295,6 @@ class SpiderTests(ProjectTestCase):
             'js_enabled': False,
             'js_enable_patterns': [],
             'js_disable_patterns': [],
-            'template_names': [],
         })
 
     def test_full_spider(self):
@@ -1351,9 +1350,6 @@ class SpiderTests(ProjectTestCase):
                     'password': 'pass'
                 }
             ],
-            'template_names': [
-                'sample-1',
-            ],
         })
 
     def test_links_to_follow(self):
@@ -1402,9 +1398,6 @@ class SpiderTests(ProjectTestCase):
                         "password": "pass"
                     }
                 ],
-                "template_names": [
-                    "1ddc-4043-ac4d"
-                ]
             },
         ])
         self.storage.open.assert_called_once_with('spiders/shop-crawler.json')
@@ -1434,9 +1427,6 @@ class SpiderTests(ProjectTestCase):
                     "password": "pass"
                 }
             ],
-            "template_names": [
-                "1ddc-4043-ac4d"
-            ]
         })
         self.storage.open.assert_called_once_with('spiders/shop-crawler.json')
 
@@ -1480,9 +1470,6 @@ class SpiderTests(ProjectTestCase):
             '            "url": "http://example.com/", \n'
             '            "type": "url"\n'
             '        }\n'
-            '    ], \n'
-            '    "template_names": [\n'
-            '        "1ddc-4043-ac4d"\n'
             '    ]\n'
             '}')
 
@@ -1529,9 +1516,6 @@ class SpiderTests(ProjectTestCase):
             '            "url": "http://example.com/", \n'
             '            "type": "url"\n'
             '        }\n'
-            '    ], \n'
-            '    "template_names": [\n'
-            '        "1ddc-4043-ac4d"\n'
             '    ]\n'
             '}')
 
@@ -1555,8 +1539,7 @@ class SpiderTests(ProjectTestCase):
             '    "js_enabled": false, \n'
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
-            '    "start_urls": [], \n'
-            '    "template_names": []\n'
+            '    "start_urls": []\n'
             '}')
 
         project.spiders.insert(0, Spider(self.storage, id='test2'))
@@ -1579,8 +1562,7 @@ class SpiderTests(ProjectTestCase):
             '    "js_enabled": false, \n'
             '    "links_to_follow": "all", \n'
             '    "respect_nofollow": true, \n'
-            '    "start_urls": [], \n'
-            '    "template_names": []\n'
+            '    "start_urls": []\n'
             '}')
 
     def test_delete(self):
@@ -2144,9 +2126,6 @@ class SampleTests(ProjectTestCase):
             '            "url": "http://example.com/", \n'
             '            "type": "url"\n'
             '        }\n'
-            '    ], \n'
-            '    "template_names": [\n'
-            '        "test-id"\n'
             '    ]\n'
             '}')
 
@@ -2180,37 +2159,6 @@ class SampleTests(ProjectTestCase):
             '    "url": "http://example.com/test1", \n'
             '    "version": "' + SLYBOT_VERSION + '"\n'
             '}')
-        self.assertEqual(
-            self.storage.files['spiders/shop-crawler.json'],
-            '{\n'
-            '    "allowed_domains": [], \n'
-            '    "exclude_patterns": [], \n'
-            '    "follow_patterns": [], \n'
-            '    "id": "shop-crawler", \n'
-            '    "init_requests": [\n'
-            '        {\n'
-            '            "type": "login", \n'
-            '            "loginurl": "http://shop.example.com/login", \n'
-            '            "username": "user", \n'
-            '            "password": "pass"\n'
-            '        }\n'
-            '    ], \n'
-            '    "js_disable_patterns": [], \n'
-            '    "js_enable_patterns": [], \n'
-            '    "js_enabled": false, \n'
-            '    "links_to_follow": "all", \n'
-            '    "respect_nofollow": true, \n'
-            '    "start_urls": [\n'
-            '        {\n'
-            '            "url": "http://example.com/", \n'
-            '            "type": "url"\n'
-            '        }\n'
-            '    ], \n'
-            '    "template_names": [\n'
-            '        "1ddc-4043-ac4d", \n'
-            '        "test1"\n'
-            '    ]\n'
-            '}')
 
         spider.samples.insert(0, Sample(self.storage, id='test2',
                                         name='test sample 2',
@@ -2241,38 +2189,6 @@ class SampleTests(ProjectTestCase):
             '    "spider": "shop-crawler", \n'
             '    "url": "http://example.com/test2", \n'
             '    "version": "' + SLYBOT_VERSION + '"\n'
-            '}')
-        self.assertEqual(
-            self.storage.files['spiders/shop-crawler.json'],
-            '{\n'
-            '    "allowed_domains": [], \n'
-            '    "exclude_patterns": [], \n'
-            '    "follow_patterns": [], \n'
-            '    "id": "shop-crawler", \n'
-            '    "init_requests": [\n'
-            '        {\n'
-            '            "type": "login", \n'
-            '            "loginurl": "http://shop.example.com/login", \n'
-            '            "username": "user", \n'
-            '            "password": "pass"\n'
-            '        }\n'
-            '    ], \n'
-            '    "js_disable_patterns": [], \n'
-            '    "js_enable_patterns": [], \n'
-            '    "js_enabled": false, \n'
-            '    "links_to_follow": "all", \n'
-            '    "respect_nofollow": true, \n'
-            '    "start_urls": [\n'
-            '        {\n'
-            '            "url": "http://example.com/", \n'
-            '            "type": "url"\n'
-            '        }\n'
-            '    ], \n'
-            '    "template_names": [\n'
-            '        "test2", \n'
-            '        "1ddc-4043-ac4d", \n'
-            '        "test1"\n'
-            '    ]\n'
             '}')
 
     def test_delete(self):
@@ -2319,8 +2235,7 @@ class SampleTests(ProjectTestCase):
             '            "url": "http://example.com/", \n'
             '            "type": "url"\n'
             '        }\n'
-            '    ], \n'
-            '    "template_names": []\n'
+            '    ]\n'
             '}')
         self.assertEqual(
             self.storage.files['items.json'],
@@ -2896,7 +2811,8 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
 
     def test_save_edit(self):
         item = Item(
@@ -2909,7 +2825,8 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.storage.save.assert_not_called()
 
         item.selector = '#test'
@@ -2918,7 +2835,8 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.storage.save.assert_called_once_with(
             'spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY)
         self.assertEqual(
@@ -3068,7 +2986,8 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.assertEqual(self.storage.save.call_count, 2)
         self.storage.save.assert_has_calls([
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),
@@ -3225,7 +3144,8 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.storage.save.assert_called_once_with(
             'spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY)
         self.assertEqual(
@@ -3392,7 +3312,8 @@ class ItemTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.assertEqual(self.storage.save.call_count, 2)
         self.storage.save.assert_has_calls([
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),
@@ -3836,7 +3757,8 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
 
     def test_save_edit(self):
         annotation = Annotation(
@@ -3851,7 +3773,8 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.storage.save.assert_not_called()
 
         annotation.selector = '.test'
@@ -3860,7 +3783,8 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.storage.save.assert_called_once_with(
             'spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY)
         self.assertEqual(
@@ -3971,7 +3895,8 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.assertEqual(self.storage.save.call_count, 2)
         self.storage.save.assert_has_calls([
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),
@@ -4090,7 +4015,8 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.storage.save.assert_called_once_with(
             'spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY)
         self.assertEqual(
@@ -4223,7 +4149,8 @@ class AnnotationTests(ProjectTestCase):
         self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('items.json')])
         self.assertEqual(self.storage.save.call_count, 2)
         self.storage.save.assert_has_calls([
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),

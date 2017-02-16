@@ -173,7 +173,7 @@ export default Ember.Service.extend(Ember.Evented, {
             data._meta.id = shortGuid();
         }
         if(this.get('opened')) {
-            this.set('deferreds.' + data._meta.id, deferred);
+            this.set(`deferreds.${data._meta.id}`, deferred);
             this.send(data);
         } else {
             deferred.reject('Websocket is closed');

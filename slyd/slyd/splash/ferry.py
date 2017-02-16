@@ -289,6 +289,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
             result = self._handlers[command](data, self)
         if result:
             result.setdefault('_command', data.get('_callback', command))
+            if '_meta' in data and 'id' in data['_meta']:
+                result['id'] = data['_meta']['id']
         return result
 
     def onClose(self, was_clean, code, reason):
@@ -428,11 +430,13 @@ class FerryServerProtocol(WebSocketServerProtocol):
         spider = spider_model.dump()
         spider['templates'] = []
         for sample in spider_model.samples:
-            sample = sample.dump()
+            sample_json = sample.dump()
             for key in ('original_body', 'rendered_body'):
-                if not (sample.get(key) or '').strip():
-                    sample[key] = u'<html></html>'
-            spider['templates'].append(sample)
+                try:
+                    sample_json[key] = getattr(sample, key).html
+                except (IOError, AttributeError):
+                    sample_json[key] = u'<html></html>'
+            spider['templates'].append(sample_json)
         items, extractors = project.schemas.dump(), project.extractors.dump()
         if not self.settings.get('SPLASH_URL'):
             self.settings.set('SPLASH_URL', 'portia')
