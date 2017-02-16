@@ -222,7 +222,7 @@ class CodeProjectArchiver(ProjectArchiver):
                 return self.storage.isdir(self.rel_path(*args))
 
             def listdir(self, *args, **kwargs):
-                if spiders:
+                if spiders and args == ['spiders']:
                     return ['{}.json'.format(s) for s in spiders]
                 path = self.rel_path(*args)
                 return itertools.chain(*self.storage.listdir(path))
