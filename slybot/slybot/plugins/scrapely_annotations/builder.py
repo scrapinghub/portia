@@ -70,16 +70,18 @@ class Annotations(object):
         groups = groupby(sorted(chain(*tagid_annotations), key=on_cid), on_cid)
         for group, annotations in groups:
             if group not in containers:
+                annotations = list(annotations)
                 missing[group] = list(annotations)
         if missing:
             all_containers = {a['id']: a for a in self.annotations
                               if a.get('item_container')}
             for container_id, annnotations in missing.items():
                 container = all_containers[container_id]
+                annotations = list(annotations)
                 elements = list(chain(*(self.elements(a)
                                         for a in annotations)))
                 parent = _get_parent(elements, self.selector)
-                container['tagid'] = parent.attributes.get(self.tagid)
+                container['tagid'] = parent.attrib.get(TAGID)
                 tagid_annotations.append(container)
         return tagid_annotations
 
@@ -342,7 +344,7 @@ class Annotations(object):
         if added_repeated:
             for container_id, child in added_repeated.items():
                 container = containers[container_id]
-                if container['tagid'] != child['tagid']:
+                if container.get('tagid') != child['tagid']:
                     continue
                 elems = self.elements(container)
                 parent = elems[0].getparent()

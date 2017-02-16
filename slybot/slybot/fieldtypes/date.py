@@ -1,5 +1,9 @@
-from .text import TextFieldTypeProcessor
+from datetime import datetime
+
 from dateparser.date import DateDataParser
+from scrapy.utils.spider import arg_to_iter
+
+from .text import TextFieldTypeProcessor
 
 
 class DateTimeFieldTypeProcessor(TextFieldTypeProcessor):
@@ -14,6 +18,7 @@ class DateTimeFieldTypeProcessor(TextFieldTypeProcessor):
     '2014-01-12T11:15:00'
     >>> d.adapt(u'no date here', None)
     """
+    DATETIME_FMT = "%Y-%m-%d %H:%M:%S"
 
     name = 'date'
     description = 'Extracts date and time information from a string'
@@ -26,3 +31,10 @@ class DateTimeFieldTypeProcessor(TextFieldTypeProcessor):
             return DateDataParser().get_date_data(text)['date_obj']
         except ValueError:
             return
+
+    @classmethod
+    def serializer(cls, output):
+        return [
+            o.strftime(cls.DATETIME_FMT) if isinstance(o, datetime) else str(o)
+            for o in arg_to_iter(output)
+        ]

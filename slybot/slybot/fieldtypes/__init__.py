@@ -47,6 +47,10 @@ class FieldTypeManager(object):
         """
         return self._TYPEMAP.get(name, RawFieldTypeProcessor)
 
+    def type_processor_serializer(self, name):
+        processor = self._TYPEMAP.get(name, RawFieldTypeProcessor)
+        return getattr(processor, 'serializer', None)
+
     def all_processor_classes(self):
         """Retrieve all processor classes registered"""
         return list(self._TYPEMAP.values())
