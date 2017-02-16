@@ -1,4 +1,7 @@
 from collections import OrderedDict
+from urllib2 import URLError, HTTPError
+
+from django.core.exceptions import ValidationError
 from django.http.response import Http404
 
 import requests
@@ -11,7 +14,7 @@ from django.conf import settings
 
 from .projects import BaseProjectModelRoute, ProjectDownloadMixin
 from ..jsonapi.exceptions import JsonApiGeneralException
-from ..utils.extract import Pages, load_spider,load_samples, FetchError
+from ..utils.extract import Pages, load_spider, FetchError
 from ..utils.train import train_scrapely
 from ..utils.cookies import CookiesFetcher
 from portia_orm.models import Spider
@@ -109,13 +112,19 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
                 'No spider found with the name "%s"' % kwargs.get('spider_id'), 404)
         try:
             templates = train_scrapely(self.storage, instance)
-        except (ValueError, KeyError, IndexError):
-            raise JsonApiGeneralException('Failed to load spider, "%s" correctly' % instance.id, 500)
+        except ValidationError, e:
+            raise JsonApiGeneralException(e.message, 400)
         return Response(templates, status=HTTP_200_OK)
 
     @detail_route(methods=['post'])
     def cookies(self, *args, **kwargs):
-        current_url = self.data['current_url']
+        try:
+            current_url = self.data['current_url']
+        except KeyError:
+            return Response("Missing 'current_url' in payload", status=HTTP_400_BAD_REQUEST)
         fetcher = CookiesFetcher()
-        cookies = fetcher.fetch(current_url)
+        try:
+            cookies = fetcher.fetch(current_url)
+        except(ValueError,TypeError,URLError, HTTPError) as e:
+            raise JsonApiGeneralException(e.message, 400)
         return Response(cookies, status=HTTP_200_OK)
