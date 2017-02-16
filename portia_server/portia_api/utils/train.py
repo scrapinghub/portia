@@ -1,12 +1,13 @@
 import os
 import json
+
+from django.core.exceptions import ValidationError
 from scrapy import log
 from storage.projecttemplates import MERCHANT_SETTING_BASE
 
 SCRAPELY_TEMPLATES_DIR = '/var/kipp/scrapely_templates'
 KIPP_MERCHANT_SETTINGS_DIR = '/apps/kipp/kipp/kipp_base/kipp_settings/{country_code}'
-if not os.path.exists(SCRAPELY_TEMPLATES_DIR):
-    os.makedirs(SCRAPELY_TEMPLATES_DIR)
+
 
 def train_scrapely(storage, model):
     """
@@ -18,11 +19,8 @@ def train_scrapely(storage, model):
     samples = load_samples(storage, model)
     scrapely_templates = generate_scrapely_templates(samples)
     save_scrapely_object(model.id, scrapely_templates)
-    try:
-        create_kipp_setting(model)
-    except Exception as e:
-        print 'Error in creating ' + e.message
-    return scrapely_templates
+    create_kipp_setting(model)
+
 
 def load_samples(storage, model):
     samples = []
@@ -42,6 +40,7 @@ def get_annotated_template(template, model):
         template = build_sample(template)
     return template
 
+
 def build_sample(sample, legacy=False):
     from slybot.plugins.scrapely_annotations.builder import Annotations
     data = sample.get('plugins', {}).get('annotations-plugin')
@@ -50,6 +49,7 @@ def build_sample(sample, legacy=False):
     sample['page_id'] = sample.get('page_id') or sample.get('id') or ""
     sample['annotated'] = True
     return sample
+
 
 def generate_scrapely_templates(templates):
     """
@@ -68,11 +68,12 @@ def generate_scrapely_templates(templates):
         scrapely_templates.append(scrapely_template.copy())
     return scrapely_templates
 
+
 def save_scrapely_object(spider_name, scrapely_templates):
+    if not os.path.exists(SCRAPELY_TEMPLATES_DIR):
+        os.makedirs(SCRAPELY_TEMPLATES_DIR)
     scrapely_file_name = "%s.json" % spider_name
     scrapely_file_path = os.path.join(SCRAPELY_TEMPLATES_DIR, scrapely_file_name)
-    if os.path.exists(scrapely_file_path):
-        os.remove(scrapely_file_path)
     with open(scrapely_file_path, "w") as outfile:
         json.dump({"templates": scrapely_templates}, outfile)
     log.msg('Scraper instance is saved at %s' % SCRAPELY_TEMPLATES_DIR)
@@ -80,132 +81,92 @@ def save_scrapely_object(spider_name, scrapely_templates):
 
 def create_kipp_setting(spider):
     """
-    preprocess spider specs and call _create_setting_file function
+    preprocess spider specs and generate kipp settings file
     :param merchant_name:
     :param country:
     :param spider_spec:
     :return:
     """
-    # setting_dict = {}
-    # settings_dict.get('merchant_name', spider.id)
-    merchant_name = spider.id
-    country_code = spider.country_code
-    kipp_country_setting_dir = KIPP_MERCHANT_SETTINGS_DIR.format(country_code=country_code)
+    kipp_country_setting_dir = KIPP_MERCHANT_SETTINGS_DIR.format(country_code=spider.country_code)
     if not os.path.exists(kipp_country_setting_dir):
         os.makedirs(kipp_country_setting_dir)
-    merchant_file_path = kipp_country_setting_dir + '/' + merchant_name + '.py'
-    country_code = spider.country_code
-    currency_code = spider.currency_code
-    start_urls = spider.start_urls[0]['url']
-    merchant_url = start_urls
-    allow_regex = spider.follow_patterns
-    allowed_domains = start_urls.split("//")[-1].split("/")[0].replace("www.", "")
-    allowed_domains = [allowed_domains]
-    deny_regex = spider.exclude_patterns
-    english_url = spider.english_url
-    arabic_url = spider.arabic_url
-    english_url_args = spider.english_url_args
-    arabic_url_args = spider.arabic_url_args
-    use_language_config = spider.use_language_config
-    use_currency_config = spider.use_currency_config
-    english_cookie_name = spider.english_cookie_name
-    english_cookie_value = spider.english_cookie_value
-    arabic_cookie_name = spider.arabic_cookie_name
-    arabic_cookie_value = spider.arabic_cookie_value
-    use_language_cookies = spider.use_language_cookies
-    use_currency_cookies = spider.use_currency_cookies
-    currency_cookie_name = spider.currency_cookie_name
-    currency_cookie_value = spider.currency_cookie_value
-    local_images = spider.local_images
-    render_js = spider.js_enabled
-    #return setting_dict
+    merchant_file_path = kipp_country_setting_dir + '/' + spider.id + '.py'
 
-    create_setting_file(merchant_file_path, merchant_name=merchant_name, country_code=country_code,
-                              start_urls=start_urls, allowed_domains=allowed_domains, merchant_url=merchant_url,
-                              allow_regex=allow_regex, deny_regex=deny_regex, currency_code=currency_code,
-                              english_url=english_url, arabic_url=arabic_url, english_url_args=english_url_args,
-                              arabic_url_args=arabic_url_args, english_cookie_name=english_cookie_name,
-                              english_cookie_value=english_cookie_value, arabic_cookie_name=arabic_cookie_name,
-                              arabic_cookie_value=arabic_cookie_value, use_language_cookies=use_language_cookies,
-                              use_currency_cookies=use_currency_cookies, currency_cookie_name=currency_cookie_name,
-                              currency_cookie_value=currency_cookie_value, local_images=local_images,
-                              render_js=render_js)
+    setting_dict = {
+        'merchant_name': spider.id,
+        'country_code': spider.country_code,
+        'currency_code': spider.currency_code,
+        'allow_regex': spider.follow_patterns,
+        'deny_regex': spider.exclude_patterns,
+        'local_images': spider.local_images,
+        'render_js': spider.js_enabled,
+        'english_language_cookie': None,
+        'arabic_language_cookie': None,
+        'currency_cookie': None,
+        'general_cookie': None,
+        'english_cookie_name': spider.english_cookie_name,
+        'english_cookie_value': spider.english_cookie_value,
+        'arabic_cookie_name': spider.arabic_cookie_name,
+        'arabic_cookie_value': spider.arabic_cookie_value,
+        'currency_cookie_name': spider.currency_cookie_name,
+        'currency_cookie_value': spider.currency_cookie_value,
+        'use_language_config': spider.use_language_config,
+        'use_currency_config': spider.use_currency_config,
+    }
 
+    try:
+        start_urls = spider.start_urls[0]['url']
+        allowed_domains = [start_urls.split("//")[-1].split("/")[0].replace("www.", "")]
+    except IndexError:
+        raise ValidationError(message="start url is missing or not valid")
 
-def create_setting_file(file_path, **kwargs):
-    """
-    create setting file on the disk
-    :param file_path:
-    :param args:
-    :return:
-    """
-    if kwargs['english_url']:
-        english_url = "\"" + kwargs["english_url"] + "\""
-        kwargs['english_url'] = english_url
-    else:
-        kwargs['english_url'] = None
-    if kwargs['arabic_url']:
-        english_url = "\"" + kwargs["arabic_url"] + "\""
-        kwargs['arabic_url'] = english_url
-    else:
-        kwargs['arabic_url'] = None
-    if kwargs['english_url_args']:
-        english_url_args = "\"" + kwargs["english_url_args"] + "\""
-        kwargs['english_url_args'] = english_url_args
-    else:
-        kwargs['english_url_args'] = None
-    if kwargs['arabic_url_args']:
-        arabic_url_args = "\"" + kwargs["arabic_url_args"] + "\""
-        kwargs['arabic_url_args'] = arabic_url_args
-    else:
-        kwargs['arabic_url_args'] = None
+    setting_dict['start_urls'] = [start_urls]
+    setting_dict['merchant_url'] = start_urls
+    setting_dict['allowed_domains'] = allowed_domains
 
-    if kwargs['use_language_cookies']:
-        english_language_cookie = """
-                {{'name':"{english_cookie_name}", 'value': "{english_cookie_value}",
-                'domain': ".{allowed_domains[0]}", 'path': '/'}}
-                """.format(**kwargs)
-        arabic_language_cookie = """
-                {{'name': "{arabic_cookie_name}", 'value': "{arabic_cookie_value}",
-                'domain': '.{allowed_domains[0]}', 'path': '/'}}
-                """.format(**kwargs)
-    else:
-        english_language_cookie = None
-        arabic_language_cookie = None
-    if kwargs['use_currency_cookies']:
-        currency_cookie = """
-                {{'name':"{currency_cookie_name}", 'value': "{currency_cookie_value}",
-                'domain': ".{allowed_domains[0]}", 'path': '/'}}
-                """.format(**kwargs)
-    else:
-        currency_cookie = None
+    setting_dict['english_url'] = "\"%s\"" % spider.english_url if spider.english_url else None
+    setting_dict['arabic_url'] = "\"%s\"" % spider.arabic_url if spider.arabic_url else None
+    setting_dict['english_url_args'] = "\"%s\"" % spider.english_url_args if spider.english_url_args else None
+    setting_dict['arabic_url_args'] = "\"%s\"" % spider.arabic_url_args if spider.arabic_url_args else None
 
-    if kwargs['use_language_cookies'] and kwargs['use_currency_cookies']:
-        general_cookie = """
-                [{}, {}]
-                """.format(english_language_cookie, currency_cookie)
-    elif kwargs['use_language_cookies']:
-        general_cookie = """
-                [{}]
-                """.format(english_language_cookie)
-        if english_language_cookie:
-          english_language_cookie = "[" + english_language_cookie + "]"
-        if arabic_language_cookie:
-          arabic_language_cookie = "[" + arabic_language_cookie + "]"
-    elif kwargs['use_currency_cookies']:
-        general_cookie = """
-                [{}]
-                """.format(currency_cookie)
-        currency_cookie = [currency_cookie]
-    else:
-        general_cookie = None
+    if spider.use_language_cookies:
+        setting_dict['english_language_cookie'] = """
+                    {{'name':"{english_cookie_name}", 'value': "{english_cookie_value}",
+                    'domain': ".{allowed_domains[0]}", 'path': '/'}}
+                    """.format(**setting_dict)
+        setting_dict['arabic_language_cookie'] = """
+                    {{'name': "{arabic_cookie_name}", 'value': "{arabic_cookie_value}",
+                    'domain': '.{allowed_domains[0]}', 'path': '/'}}
+                    """.format(**setting_dict)
 
-    kwargs.setdefault('general_cookie', general_cookie)
-    kwargs.setdefault('english_language_cookie', english_language_cookie)
-    kwargs.setdefault('arabic_language_cookie', arabic_language_cookie)
-    kwargs.setdefault('currency_cookie', currency_cookie)
+    if spider.use_currency_cookies:
+        setting_dict['currency_cookie'] = """
+                    {{'name':"{currency_cookie_name}", 'value': "{currency_cookie_value}",
+                    'domain': ".{allowed_domains[0]}", 'path': '/'}}
+                    """.format(**setting_dict)
 
-    merchant_setting = MERCHANT_SETTING_BASE.format(**kwargs)
+    if spider.use_language_cookies and spider.use_currency_cookies:
+        setting_dict['general_cookie'] = """
+                    [{}, {}]
+                    """.format(setting_dict['english_language_cookie'], setting_dict['currency_cookie'])
+    elif spider.use_language_cookies:
+        setting_dict['general_cookie'] = """
+                    [{}]
+                    """.format(setting_dict['english_language_cookie'])
 
-    with open(file_path, 'w') as f:
+        if setting_dict['english_language_cookie']:
+          setting_dict['english_language_cookie'] = "[%s]" % setting_dict['english_language_cookie']
+
+        if setting_dict['arabic_language_cookie']:
+          setting_dict['arabic_language_cookie'] = "[%s]" % setting_dict['arabic_language_cookie']
+
+    elif setting_dict['currency_cookie']:
+        setting_dict['general_cookie'] = """
+                    [{}]
+                    """.format(setting_dict['currency_cookie'])
+        setting_dict['currency_cookie'] = [setting_dict['currency_cookie']]
+
+    merchant_setting = MERCHANT_SETTING_BASE.format(**setting_dict)
+
+    with open(merchant_file_path, 'w') as f:
         f.write(merchant_setting)
