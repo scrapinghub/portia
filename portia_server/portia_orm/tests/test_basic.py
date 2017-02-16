@@ -235,6 +235,13 @@ class BasicModelTests(DataStoreTestCase):
             '    "id": "model-1"\n'
             '}')
 
+    def test_copy(self):
+        model = SingleFileModel.load(self.storage)
+        copied_model = model.copy('new_id')
+
+        self.assertEqual(model.field, copied_model.field)
+        self.assertNotEqual(model.id, copied_model.id)
+
 
 class PolymorphicModelTests(DataStoreTestCase):
     def setUp(self):

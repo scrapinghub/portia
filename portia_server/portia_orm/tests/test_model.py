@@ -2207,8 +2207,12 @@ class SampleTests(ProjectTestCase):
         self.storage.save.assert_has_calls([
             mock.call('items.json', mock.ANY),
             mock.call('spiders/shop-crawler.json', mock.ANY)])
-        self.storage.delete.assert_called_once_with(
-            'spiders/shop-crawler/1ddc-4043-ac4d.json')
+        self.assertEqual(self.storage.delete.call_count, 3)
+        self.storage.delete.assert_has_calls([
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d/rendered_body.html'),
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d/original_body.html')
+        ])
         self.assertListEqual(spider.samples.keys(), [])
         self.assertEqual(
             self.storage.files['spiders/shop-crawler.json'],

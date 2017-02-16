@@ -8,11 +8,7 @@ const FILTER_DEBOUNCE = 800;
 const TURN_PAGE_DEBOUNCE = 200;
 
 export default Ember.Component.extend({
-    browser: Ember.inject.service(),
     dispatcher: Ember.inject.service(),
-    notificationManager: Ember.inject.service(),
-    routing: Ember.inject.service('-routing'),
-    savingNotification: Ember.inject.service(),
     uiState: Ember.inject.service(),
 
     tagName:      '',
@@ -98,13 +94,6 @@ export default Ember.Component.extend({
         }
     }),
 
-    notifyError(spider) {
-        const msg = `Renaming the spider '${spider.get('id')}' failed.`;
-        this.get('notificationManager').showErrorNotification(msg);
-
-        spider.set('name', spider.get('id'));
-    },
-
     actions: {
         addSchema() {
             this.get('dispatcher').addSchema(this.get('project'), /* redirect = */true);
@@ -120,43 +109,6 @@ export default Ember.Component.extend({
 
         addSpider() {
             this.get('dispatcher').addSpider(this.get('project'), /* redirect = */true);
-        },
-
-        removeSpider(spider) {
-            this.get('dispatcher').removeSpider(spider);
-            this.get('filteredSpiders').removeObject(spider);
-            this.get('spiders').removeObject(spider);
-        },
-
-        validateSpiderName(spider, name) {
-            const nm = this.get('notificationManager');
-            if(!/^[a-zA-Z0-9][a-zA-Z0-9_\.-]*$/.test(name)) {
-                nm.showWarningNotification(`Invalid spider name.
-                    Only letters, numbers, underscores, dashes and dots are allowed.`);
-                return false;
-            }
-            if (spider.get('id') === name) {
-                return true;
-            }
-            const spiders = this.get('project.spiders').mapBy('id');
-            if(spiders.indexOf(name) >= 0) {
-                nm.showWarningNotification(`Invalid spider name.
-                    A spider already exists with the name "${name}"`);
-                return false;
-            }
-            return true;
-        },
-
-        saveSpiderName(spider) {
-            const dispatcher = this.get('dispatcher');
-            const saving = this.get('savingNotification');
-
-            saving.start();
-
-            dispatcher.changeSpiderName(spider)
-                .then((data) => dispatcher.changeId(spider, data))
-                .catch(() => this.notifyError(spider))
-                .finally(() => saving.end());
         }
     },
 

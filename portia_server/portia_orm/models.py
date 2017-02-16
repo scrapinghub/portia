@@ -811,7 +811,7 @@ class OriginalBody(Model):
     def load(cls, storage, instance=None, sample=None, **kwargs):
         html = super(OriginalBody, cls).load(
             storage, instance, sample=sample, **kwargs)
-        if html and sample:
+        if (html and not html.sample) and sample:
             html.sample = sample
         return html
 
@@ -832,7 +832,6 @@ class OriginalBody(Model):
         return data['html']
 
     class Meta:
-        owner = 'sample'
         raw = True
         single = True
         path = (u'spiders/{self.sample.spider.id}/{self.sample.id}/'
@@ -840,11 +839,35 @@ class OriginalBody(Model):
         name = 'original_body'
 
 
-class RenderedBody(OriginalBody):
+class RenderedBody(Model):
+    id = String(primary_key=True)
+    html = String(default='')
     sample = BelongsTo(Sample, related_name='rendered_body', on_delete=CASCADE,
                        ignore_in_file=True)
 
+    @classmethod
+    def load(cls, storage, instance=None, sample=None, **kwargs):
+        html = super(RenderedBody, cls).load(
+            storage, instance, sample=sample, **kwargs)
+        if (html and not html.sample) and sample:
+            html.sample = sample
+        return html
+
+    @pre_load
+    def populate_item(self, data):
+        split_path = self.context['path'].split('/')
+        sample_id = split_path[2]
+        if len(split_path) == 3 and sample_id.endswith('.json'):
+            sample_id = sample_id[:-len('.json')]
+        name = self.Meta.name
+        return {
+            'id': '{}_{}'.format(sample_id, name),
+            'html': data,
+        }
+
     class Meta:
+        raw = True
+        single = True
         ignore_if_missing = True
         path = (u'spiders/{self.sample.spider.id}/{self.sample.id}/'
                 u'rendered_body.html')

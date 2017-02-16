@@ -39,8 +39,10 @@
 
     > a:first-child {
         flex: 1 1 auto;
-        display: block;
+        display: flex;
+        align-items: center;
         outline: none;
+        overflow: hidden;
 
         &:hover,
         &:focus {

@@ -1,14 +1,29 @@
 import Ember from 'ember';
+const { computed, inject: { service } } = Ember;
 
 export default Ember.Component.extend({
-    capabilities: Ember.inject.service(),
-    notificationManager: Ember.inject.service(),
+    capabilities: service(),
+    notificationManager: service(),
 
     tagName: '',
-
-    versionControlled: Ember.computed.readOnly('capabilities.capabilities.version_control'),
-
     project: null,
+    isNoticed: false,
+
+    versionControlled: computed.readOnly('capabilities.capabilities.version_control'),
+    notVersionControlled: computed.not('versionControlled'),
+    hasNoChanges: computed.not('project.hasChanges'),
+    notPublished: computed.or('hasNoChanges', 'notVersionControlled'),
+    isPublished: computed.not('notPublished'),
+    notNoticed: computed.not('isNoticed'),
+    isPulsing: computed.and('project.hasChanges', 'notNoticed'),
+
+    downloadUrl: computed('project', function() {
+        const link = this.get('project._internalModel._links.self');
+        return `${link}/download`;
+    }),
+    downloadCodeUrl: computed('downloadUrl', function() {
+        return `${this.get('downloadUrl')}?format=code`;
+    }),
 
     actions: {
         publish() {
@@ -39,6 +54,10 @@ export default Ember.Component.extend({
                 this.get('notificationManager').showNotification(error.title, error.detail);
             });
 
+        },
+
+        clickProjectOptions() {
+            this.set('isNoticed', true);
         }
     }
 });

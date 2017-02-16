@@ -428,6 +428,8 @@ class Model(with_metaclass(ModelMeta)):
             parent = child._get_parent_object(parent_snapshots)
             if isinstance(parent, ModelCollection):
                 parent = next(iter(parent))
+            if parent is None:
+                return
             to_save = getattr(
                 parent.with_snapshots(('staged', 'committed')),
                 child._fields[child.opts.owner].related_name)
@@ -495,7 +497,8 @@ class Model(with_metaclass(ModelMeta)):
             model._stage_changes(fields)
 
         for model in collector.delete:
-            path = model.storage_path(model, snapshots=('committed',))
+            path = model.storage_path(model, snapshots=('committed', 'staged',
+                                                        'working'))
             if model.opts.owner:
                 if path and path not in saved_paths and path not in deleted_paths:
                     to_save = self._get_object_to_dump(
@@ -607,10 +610,13 @@ class Model(with_metaclass(ModelMeta)):
         except PathResolutionError:
             pass
 
-    def with_storage(self, storage):
-        data_key, old_storage = self.data_key, self.storage
-        self.storage = storage
-        self.data_key = data_key + (storage.name,)
-        copy = self.with_snapshots(('working',))
-        self.data_key, self.storage = data_key, old_storage
-        return copy
+    def copy(self, new_id=None, storage=None):
+        if new_id is None:
+            new_id = short_guid()
+        field_names = {field: getattr(self, field)
+                       for field in self._field_names if field != 'id'}
+        field_names.update({
+            'id': new_id,
+            'storage': storage,
+        })
+        return self.__class__(**field_names)

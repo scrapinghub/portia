@@ -21,9 +21,17 @@
                 {{/animation-container}}
                 {{spider-message currentSpider=currentSpider}}
             {{/list-item-text}}
-            {{#tooltip-container tooltipFor="add-spider-button" text=addSpiderTooltipText tooltipContainer='body'}}
-                {{list-item-icon id="add-spider-button" icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}}
-            {{/tooltip-container}}
+            {{#if currentSpider}}
+                {{#animation-container}}
+                    {{#link-to 'projects.project' project class='inline project-change'}}
+                        Show all spiders
+                    {{/link-to}}
+                {{/animation-container}}
+            {{else}}
+                {{#tooltip-container tooltipFor="add-spider-button" text=addSpiderTooltipText tooltipContainer='body'}}
+                    {{list-item-icon id="add-spider-button" icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}}
+                {{/tooltip-container}}
+            {{/if}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item hide=(or project.spiders.isPending project.spiders.length) as |options|}}
                 {{#list-item-text class="text-center"}}
@@ -63,37 +71,7 @@
 
             <div class={{if isFiltering 'very-opaque'}}>
             {{#each spiders as |spider|}}
-                {{#tree-list-item hide=(and currentSpider (not-eq spider currentSpider)) as |options|}}
-                    {{#link-to 'projects.project.spider' spider (query-params url=(or spider.firstUrl null) baseurl=null) current-when='projects.project.spider'}}
-                        {{spider-indentation spider=spider currentSpider=currentSpider}}
-                        {{list-item-icon icon='spider'}}
-
-                        {{#if currentSpider}}
-                            {{#list-item-text}}{{spider.nameAlias}}{{/list-item-text}}
-                        {{else}}
-                            {{list-item-editable value=(mut spider.nameAlias) onChange=(action 'saveSpiderName' spider) validate=(action 'validateSpiderName' spider)}}
-                        {{/if}}
-                        {{#animation-container class="icon" setWidth=false setHeight=false}}
-                            {{list-item-icon icon='remove' action=(action 'removeSpider' spider) bubbles=false}}
-                        {{/animation-container}}
-                        {{#animation-container class="icon" hide=(not-eq spider currentSpider) setWidth=false setHeight=false}}
-                            {{#tooltip-container tooltipFor=(concat "spider-options-button" (guid spider)) text="Advanced spider options" tooltipContainer='body'}}
-                                {{#link-to 'projects.project.spider' id=(concat "spider-options-button" (guid spider)) bubbles=false}}
-                                    {{#link-to 'projects.project.spider.options' bubbles=false class="ignore-active"}}
-                                        {{list-item-icon icon='options'}}
-                                    {{/link-to}}
-                                {{/link-to}}
-                            {{/tooltip-container}}
-                        {{/animation-container}}
-                        {{#animation-container class="icon" hide=(not-eq spider currentSpider) setWidth=false setHeight=false}}
-                            {{#tooltip-container tooltipFor=(concat "spider-close-button" (guid spider)) text="Close spider" tooltipContainer='body'}}
-                                {{#link-to 'projects.project' id=(concat "spider-close-button" (guid spider)) bubbles=false}}
-                                    {{list-item-icon icon='close'}}
-                                {{/link-to}}
-                            {{/tooltip-container}}
-                        {{/animation-container}}
-                    {{/link-to}}
-                {{/tree-list-item}}
+                {{spider-row spider=spider project=project}}
             {{/each}}
             </div>
 

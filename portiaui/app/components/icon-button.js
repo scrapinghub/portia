@@ -4,8 +4,11 @@ export const ICON_CLASSES = {
     add: 'structure-list-add fa fa-plus-circle',
     'add-dropdown': 'structure-list-add fa fa-play-circle fa-rotate-90',
     close: 'fa fa-times',
+    code: 'fa fa-code',
+    copy: 'fa fa-copy',
     'data-annotation': 'fa fa-hand-pointer-o',
     date: 'fa fa-calendar',
+    download: 'fa fa-download',
     publish: 'structure-list-publish fa fa-cloud-upload',
     edit: 'fa fa-pencil',
     error: 'structure-list-error fa fa-exclamation-circle',
@@ -58,7 +61,10 @@ export default Ember.Component.extend({
 
     hasAction: Ember.computed.bool('action'),
 
+    beforeClick() {},
+
     click() {
+        this.beforeClick();
         if (this.attrs.action && !this.get('disabled')) {
             this.attrs.action();
             if (!this.get('bubbles')) {

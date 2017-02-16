@@ -1,6 +1,6 @@
 {{#dropdown-widget class="list-item-icon" menuContainer="body" menuAlign="right" as |options|}}
     {{#if (eq options.section 'widget')}}
-        {{list-item-icon icon=icon action=options.toggleMenu tabindex=-1}}
+        {{list-item-icon onClick=(action 'clickIcon') icon=icon action=options.toggleMenu tabindex=-1}}
     {{else if (eq options.section 'menu')}}
         {{yield options}}
     {{/if}}
