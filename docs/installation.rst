@@ -77,3 +77,30 @@ To run Portia start slyd and portia_server::
 
 Portia should now be running on port 9001 and you can access it at ``http://localhost:9001``.
 
+
+Developing Portia using Docker
+------------------------------
+
+To develop Portia using docker you will need `Node.js <https://nodejs.org/en/download/package-manager/>`_, `Bower <https://bower.io/#install-bower>`_ and `ember-cli <https://ember-cli.com/>`_ installed.
+
+To set up Portia for development use the commands below::
+
+    mkdir ~/data
+    git clone git@github.com:scrapinghub/portia.git
+    cd portia/portiaui
+    npm install && bower install
+    cd node_modules/ember-cli && npm install && cd ../../
+    ember build
+    docker build . -t portia
+
+You can run it using::
+
+    docker run -i -t --rm -p 9001:9001 \
+        -v ~/data:/app/data/projects:rw \
+        -v ~/portia/portiaui/dist:/app/portiaui/dist \
+        -v ~/portia/slyd:/app/slyd \
+        -v ~/portia/portia_server:/app/portia_server \
+        portia
+
+This sets up the `portia_server` to restart with every change you make and if you run
+`cd ~/portia/portiaui && ember build -w` in another shell you can rebuild the Portia assets with every change too.
