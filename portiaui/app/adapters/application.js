@@ -378,7 +378,7 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
             promise.finally(() => {
                 const project = this.get('uiState.models.project');
                 if (project) {
-                    this.set('changes.changes', true);
+                    this.set('changes.hasChanges', true);
                 }
                 this.get('savingNotification').end();
                 this.get('loadingSlider').endLoading();

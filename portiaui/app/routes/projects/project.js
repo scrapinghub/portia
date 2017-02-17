@@ -4,7 +4,6 @@ const { inject: { service } } = Ember;
 export default Ember.Route.extend({
     browser: service(),
     changes: service(),
-    capabilities: service(),
     notificationManager: service(),
     uiState: service(),
 

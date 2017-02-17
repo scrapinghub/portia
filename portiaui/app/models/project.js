@@ -29,7 +29,7 @@ const Project =  BaseModel.extend({
     reset:  memberActionAndMarkClean({path: 'reset'}),
 
     markClean() {
-        this.set('changes.changes', false);
+        this.set('changes.hasChanges', false);
     }
 });
 
