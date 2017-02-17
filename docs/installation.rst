@@ -102,5 +102,5 @@ You can run it using::
         -v ~/portia/portia_server:/app/portia_server \
         portia
 
-This sets up the `portia_server` to restart with every change you make and if you run
-`cd ~/portia/portiaui && ember build -w` in another shell you can rebuild the Portia assets with every change too.
+This sets up the ``portia_server`` to restart with every change you make and if you run
+``cd ~/portia/portiaui && ember build -w`` in another shell you can rebuild the Portia assets with every change too.
