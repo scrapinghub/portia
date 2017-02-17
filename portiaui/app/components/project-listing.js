@@ -3,6 +3,7 @@ const { computed, inject: { service } } = Ember;
 
 export default Ember.Component.extend({
     capabilities: service(),
+    changes: service(),
     notificationManager: service(),
 
     tagName: '',
@@ -11,11 +12,12 @@ export default Ember.Component.extend({
 
     versionControlled: computed.readOnly('capabilities.capabilities.version_control'),
     notVersionControlled: computed.not('versionControlled'),
-    hasNoChanges: computed.not('project.hasChanges'),
+    hasChanges: computed.readOnly('changes.hasChanges'),
+    hasNoChanges: computed.not('hasChanges'),
     notPublished: computed.or('hasNoChanges', 'notVersionControlled'),
     isPublished: computed.not('notPublished'),
     notNoticed: computed.not('isNoticed'),
-    isPulsing: computed.and('project.hasChanges', 'notNoticed'),
+    isPulsing: computed.and('hasChanges', 'notNoticed'),
 
     downloadUrl: computed('project', function() {
         const link = this.get('project._internalModel._links.self');

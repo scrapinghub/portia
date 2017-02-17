@@ -1,21 +1,16 @@
 import Ember from 'ember';
+const { inject: { service } } = Ember;
 
 export default Ember.Route.extend({
-    browser: Ember.inject.service(),
-    capabilities: Ember.inject.service(),
-    notificationManager: Ember.inject.service(),
+    browser: service(),
+    changes: service(),
+    capabilities: service(),
+    notificationManager: service(),
+    uiState: service(),
 
     model(params) {
         this.set('projectId', params.project_id);
         return this.store.findRecord('project', params.project_id);
-    },
-
-    afterModel(model) {
-        let promises = [model.reload()];
-        if (this.get('capabilities.capabilities.version_control')) {
-            promises.push(model.checkChanges());
-        }
-        return Ember.RSVP.all(promises);
     },
 
     setupController(controller, model) {

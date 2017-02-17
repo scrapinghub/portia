@@ -50,7 +50,7 @@
                   icon='vertical-ellipsis' as |options|
                 }}
                     {{#if versionControlled}}
-                        {{#if project.hasChanges}}
+                        {{#if hasChanges}}
                             <li><a {{action (chain-actions (action 'publish')
                                              options.closeMenu)}}>
                                 {{list-item-icon
