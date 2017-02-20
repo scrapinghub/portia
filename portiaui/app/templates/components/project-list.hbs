@@ -8,7 +8,7 @@
                     {{project.name}}
                 </div>
             {{else}}
-                {{link-to project.name 'projects.project' project
+                {{link-to project.name 'projects.project' project.id
                   class="list-group-item"
                 }}
             {{/if}}
@@ -23,7 +23,7 @@
                     {{project.name}}
                 </div>
             {{else}}
-                {{link-to project.name 'projects.project' project
+                {{link-to project.name 'projects.project' project.id
                   class="list-group-item"
                 }}
             {{/if}}

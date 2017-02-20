@@ -11,7 +11,8 @@ from django.conf import settings
 
 from .projects import BaseProjectModelRoute, ProjectDownloadMixin
 from ..jsonapi.exceptions import JsonApiGeneralException
-from ..utils.extract import Pages, load_spider, FetchError
+from ..utils.extract import Pages, FetchError
+from ..utils.spiders import load_spider
 from portia_orm.models import Spider
 
 
@@ -35,7 +36,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
                 'No spider found with the name "%s"' % kwargs.get('spider_id'),
                 404)
         try:
-            spider = load_spider(self.storage, instance)
+            spider = load_spider(instance)
         except (ValueError, KeyError, IndexError):
             raise JsonApiGeneralException(
                 'Failed to load spider, "%s" correctly' % instance.id, 500)
@@ -60,12 +61,17 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
                 raise JsonApiGeneralException(
                     'Spider already exists in this project with the name, '
                     '"%s"' % name, HTTP_400_BAD_REQUEST)
+            path = 'spiders/{}/{}'.format
+            for sample in spider.samples:
+                # Load sample and move html pages
+                sample.url
+                self.storage.move(path(spider.id, sample.id),
+                                  path(name, sample.id))
             spider.id = name
             spider.save()
             self.storage.commit()
         except (TypeError, IndexError, KeyError):
             raise Http404
-
         data = self.get_serializer(spider).data
         return Response(data, status=HTTP_200_OK)
 

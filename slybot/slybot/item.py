@@ -21,11 +21,15 @@ class SlybotItem(DictItem):
     def create_iblitem_class(cls, schema):
 
         class IblItem(cls, Item):
+            ftm = FieldTypeManager()
             fields = defaultdict(dict)
             version_fields = []
             _display_name = schema.get('name')
             for _name, _meta in schema.get('fields', {}).items():
                 name = _meta.get('name', _name)
+                serializer = ftm.type_processor_serializer(_meta.get('type'))
+                if serializer:
+                    _meta['serializer'] = serializer
                 fields[name] = Field(_meta)
                 if not _meta.get("vary", False):
                     version_fields.append(name)

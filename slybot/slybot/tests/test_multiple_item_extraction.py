@@ -17,7 +17,7 @@ from slybot.plugins.scrapely_annotations.extraction.utils import group_tree
 from slybot.extractors import add_extractors_to_descriptors
 from slybot.item import create_slybot_item_descriptor
 from slybot.plugins.scrapely_annotations.builder import (
-    apply_annotations, _clean_annotation_data
+    Annotations, _clean_annotation_data
 )
 from slybot.spider import IblSpider
 from slybot.spidermanager import SlybotSpiderManager
@@ -75,8 +75,11 @@ schemas = {
     }
 }
 
+
+sample = {'plugins': {'annotations-plugin': {'extracts': annotations}},
+          'original_body': html}
 simple_template = HtmlPage(url="http://www.test.com/a",
-                           body=apply_annotations(annotations, html))
+                           body=Annotations(sample).apply())
 target1 = base_page('\n'.join(item_template(idx=i, rank=1)
                               for i in range(1, 11)))
 target2 = base_page('\n'.join(item_template(idx=i, rank=i if i % 2 else '')

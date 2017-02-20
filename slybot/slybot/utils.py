@@ -1,14 +1,17 @@
 from six.moves.urllib_parse import urlparse
-import os
+import chardet
+import itertools
 import json
+import os
 import re
+import six
 
-from os.path import isdir, join
 from collections import OrderedDict
 from itertools import chain
 
 from scrapely.htmlpage import HtmlPage, HtmlTag, HtmlTagType
 from scrapy.utils.misc import load_object
+from w3lib.encoding import html_body_declared_encoding
 
 
 TAGID = u"data-tagid"
@@ -16,6 +19,43 @@ GENERATEDTAGID = u"data-genid"
 OPEN_TAG = HtmlTagType.OPEN_TAG
 CLOSE_TAG = HtmlTagType.CLOSE_TAG
 UNPAIRED_TAG = HtmlTagType.UNPAIRED_TAG
+# Encodings: https://w3techs.com/technologies/overview/character_encoding/all
+ENCODINGS = ['UTF-8', 'ISO-8859-1', 'Windows-1251', 'Shift JIS',
+             'Windows-1252', 'GB2312', 'EUC-KR', 'EUC-JP', 'GBK', 'ISO-8859-2',
+             'Windows-1250', 'ISO-8859-15', 'Windows-1256', 'ISO-8859-9',
+             'Big5', 'Windows-1254', 'Windows-874']
+
+
+def encode(html, default=None):
+    if isinstance(html, six.binary_type):
+        return html
+    return _encode_or_decode_string(html, type(html).encode, default)
+
+
+def decode(html, default=None):
+    if isinstance(html, six.text_type):
+        return html
+    return _encode_or_decode_string(html, type(html).decode, default)
+
+
+def _encode_or_decode_string(html, method, default):
+    if not default:
+        encoding = html_body_declared_encoding(html)
+        if encoding:
+            default = [encoding]
+        else:
+            default = []
+    elif isinstance(default, six.string_types):
+        default = [default]
+    for encoding in itertools.chain(default, ENCODINGS):
+        try:
+            return method(html, encoding)
+        except (UnicodeDecodeError, UnicodeEncodeError, LookupError):
+            pass
+        except AttributeError:
+            return html
+    encoding = chardet.detect(html).get('encoding')
+    return method(html, encoding)
 
 
 def iter_unique_scheme_hostname(urls):
@@ -30,41 +70,14 @@ def iter_unique_scheme_hostname(urls):
 
 
 def open_project_from_dir(project_dir):
-    specs = {"spiders": SpiderLoader(project_dir)}
-    try:
-        with open(join(project_dir, "project.json")) as f:
-            specs["project"] = json.load(f)
-    except IOError:
-        specs["project"] = {}
-    with open(join(project_dir, "items.json")) as f:
-        specs["items"] = json.load(f)
-    with open(join(project_dir, "extractors.json")) as f:
-        specs["extractors"] = json.load(f)
+    storage = Storage(project_dir)
+    specs = {"spiders": SpiderLoader(storage)}
+    for name in ['project', 'items', 'extractors']:
+        try:
+            specs[name] = storage.open('{}.json'.format(name))
+        except IOError:
+            specs[name] = {}
     return specs
-
-
-def load_external_templates(spec_base, spider_name):
-    """A generator yielding the content of all passed `template_names` for
-    `spider_name`.
-    """
-    spider_dir = join(spec_base, spider_name)
-    if not isdir(spider_dir):
-        raise StopIteration
-    for name in os.listdir(spider_dir):
-        if not name.endswith('.json'):
-            continue
-        path = join(spider_dir, name)
-        with open(path) as f:
-            sample = json.load(f)
-            sample_dir = path[:-len('.json')]
-            if isdir(sample_dir):
-                for fname in os.listdir(sample_dir):
-                    if fname.endswith('.html'):
-                        with open(join(sample_dir, fname)) as f:
-                            attr = fname[:-len('.html')]
-                            sample[attr] = read(f)
-                version = sample.get('version', '')
-                yield _build_sample(sample, legacy=version < '0.13.0')
 
 
 def read(fp, encoding='utf-8'):
@@ -76,9 +89,7 @@ def read(fp, encoding='utf-8'):
 
 def _build_sample(sample, legacy=False):
     from slybot.plugins.scrapely_annotations.builder import Annotations
-    data = sample.get('plugins', {}).get('annotations-plugin')
-    if data:
-        Annotations().save_extraction_data(data, sample, legacy=legacy)
+    Annotations(sample, legacy=legacy).build()
     sample['page_id'] = sample.get('page_id') or sample.get('id') or ""
     sample['annotated'] = True
     return sample
@@ -278,11 +289,42 @@ def remove_tagids(source):
     return _modify_tagids(source, False)
 
 
+class Storage(object):
+    def __init__(self, base_path):
+        self.base_path = os.path.abspath(base_path)
+
+    def rel_path(self, *args):
+        return os.sep.join(args)
+
+    def _path(self, *args):
+        return os.path.join(self.base_path, self.rel_path(*args))
+
+    def isdir(self, *args, **kwargs):
+        return os.path.isdir(self._path(*args), **kwargs)
+
+    def listdir(self, *args, **kwargs):
+        return os.listdir(self._path(*args), **kwargs)
+
+    def open(self, *args, **kwargs):
+        """Open files from filesystem."""
+        raw = kwargs.pop('raw', False)
+        with open(self._path(*args)) as f:
+            return decode(f.read()) if raw else json.load(f)
+
+
 class SpiderLoader(object):
-    def __init__(self, base):
-        self.spider_dir = join(base, "spiders")
+    def __init__(self, storage):
+        if isinstance(storage, six.string_types):
+            self.storage = Storage(storage)
+        else:
+            fsattrs = ['isdir', 'listdir', 'open', 'rel_path']
+            if any(not hasattr(storage, attr) for attr in fsattrs):
+                raise TypeError('Storage class must have "{}" methods'.format(
+                    '", "'.join(fsattrs)))
+            self.storage = storage
+        self.spider_dir = self.storage.rel_path('spiders')
         self.spider_names = {
-            s[:-len('.json')] for s in os.listdir(self.spider_dir)
+            s[:-len('.json')] for s in self.storage.listdir(self.spider_dir)
             if s.endswith('.json')
         }
         self._spiders = {}
@@ -295,27 +337,27 @@ class SpiderLoader(object):
         return self._spiders[key]
 
     def load_spider(self, spider_name):
-        with open(join(self.spider_dir, '%s.json' % spider_name)) as f:
-            try:
-                spec = json.load(f)
-                if spec.get('templates'):
-                    templates = []
-                    for template in spec.get('templates', []):
-                        if template.get('version', '') < '0.13.0':
-                            templates.append(template)
-                        else:
-                            templates.append(_build_sample(template))
-                    spec['templates'] = templates
-                else:
-                    templates = load_external_templates(self.spider_dir,
-                                                        spider_name)
-                    spec.setdefault("templates", []).extend(templates)
-                return spec
-            except ValueError as e:
-                raise ValueError(
-                    "Error parsing spider (invalid JSON): %s: %s" %
-                    (spider_name, e)
-                )
+        spec = self.storage.open(self.spider_dir,
+                                 '{}.json'.format(spider_name))
+        try:
+            if spec.get('templates'):
+                templates = []
+                for template in spec.get('templates', []):
+                    if template.get('version', '') < '0.13.0':
+                        templates.append(template)
+                    else:
+                        templates.append(_build_sample(template))
+                spec['templates'] = templates
+            else:
+                templates = self.load_external_templates(self.spider_dir,
+                                                         spider_name)
+                spec.setdefault("templates", []).extend(templates)
+            return spec
+        except ValueError as e:
+            raise ValueError(
+                "Error parsing spider (invalid JSON): %s: %s" %
+                (spider_name, e)
+            )
 
     def keys(self):
         for spider_name in self.spider_names:
@@ -329,3 +371,27 @@ class SpiderLoader(object):
     def values(self):
         for _, spider in self.items():
             yield spider
+
+    def load_external_templates(self, spec_base, spider_name):
+        """A generator yielding the content of all passed `template_names` for
+        `spider_name`.
+        """
+        spider_dir = self.storage.rel_path('spiders', spider_name)
+        if not self.storage.isdir(spider_dir):
+            raise StopIteration
+        for name in self.storage.listdir(spider_dir):
+            if not name.endswith('.json'):
+                continue
+            path = self.storage.rel_path(spider_dir, name)
+            sample = self.storage.open(path)
+            sample_dir = path[:-len('.json')]
+            if self.storage.isdir(sample_dir):
+                for fname in self.storage.listdir(sample_dir):
+                    if fname.endswith('.html'):
+                        attr = fname[:-len('.html')]
+                        html = self.storage.open(sample_dir, fname, raw=1)
+                        sample[attr] = html
+            if 'original_body' not in sample:
+                sample['original_body'] = u'<html></html>'
+            version = sample.get('version', '')
+            yield _build_sample(sample, legacy=version < '0.13.0')

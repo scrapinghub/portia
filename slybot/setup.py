@@ -39,9 +39,8 @@ class sdist_command(sdist):
         sdist.run(self)
 
 
-
 install_requires = ['Scrapy', 'scrapely', 'loginform', 'lxml', 'jsonschema',
-                    'dateparser', 'scrapyjs', 'page_finder', 'six']
+                    'dateparser', 'scrapyjs', 'page_finder', 'six', 'chardet']
 extras = {
     'tests': ['nose', 'nose-timer'],
     'clustering': ['page_clustering']

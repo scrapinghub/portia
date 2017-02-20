@@ -110,9 +110,17 @@
                     {{/help-icon}}
                 {{/animation-container}}
             {{/list-item-text}}
-            {{#tooltip-container tooltipFor="add-schema-button" text="Create a new Schema" tooltipContainer='body'}}
-                {{list-item-icon id="add-schema-button" icon='add' action=(action 'addSchema')}}
-            {{/tooltip-container}}
+            {{#if currentSchema}}
+                {{#animation-container}}
+                    {{#link-to 'projects.project' project class='inline project-change'}}
+                        Show all schemas
+                    {{/link-to}}
+                {{/animation-container}}
+            {{else}}
+                {{#tooltip-container tooltipFor="add-schema-button" text="Create a new Schema" tooltipContainer='body'}}
+                    {{list-item-icon id="add-schema-button" icon='add' action=(action 'addSchema')}}
+                {{/tooltip-container}}
+            {{/if}}
         {{else if (eq options.section "subtrees")}}
             {{#tree-list-item hide=(or project.schemas.isPending project.schemas.length) as |options|}}
                 {{#list-item-text class="text-center"}}
@@ -126,14 +134,13 @@
                         {{list-item-icon icon='schema'}}
                         {{list-item-editable value=(mut schema.name) editing=(mut schema.new) onChange=(action 'saveSchema' schema)}}
                         {{#animation-container class="icon" setWidth=false setHeight=false}}
-                            {{list-item-icon icon='remove' disabled=(not (not schema.items.length)) action=(action 'removeSchema' schema) bubbles=false}}
-                        {{/animation-container}}
-                        {{#animation-container class="icon" hide=(not-eq schema currentSchema) setWidth=false setHeight=false}}
-                            {{#tooltip-container tooltipFor=(concat "schema-close-button-" (guid schema)) text="Close schema" tooltipContainer='body'}}
-                                {{#link-to 'projects.project' id=(concat "schema-close-button-" (guid schema)) bubbles=false}}
-                                    {{list-item-icon icon='close'}}
-                                {{/link-to}}
-                            {{/tooltip-container}}
+                            {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+                                {{dropdown-delete
+                                  onDelete=(action 'removeSchema' schema)
+                                  text='Delete Schema'
+                                  disabled=(not (not schema.items.length))
+                                }}
+                            {{/list-item-icon-menu}}
                         {{/animation-container}}
                     {{/link-to}}
                 {{/tree-list-item}}

@@ -1,4 +1,3 @@
-import json
 import logging
 
 from twisted.internet import defer
@@ -6,10 +5,7 @@ from twisted.web.client import getPage
 
 from scrapy import Request
 from scrapy.http import HtmlResponse
-from scrapy.settings import Settings
 from scrapy.utils.misc import arg_to_iter
-
-from slybot.spider import IblSpider
 
 from crochet import setup, wait_for, TimeoutError
 setup()
@@ -100,20 +96,3 @@ class Pages(object):
                                      if i.get('_template')]
                 items.append(item)
         return items
-
-
-def load_spider(storage, model):
-    items = json.load(storage.open_with_default('items.json', {}))
-    extractors = json.load(storage.open_with_default('extractors.json', {}))
-    spider = json.loads(model.dumps())
-    samples = []
-    for sample in model.samples:
-        json_sample = json.loads(sample.dumps())
-        json_sample['original_body'] = sample.original_body.html
-        try:
-            json_sample['rendered_body'] = sample.original_body.html
-        except IOError:
-            json_sample['rendered_body'] = json_sample['original_body']
-        samples.append(json_sample)
-    spider['templates'] = samples
-    return IblSpider(model.id, spider, items, extractors, Settings())

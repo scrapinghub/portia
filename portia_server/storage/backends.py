@@ -5,6 +5,8 @@ import os
 import os.path
 import re
 import shutil
+import six
+import sys
 
 from collections import OrderedDict
 
@@ -66,7 +68,7 @@ class CommittingStorage(object):
             return OrderedDict((project, project) for project in dirs)
         except OSError as ex:
             if ex.errno != errno.ENOENT:
-                raise
+                six.reraise(*sys.exc_info())
 
     @classmethod
     def setup(cls):
@@ -155,7 +157,8 @@ class FsStorage(BasePortiaStorage, FileSystemStorage):
                     os.makedirs(directory)
             except OSError as e:
                 if e.errno != errno.EEXIST:
-                    raise
+                    six.reraise(*sys.exc_info())
+
         if not os.path.isdir(directory):
             raise IOError("%s exists and is not a directory." % directory)
 

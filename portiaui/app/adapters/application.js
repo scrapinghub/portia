@@ -23,6 +23,7 @@ function filter_update_errors(errors, pointer) {
 }
 
 export default DS.JSONAPIAdapter.extend(UrlTemplates, {
+    changes: service(),
     savingNotification: service(),
     loadingSlider: service(),
     uiState: service(),
@@ -375,12 +376,12 @@ export default DS.JSONAPIAdapter.extend(UrlTemplates, {
             this.get('savingNotification').start();
             this.get('loadingSlider').startLoading();
             promise.finally(() => {
-                this.get('savingNotification').end();
-            this.get('loadingSlider').endLoading();
                 const project = this.get('uiState.models.project');
                 if (project) {
-                    project.markChanged();
+                    this.set('changes.hasChanges', true);
                 }
+                this.get('savingNotification').end();
+                this.get('loadingSlider').endLoading();
             });
 
             return promise;

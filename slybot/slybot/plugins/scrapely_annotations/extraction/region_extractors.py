@@ -98,9 +98,12 @@ class SlybotRecordExtractor(RecordExtractor):
                 end_region, self.best_match, **kwargs)
         except IndexError:
             start_region, end_region = start_index, end_index
-            score, pindex, sindex = similar_region(
-                page.page_tokens, self.template_tokens, labelled, start_region,
-                end_region, self.best_match, **kwargs)
+            try:
+                score, pindex, sindex = similar_region(
+                    page.page_tokens, self.template_tokens, labelled,
+                    start_region, end_region, self.best_match, **kwargs)
+            except IndexError:
+                return start_index + 1, end_index, []
 
         if score > 0:
             if isinstance(labelled, AnnotationTag):

@@ -43,9 +43,10 @@ export default Ember.Component.extend({
 
         changeField() {
             const annotation = this.get('annotation');
-            const field = annotation.get('field.content');
-            annotation.set('field', field);
-            annotation.save();
+            annotation.get('field').then(() => {
+                annotation.set('field', annotation.get('field')); // Used to trigger updates
+                annotation.save();
+            });
         }
     }
 });

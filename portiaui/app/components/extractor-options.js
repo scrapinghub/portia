@@ -9,7 +9,7 @@ export default Ember.Component.extend({
     annotation: null,
     types: FIELD_TYPES,
 
-    project: Ember.computed.readOnly('annotation.sample.spider.project'),
+    project: Ember.computed.readOnly('annotation.parent.sample.spider.project'),
     regexExtractors: Ember.computed.filterBy('project.extractors', 'type', 'regex'),
 
     actions: {
@@ -21,12 +21,12 @@ export default Ember.Component.extend({
             const annotation = this.get('annotation');
             this.get('dispatcher').addAnnotationTypeExtractor(annotation, type);
         },
-        
+
         addRegexExtractor(extractor) {
             const annotation = this.get('annotation');
             this.get('dispatcher').addAnnotationRegexExtractor(annotation, extractor);
         },
-        
+
         addNewRegexExtractor() {
             const annotation = this.get('annotation');
             this.get('dispatcher').addNewAnnotationRegexExtractor(annotation);

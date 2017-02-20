@@ -9,3 +9,4 @@ jsonschema==2.4.0
 six==1.10.0
 scrapyjs==0.1.1
 page_finder==0.1.2
+chardet==2.3.0

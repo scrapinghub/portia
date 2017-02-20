@@ -389,10 +389,12 @@ export default Ember.Service.extend({
             const routing = this.get('routing');
             routing.transitionTo('projects.project', [], {}, true);
         }
-        for (let field of schema.get('fields.content').currentState) {
-            field.unloadRecord();
-        }
-        schema.destroyRecord();
+        schema.get('fields').then(fields => {
+            for (let field of (fields.currentState || [])) {
+                field.unloadRecord();
+            }
+            schema.destroyRecord();
+        });
     },
 
     removeField(field) {

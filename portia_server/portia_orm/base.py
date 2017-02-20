@@ -1,8 +1,10 @@
 from collections import OrderedDict
 from itertools import chain
+import errno
 import json
 import re
-from weakref import WeakKeyDictionary
+import six
+import sys
 
 from six import iteritems, iterkeys, string_types, with_metaclass
 from toposort import toposort_flatten
@@ -409,9 +411,13 @@ class Model(with_metaclass(ModelMeta)):
                         to_save.dumps(state='staged'), path))
                     saved_paths.add(path)
                 if old_path != path and old_path not in deleted_paths:
-                    model.storage.delete(old_path)
+                    try:
+                        model.storage.delete(old_path)
+                    except IOError as ex:
+                        # Assume missing files are already deleted
+                        if ex.errno != errno.ENOENT:
+                            six.reraise(*sys.exc_info())
                     deleted_paths.add(old_path)
-
         for model in chain([self], (model for model, _
                                     in self._staged_model_references())):
             store = model.data_store
@@ -508,7 +514,12 @@ class Model(with_metaclass(ModelMeta)):
                     saved_paths.add(path)
             else:
                 if path not in deleted_paths:
-                    model.storage.delete(path)
+                    try:
+                        model.storage.delete(path)
+                    except IOError as ex:
+                        # Assume missing files are already deleted
+                        if ex.errno != errno.ENOENT:
+                            six.reraise(*sys.exc_info())
                     deleted_paths.add(path)
 
         for model, fields in iteritems(collector.save):

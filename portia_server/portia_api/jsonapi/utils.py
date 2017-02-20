@@ -51,7 +51,7 @@ def camel_case_to_dashes(value):
 
 
 def dasherize(value):
-    return value.replace('_', '-')
+    return str(value).replace('_', '-')
 
 
 def type_from_model_name(value):
