@@ -8,6 +8,7 @@ from six import iteritems
 
 from portia_orm.models import Project
 from storage import get_storage_class
+from storage.backends import InvalidFilename
 from .route import (JsonApiRoute, JsonApiModelRoute, CreateModelMixin,
                     ListModelMixin, RetrieveModelMixin)
 from .response import FileResponse
@@ -27,6 +28,10 @@ class ProjectDownloadMixin(object):
         branch = self.query.get('branch', None)
         spider_id = self.kwargs.get('spider_id', None)
         spiders = [spider_id] if spider_id is not None else None
+        try:
+            self.project
+        except InvalidFilename as e:
+            raise JsonApiNotFoundError(str(e))
         if hasattr(self.storage, 'checkout') and (version or branch):
             try:
                 self.storage.checkout(version, branch)
