@@ -10,7 +10,7 @@ from autobahn.twisted.resource import WebSocketResource
 from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
 from weakref import WeakKeyDictionary, WeakValueDictionary
-from twisted.internet import defer
+from twisted.internet import defer, task
 from twisted.python import log
 
 from scrapy.settings import Settings
@@ -158,6 +158,7 @@ class PortiaJSApi(QObject):
     def __init__(self, protocol):
         super(PortiaJSApi, self).__init__()
         self.protocol = protocol
+        self.call = None
 
     @pyqtSlot(QWebElement)
     def returnElement(self, element):
@@ -198,9 +199,15 @@ class PortiaJSApi(QObject):
             '_command': command,
             '_data': data
         })
-        if command == 'mutation':
-            commands = Commands({}, self.protocol, None)
-            self.protocol.sendMessage(commands.metadata())
+        if command == 'mutation' and not self.call:
+            self.call = task.deferLater(self.protocol.factory.reactor, 1,
+                                        self.extract)
+
+    def extract(self):
+        commands = Commands({}, self.protocol, None)
+        self.protocol.sendMessage(commands.metadata())
+        self.call = None
+        print('Called extract')
 
 
 def is_blacklisted(url, settings):
