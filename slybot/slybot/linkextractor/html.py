@@ -177,7 +177,7 @@ def iterlinks(htmlpage):
                     attrs = nexttag.attributes
                     if attrs.get('http-equiv') == 'refresh':
                         m = _META_REFRESH_CONTENT_RE.search(
-                            attrs.get('content', ''))
+                            attrs.get('content') or '')
                         if m:
                             target = m.group('url')
                             if target:

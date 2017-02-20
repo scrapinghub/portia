@@ -208,7 +208,8 @@ class Annotations(object):
             for ann in arg_to_iter(grouped):
                 filtered[ann['tagid']].append(ann)
         dummy = [(1e9, [{}])]
-        sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()])
+        sorted_annotations = sorted([(int(k), v) for k, v in filtered.items()
+                                     if k is not None])
         try:
             for aid, annotation_data in chain(sorted_annotations, dummy):
                 # Move target until replacement/insertion point
