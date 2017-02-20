@@ -19,191 +19,211 @@ from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
 from slybot.utils import decode
 
 from storage.backends import ContentFile
+from portia_orm.datastore import data_store_context
 from portia_orm.models import Project
 
-from .utils import open_tab, extract_data, _get_viewport, _html_path, decoded_html
+from .utils import extract_data, _get_viewport, _html_path, decoded_html
 _VIEWPORT_RE = re.compile('^\d{3,5}x\d{3,5}$')
 _SPIDER_LOG = logging.getLogger('spider')
 _SETTINGS = Settings()
 _SETTINGS.set('SPLASH_URL', 'http://splash')
 
 
-def cookies(socket):
-    cookies_list = socket.tab.network_manager.cookiejar.allCookies()
-    message = {
-        '_command': 'cookies',
-        'cookies': cookies2har(cookies_list)
-    }
-    socket.sendMessage(message)
+class Commands(object):
+    def __init__(self, data, socket, storage):
+        self.data, self.socket, self.storage = data, socket, storage
 
+    @property
+    def tab(self):
+        return self.socket.tab
 
-def save_html(data, socket, item_checker=None):
-    if item_checker is None:
-        item_checker = ItemChecker(socket, data['project'], data['spider'],
-                                   data['sample'])
-    project = Project(socket.storage, id=data['project'])
-    socket.spiderspec.project = project
-    spider = project.spiders[data['spider']]
-    samples = spider.samples
-    sample = samples[data['sample']]
-    try:
-        _update_sample(data, socket, sample)
-    except IOError:
-        pass
-    return {'ok': True}
-
-
-@open_tab
-def extract_items(data, socket):
-    """Use latest annotations to extract items from current page"""
-    project, spider, sample = data['project'], data['spider'], data.get('sample')
-    if not all((project, spider)):
-        return {'type': 'raw'}
-    c = ItemChecker(socket, project, spider, sample)
-    # TODO: add option for user to view raw and js items in UI from WS
-    items, changes, changed_values, links = c.extract()
-    return {'links': links, 'items': items, 'changes': changes,
-            'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
-
-
-def _load_sample(data, socket, project=None):
-    project = project or socket.spiderspec.project
-    spiders = project.spiders
-    spider = spiders[data['spider']]
-    samples = spider.samples
-    return samples[data['sample']]
-
-
-def _update_sample(data, socket, sample=None, project=None):
-    """Recompile sample with latest annotations"""
-    if sample is None:
-        sample = _load_sample(data, socket, project)
-        path = 'spiders/{}/{}/{{}}.html'.format(data['spider'], data['sample'])
-    else:
-        path = _html_path(sample)
-    if hasattr(sample, 'dump'):
-        sample = sample.dump()
-    html_path = path.format
-    for name, type_ in (('original_body', 'raw'), ('rendered_body', None)):
-        try:
-            path = html_path(name)
-            html = decode(socket.storage.open(path).read())
-        except IOError:
-            if not socket.tab:
-                six.reraise(*sys.exc_info())
-            html = decoded_html(socket.tab, type_)
-            if html:
-                socket.storage.save(path, ContentFile(html, path))
-            else:
-                html = '<html></html>'
-        sample[name] = html
-    return sample
-
-
-def update_spider(data, socket, spider=None):
-    return extract(socket)
-
-
-@open_tab
-def load_page(data, socket):
-    """Load page in virtual url from provided url"""
-    if 'url' not in data:
-        return {'error': 4001, 'message': 'Required parameter url'}
-
-    socket.tab.loaded = False
-    meta = data.get('_meta', {})
-
-    def on_complete(is_error, error_info=None):
-        extra_meta = {'id': meta.get('id')}
-        if is_error:
-            msg = 'Unknown error' if error_info is None else error_info.text
-            extra_meta.update(error=4500, reason=msg)
-        else:
-            socket.tab.loaded = True
-        socket.sendMessage(metadata(socket, extra_meta))
-        cookies(socket)
-
-    # Specify the user agent directly in the headers
-    # Workaround for https://github.com/scrapinghub/splash/issues/290
-    headers = {}
-    if "user_agent" in meta:
-        headers['User-Agent'] = meta['user_agent']
-    socket.tab.go(data['url'],
-                  lambda: on_complete(False),
-                  lambda err=None: on_complete(True, err),
-                  baseurl=data.get('baseurl'),
-                  headers=headers)
-
-
-@open_tab
-def interact_page(data, socket):
-    """Execute JS event from front end on virtual tab"""
-    event = json.dumps(data.get('interaction', {}))
-    try:
-        socket.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
-    except JsError as e:
-        print(e)
-    cookies(socket)
-
-
-def resolve(data, socket):
-    result = {'id': data.get('_meta', {}).get('id')}
-    try:
-        url = data['url']
-        parsed = urlparse(url)
-        port = 443 if parsed.scheme == 'https' else 80
-        _socket.getaddrinfo(parsed.hostname, port)
-    except KeyError:
-        result['error'] = 'Can\'t create a spider without a start url'
-    except _socket.gaierror:
-        result['error'] = 'Could not resolve "%s"' % url
-    return result
-
-
-def metadata(socket, extra={}):
-    if not socket.tab:
-        return {'_command': 'metadata', 'loaded': False}
-    res = {'_command': 'metadata', 'loaded': socket.tab.loaded}
-    if socket.tab.loaded:
-        try:
-            url = socket.tab.url
-        except RuntimeError:
-            url = ''
-        response = {'headers': {},  # TODO: Get headers
-                    'status': socket.tab.last_http_status()}
-        res.update(url=url, fp=hashlib.sha1(url.encode('utf8')).hexdigest(),
-                   response=response)
-        res.update(extract(socket))
-    res.update(extra)
-    return res
-
-
-def extract(socket):
-    """Run spider on page URL to get extracted links and items"""
-    if socket.tab is None or not socket.tab.loaded or not socket.spider:
-        return {
-            'items': [],
-            'links': {},
+    def cookies(self):
+        cookies_list = self.tab.network_manager.cookiejar.allCookies()
+        message = {
+            '_command': 'cookies',
+            'cookies': cookies2har(cookies_list)
         }
-    c = ItemChecker(socket, socket.spiderspec.project, socket.spiderspec.name)
-    items, changes, changed_values, links = c.extract()
-    return {'links': links, 'items': items, 'changes': changes,
-            'changed': changed_values, 'type': 'js' if c.using_js else 'raw'}
+        self.socket.sendMessage(message)
 
+    def heartbeat(self):
+        return
 
-def resize(data, socket):
-    """Resize virtual tab viewport to match user's viewport"""
-    try:
-        socket.tab.set_viewport(_get_viewport(data['size']))
-    except (KeyError, AttributeError):
-        pass  # Tab isn't open. The size will be set when opened
+    def save_html(self, item_checker=None):
+        data = self.data
+        if item_checker is None:
+            item_checker = ItemChecker(self, data['project'], data['spider'],
+                                       data['sample'])
+        project = Project(self.storage, id=data['project'])
+        self.socket.spiderspec.project = project
+        spider = project.spiders[data['spider']]
+        samples = spider.samples
+        sample = samples[data['sample']]
+        try:
+            self._update_sample(sample)
+        except IOError:
+            pass
+        return {'ok': True}
 
+    def extract_items(self):
+        """Use latest annotations to extract items from current page"""
+        self._open_tab()
+        project = self.data['project']
+        spider = self.data['spider']
+        sample = self.data.get('sample')
+        if not all((project, spider)):
+            return {'type': 'raw'}
+        c = ItemChecker(self, project, spider, sample)
+        # TODO: add option for user to view raw and js items in UI from WS
+        items, changes, changed_values, links = c.extract()
+        return {'links': links, 'items': items, 'changes': changes,
+                'changed': changed_values, 'type':
+                'js' if c.using_js else 'raw'}
 
-def close_tab(data, socket):
-    """Close virtual tab if it is open"""
-    if socket.tab is not None:
-        socket.tab.close()
-        socket.factory[socket].tab = None
+    def _load_sample(self, data, project=None):
+        project = project or self.socket.spiderspec.project
+        spiders = project.spiders
+        spider = spiders[data['spider']]
+        samples = spider.samples
+        return samples[data['sample']]
+
+    def _update_sample(self, sample=None, project=None, data=None):
+        """Recompile sample with latest annotations"""
+        if sample is None:
+            sample = self._load_sample(data, project)
+            path = 'spiders/{}/{}/{{}}.html'.format(
+                self.data['spider'], self.data['sample'])
+        else:
+            path = _html_path(sample)
+        if hasattr(sample, 'dump'):
+            sample = sample.dump()
+        html_path = path.format
+        for name, type_ in (('original_body', 'raw'), ('rendered_body', None)):
+            try:
+                path = html_path(name)
+                html = decode(self.storage.open(path).read())
+            except IOError:
+                if not self.tab:
+                    six.reraise(*sys.exc_info())
+                html = decoded_html(self.tab, type_)
+                if html:
+                    self.storage.save(path, ContentFile(html, path))
+                else:
+                    html = '<html></html>'
+            sample[name] = html
+        return sample
+
+    def update_spider(self, spider=None):
+        return self.extract()
+
+    def load_page(self):
+        """Load page in virtual url from provided url"""
+        if 'url' not in self.data:
+            return {'error': 4001, 'message': 'Required parameter url'}
+        self._open_tab()
+
+        self.tab.loaded = False
+        meta = self.data.get('_meta', {})
+
+        def on_complete(is_error, err_info=None):
+            extra_meta = {'id': meta.get('id')}
+            if is_error:
+                msg = 'Unknown error' if err_info is None else err_info.text
+                extra_meta.update(error=4500, reason=msg)
+            else:
+                self.tab.loaded = True
+            with data_store_context():
+                self.socket.sendMessage(self.metadata(extra_meta))
+            self.cookies()
+
+        # Specify the user agent directly in the headers
+        # Workaround for https://github.com/scrapinghub/splash/issues/290
+        headers = {}
+        if "user_agent" in meta:
+            headers['User-Agent'] = meta['user_agent']
+        self.tab.go(self.data['url'],
+                    lambda: on_complete(False),
+                    lambda err=None: on_complete(True, err),
+                    baseurl=self.data.get('baseurl'),
+                    headers=headers)
+
+    def interact_page(self):
+        """Execute JS event from front end on virtual tab"""
+        self._open_tab()
+        event = json.dumps(self.data.get('interaction', {}))
+        try:
+            self.tab.evaljs('window.livePortiaPage.sendEvent(%s);' % event)
+        except JsError as e:
+            print(e)
+        self.cookies()
+
+    def resolve(self):
+        result = {'id': self.data.get('_meta', {}).get('id')}
+        try:
+            url = self.data['url']
+            parsed = urlparse(url)
+            port = 443 if parsed.scheme == 'https' else 80
+            _socket.getaddrinfo(parsed.hostname, port)
+        except KeyError:
+            result['error'] = 'Can\'t create a spider without a start url'
+        except _socket.gaierror:
+            result['error'] = 'Could not resolve "%s"' % url
+        return result
+
+    def metadata(self, extra={}):
+        if not self.tab:
+            return {'_command': 'metadata', 'loaded': False}
+        res = {'_command': 'metadata', 'loaded': self.tab.loaded}
+        if self.tab.loaded:
+            try:
+                url = self.tab.url
+            except RuntimeError:
+                url = ''
+            response = {'headers': {},  # TODO: Get headers
+                        'status': self.tab.last_http_status()}
+            res.update(
+                url=url, fp=hashlib.sha1(url.encode('utf8')).hexdigest(),
+                response=response)
+            res.update(self.extract())
+        res.update(extra)
+        return res
+
+    def extract(self):
+        """Run spider on page URL to get extracted links and items"""
+        if (self.tab is None or not self.tab.loaded or
+                not (self.socket.spider or (self.data and self.storage))):
+            return {
+                'items': [],
+                'links': {},
+            }
+        spec = self.socket.spiderspec
+        if spec is not None:
+            c = ItemChecker(self, spec.project, spec.name)
+            items, changes, changed_values, links = c.extract()
+            using_js = c.using_js
+        else:
+            items, changes, changed_values, links, using_js = [], [], [], [], 0
+        return {'links': links, 'items': items, 'changes': changes,
+                'changed': changed_values,
+                'type': 'js' if using_js else 'raw'}
+
+    def resize(self):
+        """Resize virtual tab viewport to match user's viewport"""
+        try:
+            self.tab.set_viewport(_get_viewport(self.data['size']))
+        except (KeyError, AttributeError):
+            pass  # Tab isn't open. The size will be set when opened
+
+    def close_tab(self):
+        """Close virtual tab if it is open"""
+        if self.tab is not None:
+            self.tab.close()
+            self.socket.factory[self.socket].tab = None
+
+    def _open_tab(self):
+        if self.tab is None:
+            meta = self.data.get('_meta', self.data)
+            self.socket.open_tab(meta)
+            self.socket.open_spider(meta, self.storage)
 
 
 def _process_items(items):
@@ -252,22 +272,23 @@ def _compare_items(a, b):
 
 
 class ItemChecker(object):
-    def __init__(self, socket, project, spider=None, sample=None):
-        self.socket = socket
+    def __init__(self, command, project, spider=None, sample=None):
+        self.command, self.socket = command, command.socket
         if isinstance(project, six.string_types):
-            project_name = socket.user.project_map.get(project, project)
-            project = Project(socket.storage, id=project, name=project_name)
+            project_name = self.socket.user.project_map.get(project, project)
+            project = Project(command.storage, id=project, name=project_name)
         self.project = project
-        if not socket.spider:
-            socket.open_spider({'project': self.project.id, 'spider': spider},
-                               project)
+        if not self.socket.spider:
+            self.socket.open_spider(
+                {'project': self.project.id, 'spider': spider},
+                project=project)
         self.spider = spider
         self.sample = sample
         if (self.spider and (not self.socket.spider or
                              self.socket.spiderspec.name != spider)):
             self.socket.open_spider({'project': self.project,
                                      'spider': self.spider},
-                                    project)
+                                    project=project)
 
     @property
     def raw_html(self):
@@ -325,8 +346,8 @@ class ItemChecker(object):
         spider = socket.spiderspec.spider.copy()
         spider['body'] = body_field
         if self.sample:
-            samples = [_update_sample(self.data(), socket,
-                                      project=self.project)]
+            samples = [self.command._update_sample(data=self.data(),
+                                                   project=self.project)]
             self._check_sample(samples[0])
         else:
             samples = socket.spiderspec.templates
@@ -364,7 +385,7 @@ class ItemChecker(object):
         return items, changes, changed_values, links
 
     def _check_sample(self, sample):
-        sample = _load_sample(self.data(), self.socket)
+        sample = self.command._load_sample(self.data())
 
         def _check_item(item):
             schema = item.schema
