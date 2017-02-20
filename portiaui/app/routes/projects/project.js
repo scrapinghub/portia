@@ -7,6 +7,12 @@ export default Ember.Route.extend({
     notificationManager: service(),
     uiState: service(),
 
+    beforeModel() {
+        this.store.unloadAll('spider');
+        this.store.unloadAll('schema');
+        this.set('uiState.currentSpider', null);
+    },
+
     model(params) {
         this.set('projectId', params.project_id);
         return this.store.findRecord('project', params.project_id);
