@@ -1,7 +1,7 @@
 import Ember from 'ember';
 import DS from 'ember-data';
 
-function logErrorStack(e) {
+function logErrorStack(e, level) {
     let text = e.toString();
     let stack = e.stack;
     if (stack) {
@@ -10,7 +10,11 @@ function logErrorStack(e) {
         }
         text = stack;
     }
-    Ember.Logger.warn(text);
+    if (!level){
+        Ember.Logger.warn(text);
+    } else {
+        level(text);
+    }
 }
 
 export function initialize(applicationInstance) {
@@ -31,6 +35,10 @@ export function initialize(applicationInstance) {
         const instructions = logged ?
             "Our developers have already been notified." :
             "Please notify the developers. Details have been logged to the console.";
+        let isDeleted = err => (
+            err instanceof Ember.Error &&
+            /event `(didSetProperty|deleteRecord)`.*in state root\./.test(err.message)
+        );
 
         if (err instanceof DS.AdapterError) {
             for (let error of err.errors) {
@@ -48,6 +56,10 @@ export function initialize(applicationInstance) {
                     loggedErrors.add(error.id);
                 }
             }
+        } else if (isDeleted(err)) {
+            // Skip errors when operating on deleted
+            Ember.Logger.debug(`Model Error: ${err.message}`);
+            logErrorStack(err, Ember.Logger.debug);
         } else {
             logErrorStack(err);
             notificationManager.add({
