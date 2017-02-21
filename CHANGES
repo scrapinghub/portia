@@ -1,3 +1,86 @@
+2.0.3 - 2017-02-21
+
+Add download option for downloading a Portia project for use with slybot
+Add download option for downloading a Portia project as Python code
+Add copy for moving spiders from one project to another
+Add loading slider when changing page or loading models
+Add droplet to inform use that they have changes
+Add better message when websocket is reconnecting
+Add help icon describing what crawl rules do
+Add message informing user when they have an unused required field in their schema
+Add automatic selection of new field type in some cases
+Add dropdown for projects - publish, discard, download
+Add option to create new projects from UI (open source only)
+Add dropdown for spiders - Copy, Download and delete
+Add dropdown for schemas - delete
+Fix bug with using master when scheduling spider
+Fix error when errors with numeric ids are returned by server
+Fix spider listing loading in UI
+Fix so that project changes show up whenever there is a change
+Fix model not being loaded when changing field or schema
+Fix handling malformed extractor objects
+Fix merging html data during a conflict - take mine
+Fix when changing item schema in UI
+Fix extractors were not shown in UI
+Fix spiders would not run after a rename
+Fix deletes where file may be requested for delete more than once
+Fix with missing node when mirroring page from server
+Fix incorrect node data when mirroring page from server
+Fix loading extractors during migration
+Fix RuntimeError when loading tab url after tab has been closed
+Fix deletion of html files during cascade delete
+Fix loading extractors when reading annotations
+Fix loading html into sample in websocket for extraction
+Fix logged error due to missing `save_html` callback
+Fix html not being saved while creating sample
+Fix loading samples from `template_names` field instead of spider directory
+
+2.0.2 - 2017-01-20
+
+Gracefully handle missing objects in DB
+
+2.0.1 - 2017-01-19
+
+Limit number of spiders shown at once in UI to 15
+Fix scheduling when spider has been run from Portia
+Display helpful error messages to users
+Replace guid spider ids with spider name
+Add spider id if it is missing
+Add a schema for newly created items
+Fix PathResolutionError for unmigrated samples
+Better migrate samples that extract from tables
+
+2.0.0 - 2017-01-02
+Change backend to use Django instead of Twisted web
+Created a new JSON API and ORM to handle all Portia objects for greater consistency + efficiency
+Automatically detect if a user should enable or disable JS for better extraction
+Added support for generating urls
+Added support for using a feed as a start url
+Added support for extracting multiple values to a single field
+Added support for a spinner showing the extraction progress for a better UX
+Many bug fixes and stability improvements
+
+16.07.2 - 2016-07-26
+Fix bug with `project_filename` method missing Fix bug when initializing project
+
+16.05.1 - 2016-05-17
+New transactional request handling
+Inline element overlays (correctly show tags that may wrap around the page)
+New download endpoint for projects/spiders `GET portia/api/projects/<PROJECT_ID>/download[/<SPIDER_ID>]`
+Save selection_mode, pre_text and post_text for annotations
+Add toggle CSS button
+
+16.04.1 - 2016-04-05
+Add link to docs
+Add auto pagination, learns from start_urls
+Add git status endpoint for projects
+Load page when it is specified as url param `url`
+Save selection mode for annotation when using xpath/css selector
+Improve Portia on smaller screens Notify users of unpublished changes
+Reject annotations with elements that share a container with the hovered element
+Fix issue with extracting items with more than one sibling
+Fix bug where clicking on help icon toggled checkbox
+
 16.02.2 - 2016-02-16
 
 Fix incompatability with latest splash
