@@ -1,0 +1,23 @@
+.list-item-icon {
+    width: $tree-list-icon-width;
+    flex: 0 0 $tree-list-icon-width;
+
+    &.has-action {
+        opacity: $icon-fade-opacity;
+
+        &.active,
+        .dropdown.open &,
+        &:hover:not(.disabled) {
+            opacity: 1;
+        }
+    }
+
+    .tree-list-item-content & {
+        height: $tree-list-row-height;
+        line-height: $tree-list-row-height;
+    }
+
+    .tree-list-item-content a & {
+        color: $navbar-default-color;
+    }
+}

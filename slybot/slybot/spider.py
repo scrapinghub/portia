@@ -17,7 +17,8 @@ from six.moves.urllib_parse import urlparse
 from slybot.generic_form import GenericForm
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.starturls import (
-    FragmentGenerator, IdentityGenerator, StartUrlCollection, UrlGenerator
+    FragmentGenerator, FeedGenerator, IdentityGenerator, StartUrlCollection,
+    UrlGenerator
 )
 from slybot.utils import (
     include_exclude_filter, IndexedDict, iter_unique_scheme_hostname,
@@ -38,16 +39,16 @@ class IblSpider(SitemapSpider):
             'generated_urls': UrlGenerator(settings, kw),
 
             'url': IdentityGenerator(),
+            'feed': FeedGenerator(self.parse),
             'generated': FragmentGenerator(),
-            # 'feed_urls': FeedUrls(self, settings, kw)
         }
         self.generic_form = GenericForm(**kw)
         super(IblSpider, self).__init__(name, **kw)
         spec = deepcopy(spec)
         self._add_spider_args_to_spec(spec, kw)
+        self._configure_js(spec, settings)
         self.plugins = self._configure_plugins(
             settings, spec, item_schemas, all_extractors)
-        self._configure_js(spec, settings)
 
         self.login_requests, self.form_requests = [], []
         self._start_urls = self._create_start_urls(spec)
@@ -67,7 +68,6 @@ class IblSpider(SitemapSpider):
         return StartUrlCollection(
             arg_to_iter(spec[url_type]),
             self.start_url_generators,
-            url_type
         )
 
     def _create_start_requests(self, spec):
@@ -212,7 +212,8 @@ class IblSpider(SitemapSpider):
         for plugin_class, plugin_name in zip(load_plugins(settings),
                                              load_plugin_names(settings)):
             instance = plugin_class()
-            instance.setup_bot(settings, spec, schemas, extractors, self.logger)
+            instance.setup_bot(settings, self, spec, schemas, extractors,
+                               self.logger)
             plugins[plugin_name] = instance
         return plugins
 

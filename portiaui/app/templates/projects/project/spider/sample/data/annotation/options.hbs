@@ -1,0 +1,13 @@
+{{#tool-group id="annotation-options-group" collapsible=false onClose=(action 'closeOptions') as |group|}}
+    {{#if (eq group.section "tabs")}}
+        {{#group.tab toolId="annotation-options"}}
+            Annotation properties
+        {{/group.tab}}
+    {{else if (eq group.section "panels")}}
+        {{#group.panel class="extracted-items container-fluid" toolId="annotation-options" as |active|}}
+            {{annotation-options annotation=model}}
+            {{field-options field=model.field.content}}
+            {{extractor-options annotation=model}}
+        {{/group.panel}}
+    {{/if}}
+{{/tool-group}}

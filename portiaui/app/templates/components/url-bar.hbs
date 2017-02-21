@@ -1,0 +1,38 @@
+<div id="url-bar" class="input-group">
+    <span class="input-group-btn">
+        <button class="btn btn-default" type="button" disabled={{backDisabled}} {{action 'back'}}>
+            <span class="fa fa-arrow-left"></span>
+        </button>
+        <button class="btn btn-default" type="button" disabled={{forwardDisabled}} {{action 'forward'}}>
+            <span class="fa fa-arrow-right"></span>
+        </button>
+        {{#tooltip-container tooltipFor="mode-feedback-icon" tooltipContainer='body' placement='right' as |options|}}
+            {{#if (eq options.section 'tooltip')}}
+                {{#if (eq mode 'navigation')}}
+                    Browsing
+                    <p>
+                        You can interact with the web page in this mode.
+                    </p>
+                {{else if (eq mode 'data-annotation')}}
+                    Annotating
+                    <p>
+                        Click on elements in the sample to create data annotations.
+                    </p>
+                    <p>
+                        Close the sample to switch back to navigating mode.
+                    </p>
+                {{/if}}
+            {{else}}
+                <button id="mode-feedback-icon" class="btn btn-mode btn-mode-{{mode}}" type="button">
+                    {{icon-button icon=mode}}
+                </button>
+            {{/if}}
+        {{/tooltip-container}}
+    </span>
+    {{buffered-input placeholder="Enter a website address" value=(mut url) viewValue=(mut editedUrl) autofocus=autofocus autoSelect=true disabled=disabled spellcheck=false onEnterPress=(action 'submit')}}
+    <span class="input-group-btn">
+        <button class="btn btn-default" type="button" disabled={{disabled}} {{action 'submit' url}}>
+            <span class="fa {{if loading 'fa-spin fa-refresh' (if (not (eq (or (or editedUrl url) null) browser.url)) 'fa-arrow-right' 'fa-repeat')}}"></span>
+        </button>
+    </span>
+</div>

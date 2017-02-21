@@ -1,0 +1,14 @@
+{{#tree-list}}
+    {{#tree-list-item as |options|}}
+        {{list-item-badge value=followedLinks color=colors.green}}
+        Followed
+    {{/tree-list-item}}
+    {{#tree-list-item as |options|}}
+        {{list-item-badge value=jsLinks color=colors.blue}}
+        Followed when Javascript is enabled
+    {{/tree-list-item}}
+    {{#tree-list-item as |options|}}
+        {{list-item-badge value=ignoredLinks color=colors.red}}
+        Not Followed
+    {{/tree-list-item}}
+{{/tree-list}}

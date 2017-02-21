@@ -1,0 +1,130 @@
+#side-bar {
+    width: $sidebar-width;
+    flex: 0 0 auto;
+    background-color: $sidebar-background-color;
+    border-right: 1px solid $navbar-default-border;
+    padding: $navbar-padding-horizontal $navbar-padding-horizontal ($navbar-padding-horizontal + 10px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1;
+
+    > div {
+        position: relative;
+
+        > .tree-list {
+            margin-bottom: ($tree-list-row-height / 2);
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            > .animation-content {
+                > .tree-list-item {
+                    > .animation-content {
+                        > .tree-list {
+                            > .animation-content {
+                                width: 100%;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .title {
+        display: flex;
+        line-height: $tree-list-row-height;
+
+        .help-icon {
+            margin-left: $space-width;
+        }
+
+        .animation-container {
+            &.inline {
+                vertical-align: bottom;
+            }
+        }
+    }
+
+    .icon {
+        &.animation-container {
+            flex: 0 0 auto;
+            width: $tree-list-icon-width;
+            height: $tree-list-row-height;
+        }
+
+        a {
+            display: inline-block;
+        }
+    }
+
+    .help {
+        .tree-list-item-row {
+            height: auto;
+        }
+
+        .alert {
+            @extend .small;
+            @extend .text-justify;
+
+            margin: 0;
+            width: 100%;
+        }
+    }
+
+    .project-listing {
+        justify-content: space-between;
+    }
+
+    .project-changes {
+        text-transform: none;
+    }
+}
+
+#options-panels,
+#tool-panels {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    width: $sidebar-width - $grid-gutter-width;
+    transition: opacity $animation-time $animation-easing;
+
+    &:after {
+        content: '';
+        flex: 0.0000001 1 auto;
+        background-color: $panel-bg;
+    }
+}
+
+#tool-panels {
+    margin-right: $grid-gutter-width;
+
+    main & {
+        opacity: 1;
+        transition-delay: $animation-time;
+    }
+
+    main.slide-right & {
+        opacity: 0;
+        transition-delay: 0s;
+    }
+}
+
+#options-panels {
+    z-index: -1;
+    margin-left: $grid-gutter-width - $sidebar-width;
+
+    main & {
+        opacity: 0;
+        transition-delay: 0s;
+    }
+
+    main.slide-right & {
+        opacity: 1;
+        transition-delay: $animation-time;
+    }
+}

@@ -1,0 +1,14 @@
+<div class="animation-content">
+    {{#tree-list-item-row
+      isCentered=isCentered
+      onMouseEnter=onMouseEnter
+      onMouseLeave=onMouseLeave
+    }}
+        {{yield (hash section="item")}}
+    {{/tree-list-item-row}}
+    {{#if hasChildren}}
+        {{#tree-list}}
+            {{yield (hash section="subtrees")}}
+        {{/tree-list}}
+    {{/if}}
+</div>

@@ -1,0 +1,19 @@
+<h3>Crawling rules</h3>
+<form {{action "save" on="change"}}>
+    {{#if (eq spider.linksToFollow 'all')}}
+        <div class="text-muted">Following all encountered links within the same domains</div>
+    {{else if (eq spider.linksToFollow 'none')}}
+        <div class="text-muted">Not following any links</div>
+    {{else if (eq spider.linksToFollow 'patterns')}}
+        <div>Follow links that match these patterns</div>
+        {{regex-pattern-list list=spider.followPatterns onChange=(action 'save')}}
+        <div>Exclude links that match these patterns</div>
+        {{regex-pattern-list list=spider.excludePatterns onChange=(action 'save')}}
+    {{/if}}
+
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="respectNoFollow" checked=(mut spider.respectNoFollow) disabled=(eq spider.linksToFollow 'none')}} Respect the "nofollow" attribute
+        </label>
+    </div>
+</form>

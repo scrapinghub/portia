@@ -1,0 +1,41 @@
+{{#if changeset.isValid}}
+    {{list-item-badge value=multiplicity color=fragmentColor}}
+{{else}}
+    {{#tooltip-container toggleTooltip=toggleTooltip tooltipContainer='body' tooltipFor=(concat 'error-icon-' elementId) placement='left' as |tooltip|}}
+        {{#if (eq tooltip.section 'tooltip')}}
+            {{changeset.error.value.validation}}
+        {{else}}
+            {{icon-button id=(concat 'error-icon-' elementId) icon='error-triangle' class='fragment-error tooltip-for'}}
+        {{/if}}
+    {{/tooltip-container}}
+{{/if}}
+
+<div class="form-group {{if changeset.isInvalid 'has-error'}}">
+    {{#if isRange}}
+        {{input type="text" class="form-control compact-control fragment-left-half focus-control" value=(mut lower) placeholder="start" focus-out=(action 'saveFragment')}}
+        <span>-</span>
+        {{input type="text" class="form-control compact-control fragment-right-half" value=(mut higher) placeholder="end" focus-out=(action 'saveFragment')}}
+    {{else}}
+        {{input type="text" class="form-control compact-control fragment-input focus-control" value=(mut changeset.value) placeholder=listPlaceholder focus-out=(action 'saveFragment') key-up=(action 'updateValue')}}
+    {{/if}}
+</div>
+
+<div class="form-group">
+    {{select-box
+      buttonClass="compact-control fragment-type"
+      value=(mut fragmentType)
+      valueAttribute='label'
+      choices=fragmentTypes
+      isDisabled=(eq index 0)
+      onClick=(action 'changeFragmentType')
+    }}
+</div>
+
+{{#if (not-eq index 0)}}
+    {{list-item-icon
+      class='fragment-action-icon'
+      icon='remove'
+      action=(action removeFragment fragment)
+      bubbles=false
+    }}
+{{/if}}

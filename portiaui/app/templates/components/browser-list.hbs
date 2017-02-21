@@ -1,0 +1,8 @@
+<div class='browser-logos'>
+    {{#each browsers as |browser|}}
+        <a class='no-decoration' href='{{browser.href}}'>
+            <img class='browser-logo browser-mg' src={{browser.src}} alt={{browser.alt}}>
+            <p class='browser-p browser-mg'>{{browser.name}}</p>
+        </a>
+    {{/each}}
+</div>

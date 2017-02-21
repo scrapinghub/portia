@@ -1,0 +1,10 @@
+<div class="{{unless hoveredElement 'none-hovered'}} {{unless selectedElement 'none-selected'}} {{if hoveredModels.length 'group-hovered'}} {{if selectedModel 'group-selected'}}">
+    {{#each sample.dataStructure.elements.all as |element|}}
+        {{#each (get sample.dataStructure.annotations (guid element)) as |annotation|}}
+            {{#if (eq annotation.constructor.modelName "annotation")}}
+                {{element-overlay class=(concat (if (eq element hoveredElement) 'hovered') (if (includes hoveredModels annotation) ' group-hovered') (if (and (eq element selectedElement) (eq selectedModel annotation)) ' selected') (if (eq selectedModel annotation) ' group-selected')) viewPortElement=element icon=(if (eq element hoveredElement) (get selectionModeIcons activeSelectionMode)) color=(array-get annotationColors annotation.orderedIndex)}}
+            {{/if}}
+        {{/each}}
+    {{/each}}
+    {{element-overlay class=(concat 'hover-overlay' (unless showHoverOverlay ' hide')) positionMode='edges' viewPortElement=hoveredElement icon=(get selectionModeIcons activeSelectionMode) color=hoverOverlayColor}}
+</div>

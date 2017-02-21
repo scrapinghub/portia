@@ -1,0 +1,11 @@
+<div class="project-list-container">
+    <img src="/assets/images/portia-logo.svg" alt="Portia logo">
+
+    <h3>What would you like to work on today?</h3>
+    {{create-project-button projects=model}}
+    {{#if model}}
+        <p>Choose a project from the list below.</p>
+
+        {{project-list projects=model}}
+    {{/if}}
+</div>

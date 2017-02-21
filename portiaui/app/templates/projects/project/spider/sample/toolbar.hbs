@@ -1,0 +1,6 @@
+{{outlet 'browser-toolbar'}}
+{{#tooltip-container tooltipFor="sample-close-button-browser" text="Finish editing your sample so you can continue browsing and see how it works on other pages" tooltipContainer='body'}}
+    {{#link-to 'projects.project.spider' class="btn btn-primary" activeClass="" id="sample-close-button-browser"}}
+        {{icon-button icon='close'}} Close sample
+    {{/link-to}}
+{{/tooltip-container}}

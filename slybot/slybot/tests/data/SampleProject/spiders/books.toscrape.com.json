@@ -1,0 +1,18 @@
+{
+    "exclude_patterns": [],
+    "follow_patterns": [
+        "page-\\d+\\.html"
+    ],
+    "id": "f8ad-40cc-9916",
+    "init_requests": [],
+    "js_disable_patterns": [],
+    "js_enable_patterns": [],
+    "js_enabled": false,
+    "links_to_follow": "patterns",
+    "page_actions": [],
+    "respect_nofollow": false,
+    "start_urls": [
+        "http://books.toscrape.com/"
+    ],
+    "version": "0.13.0b32"
+}

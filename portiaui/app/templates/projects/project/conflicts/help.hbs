@@ -1,0 +1,17 @@
+<div class="text-center conflicts-text">
+    {{#if conflictedFiles}}
+        <h1>Aw, Snap!</h1>
+
+        <h3>Portia couldn't deploy the project because there are conflicts with another user's changes</h3>
+        <p>Resolve the conflicts manually by selecting the conflicting files from the left panel to deploy the project.</p>
+    {{else}}
+        <h1>All done</h1>
+
+        <p>
+            All conflicts are resolved, to continue, go back to the
+            {{link-to "project page" 'projects.project' projectController.model}}
+            and try to deploy again.
+        </p>
+    {{/if}}
+</div>
+

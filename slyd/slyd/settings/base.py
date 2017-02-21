@@ -9,27 +9,21 @@ EXTENSIONS = {
 }
 
 LOG_LEVEL = 'DEBUG'
+SCHEDULE_URL = 'http://localhost:6800/schedule.json'
 
 # location of slybot projects - assumes a subdir per project
 DATA_DIR = join(dirname(dirname(__file__)), 'data')
 SPEC_DATA_DIR = join(DATA_DIR, 'projects')
 
+DJANGO_SETTINGS = 'portia_server.settings'
+
 SPEC_FACTORY = {
-    'PROJECT_SPEC': 'slyd.projectspec.ProjectSpec',
-    'PROJECT_MANAGER': 'slyd.projects.ProjectsManager',
+    'PROJECT_SPEC': 'slyd.projectspec.FileSystemProjectSpec',
+    'PROJECT_MANAGER': 'slyd.projects.FileSystemProjectsManager',
     'PARAMS': {
         'location': SPEC_DATA_DIR,
+        'schedule_url': SCHEDULE_URL
     },
-    'CAPABILITIES': {
-        'version_control': False,
-        'create_projects': True,
-        'delete_projects': True,
-        'rename_projects': True,
-        'deploy_projects': False,
-        'rename_spiders': True,
-        'rename_templates': True
-    },
-    'CUSTOM': {}
 }
 
 PLUGINS = [{

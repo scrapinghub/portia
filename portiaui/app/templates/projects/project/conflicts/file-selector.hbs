@@ -1,0 +1,24 @@
+<nav id="side-bar">
+    <div>
+        {{#tree-list}}
+            {{#tree-list-item hasChildren=conflictedFiles.length as |options|}}
+                {{#if (eq options.section "item")}}
+                    {{#list-item-text}}
+                        Conflicted files
+                    {{/list-item-text}}
+                {{else if (eq options.section "subtrees")}}
+                    {{#each conflictedFiles as |file|}}
+                        {{#tree-list-item as |options|}}
+                            {{#if (eq options.section "item")}}
+                                {{#link-to 'projects.project.conflicts.conflict' file.encodedName }}
+                                    {{list-item-icon icon='file'}}
+                                    {{file.name}}
+                                {{/link-to}}
+                            {{/if}}
+                        {{/tree-list-item}}
+                    {{/each}}
+                {{/if}}
+            {{/tree-list-item}}
+        {{/tree-list}}
+    </div>
+</nav>

@@ -1,0 +1,9 @@
+#top-bar {
+    margin-bottom: 0;
+    z-index: 998;
+
+    &:before,
+    &:after {
+        display: none;
+    }
+}

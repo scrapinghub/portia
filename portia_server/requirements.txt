@@ -1,0 +1,14 @@
+crochet==1.6.0
+django==1.10.5
+django-cache-machine==0.9.1
+djangorestframework==3.4.1
+dj-database-url==0.4.2
+drf-nested-routers==0.11.1
+dulwich==0.16.2
+marshmallow==2.8.0
+marshmallow_jsonapi==0.10.0
+MySQL-python==1.2.5
+requests==2.12.4
+toposort==1.5
+whitenoise==3.2.3
+portia2code==0.0.10

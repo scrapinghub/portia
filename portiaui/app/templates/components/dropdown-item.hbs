@@ -1,0 +1,7 @@
+<a {{action 'performAction' value}}>
+    {{#if hasBlock}}
+        {{yield value}}
+    {{else}}
+        {{value}}
+    {{/if}}
+</a>

@@ -1,0 +1,229 @@
+.browser-view-port {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    margin: $grid-gutter-width;
+}
+
+.browser-start-page {
+    @extend .full-page-content;
+    position: absolute;
+    top: -$grid-gutter-width;
+    bottom: -$grid-gutter-width;
+    left: -$grid-gutter-width;
+    right: -$grid-gutter-width;
+    opacity: 1;
+    background-color: #fff;
+    transition: opacity $animation-time $animation-easing-out;
+    z-index: 2;
+
+    &.hide {
+        display: flex !important;
+        pointer-events: none;
+        opacity: 0;
+    }
+
+    form {
+        width: 50%;
+        margin: 2em auto;
+    }
+
+    .btn {
+        display: none;
+    }
+}
+
+$panel-heading-vertical-padding: nth($panel-heading-padding, 1);
+$panel-heading-horizontal-padding: nth($panel-heading-padding, 2);
+.browser-navigation {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: ($panel-heading-vertical-padding / 2) ($panel-heading-horizontal-padding / 2);
+    z-index: 1;
+
+    .btn {
+        line-height: $line-height-computed;
+    }
+
+    .navbar-form {
+        padding: 0;
+        flex: 1 1 auto;
+    }
+
+    .browser-toolbar {
+        flex: 0 1 auto;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+    }
+}
+
+.browser-navigation,
+.browser-toolbar {
+    > * {
+        flex: 0 0 auto;
+        margin: ($panel-heading-vertical-padding / 2) ($panel-heading-horizontal-padding / 2);
+    }
+}
+
+.browser-banner {
+    $browser-banner-height: $line-height-computed + $alert-padding * 2;
+
+    @extend .alert;
+    @extend .alert-warning;
+    flex: 0 0 auto;
+    height: $browser-banner-height;
+    margin-bottom: 0;
+    border-radius: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    margin-top: 0;
+    transition: margin-top $animation-time $animation-easing;
+
+    &.hide {
+        display: block !important;
+        margin-top: -$browser-banner-height;
+    }
+}
+
+.frame-container {
+    flex: 1 1 auto;
+    overflow: hidden;
+    display: flex;
+    position: relative;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding: 0;
+    @include border-bottom-radius($panel-border-radius - 1);
+
+    iframe {
+        width: 100%;
+        border: none;
+        flex: 1 1 auto;
+        overflow: auto;
+    }
+}
+
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.overlay-box {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    transition: box-shadow $animation-time $animation-easing;
+    z-index: 0;
+}
+
+.overlay-box-background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0.15;
+    border-radius: 2px;
+    transition: opacity ($animation-time / 2) $animation-easing-in, background-color $animation-time $animation-easing;
+}
+
+.overlay-icon {
+    color: #fff;
+    opacity: 0.8;
+    z-index: 1;
+    transition: opacity ($animation-time / 2) $animation-easing-in ($animation-time / 2), text-shadow $animation-time $animation-easing;
+
+    &.hide {
+        display: inline;
+        opacity: 0;
+    }
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    transition: opacity ($animation-time / 2) $animation-easing-in;
+
+    &.group-hovered,
+    &.group-selected,
+    .none-hovered.none-selected:not(.group-hovered):not(.group-selected) & {
+        .overlay-box-background {
+            opacity: 0.45;
+        }
+    }
+
+    &.hovered,
+    &.selected,
+    .none-hovered &.group-hovered,
+    .none-selected &.group-selected {
+        .overlay-box-background {
+            opacity: 0.8;
+        }
+    }
+
+    &.hovered.mode-add {
+        .overlay-box-background {
+            opacity: 0.65;
+        }
+    }
+
+    .browser-view-port:not(.none-selected) & {
+        &.hovered.mode-edit {
+            .overlay-box-background {
+                opacity: 0.65;
+            }
+        }
+    }
+
+    &.hovered,
+    &.group-hovered {
+        z-index: 1;
+    }
+
+    &.selected,
+    &.group-selected {
+        z-index: 2;
+    }
+}
+
+.hover-overlay {
+    z-index: 3;
+    transition: opacity $animation-time $animation-easing,
+                top 100ms $animation-easing-out,
+                bottom 100ms $animation-easing-out,
+                left 100ms $animation-easing-out,
+                right 100ms $animation-easing-out;
+
+    &.hide {
+        display: block !important;
+        opacity: 0;
+
+        .overlay-icon {
+            display: none;
+        }
+    }
+
+    .overlay-box-background {
+        opacity: 0.65;
+    }
+}

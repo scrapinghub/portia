@@ -1,0 +1,7 @@
+.indentation-spacer {
+    display: inline-block;
+    min-width: 20px;
+    &.is-small {
+        width: 10px;
+    }
+}

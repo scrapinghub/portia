@@ -1,0 +1,10 @@
+{{#list-item-icon-menu icon='add-dropdown' as |options|}}
+    {{#options.item value="Add annotation" action=(chain-actions (action 'addAnnotation') options.closeMenu) as |value|}}
+        {{list-item-icon class="icon" icon="add"}}{{value}}
+    {{/options.item}}
+    {{#if allowNesting}}
+        {{#options.item value="Add nested item" action=(chain-actions (action 'addNestedItem') options.closeMenu) as |value|}}
+            {{list-item-icon class="icon" icon="add"}}{{value}}
+        {{/options.item}}
+    {{/if}}
+{{/list-item-icon-menu}}

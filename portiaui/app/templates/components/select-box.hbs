@@ -1,0 +1,39 @@
+{{#dropdown-widget
+  class="select-box"
+  open=(mut open)
+  active=(mut viewValue)
+  focused=value
+  menuContainer=menuContainer
+  menuClass=menuClass
+  menuAlign=menuAlign
+  isDisabled=isDisabled
+  onClick=(action 'menuClicked')
+  onClose=(action 'menuClosed') as |widget|}}
+
+    {{#if (eq widget.section 'widget')}}
+    <button id="{{inputId}}" class="btn btn-default form-control dropdown-toggle {{if buttonClass buttonClass}} {{if isDisabled 'disabled'}}" type="button" name={{name}} aria-haspopup="true" aria-expanded="true" {{action widget.toggleMenu 'button'}}>
+            <span class="value">
+                {{#if valueAttribute}}
+                    {{get viewValue valueAttribute}}
+                {{else}}
+                    {{viewValue}}
+                {{/if}}
+            </span>
+            <span class="caret"></span>
+        </button>
+    {{else if (eq widget.section 'menu')}}
+        {{#if hasBlock}}
+            {{yield (hash menu=widget.menu header=widget.header item=widget.item divider=widget.divider setValue=(action 'setValue') setViewValue=(action 'setViewValue') setValueAndClose=(action 'setValueAndClose') closeMenu=widget.closeMenu)}}
+        {{else}}
+            {{#each choices as |choice|}}
+                {{#widget.item value=choice action=(action 'setValueAndClose' choice)}}
+                    {{#if valueAttribute}}
+                        {{get choice valueAttribute}}
+                    {{else}}
+                        {{choice}}
+                    {{/if}}
+                {{/widget.item}}
+            {{/each}}
+        {{/if}}
+    {{/if}}
+{{/dropdown-widget}}

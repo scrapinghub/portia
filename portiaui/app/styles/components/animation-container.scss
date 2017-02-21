@@ -1,0 +1,25 @@
+.animation-container {
+    opacity: 1;
+    overflow: visible;
+    transition: opacity $animation-time $animation-easing $animation-time;
+
+    &.inline {
+        display: inline-block;
+    }
+
+    &.fade {
+        opacity: 0;
+        transition-delay: 0s;
+        pointer-events: none;
+    }
+}
+
+.animation-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    &[style^="transform"] {
+        transition: transform $animation-time $animation-easing;
+    }
+}

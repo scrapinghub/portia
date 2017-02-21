@@ -1,0 +1,17 @@
+.list-item-badge {
+    display: inline-block;
+    flex: 0 0 20px;
+    text-align: center;
+
+    .badge {
+        vertical-align: baseline;
+        max-width: 26px;
+        transition: background-color $animation-time $animation-easing;
+    }
+
+    .badge-centered {
+        display: inline-block;
+        margin: 0 -1000%;
+        white-space: nowrap;
+    }
+}

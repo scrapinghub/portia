@@ -1,0 +1,46 @@
+#url-bar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    input {
+        flex: 1 1 auto;
+        z-index: 1;
+
+        &:focus {
+            z-index: 3;
+        }
+    }
+
+    .btn {
+        line-height: $line-height-computed;
+
+        &:focus {
+            outline: none;
+        }
+    }
+
+
+    .btn-mode {
+        z-index: 2;
+        transition: background-color $animation-time $animation-easing, border-color $animation-time $animation-easing;
+        cursor: default;
+        @include box-shadow(none);
+
+        > i {
+            width: 1em;
+        }
+    }
+
+    .btn-mode-navigation {
+          color: $btn-primary-color;
+          background-color: $btn-primary-bg;
+          border-color: $btn-primary-border;
+    }
+
+    .btn-mode-data-annotation {
+          color: $btn-success-color;
+          background-color: $btn-success-bg;
+          border-color: $btn-success-border;
+    }
+}

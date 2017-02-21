@@ -1,0 +1,13 @@
+{{#list-item-selectable value=(mut linksToFollow) valueAttribute='label' onChange=(action 'saveSpider') menuContainer="body" menuAlign="left" as |select|}}
+    {{#select.header}}
+        Change how links are crawled
+    {{/select.header}}
+    {{#each followPatternOptions as |option|}}
+        {{#select.item value=option action=(action select.setValueAndClose option)}}
+            {{option.label}}
+        {{/select.item}}
+    {{/each}}
+{{/list-item-selectable}}
+{{#help-icon}}
+    {{linksToFollow.description}}
+{{/help-icon}}

@@ -1,0 +1,18 @@
+{{#tooltip-container tooltipFor="start-url-button" tooltipContainer='body' as |options|}}
+    {{#if (eq options.section 'tooltip')}}
+        Toggle start page
+        {{#if newStartUrl}}
+            <p>
+                Add this page as a start page for your spider
+            </p>
+        {{else}}
+            <p>
+                Remove this page from your spider's start pages
+            </p>
+        {{/if}}
+    {{else}}
+        <button id="start-url-button" type="button" class="btn btn-default {{if (not newStartUrl) 'active'}}" disabled={{disableStartUrl}} {{action "toggleStartUrl"}}>
+            {{icon-button icon='url'}} Start page
+        </button>
+    {{/if}}
+{{/tooltip-container}}

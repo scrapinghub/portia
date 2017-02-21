@@ -1,0 +1,8 @@
+<nav id="side-bar">
+    <div>
+        {{save-status}}
+        {{project-listing project=model reload="reload" conflict="conflict"}}
+        {{project-structure-listing project=model}}
+        {{outlet 'project-structure'}}
+    </div>
+</nav>

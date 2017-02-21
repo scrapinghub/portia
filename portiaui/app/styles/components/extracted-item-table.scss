@@ -1,0 +1,43 @@
+.extracted-item-table {
+    &,
+    table {
+        margin-bottom: $line-height-computed;
+
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+
+        &:not(:last-of-type) > tr,
+        tr:not(:last-of-type) {
+            > td {
+                > table {
+                    &:last-of-type {
+                        margin-bottom: $line-height-computed;
+                    }
+                }
+            }
+        }
+    }
+
+    table {
+        margin-left: 20px;
+
+        &:first-of-type {
+            margin-top: $line-height-computed;
+        }
+
+        &:not(.extracted-item-table):not(:last-of-type) {
+            margin-bottom: 0;
+        }
+    }
+
+    td {
+        vertical-align: top;
+        color: $text-color;
+
+        &:not(:last-child) {
+            padding-right: ($grid-gutter-width / 2);
+            color: $text-muted;
+        }
+    }
+}

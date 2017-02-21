@@ -1,0 +1,20 @@
+{{#if selecting}}
+    {{#if hasBlock}}
+        {{#combo-box choices=choices value=(mut value) valueAttribute=valueAttribute open=(mut selecting) orderItemsForSearch=orderItemsForSearch valuesEqual=valuesEqual onChange=onChange autoSelect=autoSelect inputClass=(concat "input-list-item " inputClass) menuClass=menuClass menuAlign=menuAlign menuContainer=menuContainer as |options|}}
+            {{yield options}}
+        {{/combo-box}}
+    {{else}}
+        {{combo-box choices=choices value=(mut value) valueAttribute=valueAttribute open=(mut selecting) orderItemsForSearch=orderItemsForSearch valuesEqual=valuesEqual onChange=onChange autoSelect=autoSelect inputClass=(concat "input-list-item " inputClass) menuClass=menuClass menuAlign=menuAlign menuContainer=menuContainer}}
+    {{/if}}
+{{else}}
+    <span>
+        {{#if valueAttribute}}
+            {{get value valueAttribute}}
+        {{else}}
+            {{value}}
+        {{/if}}
+    </span>
+    <a {{action 'startSelecting'}}>
+        <span class="caret"></span>
+    </a>
+{{/if}}

@@ -1,0 +1,84 @@
+$project-list-max-width: 300px;
+.project-list-container {
+    @extend .full-page-content;
+
+    width: calc(100% - #{$sidebar-width * 2});
+    margin: 0 auto;
+    text-align: center;
+    > * {
+        width: 100%;
+    }
+}
+
+.project-list {
+    $project-list-max-width: 300px;
+    $project-list-max-height: 200px;
+
+    margin: 3em auto 0;
+    max-width: $project-list-max-width;
+    min-height: 0;
+
+    input {
+        border-radius: 0;
+        border-color: $list-group-border;
+    }
+
+    .input-group {
+        > .form-control {
+            width: $project-list-max-width;
+        }
+    }
+
+    .list-group-item {
+        border: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .project-list-items {
+        width: $project-list-max-width;
+        max-height: $project-list-max-height;
+        overflow: scroll;
+        border: 1px solid $list-group-border;
+        border-top: none;
+    }
+
+    &.project-within-dropdown {
+        $project-list-max-width: 180px;
+        $project-list-max-height: 100px;
+
+        margin: 5px auto;
+        max-width: $project-list-max-width;
+
+        .input-group > .form-control {
+            width: $project-list-max-width;
+        }
+
+        .project-list-items {
+            width: $project-list-max-width;
+            max-height: $project-list-max-height;
+        }
+
+        .list-group-item {
+            cursor: pointer;
+            &:hover {
+                color: #555;
+                background-color: #f5f5f5;
+            }
+        }
+    }
+}
+
+.project-create-input {
+    width: $project-list-max-width;
+}
+
+.project-list.not-searchable {
+    .list-group-item {
+        border: 1px solid $list-group-border;
+    }
+
+    .project-list-items {
+        border: none;
+    }
+}

@@ -1,0 +1,19 @@
+<h3>Field</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="required" checked=(mut field.required)}} Required
+        </label>
+        {{#help-icon}}
+            Only extract items that have this field. All samples using this data format will be affected
+        {{/help-icon}}
+    </div>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="vary" checked=(mut field.vary)}} Vary
+        </label>
+        {{#help-icon}}
+            The value of this field will be ignored when checking for duplicate items
+        {{/help-icon}}
+    </div>
+</form>

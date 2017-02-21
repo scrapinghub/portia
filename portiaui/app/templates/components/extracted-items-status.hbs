@@ -1,0 +1,9 @@
+{{#link-to changeInfo.path changeInfo.model bubbles=false}}
+    {{#help-icon icon=icon placement='left'}}
+        {{#if hasWarning}}
+            {{changeInfo.text}}
+        {{else}}
+            Your sample is correctly configured for extraction
+        {{/if}}
+    {{/help-icon}}
+{{/link-to}}

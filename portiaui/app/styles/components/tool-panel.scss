@@ -1,0 +1,28 @@
+.tool-panel {
+    padding-top: $panel-padding-y;
+    padding-bottom: $panel-padding-y;
+
+    > div {
+        position: relative;
+    }
+
+    h3 {
+        display: inline-block;
+        margin-top: 0;
+        color: $navbar-default-color;
+        font-size: $font-size-base;
+        line-height: $tree-list-row-height;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+    }
+
+    form {
+        margin-bottom: $line-height-computed;
+
+        label {
+            font-weight: normal;
+        }
+    }
+}

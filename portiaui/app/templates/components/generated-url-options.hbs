@@ -1,0 +1,56 @@
+{{#list-item-text class="title fragments-title"}}
+    Fragments
+    {{#help-icon}}
+        Fragments
+        <p>
+            A generated url is made up of one or more fragments. A fragment can be a single value,
+            a list of different values or a range of numbers.
+        </p>
+        <p>
+            Using fragments you can create a large number of urls.
+        </p>
+    {{/help-icon}}
+{{/list-item-text}}
+
+{{#tooltip-container tooltipFor="add-fragment-button" text="Create a new fragment to generate URLs" tooltipContainer='body'}}
+    {{list-item-icon
+      icon='add'
+      id="add-fragment-button"
+      action=(action 'addFragment')
+      disabled=(not allValidFragments)}}
+{{/tooltip-container}}
+
+{{#each fragments as |fragment index|}}
+    {{fragment-options
+      index          = index
+      fragment       = fragment
+      saveSpider     = saveSpider
+      fragmentColor  = (array-get fragmentColors index)
+      removeFragment = (action 'removeFragment')
+      allValidFragments = allValidFragments
+    }}
+{{/each}}
+
+<h3 class="start-url-list-title">Generation List</h3>
+<div class="start-url-list form-control {{unless allValidFragments 'has-error'}}">
+    <section class="start-url-generation-list">
+    {{#each generatedUrlLists as |generatedUrlList|}}
+        <p>
+        {{#each generatedUrlList as |fragment index|}}
+            {{#colored-span class="fragment-span" color=(array-get fragmentColors index)}}
+                {{fragment}}
+            {{/colored-span}}
+        {{/each}}
+        </p>
+    {{/each}}
+
+    {{#if (not isComplete)}}
+        {{tooltip-icon
+          icon='vertical-ellipsis'
+          text='This list only shows the first few generated urls.'
+          modifyClasses='one-half-x full-width'
+        }}
+    {{/if}}
+
+    </section>
+</div>

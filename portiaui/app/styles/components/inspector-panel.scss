@@ -1,0 +1,85 @@
+.inspector {
+    $inspector-line-padding-y: ($tree-list-row-height - $line-height-computed) / 2;
+    overflow: hidden;
+
+    .path-item {
+        border-radius: 5px;
+        padding: 0 3px;
+        font-size: 0.9em;
+        font-family: monospace;
+    }
+
+    .path-selected {
+        background-color: #337AB7;
+        color: #fff;
+    }
+
+    table {
+        width: 100%;
+    }
+
+    tr {
+        cursor: pointer;
+    }
+
+    > div > div,
+    td {
+        padding: $inspector-line-padding-y 0;
+    }
+
+    td {
+        vertical-align: top;
+        color: $text-color;
+
+        &:first-child {
+            padding-right: ($grid-gutter-width / 2);
+            color: $text-muted;
+            white-space: nowrap;
+        }
+
+        &:last-child {
+            position: relative;
+            width: 100%;
+        }
+
+        > div {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+
+            > div {
+                &:first-child {
+                    flex: 1 1 auto;
+                    position: relative;
+                }
+
+                &:last-child {
+                    padding-left: $line-height-computed;
+                }
+            }
+        }
+
+        .value {
+            position: absolute;
+            left: 0;
+            right: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .structure-list-add {
+        opacity: 1;
+        text-align: right;
+    }
+
+    .empty-notice {
+        height: $panel-content-min-height;
+        line-height: $panel-content-min-height;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        vertical-align: middle;
+    }
+}

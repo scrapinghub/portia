@@ -1,0 +1,48 @@
+{{#tree-list}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Fields
+                {{#help-icon}}
+                    Fields
+                    <p>
+                        A field describes the type of a value that you want to extract.
+                    </p>
+                    <p>
+                        Sample pages map the elements of a web page to the individual fields of a
+                        data format.
+                    </p>
+                    <p>
+                        You can create fields in advance, but you can also create them later, while
+                        annotating the data on a web page.
+                    </p>
+                {{/help-icon}}
+            {{/list-item-text}}
+            {{#tooltip-container tooltipFor="add-field-button" text="Add field" tooltipContainer='body'}}
+                {{list-item-icon id="add-field-button" icon='add' action=(action 'addField')}}
+            {{/tooltip-container}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item hide=(or schema.fields.isPending schema.fields.length) as |options|}}
+                {{#list-item-text class="text-center"}}
+                    This data format has no fields
+                {{/list-item-text}}
+            {{/tree-list-item}}
+            {{#each schema.fields as |field|}}
+                {{#tree-list-item as |options|}}
+                    {{#link-to 'projects.project.schema.field' field}}
+                        {{indentation-spacer}}
+                        {{list-item-icon icon=field.type}}
+                        {{list-item-editable value=(mut field.name) editing=(mut field.new) onChange=(action 'saveField' field) validate=(action 'validateFieldName' field)}}
+                        {{#list-item-field-type field=field}}
+                            Change field type
+                        {{/list-item-field-type}}
+                        {{#link-to 'projects.project.schema.field.options' field bubbles=false class="ignore-active"}}
+                            {{list-item-icon icon='options'}}
+                        {{/link-to}}
+                        {{list-item-icon icon='remove' disabled=(not (not field.annotations.length)) action=(action 'removeField' field) bubbles=false}}
+                    {{/link-to}}
+                {{/tree-list-item}}
+            {{/each}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}

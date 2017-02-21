@@ -1,0 +1,56 @@
+.icon-button {
+    line-height: inherit;
+    text-align: center;
+    outline: 0;
+    pointer-events: none;
+    transition: opacity $animation-time $animation-easing, color $animation-time $animation-easing;
+
+    .dropdown-menu & {
+        transition: 0s;
+    }
+
+    &.has-action {
+        pointer-events: auto;
+        cursor: pointer;
+    }
+
+    &.disabled {
+        color: $navbar-default-color !important;
+        cursor: not-allowed;
+    }
+
+    .dropdown-menu .disabled & {
+        color: $dropdown-link-disabled-color !important;
+        cursor: not-allowed;
+    }
+}
+
+.structure-list-details {
+    opacity: $icon-fade-opacity;
+    pointer-events: inherit;
+
+    &:hover,
+    .active > & {
+        opacity: 1;
+    }
+}
+
+.structure-list-add,
+.structure-list-play,
+.structure-list-publish {
+    color: $brand-success !important;
+}
+
+.structure-list-discard,
+.structure-list-error,
+.structure-list-remove {
+    color: $brand-danger !important;
+}
+
+.structure-list-warning {
+    color: $brand-warning !important;
+}
+
+.icon-button-help {
+    color: $brand-info !important;
+}

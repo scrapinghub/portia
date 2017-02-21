@@ -1,0 +1,6 @@
+{{yield (hash section='widget' openMenu=(action 'openMenu') closeMenu=(action 'closeMenu') toggleMenu=(action 'toggleMenu') focusIn=(action 'focusIn') focusOut=(action 'focusOut') keyDown=(action 'keyDown'))}}
+{{#dropdown-menu class=menuClasses events=events keyNavigate=keyNavigate active=(mut active) focused=(mut focused) orderItemsForSearch=orderItemsForSearch valuesEqual=valuesEqual onFocusIn=(action 'focusIn') onFocusOut=(action 'focusOut') as |options|}}
+    {{#if open}}
+        {{yield (hash section='menu' menu=options.menu header=options.header item=options.item divider=options.divider openMenu=(action 'openMenu') closeMenu=(action 'closeMenu') toggleMenu=(action 'toggleMenu') focusIn=(action 'focusIn') focusOut=(action 'focusOut') keyDown=(action 'keyDown'))}}
+    {{/if}}
+{{/dropdown-menu}}

@@ -1,0 +1,20 @@
+<header class="tool-group-header">
+    <ul class="nav nav-tabs">
+        {{yield (hash section="tabs" group=this tab=(component 'tool-tab' group=this) panel=(component 'tool-panel' group=this))}}
+        <li class="tool-group-icons pull-right">
+            {{#if collapsible}}
+                <a class="tool-group-collapse" {{action 'toggleCollapsed'}}>
+                    <span class="caret"></span>
+                </a>
+            {{/if}}
+            {{#if onClose}}
+                <a class="tool-group-close" {{action 'close'}}>
+                    {{icon-button icon='close'}}
+                </a>
+            {{/if}}
+        </li>
+    </ul>
+</header>
+<section class="tool-group-content">
+    {{yield (hash section="panels" group=this tab=(component 'tool-tab' group=this) panel=(component 'tool-panel' group=this))}}
+</section>

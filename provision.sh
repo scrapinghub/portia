@@ -32,7 +32,7 @@ usage -- print this message
 install_deps -- install system-level dependencies
 install_splash -- install splash
 install_python_deps -- install python-level dependencies
-configure_initctl -- installs initctl configuration and starts slyd
+configure_initctl -- installs initctl configuration
 configure_nginx -- installs nginx configuration
 cleanup -- remove unnecessary files. DON'T RUN UNLESS IT'S INSIDE AN IMAGE AND YOU KNOW WHAT YOU ARE DOING
 
@@ -51,8 +51,9 @@ activate_venv () {
 install_deps(){
     echo deb http://nginx.org/packages/ubuntu/ trusty nginx > /etc/apt/sources.list.d/nginx.list
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
-    apt-get update
-    apt-get -y install \
+    wget -O - https://deb.nodesource.com/setup_7.x | bash -
+    apt-get update -q
+    apt-get -y --no-install-recommends install \
             curl \
             libxml2-dev \
             libxslt-dev \
@@ -60,26 +61,29 @@ install_deps(){
             libgl1-mesa-glx \
             libglapi-mesa \
             libgl1-mesa-dri \
+            libmysqlclient-dev \
             nginx python-dev \
+            nodejs \
             python-mysql.connector \
             python-numpy \
             python-openssl \
             python-pip \
             python-software-properties
+    pip install -U pip setuptools
 }
 
 install_python_deps(){
     activate_venv
-    pip install http://cdn.mysql.com/Downloads/Connector-Python/mysql-connector-python-1.2.3.zip#md5=6d42998cfec6e85b902d4ffa5a35ce86
-    pip install -r "$APP_ROOT/slyd/requirements.txt"
     pip install -r "$APP_ROOT/slybot/requirements.txt"
+    pip install -r "$APP_ROOT/slyd/requirements.txt"
+    pip install -r "$APP_ROOT/portia_server/requirements.txt"
     pip install -e "$APP_ROOT/slyd"
     pip install -e "$APP_ROOT/slybot"
 }
 
 install_splash(){
     cd /tmp
-    curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/master.tar.gz'
+    curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/2.3.x.tar.gz'
     tar -xvf splash.tar.gz --keep-newer-files
     cd splash-*
     activate_venv
@@ -99,18 +103,42 @@ cleanup() {
         remove_extra
     cd /
     rm -rf /tmp/splash*
+    rm -rf /var/lib/apt/lists/*
+    apt-get remove --purge -y libxml2-dev \
+                              libxslt-dev \
+                              libgl1-mesa-dev \
+                              python-dev
+    apt-get autoremove -y
+    apt-get clean
+    find / | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
 }
 
 configure_nginx(){
-    ln -sf "$APP_ROOT/nginx/nginx.conf" /etc/nginx/nginx.conf
+    cp -r $APP_ROOT/nginx/* /etc/nginx
+    sed 's/\/app\//'""${APP_ROOT//\//\\\/}""'\//g' -i /etc/nginx/nginx.conf
 }
 
 configure_initctl(){
-    cp "$APP_ROOT/slyd.conf" /etc/init
-    echo "Starting slyd service"
-    echo "====================="
-    sudo /etc/init.d/nginx restart
-    sudo start slyd
+    cp "$APP_ROOT/portia.conf" /etc/init
+}
+
+start_portia(){
+    echo "Starting Nginx"
+    echo "=============="
+    /etc/init.d/nginx start
+    echo "Starting Nginx"
+    echo "=============="
+    start portia
+}
+
+install_frontend_deps() {
+    npm install -g bower ember-cli
+}
+
+build_assets() {
+    cd "$APP_ROOT/portiaui"
+    npm install && bower install
+    ember build
 }
 
 if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then

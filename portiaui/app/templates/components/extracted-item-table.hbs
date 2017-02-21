@@ -1,0 +1,42 @@
+{{#each-in item as |key value|}}
+    {{#if (is-array value)}}
+        <tr>
+            <td>{{key}}</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                {{#each value key='@index' as |item|}}
+                    {{#if (is-object item)}}
+                        {{extracted-item-table item=item}}
+                    {{else}}
+                        <table>
+                            <tr>
+                                <td>{{item}}</td>
+                            </tr>
+                        </table>
+                    {{/if}}
+                {{/each}}
+            </td>
+        </tr>
+    {{else if (is-object value)}}
+        <tr>
+            <td>{{key}}</td>
+            <td></td>
+        </tr>
+        {{#unless (is-empty-object value)}}
+            <tr>
+                <td colspan="2">
+                    {{extracted-item-table item=value}}
+                </td>
+            </tr>
+        {{/unless}}
+    {{else}}
+        <tr>
+            <td>{{key}}</td>
+            <td>
+                {{value}}
+            </td>
+        </tr>
+    {{/if}}
+{{/each-in}}

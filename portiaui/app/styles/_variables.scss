@@ -1,0 +1,25 @@
+// sidebar
+$sidebar-width: 331px;
+
+// tree list
+$tree-list-row-height: 30px !default;
+$tree-list-icon-width: $tree-list-row-height !default;
+
+// panels
+$sidebar-background-color: $navbar-default-bg;
+$panel-padding-y: 10px;
+$panel-content-min-height: $tree-list-row-height * 3;
+$panel-min-height: $panel-content-min-height + $panel-padding-y * 2;
+
+// typography
+$space-width: 0.285em;
+
+// icons
+$pip-size: 3px;
+$icon-fade-opacity: 0.25;
+
+// colors
+$list-heading-color: $brand-danger;
+$pip-color: $panel-default-border;
+$panel-bg: darken($navbar-default-bg, 1.5%);
+$light-gray: #999;

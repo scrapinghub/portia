@@ -1,0 +1,20 @@
+{{#if selecting}}
+    {{#if hasBlock}}
+        {{#select-box choices=choices value=(mut value) valueAttribute=valueAttribute open=(mut selecting) onChange=onChange buttonClass=(concat "input-list-item " buttonClass) menuClass=menuClass menuAlign=menuAlign menuContainer=menuContainer as |options|}}
+            {{yield options}}
+        {{/select-box}}
+    {{else}}
+        {{select-box choices=choices value=(mut value) valueAttribute=valueAttribute open=(mut selecting) onChange=onChange buttonClass=(concat "input-list-item " buttonClass) menuClass=menuClass menuAlign=menuAlign menuContainer=menuContainer}}
+    {{/if}}
+{{else}}
+    <span>
+        {{#if valueAttribute}}
+            {{get value valueAttribute}}
+        {{else}}
+            {{value}}
+        {{/if}}
+    </span>
+    <a {{action 'startSelecting'}}>
+        <span class="caret"></span>
+    </a>
+{{/if}}

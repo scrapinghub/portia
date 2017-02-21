@@ -1,0 +1,36 @@
+.select-box {
+    .btn-default {
+        text-align: left;
+        color: $input-color !important;
+        background-color: $input-bg !important;
+
+        .value {
+            float: left;
+            max-width: calc(100% - 20px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .caret {
+            float: right;
+            margin: (($line-height-computed - $caret-width-base) / 2) 0;
+        }
+    }
+
+    &.open {
+        .btn-default {
+            border-color: $input-border-focus !important;
+            $color-rgba: rgba(red($input-border-focus), green($input-border-focus), blue($input-border-focus), .6);
+            @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px $color-rgba !important);
+        }
+    }
+
+    &:not(.open) {
+        .btn-default {
+            &:focus {
+                @include box-shadow(inset 0 1px 1px rgba(0,0,0,.075));
+            }
+        }
+    }
+}

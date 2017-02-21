@@ -1,0 +1,41 @@
+.combo-box {
+    .combo-input {
+        display: inline-flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        justify-content: space-between;
+        text-align: left;
+        color: $input-color !important;
+
+        $caret-container-width: ($caret-width-base + $padding-base-horizontal) * 2 + 1px;
+
+        input {
+            padding-right: $caret-container-width - 1px;
+        }
+        
+        .caret-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: $caret-container-width;
+            margin-left: -$caret-container-width;
+            cursor: pointer;
+        }
+
+        .caret {
+            margin: 0;
+            margin-right: 1px;
+        }
+    }
+
+    &:not(.open) {
+        input {
+            cursor: pointer;
+        }
+
+        .caret-container {
+            pointer-events: none;
+        }
+    }
+}

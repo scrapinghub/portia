@@ -1,0 +1,11 @@
+{{yield (hash section='body')}}
+<div class={{concat "tooltip" (if tooltipClasses (concat ' ' tooltipClasses))}} role="tooltip" data-tooltip-id="{{elementId}}">
+    <div class="tooltip-arrow"></div>
+    <div class="tooltip-content">
+        {{#if text}}
+            {{text}}
+        {{else}}
+            {{yield (hash section='tooltip')}}
+        {{/if}}
+    </div>
+</div>

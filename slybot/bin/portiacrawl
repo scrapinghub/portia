@@ -58,7 +58,7 @@ def main():
         command_spec.append(setting)
 
     if opts.verbose:
-        print " ".join(command_spec)
+        print(" ".join(command_spec))
 
     subprocess.call(command_spec)
 

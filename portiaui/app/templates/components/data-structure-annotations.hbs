@@ -1,0 +1,39 @@
+{{#tree-list-item hasChildren=item.annotations.length onMouseEnter=(action 'enterItem' item) onMouseLeave=(action 'leaveItem' item) as |options|}}
+    {{#if (eq options.section "item")}}
+        {{yield}}
+    {{else if (eq options.section "subtrees")}}
+        {{#each item.annotations as |annotation|}}
+            {{#if (eq annotation.constructor.modelName "annotation")}}
+                {{#tree-list-item onMouseEnter=(action 'enterAnnotation' annotation) onMouseLeave=(action 'leaveAnnotation' item) as |options|}}
+                    {{#link-to 'projects.project.spider.sample.data.annotation' annotation}}
+                        {{indentation-spacer isSmall=true}}
+                        {{list-item-badge
+                          value=(or annotation.elements.length 0)
+                          color=(array-get annotationColors annotation.orderedIndex)
+                        }}
+                        {{list-item-icon icon=annotation.type}}
+                        {{list-item-annotation-field annotation=annotation selecting=(mut annotation.new)}}
+                        {{#list-item-field-type field=annotation.field}}
+                            Change type of selected field
+                        {{/list-item-field-type}}
+                        {{#link-to 'projects.project.spider.sample.data.annotation.options' annotation bubbles=false class="ignore-active"}}
+                            {{list-item-icon icon='options'}}
+                        {{/link-to}}
+                        {{list-item-icon icon='remove' action=(action 'removeAnnotation' annotation) bubbles=false}}
+                    {{/link-to}}
+                {{/tree-list-item}}
+            {{else if (eq annotation.constructor.modelName "item")}}
+                {{#data-structure-annotations sample=sample item=annotation annotationColors=annotationColors}}
+                    {{#link-to 'projects.project.spider.sample.data.item' annotation}}
+                        {{list-item-icon icon='schema'}}
+                        {{list-item-badge value=(or annotation.elements.length 0)}}
+                        {{list-item-editable value=(mut annotation.name) editing=(mut annotation.new) onChange=(action 'saveItem' annotation)}}
+                        {{list-item-item-schema item=annotation}}
+                        {{list-item-add-annotation-menu item=annotation}}
+                        {{list-item-icon icon='remove' action=(action 'removeItem' annotation) bubbles=false}}
+                    {{/link-to}}
+                {{/data-structure-annotations}}
+            {{/if}}
+        {{/each}}
+    {{/if}}
+{{/tree-list-item}}

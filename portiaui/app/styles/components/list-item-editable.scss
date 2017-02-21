@@ -1,0 +1,35 @@
+.list-item-editable {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 90px;
+    margin-left: 5px;
+
+    > span {
+        flex: 0 1 auto;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .fa-pencil {
+        flex: 0 0 $tree-list-icon-width;
+        color: $navbar-default-color;
+        cursor: pointer;
+        opacity: $icon-fade-opacity;
+        transition: opacity $animation-time $animation-easing;
+        text-align: center;
+    }
+
+    &:hover {
+        .fa-pencil {
+            opacity: 1;
+        }
+    }
+
+    input {
+        flex: 1 1 100%;
+    }
+}

@@ -1,0 +1,17 @@
+.input-with-clear {
+    input {
+        padding-right: 34px;
+    }
+}
+
+.clear-input {
+    position: absolute;
+    right: 11px;
+    top: 0;
+    bottom: 0;
+    height: 14px;
+    line-height: 14px;
+    margin: auto;
+    color: #ccc;
+    z-index: 3;
+}

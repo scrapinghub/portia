@@ -1,0 +1,29 @@
+{{#if inspectedElement}}
+    <div>{{elementPath}}</div>
+    <table>
+        {{#each attributes as |attribute|}}
+            <tr {{action 'changeAnnotationSource' attribute.attribute}}>
+                <td>{{attribute.name}}</td>
+                <td>
+                    <div>
+                        <div>
+                            <span class="value">{{attribute.value}}</span>
+                        </div>
+                        {{#with (attribute-annotation (get sample.dataStructure.annotations (guid inspectedElement)) attribute.name) as |annotation|}}
+                            <div>
+                            {{#if annotation.name}}
+                                {{colored-badge value=annotation.name color=(array-get annotationColors annotation.orderedIndex)}}
+                            {{/if}}
+                            {{icon-button icon='add' action=(action 'addAnnotation' attribute.attribute) bubbles=false}}
+                            </div>
+                        {{/with}}
+                    </div>
+                </td>
+            </tr>
+        {{/each}}
+    </table>
+{{else}}
+    <p class="text-muted empty-notice">
+        No element selected
+    </p>
+{{/if}}

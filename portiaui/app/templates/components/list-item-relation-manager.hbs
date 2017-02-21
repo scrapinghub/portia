@@ -1,0 +1,22 @@
+{{#list-item-combo value=(mut value.content) valueAttribute='name' selecting=(mut selecting) orderItemsForSearch=orderItemsForSearch valuesEqual=valuesEqual onChange=onChange autoSelect=true menuContainer="body" as |combo|}}
+    {{#combo.header}}
+        {{yield (hash section='change-header')}}
+    {{/combo.header}}
+    {{#combo.item value=(hash special="rename" name=combo.query onMenuClosed=(action 'rename' combo.query)) disabled=(not combo.menu.active.special) action=(chain-actions (action 'rename' combo.query) (action combo.closeMenu 'escape'))}}
+        {{list-item-icon class="icon" icon="edit"}}Rename to “{{combo.query}}”
+    {{/combo.item}}
+    {{#combo.item value=(hash special="add" name=combo.query onMenuClosed=(action 'add' combo.query)) disabled=(not combo.menu.active.special) action=(chain-actions (action 'add' combo.query) (action combo.closeMenu 'escape'))}}
+        {{list-item-icon class="icon" icon="add"}}Add “{{combo.query}}”
+    {{/combo.item}}
+
+    {{combo.divider}}
+
+    {{#combo.header}}
+        {{yield (hash section='choices-header')}}
+    {{/combo.header}}
+    {{#each sortedChoices as |choice|}}
+        {{#combo.item value=choice action=(action combo.setValueAndClose choice)}}
+            {{yield (hash section='choice' choice=choice)}}
+        {{/combo.item}}
+    {{/each}}
+{{/list-item-combo}}

@@ -8,14 +8,15 @@ cache:
   directories:
   - "$HOME/.cache/pip"
   - "$HOME/.cache/wheelhouse"
-  - slyd/node_modules
-  - slyd/bower_components
+  - portiaui/node_modules
+  - portiaui/bower_components
+
 
 install:
 - source ${VIRTUAL_ENV}/bin/activate
 - sudo -E ./provision.sh install_deps install_splash install_python_deps
 - python -c 'import splash, qt5reactor' # Check it's in the python path
-- cd slyd
+- cd portiaui
 - npm install -g bower
 - npm install
 - bower install
@@ -33,14 +34,15 @@ before_script:
 script:
 - cd ./slybot
 - nosetests --with-doctest
-- cd ../slyd
+- cd ../portia_server
+- ./manage.py test portia_orm.tests
+- ./manage.py test portia_api.tests
+- cd ../portiaui
 - npm test
-- nosetests --with-doctest
-- cd ../
 before_deploy:
-- cd ./slybot
+- cd ../slybot
 - pip install twine
-- sudo chown -R $USER:$USER *
+- sudo chown -R $USER .
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel

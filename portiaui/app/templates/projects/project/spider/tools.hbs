@@ -1,0 +1,28 @@
+{{#if model.showLinks}}
+    {{#tool-group id="show-links-legend-group" as |group|}}
+        {{#if (eq group.section "tabs")}}
+            {{#group.tab toolId="show-links-legend"}}
+                Followed links
+            {{/group.tab}}
+        {{else if (eq group.section "panels")}}
+            {{#group.panel id="show-links-legend" class="container-fluid" toolId="show-links-legend"}}
+                {{show-links-legend followedLinks=followedLinkElements.length jsLinks=jsLinkElements.length ignoredLinks=ignoredLinkElements.length}}
+            {{/group.panel}}
+        {{/if}}
+    {{/tool-group}}
+{{/if}}
+
+{{!--
+{{#tool-group id="actions-group" as |group|}}
+    {{#if (eq group.section "tabs")}}
+        {{#group.tab toolId="actions"}}
+            Actions
+        {{/group.tab}}
+    {{else if (eq group.section "panels")}}
+        {{#group.panel class="actions container-fluid" toolId="actions"}}
+             {{page-actions-editor pageActions=model.pageActions}}
+        {{/group.panel}}
+    {{/if}}
+{{/tool-group}}
+--}}
+{{extracted-items-group}}

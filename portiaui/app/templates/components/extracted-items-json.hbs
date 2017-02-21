@@ -1,0 +1,35 @@
+{{#if (is-object-or-array json) ~}}
+    {{#if showOpen ~}}
+        {{#unless fromKey}}
+            <b>{{openingCharacter}}</b>
+        {{/unless}}
+        {{~#if openChild ~}}
+            <b class="new-line">{{depthPlus1Spaces}}{{openChild}}</b>
+            {{~#if (is-object json)}}
+                <br>
+            {{/if~}}
+        {{/if}}
+    {{~/if}}
+    {{#if (is-array json) ~}}
+        {{#each json as |value index| ~}}
+            {{#if (and fromKey (not index))}}<b class="new-line"></b>{{/if}}
+            {{extracted-items-json json=value position=index from='array' parent=json depth=depth ~}}
+        {{~/each}}
+    {{else if (is-object json) ~}}
+        {{#if (and fromKey (not index))}}<b class="new-line"></b>{{/if}}
+        {{#each-in (indexed-object json) as |key v| ~}}
+            <span class="json-key">{{depthPlus1Spaces}}"{{key}}": {{#if (is-array v.value)}}[{{/if}}{{#if (is-object v.value)}}{ {{/if}}</span>
+            {{~extracted-items-json json=v.value position=v.index from='key' parent=json depth=depth key=key ~}}
+        {{~/each-in}}
+    {{~/if}}
+    {{~#if openSibling ~}}
+        <b>{{depthSpaces}}{{closingCharacter}}{{comma}}</b>
+        <b>{{depthSpaces}}{{openSibling}}</b>
+        <b class="new-line"></b>
+    {{else}}
+        <b class="new-line">{{depthSpaces}}{{closingCharacter}}{{comma}}</b>
+    {{~/if ~}}
+{{else ~}}
+    {{extracted-items-json-value value=json depth=depth position=position maxPosition=maxPosition key=key from=from ~}}
+    <b class="new-line"></b>
+{{~/if}}

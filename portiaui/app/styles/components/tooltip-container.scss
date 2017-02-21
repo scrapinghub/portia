@@ -1,0 +1,25 @@
+.tooltip-content {
+    @extend .tooltip-inner;
+
+    > p {
+        margin: ($line-height-computed / 2) 0 0;
+        text-align: left;
+
+        &.first {
+            margin-top: 0;
+        }
+    }
+
+    em {
+        font-style: normal;
+        text-decoration: underline;
+    }
+
+    .tooltip-wide > & {
+        max-width: $tooltip-max-width * 1.5;
+    }
+}
+
+.tooltip-for {
+    pointer-events: auto;
+}

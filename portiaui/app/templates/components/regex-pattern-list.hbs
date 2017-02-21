@@ -1,0 +1,21 @@
+{{#tree-list}}
+    {{#if list.length}}
+        {{#each list as |item index|}}
+            {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
+                {{list-item-editable value=item spellcheck=false onChange=(action 'changePattern' index)}}
+                {{list-item-icon icon='remove' action=(action 'removePattern' index)}}
+            {{/tree-list-item}}
+        {{/each}}
+    {{else}}
+        {{#tree-list-item hasChildren=spider.startUrls.length as |options|}}
+            No patterns defined
+        {{/tree-list-item}}
+    {{/if}}
+{{/tree-list}}
+<div class="form-group new-pattern {{if (not newPatternCorrect) 'has-error'}}">
+    <div>
+        {{input type='text' class="form-control" placeholder="Regular expression" spellcheck=false value=(mut newPattern) change=(action 'stopPropagation') escape-press=(action 'clearPattern') insert-newline=(action 'addPattern')}}
+        {{icon-button icon='add' disabled=(or (not newPattern) (not newPatternCorrect)) action=(action 'addPattern' newPattern)}}
+    </div>
+    <span class="help-block{{if newPatternCorrect ' hide'}}">The input value is not a valid regular expression.</span>
+</div>

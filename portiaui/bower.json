@@ -1,0 +1,27 @@
+{
+  "name": "portia-ui",
+  "ignore": [
+    "*",
+    "!bower.json"
+  ],
+  "dependencies": {
+    "ember": "~2.6.0",
+    "ember-cli-shims": "0.1.1",
+    "ember-cli-test-loader": "0.2.2",
+    "ember-qunit-notifications": "0.1.0",
+    "jquery": "^2.2.0",
+    "blob-polyfill": "~1.0.20150320",
+    "cookie": "~1.1.0",
+    "bootstrap-sass": "~3.3.6",
+    "font-awesome": "~4.5.0",
+    "jquery-color": "~2.1.2",
+    "moment": "~2.11.2",
+    "uri.js": "~1.16.0",
+    "fetch": "~0.10.1",
+    "es6-promise": "~3.0.2",
+    "uri-templates": "~0.1.9",
+    "css-escape": "~1.5.0",
+    "animation-frame": "~0.2.4"
+  },
+  "private": true
+}

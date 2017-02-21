@@ -1,0 +1,34 @@
+<div class="browser-navigation panel-heading">
+    {{url-bar class="navbar-form" role="navigation"}}
+    <div class="browser-toolbar">
+        {{yield (hash section="toolbar")}}
+    </div>
+</div>
+<div class="browser-banner{{unless webSocket.closed ' hide'}}">
+    {{#if webSocket.connecting}}
+        Connecting ...
+    {{/if}}
+    {{#if webSocket.secondsUntilReconnect }}
+        Reconnecting to Portia server in {{webSocket.secondsUntilReconnect}} seconds.
+        {{#unless webSocket.reconnectImminent}}
+            <a class="alert-link" {{action 'reconnectWebsocket'}}>Try Again</a>.
+        {{/unless}}
+    {{/if}}
+</div>
+<div class="frame-container panel-body">
+    <div class="overlay-container">
+        {{yield (hash section="overlays")}}
+    </div>
+    {{browser-iframe clickHandler=(action 'viewPortClick')}}
+</div>
+
+<div class="browser-start-page {{if browser.url 'hide'}}">
+    <img src="/assets/images/portia-logo.svg" alt="Portia logo">
+    <h3>What would you like to scrape?</h3>
+    {{url-bar class="navbar-form" role="navigation" autofocus=true}}
+    {{#if uiState.models.project.spiders.length}}
+        <p>
+            You can also select one of your existing spiders from the sidebar.
+        </p>
+    {{/if}}
+</div>

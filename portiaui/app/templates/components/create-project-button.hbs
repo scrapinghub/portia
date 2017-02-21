@@ -1,0 +1,15 @@
+{{#if canCreateProjects}}
+    <p></p>
+    <div class="input-group project-create-input">
+        {{input type="text" class="form-control" value=(mut projectName) placeholder="Create a new project"
+          enter=(action 'addProject')}}
+        <span class="input-group-btn">
+            <button type="button" class="btn btn-primary" disabled={{not projectName}} {{action "addProject"}}>
+                {{icon-button icon='spider'}}
+            </button>
+        </span>
+    </div>
+    {{#if projects}}
+    <h5>OR</h5>
+    {{/if}}
+{{/if}}

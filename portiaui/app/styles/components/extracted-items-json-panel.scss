@@ -1,0 +1,50 @@
+.extracted-items-json {
+    padding: (($line-height-computed - 1) / 2);
+    margin: 0;
+    font-family: $font-family-monospace;
+    font-size: ($font-size-base - 1); // 14px to 13px
+    line-height: $line-height-base;
+    color: $text-muted;
+    unicode-bidi: embed;
+    word-break: break-all;
+    word-wrap: break-word;
+
+    b {
+        font-weight: normal;
+        display: inline-block;
+        white-space: pre;
+        float: left;
+        word-spacing: 0px;
+        &.open-container {
+            white-space: normal;
+        }
+        &.new-line {
+            width: 100%;
+        }
+    }
+}
+
+.json-value {
+    white-space: normal;
+    word-break: normal;
+    display: inline-block;
+    color: $text-color;
+    float: left;
+    text-indent: -1ch;
+    margin: 0 0 0 1ch;
+}
+
+.json-key {
+    white-space: pre;
+    display: inline-block;
+    float:left;
+}
+
+.json-array-spacing {
+    white-space: pre;
+}
+
+.json-character-size {
+    position: fixed;
+    top: -10000px;
+}

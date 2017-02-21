@@ -1,0 +1,150 @@
+{{#tree-list hide=currentSchema}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+              Spider{{#animation-container class="inline" hide=currentSpider setHeight=false}}s {{/animation-container}}&nbsp;{{pagination}}
+                {{#animation-container class="inline" setHeight=false}}
+                    {{#help-icon}}
+                        Spiders
+                        <p>
+                            A spider crawls web pages to extract data.
+                        </p>
+                        <p>
+                            It is most common to create a spider for each website you wish to crawl, but
+                            a single spider can also crawl more than one website.
+                        </p>
+                        <p>
+                            To create a spider first visit a web page that you would like to start
+                            crawling from.
+                        </p>
+                    {{/help-icon}}
+                {{/animation-container}}
+                {{spider-message currentSpider=currentSpider}}
+            {{/list-item-text}}
+            {{#if currentSpider}}
+                {{#animation-container}}
+                    {{#link-to 'projects.project' project class='inline project-change'}}
+                        Show all spiders
+                    {{/link-to}}
+                {{/animation-container}}
+            {{else}}
+                {{#tooltip-container tooltipFor="add-spider-button" text=addSpiderTooltipText tooltipContainer='body'}}
+                    {{list-item-icon id="add-spider-button" icon='add' disabled=(not canAddSpider) action=(action 'addSpider')}}
+                {{/tooltip-container}}
+            {{/if}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item hide=(or project.spiders.isPending project.spiders.length) as |options|}}
+                {{#list-item-text class="text-center"}}
+                    This project has no spiders
+                {{/list-item-text}}
+            {{/tree-list-item}}
+            {{#tree-list-item hide=(or project.spiders.isPending project.spiders.length) class="help" as |options|}}
+                <div class="alert alert-info" role="alert">
+                    <p>
+                        To create a spider first visit a web page that you would like to start
+                        crawling from.
+                    </p>
+                </div>
+            {{/tree-list-item}}
+
+            {{#if (and noCurrentSpider isLarge)}}
+                {{#tree-list-item}}
+                    <input
+                     class='form-control'
+                     placeholder='Search for your spider'
+                     value={{spiderSearch}}
+                     oninput={{perform filterSpiders
+                              sortedSpiders
+                              value='target.value'}}
+                    />
+                {{/tree-list-item}}
+            {{/if}}
+
+            {{#if (and noCurrentSpider hasPreviousPage)}}
+                {{#tree-list-item isCentered=true}}
+                    <i
+                     onclick={{perform turnPage -1}}
+                     class='fa fa-angle-up twice-x clickable'>
+                    </i>
+                {{/tree-list-item}}
+            {{/if}}
+
+            <div class={{if isFiltering 'very-opaque'}}>
+            {{#each spiders as |spider|}}
+                {{spider-row spider=spider project=project}}
+            {{/each}}
+            </div>
+
+            {{#if (and noCurrentSpider hasNextPage)}}
+                {{#tree-list-item isCentered=true}}
+                    <i
+                     onclick={{perform turnPage 1}}
+                     class='fa fa-angle-down twice-x clickable'>
+                    </i>
+                {{/tree-list-item}}
+            {{/if}}
+
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}
+
+{{#tree-list hide=currentSpider}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Data Format{{#animation-container class="inline" hide=currentSchema setHeight=false}}s{{/animation-container}}
+                {{#animation-container class="inline" setHeight=false}}
+                    {{#help-icon}}
+                        Data Formats
+                        <p>
+                            A data format describes the data that you want to extract.
+                        </p>
+                        <p>
+                            Spiders can share a data format to extract the same logical data type from
+                            different web pages.
+                        </p>
+                        <p>
+                            You can create data formats in advance, but you can also create them later,
+                            while annotating the data on a web page.
+                        </p>
+                    {{/help-icon}}
+                {{/animation-container}}
+            {{/list-item-text}}
+            {{#if currentSchema}}
+                {{#animation-container}}
+                    {{#link-to 'projects.project' project class='inline project-change'}}
+                        Show all schemas
+                    {{/link-to}}
+                {{/animation-container}}
+            {{else}}
+                {{#tooltip-container tooltipFor="add-schema-button" text="Create a new Schema" tooltipContainer='body'}}
+                    {{list-item-icon id="add-schema-button" icon='add' action=(action 'addSchema')}}
+                {{/tooltip-container}}
+            {{/if}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item hide=(or project.schemas.isPending project.schemas.length) as |options|}}
+                {{#list-item-text class="text-center"}}
+                    This project has no data formats
+                {{/list-item-text}}
+            {{/tree-list-item}}
+            {{#each project.schemas as |schema|}}
+                {{#tree-list-item hide=(and currentSchema (not-eq schema currentSchema)) as |options|}}
+                    {{#link-to 'projects.project.schema' schema}}
+                        {{indentation-spacer}}
+                        {{list-item-icon icon='schema'}}
+                        {{list-item-editable value=(mut schema.name) editing=(mut schema.new) onChange=(action 'saveSchema' schema)}}
+                        {{#animation-container class="icon" setWidth=false setHeight=false}}
+                            {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+                                {{dropdown-delete
+                                  onDelete=(action 'removeSchema' schema)
+                                  text='Delete Schema'
+                                  disabled=(not (not schema.items.length))
+                                }}
+                            {{/list-item-icon-menu}}
+                        {{/animation-container}}
+                    {{/link-to}}
+                {{/tree-list-item}}
+            {{/each}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}

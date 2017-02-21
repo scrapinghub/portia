@@ -5,6 +5,7 @@ class SpecManager(object):
 
     def __init__(self, settings):
         self.settings = settings
+
         factory_settings = settings['SPEC_FACTORY']
         self.spec_class = load_object(factory_settings['PROJECT_SPEC'])
         plugins = []
@@ -23,6 +24,8 @@ class SpecManager(object):
         self.capabilities['plugins'] = [
             {'component': p['ui'], 'options': p.get('options', {})}
             for p in factory_settings.get('PLUGINS', settings['PLUGINS'])]
+        if 'API_ROUTES' in factory_settings:
+            self.api_routes = load_object(factory_settings['API_ROUTES'])
 
     def project_spec(self, project, auth_info):
         return self.spec_class(str(project), auth_info)

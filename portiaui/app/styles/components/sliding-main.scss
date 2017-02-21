@@ -1,0 +1,12 @@
+#window {
+    overflow: hidden;
+}
+
+main {
+    transition: transform $animation-time $animation-easing;
+    transform: none;
+
+    &.slide-right {
+        transform: translateX($sidebar-width);
+    }
+}

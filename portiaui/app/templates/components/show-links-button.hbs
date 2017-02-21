@@ -1,0 +1,5 @@
+{{#tooltip-container tooltipFor="show-links-button" text="Toggle link highlighting" tooltipContainer='body' as |options|}}
+    <button id="show-links-button" class="btn btn-default {{if spider.showLinks 'active'}}" disabled={{disableLinks}} {{action 'toggleShowLinks'}}>
+        {{icon-button icon='link'}}
+    </button>
+{{/tooltip-container}}

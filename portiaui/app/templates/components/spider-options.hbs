@@ -1,0 +1,37 @@
+<h3>Initialization</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="performLogin" checked=(mut spider.performLogin)}} Perform login
+        </label>
+    </div>
+    {{#if spider.performLogin}}
+        <div class="form-group">
+            <label for="loginUrl">Login URL</label>
+            {{input type="url" class="form-control" id="loginUrl" value=(mut spider.loginUrl)}}
+        </div>
+        <div class="form-group">
+            <label for="loginUser">Username</label>
+            {{input type="text" class="form-control" id="loginUser" value=(mut spider.loginUser)}}
+        </div>
+        <div class="form-group">
+            <label for="loginPassword">Password</label>
+            {{input type="text" class="form-control" id="loginPassword" value=(mut spider.loginPassword)}}
+        </div>
+    {{/if}}
+</form>
+
+<h3>Javascript support</h3>
+<form {{action "save" on="change"}}>
+    <div class="checkbox">
+        <label>
+            {{input type="checkbox" name="jsEnabled" checked=(mut spider.jsEnabled)}} Enable Javascript
+        </label>
+    </div>
+    {{#if spider.jsEnabled}}
+        <div>Enable Javascript for URLs that match these patterns</div>
+        {{regex-pattern-list list=spider.jsEnablePatterns onChange=(action 'save')}}
+        <div>Disable Javascript for URLs that match these patterns</div>
+        {{regex-pattern-list list=spider.jsDisablePatterns onChange=(action 'save')}}
+    {{/if}}
+</form>

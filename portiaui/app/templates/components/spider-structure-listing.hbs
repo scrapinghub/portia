@@ -1,0 +1,164 @@
+{{#tree-list hide=currentSample}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Start Pages
+                {{#help-icon}}
+                    Start Pages
+                    <p>
+                        Start pages are web pages that a spider will begin its crawl from. It&nbsp;will
+                        then continue to other web pages according to the defined link crawling
+                        rules.
+                    </p>
+                    <p>
+                        Start pages also restrict the domains that a spider will crawl. A&nbsp;spider
+                        will never follow a link that goes to a domain not included in the start
+                        pages.
+                    </p>
+                    <p>
+                        Without a start page the spider cannot begin crawling.
+                    </p>
+                {{/help-icon}}
+            {{/list-item-text}}
+            {{#tooltip-container tooltipFor="add-start-url-button" text="Start crawling from the current page" tooltipContainer='body'}}
+                {{#list-item-icon-menu icon='add-dropdown' as |options|}}
+                    {{#options.item value="Add fixed URL"
+                      action=(chain-actions (action closeOptions) (action 'addStartUrl') options.closeMenu) as |value|}}
+                        {{list-item-icon class="icon" icon="url"}}{{value}}
+                    {{/options.item}}
+                    {{#options.item value="Add generation URL" action=(chain-actions (action 'addGenerationUrl') options.closeMenu) as |value|}}
+                        {{list-item-icon class="icon" icon="url-generated"}}{{value}}
+                    {{/options.item}}
+                    {{#options.item value="Add feed URL"
+                      action=(chain-actions (action closeOptions) (action 'addFeedUrl') options.closeMenu) as |value|}}
+                        {{list-item-icon class="icon" icon="url-feed"}}{{value}}
+                    {{/options.item}}
+                {{/list-item-icon-menu}}
+            {{/tooltip-container}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item hide=spider.startUrls.length as |options|}}
+                {{#list-item-text class="text-center"}}
+                    This spider has no start pages
+                {{/list-item-text}}
+            {{/tree-list-item}}
+            {{#tree-list-item hide=spider.startUrls.length class="help" as |options|}}
+                <div class="alert alert-warning" role="alert">
+                    <p>
+                        A spider needs at least one start page to start crawling from.
+                    </p>
+                </div>
+            {{/tree-list-item}}
+            {{#each spider.startUrls key="@index" as |startUrl index|}}
+                {{#if (or (not newUrl) (not-eq urlValue startUrl.url))}}
+                    {{component startUrl.componentName
+                          index=index
+                          spider=spider
+                          startUrl=startUrl
+                          removeStartUrl=(action 'removeStartUrl' startUrl)
+                    }}
+                {{/if}}
+            {{/each}}
+            {{#if newUrl}}
+                {{project-structure-spider-url
+                  spider=spider
+                  startUrl=newStartUrl
+                  url=urlValue
+                  urlAdded=(mut newUrl)
+                  removeStartUrl=(action 'removeStartUrl' newUrl)
+                }}
+            {{/if}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}
+
+{{#tree-list hide=currentSample}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Link Crawling
+            {{/list-item-text}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item as |options|}}
+                {{indentation-spacer}}
+                {{list-item-icon icon='link'}}
+                {{list-item-link-crawling spider=spider}}
+                {{#if (not-eq spider.linksToFollow 'none')}}
+                    {{#link-to 'projects.project.spider' bubbles=false}}
+                        {{#link-to 'projects.project.spider.link-options' bubbles=false class="ignore-active"}}
+                            {{list-item-icon icon='options'}}
+                        {{/link-to}}
+                    {{/link-to}}
+                {{/if}}
+            {{/tree-list-item}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}
+
+{{#tree-list}}
+    {{#tree-list-item hasChildren=true as |options|}}
+        {{#if (eq options.section "item")}}
+            {{#list-item-text class="title"}}
+                Sample Page{{#animation-container class="inline" hide=currentSample setHeight=false}}s{{/animation-container}}
+                {{#animation-container class="inline" setHeight=false}}
+                    {{#help-icon}}
+                        Sample Pages
+                        <p>
+                            A sample page is a web page with the data you want to extract annotated.
+                        </p>
+                        <p>
+                            When the spider crawls to a new web page it finds the sample page that is
+                            the best match, and uses it to extract data.
+                        </p>
+                        <p>
+                            If you see a web page that the spider is having trouble extracting data
+                            from, you can create a new sample page from that web page to improve the
+                            extraction.
+                        </p>
+                    {{/help-icon}}
+                {{/animation-container}}
+            {{/list-item-text}}
+            {{#if currentSample}}
+                {{#animation-container}}
+                    {{#link-to 'projects.project.spider' spider}}
+                        Show all samples
+                    {{/link-to}}
+                {{/animation-container}}
+            {{else}}
+                {{#tooltip-container tooltipFor="add-sample-button" text="Create a new sample from the current page" tooltipContainer='body'}}
+                    {{list-item-icon id="add-sample-button" icon='add' disabled=(not canAddSample) action=(action 'addSample')}}
+                {{/tooltip-container}}
+            {{/if}}
+        {{else if (eq options.section "subtrees")}}
+            {{#tree-list-item hide=(or spider.samples.isPending spider.samples.length) as |options|}}
+                {{#list-item-text class="text-center"}}
+                    This spider has no sample pages
+                {{/list-item-text}}
+            {{/tree-list-item}}
+            {{#tree-list-item hide=(or spider.samples.isPending spider.samples.length) class="help" as |options|}}
+                <div class="alert alert-info" role="alert">
+                    <p>
+                        Navigate to a web page that has the data you need, and create a new sample
+                        page to begin annotating the data.
+                    </p>
+                </div>
+            {{/tree-list-item}}
+            {{#each spider.samples as |sample|}}
+                {{#tree-list-item hide=(and currentSample (not-eq sample currentSample)) as |options|}}
+                    {{#link-to 'projects.project.spider.sample' sample (query-params url=sample.url baseurl=null) current-when='projects.project.spider.sample'}}
+                        {{indentation-spacer}}
+                        {{list-item-icon icon='sample'}}
+                        {{list-item-editable value=(mut sample.name) editing=(mut sample.new) onChange=(action 'saveSample' sample)}}
+                    {{/link-to}}
+
+                    {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+                        {{dropdown-delete
+                          onDelete=(action 'removeSample' sample)
+                          text='Delete Sample'
+                        }}
+                    {{/list-item-icon-menu}}
+
+                {{/tree-list-item}}
+            {{/each}}
+        {{/if}}
+    {{/tree-list-item}}
+{{/tree-list}}

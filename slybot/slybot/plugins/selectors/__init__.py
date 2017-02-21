@@ -1,6 +1,6 @@
 
 class Selectors(object):
-    def setup_bot(self, settings, spec, items, extractors, logger):
+    def setup_bot(self, settings, spider, spec, items, extractors, logger):
         self.logger = logger
         self.selectors = {} # { template_id: { field_name: {..} }
 
