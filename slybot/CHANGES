@@ -1,0 +1,188 @@
+Slybot 0.13.0b33
+    Add serializer for datetime objects when they are being exported
+    Handle malformed data when building selector
+    Add chardet as slybot requirement
+    Find element for container if it is missing
+    Do not re-encode or decode binary or text data.
+    Remove duplication by using Storage Abstraction for loading spiders.
+
+Slybot 0.13.0b32
+    Fix bug with url following
+    Improve migration for spiders using tables
+    Change spider loading to be lazy to improve performance when starting spider
+    Do not replace named html entities in urls
+    Use an empty collection of annotations if none found during migration
+
+Slybot 0.13.0b31
+    Do not require portia repo to build slybot distribution
+
+Slybot 0.13.0b30
+    Add legacy compile mode for samples
+
+Slybot 0.13.0b29
+    Allow arbitrary nesting Allow annotations and containers to share an element
+
+Slybot 0.13.0b28
+    Handle required fields from schemas in item processor
+    Extract CSS and XPath in the SlybotIBLExtractor
+    Run item validation in the SlybotIBLExtractor
+    Fix nested items using item processor
+    Add `annotated` flag to samples to avoid rebuilding samples
+
+Slybot 0.13.0b27
+    Remove tags from html content Extract raw html when using css selectors
+    Fix unicode bug
+    Handle invalid selectors gracefully
+    Do not extract items with only meta fields and url
+
+Slybot 0.13.0b26
+     Fix issue with empty css selectors
+     Change IblItem to be a subclass of scrapy.Item
+
+Slybot 0.13.0b25
+    Add configurable jump sizes and separators for repeated annotations
+    Add ItemProcessor and selector handling to non repeated items
+    Shorten specialised selectors when building sample if no elements found
+    Clean up some tests
+
+Slybot 0.13.0b24
+    Add ability to extract CSS and XPath selectors as part of items
+    Fix issue where base url is terminated by backslash
+    Fix closing unclosed annotation tag during template parsing
+
+Slybot 0.13.0b23
+    Add FeedGenerator
+
+Slybot 0.13.0b22
+    Add Normalization for generated and normal urls
+    Add body field to samples (used to decide is JS is used or not)
+    Repair annotation ids if they have been truncated
+    Repair missing fields in annotations
+    Create deterministic id generator so fields can be "re-created"
+    Save schemas  after creating missing fields and schemas
+    Handle missing extractors while porting samples
+    Return `None, None` instead of `None` for error when finding element
+    Fix bug in repeated field extractor
+    Fix error when creating item with single repeated field
+    Remove reverences to `accept_selectors` and `reject_selectors`
+
+Slybot 0.13.0b21
+    Improve repeated fields for slybot
+    Extract repeated lists of values
+    Container can only extract a single item unless it wraps a repeated container
+    Better handle cases where not all repeated items have all fields
+    Fixed printing error with BaseExtractor
+    Removed legacy support (legacy now uses scrapely.InstanceBasedLearningExtractor)
+    Log slybot version when using spidermanager
+    Add samples to train page clustering on subsequest crawls
+    Add samples to train page clustering on subsequest crawls
+
+Slybot 0.13.0b20
+    Allow slybot to be userd with scrapy<1.1.0
+
+Slybot 0.13.0b19
+    Better template matching
+    Update project url in setup.py
+    Add missing dependency in setup.py
+    Fix multiple containers in a single sample
+    Fix dupefilter fallback to different schema error
+    add annotated_body to sample if not present
+
+Slybot 0.13.0b18
+    Add selectors to annotation metadata.
+    Fix extraction issue.
+
+Slybot 0.13.0b17
+    Selectors correctly generated in the presence of HTML comments
+    Pagination link extractor now uses start_urls from spec to specify links to follow
+    Corrected bug that manifested when extracting items with more than one sibling
+
+Slybot 0.13.0b16
+    Add trigger in spec for `page_finder` algorithm for extraction
+    Fix bug where `None` can be passed to strip_url in image extractor
+
+Slybot 0.13.0b15
+    Add ability to adjust splash wait time
+
+Slybot 0.13.0b14
+    Fix per annotation requireds
+    Fix problem with suffix when extracting final item
+    Convert old style annotation to new style annotation when merging annotations
+
+Slybot 0.13.0b13
+    Change unicode to HtmlPageRegion when using type extractors
+    Add schema for generated_urls
+
+Slybot 0.13.0b12
+    Merge annotations pointing to single element
+
+Slybot 0.13.0b11
+    Add start urls generation
+    Fix per annotation requireds
+    Fix illegal characters in urls
+    Change speed test iterations using `SLYBOT_SPEED_TEST_ITERATIONS` env variable
+    Refactor spider init
+    Improve tests
+
+Slybot 0.13.0b10
+    Add extractors to descriptors
+    Check for required fields using fields ids
+    Allow `null` value for `allowed_domains`
+
+Slybot 0.13.0b9
+    Build all new samples when starting spider
+    Do not throw error when fields are missing from item
+
+Slybot 0.13.0b8
+
+    Limit domains to template and start url hosts if `allowed_domains` is empty
+    Do not drop items after first item if `version_fields` are empty
+
+Slybot 0.13.0b7
+    Create ScrapyItem correctly if no item found
+
+Slybot 0.13.0b6
+    Add `_type` field to ScrapyItem created from dict
+
+Slybot 0.13.0b5
+    Fallback for older projects
+
+Slybot 0.13.0b4
+    Fix off by one error for generated annotations.
+    Process variant fields
+
+Slybot 0.13.0b3
+    Add legacy support for variants
+
+Slybot 0.13.0b2
+    Fix nested items structure.
+    Use live page while annotating and stored page when building annotated_body
+    Move migration code to slybot
+
+Slybot 0.13.0b1
+    Add Multiple item extraction.
+    Add support for nested items.
+    Add extractors backend.
+    Add per annotation extractors rather than per field.
+    Add support for annotation `selector` field when building annotated body.
+    Add latest items and extractors when extracting data during annotation.
+    Add variant extractors.
+    Add pagination link extractor.
+    Add support for atom, rss and xml sitemaps.
+    Add algorithm for calculating containers and siblings.
+    Add saving for page HTML when creating sample.
+    Add ability to rename fields.
+    Add backwards compatability to sample.
+    Add selectors to existing annotations.
+    Add pre and post text to generated annotations.
+    Fix instantiate Annotations class.
+    Fix issuse where default scrapely RecordExtractor fails.
+    Port sample if it has a version less than 0.13.0.
+    Strip whitespace from uris.
+    Make htmlpage optional for type adapters.
+    Use type extractors and adapters correctly.
+    Change annotation format to allow extracting a single attribute to many fields.
+    When loading template add annotation text to annotations with pre and post text.
+    Loop over elements iterator rather than using map function.
+    Add `all` option to `links_to_follow`.
+    Save HTML and update annotations correctly.
