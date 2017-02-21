@@ -1,4 +1,4 @@
-from scrapyjs import SplashMiddleware
+from scrapy_splash.middleware import SplashMiddleware
 import os
 
 js_file = os.path.join(os.path.dirname(__file__), 'splash-script-combined.js')
@@ -6,6 +6,7 @@ js_source = ""
 if os.path.exists(js_file):
     with open(js_file, 'r') as f:
         js_source = f.read()
+
 
 class SlybotJsMiddleware(SplashMiddleware):
     def process_request(self, request, spider):

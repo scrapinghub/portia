@@ -62,7 +62,7 @@ class JsonSchemaTest(TestCase):
             'http://domain.com/path?bar[foo]=baz&foo[bar]=12345',                               # Anonymized URL from sentry 9f6835f5decd4d57b9475f04f0a58bd4
         ]
 
-        start_urls = map(start_url_schema, legacy_start_urls)
+        start_urls = list(map(start_url_schema, legacy_start_urls))
         validator = get_schema_validator("spider")
 
         self.assertEqual(validator.validate(spider_json(legacy_start_urls)), None)

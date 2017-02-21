@@ -14,7 +14,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends},
  python-loginform,
  python-lxml,
  python-dateparser,
- python-scrapyjs,
+ python-scrapy-splash,
  python-page-finder
 Description: A web crawler implemented in Python.
  Slybot is a Python web crawler for doing web scraping. It's implemented on top

@@ -92,7 +92,7 @@ add_extractors_to_descriptors(simple_descriptors, {})
 
 
 td = TokenDict()
-html_page = HtmlPage(body=open_spec('stack_overflow.html').decode('utf-8'))
+html_page = HtmlPage(body=open_spec('stack_overflow.html'))
 extraction_page = parse_extraction_page(td, html_page)
 with open('%s/data/SampleProject/items.json' % PATH) as f:
     items = json.load(f)
@@ -273,7 +273,8 @@ class ContainerExtractorTest(TestCase):
                          body=xceed_spider['templates'][0]['original_body'],
                          encoding='utf-8')
         ))
-        items = [d for d in data if not isinstance(d, Request)]
+        items = sorted([d for d in data if not isinstance(d, Request)],
+                       key=lambda x: ('ticket', 'venue', 'event').index(x['_type']))
         self.assertEqual(items, xceed_spider['results'])
 
     def test_extract_repeated_field(self):

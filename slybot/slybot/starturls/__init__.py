@@ -70,7 +70,7 @@ class StartUrl(object):
 
     def _find_fragment_domains(self):
         generator = self.generators[self.generator_type]
-        fragment_lists = generator.process_fragments(self.spec)
+        fragment_lists = list(generator.process_fragments(self.spec))
 
         while len(fragment_lists) > 0:
             fragment_list = fragment_lists.pop(0)

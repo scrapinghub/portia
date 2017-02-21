@@ -1,5 +1,5 @@
 import re
-from urlparse import urljoin
+from six.moves.urllib.parse import urljoin
 from scrapely.extractors import url as strip_url
 from scrapy.utils.url import safe_download_url
 from scrapy.utils.markup import unquote_markup
