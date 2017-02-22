@@ -4,7 +4,7 @@ import json
 from django.core.exceptions import ValidationError
 from scrapy import log
 from storage.projecttemplates import MERCHANT_SETTING_BASE
-#from git import Repo
+from git import Repo
 
 
 KIPP_MERCHANT_SETTINGS_DIR = '/apps/{username}/{country_code}/{spider_name}'
@@ -19,10 +19,10 @@ def train_scrapely(storage, model, username):
     """
     samples = load_samples(storage, model)
     scrapely_templates = generate_scrapely_templates(samples)
-    save_scrapely_object(model.id, scrapely_templates)
-    merchant_setting = create_kipp_setting(model)
-    save_kipp_config(model.id, model.country_code, merchant_setting)
-    publish_kipp_settings(user=username, country=model.country_code, spider=model.id)
+    save_scrapely_object(spider_name=model.id, country_code=model.country_code, username=username, scrapely_templates=scrapely_templates)
+    merchant_settings = create_kipp_setting(model)
+    save_kipp_config(spider_name=model.id, country_code=model.country_code, username=username, merchant_settings=merchant_settings)
+    publish_kipp_settings(username=username, country_code=model.country_code, spider_name=model.id)
 
 
 def load_samples(storage, model):
@@ -109,7 +109,7 @@ def save_kipp_config(spider_name, country_code, username, merchant_settings):
     merchant_file_path = os.path.join(kipp_country_setting_dir, merchant_file_name)
     with open(merchant_file_path, 'w') as f:
         f.write(merchant_settings)
-    log.msg('%s kipp configurations is saved at %s' % spider_name, kipp_country_setting_dir)
+    log.msg('%s kipp configurations is saved at %s'.format(spider_name, kipp_country_setting_dir))
 
 
 def create_kipp_setting(spider):
@@ -209,7 +209,7 @@ def publish_kipp_settings(username, country_code, spider_name):
 
     kipp_country_setting_dir = KIPP_MERCHANT_SETTINGS_DIR.format(username=username,
                                                                  country_code=country_code,
-                                                                 spider=spider_name)
+                                                                 spider_name=spider_name)
     kipp_config_file_path = kipp_country_setting_dir + '/%s.py' % spider_name
     scrapely_config_file_path = kipp_country_setting_dir + '/%s.json' % spider_name
     if os.path.exists(kipp_config_file_path) and os.path.exists(scrapely_config_file_path):
