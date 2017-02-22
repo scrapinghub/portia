@@ -1,6 +1,20 @@
 from scrapy_splash.middleware import SplashMiddleware
 import os
 
+
+DEFAULT_LUA_SOURCE = '''
+function main(splash)
+  splash:init_cookies(splash.args.cookies)
+  local url = splash.args.url
+  assert(splash:go(url))
+  assert(splash:wait(splash.args.wait))
+  splash:runjs(splash.args.js_source)
+  assert(splash:wait(0.5))
+  return {
+    html = splash:html(),
+    cookies = splash:get_cookies(),
+  }
+end'''
 js_file = os.path.join(os.path.dirname(__file__), 'splash-script-combined.js')
 js_source = ""
 if os.path.exists(js_file):
@@ -20,12 +34,3 @@ class SlybotJsMiddleware(SplashMiddleware):
         if splash_auth and 'Authorization' not in request.headers:
             request.headers['Authorization'] = splash_auth
         return req
-
-    def process_response(self, request, response, spider):
-        splash_options = request.meta.get("_splash_processed")
-        response = super(SlybotJsMiddleware, self).process_response(
-            request, response, spider)
-        if splash_options:
-            url = splash_options['args'].get('url')
-            response._set_url(url or response.url)
-        return response
