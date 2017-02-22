@@ -1,5 +1,8 @@
 import re
 import itertools
+
+from collections import OrderedDict
+
 from lxml import html
 
 from scrapy.http.request.form import _get_inputs
@@ -64,9 +67,9 @@ class GenericForm:
         # Get all the possible inputs for each field
         values = [self._get_field_values(form, field)
                   for field in form_descriptor['fields']]
-
         for params in itertools.product(*values):
-            form_values = dict(_get_inputs(form, None, False, None, None))
+            form_values = OrderedDict(_get_inputs(form, None, False, None,
+                                                  None))
             for name, option in params:
                 form_values[name] = option
             yield list(form_values.items()), form.action or form.base_url, form.method

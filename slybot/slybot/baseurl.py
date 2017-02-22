@@ -1,7 +1,10 @@
 """
 html page utils
 """
-import urlparse, re
+import re
+
+from six.moves.urllib.parse import urljoin
+
 from scrapely.htmlpage import parse_html, HtmlTagType
 
 ABSURLRE = re.compile("^https?\:\/\/")
@@ -31,7 +34,7 @@ def insert_base_url(html, base):
 
     if baseurl:
         if not _is_abs_url(baseurl):
-            absurl = urlparse.urljoin(base, baseurl)
+            absurl = urljoin(base, baseurl)
             # replace original base tag
             basetag = '<base href="%s" />' % absurl
             html = html[:baseelement.start] + basetag + html[baseelement.end:]

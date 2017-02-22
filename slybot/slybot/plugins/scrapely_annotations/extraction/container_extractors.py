@@ -2,11 +2,10 @@ import pprint
 import copy
 
 from collections import defaultdict
-from cStringIO import StringIO
 from itertools import groupby
 
 from numpy import array
-from six.moves import xrange
+from six.moves import xrange, StringIO
 
 from scrapely.extraction.pageobjects import AnnotationTag
 from scrapely.extraction.regionextract import (
@@ -145,7 +144,7 @@ class BaseContainerExtractor(object):
                     parent = containers[parent_id]
             path.reverse()
             extraction_tree.append(path)
-        return extraction_tree
+        return sorted(extraction_tree, key=len)
 
     @classmethod
     def _build_containerized_extractors(cls, containers, container_annos,
@@ -189,9 +188,8 @@ class BaseContainerExtractor(object):
         """
         Look for an annotation with the given id in the given template
         """
-        annotation_id = annotation_id.decode('utf-8')
         for annotation in template.annotations:
-            aid = annotation.metadata.get('id', '').decode('utf-8')
+            aid = annotation.metadata.get('id', '')
             if aid == annotation_id:
                 return annotation
 
@@ -208,7 +206,6 @@ class BaseContainerExtractor(object):
                     continue
                 if k not in item:
                     return {}
-        # TODO: Pass item region
         processor = ItemProcessor(item, self, region, surrounding_region,
                                   htmlpage)
 
@@ -472,7 +469,7 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
         child = self._annotation = containers[child_id][0].annotation
         parent_id = child.metadata.get('container_id')
         parent = self._find_annotation(template, parent_id)
-        siblings = child.metadata.get('siblings', 0)
+        siblings = child.metadata.get('siblings') or 0
         end = child.end_index
         if siblings > 0:
             end = self._find_siblings_end(template, child.end_index + 1,

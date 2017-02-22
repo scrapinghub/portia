@@ -35,6 +35,7 @@ class ItemProcessor(object):
     """Processor for extracted data."""
     ignore = False
     should_overwrite = True
+    selector_modes = (u'css', u'xpath')
 
     def __init__(self, data, extractor, regions, parent_region=None,
                  htmlpage=None):
@@ -120,7 +121,7 @@ class ItemProcessor(object):
         fields = self.fields if fields is None else fields
         child = None
         if len(item.fields) == 1:
-            child = item.fields.values()[0]
+            child = next(six.itervalues(item.fields))
         if child and item.descriptor == child.extractor:
             fields[child.id] = child
         else:
@@ -166,16 +167,11 @@ class ItemProcessor(object):
         return self.dump(include_meta, validate=True)
 
     def _process_selectors(self, selector):
-        selector_modes = (u'css', u'xpath')
-        selector_annotations = (
-            a.metadata for a in self.annotations
-            if (a.metadata.get(u'selection_mode') in selector_modes and
-                a.metadata.get(u'id') not in self.fields)
-        )
+        selector_annotations = self._selector_annotations()
         field_annotations = (
             f.metadata for f in self.fields.values()
             if hasattr(f, 'selection_mode') and
-            f.selection_mode in selector_modes
+            f.selection_mode in self.selector_modes
         )
         for field_id, field in self.fields.items():
             if hasattr(field, 'fields'):
@@ -191,6 +187,18 @@ class ItemProcessor(object):
             chain(selector_annotations, field_annotations))
         if all_selector_annotations:
             self._process_css_and_xpath(all_selector_annotations, selector)
+
+    def _selector_annotations(self):
+        for annotation in self.annotations:
+            meta = annotation.metadata
+            if meta.get(u'selection_mode') not in self.selector_modes:
+                continue
+            surrounds = arg_to_iter(annotation.surrounds_attribute) or []
+            tags = chain(*(a for _, a in annotation.tag_attributes))
+            for attribute in chain(surrounds, tags):
+                new_attribute = {k: v for k, v in meta.items()}
+                new_attribute.update(attribute)
+                yield new_attribute
 
     def _process_css_and_xpath(self, annotations, selector):
         schema, modifiers, page = self.schema, self.modifiers, self.htmlpage
@@ -304,7 +312,7 @@ class ItemProcessor(object):
     def _validate(self, item):
         item_fields = self._item_with_names(item, u'name')
         # Bring keys from nested items into primary item for required check
-        for key, value in item_fields.items():
+        for key, value in list(item_fields.items()):
             if isinstance(value, dict):
                 for sub_key in value:
                     item_fields[sub_key] = True

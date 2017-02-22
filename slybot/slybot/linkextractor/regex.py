@@ -18,7 +18,7 @@ class RegexLinkExtractor(BaseLinkExtractor):
 
     def _extract_links(self, response):
         """First extract regex groups(). If empty, extracts from regex group()"""
-        for s in self.regex.finditer(response.body):
+        for s in self.regex.finditer(response.text):
             if s.groups():
                 for url in s.groups():
                     yield Link(url)
