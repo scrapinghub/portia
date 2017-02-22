@@ -1,3 +1,6 @@
+Slybot 0.13.0b34
+    Fix error when building legacy spiders
+
 Slybot 0.13.0b33
     Add serializer for datetime objects when they are being exported
     Handle malformed data when building selector

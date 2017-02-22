@@ -197,7 +197,8 @@ class Annotations(object):
         if selector_annotations:
             converted_annotations = self.apply_selector(selector_annotations)
             tagid_annotations += converted_annotations
-        tagid_annotations = self.verify(tagid_annotations)
+        if not self.legacy:
+            tagid_annotations = self.verify(tagid_annotations)
         target = iter(parse_html(numbered_html))
         output, stack = [], []
         elem = next(target)
