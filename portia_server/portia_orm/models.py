@@ -256,7 +256,7 @@ class Spider(Model):
 
     @pre_load
     def dump_templates(self, data):
-        if 'templates' not in data:
+        if not data.get('templates'):
             path = '/'.join(strip_json(self.context['path']).split('/')[:2])
             storage = self.context['storage']
             try:
