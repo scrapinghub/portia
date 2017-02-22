@@ -35,7 +35,7 @@ install_python_deps -- install python-level dependencies
 configure_initctl -- installs initctl configuration and starts slyd
 configure_nginx -- installs nginx configuration
 cleanup -- remove unnecessary files. DON'T RUN UNLESS IT'S INSIDE AN IMAGE AND YOU KNOW WHAT YOU ARE DOING
-
+clone_kipp_config -- Clone Kipp config repo
 EOF
 }
 
@@ -66,7 +66,8 @@ install_deps(){
             python-numpy \
             python-openssl \
             python-pip \
-            python-software-properties
+            python-software-properties \
+            git
 }
 
 install_python_deps(){
@@ -112,6 +113,17 @@ configure_initctl(){
     echo "====================="
     /etc/init.d/nginx start
     start slyd
+}
+
+clone_kipp_config(){
+    users=("mina")
+
+    for i in "${users[@]}";
+    do
+        if [ ! -d "/app/$i" ]; then
+        git clone -b $i https://github.com/flyingelephantlab/kipp_configurations /app/$i;
+        fi
+    done
 }
 
 if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then

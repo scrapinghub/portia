@@ -24,5 +24,7 @@ RUN /app/provision.sh cleanup
 ADD nginx /etc/nginx
 ADD . /app
 
+RUN /app/provision.sh clone_kipp_config
+
 EXPOSE 9001
 ENTRYPOINT ["/app/docker/entry"]

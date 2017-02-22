@@ -11,3 +11,4 @@ requests==2.9.1
 toposort==1.4
 whitenoise==3.2
 portia2code==0.0.8
+gitpython

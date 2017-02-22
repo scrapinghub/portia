@@ -110,8 +110,11 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         except TypeError:
             raise JsonApiGeneralException(
                 'No spider found with the name "%s"' % kwargs.get('spider_id'), 404)
+        username = kwargs.get('username')
+        if username not in ['mina']:
+            raise JsonApiGeneralException('Invalid username', 400)
         try:
-            templates = train_scrapely(self.storage, instance)
+            templates = train_scrapely(self.storage, instance, username)
         except ValidationError, e:
             raise JsonApiGeneralException(e.message, 400)
         return Response(templates, status=HTTP_200_OK)
