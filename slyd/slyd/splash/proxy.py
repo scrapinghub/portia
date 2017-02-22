@@ -12,6 +12,7 @@ from .qtutils import QNetworkRequest, to_py
 from .ferry import User
 from .css_utils import process_css
 
+
 class ProxyResource(Resource):
     def render_GET(self, request):
         if not request.auth_info or not request.auth_info.get('username', None):
@@ -22,7 +23,10 @@ class ProxyResource(Resource):
 
         url = request.args['url'][0]
         referer = request.args['referer'][0]
-        tabid = int(request.args['tabid'][0])
+        try:
+            tabid = int(request.args['tabid'][0])
+        except (ValueError, TypeError):
+            return self._error(request, 400, 'Tab must exist'.format(arg))
         return self._load_resource(request, url, referer, tabid)
 
     def _load_resource(self, request, url, referer, tabid=None):
