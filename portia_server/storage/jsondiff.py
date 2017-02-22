@@ -26,7 +26,7 @@ class Conflict(object):
     @classmethod
     def resolve_sub_conflict(cls, mine, other):
         c = cls.from_prepared(mine, other, [])
-        return c.resolve_conflict()
+        return c.resolve_conflict() or []
 
     def update(self, m, o, b):
         if m is not _BLANK:
@@ -120,7 +120,7 @@ def merge_lists(base, mine, other):
     offset = 0
     for i, r in enumerate(result[:]):
         if isinstance(r, Conflict):
-            c = r.resolve_conflict()
+            c = r.resolve_conflict() or []
             result = result[:i + offset] + c + result[i + offset + 1:]
             offset += len(c) - 1
     return result

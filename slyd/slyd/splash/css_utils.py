@@ -5,9 +5,9 @@ from six.moves.urllib_parse import urlparse
 from slybot.utils import decode, encode
 
 
-CSS_IMPORT = re.compile(r'''@import\s*["']([^"']+)["']''')
-CSS_URL = re.compile(r'''\burl\(("[^"]+"|'[^']+'|[^"')][^)]+)\)''')
-BAD_CSS = re.compile(r'''(-moz-binding|expression\s*\(|javascript\s*:)''', re.I)
+CSS_IMPORT = re.compile(ur'''@import\s*["']([^"']+)["']''')
+CSS_URL = re.compile(ur'''\burl\(("[^"]+"|'[^']+'|[^"')][^)]+)\)''')
+BAD_CSS = re.compile(ur'(-moz-binding|expression\s*\(|javascript\s*:)', re.I)
 
 
 def wrap_url(url, tabid, base=None):

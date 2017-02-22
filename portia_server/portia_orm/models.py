@@ -501,7 +501,10 @@ class Sample(Model, OrderedAnnotationsMixin):
 
     @staticmethod
     def _populate_schema_id(data, schema_id):
-        annotations = data['plugins']['annotations-plugin']['extracts']
+        try:
+            annotations = data['plugins']['annotations-plugin']['extracts']
+        except KeyError:
+            annotations = []
         for anno in annotations:
             if (anno.get('item_container') and
                     anno.get('container_id') is None and

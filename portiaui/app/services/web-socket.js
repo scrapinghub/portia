@@ -1,6 +1,7 @@
 import Ember from 'ember';
 import config from '../config/environment';
 import { logError, shortGuid } from '../utils/utils';
+const { computed, run, Evented, Logger, RSVP, Service} = Ember;
 
 const APPLICATION_UNLOADING_CODE = 4001;
 const DEFAULT_RECONNECT_TIMEOUT = 5000;
@@ -15,10 +16,10 @@ var defaultUrl = function() {
     return URI.build(uri);
 };
 
-export default Ember.Service.extend(Ember.Evented, {
+export default Service.extend(Evented, {
 
     closed: true,
-    opened: Ember.computed.not('closed'),
+    opened: computed.not('closed'),
     connecting: false,
     ws: null,
     heartbeat: null,
@@ -27,7 +28,7 @@ export default Ember.Service.extend(Ember.Evented, {
     deferreds: {},
     url: defaultUrl(),
     secondsUntilReconnect: 0,
-    reconnectImminent: Ember.computed.lt('secondsUntilReconnect', 2),
+    reconnectImminent: computed.lt('secondsUntilReconnect', 2),
 
     init: function(options) {
         if(options) { this.setProperties(options); }
@@ -62,11 +63,12 @@ export default Ember.Service.extend(Ember.Evented, {
         }
         this.set('closed', true);
         this.set('connecting', false);
-        Ember.Logger.log('<Closed Websocket>');
+
+        Logger.log('<Closed Websocket>');
         if(e.code !== APPLICATION_UNLOADING_CODE && e.code !== 1000) {
             var timeout = this._connectTimeout();
             this.set('secondsUntilReconnect', Math.round(timeout/1000));
-            var next = Ember.run.later(this, this.connect, timeout);
+            var next = run.later(this, this.connect, timeout);
             this.set('reconnectTid', next);
         }
     },
@@ -97,12 +99,12 @@ export default Ember.Service.extend(Ember.Evented, {
         if (this.has(command)) {
             this.trigger(command, data);
         } else {
-            return logError('Received unknown command: ' + command);
+            return Logger.debug('Received unknown command: ' + command);
         }
     },
 
     _onopen() {
-        Ember.Logger.log('<Opened Websocket>');
+        Logger.log('<Opened Websocket>');
         this.set('closed', false);
         this.set('connecting', false);
         this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
@@ -113,7 +115,7 @@ export default Ember.Service.extend(Ember.Evented, {
 
     _createWebsocket: function() {
         if (this.get('reconnectTid')) {
-            Ember.run.cancel(this.get('reconnectTid'));
+            run.cancel(this.get('reconnectTid'));
             this.set('reconnectTid', null);
         }
         this.set('secondsUntilReconnect', 0);
@@ -122,7 +124,7 @@ export default Ember.Service.extend(Ember.Evented, {
         try {
             ws = new WebSocket(this.get('url'));
         } catch (err) {
-            Ember.Logger.log('Error connecting to server: ' + err);
+            Logger.log('Error connecting to server: ' + err);
             this.set('connecting', false);
             return;
         }
@@ -166,7 +168,7 @@ export default Ember.Service.extend(Ember.Evented, {
     },
 
     _sendPromise: function(data) {
-        var deferred = new Ember.RSVP.defer();
+        var deferred = new RSVP.defer();
         if (!data._meta) {
             data._meta = this._metadata(null);
         } else if (!data._meta.id) {
