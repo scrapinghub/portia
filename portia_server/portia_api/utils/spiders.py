@@ -16,8 +16,10 @@ def load_spider_data(model):
         default = u'<html></html>'
         for key in ('original_body', 'rendered_body'):
             try:
-                json_sample[key] = getattr(sample, key).html
-            except (IOError, AttributeError):
+                html = getattr(sample, key).html
+                assert html
+                json_sample[key] = html
+            except (IOError, AttributeError, AssertionError):
                 json_sample[key] = default
             else:
                 default = json_sample[key]

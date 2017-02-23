@@ -63,8 +63,13 @@ class ModelCopier(object):
         copied_sample.spider = spider
         copied_sample.original_body = self._copy_body(
             sample.original_body, sample)
-        copied_sample.rendered_body = self._copy_body(
-            sample.rendered_body, sample)
+        try:
+            copied_sample.rendered_body = self._copy_body(
+                sample.rendered_body, sample)
+        except AttributeError:
+            # Ignore missing rendered body.
+            # It will be added when the sample is modified
+            pass
 
         copied_sample.save()
         return copied_sample

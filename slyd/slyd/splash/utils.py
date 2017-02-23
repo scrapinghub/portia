@@ -22,18 +22,6 @@ def decoded_html(tab, type_=None):
     return tab.html()
 
 
-def open_tab(func):
-    def wrapper(data, socket):
-        if socket.tab is None:
-            meta = data.get('_meta', data)
-            socket.open_tab(meta)
-            socket.open_spider(meta)
-        return func(data, socket)
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
-    return wrapper
-
-
 def extract_data(url, html, spider, templates):
     items, links = [], []
     if isinstance(html, six.text_type):
@@ -58,6 +46,7 @@ def page(url, html):
 def _html_path(sample):
     path = sample.storage_path(sample)[:-len('.json')].strip('/')
     return '{}/{{}}.html'.format(path)
+
 
 def _get_template_name(template_id, templates):
     for template in templates:

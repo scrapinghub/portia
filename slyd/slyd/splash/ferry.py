@@ -10,7 +10,7 @@ from autobahn.twisted.resource import WebSocketResource
 from autobahn.twisted.websocket import (WebSocketServerFactory,
                                         WebSocketServerProtocol)
 from weakref import WeakKeyDictionary, WeakValueDictionary
-from twisted.internet import defer
+from twisted.internet import defer, task
 from twisted.python import log
 
 from scrapy.settings import Settings
@@ -26,7 +26,6 @@ from slyd.errors import BaseHTTPError
 from django.db import close_old_connections
 
 from storage import create_project_storage
-from storage.repoman import Repoman
 
 from portia_orm.models import Project
 from portia_orm.datastore import data_store_context
@@ -34,8 +33,7 @@ from portia_api.utils.spiders import load_spider_data
 
 from .qtutils import QObject, pyqtSlot, QWebElement
 from .cookies import PortiaCookieJar
-from .commands import (load_page, interact_page, close_tab, metadata, resize,
-                       resolve, extract_items, save_html, update_spider)
+from .commands import Commands
 from .css_utils import process_css, wrap_url
 from .utils import _DEFAULT_VIEWPORT, ProjectsDict
 import six
@@ -48,10 +46,10 @@ _DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 '
                        '(KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36')
 
 
-def wrap_callback(connection, callback, storage, retries=0, **parsed):
+def wrap_callback(connection, callback, retries=0, **parsed):
     result = callback(**parsed)
-    if hasattr(storage, '_working_tree'):
-        storage.commit()
+    if hasattr(parsed.get('storage'), '_working_tree'):
+        parsed['storage'].commit()
     return result
 
 
@@ -149,11 +147,18 @@ class SpiderSpec(object):
     def templates(self):
         return self.spider['templates']
 
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, str(self))
+
+    def __str__(self):
+        return '{}, {}'.format(self.project, self.name)
+
 
 class PortiaJSApi(QObject):
     def __init__(self, protocol):
         super(PortiaJSApi, self).__init__()
         self.protocol = protocol
+        self.call = None
 
     @pyqtSlot(QWebElement)
     def returnElement(self, element):
@@ -194,34 +199,36 @@ class PortiaJSApi(QObject):
             '_command': command,
             '_data': data
         })
-        if command == 'mutation':
-            self.protocol.sendMessage(metadata(self.protocol))
+        if command == 'mutation' and not self.call:
+            self.call = task.deferLater(self.protocol.factory.reactor, 1,
+                                        self.extract)
+
+    def extract(self):
+        commands = Commands({}, self.protocol, None)
+        self.protocol.sendMessage(commands.metadata())
+        self.call = None
+        print('Called extract')
 
 
 def is_blacklisted(url, settings):
     from urlparse import urlparse
     return urlparse(url).netloc in settings.get('BLACKLIST_URLS', [])
 
+
 def blacklist_error(data, socket):
     meta = data.get('_meta', {})
     extra_meta = {'id': meta.get('id')}
     msg = "Sorry Portia doesn't support this page :("
     extra_meta.update(error=4500, reason=msg)
-    socket.sendMessage(metadata(socket, extra_meta))
+    commands = Commands({}, socket, None)
+    socket.sendMessage(commands.metadata(extra_meta))
 
 
 class FerryServerProtocol(WebSocketServerProtocol):
 
     _handlers = {
-        'load': load_page,
-        'interact': interact_page,
-        'close_tab': close_tab,
-        'heartbeat': lambda d, s: None,
-        'resize': resize,
-        'resolve': resolve,
-        'extract_items': extract_items,
-        'save_html': save_html,
-        'update_spider': update_spider
+        'load': 'load_page',
+        'interact': 'interact_page'
     }
     assets = './'
     settings = Settings()
@@ -258,26 +265,20 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
     def onMessage(self, payload, isbinary):
         close_old_connections()
-        pool = getattr(Repoman, 'pool', None)
         payload = payload.decode('utf-8')
         data = json.loads(payload)
         project = data.get('project', data.get('_meta', {}).get('project'))
-        self.storage = create_project_storage(project, author=self.user)
-        projects = self.storage.__class__.get_projects(self.user)
+        storage = create_project_storage(project, author=self.user)
+        projects = storage.__class__.get_projects(self.user)
         if project and str(project) not in projects:
             self.sendMessage({'status': 4004, 'message': 'Project not found'})
             return
-        if pool is not None:
-            deferred = defer.maybeDeferred(
-                pool.run_deferred_with_connection, wrap_callback,
-                self._on_message, self.storage, data=data)
-        else:
-            deferred = defer.maybeDeferred(
-                wrap_callback, None, self._on_message, self.storage, data=data)
+        deferred = defer.maybeDeferred(
+            wrap_callback, None, self._on_message, storage=storage, data=data)
         deferred.addCallbacks(self.sendMessage,
                               partial(self.send_error, data))
 
-    def _on_message(self, data):
+    def _on_message(self, storage, data):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
 
@@ -286,8 +287,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
             return
 
         command = data['_command']
+        command = self._handlers.get(command, command)
         with data_store_context():
-            result = self._handlers[command](data, self)
+            commands = Commands(data, self, storage)
+            result = getattr(commands, command, lambda: None)()
         if result:
             result.setdefault('_command', data.get('_callback', command))
             if '_meta' in data and 'id' in data['_meta']:
@@ -312,7 +315,6 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 json.dumps(payload, cls=ScrapyJSONEncoder, sort_keys=True),
                 is_binary
             )
-        self.factory[self].spider, self.storage = None, None
 
     def send_error(self, data, failure):
         e = failure.value
@@ -404,7 +406,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             os.path.join(self.assets, 'splash_content_scripts'),
             handle_errors=False)
 
-    def open_spider(self, meta, project=None):
+    def open_spider(self, meta, storage=None, project=None):
         if not (meta.get('project') and meta.get('spider')):
             return {'error': 4005, 'reason': 'No project specified'}
 
@@ -415,13 +417,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
                     'reason': 'Project "%s" not found' % meta['project']}
         spider_name = meta['spider']
 
-        # project_meta = meta.get('project')
-        # project_id = (project_meta if isinstance(project_meta, six.string_types)
-        #               else project_meta.id)
-        # project = Project(self.storage, id=project_id)
-
         if project is None:
-            project = Project(self.storage, id=meta.get('project'))
+            project = Project(storage, id=meta.get('project'))
 
         try:
             spider_model = project.spiders[spider_name]
@@ -436,30 +433,23 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.factory[self].spiderspec = SpiderSpec(
             project, spider_name, spider, items, extractors)
 
-    def update_spider(self, meta, spider=None, template=None, items=None,
-                      extractors=None):
-        if not hasattr(self.factory[self], 'spiderspec'):
-            return self.open_spider(meta)
-        spec = self.factory[self].spiderspec
-        if spec is None or spec.name != meta.get('spider'):
-            return self.open_spider(meta)
-        items = items or spec.items
-        extractors = extractors or spec.extractors
-        if spider:
-            spider['templates'] = spec.spider['templates']
-        else:
-            spider = spec.spider
-        if template:
-            for idx, tmpl in enumerate(spider['templates']):
-                if template['original_body'] == tmpl['original_body']:
-                    spider['templates'][idx] = template
-                    break
-            else:
-                spider['templates'].append(template)
-        self.factory[self].spider = IblSpider(meta['spider'], spider, items,
-                                              extractors, self.settings)
-        self.factory[self].spiderspec = SpiderSpec(
-            spec.project, meta['spider'], spider, items, extractors)
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, str(self))
+
+    def __str__(self):
+        tab, spider, spec = '', '', ''
+        if self.tab:
+            try:
+                tab = '{}({})'.format(
+                    self.tab.__class__.__name__, self.tab.url)
+            except RuntimeError:
+                tab = 'MISSING'
+        if self.spider:
+            spider = '{}({})'.format(
+                self.spider.__class__.__name__, self.spider.name)
+        if self.spec:
+            spec = str(self.spec)
+        return ', '.join(filter(bool, (tab, spider, spec)))
 
 
 class FerryServerFactory(WebSocketServerFactory):
