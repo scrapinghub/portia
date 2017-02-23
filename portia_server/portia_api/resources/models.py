@@ -135,6 +135,7 @@ class FieldSchema(SlydSchema):
 
 class SpiderSchema(SlydSchema):
     id = fields.Str(dump_only=True, load_from='name')
+    username = fields.Str()
     name = fields.Str()
     start_urls = fields.List(fields.Str(), default=[])
     links_to_follow = fields.Str(default='patterns')

@@ -10,7 +10,7 @@ export default Ember.Component.extend({
         trainSpider(spider) {
             this.get('api').post('train', {
                 model: spider,
-                jsonData: {data: {type: 'spiders', id: spider.id}}
+                jsonData: {data: {type: 'spiders', id: spider.id, username: spider.username}}
             }).then(() => {
                 this.get('notificationManager').showNotification(
                     'Your spider has been trained successfully');

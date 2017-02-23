@@ -143,4 +143,16 @@ export default BaseModel.extend({
         defaultValue: ''
     }),
 
+    user: DS.attr('string'),
+
+    userAlias: Ember.computed('username', 'user', {
+        get() {
+            return this.get('user') || this.get('username');
+        },
+        set(key, value) {
+            this.set('user', value);
+            return value;
+        }
+    }),
+
 });
