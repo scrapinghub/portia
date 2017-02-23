@@ -110,7 +110,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         except TypeError:
             raise JsonApiGeneralException(
                 'No spider found with the name "%s"' % kwargs.get('spider_id'), 404)
-        username = self.data['data']['username']
+        username = self.data['data'].get('username')
         if username not in ['mina','nagy']:
             raise JsonApiGeneralException('Invalid username', 400)
         try:

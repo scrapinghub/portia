@@ -7,7 +7,7 @@ from storage.projecttemplates import MERCHANT_SETTING_BASE
 from git import Repo
 
 
-KIPP_MERCHANT_SETTINGS_DIR = '/apps/{username}/{country_code}/{spider_name}'
+KIPP_MERCHANT_SETTINGS_DIR = '/app/{username}/{country_code}/{spider_name}'
 
 
 def train_scrapely(storage, model, username):
@@ -215,9 +215,11 @@ def publish_kipp_settings(username, country_code, spider_name):
     if os.path.exists(kipp_config_file_path) and os.path.exists(scrapely_config_file_path):
         #TODO: try and catch exceptions
         repo = Repo('/app/%s' % username)
+        config = repo.config_writer()
+        config.set_value("user", "name", username)
         index = repo.index
         index.add([kipp_config_file_path, scrapely_config_file_path])
-        commit_msg = '%s: Update %s[%s]spider configurations' % username, spider_name, country_code
+        commit_msg = '%s: Update %s[%s]spider configurations' % (username, spider_name, country_code)
         index.commit(commit_msg)
         origins = repo.remotes
         #TODO: Handling git username and password
