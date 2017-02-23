@@ -66,8 +66,7 @@ install_deps(){
             python-numpy \
             python-openssl \
             python-pip \
-            python-software-properties \
-            git
+            python-software-properties
 }
 
 install_python_deps(){
@@ -116,12 +115,15 @@ configure_initctl(){
 }
 
 clone_kipp_config(){
+    apt-get -y install git ssh
+    ssh-keyscan github.com >> ~/.ssh/known_hosts
+
     users=("mina")
 
     for i in "${users[@]}";
     do
         if [ ! -d "/app/$i" ]; then
-        git clone -b $i https://github.com/flyingelephantlab/kipp_configurations /app/$i;
+          git clone -b $i git@github.com:flyingelephantlab/kipp_configurations.git /app/$i;
         fi
     done
 }
