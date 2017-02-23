@@ -201,6 +201,7 @@ class Extractor(Model):
 class Spider(Model):
     # TODO: validate id against allowed file name
     id = String(primary_key=True)
+    username = String()
     start_urls = List(Nested(StartUrl))
     links_to_follow = String(default='all', validate=OneOf(
         ['none', 'patterns', 'all', 'auto']))
