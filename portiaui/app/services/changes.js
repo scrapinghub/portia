@@ -3,7 +3,9 @@ const { observer, computed, inject: { service }, run: { next } } = Ember;
 
 export default Ember.Service.extend({
     uiState: service(),
+    capabilities: service(),
     project: computed.readOnly('uiState.models.project'),
+    versionControlled: computed.readOnly('capabilities.capabilities.version_control'),
 
     hasChanges: null,
     _project_id: null,
@@ -20,7 +22,7 @@ export default Ember.Service.extend({
 
     _checkProjectChanges() {
         let project = this.get('project');
-        if (!project) { return false; }
+        if (!(project && this.get('versionControlled'))) { return false; }
 
         next(this, () => {
             project.status().then(status => {
