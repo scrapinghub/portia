@@ -422,8 +422,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
         try:
             spider_model = project.spiders[spider_name]
-        except IOError:
-            return {'error': 4003,
+        except (IOError, KeyError):
+            return {'error': 4004,
                     'reason': 'Spider "%s" not found' % spider_name}
         spider_name, spider, items, extractors = load_spider_data(spider_model)
         if not self.settings.get('SPLASH_URL'):

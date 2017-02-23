@@ -57,11 +57,11 @@ class Commands(object):
         self.socket.spiderspec.project = project
         spider = project.spiders[data['spider']]
         samples = spider.samples
-        sample = samples[data['sample']]
         try:
+            sample = samples[data['sample']]
             self._update_sample(sample)
-        except IOError:
-            pass
+        except (IOError, KeyError):
+            pass  # Sample doesn't exist or may not exist yet
         return {'ok': True}
 
     def extract_items(self):
@@ -223,7 +223,6 @@ class Commands(object):
         if self.tab is None:
             meta = self.data.get('_meta', self.data)
             self.socket.open_tab(meta)
-            self.socket.open_spider(meta, self.storage)
 
 
 def _process_items(items):
@@ -279,9 +278,12 @@ class ItemChecker(object):
             project = Project(command.storage, id=project, name=project_name)
         self.project = project
         if not self.socket.spider:
-            self.socket.open_spider(
-                {'project': self.project.id, 'spider': spider},
-                project=project)
+            try:
+                self.socket.open_spider(
+                    {'project': self.project.id, 'spider': spider},
+                    project=project)
+            except KeyError:
+                pass  # Ignore extraction as it is not fully set up yet
         self.spider = spider
         self.sample = sample
         if (self.spider and (not self.socket.spider or

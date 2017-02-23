@@ -1,7 +1,7 @@
 from portia_orm.models import Schema
 
 from .projects import BaseProjectModelRoute
-from ..jsonapi.exceptions import JsonApiBadRequestError
+from ..jsonapi.exceptions import JsonApiBadRequestError, JsonApiNotFoundError
 
 
 class SchemaRoute(BaseProjectModelRoute):
@@ -25,7 +25,10 @@ class SchemaRoute(BaseProjectModelRoute):
         }
 
     def destroy(self, *args, **kwargs):
-        schema = self.get_instance()
+        try:
+            schema = self.get_instance()
+        except KeyError:
+            raise JsonApiNotFoundError('Unable to find the requested schema')
         for spider in self.project.spiders:
             for sample in spider.samples:
                 for item in sample.items:

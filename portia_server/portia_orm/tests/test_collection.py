@@ -30,9 +30,9 @@ class ModelCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[model1b], model1)
         with self.assertRaises(IndexError):
             collection[1]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-2']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model2]
 
     def test_setitem_index(self):
@@ -55,11 +55,11 @@ class ModelCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[0], model2)
         self.assertEqual(collection['model-2'], model2)
         self.assertEqual(collection[model2], model2)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-1']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1b]
 
     def test_setitem_key(self):
@@ -82,11 +82,11 @@ class ModelCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[0], model2)
         self.assertEqual(collection['model-2'], model2)
         self.assertEqual(collection[model2], model2)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-1']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1b]
 
     def test_setitem_object(self):
@@ -109,11 +109,11 @@ class ModelCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[0], model2)
         self.assertEqual(collection['model-2'], model2)
         self.assertEqual(collection[model2], model2)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-1']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1b]
 
     def test_delitem_index(self):
@@ -323,14 +323,14 @@ class ModelCollectionTests(DataStoreTestCase):
         self.assertEqual(len(collection), 2)
         self.assertListEqual(collection, [model2, model4])
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection.pop('model-1')
 
         self.assertEqual(collection.pop(model4), model4)
         self.assertEqual(len(collection), 1)
         self.assertListEqual(collection, [model2])
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection.pop(model4)
 
     def test_get(self):
@@ -441,9 +441,9 @@ class PolymorphicCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[model2b], model2)
         with self.assertRaises(IndexError):
             collection[2]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-3']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model3]
 
     def test_setitem_index(self):
@@ -466,11 +466,11 @@ class PolymorphicCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[0], model2)
         self.assertEqual(collection['model-2'], model2)
         self.assertEqual(collection[model2], model2)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-1']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1b]
 
     def test_setitem_key(self):
@@ -493,11 +493,11 @@ class PolymorphicCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[0], model2)
         self.assertEqual(collection['model-2'], model2)
         self.assertEqual(collection[model2], model2)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-1']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1b]
 
     def test_setitem_object(self):
@@ -520,11 +520,11 @@ class PolymorphicCollectionTests(DataStoreTestCase):
         self.assertEqual(collection[0], model2)
         self.assertEqual(collection['model-2'], model2)
         self.assertEqual(collection[model2], model2)
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection['model-1']
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection[model1b]
 
     def test_delitem_index(self):
@@ -734,14 +734,14 @@ class PolymorphicCollectionTests(DataStoreTestCase):
         self.assertEqual(len(collection), 2)
         self.assertListEqual(collection, [model2, model4])
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection.pop('model-1')
 
         self.assertEqual(collection.pop(model4), model4)
         self.assertEqual(len(collection), 1)
         self.assertListEqual(collection, [model2])
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             collection.pop(model4)
 
     def test_get(self):
