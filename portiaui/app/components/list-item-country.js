@@ -8,23 +8,23 @@ export default Ember.Component.extend(SaveSpiderMixin, {
 
     countryCodeOptions: [
         {
-            value: 'EG',
+            value: 'eg',
             label: 'Egypt'
         },
         {
-            value: 'SA',
+            value: 'sa',
             label: "Saudi Arabia"
         },
         {
-            value: 'AE',
+            value: 'ae',
             label: "UAE"
         },
         {
-            value: 'KE',
+            value: 'ke',
             label: "Kenya"
         },
         {
-            value: 'NG',
+            value: 'ng',
             label: "Nigeria"
         },
     ],
