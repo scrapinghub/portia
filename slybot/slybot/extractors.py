@@ -1,4 +1,5 @@
 import re
+import six
 
 from scrapely.extractors import htmlregion
 from scrapely.htmlpage import HtmlPageRegion
@@ -26,7 +27,10 @@ def create_regex_extractor(pattern):
             return htmlregion(u"".join([g for g in m.groups() or m.group()
                                         if g]))
 
-    _extractor.__name__ = "Regex: %s" % pattern.encode("utf-8")
+    name = u"Regex: %s" % pattern
+    if six.PY2:
+        name = name.encode('utf-8')
+    _extractor.__name__ = name
     return _extractor
 
 
@@ -43,7 +47,10 @@ def create_type_extractor(_type):
         data = extractor.extract(txt)
         if data:
             return extractor.adapt(data, page)
-    _extractor.__name__ = ("Type Extractor: %s" % _type)
+    name = (u"Type Extractor: %s" % _type)
+    if six.PY2:
+        name = name.encode('utf-8')
+    _extractor.__name__ = name
     return _extractor
 
 
