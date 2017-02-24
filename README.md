@@ -9,17 +9,13 @@ To try Portia for free without needing to install anything sign up for an accoun
 
 # Running Portia
 
-The easiest way to run Portia is using Vagrant.
+The easiest way to run Portia is using Docker.
 
-Clone the repository:
+You can run Portia using docker by running:
 
-    git clone https://github.com/scrapinghub/portia
+    docker run -v ~/portia_projects:/app/data/projects:rw -p 9001:9001 scrapinghub/portia
 
-Then inside the Portia directory, run:
-
-    vagrant up
-
-For more detailed instructions, and alternatives to using Vagrant, see the [Installation](http://portia.readthedocs.org/en/latest/installation.html) docs.
+For more detailed instructions, and alternatives to using Docker, see the [Installation](http://portia.readthedocs.org/en/latest/installation.html) docs.
 
 # Documentation
 

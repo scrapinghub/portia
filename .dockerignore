@@ -2,5 +2,9 @@
 docs
 */node_modules
 */bower_components
+*/tests
 */tmp
-
+*/db.sqlite3
+*/.tox
+*/.pyc
+*/__pycache__
