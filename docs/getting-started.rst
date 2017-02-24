@@ -1,74 +1,71 @@
 .. _getting-started:
 
+===============
 Getting Started
 ===============
 
 .. note:: If you don't have Portia running yet, please read the :ref:`Installation guide <installation>` first. If you're using a hosted version of Portia on a platform like `Scrapinghub <http://scrapinghub.com>`_, you don't need to install anything.
 
-This tutorial will briefly cover how to create a new spider and begin extracting data with Portia.
+This tutorial will briefly cover how to begin extracting data with Portia.
 
-Creating a project and spider
------------------------------
+Creating a spider
+=================
 
-Let's start by creating a project. Enter a URL in the navigation bar and click ``New Spider``. This will create a new project and add a new spider for the website. We should see the page rendered, like below:
+Let's start by creating a project. Enter a URL and Portia will render it like below:
 
-.. image:: _static/portia-new-project.png
-    :alt: Newly created project
 
-We can configure the spider in the toolbox the right. You may notice the URL we entered has been added as a start page. These start pages act as seeds for the crawl and the spider will visit these first. If the site we're using requires JavaScript, we can enable it under the Crawling section.
+.. This tutorial will briefly cover how to retrieve products from Amazon.com_ using Portia.
 
-Now that we've created our spider, we need to define the data we want to extract. We do this using :ref:`samples <samples>`.
+.. .. _amazon.com: http://amazon.com/
+
+.. First, create a Portia project and enter a URL. Portia will render it like below:
+
+.. image:: _static/portia-main-page.png
+    :alt: Portia main page
+
+Click the ``New spider`` button to create a new spider. Portia will add the page's URL as a start page automatically. Start pages are used to seed the crawl and Portia will visit them when you start the spider to find more links.
 
 Creating a sample
------------------
+=================
 
-Portia acts like a web browser, so we can navigate between pages as we would normally. Let's navigate to a page we want to extract data from and click ``Annotate this page`` to create a sample.
+A sample describes how data should be extracted from the page. Portia will use your samples to extract data from other pages with a similar structure.
+
+Portia works like a web browser, so you can navigate between pages as you would normally. Navigate to a page you want to scrape 	and then the ``New sample`` button to create a :ref:`sample <samples>` of the page.
+
+.. image:: _static/portia-new-spider.png
+    :alt: Newly created sample
+
+Now that you've created the sample, you can begin :ref:`annotating <what-are-annotations>` the page. Annotations link a piece of data in the page to an item field. You'll notice that you can highlight elements on the page, if you click on it will create a new field to which the element will be extracted. 
+
+Portia will create an :ref:`item <items>` schema from the elements that you annotated and will use it as the data format for the scraped :ref:`items <items>`.
+
 
 .. image:: _static/portia-annotation.png
-    :alt: Annotating the page
+    :alt: Annotating a page
 
-A sample is a template of a page made up of annotations. Annotations define what data should be extracted and where to.
+You can see a preview of the items your sample will extract on the right. Once you've annotated all the data you wish to extract, close the sample. Your spider is :ref:`ready to run <running-spider>`, but you may want to configure it further in which case you should continue reading.
 
-We'll come back to annotations in a moment, but first we need to create our item.
+Configuring your crawler
+========================
 
-Items
------
+To start crawling a website, Portia needs one or more URLs to visit first so it can gather further links to crawl. You can define these URLs on the left under ``START PAGES``.
 
-An :ref:`item <items>` in Portia is a record of data e.g. a product, a location that's extracted during the crawl. We want to define the schema for the item we're going to be extracting. A field is simply an item's attribute, so for example a book would have a `title` field, an `author` field etc.
+.. image:: _static/portia-add-start-pages.png
+    :alt: Adding start pages
 
-Let's define the fields for data we want to extract before annotating. We can do this through the item editor.
 
-.. image:: _static/portia-item-editor.png
-    :alt: Items editor
+Portia follows all in-domain URLs by default. In many cases you'll want to limit the pages Portia will visit so requests aren't wasted on irrelevant pages. 
 
-We need to think about the data we want to extract, and add the relevant fields. We can mark fields as required and any items extracted that are missing them will be discarded. Marking fields as vary means they won't be taken into account when checking for duplicates, more on that :ref:`here <items>`.
+To do this, you can set follow and exclude patterns that whitelist and blacklist URLs respectively. These can be configured by changing the crawling policy to ``Configure URL patterns``. 
 
-Now that we've defined the item we want to extract, let's get back to annotating.
+For example, Amazon products' URLs contain ``/gp/``, so you can add this as a follow pattern and Portia will know to only follow such URLs.
 
-Annotating
-----------
+.. image:: _static/portia-configuring-crawling.png
+    :alt: Configuring the crawling
 
-We create an annotation by clicking an element on the page. We can also highlight text if we only want to extract a portion of text.
+What's next?
+============
 
-A context menu will appear, and here we can map an element's attribute or content to an item field. There are already some fields to choose from as Portia adds a default item when we create a project. We can also create new fields if necessary.
+Once you've created your samples and configured crawling behavior, it's time to :ref:`run <running-spider>` your spider.
 
-We can select the attribute on the left, in most cases we'll want the ``content``, but for images the ``src`` attribute is selected by default. We can preview the value that'll be extracted to the right.
-
-If we want to extract data that isn't visible in the body, such as data within the ``head`` element, we can click the ``CSS`` button located in the top bar to toggle styling. This will usually force the data to be displayed on the page. If not we can click the grey cog icon to the open the settings and navigate to parent or child elements manually.
-
-Should we want to delete an annotation, we simply click the red trash can icon.
-
-Once we've defined our annotations, we then need to test them.
-
-Testing
--------
-
-.. image:: _static/portia-extracted-items.png
-    :alt: Extracted items will be shown on the page
-
-We're done annotating, so let's click ``Continue browsing`` to confirm our sample works. The page will reload and a pop-up will appear showing us what was extracted. Whenever we visit a page, Portia will run the extraction process using the samples we've created. This means we can visit similar pages to ensure that data is being extracted correctly before running the spider against the whole website.
-
-Sometimes our sample will work on one page, but not on similar pages. If this is the case, it's likely the other pages have a different layout or fields missing. For these sites, we should create several samples. Take a look at :ref:`Multiple samples <multiple-samples>` for more details.
-
-Once we've confirmed our spider works and extracts data properly, it's now ready to :ref:`run <running-spider>`.
-
+Check out the :ref:`examples` to learn a few tips to be more productive with Portia.

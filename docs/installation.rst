@@ -1,14 +1,15 @@
 .. _installation:
 
+============
 Installation
 ============
 
 Vagrant (recommended)
----------------------
+=====================
 
 Checkout the repository::
 
-    $ git clone https://github.com/scrapinghub/portia
+    git clone https://github.com/scrapinghub/portia
 
 You will need both `Vagrant <http://www.vagrantup.com/downloads.html>`_ and `VirtualBox <https://www.virtualbox.org/wiki/Downloads>`_ installed.
 
@@ -16,10 +17,26 @@ Run the following in Portia's directory::
 
     vagrant up
 
-This will launch an Ubuntu virtual machine, build Portia and start the ``slyd`` server. You'll then be able to access Portia at ``http://localhost:9001``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
+This will launch an Ubuntu virtual machine, build Portia and start the ``slyd`` server. You can then access Portia at ``http://localhost:9001``. You can stop the ``slyd`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl``, you will need to SSH into the virtual machine by running ``vagrant ssh``.
+
+Troubleshooting
+---------------
+
+If the following error occurs::
+
+    The SSH command responded with a non-zero exit status. Vagrant
+    assumes that this means the command failed. The output for this command
+    should be in the log above. Please read the output to determine what
+    went wrong.
+
+You will need to start Portia manually under sudo::
+
+    vagrant ssh
+    $ sudo service slyd start
+    $ sudo service nginx start
 
 Docker
-------
+======
 
 Checkout the repository::
 
@@ -43,10 +60,7 @@ To run `portiacrawl` add `/app/slybot/bin/portiacrawl <PROJECT_PATH> [SPIDER] [O
 .. warning:: For Windows the `<PROJECT_FOLDER>` path must be of the form `/<DRIVE_LETTER/<PATH>`
 
 Debian
-------
-
-Running Portia Locally
-^^^^^^^^^^^^^^^^^^^^^^
+======
 
 **These instructions are only valid for a Debian based OS**
 
