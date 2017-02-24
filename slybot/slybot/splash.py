@@ -2,11 +2,10 @@ from scrapy_splash.middleware import SplashMiddleware
 import os
 
 
-DEFAULT_LUA_SOURCE = '''
+DEFAULT_LUA_SOURCE = u'''
 function main(splash)
   splash:init_cookies(splash.args.cookies)
-  local url = splash.args.url
-  assert(splash:go(url))
+  assert(splash:go(splash.args.url))
   assert(splash:wait(splash.args.wait))
   splash:runjs(splash.args.js_source)
   assert(splash:wait(0.5))

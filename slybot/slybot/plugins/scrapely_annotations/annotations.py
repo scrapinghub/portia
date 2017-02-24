@@ -166,8 +166,11 @@ class Annotations(object):
                 descriptor = self.schema_descriptors[template.id]
                 item_cls_name = self.template_scrapes[template.id]
             except (AttributeError, KeyError):
-                descriptor = sorted(self.schema_descriptors.items())[0][1]
-                item_cls_name = sorted(self.template_scrapes.items())[0][1]
+                try:
+                    descriptor = sorted(self.schema_descriptors.items())[0][1]
+                    item_cls_name = sorted(self.template_scrapes.items())[0][1]
+                except IndexError:
+                    descriptor, item_cls_name = None, None
         item_cls = self.item_classes.get(item_cls_name)
         items = []
         for processed_attributes in extracted:

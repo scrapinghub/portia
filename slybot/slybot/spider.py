@@ -25,6 +25,12 @@ from slybot.utils import (
     include_exclude_filter, IndexedDict, iter_unique_scheme_hostname,
     load_plugin_names, load_plugins, content_type
 )
+
+try:
+    from scrapy_splash.response import SplashJsonResponse
+    html_responses = (HtmlResponse, SplashJsonResponse)
+except ImportError:
+    html_responses = (HtmlResponse,)
 from w3lib.http import basic_auth_header
 
 STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
@@ -203,7 +209,7 @@ class IblSpider(SitemapSpider):
             if sitemap_body:
                 response._set_body(self._get_sitemap_body(response))
             return self.handle_xml(response)
-        if isinstance(response, HtmlResponse):
+        if isinstance(response, html_responses):
             return self.handle_html(response)
         self.logger.debug(
             "Ignoring page with content-type=%r: %s" % (
@@ -283,6 +289,7 @@ class IblSpider(SitemapSpider):
                     'timeout': self.splash_timeout,
                     'js_source': self.splash_js_source,
                     'lua_source': self.splash_lua_source,
+                    'images': 0,
                     'url': request.url,
                     'baseurl': cleaned_url
                 }
