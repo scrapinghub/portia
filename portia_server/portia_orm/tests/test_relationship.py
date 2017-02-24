@@ -482,7 +482,7 @@ class OneToManyRelationshipTests(DataStoreTestCase):
         self.assertIs(parent.children[child1], child1)
         with self.assertRaises(IndexError):
             parent.children[1000]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             parent.children['child-4']
         self.assertEqual(parent.children[1:], [child2, child3])
 
@@ -1587,7 +1587,7 @@ class PolymorphicRelationshipTests(DataStoreTestCase):
         self.assertIs(parent.children[child2], child2)
         with self.assertRaises(IndexError):
             parent.children[1000]
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             parent.children['child-4']
         self.assertEqual(parent.children[2:], [child3])
 

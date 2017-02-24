@@ -2,6 +2,7 @@ from collections import Sequence
 import json
 
 import six
+import sys
 
 from .exceptions import ImproperlyConfigured, ValidationError
 from .snapshots import ModelSnapshots
@@ -147,7 +148,12 @@ class ModelCollection(OwnedList):
 
     def __getitem__(self, key):
         index = self._key_to_index(key)
-        return super(ModelCollection, self).__getitem__(index)
+        try:
+            return super(ModelCollection, self).__getitem__(index)
+        except TypeError:
+            if not isinstance(key, (int, slice)):
+                raise KeyError(key)
+            six.reraise(*sys.exc_info())
 
     def __setitem__(self, key, value):
         index = self._key_to_index(key)
@@ -228,6 +234,10 @@ class ModelCollection(OwnedList):
             value = super(ModelCollection, self).pop(index)
         except IndexError:
             raise IndexError(u"index not in collection")
+        except TypeError:
+            if not isinstance(key, (int, slice)):
+                raise KeyError(key)
+            six.reraise(*sys.exc_info())
         self._clear_related(value)
         return value
 

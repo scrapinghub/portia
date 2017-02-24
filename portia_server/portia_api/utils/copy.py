@@ -113,7 +113,7 @@ class ModelCopier(object):
             # TODO: Skip missing extractors in ORM
             try:
                 self.from_project.extractors[extractor]
-            except TypeError:
+            except KeyError:
                 continue
             copied_extractor = self._copy_extractor(extractor)
             copied.append(copied_extractor)
