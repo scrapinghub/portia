@@ -207,7 +207,6 @@ class PortiaJSApi(QObject):
         commands = Commands({}, self.protocol, None)
         self.protocol.sendMessage(commands.metadata())
         self.call = None
-        print('Called extract')
 
 
 def is_blacklisted(url, settings):

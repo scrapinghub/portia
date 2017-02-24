@@ -47,7 +47,7 @@ def process_css(css_source, tabid, base_uri):
         url = match.group(1).strip("\"'")
         return 'url("{}")'.format(wrap_url(url, tabid,
                                            base_uri).replace('"', '%22'))
-    css_source = decode(css_source)
+    css_source = encode(css_source)
     css_source = CSS_IMPORT.sub(_absolutize_css_import, css_source)
     css_source = CSS_URL.sub(_absolutize_css_url, css_source)
     css_source = BAD_CSS.sub('portia-blocked', css_source)
