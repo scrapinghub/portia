@@ -14,12 +14,19 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.move import file_move_safe
 from django.core.files.storage import FileSystemStorage, Storage
-from dulwich.diff_tree import tree_changes
-from dulwich.objects import Blob, Tree
+try:
+    from dulwich.diff_tree import tree_changes
+    from dulwich.objects import Blob, Tree
+    from dulwich.errors import ObjectMissing
+except ImportError:
+    pass  # Dulwich not required when using FS backend
 from six import iteritems, text_type, string_types
 
 from .projecttemplates import templates
-from .repoman import Repoman, DEFAULT_USER, FILE_MODE
+try:
+    from .repoman import Repoman, DEFAULT_USER, FILE_MODE
+except ImportError:
+    pass  # Repoman not required when using FS backend
 
 
 logger = logging.getLogger(__name__)
@@ -50,8 +57,6 @@ class CommittingStorage(object):
 
     def init_project(self):
         self.validate_filename(self.name)
-
-        # TODO: add portia 2.0 tag
 
         for filename, templatename in iteritems(self.default_files):
             if not self.exists(filename):
@@ -195,7 +200,7 @@ class GitStorage(BasePortiaStorage):
         self.checkout(branch=branch)
         self.init_project()
 
-    def checkout(self, commit=None, branch=None):
+    def checkout(self, commit=None, branch=None, retry=True):
         if self._tree != self._working_tree:
             raise IOError('Can only switch from a clean repository')
         if commit is not None and isinstance(commit, string_types):
@@ -207,15 +212,24 @@ class GitStorage(BasePortiaStorage):
                 except KeyError:
                     pass
                 else:
-                    commit = self.repo._repo.get_object(_commit_id)
-                    break
+                    try:
+                        commit = self.repo._repo.get_object(_commit_id)
+                    except ObjectMissing:
+                        del self.repo._repo.refs[ref]
+                    else:
+                        break
         if commit is not None and isinstance(commit, string_types):
             commit = self.repo._repo.get_object(commit)
         self._commit = commit
         if commit is None:
             tree = Tree()
         else:
-            tree = self.repo._repo.get_object(commit.tree)
+            try:
+                tree = self.repo._repo.get_object(commit.tree)
+            except ObjectMissing:
+                if retry and branch is not None:
+                    del self.repo._repo.refs['refs/heads/%s' % branch]
+                    self.checkout(branch='master', retry=False)
         self._tree = tree
         self._working_tree = tree.copy()
         self._blobs = {}
