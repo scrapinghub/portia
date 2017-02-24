@@ -295,7 +295,7 @@ class ItemChecker(object):
     @property
     def raw_html(self):
         try:
-            raw_html = decoded_html(self.tab)
+            raw_html = decoded_html(self.socket.tab, 'raw')
             # XXX: Some pages only show a 301 page. Load the browser html
             assert len(raw_html) > 500
         except (AttributeError, TypeError, AssertionError):
