@@ -215,7 +215,10 @@ class GitStorage(BasePortiaStorage):
                     try:
                         commit = self.repo._repo.get_object(_commit_id)
                     except ObjectMissing:
-                        del self.repo._repo.refs[ref]
+                        if ref != 'refs/heads/master':
+                            del self.repo._repo.refs[ref]
+                        else:
+                            six.reraise(*sys.exc_info())
                     else:
                         break
         if commit is not None and isinstance(commit, string_types):
@@ -228,8 +231,11 @@ class GitStorage(BasePortiaStorage):
                 tree = self.repo._repo.get_object(commit.tree)
             except ObjectMissing:
                 if retry and branch is not None:
-                    del self.repo._repo.refs['refs/heads/%s' % branch]
-                    self.checkout(branch='master', retry=False)
+                    if branch != 'master':
+                        del self.repo._repo.refs['refs/heads/%s' % branch]
+                        return self.checkout(branch='master', retry=False)
+                    else:
+                        six.reraise(*sys.exc_info())
         self._tree = tree
         self._working_tree = tree.copy()
         self._blobs = {}
