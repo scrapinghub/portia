@@ -1,3 +1,14 @@
+2.0.5 - 2017-02-27
+
+Add data directory for storing spider data and ignore all new data in it
+Update install instructions and scripts
+Update Docs
+Throw KeyError when trying to get non existent model from collection
+Fix loading html as raw from the tab in the socket for extraction
+Fix missing objects in branch by deleting the branch
+Fix UnicodeDecodeError for downloads and css parsing
+Fix bytes/unicode issue with slybot extractors
+
 2.0.4 - 2017-02-23
 
 Fix error when trying to load assets by proxy from an invalid tab
