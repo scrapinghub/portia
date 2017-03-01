@@ -215,7 +215,7 @@ class Commands(object):
 
     def close_tab(self):
         """Close virtual tab if it is open"""
-        if self.tab is not None:
+        if self.tab is not None and not self.tab._closing:
             self.tab.close()
             self.socket.factory[self.socket].tab = None
 

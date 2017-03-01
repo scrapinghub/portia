@@ -55,6 +55,7 @@ const BrowserIFrame = Ember.Component.extend({
         const ws = this.get('webSocket');
         ws.connect();
         ws.addCommand('loadStarted', this, this.msgLoadStarted);
+        ws.addCommand('loadFinished', this, this.msgMetadata);
         ws.addCommand('metadata', this, this.msgMetadata);
         ws.addCommand('load', this, this.msgLoad);
         ws.addCommand('cookies', this, this.msgCookies);
@@ -75,6 +76,7 @@ const BrowserIFrame = Ember.Component.extend({
     willDestroyElement() {
         const ws = this.get('webSocket');
         ws.removeCommand('loadStarted', this, this.msgLoadStarted);
+        ws.removeCommand('loadFinished', this, this.msgMetadata);
         ws.removeCommand('metadata', this, this.msgMetadata);
         ws.removeCommand('load', this, this.msgLoad);
         ws.removeCommand('cookies', this, this.msgCookies);
