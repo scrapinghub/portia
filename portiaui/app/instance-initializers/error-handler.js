@@ -36,8 +36,9 @@ export function initialize(applicationInstance) {
             "Our developers have already been notified." :
             "Please notify the developers. Details have been logged to the console.";
         let isDeleted = err => (
-            err instanceof Ember.Error &&
-            /event `(didSetProperty|deleteRecord)`.*in state root\./.test(err.message)
+            err.message &&
+            (/event `(didSetProperty|deleteRecord)`.*in state root\./.test(err.message) ||
+             /calling set on destroyed object/.test(err.message))
         );
 
         if (err instanceof DS.AdapterError) {
