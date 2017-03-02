@@ -1,6 +1,8 @@
 .dropdown-menu {
     outline: 0;
     margin: 2px 0;
+    max-height: 200px;
+    overflow-y: scroll;
 
     > .focused:not(.active)
     > a {
