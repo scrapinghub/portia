@@ -385,6 +385,8 @@ class SpiderLoader(object):
                 continue
             path = self.storage.rel_path(spider_dir, name)
             sample = self.storage.open(path)
+            if not sample:
+                continue
             sample_dir = path[:-len('.json')]
             if self.storage.isdir(sample_dir):
                 for fname in self.storage.listdir(sample_dir):
