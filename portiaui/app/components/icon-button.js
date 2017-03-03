@@ -8,6 +8,8 @@ export const ICON_CLASSES = {
     copy: 'fa fa-copy',
     'data-annotation': 'fa fa-hand-pointer-o',
     date: 'fa fa-calendar',
+    'default-add': 'fa fa-check-circle structure-list-publish',
+    'default-remove': 'fa fa-times-circle structure-list-discard',
     download: 'fa fa-download',
     publish: 'structure-list-publish fa fa-cloud-upload',
     edit: 'fa fa-pencil',

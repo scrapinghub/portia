@@ -113,6 +113,17 @@ export default Ember.Component.extend({
             this.get('dispatcher').removeSchema(schema);
         },
 
+        setSchemaDefault(schema) {
+            this.get('project.schemas').filterBy('default').forEach((s) => s.set('default', false));
+            schema.set('default', true);
+            schema.save();
+        },
+
+        removeSchemaDefault(schema) {
+            schema.set('default', false);
+            schema.save()
+        },
+
         saveSchema(schema) {
             schema.save();
         },
