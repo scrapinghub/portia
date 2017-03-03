@@ -7,7 +7,27 @@ export default Ember.Service.extend({
     project: computed.readOnly('uiState.models.project'),
     versionControlled: computed.readOnly('capabilities.capabilities.version_control'),
 
-    hasChanges: null,
+    changes: null,
+    hasChanges: computed('changes', 'versionControlled', 'hasChanges', {
+        get() {
+            const changes = this.get('changes');
+            const project = this.get('project');
+            if (changes === null || (project && this.get('_project_id') !== project.get('id'))) {
+                this._checkProjectChanges();
+            } else {
+                return changes;
+            }
+        },
+        set(_, value) {
+            if (this.get('versionControlled') && value) {
+                this.set('changes', true);
+                return true;
+            } else {
+                this.set('changes', false);
+                return false;
+            }
+        }
+    }),
     _project_id: null,
 
     init() {
@@ -29,7 +49,7 @@ export default Ember.Service.extend({
                 const hasChanges = !!(status && status.meta && status.meta.changes &&
                                       status.meta.changes.length);
                 this.set('_project_id', this.get('project.id'));
-                this.set('hasChanges', hasChanges);
+                this.set('changes', hasChanges);
             });
         });
     }
