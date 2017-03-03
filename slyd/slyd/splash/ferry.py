@@ -469,8 +469,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if self.spider:
             spider = '{}({})'.format(
                 self.spider.__class__.__name__, self.spider.name)
-        if self.spec:
-            spec = str(self.spec)
+        if self.spiderspec:
+            spec = str(self.spiderspec)
         return ', '.join(filter(bool, (tab, spider, spec)))
 
 
