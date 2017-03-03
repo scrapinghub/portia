@@ -403,7 +403,8 @@ class Sample(Model, OrderedAnnotationsMixin):
     @staticmethod
     def migrate_sample(self, data):
         if not data.get('name'):
-            data['name'] = data.get('id', data.get('page_id', u'')[:20])
+            data['name'] = (data.get('id', data.get('page_id', u'')[:20]) or
+                            strip_json(self.context['path'].split('/')[-1]))
         if data.get('version', '') >= '0.13.1':
             return data
         if any(body in data for body in ('original_body', 'rendered_body')):
