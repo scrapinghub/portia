@@ -126,7 +126,10 @@ def port_sample(sample, schemas=None, extractors=None):
         extractors = {}
     if sample.get('version') == SLYBOT_VERSION:
         return sample, schemas
-    container_id = gen_predictable_id(sample.get('id', 1), sample['page_id'])
+    if 'url' not in sample:
+        sample['url'] = 'http://example.com'
+    container_id = gen_predictable_id(
+        sample.get('id', 1), sample.get('page_id', sample['name']))
     schema_id, schemas = guess_schema(sample, schemas)
     default_annotations = [_create_container('body', container_id,
                                              schema_id=schema_id)]
