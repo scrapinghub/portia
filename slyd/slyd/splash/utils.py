@@ -3,15 +3,10 @@ import six
 from scrapy.http import HtmlResponse, Request
 from scrapy.item import DictItem
 
-from slyd.html import descriptify
-from slyd.errors import BaseHTTPError
+from portia_api.errors import BaseHTTPError
 from slybot.baseurl import insert_base_url
 from slybot.utils import encode, decode
 _DEFAULT_VIEWPORT = '1240x680'
-
-
-def clean(html, url):
-    return insert_base_url(descriptify(html, url), url)
 
 
 def decoded_html(tab, type_=None):
