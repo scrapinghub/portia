@@ -2,6 +2,7 @@ from six.moves.urllib_parse import urlparse
 import chardet
 import itertools
 import json
+import mimetools
 import os
 import re
 import six
@@ -24,6 +25,12 @@ ENCODINGS = ['UTF-8', 'ISO-8859-1', 'Windows-1251', 'Shift JIS',
              'Windows-1252', 'GB2312', 'EUC-KR', 'EUC-JP', 'GBK', 'ISO-8859-2',
              'Windows-1250', 'ISO-8859-15', 'Windows-1256', 'ISO-8859-9',
              'Big5', 'Windows-1254', 'Windows-874']
+
+
+def content_type(response):
+    full_content_type = response.headers.get('Content-Type') or ''
+    string = six.StringIO('Content-Type: {}'.format(full_content_type))
+    return mimetools.Message(string)
 
 
 def encode(html, default=None):

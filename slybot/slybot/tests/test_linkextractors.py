@@ -6,15 +6,12 @@ from scrapy.http import Request
 from scrapy.settings import Settings
 from slybot.utils import htmlpage_from_response
 
-from slybot.linkextractor import (
-    create_linkextractor_from_specs, RssLinkExtractor, SitemapLinkExtractor,
-)
-from slybot.plugins.scrapely_annotations.builder import (
-    Annotations, _clean_annotation_data
-)
+from slybot.spidermanager import SlybotSpiderManager
+from slybot.linkextractor import create_linkextractor_from_specs
+from slybot.plugins.scrapely_annotations.builder import Annotations
 from slybot.utils import load_plugins
 from slybot.spider import IblSpider
-from .utils import UTF8HtmlResponse, UTF8TextResponse
+from .utils import UTF8HtmlResponse, UTF8TextResponse, UTF8XmlResponse, PATH
 
 
 class Test_RegexLinkExtractor(TestCase):
@@ -71,7 +68,7 @@ xmlfeed = """<?xml version="1.0" encoding="UTF-8" ?>
 sitemapfeed = """
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-	xmlns:image="http://www.sitemaps.org/schemas/sitemap-image/1.1"
+        xmlns:image="http://www.sitemaps.org/schemas/sitemap-image/1.1"
         xmlns:video="http://www.sitemaps.org/schemas/sitemap-video/1.1">
 
 <url><loc>http://www.accommodationforstudents.com/</loc><changefreq>daily</changefreq><priority>1.00</priority></url>
@@ -157,6 +154,49 @@ class Test_XmlLinkExtractors(TestCase):
         self.assertEqual(len(links), 3)
         self.assertEqual(links[0].url, 'http://example.org/feed/')
 
+
+class TestXmlLinkExtractionFromSpider(TestCase):
+    def setUp(self):
+        smanager = SlybotSpiderManager("%s/data/SampleProject" % PATH)
+        self.spider = smanager.create('books.toscrape.com_1')
+
+    def test_xml_content(self):
+        response = UTF8TextResponse(
+            url='http://www.example.com/', body=xmlfeed,
+            headers={'Content-Type': 'application/xml'})
+        links = list(self.spider.parse(response))
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0].url, 'http://www.wikipedia.org/')
+
+    def test_endswith_xml(self):
+        sitemap = UTF8TextResponse(
+            url='http://www.example.com/sitemap.xml', body=sitemapfeed)
+        sitemap_index = UTF8TextResponse(
+            url='http://www.example.com/sitemap.xml', body=sitemapindex)
+        links = list(self.spider.parse(sitemap))
+        self.assertEqual(len(links), 3)
+        self.assertEqual(links[0].url, 'http://www.accommodationforstudents.com/')
+
+        links = list(self.spider.parse(sitemap_index))
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0].url, 'http://www.example.com/sitemap1.xml.gz')
+
+    def test_atom(self):
+        atom = UTF8TextResponse(
+            url='http://www.example.com/atom', body=atomfeed,
+            headers={'Content-Type': 'application/atom+xml'},
+            encoding='utf-8')
+        links = list(self.spider.parse(atom))
+        self.assertEqual(len(links), 3)
+        self.assertEqual(links[0].url, 'http://example.org/feed/')
+
+    def test_xml_response(self):
+        xmlresponse = UTF8XmlResponse(url='http://example.com/', body=xmlfeed)
+        links = list(self.spider.parse(xmlresponse))
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0].url, 'http://www.wikipedia.org/')
+
+
 csvfeed = """
 My feed
 
@@ -241,10 +281,11 @@ class Test_PaginationExtractor(TestCase):
         self.assertEqual(links[0].text, 'Click here')
 
     def test_start_urls(self):
-        specs = {"type": "pagination",
-                 "value": None,
-                 "start_urls": ['http://www.spam.com/?p=1',
-                                'http://www.eggs.com/?page=0']
+        specs = {
+            "type": "pagination",
+            "value": None,
+            "start_urls": ['http://www.spam.com/?p=1',
+                           'http://www.eggs.com/?page=0']
         }
         lextractor = create_linkextractor_from_specs(specs)
         html = """
