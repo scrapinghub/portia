@@ -91,6 +91,7 @@ To set up Portia for development use the commands below::
     npm install && bower install
     cd node_modules/ember-cli && npm install && cd ../../
     ember build
+    cd ..
     docker build . -t portia
 
 You can run it using::
