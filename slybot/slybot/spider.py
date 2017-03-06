@@ -22,7 +22,7 @@ from slybot.starturls import (
 )
 from slybot.utils import (
     include_exclude_filter, IndexedDict, iter_unique_scheme_hostname,
-    load_plugin_names, load_plugins,
+    load_plugin_names, load_plugins, content_type
 )
 from w3lib.http import basic_auth_header
 
@@ -194,16 +194,19 @@ class IblSpider(SitemapSpider):
             url = (json.loads(request.body).get('url'))
             if url:
                 response._url = url
-        content_type = response.headers.get('Content-Type', '')
+        _type = content_type(response)
+        if (isinstance(response, XmlResponse) or
+                response.url.endswith(('.xml', '.xml.gz')) or
+                'xml' in _type.subtype):
+            sitemap_body = self._get_sitemap_body(response)
+            if sitemap_body:
+                response._set_body(self._get_sitemap_body(response))
+            return self.handle_xml(response)
         if isinstance(response, HtmlResponse):
             return self.handle_html(response)
-        if (isinstance(response, XmlResponse) or
-                response.url.endswith(('.xml', '.xml.gz'))):
-            response._set_body(self._get_sitemap_body(response))
-            return self.handle_xml(response)
         self.logger.debug(
-            "Ignoring page with content-type=%r: %s" % (content_type,
-                                                        response.url)
+            "Ignoring page with content-type=%r: %s" % (
+                response.headers.get('Content-Type', ''), response.url)
         )
         return []
 

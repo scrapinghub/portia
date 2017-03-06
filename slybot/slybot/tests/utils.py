@@ -5,7 +5,6 @@ import six
 from scrapy.settings import Settings
 from os.path import dirname
 
-from scrapy.http.response import Response
 from scrapy.http.response.html import HtmlResponse
 from scrapy.http.response.text import TextResponse
 from scrapy.http.response.xml import XmlResponse
@@ -25,7 +24,7 @@ def request_to_set(requests):
     return [(set(t[0]),) + t[1:] for t in requests]
 
 
-class UTF8Response(Response):
+class UTF8Response(TextResponse):
     def __init__(self, *args, **kwargs):
         body = kwargs.get('body', args[3] if len(args) >= 4 else b'')
         if 'encoding' not in kwargs and isinstance(body, six.text_type):

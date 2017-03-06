@@ -31,7 +31,7 @@ class SpiderTest(TestCase):
         self.assertEqual(set(self.smanager.list()), set(["seedsofchange", "seedsofchange2",
                 "seedsofchange.com", "pinterest.com", "ebay", "ebay2", "ebay3", "ebay4", "cargurus",
                 "networkhealth.com", "allowed_domains", "any_allowed_domains", "example.com", "example2.com",
-                "example3.com", "example4.com", "sitemaps", "books.toscrape.com"]))
+                "example3.com", "example4.com", "sitemaps", "books.toscrape.com", "books.toscrape.com_1"]))
 
     def test_spider_with_link_template(self):
         name = "seedsofchange"
