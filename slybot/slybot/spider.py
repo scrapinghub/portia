@@ -20,10 +20,17 @@ from slybot.starturls import (
     FragmentGenerator, FeedGenerator, IdentityGenerator, StartUrlCollection,
     UrlGenerator
 )
+from slybot.splash import DEFAULT_LUA_SOURCE
 from slybot.utils import (
     include_exclude_filter, IndexedDict, iter_unique_scheme_hostname,
     load_plugin_names, load_plugins, content_type
 )
+
+try:
+    from scrapy_splash.response import SplashJsonResponse
+    html_responses = (HtmlResponse, SplashJsonResponse)
+except ImportError:
+    html_responses = (HtmlResponse,)
 from w3lib.http import basic_auth_header
 
 STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
@@ -202,7 +209,7 @@ class IblSpider(SitemapSpider):
             if sitemap_body:
                 response._set_body(self._get_sitemap_body(response))
             return self.handle_xml(response)
-        if isinstance(response, HtmlResponse):
+        if isinstance(response, html_responses):
             return self.handle_html(response)
         self.logger.debug(
             "Ignoring page with content-type=%r: %s" % (
@@ -259,7 +266,8 @@ class IblSpider(SitemapSpider):
         self.splash_timeout = settings.getint('SPLASH_TIMEOUT', 30)
         self.splash_js_source = settings.get(
             'SPLASH_JS_SOURCE', 'function(){}')
-        self.splash_lua_source = settings.get('SPLASH_LUA_SOURCE', '')
+        self.splash_lua_source = settings.get(
+            'SPLASH_LUA_SOURCE', DEFAULT_LUA_SOURCE)
         self._filter_js_urls = self._build_js_url_filter(spec)
 
     def _build_js_url_filter(self, spec):
@@ -273,9 +281,9 @@ class IblSpider(SitemapSpider):
         if self.js_enabled and self._filter_js_urls(request.url):
             cleaned_url = urlparse(request.url)._replace(params='', query='',
                                                          fragment='').geturl()
-            endpoint = 'execute' if self.splash_lua_source else 'render.html'
             request.meta['splash'] = {
-                'endpoint': endpoint,
+                'endpoint': 'execute',
+                'session_id': '{}-{}'.format(self.name, id(self)),
                 'args': {
                     'wait': self.splash_wait,
                     'timeout': self.splash_timeout,
