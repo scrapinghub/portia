@@ -60,6 +60,7 @@ class Schema(Model):
     id = String(primary_key=True)
     name = String(required=True)
     auto_created = Boolean(default=False)
+    default = Boolean(default=False)
     project = BelongsTo(Project, related_name='schemas', on_delete=CASCADE,
                         ignore_in_file=True)
     fields = HasMany('Field', related_name='schema', on_delete=CLEAR)
@@ -94,6 +95,8 @@ class Schema(Model):
     def remove_auto_created_false(self, data):
         if 'auto_created' in data and not data['auto_created']:
             del data['auto_created']
+        if 'default' in data and not data['default']:
+            del data['default']
         return data
 
     @post_dump(pass_many=True)

@@ -19,10 +19,20 @@ class SchemaRoute(BaseProjectModelRoute):
             'fields_map': {
                 'schemas': [
                     'name',
+                    'default',
                     'project',
                 ],
             }
         }
+
+    def update(self, *args, **kwargs):
+        # Reset default schema if current schema will be default
+        if self.data.get('data', {}).get('attributes', {}).get('default'):
+            for schema in self.get_collection():
+                if schema.default:
+                    schema.default = False
+                schema.save()
+        return super(SchemaRoute, self).update(*args, **kwargs)
 
     def destroy(self, *args, **kwargs):
         try:

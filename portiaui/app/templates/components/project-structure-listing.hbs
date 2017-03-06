@@ -130,19 +130,34 @@
             {{#each project.schemas as |schema|}}
                 {{#tree-list-item hide=(and currentSchema (not-eq schema currentSchema)) as |options|}}
                     {{#link-to 'projects.project.schema' schema}}
-                        {{indentation-spacer}}
+                        {{#if schema.default}}
+                            {{#help-icon icon='default-add' placement='right' classes='help-icon indentation-spacer'}}
+                                This Data Format will be used for new samples by default
+                            {{/help-icon}}
+                        {{else}}
+                            {{indentation-spacer}}
+                        {{/if}}
                         {{list-item-icon icon='schema'}}
                         {{list-item-editable value=(mut schema.name) editing=(mut schema.new) onChange=(action 'saveSchema' schema)}}
-                        {{#animation-container class="icon" setWidth=false setHeight=false}}
-                            {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
-                                {{dropdown-delete
-                                  onDelete=(action 'removeSchema' schema)
-                                  text='Delete Schema'
-                                  disabled=(not (not schema.items.length))
-                                }}
-                            {{/list-item-icon-menu}}
-                        {{/animation-container}}
                     {{/link-to}}
+                    {{#animation-container class="icon" setWidth=false setHeight=false}}
+                        {{#list-item-icon-menu icon='vertical-ellipsis' as |options|}}
+                            {{#if schema.default}}
+                                <li {{action 'removeSchemaDefault' schema}}><a>
+                                {{list-item-icon class="icon" icon="default-remove"}}Remove as Default
+                                </a></li>
+                            {{else}}
+                                <li {{action 'setSchemaDefault' schema}}><a>
+                                {{list-item-icon class="icon" icon="default-add"}}Set as Default
+                                </a></li>
+                            {{/if}}
+                            {{dropdown-delete
+                              onDelete=(action 'removeSchema' schema)
+                              text='Delete Schema'
+                              disabled=(gt schema.items.length 0)
+                            }}
+                        {{/list-item-icon-menu}}
+                    {{/animation-container}}
                 {{/tree-list-item}}
             {{/each}}
         {{/if}}

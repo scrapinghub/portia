@@ -191,11 +191,14 @@ class SampleSerializer(JsonApiSerializer):
         sample = super(SampleSerializer, self).create(validated_data)
 
         project = sample.spider.project
-        schema_names = map(attrgetter('name'), project.schemas)
-        schema_name = unique_name(sample.name, schema_names)
-        schema = Schema(self.storage, id=AUTO_PK, name=schema_name,
-                        project=project, auto_created=True)
-        schema.save()
+        schemas = project.schemas
+        schema = next((s for s in schemas if s.default), None)
+        if schema is None:
+            schema_names = map(attrgetter('name'), schemas)
+            schema_name = unique_name(sample.name, schema_names)
+            schema = Schema(self.storage, id=AUTO_PK, name=schema_name,
+                            project=project, auto_created=True)
+            schema.save()
 
         item = Item(self.storage, id=AUTO_PK, sample=sample, schema=schema)
         item.save()

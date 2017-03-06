@@ -200,6 +200,7 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
                 ],
                 'schemas': [
                     'name',
+                    'default',
                     'project',
                 ],
             },

@@ -91,6 +91,7 @@ class ProjectSchema(SlydSchema):
 class SchemaSchema(SlydSchema):
     id = fields.Str(dump_only=True)
     name = fields.Str()
+    default = fields.Boolean()
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
