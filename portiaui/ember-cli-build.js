@@ -1,8 +1,8 @@
 /* global require, module */
 var EmberApp = require('ember-cli/lib/broccoli/ember-app');
-var UnwatchedDir = require('ember-cli/node_modules/broccoli-source').UnwatchedDir;
-var WatchedDir = require('ember-cli/node_modules/broccoli-source').WatchedDir;
-var concat = require('ember-cli/node_modules/broccoli-concat');
+var UnwatchedDir = require('broccoli-source').UnwatchedDir;
+var WatchedDir = require('broccoli-source').WatchedDir;
+var concat = require('broccoli-concat');
 var mergeTrees = require('ember-cli/lib/broccoli/merge-trees');
 
 module.exports = function(defaults) {
