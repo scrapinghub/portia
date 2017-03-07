@@ -115,14 +115,7 @@ clone_kipp_config(){
     apt-get -y install git ssh
     ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-    users=("mina")
-
-    for i in "${users[@]}";
-    do
-        if [ ! -d "/app/$i" ]; then
-          git clone -b $i git@github.com:flyingelephantlab/kipp_configurations.git /app/$i;
-        fi
-    done
+    git clone git@github.com:flyingelephantlab/kipp_settings.git /app/kipp_settings;
 }
 
 if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then

@@ -7,8 +7,8 @@ from storage.projecttemplates import MERCHANT_SETTING_BASE
 from git import Repo
 
 
-KIPP_MERCHANT_SETTINGS_DIR = '/app/{username}/{country_code}/{spider_name}'
-
+KIPP_SETTINGS_REPO = '/app/kipp_settings'
+KIPP_MERCHANT_SETTINGS_DIR = '/app/kipp_settings/{country_code}/{spider_name}'
 
 def train_scrapely(storage, model, username):
     """
@@ -81,15 +81,15 @@ def save_scrapely_object(spider_name, country_code, username, scrapely_templates
     :param scrapely_templates:
     :return:
     """
-    kipp_country_setting_dir = KIPP_MERCHANT_SETTINGS_DIR.format(username=username, country_code=country_code,
+    kipp_merchant_settings_dir = KIPP_MERCHANT_SETTINGS_DIR.format(username=username, country_code=country_code,
                                                                  spider_name=spider_name)
-    if not os.path.exists(kipp_country_setting_dir):
-        os.makedirs(kipp_country_setting_dir)
+    if not os.path.exists(kipp_merchant_settings_dir):
+        os.makedirs(kipp_merchant_settings_dir)
     scrapely_file_name = "%s.json" % spider_name
-    scrapely_file_path = os.path.join(kipp_country_setting_dir, scrapely_file_name)
+    scrapely_file_path = os.path.join(kipp_merchant_settings_dir, scrapely_file_name)
     with open(scrapely_file_path, "w") as outfile:
         json.dump({"templates": scrapely_templates}, outfile)
-    log.msg('Scrapely Scraper instance is saved at %s' % kipp_country_setting_dir)
+    log.msg('Scrapely Scraper instance is saved at %s' % kipp_merchant_settings_dir)
 
 
 def save_kipp_config(spider_name, country_code, username, merchant_settings):
@@ -101,15 +101,15 @@ def save_kipp_config(spider_name, country_code, username, merchant_settings):
     :param merchant_settings:
     :return:
     """
-    kipp_country_setting_dir = KIPP_MERCHANT_SETTINGS_DIR.format(username=username,country_code=country_code,
+    kipp_merchant_settings_dir = KIPP_MERCHANT_SETTINGS_DIR.format(username=username,country_code=country_code,
                                                                  spider_name=spider_name)
-    if not os.path.exists(kipp_country_setting_dir):
-        os.makedirs(kipp_country_setting_dir)
+    if not os.path.exists(kipp_merchant_settings_dir):
+        os.makedirs(kipp_merchant_settings_dir)
     merchant_file_name = "%s.py" % spider_name
-    merchant_file_path = os.path.join(kipp_country_setting_dir, merchant_file_name)
+    merchant_file_path = os.path.join(kipp_merchant_settings_dir, merchant_file_name)
     with open(merchant_file_path, 'w') as f:
         f.write(merchant_settings)
-    log.msg('%s kipp configurations is saved at %s'.format(spider_name, kipp_country_setting_dir))
+    log.msg('%s kipp configurations is saved at %s'.format(spider_name, kipp_merchant_settings_dir))
 
 
 def create_kipp_setting(spider):
@@ -214,7 +214,7 @@ def publish_kipp_settings(username, country_code, spider_name):
     scrapely_config_file_path = kipp_country_setting_dir + '/%s.json' % spider_name
     if os.path.exists(kipp_config_file_path) and os.path.exists(scrapely_config_file_path):
         #TODO: try and catch exceptions
-        repo = Repo('/app/%s' % username)
+        repo = Repo(KIPP_SETTINGS_REPO)
         config = repo.config_writer()
         config.set_value("user", "name", username)
         index = repo.index
