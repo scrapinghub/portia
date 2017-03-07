@@ -1,3 +1,12 @@
+Slybot 0.13.0b35
+Cache selector searches for container to increase sample build speed
+Better handle XML responses
+Use extract endpoint for spiders using splash
+Store and load cookies when using splash
+Fix error when loading broken samples in Portia UI
+Fix bytes/unicode issue with regex extractor `__name__`
+Fix error thrown for missing annotation data in sample when finding schema
+
 Slybot 0.13.0b34
     Fix error when building legacy spiders
 
