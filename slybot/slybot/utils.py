@@ -2,12 +2,11 @@ from six.moves.urllib_parse import urlparse
 import chardet
 import itertools
 import json
-import mimetools
 import os
 import re
 import six
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from itertools import chain
 
 from scrapely.htmlpage import HtmlPage, HtmlTagType
@@ -25,12 +24,20 @@ ENCODINGS = ['UTF-8', 'ISO-8859-1', 'Windows-1251', 'Shift JIS',
              'Windows-1252', 'GB2312', 'EUC-KR', 'EUC-JP', 'GBK', 'ISO-8859-2',
              'Windows-1250', 'ISO-8859-15', 'Windows-1256', 'ISO-8859-9',
              'Big5', 'Windows-1254', 'Windows-874']
+MimeType = namedtuple('MimeType', ['type', 'maintype', 'subtype', 'params'])
 
 
 def content_type(response):
-    full_content_type = response.headers.get('Content-Type') or ''
-    string = six.StringIO('Content-Type: {}'.format(full_content_type))
-    return mimetools.Message(string)
+    full_content_type = decode(response.headers.get('Content-Type') or u'')
+    type_ = full_content_type.split(';', 1)
+    split = type_[0].split('/', 1)
+    if len(split) < 2:
+        maintype = type_
+        subtype = ''
+    else:
+        maintype, subtype = split
+    # Parse params if needed
+    return MimeType(full_content_type, maintype, subtype, [])
 
 
 def encode(html, default=None):

@@ -121,7 +121,7 @@ export default Ember.Component.extend({
 
         removeSchemaDefault(schema) {
             schema.set('default', false);
-            schema.save()
+            schema.save();
         },
 
         saveSchema(schema) {
