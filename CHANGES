@@ -1,3 +1,12 @@
+2.0.6 - 2017-03-07
+
+Add option to have default data format for project
+Do not show any version control info if it is not enabled
+Fix Extractor overflow bug
+Fix error when loading broken samples in UI
+Fix splash browser tab storing wrong html
+Fix bug with repr for tab
+
 2.0.5 - 2017-02-27
 
 Add data directory for storing spider data and ignore all new data in it
