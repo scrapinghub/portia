@@ -19,6 +19,8 @@
   "license": "MIT",
   "devDependencies": {
     "broccoli-asset-rev": "^2.4.2",
+    "broccoli-source": "^1.1.0",
+    "broccoli-concat": "^3.2.2",
     "ember-ajax": "^2.0.1",
     "ember-api-actions": "0.0.11",
     "ember-api-requests": "0.3.0",
