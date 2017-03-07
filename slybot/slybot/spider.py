@@ -20,10 +20,17 @@ from slybot.starturls import (
     FragmentGenerator, FeedGenerator, IdentityGenerator, StartUrlCollection,
     UrlGenerator
 )
+from slybot.splash import DEFAULT_LUA_SOURCE
 from slybot.utils import (
     include_exclude_filter, IndexedDict, iter_unique_scheme_hostname,
-    load_plugin_names, load_plugins,
+    load_plugin_names, load_plugins, content_type
 )
+
+try:
+    from scrapy_splash.response import SplashJsonResponse
+    html_responses = (HtmlResponse, SplashJsonResponse)
+except ImportError:
+    html_responses = (HtmlResponse,)
 from w3lib.http import basic_auth_header
 
 STRING_KEYS = ['start_urls', 'exclude_patterns', 'follow_patterns',
@@ -194,16 +201,19 @@ class IblSpider(SitemapSpider):
             url = (json.loads(request.body).get('url'))
             if url:
                 response._url = url
-        content_type = response.headers.get('Content-Type', '')
-        if isinstance(response, HtmlResponse):
-            return self.handle_html(response)
+        _type = content_type(response)
         if (isinstance(response, XmlResponse) or
-                response.url.endswith(('.xml', '.xml.gz'))):
-            response._set_body(self._get_sitemap_body(response))
+                response.url.endswith(('.xml', '.xml.gz')) or
+                'xml' in _type.subtype):
+            sitemap_body = self._get_sitemap_body(response)
+            if sitemap_body:
+                response._set_body(self._get_sitemap_body(response))
             return self.handle_xml(response)
+        if isinstance(response, html_responses):
+            return self.handle_html(response)
         self.logger.debug(
-            "Ignoring page with content-type=%r: %s" % (content_type,
-                                                        response.url)
+            "Ignoring page with content-type=%r: %s" % (
+                response.headers.get('Content-Type', ''), response.url)
         )
         return []
 
@@ -256,7 +266,8 @@ class IblSpider(SitemapSpider):
         self.splash_timeout = settings.getint('SPLASH_TIMEOUT', 30)
         self.splash_js_source = settings.get(
             'SPLASH_JS_SOURCE', 'function(){}')
-        self.splash_lua_source = settings.get('SPLASH_LUA_SOURCE', '')
+        self.splash_lua_source = settings.get(
+            'SPLASH_LUA_SOURCE', DEFAULT_LUA_SOURCE)
         self._filter_js_urls = self._build_js_url_filter(spec)
 
     def _build_js_url_filter(self, spec):
@@ -270,9 +281,9 @@ class IblSpider(SitemapSpider):
         if self.js_enabled and self._filter_js_urls(request.url):
             cleaned_url = urlparse(request.url)._replace(params='', query='',
                                                          fragment='').geturl()
-            endpoint = 'execute' if self.splash_lua_source else 'render.html'
             request.meta['splash'] = {
-                'endpoint': endpoint,
+                'endpoint': 'execute',
+                'session_id': '{}-{}'.format(self.name, id(self)),
                 'args': {
                     'wait': self.splash_wait,
                     'timeout': self.splash_timeout,

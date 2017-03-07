@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import itertools
 import operator
-import re
 
 from collections import OrderedDict
 
@@ -14,14 +13,13 @@ from scrapely.htmlpage import HtmlPage, dict_to_page
 
 from slybot.linkextractor import create_linkextractor_from_specs
 from slybot.linkextractor.html import HtmlLinkExtractor
-from slybot.linkextractor.xml import SitemapLinkExtractor
+from slybot.linkextractor.xml import XmlLinkExtractor
 from slybot.linkextractor.pagination import PaginationExtractor
 from slybot.item import SlybotItem, create_slybot_item_descriptor
 from slybot.extractors import apply_extractors, add_extractors_to_descriptors
 from slybot.utils import (htmlpage_from_response, include_exclude_filter,
-                          _build_sample)
+                          _build_sample, content_type)
 from .extraction import SlybotIBLExtractor
-XML_APPLICATION_TYPE = re.compile('application/((?P<type>[a-z]+)\+)?xml').match
 _CLUSTER_NA = 'not available'
 _CLUSTER_OUTLIER = 'outlier'
 
@@ -168,8 +166,11 @@ class Annotations(object):
                 descriptor = self.schema_descriptors[template.id]
                 item_cls_name = self.template_scrapes[template.id]
             except (AttributeError, KeyError):
-                descriptor = sorted(self.schema_descriptors.items())[0][1]
-                item_cls_name = sorted(self.template_scrapes.items())[0][1]
+                try:
+                    descriptor = sorted(self.schema_descriptors.items())[0][1]
+                    item_cls_name = sorted(self.template_scrapes.items())[0][1]
+                except IndexError:
+                    descriptor, item_cls_name = None, None
         item_cls = self.item_classes.get(item_cls_name)
         items = []
         for processed_attributes in extracted:
@@ -305,15 +306,13 @@ class Annotations(object):
                 yield request
 
     def handle_xml(self, response, seen):
-        _type = XML_APPLICATION_TYPE(
-            response.headers.get('Content-Type', '').decode('utf-8'))
-        _type = _type.groupdict()['type'] if _type else 'xml'
+        _type = content_type(response).subtype.split('+')[0]
         try:
             link_extractor = create_linkextractor_from_specs({
                 'type': _type, 'value': ''
             })
         except ValueError:
-            link_extractor = SitemapLinkExtractor()
+            link_extractor = XmlLinkExtractor()
         for link in link_extractor.links_to_follow(response):
             request = self._filter_link(link, seen)
             if request:

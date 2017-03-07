@@ -1,6 +1,19 @@
 from scrapy_splash.middleware import SplashMiddleware
 import os
 
+
+DEFAULT_LUA_SOURCE = u'''
+function main(splash)
+  splash:init_cookies(splash.args.cookies)
+  assert(splash:go(splash.args.url))
+  assert(splash:wait(splash.args.wait))
+  splash:runjs(splash.args.js_source)
+  assert(splash:wait(0.5))
+  return {
+    html = splash:html(),
+    cookies = splash:get_cookies(),
+  }
+end'''
 js_file = os.path.join(os.path.dirname(__file__), 'splash-script-combined.js')
 js_source = ""
 if os.path.exists(js_file):

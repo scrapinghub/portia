@@ -3,6 +3,7 @@ from functools import partial
 import json
 import os
 import copy
+import re
 
 from six.moves.urllib_parse import urlparse
 
@@ -16,12 +17,12 @@ from twisted.python import log
 from scrapy.settings import Settings
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
-from splash.browser_tab import BrowserTab
+from splash.browser_tab import BrowserTab, skip_if_closing
 from splash.network_manager import SplashQNetworkAccessManager
 from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
-from slyd.errors import BaseHTTPError
+from portia_api.errors import BaseHTTPError
 
 from django.db import close_old_connections
 
@@ -71,6 +72,7 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
                 self.tab.web_page.mainFrame().requestedUrl().toEncoded())
             if url == frame_url:
                 self._raw_html = ''
+                self._url = ''
                 reply.readyRead.connect(self._ready_read)
         except:
             log.err()
@@ -81,6 +83,20 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
         reply = self.sender()
         self._raw_html = (self._raw_html + six.binary_type(
             reply.peek(reply.bytesAvailable())))
+        self._url = six.text_type(reply.url().toString())
+
+
+class PortiaBrowserTab(BrowserTab):
+    @property
+    def url(self):
+        """ Current URL """
+        if self._closing:
+            return ''
+        return six.text_type(self.web_page.mainFrame().url().toString())
+
+    @skip_if_closing
+    def evaljs(self, *args, **kwargs):
+        return super(PortiaBrowserTab, self).evaljs(*args, **kwargs)
 
 
 class FerryWebSocketResource(WebSocketResource):
@@ -369,7 +385,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         data = {}
         data['uid'] = id(data)
 
-        self.factory[self].tab = BrowserTab(
+        self.factory[self].tab = PortiaBrowserTab(
             network_manager=manager,
             splash_proxy_factory=None,
             verbosity=0,
@@ -385,6 +401,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
             cookiejar.put_client_cookies(meta['cookies'])
 
         main_frame.loadStarted.connect(self._on_load_started)
+        main_frame.loadFinished.connect(self._on_load_finished)
         self.js_api = PortiaJSApi(self)
         main_frame.javaScriptWindowObjectCleared.connect(
             self.populate_window_object
@@ -397,6 +414,12 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
     def _on_load_started(self):
         self.sendMessage({'_command': 'loadStarted'})
+
+    def _on_load_finished(self):
+        if getattr(self.tab.network_manager, '_url', None) != self.tab.url:
+            page = self.tab.web_page
+            page.triggerAction(page.ReloadAndBypassCache, False)
+        self.sendMessage({'_command': 'loadFinished', 'url': self.tab.url})
 
     def populate_window_object(self):
         main_frame = self.tab.web_page.mainFrame()
@@ -446,8 +469,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if self.spider:
             spider = '{}({})'.format(
                 self.spider.__class__.__name__, self.spider.name)
-        if self.spec:
-            spec = str(self.spec)
+        if self.spiderspec:
+            spec = str(self.spiderspec)
         return ', '.join(filter(bool, (tab, spider, spec)))
 
 
