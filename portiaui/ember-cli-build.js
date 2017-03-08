@@ -40,7 +40,7 @@ module.exports = function(defaults) {
             'tree-mirror.js',
             // LocalStorage Shim disabled since it doesn't work in Qt5
             // 'local-storage-shim.js',
-            'inject_this.js'
+            'z_inject_this.js'
         ],
         outputFile: 'splash_content_scripts/combined.js',
         header: '(function(){',
