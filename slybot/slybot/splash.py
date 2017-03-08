@@ -4,7 +4,7 @@ import os
 
 DEFAULT_LUA_SOURCE = u'''
 function main(splash)
-  splash:init_cookies(splash.args.cookies)
+  splash:init_cookies(splash.args.cookies or {})
   assert(splash:go(splash.args.url))
   assert(splash:wait(splash.args.wait))
   splash:runjs(splash.args.js_source)
