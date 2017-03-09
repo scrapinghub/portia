@@ -14,7 +14,7 @@ from slybot.plugins.scrapely_annotations.migration import (port_sample,
                                                            guess_schema,
                                                            repair_ids)
 from slybot.starturls import StartUrlCollection
-from slybot.utils import encode
+from slybot.utils import encode, decode
 
 from storage.backends import ContentFile
 
@@ -412,7 +412,8 @@ class Sample(Model, OrderedAnnotationsMixin):
             return data
         if any(body in data for body in ('original_body', 'rendered_body')):
             self._migrate_html(self, data)
-        schemas = json.load(self.context['storage'].open('items.json'))
+        storage = self.context['storage']
+        schemas = json.loads(decode(storage.open('items.json').read()))
         if data.get('version', '') > '0.13.0':
             schema_id, new_schemas = guess_schema(data, schemas)
             self._add_schemas(self, new_schemas)
@@ -428,8 +429,8 @@ class Sample(Model, OrderedAnnotationsMixin):
         if items:
             return data
 
-        extractors = json.load(self.context['storage'].open_with_default(
-            'extractors.json', {}))
+        extractors = json.loads(
+            decode(storage.open_with_default('extractors.json', {}).read()))
         sample, new_schemas = port_sample(data, schemas, extractors)
         self._add_schemas(self, new_schemas)
         self.save_raw(self, sample)

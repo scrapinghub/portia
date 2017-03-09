@@ -39,7 +39,7 @@ cleanup -- remove unnecessary files. DON'T RUN UNLESS IT'S INSIDE AN IMAGE AND Y
 EOF
 }
 
-export SPLASH_PYTHON_VERSION=${SPLASH_PYTHON_VERSION:-"2"}
+export SPLASH_PYTHON_VERSION=${SPLASH_PYTHON_VERSION:-"3"}
 
 activate_venv () {
     if [ -e ${VIRTUAL_ENV}/bin/activate ]; then
@@ -62,23 +62,23 @@ install_deps(){
             libglapi-mesa \
             libgl1-mesa-dri \
             libmysqlclient-dev \
-            nginx python-dev \
+            nginx python3-dev \
             nodejs \
-            python-mysql.connector \
-            python-numpy \
-            python-openssl \
-            python-pip \
-            python-software-properties
-    pip install -U pip setuptools
+            python3-mysql.connector \
+            python3-numpy \
+            python3-openssl \
+            python3-pip \
+            python3-software-properties
+    pip3 install -U pip setuptools
 }
 
 install_python_deps(){
     activate_venv
-    pip install -r "$APP_ROOT/slybot/requirements.txt"
-    pip install -r "$APP_ROOT/slyd/requirements.txt"
-    pip install -r "$APP_ROOT/portia_server/requirements.txt"
-    pip install -e "$APP_ROOT/slyd"
-    pip install -e "$APP_ROOT/slybot"
+    pip3 install -r "$APP_ROOT/slybot/requirements.txt"
+    pip3 install -r "$APP_ROOT/slyd/requirements.txt"
+    pip3 install -r "$APP_ROOT/portia_server/requirements.txt"
+    pip3 install -e "$APP_ROOT/slyd"
+    pip3 install -e "$APP_ROOT/slybot"
 }
 
 install_splash(){
@@ -92,7 +92,7 @@ install_splash(){
         install_builddeps \
         install_deps \
         install_pyqt5
-    pip install .
+    pip3 install .
 }
 
 
@@ -107,7 +107,7 @@ cleanup() {
     apt-get remove --purge -y libxml2-dev \
                               libxslt-dev \
                               libgl1-mesa-dev \
-                              python-dev
+                              python3-dev
     apt-get autoremove -y
     apt-get clean
     find / | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf

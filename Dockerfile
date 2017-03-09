@@ -16,7 +16,7 @@ ADD nginx /etc/nginx
 ADD . /app
 RUN pip install -e /app/slyd && \
     pip install -e /app/slybot
-RUN python /app/portia_server/manage.py migrate
+RUN python3 /app/portia_server/manage.py migrate
 
 EXPOSE 9001
 ENTRYPOINT ["/app/docker/entry"]
