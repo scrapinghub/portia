@@ -24,6 +24,7 @@ from splash.render_options import RenderOptions
 from slybot.spider import IblSpider
 from portia_api.errors import BaseHTTPError
 
+from django.conf import settings
 from django.db import close_old_connections
 
 from storage import create_project_storage
@@ -225,9 +226,9 @@ class PortiaJSApi(QObject):
         self.call = None
 
 
-def is_blacklisted(url, settings):
+def is_blacklisted(url):
     from urlparse import urlparse
-    return urlparse(url).netloc in settings.get('BLACKLIST_URLS', [])
+    return urlparse(url).netloc in settings.BLACKLIST_URLS
 
 
 def blacklist_error(data, socket):
@@ -297,7 +298,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if '_meta' in data and 'session_id' in data['_meta']:
             self.session_id = data['_meta']['session_id']
 
-        if is_blacklisted(data.get('url', ''), self.settings):
+        if is_blacklisted(data.get('url', '')):
             blacklist_error(data, self)
             return
 

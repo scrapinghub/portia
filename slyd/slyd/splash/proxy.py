@@ -9,7 +9,7 @@ from twisted.web.server import NOT_DONE_YET
 from twisted.python import log
 
 from .qtutils import QNetworkRequest, to_py
-from .ferry import User
+from .ferry import User, is_blacklisted
 from .css_utils import process_css
 
 
@@ -22,6 +22,8 @@ class ProxyResource(Resource):
                 return self._error(request, 400, 'Argument required: {}'.format(arg))
 
         url = request.args['url'][0]
+        if is_blacklisted(url):
+            return self._error(request, 404, 'Not Found')
         referer = request.args['referer'][0]
         try:
             tabid = int(request.args['tabid'][0])

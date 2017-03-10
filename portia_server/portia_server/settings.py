@@ -127,3 +127,6 @@ CAPABILITIES = {
     'rename_spiders': True,
     'rename_templates': True,
 }
+
+# domains that portia will not load
+BLACKLIST_URLS = set()
