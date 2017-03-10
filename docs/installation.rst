@@ -44,13 +44,13 @@ Run the following in Portia's directory::
 This will launch an Ubuntu virtual machine, build Portia and start the ``portia`` server. You'll then be able to access Portia at ``http://localhost:9001``. You can stop the ``portia`` server using ``vagrant suspend`` or ``vagrant halt``. To run ``portiacrawl`` you will need to SSH into the virtual machine by running ``vagrant ssh``.
 
 
-Debian
+Ubuntu
 ------
 
 Running Portia Locally
 ^^^^^^^^^^^^^^^^^^^^^^
 
-**These instructions are only valid for a Debian based OS**
+**These instructions are only valid for an Ubuntu based OS**
 
 Install the following dependencies::
 
