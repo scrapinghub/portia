@@ -19,8 +19,8 @@
   "license": "MIT",
   "devDependencies": {
     "broccoli-asset-rev": "^2.4.2",
-    "broccoli-source": "^1.1.0",
     "broccoli-concat": "^3.2.2",
+    "broccoli-source": "^1.1.0",
     "ember-ajax": "^2.0.1",
     "ember-api-actions": "0.0.11",
     "ember-api-requests": "0.3.0",
@@ -44,7 +44,7 @@
     "ember-cli-sri": "^2.1.0",
     "ember-cli-uglify": "^1.2.0",
     "ember-concurrency": "0.7.10",
-    "ember-data": "^2.6.0",
+    "ember-data": "~2.11.3",
     "ember-data-url-templates": "0.1.1",
     "ember-export-application-global": "^1.0.5",
     "ember-load-initializers": "^0.5.1",
