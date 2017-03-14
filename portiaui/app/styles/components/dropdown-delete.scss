@@ -1,5 +1,6 @@
 li.dropdown-delete {
     cursor: pointer;
+    user-select: none;
 
     a {
         color: $brand-danger;
