@@ -349,7 +349,7 @@ export default Ember.Service.extend({
         const newId = json.data.id;
 
         // Update internal store with internal model
-        const recordMap = store.typeMapFor(internalModel.type).idToRecord;
+        const recordMap = store._recordMapFor(internalModel.type.modelName).idToRecord;
         delete recordMap[internalModel.id];
         recordMap[newId] = internalModel;
 
