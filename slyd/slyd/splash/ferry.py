@@ -389,7 +389,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.factory[self].tab = PortiaBrowserTab(
             network_manager=manager,
             splash_proxy_factory=None,
-            verbosity=0,
+            verbosity=defaults.VERBOSITY,
             render_options=RenderOptions(data, defaults.MAX_TIMEOUT),
             visible=True,
         )
@@ -403,10 +403,11 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
         main_frame.loadStarted.connect(self._on_load_started)
         main_frame.loadFinished.connect(self._on_load_finished)
+
         self.js_api = PortiaJSApi(self)
         main_frame.javaScriptWindowObjectCleared.connect(
-            self.populate_window_object
-        )
+            self._on_javascript_window_cleared)
+        main_frame.initialLayoutCompleted.connect(self._on_layout_completed)
 
         self.tab.set_images_enabled(True)
         self.tab.set_viewport(meta.get('viewport') or _DEFAULT_VIEWPORT)
@@ -415,12 +416,21 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
     def _on_load_started(self):
         self.sendMessage({'_command': 'loadStarted'})
+        self.tab.initial_layout_completed = False
 
     def _on_load_finished(self):
         if getattr(self.tab.network_manager, '_url', None) != self.tab.url:
             page = self.tab.web_page
             page.triggerAction(page.ReloadAndBypassCache, False)
         self.sendMessage({'_command': 'loadFinished', 'url': self.tab.url})
+
+    def _on_layout_completed(self):
+        self.populate_window_object()
+        self.tab.initial_layout_completed = True
+
+    def _on_javascript_window_cleared(self):
+        if self.tab.initial_layout_completed:
+            self.populate_window_object()
 
     def populate_window_object(self):
         main_frame = self.tab.web_page.mainFrame()
