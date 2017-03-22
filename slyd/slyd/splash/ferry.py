@@ -429,7 +429,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.tab.initial_layout_completed = True
 
     def _on_javascript_window_cleared(self):
-        if self.tab.initial_layout_completed:
+        if getattr(self.tab, 'initial_layout_completed', False):
             self.populate_window_object()
 
     def populate_window_object(self):

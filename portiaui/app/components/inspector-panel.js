@@ -7,6 +7,10 @@ export const IGNORED_ATTRIBUTES = new Set([
     'data-scrapy-annotate', 'data-tagid', 'data-genid', 'data-parentid'
 ]);
 
+export function hasContentAttribute(element) {
+    return Ember.$(element).attr('content') ? true : false;
+}
+
 export function getAttributeList(element) {
     if (!element) {
         return [];
@@ -15,9 +19,10 @@ export function getAttributeList(element) {
     var $element = Ember.$(element);
     var textContent = $element.text().trim();
     if (textContent) {
+        let hasContent = hasContentAttribute(element);
         attributeList.push({
-            name: $element.attr('content') ? 'text content' : 'content',
-            attribute: $element.attr('content') ? 'text-content' : 'content',
+            name: hasContent ? 'text content' : 'content',
+            attribute: hasContent ? 'text-content' : 'content',
             value: textContent
         });
     }

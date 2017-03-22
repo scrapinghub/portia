@@ -3,7 +3,7 @@ import Sample from '../models/sample';
 import { includesUrl } from '../utils/start-urls';
 import buildStartUrl from '../models/start-url';
 import {createStructure} from './annotation-structure';
-import {getDefaultAttribute} from '../components/inspector-panel';
+import {getDefaultAttribute, hasContentAttribute} from '../components/inspector-panel';
 import {updateStructureSelectors} from '../services/annotation-structure';
 import { task } from 'ember-concurrency';
 
@@ -236,6 +236,9 @@ export default Ember.Service.extend({
         if (element) {
             annotation.addElement(element);
             attribute = attribute || getDefaultAttribute(element);
+            if (hasContentAttribute(element)) {
+                annotation.set('text_content', 'text-content');
+            }
         }
 
         if (attribute !== undefined) {

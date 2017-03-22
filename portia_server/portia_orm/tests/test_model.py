@@ -1704,6 +1704,7 @@ class SampleTests(ProjectTestCase):
                                     },
                                 },
                                 'id': '3606-4d68-a6a0',
+                                'text-content': 'content',
                                 'post_text': None,
                                 'pre_text': None,
                                 'reject_selectors': [],
@@ -1731,6 +1732,7 @@ class SampleTests(ProjectTestCase):
                                     },
                                 },
                                 'id': '5c18-40cf-8809',
+                                'text-content': 'content',
                                 'post_text': None,
                                 'pre_text': None,
                                 'reject_selectors': [],
@@ -1812,6 +1814,7 @@ class SampleTests(ProjectTestCase):
                                 },
                             },
                             'id': '3606-4d68-a6a0',
+                            'text-content': 'content',
                             'post_text': None,
                             'pre_text': None,
                             'reject_selectors': [],
@@ -1839,6 +1842,7 @@ class SampleTests(ProjectTestCase):
                                 },
                             },
                             'id': '5c18-40cf-8809',
+                            'text-content': 'content',
                             'post_text': None,
                             'pre_text': None,
                             'reject_selectors': [],
@@ -1938,6 +1942,7 @@ class SampleTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -1965,6 +1970,7 @@ class SampleTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -2056,6 +2062,7 @@ class SampleTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -2083,6 +2090,7 @@ class SampleTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -2502,6 +2510,7 @@ class ItemTests(ProjectTestCase):
                         },
                     },
                     "id": "annotation-1",
+                    'text-content': 'content',
                     "post_text": None,
                     "pre_text": None,
                     "reject_selectors": [],
@@ -2596,6 +2605,7 @@ class ItemTests(ProjectTestCase):
                             },
                         },
                         'id': '3606-4d68-a6a0',
+                        'text-content': 'content',
                         'post_text': None,
                         'pre_text': None,
                         'reject_selectors': [],
@@ -2625,6 +2635,7 @@ class ItemTests(ProjectTestCase):
                                     },
                                 },
                                 'id': '7fd9-4ba9-83b8',
+                                'text-content': 'content',
                                 'post_text': None,
                                 'pre_text': None,
                                 'reject_selectors': [],
@@ -2665,6 +2676,7 @@ class ItemTests(ProjectTestCase):
                             },
                         },
                         'id': '5c18-40cf-8809',
+                        'text-content': 'content',
                         'post_text': None,
                         'pre_text': None,
                         'reject_selectors': [],
@@ -2720,6 +2732,7 @@ class ItemTests(ProjectTestCase):
                         },
                     },
                     'id': '3606-4d68-a6a0',
+                    'text-content': 'content',
                     'post_text': None,
                     'pre_text': None,
                     'reject_selectors': [],
@@ -2749,6 +2762,7 @@ class ItemTests(ProjectTestCase):
                                 },
                             },
                             'id': '7fd9-4ba9-83b8',
+                            'text-content': 'content',
                             'post_text': None,
                             'pre_text': None,
                             'reject_selectors': [],
@@ -2789,6 +2803,7 @@ class ItemTests(ProjectTestCase):
                         },
                     },
                     'id': '5c18-40cf-8809',
+                    'text-content': 'content',
                     'post_text': None,
                     'pre_text': None,
                     'reject_selectors': [],
@@ -2899,6 +2914,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -2938,6 +2954,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -2965,6 +2982,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3052,6 +3070,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3091,6 +3110,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3118,6 +3138,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3208,6 +3229,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3247,6 +3269,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3274,6 +3297,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3408,6 +3432,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3447,6 +3472,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "7fd9-4ba9-83b8", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3474,6 +3500,7 @@ class ItemTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3600,6 +3627,7 @@ class AnnotationTests(ProjectTestCase):
                 },
             },
             'id': 'annotation-1',
+            'text-content': 'content',
             'post_text': None,
             'pre_text': None,
             'reject_selectors': [],
@@ -3639,6 +3667,7 @@ class AnnotationTests(ProjectTestCase):
                 },
             },
             'id': 'annotation-1',
+            'text-content': 'content',
             'post_text': ' post',
             'pre_text': 'pre ',
             'reject_selectors': [
@@ -3680,6 +3709,7 @@ class AnnotationTests(ProjectTestCase):
                     },
                 },
                 'id': '3606-4d68-a6a0',
+                'text-content': 'content',
                 'post_text': None,
                 'pre_text': None,
                 'reject_selectors': [],
@@ -3707,6 +3737,7 @@ class AnnotationTests(ProjectTestCase):
                     },
                 },
                 'id': '5c18-40cf-8809',
+                'text-content': 'content',
                 'post_text': None,
                 'pre_text': None,
                 'reject_selectors': [],
@@ -3748,6 +3779,7 @@ class AnnotationTests(ProjectTestCase):
                 },
             },
             'id': '5c18-40cf-8809',
+            'text-content': 'content',
             'post_text': None,
             'pre_text': None,
             'reject_selectors': [],
@@ -3847,6 +3879,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3874,6 +3907,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3961,6 +3995,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "test-id", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -3988,6 +4023,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4079,6 +4115,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4106,6 +4143,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4128,6 +4166,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "test1", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4212,6 +4251,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "test2", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4237,6 +4277,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "3606-4d68-a6a0", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4264,6 +4305,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4286,6 +4328,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "test1", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
@@ -4387,6 +4430,7 @@ class AnnotationTests(ProjectTestCase):
             '                        }\n'
             '                    }, \n'
             '                    "id": "5c18-40cf-8809", \n'
+            '                    "text-content": "content", \n'
             '                    "post_text": null, \n'
             '                    "pre_text": null, \n'
             '                    "reject_selectors": [], \n'
