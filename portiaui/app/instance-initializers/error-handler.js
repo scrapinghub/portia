@@ -61,6 +61,8 @@ export function initialize(applicationInstance) {
             // Skip errors when operating on deleted
             Ember.Logger.debug(`Model Error: ${err.message}`);
             logErrorStack(err, Ember.Logger.debug);
+        } else if (err.fileName === 'websocket-browser-load') {
+            logErrorStack(err, Ember.Logger.debug);
         } else {
             logErrorStack(err);
             notificationManager.add({

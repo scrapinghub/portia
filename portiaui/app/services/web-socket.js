@@ -28,7 +28,13 @@ export default Service.extend(Evented, {
     deferreds: {},
     url: defaultUrl(),
     secondsUntilReconnect: 0,
-    reconnectImminent: computed.lt('secondsUntilReconnect', 2),
+    reconnectImminent: computed('reconnectMessage', 'secondsUntilReconnect', function() {
+        return this.get('secondsUntilReconnect') < 2 &&
+               this.get('reconnectMessage').length === 0;
+    }),
+    reconnectComponent: null,
+    reconnectMessage: '',
+    showBanner: computed.or('closed', 'reconnectComponent'),
 
     init: function(options) {
         if(options) { this.setProperties(options); }
@@ -66,6 +72,12 @@ export default Service.extend(Evented, {
 
         Logger.log('<Closed Websocket>');
         if(e.code !== APPLICATION_UNLOADING_CODE && e.code !== 1000) {
+            if (!window.navigator.onLine) {
+                this.set('reconnectMessage',
+                    'You are currently offline, you will be reconnected as soon as possible, or ');
+                window.addEventListener('online', this.connect, false);
+                return;
+            }
             var timeout = this._connectTimeout();
             this.set('secondsUntilReconnect', Math.round(timeout/1000));
             var next = run.later(this, this.connect, timeout);
@@ -106,11 +118,13 @@ export default Service.extend(Evented, {
     _onopen() {
         Logger.log('<Opened Websocket>');
         this.set('closed', false);
+        this.set('reconnectMessage', '');
         this.set('connecting', false);
         this.set('reconnectTimeout', DEFAULT_RECONNECT_TIMEOUT);
         this.heartbeat = setInterval(function() {
             this.send({_command: 'heartbeat'});
         }.bind(this), 20000);
+        window.removeEventListener('online', this.connect, false);
     },
 
     _createWebsocket: function() {

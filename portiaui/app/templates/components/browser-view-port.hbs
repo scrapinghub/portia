@@ -4,15 +4,20 @@
         {{yield (hash section="toolbar")}}
     </div>
 </div>
-<div class="browser-banner{{unless webSocket.closed ' hide'}}">
+<div class="browser-banner{{unless webSocket.showBanner ' hide'}}">
     {{#if webSocket.connecting}}
         Connecting ...
-    {{/if}}
-    {{#if webSocket.secondsUntilReconnect }}
-        Reconnecting to Portia server in {{webSocket.secondsUntilReconnect}} seconds.
+    {{else if webSocket.closed}}
+        {{#if webSocket.secondsUntilReconnect }}
+            Reconnecting to Portia server in {{webSocket.secondsUntilReconnect}} seconds.
+        {{else if websocket.reconnectMessage}}
+            {{websocket.reconnectMessage}}
+        {{/if}}
         {{#unless webSocket.reconnectImminent}}
             <a class="alert-link" {{action 'reconnectWebsocket'}}>Try Again</a>.
         {{/unless}}
+    {{else if webSocket.reconnectComponent}}
+        {{component webSocket.reconnectComponent}}
     {{/if}}
 </div>
 <div class="frame-container panel-body">
