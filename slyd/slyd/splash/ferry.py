@@ -31,6 +31,7 @@ from storage import create_project_storage
 
 from portia_orm.models import Project
 from portia_orm.datastore import data_store_context
+from portia_orm.utils import short_guid
 from portia_api.utils.spiders import load_spider_data
 
 from .qtutils import QObject, pyqtSlot, QWebElement
@@ -415,14 +416,17 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.tab.loaded = False
 
     def _on_load_started(self):
-        self.sendMessage({'_command': 'loadStarted'})
+        self.load_id = short_guid()
+        self.sendMessage({'_command': 'loadStarted', 'id': self.load_id,
+                          'url': self.tab.url})
         self.tab.initial_layout_completed = False
 
     def _on_load_finished(self):
         if getattr(self.tab.network_manager, '_url', None) != self.tab.url:
             page = self.tab.web_page
             page.triggerAction(page.ReloadAndBypassCache, False)
-        self.sendMessage({'_command': 'loadFinished', 'url': self.tab.url})
+        self.sendMessage({'_command': 'loadFinished', 'url': self.tab.url,
+                          'id': getattr(self, 'load_id', None)})
 
     def _on_layout_completed(self):
         self.populate_window_object()
