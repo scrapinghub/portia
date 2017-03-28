@@ -15,8 +15,6 @@ You can run Portia with the command below::
 Portia will now be running on port 9001 and you can access it at ``http://localhost:9001``.
 Projects will be stored in the project folder that you mount to docker.
 
-To run `portiacrawl` add `/app/slybot/bin/portiacrawl <PROJECT_PATH> [SPIDER] [OPTIONS]` to the command above.
-
 To extract data using portia you can run your spider with::
 
     docker run -i -t --rm -v <PROJECTS_FOLDER>:/app/data/projects:rw -v <OUPUT_FOLDER>:/mnt:rw -p 9001:9001 scrapinghub/portia \
@@ -24,7 +22,8 @@ To extract data using portia you can run your spider with::
 
 After the crawl finishes you will find your extracted data in the the `OUTPUT_FOLDER`
 
-.. warning:: For Windows the `<PROJECT_FOLDER>` path must be of the form `/<DRIVE_LETTER/<PATH>`
+.. note:: *<PROJECT_FOLDER>* qne *<OUTPUT_FOLDER>* are just paths on your system where your projects and extracted data are stored.
+.. warning:: For Windows the *<PROJECT_FOLDER>* path must be of the form */<DRIVE_LETTER/<PATH>*. For example */C/Users/UserName/Documents/PortiaProjects*
 
 
 Vagrant
@@ -73,7 +72,9 @@ Install splash and the required packages::
 
 To run Portia start slyd and portia_server::
 
-    slyd/bin/slyd -p 9002 -r portiaui/dist && portia_server/manage.py runserver
+    PYTHONPATH='/vagrant/portia_server:/vagrant/slyd:/vagrant/slybot'
+    slyd/bin/slyd -p 9002 -r portiaui/dist &
+    portia_server/manage.py runserver
 
 Portia should now be running on port 9001 and you can access it at ``http://localhost:9001``.
 
