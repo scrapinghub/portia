@@ -2,6 +2,8 @@ from __future__ import absolute_import
 import functools
 import requests
 
+from base64 import b64decode
+
 from twisted.internet.threads import deferToThread
 from twisted.internet.defer import CancelledError
 from twisted.web.resource import Resource
@@ -41,12 +43,34 @@ class ProxyResource(Resource):
         connection_status = {"finished": False}
         cb = functools.partial(self.end_response, request, url, referer,
                                connection_status, tabid)
-        if not user or not user.tab:
+        if not (user and user.tab):
             # No browser session active, proxy resource instead
             return self._load_resource_proxy(request, url, referer, cb)
-
         if request.auth_info['username'] != user.auth['username']:
             return self._error(request, 403, "You don't own that browser session")
+
+        try:
+            entry = next((entry for entry in user.tab.har()['log']['entries']
+                          if entry['request']['url'] == url), None)
+            response = entry['response']
+            content = b64decode(response['content']['text'])
+            for header in response['headers']:
+                name, value = header['name'], header['value']
+                name_lower = name.lower()
+                if (name.startswith(('c', 'C')) and
+                    name_lower == 'content-type' and
+                        value.strip().startswith('text/css')):
+                    content = process_css(content, tabid, url)
+                if (name_lower.startswith('x-') or
+                        name_lower in {'server', 'date', 'connection', 'transfer-encoding', 'content-encoding'}):
+                    continue
+                print('Header: %s, %s ' % (name, value))
+                request.responseHeaders.addRawHeader(name.encode('ascii'),
+                                                     value.encode('ascii'))
+            request.setResponseCode(response['status'])
+            return content
+        except (AttributeError, KeyError, AssertionError, TypeError):
+            pass
 
         request.notifyFinish().addErrback(self._requestDisconnect, None,
                                           connection_status)

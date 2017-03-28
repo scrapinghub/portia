@@ -4,7 +4,6 @@ from scrapy.http import HtmlResponse, Request
 from scrapy.item import DictItem
 
 from portia_api.errors import BaseHTTPError
-from slybot.baseurl import insert_base_url
 from slybot.utils import encode, decode
 _DEFAULT_VIEWPORT = '1240x680'
 
@@ -12,7 +11,7 @@ _DEFAULT_VIEWPORT = '1240x680'
 def decoded_html(tab, type_=None):
     if type_ == 'raw':
         stated_encoding = tab.evaljs('document.characterSet')
-        return decode(tab.network_manager._raw_html or tab.html(),
+        return decode(tab._raw_html or tab.html(),
                       default=stated_encoding)
     return tab.html()
 
