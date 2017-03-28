@@ -699,6 +699,7 @@ class Item(BaseAnnotation, OrderedAnnotationsMixin):
 
 class Annotation(BaseAnnotation):
     attribute = String(default='content')
+    text_content = String(default='content')
     required = Boolean(default=False)
     selection_mode = String(default='auto', validate=OneOf(
         ['auto', 'css', 'xpath']))
@@ -769,6 +770,7 @@ class Annotation(BaseAnnotation):
             'id': '{}|{}'.format(data['id'], data_id),
             'container_id': data['container_id'],
             'attribute': annotation_data['attribute'] or 'content',
+            'text_content': data.get('text-content', 'content'),
             'required': annotation_data['required'] or False,
             'repeated': data.get('repeated', False),
             'selection_mode': data.get('selection_mode') or 'auto',
@@ -800,6 +802,7 @@ class Annotation(BaseAnnotation):
                 ]),
             }),
             ('id', annotation_id),
+            ('text-content', data['text_content']),
             ('post_text', data['post_text']),
             ('pre_text', data['pre_text']),
             ('reject_selectors', data['reject_selectors']),

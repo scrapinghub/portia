@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import { getAttributeList } from './inspector-panel';
+import { getAttributeList, hasContentAttribute } from './inspector-panel';
 
 export default Ember.Component.extend({
     uiState: Ember.inject.service(),
@@ -34,6 +34,10 @@ export default Ember.Component.extend({
             this.set('annotation.attribute', value.attribute);
             return value;
         }
+    }),
+    text_content: Ember.computed('uiState.viewPort.selectedElement', function() {
+        let hasContent = hasContentAttribute(this.get('uiState.viewPort.selectedElement'));
+        return hasContent ? 'text-content' : 'content';
     }),
     attributes: Ember.computed('uiState.viewPort.selectedElement', function() {
         return getAttributeList(this.get('uiState.viewPort.selectedElement'));
@@ -129,6 +133,7 @@ export default Ember.Component.extend({
 
     actions: {
         save() {
+            this.set('annotation.text_content', this.get('text_content'));
             const promise = this.get('annotation').save();
             return this._updateSelectorPromise ?
                 this._updateSelectorPromise.then(() => promise) :

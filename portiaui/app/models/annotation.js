@@ -10,6 +10,9 @@ export default BaseAnnotation.extend({
     attribute: DS.attr('string', {
         defaultValue: 'content'
     }),
+    text_content: DS.attr('string', {
+        defaultValue: 'content'
+    }),
     required: DS.attr('boolean', {
         defaultValue: false
     }),
