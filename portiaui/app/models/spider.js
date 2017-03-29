@@ -143,7 +143,9 @@ export default BaseModel.extend({
         defaultValue: ''
     }),
 
-    user: DS.attr('string'),
+    user: DS.attr('string', {
+        defaultValue: 'mina'
+    }),
 
     userAlias: Ember.computed('username', 'user', {
         get() {
