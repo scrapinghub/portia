@@ -94,7 +94,7 @@ else:
     COUNTRY_CODE = "{country_code}"
     CURRENCY_CODE = "{currency_code}"
     USE_SCRAPELY = True
-    START_URLS = "{start_urls}"
+    START_URLS = {start_urls}
     ALLOWED_DOMAINS = {allowed_domains}
     MERCHANT_URLS_CONFIG = [{{"url": "{merchant_url}", 'cookie_config': {general_cookie} }}]
     RULES = [Rule(LxmlLinkExtractor(allow={allow_regex},
