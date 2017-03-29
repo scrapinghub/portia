@@ -90,6 +90,8 @@ def save_portia_spider(spider_name, country_code):
             s = os.path.join(src, item)
             d = os.path.join(dst, item)
             if os.path.isdir(s):
+                if not os.path.exists(d):
+                    os.makedirs(d)
                 copytree(s, d, symlinks, ignore)
             else:
                 shutil.copy2(s, d)
@@ -253,8 +255,7 @@ def publish_kipp_settings(username, country_code, spider_name):
         config = repo.config_writer()
         config.set_value("user", "name", username)
         index = repo.index
-        index.add([kipp_config_file_path, portia_config_file_path])
-        index.add([temlate_dir])
+        index.add([kipp_config_file_path, portia_config_file_path, temlate_dir])
         commit_msg = '%s: Update %s[%s]spider configurations' % (username, spider_name, country_code)
         index.commit(commit_msg)
         origins = repo.remotes
