@@ -38,7 +38,11 @@ class SlybotTemplatePageParser(TemplatePageParser):
         template_attr = html_tag.attributes.get('data-scrapy-annotate')
         if template_attr is None:
             return None
-        return json.loads(template_attr.replace('&quot;', '"'))
+        try:
+            return json.loads(template_attr.replace('&quot;', '"'))
+        except ValueError:
+            # JSON may be invalid in the case of extremely malformed html
+            return None
 
     def read_jannotations(self, html_tag):
         jannotations = self._read_template_annotation(html_tag)
