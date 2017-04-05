@@ -6,12 +6,25 @@ import treeMirrorDelegate from '../utils/tree-mirror-delegate';
 import { NAVIGATION_MODE } from '../services/browser';
 
 
+function hashString(string) {
+    let hash = 5381;
+    for (let c of string) {
+        hash = ((hash << 5) + hash) + c.charCodeAt(0);
+    }
+    if (hash < 0) {
+        hash += 0xFFFFFFFF + 1;
+    }
+    return hash.toString(16);
+}
+
+
 const BrowserIFrame = Ember.Component.extend({
     browser: Ember.inject.service(),
     overlays: Ember.inject.service(),
     webSocket: Ember.inject.service(),
     uiState: Ember.inject.service(),
     cookiesStore: storageFor('cookies'),
+    pageLoadStore: storageFor('page-loads'),
     extractedItems: Ember.inject.service(),
 
     tagName: 'iframe',
@@ -55,7 +68,7 @@ const BrowserIFrame = Ember.Component.extend({
         const ws = this.get('webSocket');
         ws.connect();
         ws.addCommand('loadStarted', this, this.msgLoadStarted);
-        ws.addCommand('loadFinished', this, this.msgMetadata);
+        ws.addCommand('loadFinished', this, this.msgLoadFinished);
         ws.addCommand('metadata', this, this.msgMetadata);
         ws.addCommand('load', this, this.msgLoad);
         ws.addCommand('cookies', this, this.msgCookies);
@@ -76,7 +89,7 @@ const BrowserIFrame = Ember.Component.extend({
     willDestroyElement() {
         const ws = this.get('webSocket');
         ws.removeCommand('loadStarted', this, this.msgLoadStarted);
-        ws.removeCommand('loadFinished', this, this.msgMetadata);
+        ws.removeCommand('loadFinished', this, this.msgLoadFinished);
         ws.removeCommand('metadata', this, this.msgMetadata);
         ws.removeCommand('load', this, this.msgLoad);
         ws.removeCommand('cookies', this, this.msgCookies);
@@ -112,18 +125,46 @@ const BrowserIFrame = Ember.Component.extend({
         }
         if (this.get('webSocket.closed')) {
             this.splashUrl = null;
+            if (this.get('lastLoadPromise')) {
+                this.set('lastLoadData', null);
+                Ember.run.cancel(this.get('lastLoadPromise'));
+                this.failedLoad(navigator.onLine ? 'server_disconnect' : 'user_disconnect');
+            }
             return;
         }
         if (this.splashUrl === url) {
             return;
         }
 
-        this.set('loading', true);
+        let failures = this.get(`pageLoadStore.${hashString(url)}`);
+        if (failures && ((new Date() - new Date(failures.dt))/(1000*3600) < 1)) {
+            let failed = failures.failed;
+            if (failed > 3 && window.navigator.onLine) {
+                // Tell user that page is not working with Portia
+                this.set('webSocket.reconnectComponent', 'browser-url-blocked');
+                this.set('loading', false);
+                throw new Error(`URL Blocked: ${url} in ${this.get('uiState.project.id')}`,
+                                'websocket-browser-load');
+            } else if (failed > 2) {
+                if (!this.get('webSocket.reconnectComponent')) { // Allow reload through
+                    // Allow user to manually reload page after 2 failures
+                    this.set('webSocket.reconnectComponent', 'browser-url-failing');
+                    this.set('loading', false);
+                    throw new Error(`URL Failing: ${url} in ${this.get('uiState.project.id')}`,
+                                    'websocket-browser-load');
+                }
+            }
+            // Allow auto reload to happen two times
+        }
+        this.set('webSocket.reconnectComponent', null);
 
+        this.visit(url, baseurl);
+    },
+
+    visit(url, baseurl) {
+        this.set('loading', true);
         this.get('webSocket').send({
             _meta: {
-                // TODO: Send current project and spider to see followed links and extracted items?
-                id: shortGuid(),
                 viewport: this.iframeSize(),
                 user_agent: navigator.userAgent,
                 cookies: this.loadCookies(),
@@ -132,12 +173,53 @@ const BrowserIFrame = Ember.Component.extend({
             },
             _command: 'load',
             url: url,
-            baseurl: baseurl
+            baseurl: baseurl,
         });
     },
 
-    msgLoadStarted() {
+    msgLoadStarted(data) {
         this.set('loading', true);
+        if (data.id) {
+            this.set('lastLoadData', {
+                id: data.id,
+                url: data.url,
+            });
+            this.set('lastLoadPromise', Ember.run.later(this, this.failedLoad, 60000));
+        }
+    },
+
+    failedLoad(reason) {
+        let url = this.get('url');
+        if (!url) {
+            return;
+        }
+        let hash = hashString(url);
+        let now = new Date();
+        let data = this.get(`pageLoadStore.${hash}`);
+        if (data && (now - new Date(data.dt))/(1000*3600) < 1) {
+            data.failed = data.failed + 1;
+        } else {
+            data = {
+                failed: 0,
+                reason: []
+            };
+        }
+        data.dt = now.toISOString();
+        data.url = url;
+        data.reason.push(reason || 'slow');
+        this.set(`pageLoadStore.${hash}`, data);
+    },
+
+    msgLoadFinished(data) {
+        Ember.run.cancel(this.get('lastLoadPromise'));
+        this.set('lastLoadData', null);
+        let hash = hashString(this.get('url'));
+        let failures = this.get(`pageLoadStore.${hash}`);
+        if (failures) {
+            this.set(`pageLoadStore.${hash}`, null);
+        }
+
+        this.msgMetadata(data);
     },
 
     msgLoad(data) {

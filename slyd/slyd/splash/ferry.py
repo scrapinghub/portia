@@ -19,9 +19,11 @@ from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
 from splash.browser_tab import BrowserTab, skip_if_closing
 from splash.network_manager import SplashQNetworkAccessManager
+from splash.qtutils import drop_request
 from splash.render_options import RenderOptions
 
 from slybot.spider import IblSpider
+from slybot.utils import decode
 from portia_api.errors import BaseHTTPError
 
 from django.conf import settings
@@ -31,6 +33,7 @@ from storage import create_project_storage
 
 from portia_orm.models import Project
 from portia_orm.datastore import data_store_context
+from portia_orm.utils import short_guid
 from portia_api.utils.spiders import load_spider_data
 
 from .qtutils import QObject, pyqtSlot, QWebElement
@@ -46,6 +49,26 @@ txaio.use_twisted()
 
 _DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 '
                        '(KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36')
+IGNORED_TYPES = ('video/', 'audio/', 'application/ogg')
+MEDIA_EXTENSIONS = (
+    '.aac', '.avi', '.mid', '.mpeg', '.oga', '.ogv', '.ogx', '.swf',
+    '.wav', '.weba', '.webm', '.xul', '.3gp', '.3g2'
+)
+STORED_TYPES = ('text/html', 'text/xhtml', 'text/xml', 'text/plain',
+                'text/css', 'image/', 'application/font')
+STORED_EXTENSIONS = ('.jpg', 'jpeg', '.png', '.webp', '.gif', '.svg', '.css',
+                     '.xml', '.html', '.htm', '.xhtml', '.woff', '.woff2',
+                     '.ttf', '.otf', '.eot')
+
+
+def _is_xml(accepts):
+    if accepts.startswith('application/'):
+        has_xml = accepts.find('xml')
+        if has_xml > 0:
+            semicolon = accepts.find(';')
+            if semicolon < 0 or has_xml < semicolon:
+                return True
+    return False
 
 
 def wrap_callback(connection, callback, retries=0, **parsed):
@@ -220,6 +243,7 @@ class PortiaJSApi(QObject):
             self.call = task.deferLater(self.protocol.factory.reactor, 1,
                                         self.extract)
 
+
     def extract(self):
         commands = Commands({}, self.protocol, None)
         self.protocol.sendMessage(commands.metadata())
@@ -376,7 +400,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
     def open_tab(self, meta=None):
         if meta is None:
             meta = {}
-        manager = PortiaNetworkManager(
+        manager = SplashQNetworkAccessManager(
             request_middlewares=[],
             response_middlewares=[],
             verbosity=defaults.VERBOSITY
@@ -394,6 +418,8 @@ class FerryServerProtocol(WebSocketServerProtocol):
             visible=True,
         )
         manager.tab = self.tab
+        self.tab.register_callback('on_request', self._configure_requests)
+        self.tab.register_callback('on_response', self._set_tab_html)
         main_frame = self.tab.web_page.mainFrame()
         cookiejar = PortiaCookieJar(self.tab.web_page, self)
         manager.cookiejar = cookiejar
@@ -415,18 +441,40 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.tab.loaded = False
 
     def _on_load_started(self):
-        self.sendMessage({'_command': 'loadStarted'})
+        self.load_id = short_guid()
+        self.sendMessage({'_command': 'loadStarted', 'id': self.load_id,
+                          'url': self.tab.url})
         self.tab.initial_layout_completed = False
 
     def _on_load_finished(self):
-        if getattr(self.tab.network_manager, '_url', None) != self.tab.url:
+        if getattr(self.tab, '_raw_url', None) != self.tab.url:
             page = self.tab.web_page
             page.triggerAction(page.ReloadAndBypassCache, False)
-        self.sendMessage({'_command': 'loadFinished', 'url': self.tab.url})
+        self.sendMessage({'_command': 'loadFinished', 'url': self.tab.url,
+                          'id': getattr(self, 'load_id', None)})
+
+    def _configure_requests(self, request, operation, data):
+        if request.hasRawHeader('Accept'):
+            url = six.binary_type(request.url().toEncoded())
+            url_path = urlparse(url).path.lower()
+            accepts = str(request.rawHeader('Accept')).lower()
+            if (accepts.startswith(STORED_TYPES) or _is_xml(accepts) or
+                    url_path.endswith(STORED_EXTENSIONS)):
+                request.track_response_body = True
+            elif (accepts.startswith(IGNORED_TYPES) or
+                  url_path.endswith(MEDIA_EXTENSIONS)):
+                drop_request(request)
+
+    def _set_tab_html(self, reply, har, content):
+        url = six.binary_type(reply.url().toString())
+        if content is not None and url == self.tab.url:
+            self.tab._raw_html = decode(content)
+            self.tab._raw_url = url
 
     def _on_layout_completed(self):
-        self.populate_window_object()
-        self.tab.initial_layout_completed = True
+        if not getattr(self.tab, 'initial_layout_completed', False):
+            self.populate_window_object()
+            self.tab.initial_layout_completed = True
 
     def _on_javascript_window_cleared(self):
         if getattr(self.tab, 'initial_layout_completed', False):

@@ -224,6 +224,15 @@ var TreeMirrorClient = (function () {
         } else if(attr === "style"){
             obj[attr] = __portiaApi.processCss(value, node.baseURI);
             obj['data-portia-' + attr] = value;
+        } else if (attr === 'srcset' && tagName === 'IMG') {
+            var split_attr = value.split(',')
+            for (var i=0; i < split_attr.length; i++) {
+                split_attr[i] = __portiaApi.wrapUrl(
+                    split_attr[i].trim(),
+                    node.baseURI);
+            }
+            obj[attr] = split_attr.join(', ')
+            obj['data-portia-' + attr] = value;
         } else if (isUrlAttribute(tagName, attr)){
             obj[attr] = __portiaApi.wrapUrl(value, node.baseURI);
             obj['data-portia-' + attr] = value;
