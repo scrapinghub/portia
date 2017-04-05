@@ -1,0 +1,41 @@
+{
+    "allowed_domains": [], 
+    "arabic_cookie_name": "eg_website#lang", 
+    "arabic_cookie_value": "ar-EG", 
+    "arabic_url": "https://eg.oriflame.com/", 
+    "arabic_url_args": "sc_lang=ar-EG", 
+    "country_code": "eg", 
+    "currency_code": "EGP", 
+    "currency_cookie_name": "", 
+    "currency_cookie_value": "", 
+    "english_cookie_name": "eg_website#lang", 
+    "english_cookie_value": "en-EG", 
+    "english_url": "https://eg.oriflame.com/en/", 
+    "english_url_args": "", 
+    "exclude_patterns": [
+        "(.*)(utils|customer-service|tab=1|_DAV=ar)(.*)"
+    ], 
+    "follow_patterns": [], 
+    "id": "oriflame", 
+    "js_disable_patterns": [], 
+    "js_enable_patterns": [], 
+    "js_enabled": false, 
+    "links_to_follow": "patterns", 
+    "local_images": false, 
+    "respect_nofollow": false, 
+    "start_urls": [
+        {
+            "url": "https://eg.oriflame.com/en/brands", 
+            "type": "url"
+        }
+    ], 
+    "template_names": [
+        "88b6-403e-aa54", 
+        "b773-47dc-88b8", 
+        "fe33-4866-87ac"
+    ], 
+    "use_currency_config": true, 
+    "use_currency_cookies": false, 
+    "use_language_config": true, 
+    "use_language_cookies": true
+}

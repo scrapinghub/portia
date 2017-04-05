@@ -1,0 +1,32 @@
+{
+    "extractors": {}, 
+    "id": "b773-47dc-88b8", 
+    "name": "Brands A to Z Oriflame cosmetics", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "2042-4b55-a2a4", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": null, 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "oriflame", 
+    "url": "https://eg.oriflame.com/en/brands", 
+    "version": "0.13.0b32"
+}

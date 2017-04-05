@@ -1,0 +1,224 @@
+{
+    "extractors": {}, 
+    "id": "511d-4bed-97ab", 
+    "name": "VITTSJ Shelving unit - IKEA", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "eb3b-4ccf-97a4", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": "#pipContainer", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#productImg"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "a09d-4783-b795": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "e625-4a40-8379", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > div:nth-child(3) > .rightContentContainer > .zoomMousePointer", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/div[3]/*[contains(concat(\" \", @class, \" \"), \" rightContentContainer \")]/*[contains(concat(\" \", @class, \" \"), \" zoomMousePointer \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#price1"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "f127-4569-8c0a": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "8e83-4418-b479", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > .addList > .rightInfoDiv > div:nth-child(2) > div > .priceContainer > .piecesHidden > .packagePrice", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" rightInfoDiv \")]/div[2]/div/*[contains(concat(\" \", @class, \" \"), \" priceContainer \")]/*[contains(concat(\" \", @class, \" \"), \" piecesHidden \")]/*[contains(concat(\" \", @class, \" \"), \" packagePrice \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#name"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "b06a-47eb-a64f": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "da40-480b-bb8a", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "c0c8-4d0a-81c9", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > .addList > .rightInfoDiv > div:nth-child(2) > div > h1 > .productName", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" rightInfoDiv \")]/div[2]/div/h1/*[contains(concat(\" \", @class, \" \"), \" productName \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#type"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "e2e9-47b3-8e94": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "4e54-4bbe-97dc", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > .addList > .rightInfoDiv > div:nth-child(2) > div > h1 > .productType", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" rightInfoDiv \")]/div[2]/div/h1/*[contains(concat(\" \", @class, \" \"), \" productType \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#itemNumber"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "63af-43dd-94fc": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "9d06-4714-a1fe", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > .addList > .rightInfoDiv > .itemNumber > div:nth-child(2)", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" rightInfoDiv \")]/*[contains(concat(\" \", @class, \" \"), \" itemNumber \")]/div[2]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#imgID_0"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "e878-4c10-bca4": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "7dba-4300-9b51", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "8044-480c-9e50", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > div:nth-child(3) > .rightContentContainer > .buttonBar > .imgThumgContainer > div > div:nth-child(1) > .active > img", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/div[3]/*[contains(concat(\" \", @class, \" \"), \" rightContentContainer \")]/*[contains(concat(\" \", @class, \" \"), \" buttonBar \")]/*[contains(concat(\" \", @class, \" \"), \" imgThumgContainer \")]/div/div[1]/*[contains(concat(\" \", @class, \" \"), \" active \")]/img"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#salesArg > cbs > cb > t"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "b201-4b0e-89fe": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "549a-4561-b609", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > .addList > .salesArguments > cbs > cb > t", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" salesArguments \")]/cbs/cb/t"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#breadCrumbs > li:nth-child(3) > a"
+                    ], 
+                    "container_id": "eb3b-4ccf-97a4", 
+                    "data": {
+                        "bb7c-4ee4-9782": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "53b9-4698-a1d4", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#pipContainer > ul > li:nth-child(3) > a", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"pipContainer\"]/ul/li[3]/a"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "ikea", 
+    "url": "http://www.ikea.com/eg/en/catalog/products/90305803/", 
+    "version": "0.13.0b32"
+}

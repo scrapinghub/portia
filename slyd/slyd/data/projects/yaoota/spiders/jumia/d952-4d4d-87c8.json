@@ -1,0 +1,224 @@
+{
+    "extractors": {}, 
+    "id": "d952-4d4d-87c8", 
+    "name": "LDNIO SE - Power Sockets USB Charger", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "2a4a-44b3-9866", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": "main", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "h1"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "e8ac-43ec-a793": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "b483-4c60-8ef8", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > span > .title", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/span/*[contains(concat(\" \", @class, \" \"), \" title \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#productImage"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "0044-4f04-9c40": {
+                            "attribute": "data-src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "da50-48a2-a009", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .media > .product-preview > .lazy", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" media \")]/*[contains(concat(\" \", @class, \" \"), \" product-preview \")]/*[contains(concat(\" \", @class, \" \"), \" lazy \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "a.cycle-slide-active > .lazy"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "ffea-462c-85f0": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "7dba-4300-9b51", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "b931-435f-9a06", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .media > .thumbs-wrapper > .thumbs > .cycle-carousel-wrap > .cycle-slide-active > .lazy", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" media \")]/*[contains(concat(\" \", @class, \" \"), \" thumbs-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" thumbs \")]/*[contains(concat(\" \", @class, \" \"), \" cycle-carousel-wrap \")]/*[contains(concat(\" \", @class, \" \"), \" cycle-slide-active \")]/*[contains(concat(\" \", @class, \" \"), \" lazy \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "div.price-box > span:nth-child(1) > span"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "77f6-4070-9977": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "8975-43f6-9c49", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .price-box > span:nth-child(1) > span", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" price-box \")]/span[1]/span"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".-add-to-cart:nth-child(1)"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "be9c-433f-af82": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "92b8-4bc6-9027", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .actions > .-primary", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" actions \")]/*[contains(concat(\" \", @class, \" \"), \" -primary \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "ul:nth-child(3)"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "d8eb-42e4-bc59": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "e006-454f-bde3", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .detail-features > .list > ul", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" detail-features \")]/*[contains(concat(\" \", @class, \" \"), \" list \")]/ul"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".-add-to-cart:nth-child(1)"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "1ccd-41c4-a5f1": {
+                            "attribute": "data-sku", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "118c-4b68-af57", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .actions > .-primary", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" actions \")]/*[contains(concat(\" \", @class, \" \"), \" -primary \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".osh-breadcrumb > ul > li:nth-child(3) > a"
+                    ], 
+                    "container_id": "2a4a-44b3-9866", 
+                    "data": {
+                        "b82d-466f-a114": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "243a-4104-8d9e", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .osh-breadcrumb > ul > li:nth-child(3) > a", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" osh-breadcrumb \")]/ul/li[3]/a"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "jumia", 
+    "url": "https://www.jumia.com.eg/ar/se3631-3-power-sockets-6-usb-charger-ldnio-mpg19555.html", 
+    "version": "0.13.0b32"
+}

@@ -1,0 +1,224 @@
+{
+    "extractors": {}, 
+    "id": "11d9-456d-a97a", 
+    "name": "Photography DSLR Cameras Nikon D Kit - VR GB", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "d3ba-490b-b9f0", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": ".content-grid", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".ty-product-block-title"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "ed9b-4d70-9335": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "9954-4cef-b047", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(2) > .span16 > .ty-product-bigpicture > .ty-product-bigpicture__left > .ty-product-bigpicture__left-wrapper > .ty-product-block-title", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[2]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__left \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__left-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-block-title \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#sec_discounted_price_2564"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "e3f3-407a-8fae": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "e3cd-4539-b7e6", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(2) > .span16 > .ty-product-bigpicture > .ty-product-bigpicture__right > .cm-disable-empty-files > .prices-container > .ty-product-bigpicture__prices > .ty-product-block__price-actual > .cm-reload-2564 > .ty-price > span:nth-child(2)", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[2]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__right \")]/*[contains(concat(\" \", @class, \" \"), \" cm-disable-empty-files \")]/*[contains(concat(\" \", @class, \" \"), \" prices-container \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__prices \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-block__price-actual \")]/*[contains(concat(\" \", @class, \" \"), \" cm-reload-2564 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-price \")]/span[2]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#product_code_2564"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "f220-4185-b56d": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "ca80-4060-8c07", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(2) > .span16 > .ty-product-bigpicture > .ty-product-bigpicture__right > .cm-disable-empty-files > .ty-product-bigpicture__sidebar-bottom > .ty-product-block__sku > .ty-control-group > .ty-control-group__item", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[2]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__right \")]/*[contains(concat(\" \", @class, \" \"), \" cm-disable-empty-files \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__sidebar-bottom \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-block__sku \")]/*[contains(concat(\" \", @class, \" \"), \" ty-control-group \")]/*[contains(concat(\" \", @class, \" \"), \" ty-control-group__item \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#det_img_256458dbac9ae264e_5838"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "4e3d-4fdb-8740": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "44b4-4cdd-87e2", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(2) > .span16 > .ty-product-bigpicture > .ty-product-bigpicture__left > .ty-product-bigpicture__left-wrapper > .ty-product-bigpicture__img > .ty-product-img > a:nth-child(1) > .ty-pict", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[2]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__left \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__left-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__img \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-img \")]/a[1]/*[contains(concat(\" \", @class, \" \"), \" ty-pict \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#in_stock_info_2564"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "98b4-403d-ae08": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "5163-44b0-aabf", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(2) > .span16 > .ty-product-bigpicture > .ty-product-bigpicture__right > .cm-disable-empty-files > .ty-product-bigpicture__sidebar-bottom > .ty-product-block__field-group > .stock-wrap > .ty-control-group > .ty-qty-in-stock", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[2]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__right \")]/*[contains(concat(\" \", @class, \" \"), \" cm-disable-empty-files \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__sidebar-bottom \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-block__field-group \")]/*[contains(concat(\" \", @class, \" \"), \" stock-wrap \")]/*[contains(concat(\" \", @class, \" \"), \" ty-control-group \")]/*[contains(concat(\" \", @class, \" \"), \" ty-qty-in-stock \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#det_img_256458dbac9ae264e_5838_mini"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "5ce6-461a-9f98": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "7dba-4300-9b51", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "120c-4cdd-9323", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(2) > .span16 > .ty-product-bigpicture > .ty-product-bigpicture__left > .ty-product-bigpicture__left-wrapper > .ty-product-bigpicture__img > .ty-center > .cm-image-gallery-wrapper > .ty-product-thumbnails > .owl-wrapper-outer > .owl-wrapper > div:nth-child(1) > .cm-item-gallery > .cm-gallery-item > .ty-pict", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[2]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__left \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__left-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture__img \")]/*[contains(concat(\" \", @class, \" \"), \" ty-center \")]/*[contains(concat(\" \", @class, \" \"), \" cm-image-gallery-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-thumbnails \")]/*[contains(concat(\" \", @class, \" \"), \" owl-wrapper-outer \")]/*[contains(concat(\" \", @class, \" \"), \" owl-wrapper \")]/div[1]/*[contains(concat(\" \", @class, \" \"), \" cm-item-gallery \")]/*[contains(concat(\" \", @class, \" \"), \" cm-gallery-item \")]/*[contains(concat(\" \", @class, \" \"), \" ty-pict \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#content_description > div > ul"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "ee16-4b7d-ae8e": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "9c5a-4dcb-8b4b", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(2) > .span16 > .ty-product-bigpicture > .cm-tabs-content > .content-description > div > ul", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[2]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/*[contains(concat(\" \", @class, \" \"), \" ty-product-bigpicture \")]/*[contains(concat(\" \", @class, \" \"), \" cm-tabs-content \")]/*[contains(concat(\" \", @class, \" \"), \" content-description \")]/div/ul"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".ty-breadcrumbs__a:nth-child(3)"
+                    ], 
+                    "container_id": "d3ba-490b-b9f0", 
+                    "data": {
+                        "fe8b-47e4-9e7d": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "0877-4464-9d51", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".content-grid > div:nth-child(1) > .span16 > div > .ty-breadcrumbs > a:nth-child(3)", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" content-grid \")]/div[1]/*[contains(concat(\" \", @class, \" \"), \" span16 \")]/div/*[contains(concat(\" \", @class, \" \"), \" ty-breadcrumbs \")]/a[3]"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "cam4sell", 
+    "url": "https://www.cam4sell.com/nikon-d3400-kit-18-55-vr-16gb-c10-bag/?sl=en", 
+    "version": "0.13.0b32"
+}

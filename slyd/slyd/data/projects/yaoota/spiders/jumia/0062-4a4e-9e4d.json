@@ -1,0 +1,56 @@
+{
+    "extractors": {}, 
+    "id": "0062-4a4e-9e4d", 
+    "name": "TP Link TL-WRN - Mbps Wireless N Router Buy onl", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "93ef-4f78-88bd", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": ".product-preview", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#productImage"
+                    ], 
+                    "container_id": "93ef-4f78-88bd", 
+                    "data": {
+                        "4a2e-4251-969a": {
+                            "attribute": "data-src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "bf73-4e29-abb8", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".product-preview > .lazy", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" product-preview \")]/*[contains(concat(\" \", @class, \" \"), \" lazy \")]"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "jumia", 
+    "url": "https://www.jumia.com.eg/tl-wr740n-150mbps-wireless-n-router-tp-link-mpg5082.html", 
+    "version": "0.13.0b32"
+}

@@ -1,0 +1,200 @@
+{
+    "extractors": {}, 
+    "id": "1236-4282-b18e", 
+    "name": "Activ Striped Liner Socks - Yellow White Navy B", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "4740-46d7-8e82", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": "main", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "h1"
+                    ], 
+                    "container_id": "4740-46d7-8e82", 
+                    "data": {
+                        "8db8-4770-bb19": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "5d03-44d6-a0ec", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > span > .title", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/span/*[contains(concat(\" \", @class, \" \"), \" title \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".-no-special:nth-child(1) > span:nth-child(2)"
+                    ], 
+                    "container_id": "4740-46d7-8e82", 
+                    "data": {
+                        "1416-4e12-b0e7": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "adf6-462a-b8dd", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .price-box > .price > span:nth-child(2)", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" price-box \")]/*[contains(concat(\" \", @class, \" \"), \" price \")]/span[2]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".-add-to-cart:nth-child(1)"
+                    ], 
+                    "container_id": "4740-46d7-8e82", 
+                    "data": {
+                        "4406-4b82-bc77": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "f052-40f0-96a3", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .actions > .-primary", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" actions \")]/*[contains(concat(\" \", @class, \" \"), \" -primary \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".-add-to-cart:nth-child(1)"
+                    ], 
+                    "container_id": "4740-46d7-8e82", 
+                    "data": {
+                        "7534-4be0-8ae1": {
+                            "attribute": "data-sku", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "483f-4e86-8875", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .actions > .-primary", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" actions \")]/*[contains(concat(\" \", @class, \" \"), \" -primary \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#productImage"
+                    ], 
+                    "container_id": "4740-46d7-8e82", 
+                    "data": {
+                        "7f6c-42f3-9551": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "aef7-42fd-b6be", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .media > .product-preview > .lazy", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" media \")]/*[contains(concat(\" \", @class, \" \"), \" product-preview \")]/*[contains(concat(\" \", @class, \" \"), \" lazy \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".osh-breadcrumb > ul > li:nth-child(4)"
+                    ], 
+                    "container_id": "4740-46d7-8e82", 
+                    "data": {
+                        "84c8-4065-b6ef": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "91a0-4cf5-b133", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .osh-breadcrumb > ul > li:nth-child(4)", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" osh-breadcrumb \")]/ul/li[4]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".product-description > ul"
+                    ], 
+                    "container_id": "4740-46d7-8e82", 
+                    "data": {
+                        "e858-4ee5-a3f2": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "d86b-42d5-8020", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > section:nth-child(4) > .osh-tabs > .-active > .product-description > ul", 
+                    "tagid": null, 
+                    "xpath": "//main/section[4]/*[contains(concat(\" \", @class, \" \"), \" osh-tabs \")]/*[contains(concat(\" \", @class, \" \"), \" -active \")]/*[contains(concat(\" \", @class, \" \"), \" product-description \")]/ul"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "jumia", 
+    "url": "https://www.jumia.com.eg/activ-striped-liner-socks-yellow-white-navy-blue-682876.html", 
+    "version": "0.13.0b32"
+}

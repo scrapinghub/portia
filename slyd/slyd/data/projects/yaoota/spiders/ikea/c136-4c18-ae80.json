@@ -1,0 +1,248 @@
+{
+    "extractors": {}, 
+    "id": "c136-4c18-ae80", 
+    "name": "MOSHULT Foam mattress - x cm - IKEA", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "0c1b-4b42-9949", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": ".rightContent", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#name"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "9713-414e-928e": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "b2b3-4ced-8415", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .pipContainer > .addList > .rightInfoDiv > div:nth-child(2) > div > h1 > .productName", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" pipContainer \")]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" rightInfoDiv \")]/div[2]/div/h1/*[contains(concat(\" \", @class, \" \"), \" productName \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#price1"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "de38-4834-ba57": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "f9ff-44d4-96ca", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .pipContainer > .addList > .rightInfoDiv > div:nth-child(2) > div > .priceContainer > .piecesHidden > .packagePrice", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" pipContainer \")]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" rightInfoDiv \")]/div[2]/div/*[contains(concat(\" \", @class, \" \"), \" priceContainer \")]/*[contains(concat(\" \", @class, \" \"), \" piecesHidden \")]/*[contains(concat(\" \", @class, \" \"), \" packagePrice \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#itemNumber"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "1010-4857-a072": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "2c77-43e8-98d9", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .pipContainer > .addList > .rightInfoDiv > .itemNumber > div:nth-child(2)", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" pipContainer \")]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" rightInfoDiv \")]/*[contains(concat(\" \", @class, \" \"), \" itemNumber \")]/div[2]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#jsButton_saveToList_lnk"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "72ec-4d6b-9677": {
+                            "attribute": "href", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "b722-487f-924a", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .pipContainer > .addList > .marginForCartConatiner > form > ul > .butContainerWidth > .buttonMar > div > .buttonContainer > .orangeBtn", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" pipContainer \")]/*[contains(concat(\" \", @class, \" \"), \" addList \")]/*[contains(concat(\" \", @class, \" \"), \" marginForCartConatiner \")]/form/ul/*[contains(concat(\" \", @class, \" \"), \" butContainerWidth \")]/*[contains(concat(\" \", @class, \" \"), \" buttonMar \")]/div/*[contains(concat(\" \", @class, \" \"), \" buttonContainer \")]/*[contains(concat(\" \", @class, \" \"), \" orangeBtn \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#productImg"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "d8c4-48a3-9f7f": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "4958-4d5d-95fb", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .pipContainer > div:nth-child(3) > .rightContentContainer > .zoomMousePointer", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" pipContainer \")]/div[3]/*[contains(concat(\" \", @class, \" \"), \" rightContentContainer \")]/*[contains(concat(\" \", @class, \" \"), \" zoomMousePointer \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#imgID_0"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "32d5-4fa9-a2e1": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "7dba-4300-9b51", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "f946-4d79-b8fb", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .pipContainer > div:nth-child(3) > .rightContentContainer > .buttonBar > .imgThumgContainer > div > div:nth-child(1) > .active > img", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" pipContainer \")]/div[3]/*[contains(concat(\" \", @class, \" \"), \" rightContentContainer \")]/*[contains(concat(\" \", @class, \" \"), \" buttonBar \")]/*[contains(concat(\" \", @class, \" \"), \" imgThumgContainer \")]/div/div[1]/*[contains(concat(\" \", @class, \" \"), \" active \")]/img"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#breadCrumbs > li:nth-child(3) > a"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "4b37-4a82-bfc3": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "8ebc-40cc-b08c", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .pipContainer > ul > li:nth-child(3) > a", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" pipContainer \")]/ul/li[3]/a"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#custMaterials"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "04d0-4cac-aed5": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "0431-4b74-ad5f", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .productInfo > div:nth-child(6) > .productInformationContainerBox > div:nth-child(5) > .texts", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" productInfo \")]/div[6]/*[contains(concat(\" \", @class, \" \"), \" productInformationContainerBox \")]/div[5]/*[contains(concat(\" \", @class, \" \"), \" texts \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#leftNavBottom"
+                    ], 
+                    "container_id": "0c1b-4b42-9949", 
+                    "data": {
+                        "ae00-4615-8884": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "f110-4bde-94d8", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "05a4-4860-a44c", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": ".rightContent > .productInfo > div:nth-child(6)", 
+                    "tagid": null, 
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" rightContent \")]/*[contains(concat(\" \", @class, \" \"), \" productInfo \")]/div[6]"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "ikea", 
+    "url": "http://www.ikea.com/eg/en/catalog/products/00302502/", 
+    "version": "0.13.0b32"
+}

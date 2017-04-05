@@ -1,0 +1,36 @@
+{
+    "allowed_domains": [], 
+    "arabic_cookie_name": "", 
+    "arabic_cookie_value": "", 
+    "arabic_url": "", 
+    "arabic_url_args": "", 
+    "country_code": "ae", 
+    "currency_code": "EGP", 
+    "currency_cookie_name": "", 
+    "currency_cookie_value": "", 
+    "english_cookie_name": "", 
+    "english_cookie_value": "", 
+    "english_url": "", 
+    "english_url_args": "", 
+    "exclude_patterns": [], 
+    "follow_patterns": [], 
+    "id": "letstango", 
+    "js_disable_patterns": [], 
+    "js_enable_patterns": [], 
+    "js_enabled": true, 
+    "links_to_follow": "all", 
+    "local_images": false, 
+    "respect_nofollow": false, 
+    "start_urls": [
+        {
+            "url": "http://www.letstango.com/", 
+            "type": "url"
+        }
+    ], 
+    "template_names": [], 
+    "use_currency_config": false, 
+    "use_currency_cookies": false, 
+    "use_language_config": false, 
+    "use_language_cookies": false, 
+    "username": "mina"
+}

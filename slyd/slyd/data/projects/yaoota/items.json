@@ -1,0 +1,166 @@
+{
+    "bb9f-4299-a5e5": {
+        "fields": {
+            "0592-4050-9370": {
+                "id": "0592-4050-9370", 
+                "name": "title", 
+                "required": true, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "15f8-4f67-b519": {
+                "id": "15f8-4f67-b519", 
+                "name": "main_image", 
+                "required": true, 
+                "type": "url", 
+                "vary": false
+            }, 
+            "c997-4e42-a940": {
+                "id": "c997-4e42-a940", 
+                "name": "price", 
+                "required": true, 
+                "type": "price", 
+                "vary": false
+            }, 
+            "045b-406b-b52e": {
+                "id": "045b-406b-b52e", 
+                "name": "stock_status", 
+                "required": true, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "913f-404e-9399": {
+                "id": "913f-404e-9399", 
+                "name": "description", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "2703-4568-b087": {
+                "id": "2703-4568-b087", 
+                "name": "remote_id", 
+                "required": true, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "6fa2-411c-b78e": {
+                "id": "6fa2-411c-b78e", 
+                "name": "category", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "421f-4487-a4eb": {
+                "id": "421f-4487-a4eb", 
+                "name": "specs", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "7dba-4300-9b51": {
+                "id": "7dba-4300-9b51", 
+                "name": "extra_images", 
+                "required": false, 
+                "type": "url", 
+                "vary": false
+            }, 
+            "8407-4917-969f": {
+                "id": "8407-4917-969f", 
+                "name": "author", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "274f-4189-b3a8": {
+                "id": "274f-4189-b3a8", 
+                "name": "isbn", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "ec9b-4308-8fcc": {
+                "id": "ec9b-4308-8fcc", 
+                "name": "gtin", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "da40-480b-bb8a": {
+                "id": "da40-480b-bb8a", 
+                "name": "manufacturer", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "0bf3-4dab-914c": {
+                "id": "0bf3-4dab-914c", 
+                "name": "color", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "6739-420f-842c": {
+                "id": "6739-420f-842c", 
+                "name": "seller", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "95ee-4f0d-8c27": {
+                "id": "95ee-4f0d-8c27", 
+                "name": "genre", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "ec77-4886-bdf1": {
+                "id": "ec77-4886-bdf1", 
+                "name": "model", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "bcb9-4100-8022": {
+                "id": "bcb9-4100-8022", 
+                "name": "processor", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "439b-4f83-85c2": {
+                "id": "439b-4f83-85c2", 
+                "name": "size", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "7654-4125-af45": {
+                "id": "7654-4125-af45", 
+                "name": "os", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "cda5-4b81-b904": {
+                "id": "cda5-4b81-b904", 
+                "name": "product_condition", 
+                "required": false, 
+                "type": "text", 
+                "vary": false
+            }, 
+            "f110-4bde-94d8": {
+                "id": "f110-4bde-94d8", 
+                "name": "description_html", 
+                "required": false, 
+                "type": "safe html", 
+                "vary": false
+            }
+        }, 
+        "name": "kipp"
+    }, 
+    "ecf5-45d3-b5bc": {
+        "auto_created": true, 
+        "fields": {}, 
+        "name": "Diamond Cellular Micellar Solution Cleanser Cle"
+    }
+}

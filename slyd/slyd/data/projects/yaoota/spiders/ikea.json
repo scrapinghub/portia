@@ -1,0 +1,44 @@
+{
+    "allowed_domains": [], 
+    "arabic_cookie_name": "", 
+    "arabic_cookie_value": "", 
+    "arabic_url": "http://www.ikea.com/eg/ar/", 
+    "arabic_url_args": "", 
+    "country_code": "eg", 
+    "currency_code": "EGP", 
+    "currency_cookie_name": "", 
+    "currency_cookie_value": "", 
+    "english_cookie_name": "", 
+    "english_cookie_value": "", 
+    "english_url": "http://www.ikea.com/eg/en/", 
+    "english_url_args": "", 
+    "exclude_patterns": [
+        ".*(/ar/|about_ikea|this_is_ikea|customer_service|services|the_ikea_story|privacy_policy).*", 
+        "/ideas/"
+    ], 
+    "follow_patterns": [
+        ".*(/catalog/products/).*"
+    ], 
+    "id": "ikea", 
+    "js_disable_patterns": [], 
+    "js_enable_patterns": [], 
+    "js_enabled": false, 
+    "links_to_follow": "patterns", 
+    "local_images": false, 
+    "respect_nofollow": false, 
+    "start_urls": [
+        {
+            "url": "http://www.ikea.com/eg/en/", 
+            "type": "url"
+        }
+    ], 
+    "template_names": [
+        "c136-4c18-ae80", 
+        "d012-43e7-b789", 
+        "511d-4bed-97ab"
+    ], 
+    "use_currency_config": true, 
+    "use_currency_cookies": false, 
+    "use_language_config": true, 
+    "use_language_cookies": false
+}

@@ -1,0 +1,200 @@
+{
+    "extractors": {}, 
+    "id": "88b6-403e-aa54", 
+    "name": "Activelle Extreme Protection Anti-perspirant h D", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "6e96-479d-a863", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": "body", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "h1.name"
+                    ], 
+                    "container_id": "6e96-479d-a863", 
+                    "data": {
+                        "6c2e-445d-a976": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "f71d-401c-8436", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "css", 
+                    "selector": "h1.name", 
+                    "tagid": null, 
+                    "xpath": "//h1[contains(concat(\" \", @class, \" \"), \" name \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".price-wrap > .price"
+                    ], 
+                    "container_id": "6e96-479d-a863", 
+                    "data": {
+                        "a501-4d05-b37f": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "b44c-41fb-96b7", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "body > .w-grid > .w-content > .ui-product-detail > .g-last > .product-wrap > .offer > .price-wrap > .price", 
+                    "tagid": null, 
+                    "xpath": "//body/*[contains(concat(\" \", @class, \" \"), \" w-grid \")]/*[contains(concat(\" \", @class, \" \"), \" w-content \")]/*[contains(concat(\" \", @class, \" \"), \" ui-product-detail \")]/*[contains(concat(\" \", @class, \" \"), \" g-last \")]/*[contains(concat(\" \", @class, \" \"), \" product-wrap \")]/*[contains(concat(\" \", @class, \" \"), \" offer \")]/*[contains(concat(\" \", @class, \" \"), \" price-wrap \")]/*[contains(concat(\" \", @class, \" \"), \" price \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".js-zoom"
+                    ], 
+                    "container_id": "6e96-479d-a863", 
+                    "data": {
+                        "7aff-4caf-b59e": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "3c15-445b-8a2c", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "body > .w-grid > .w-content > .ui-product-detail > .image-wrapper > .pdp-image-slider > .image", 
+                    "tagid": null, 
+                    "xpath": "//body/*[contains(concat(\" \", @class, \" \"), \" w-grid \")]/*[contains(concat(\" \", @class, \" \"), \" w-content \")]/*[contains(concat(\" \", @class, \" \"), \" ui-product-detail \")]/*[contains(concat(\" \", @class, \" \"), \" image-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" pdp-image-slider \")]/*[contains(concat(\" \", @class, \" \"), \" image \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".list-item:nth-child(2) > .item > .item-name"
+                    ], 
+                    "container_id": "6e96-479d-a863", 
+                    "data": {
+                        "4735-463d-ab9a": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "fb88-4c7f-8b8f", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "body > .w-breadcrumbs > .ui-breadcrumbs > .w-breadcrumbs-list > .inline-list > li:nth-child(2) > .item > .item-name", 
+                    "tagid": null, 
+                    "xpath": "//body/*[contains(concat(\" \", @class, \" \"), \" w-breadcrumbs \")]/*[contains(concat(\" \", @class, \" \"), \" ui-breadcrumbs \")]/*[contains(concat(\" \", @class, \" \"), \" w-breadcrumbs-list \")]/*[contains(concat(\" \", @class, \" \"), \" inline-list \")]/li[2]/*[contains(concat(\" \", @class, \" \"), \" item \")]/*[contains(concat(\" \", @class, \" \"), \" item-name \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#addToBasketButton"
+                    ], 
+                    "container_id": "6e96-479d-a863", 
+                    "data": {
+                        "6587-44d6-9221": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "d83d-47a5-8f3d", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "body > .w-grid > .w-content > .ui-product-detail > .g-last > .product-wrap > .order-buttons > .buy-box > .k-button", 
+                    "tagid": null, 
+                    "xpath": "//body/*[contains(concat(\" \", @class, \" \"), \" w-grid \")]/*[contains(concat(\" \", @class, \" \"), \" w-content \")]/*[contains(concat(\" \", @class, \" \"), \" ui-product-detail \")]/*[contains(concat(\" \", @class, \" \"), \" g-last \")]/*[contains(concat(\" \", @class, \" \"), \" product-wrap \")]/*[contains(concat(\" \", @class, \" \"), \" order-buttons \")]/*[contains(concat(\" \", @class, \" \"), \" buy-box \")]/*[contains(concat(\" \", @class, \" \"), \" k-button \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".g12:nth-child(1)"
+                    ], 
+                    "container_id": "6e96-479d-a863", 
+                    "data": {
+                        "4a08-4fb9-aa4f": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "036a-43c8-9f2d", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "body > .w-grid > .w-content > .pdp-info-tabs > .tabs-group > .active", 
+                    "tagid": null, 
+                    "xpath": "//body/*[contains(concat(\" \", @class, \" \"), \" w-grid \")]/*[contains(concat(\" \", @class, \" \"), \" w-content \")]/*[contains(concat(\" \", @class, \" \"), \" pdp-info-tabs \")]/*[contains(concat(\" \", @class, \" \"), \" tabs-group \")]/*[contains(concat(\" \", @class, \" \"), \" active \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".code"
+                    ], 
+                    "container_id": "6e96-479d-a863", 
+                    "data": {
+                        "0986-4db4-a621": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "c631-48b1-ba08", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "body > .w-grid > .w-content > .ui-product-detail > .g-last > .product-wrap > .product-info > .color-code > .code", 
+                    "tagid": null, 
+                    "xpath": "//body/*[contains(concat(\" \", @class, \" \"), \" w-grid \")]/*[contains(concat(\" \", @class, \" \"), \" w-content \")]/*[contains(concat(\" \", @class, \" \"), \" ui-product-detail \")]/*[contains(concat(\" \", @class, \" \"), \" g-last \")]/*[contains(concat(\" \", @class, \" \"), \" product-wrap \")]/*[contains(concat(\" \", @class, \" \"), \" product-info \")]/*[contains(concat(\" \", @class, \" \"), \" color-code \")]/*[contains(concat(\" \", @class, \" \"), \" code \")]"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "oriflame", 
+    "url": "https://eg.oriflame.com/en/products/product?code=31270", 
+    "version": "0.13.0b32"
+}

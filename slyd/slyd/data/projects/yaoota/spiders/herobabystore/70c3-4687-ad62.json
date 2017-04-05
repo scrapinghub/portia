@@ -1,0 +1,104 @@
+{
+    "extractors": {}, 
+    "id": "70c3-4687-ad62", 
+    "name": "Fruits - Hero MEA Store", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "eebb-40b5-a501", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": "#ProductPageTop", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#ProductPageTop > h2"
+                    ], 
+                    "container_id": "eebb-40b5-a501", 
+                    "data": {
+                        "69ad-4a9a-ba4c": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "d154-47c1-a487", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#ProductPageTop > h2", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"ProductPageTop\"]/h2"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".ProductPrice"
+                    ], 
+                    "container_id": "eebb-40b5-a501", 
+                    "data": {
+                        "6d84-4f3e-a791": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "c72a-4d9b-9f24", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#ProductPageTop > .ProductMain > .ProductDetailsGrid > .PriceRow > .Value > .ProductPrice", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"ProductPageTop\"]/*[contains(concat(\" \", @class, \" \"), \" ProductMain \")]/*[contains(concat(\" \", @class, \" \"), \" ProductDetailsGrid \")]/*[contains(concat(\" \", @class, \" \"), \" PriceRow \")]/*[contains(concat(\" \", @class, \" \"), \" Value \")]/*[contains(concat(\" \", @class, \" \"), \" ProductPrice \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".VariationProductSKU"
+                    ], 
+                    "container_id": "eebb-40b5-a501", 
+                    "data": {
+                        "046a-49ea-ba4d": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "6ae2-40d7-b81d", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#ProductPageTop > .ProductMain > .ProductDetailsGrid > .ProductSKU > .Value > .VariationProductSKU", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"ProductPageTop\"]/*[contains(concat(\" \", @class, \" \"), \" ProductMain \")]/*[contains(concat(\" \", @class, \" \"), \" ProductDetailsGrid \")]/*[contains(concat(\" \", @class, \" \"), \" ProductSKU \")]/*[contains(concat(\" \", @class, \" \"), \" Value \")]/*[contains(concat(\" \", @class, \" \"), \" VariationProductSKU \")]"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "herobabystore", 
+    "url": "http://www.herobabystore.com/3-fruits-3/", 
+    "version": "0.13.0b32"
+}

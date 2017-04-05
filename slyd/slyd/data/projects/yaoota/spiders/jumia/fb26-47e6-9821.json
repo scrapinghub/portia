@@ -1,0 +1,224 @@
+{
+    "extractors": {}, 
+    "id": "fb26-47e6-9821", 
+    "name": "Apple iPhone - GB - Silver Buy online Jumia E", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "facb-4f07-82f4", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": "main", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        "h1"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "68c1-43ef-8c26": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "a3f2-4d41-b57f", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > span > .title", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/span/*[contains(concat(\" \", @class, \" \"), \" title \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#productImage"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "735a-4777-be34": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "ccba-40b0-b6c6", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .media > .product-preview > .lazy", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" media \")]/*[contains(concat(\" \", @class, \" \"), \" product-preview \")]/*[contains(concat(\" \", @class, \" \"), \" lazy \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "ul:nth-child(3)"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "3fcd-48f7-8714": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "7f83-4cc3-b3ce", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .detail-features > .list > ul", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" detail-features \")]/*[contains(concat(\" \", @class, \" \"), \" list \")]/ul"
+                }, 
+                {
+                    "accept_selectors": [
+                        "div.price-box > span:nth-child(1) > span:nth-child(2)"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "ba24-4a86-942d": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "52ad-4608-ac88", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .price-box > span:nth-child(1) > span:nth-child(2)", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" price-box \")]/span[1]/span[2]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".-add-to-cart:nth-child(1)"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "961d-4b2f-aac8": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "5853-4afd-baa4", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .actions > .-primary", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" actions \")]/*[contains(concat(\" \", @class, \" \"), \" -primary \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".-add-to-cart:nth-child(1)"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "6284-45cf-a5bb": {
+                            "attribute": "data-sku", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "431b-4201-9f49", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .details-wrapper > .details > .details-footer > .actions > .-primary", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" details-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" details \")]/*[contains(concat(\" \", @class, \" \"), \" details-footer \")]/*[contains(concat(\" \", @class, \" \"), \" actions \")]/*[contains(concat(\" \", @class, \" \"), \" -primary \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".osh-breadcrumb > ul > li:nth-child(4) > a"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "786d-42b9-9012": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "8ab8-4c09-88a5", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .osh-breadcrumb > ul > li:nth-child(4) > a", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" osh-breadcrumb \")]/ul/li[4]/a"
+                }, 
+                {
+                    "accept_selectors": [
+                        "a.cycle-slide-active > .lazy"
+                    ], 
+                    "container_id": "facb-4f07-82f4", 
+                    "data": {
+                        "6057-48d1-9cbc": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "7dba-4300-9b51", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "52d6-450a-886d", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "main > .sku-detail > .media > .thumbs-wrapper > .thumbs > .cycle-carousel-wrap > .cycle-slide-active > .lazy", 
+                    "tagid": null, 
+                    "xpath": "//main/*[contains(concat(\" \", @class, \" \"), \" sku-detail \")]/*[contains(concat(\" \", @class, \" \"), \" media \")]/*[contains(concat(\" \", @class, \" \"), \" thumbs-wrapper \")]/*[contains(concat(\" \", @class, \" \"), \" thumbs \")]/*[contains(concat(\" \", @class, \" \"), \" cycle-carousel-wrap \")]/*[contains(concat(\" \", @class, \" \"), \" cycle-slide-active \")]/*[contains(concat(\" \", @class, \" \"), \" lazy \")]"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "jumia", 
+    "url": "https://www.jumia.com.eg/iphone-7-32gb-silver-apple-mpg13999.html", 
+    "version": "0.13.0b32"
+}

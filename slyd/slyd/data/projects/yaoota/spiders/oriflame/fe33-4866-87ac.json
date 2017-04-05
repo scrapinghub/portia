@@ -1,0 +1,32 @@
+{
+    "extractors": {}, 
+    "id": "fe33-4866-87ac", 
+    "name": "Diamond Cellular Micellar Solution Cleanser Cle", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "fb96-4ef4-b41b", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "ecf5-45d3-b5bc", 
+                    "selector": null, 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "ecf5-45d3-b5bc", 
+    "spider": "oriflame", 
+    "url": "https://eg.oriflame.com/en/products/product?code=21339", 
+    "version": "0.13.0b32"
+}

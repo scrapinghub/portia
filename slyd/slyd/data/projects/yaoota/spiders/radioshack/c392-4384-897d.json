@@ -1,0 +1,200 @@
+{
+    "extractors": {}, 
+    "id": "c392-4384-897d", 
+    "name": "Buy From Radioshack online in Egypt Airwheel M A", 
+    "page_id": "", 
+    "page_type": "item", 
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    }, 
+                    "container_id": null, 
+                    "id": "5d1d-4411-ace9", 
+                    "item_container": true, 
+                    "repeated": false, 
+                    "required": [], 
+                    "schema_id": "bb9f-4299-a5e5", 
+                    "selector": "#content", 
+                    "siblings": 0, 
+                    "tagid": null, 
+                    "text-content": "#portia-content"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".hpnog"
+                    ], 
+                    "container_id": "5d1d-4411-ace9", 
+                    "data": {
+                        "61bb-4e49-a3ed": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "0592-4050-9370", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "0911-4978-911d", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#content > .hpnog", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"content\"]/*[contains(concat(\" \", @class, \" \"), \" hpnog \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".description > a"
+                    ], 
+                    "container_id": "5d1d-4411-ace9", 
+                    "data": {
+                        "2178-493a-adda": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "6fa2-411c-b78e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "1d43-4db2-a91e", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#content > .product-info > .right > .description > a", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"content\"]/*[contains(concat(\" \", @class, \" \"), \" product-info \")]/*[contains(concat(\" \", @class, \" \"), \" right \")]/*[contains(concat(\" \", @class, \" \"), \" description \")]/a"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#awis-trigger"
+                    ], 
+                    "container_id": "5d1d-4411-ace9", 
+                    "data": {
+                        "8b89-4a76-93cc": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "045b-406b-b52e", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "9e4b-458c-ab59", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#content > .product-info > .right > .cart > div:nth-child(1) > .awis-alert-message > .button", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"content\"]/*[contains(concat(\" \", @class, \" \"), \" product-info \")]/*[contains(concat(\" \", @class, \" \"), \" right \")]/*[contains(concat(\" \", @class, \" \"), \" cart \")]/div[1]/*[contains(concat(\" \", @class, \" \"), \" awis-alert-message \")]/*[contains(concat(\" \", @class, \" \"), \" button \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".price:nth-child(2)"
+                    ], 
+                    "container_id": "5d1d-4411-ace9", 
+                    "data": {
+                        "2fe8-4e56-8c37": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "c997-4e42-a940", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "44ba-4a16-babb", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#content > .product-info > .right > .price", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"content\"]/*[contains(concat(\" \", @class, \" \"), \" product-info \")]/*[contains(concat(\" \", @class, \" \"), \" right \")]/*[contains(concat(\" \", @class, \" \"), \" price \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        "#image"
+                    ], 
+                    "container_id": "5d1d-4411-ace9", 
+                    "data": {
+                        "f107-45af-96fa": {
+                            "attribute": "src", 
+                            "extractors": {}, 
+                            "field": "15f8-4f67-b519", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "1f9a-4945-8297", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#content > .product-info > .left > .image > a > img", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"content\"]/*[contains(concat(\" \", @class, \" \"), \" product-info \")]/*[contains(concat(\" \", @class, \" \"), \" left \")]/*[contains(concat(\" \", @class, \" \"), \" image \")]/a/img"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".sku-rt"
+                    ], 
+                    "container_id": "5d1d-4411-ace9", 
+                    "data": {
+                        "dd4f-4a5c-91a0": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "2703-4568-b087", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "5343-4421-87ce", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#content > .product-info > .right > .description > .sku-rt", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"content\"]/*[contains(concat(\" \", @class, \" \"), \" product-info \")]/*[contains(concat(\" \", @class, \" \"), \" right \")]/*[contains(concat(\" \", @class, \" \"), \" description \")]/*[contains(concat(\" \", @class, \" \"), \" sku-rt \")]"
+                }, 
+                {
+                    "accept_selectors": [
+                        ".rs-tc-text"
+                    ], 
+                    "container_id": "5d1d-4411-ace9", 
+                    "data": {
+                        "f3eb-4079-925f": {
+                            "attribute": "content", 
+                            "extractors": {}, 
+                            "field": "913f-404e-9399", 
+                            "required": false
+                        }
+                    }, 
+                    "id": "40ed-4c9c-9fae", 
+                    "post_text": null, 
+                    "pre_text": null, 
+                    "reject_selectors": [], 
+                    "required": [], 
+                    "repeated": false, 
+                    "selection_mode": "auto", 
+                    "selector": "#content > .product-info > .right > .review > .rs-tc-text", 
+                    "tagid": null, 
+                    "xpath": "//*[@id=\"content\"]/*[contains(concat(\" \", @class, \" \"), \" product-info \")]/*[contains(concat(\" \", @class, \" \"), \" right \")]/*[contains(concat(\" \", @class, \" \"), \" review \")]/*[contains(concat(\" \", @class, \" \"), \" rs-tc-text \")]"
+                }
+            ]
+        }
+    }, 
+    "scrapes": "bb9f-4299-a5e5", 
+    "spider": "radioshack", 
+    "url": "https://radioshack.com.eg/en/airwheel-m3-awm3br-electric-skateboard-stand-60-0929", 
+    "version": "0.13.0b32"
+}

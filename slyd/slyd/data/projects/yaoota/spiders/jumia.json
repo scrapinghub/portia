@@ -1,0 +1,40 @@
+{
+    "allowed_domains": [], 
+    "arabic_cookie_name": "", 
+    "arabic_cookie_value": "", 
+    "arabic_url": "", 
+    "arabic_url_args": "", 
+    "country_code": "EG", 
+    "currency_code": "EGP", 
+    "currency_cookie_name": "", 
+    "currency_cookie_value": "", 
+    "english_cookie_name": "", 
+    "english_cookie_value": "", 
+    "english_url": "", 
+    "english_url_args": "", 
+    "exclude_patterns": [], 
+    "follow_patterns": [], 
+    "id": "jumia", 
+    "js_disable_patterns": [], 
+    "js_enable_patterns": [], 
+    "js_enabled": false, 
+    "links_to_follow": "all", 
+    "local_images": false, 
+    "respect_nofollow": false, 
+    "start_urls": [
+        {
+            "url": "https://www.jumia.com.eg/", 
+            "type": "url"
+        }
+    ], 
+    "template_names": [
+        "fb26-47e6-9821", 
+        "1236-4282-b18e", 
+        "0062-4a4e-9e4d", 
+        "d952-4d4d-87c8"
+    ], 
+    "use_currency_config": false, 
+    "use_currency_cookies": false, 
+    "use_language_config": false, 
+    "use_language_cookies": false
+}

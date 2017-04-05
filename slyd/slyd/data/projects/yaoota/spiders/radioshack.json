@@ -1,0 +1,39 @@
+{
+    "allowed_domains": [], 
+    "arabic_cookie_name": "language", 
+    "arabic_cookie_value": "ar", 
+    "arabic_url": "https://radioshack.com.eg/ar", 
+    "arabic_url_args": "", 
+    "country_code": "eg", 
+    "currency_code": "EGP", 
+    "currency_cookie_name": "currency", 
+    "currency_cookie_value": "EGP", 
+    "english_cookie_name": "language", 
+    "english_cookie_value": "en", 
+    "english_url": "https://radioshack.com.eg/en/", 
+    "english_url_args": "", 
+    "exclude_patterns": [
+        "'(.*)(/ar/|/ar|manufacturer|account|fspath|facebook_store|nikon/|hama/|genius/|fujitsu/|fujifilm/|creative/|canon/|benq/|belkin/|auvio/|ausus/|d-link/|motorola/|microsoft/|logitech/|linksys/|lenovo/|jwin/|iluv/|iomega/|acer/|sony/|dell/|hp/|apple/|samsung/|verbatim/|varta/|transcend/|toshiba/|targus/|seagate/|radio-shack/|getattributehelp|philips/|omega/|olympus/)(.*)'"
+    ], 
+    "follow_patterns": [], 
+    "id": "radioshack", 
+    "js_disable_patterns": [], 
+    "js_enable_patterns": [], 
+    "js_enabled": false, 
+    "links_to_follow": "patterns", 
+    "local_images": false, 
+    "respect_nofollow": false, 
+    "start_urls": [
+        {
+            "url": "https://radioshack.com.eg/en", 
+            "type": "url"
+        }
+    ], 
+    "template_names": [
+        "c392-4384-897d"
+    ], 
+    "use_currency_config": true, 
+    "use_currency_cookies": true, 
+    "use_language_config": true, 
+    "use_language_cookies": true
+}
