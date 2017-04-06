@@ -29,5 +29,3 @@ docs/_build
 # Development Databases
 *.sqlite*
 
-# Default Portia data directory
-slyd/slyd/data
