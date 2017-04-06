@@ -31,6 +31,9 @@ Getting started running Portia with docker
 
 To run Portia first time using Docker.
 
+First Install Docker
+https://docs.docker.com/engine/installation/linux/ubuntu/#install-using-the-repository
+
 ```
 git clone https://github.com/flyingelephantlab/portia.git
 
@@ -52,5 +55,5 @@ sudo docker build -t portia .
 
 Then everytime you made a change you need to build ember and run docker
 
-docker run -i -t  -v <current-path>/data:/app/slyd/slyd/data/projects:rw -v <current-path>/portia/portiaui/dist:/app/portiaui/dist -p 9001:9001 portia
+sudo docker run -i -t --rm -v <current-path>/portia/slyd/slyd/data:/app/slyd/slyd/data/projects:rw -v <current-path>/portia/portiaui/dist:/app/portiaui/dist -p 9001:9001 portia
 ```
