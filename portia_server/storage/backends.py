@@ -201,8 +201,6 @@ class GitStorage(BasePortiaStorage):
         self.init_project()
 
     def checkout(self, commit=None, branch=None, retry=True):
-        if self._tree != self._working_tree:
-            raise IOError('Can only switch from a clean repository')
         if commit is not None and isinstance(commit, string_types):
             commit = self.repo._repo.get_object(commit)
         if not commit:
