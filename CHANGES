@@ -1,3 +1,10 @@
+2.0.7 - 2017-03-28
+
+Pin ember data to 2.11.x
+Do not initialize tree mirror in web page until after initial page load
+Change order of compilation for injected JS files in splash
+Set text content correctly for html elements with a content attribute
+
 2.0.6 - 2017-03-07
 
 Add option to have default data format for project
