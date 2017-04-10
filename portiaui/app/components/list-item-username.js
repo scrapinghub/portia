@@ -8,6 +8,10 @@ export default Ember.Component.extend(SaveSpiderMixin, {
 
     usernameOptions: [
         {
+            value: '',
+            label: "Choose your username"
+        },
+        {
             value: 'mina',
             label: 'mina'
         },

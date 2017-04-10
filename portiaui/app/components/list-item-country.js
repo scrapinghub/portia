@@ -8,6 +8,10 @@ export default Ember.Component.extend(SaveSpiderMixin, {
 
     countryCodeOptions: [
         {
+            value: '',
+            label: "Choose a country from list"
+        },
+        {
             value: 'eg',
             label: 'Egypt'
         },
