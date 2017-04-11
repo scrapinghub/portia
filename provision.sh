@@ -115,7 +115,7 @@ clone_kipp_config(){
     apt-get -y install git ssh
     ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-    git clone git@github.com:flyingelephantlab/kipp_settings.git /app/kipp_settings;
+    git clone -b portia git@github.com:flyingelephantlab/kipp_settings.git /app/kipp_settings;
 }
 
 if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then
