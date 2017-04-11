@@ -3,7 +3,7 @@ import json
 import shutil
 
 from django.core.exceptions import ValidationError
-from scrapy import log
+import logging
 from storage.projecttemplates import MERCHANT_SETTING_BASE
 from git import Repo
 
@@ -126,7 +126,7 @@ def save_scrapely_object(spider_name, country_code, scrapely_templates):
     scrapely_file_path = os.path.join(kipp_merchant_settings_dir, scrapely_file_name)
     with open(scrapely_file_path, "w") as outfile:
         json.dump({"templates": scrapely_templates}, outfile)
-    log.msg('Scrapely Scraper instance is saved at %s' % kipp_merchant_settings_dir)
+    logging.msg('Scrapely Scraper instance is saved at %s' % kipp_merchant_settings_dir)
 
 
 def save_kipp_config(spider_name, country_code, merchant_settings):
@@ -145,7 +145,7 @@ def save_kipp_config(spider_name, country_code, merchant_settings):
     merchant_file_path = os.path.join(kipp_merchant_settings_dir, merchant_file_name)
     with open(merchant_file_path, 'w') as f:
         f.write(merchant_settings)
-    log.msg('%s kipp configurations is saved at %s'.format(spider_name, kipp_merchant_settings_dir))
+    logging.msg('%s kipp configurations is saved at %s'.format(spider_name, kipp_merchant_settings_dir))
 
 
 def create_kipp_setting(spider):
