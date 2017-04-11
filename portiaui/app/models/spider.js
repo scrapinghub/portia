@@ -143,8 +143,19 @@ export default BaseModel.extend({
         defaultValue: ''
     }),
 
-    username: DS.attr('string', {
+    user: DS.attr('string', {
         defaultValue: ''
     }),
+
+    userAlias: Ember.computed('username', 'user', {
+         get() {
+             return this.get('user') || this.get('username');
+         },
+         set(key, value) {
+             this.set('user', value);
+             return value;
+         }
+     }),
+
 
 });

@@ -15,6 +15,8 @@ export default Ember.Component.extend({
     canAddSample: computedCanAddSample('spider'),
     currentSample: Ember.computed.readOnly('uiState.models.sample'),
 
+    isShowingModal: false,
+
     init() {
         this._super();
         this.set('newUrl', false);
@@ -39,6 +41,11 @@ export default Ember.Component.extend({
     },
 
     actions: {
+
+        toggleModal: function() {
+            this.toggleProperty('isShowingModal');
+        },
+
         addStartUrl() {
             this.get('closeOptions')();
 

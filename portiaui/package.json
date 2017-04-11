@@ -37,7 +37,7 @@
     "ember-cli-jshint": "^1.0.0",
     "ember-cli-qunit": "^1.4.0",
     "ember-cli-release": "^0.2.9",
-    "ember-cli-sass": "^5.3.1",
+    "ember-cli-sass": "6.1.2",
     "ember-cli-sri": "^2.1.0",
     "ember-cli-uglify": "^1.2.0",
     "ember-concurrency": "0.7.10",
@@ -46,9 +46,11 @@
     "ember-export-application-global": "^1.0.5",
     "ember-load-initializers": "^0.5.1",
     "ember-local-storage": "^1.3.0",
+    "ember-modal-dialog": "1.0.0",
     "ember-resolver": "^2.0.3",
     "ember-route-action-helper": "0.3.1",
     "ember-run-raf": "1.1.2",
+    "ember-tether": "1.0.0-beta.0",
     "ember-truth-helpers": "^1.2.0",
     "loader.js": "^4.0.1"
   }

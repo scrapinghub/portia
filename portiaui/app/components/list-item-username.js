@@ -23,7 +23,7 @@ export default Ember.Component.extend(SaveSpiderMixin, {
 
     username: Ember.computed('spider.username', {
         get() {
-            return this.usernameOptions.findBy('value', this.get('spider.username'));
+            return this.usernameOptions.findBy('value', this.get('spider.user'));
         },
 
         set(key, value) {

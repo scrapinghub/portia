@@ -1,3 +1,12 @@
 {{#tooltip-container tooltipFor='train-spider-button' text='Train this spider.' tooltipContainer='body'}}
-    {{list-item-spider-train action=(action 'trainSpider' spider)}}
+    {{list-item-spider-train action=(action 'toggleModal' spider)}}
 {{/tooltip-container}}
+
+
+{{#if isShowingModal}}
+    {{#modal-confirm-train close='toggleModal' translucentOverlay=true}}
+          <h3 style="margin:15px;">Do you sure you want to train this spider?</h3>
+          {{do-train-button spider=spider}}
+          <button {{action 'toggleModal'}} style="margin: auto; text-align: center;">Close</button>
+    {{/modal-confirm-train}}
+{{/if}}
