@@ -29,3 +29,7 @@ docs/_build
 # Development Databases
 *.sqlite*
 
+# Project data gernal files
+slyd/slyd/data/yaoota/items.json
+slyd/slyd/data/yaoota/extractors.json
+slyd/slyd/data/yaoota/project.json
