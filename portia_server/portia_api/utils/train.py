@@ -231,8 +231,7 @@ def create_kipp_setting(spider):
         setting_dict['currency_cookie'] = [setting_dict['currency_cookie']]
 
     if setting_dict["use_language_config"]:
-        localization_template = """
-              {{
+        localization_template = """{{
                   'english': {{
                       'url': {english_url},
                       'cookie_config': {english_language_cookie},
