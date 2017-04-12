@@ -256,7 +256,7 @@ def publish_kipp_settings(username, country_code, spider_name):
         config.set_value("user", "name", username)
         index = repo.index
         index.add([kipp_config_file_path, portia_config_file_path, temlate_dir])
-        commit_msg = '%s: Update %s[%s]spider configurations' % (username, spider_name, country_code)
+        commit_msg = '%s: Update %s[%s] spider configurations' % (username, spider_name, country_code)
         index.commit(commit_msg)
         origins = repo.remotes
         #TODO: Handling git username and password

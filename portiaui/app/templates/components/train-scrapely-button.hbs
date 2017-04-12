@@ -5,7 +5,7 @@
 
 {{#if isShowingModal}}
     {{#modal-confirm-train close='toggleModal' translucentOverlay=true}}
-          <h3 style="margin:15px;">Do you sure you want to train this spider?</h3>
+          <h3 style="margin:15px;">Are you sure you want to train this spider?</h3>
           {{do-train-button spider=spider}}
           <button {{action 'toggleModal'}} style="margin: auto; text-align: center;">Close</button>
     {{/modal-confirm-train}}
