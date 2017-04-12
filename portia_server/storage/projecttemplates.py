@@ -102,17 +102,6 @@ else:
                   callback='parse_item', follow=True)]
     LOCAL_IMAGES = {local_images}
     RENDER_JS = {render_js}
-    localization_config = {{
-        'english': {{
-            'url': {english_url},
-            'cookie_config': {english_language_cookie},
-            'url_args': {english_url_args}
-        }},
-        'arabic': {{
-            'url': {arabic_url},
-            'cookie_config': {arabic_language_cookie},
-            'url_args': {arabic_url_args}
-        }}
-    }}
+    localization_config = {localization_template}
 
 """

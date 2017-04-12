@@ -219,16 +219,36 @@ def create_kipp_setting(spider):
                     """.format(setting_dict['english_language_cookie'])
 
         if setting_dict['english_language_cookie']:
-          setting_dict['english_language_cookie'] = "[%s]" % setting_dict['english_language_cookie']
+            setting_dict['english_language_cookie'] = "[%s]" % setting_dict['english_language_cookie']
 
         if setting_dict['arabic_language_cookie']:
-          setting_dict['arabic_language_cookie'] = "[%s]" % setting_dict['arabic_language_cookie']
+            setting_dict['arabic_language_cookie'] = "[%s]" % setting_dict['arabic_language_cookie']
 
     elif setting_dict['currency_cookie']:
         setting_dict['general_cookie'] = """
                     [{}]
                     """.format(setting_dict['currency_cookie'])
         setting_dict['currency_cookie'] = [setting_dict['currency_cookie']]
+
+    if setting_dict["use_language_config"]:
+        localization_template = """
+              {{
+                  'english': {{
+                      'url': {english_url},
+                      'cookie_config': {english_language_cookie},
+                      'url_args': {english_url_args}
+                  }},
+                  'arabic': {{
+                      'url': {arabic_url},
+                      'cookie_config': {arabic_language_cookie},
+                      'url_args': {arabic_url_args}
+                  }}
+              }}
+          """.format(**setting_dict)
+    else:
+        localization_template = None
+
+    setting_dict['localization_template'] = localization_template
 
     merchant_setting = MERCHANT_SETTING_BASE.format(**setting_dict)
     return merchant_setting
