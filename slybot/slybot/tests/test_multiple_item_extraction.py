@@ -357,3 +357,10 @@ class ContainerExtractorTest(TestCase):
             'cars.com_nested.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
+
+    def test_empty_page(self):
+        spider, page, _ = open_spider_page_and_results(
+            'cars.com_nested.json')
+        page = HtmlResponse(page.url, body=u'', encoding='utf-8')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, [])
