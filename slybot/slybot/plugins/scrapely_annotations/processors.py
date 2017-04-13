@@ -331,7 +331,14 @@ class ItemProcessor(object):
             if not (field and value):
                 continue
             if hasattr(field, attribute):
-                item_dict[getattr(field, attribute)] = value
+                key = getattr(field, attribute)
+                if getattr(field, 'should_overwrite', False):
+                    item_dict[key] = value
+                else:
+                    item_dict[key] = [
+                        v for v in chain(arg_to_iter(item_dict.get(key, [])),
+                                         arg_to_iter(value))
+                    ]
             else:
                 item_dict[field] = value
         return item_dict

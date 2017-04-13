@@ -1,3 +1,8 @@
+Slybot 0.13.0b37 - next
+
+Handle malformed JSON annotation due to invalid HTML
+Merge fields extracted with the same name instead of deleting them
+
 Slybot 0.13.0b36
 
 Fix python 3 compatibility
