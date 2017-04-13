@@ -121,7 +121,10 @@ class Annotations(object):
 
     def handle_html(self, response, seen=None):
         htmlpage = htmlpage_from_response(response, _add_tagids=True)
-        items, link_regions = self.extract_items(htmlpage, response)
+        if htmlpage.parsed_body:
+            items, link_regions = self.extract_items(htmlpage, response)
+        else:
+            items, link_regions = [], []
         htmlpage.headers['n_items'] = len(items)
         try:
             response.meta['n_items'] = len(items)
