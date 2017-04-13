@@ -1,4 +1,6 @@
 import Ember from 'ember';
+import config from '../config/environment';
+
 
 export default Ember.Component.extend({
     dispatcher: Ember.inject.service(),
@@ -7,7 +9,7 @@ export default Ember.Component.extend({
 
     item: null,
 
-    allowNesting: false,
+    allowNesting: config.APP.allow_nesting,
 
     actions: {
         addAnnotation() {
