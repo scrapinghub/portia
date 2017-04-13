@@ -116,7 +116,7 @@ class PortiaBrowserTab(BrowserTab):
         """ Current URL """
         if self._closing:
             return ''
-        return six.text_type(self.web_page.mainFrame().url().toString())
+        return decode(self.web_page.mainFrame().url().toString())
 
     @skip_if_closing
     def evaljs(self, *args, **kwargs):
@@ -466,7 +466,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 drop_request(request)
 
     def _set_tab_html(self, reply, har, content):
-        url = six.binary_type(reply.url().toString())
+        url = decode(reply.url().toString())
         if content is not None and url == self.tab.url:
             self.tab._raw_html = decode(content)
             self.tab._raw_url = url
