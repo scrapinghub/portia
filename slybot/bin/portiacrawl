@@ -30,7 +30,7 @@ def main():
     if opts.settings:
         os.environ["SCRAPY_SETTINGS_MODULE"] = opts.settings
 
-    command_spec = ["scrapy", "crawl", args[1]] if len(args) == 2 else ["scrapy", "list"]
+    command_spec = ["/usr/local/bin/scrapy", "crawl", args[1]] if len(args) == 2 else ["scrapy", "list"]
     if project_specs.endswith(".zip"):
         command_spec.extend([
             "-s", "PROJECT_ZIPFILE=%s" % project_specs,
