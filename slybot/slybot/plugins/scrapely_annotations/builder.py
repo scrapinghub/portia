@@ -336,6 +336,7 @@ class Annotations(object):
 
             # Create container for repeated field annotation
             if (annotation.get('repeated') and
+                    annotation.get('selection_mode') == 'auto' and
                     not annotation.get('item_container') and
                     elems is not None and len(elems) and
                     len(annotation.get('annotations')) == 1):

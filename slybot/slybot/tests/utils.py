@@ -71,6 +71,9 @@ def open_spider_page_and_results(name):
     sample_spec = open_spec(name)
     schemas = sample_spec['schemas']
     results = sample_spec['results']
+    if 'original_body' not in sample_spec:
+        sample_spec['original_body'] = open_spec(
+            '{}.html'.format(name[:-len('.json')]))
     page = UTF8HtmlResponse('http://url', body=sample_spec['original_body'])
     spider = IblSpider(name, make_spider(sample=sample_spec), schemas, {},
                        Settings())
