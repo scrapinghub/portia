@@ -364,3 +364,8 @@ class ContainerExtractorTest(TestCase):
         page = HtmlResponse(page.url, body=u'', encoding='utf-8')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, [])
+
+    def test_repeated_css_extractors(self):
+        spider, page, results = open_spider_page_and_results('stips.co.il.json')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, results)

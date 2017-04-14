@@ -1,0 +1,169 @@
+{
+    "extractors": {},
+    "id": "3fd3-4288-b3dd",
+    "name": "3fd3-4288-b3dd",
+    "page_id": "",
+    "page_type": "item",
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    },
+                    "container_id": null,
+                    "id": "bf9e-40b6-959f",
+                    "item_container": true,
+                    "repeated": false,
+                    "required": [],
+                    "schema_id": "2cdc-4284-ab08",
+                    "selector": "#page-header",
+                    "siblings": 0,
+                    "tagid": null,
+                    "text-content": "#portia-content"
+                },
+                {
+                    "accept_selectors": [
+                        "h1"
+                    ],
+                    "container_id": "bf9e-40b6-959f",
+                    "data": {
+                        "021b-4b2d-9526": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "22a1-4765-82a1",
+                            "required": false
+                        }
+                    },
+                    "id": "daca-42ad-9d73",
+                    "text-content": "content",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "required": [],
+                    "repeated": false,
+                    "selection_mode": "auto",
+                    "selector": "#page-header > .item-title > h1",
+                    "tagid": null,
+                    "xpath": "//*[@id=\"page-header\"]/*[contains(concat(\" \", @class, \" \"), \" item-title \")]/h1"
+                },
+                {
+                    "accept_selectors": [
+                        ".name > .profile_link"
+                    ],
+                    "container_id": "bf9e-40b6-959f",
+                    "data": {
+                        "dca8-4ea1-a738": {
+                            "attribute": "href",
+                            "extractors": {},
+                            "field": "5983-4b80-8547",
+                            "required": false
+                        }
+                    },
+                    "id": "3f30-4f33-b79c",
+                    "text-content": "content",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "required": [],
+                    "repeated": true,
+                    "selection_mode": "css",
+                    "selector": ".profile_link",
+                    "tagid": null,
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" name \")]/*[contains(concat(\" \", @class, \" \"), \" profile_link \")]"
+                },
+                {
+                    "accept_selectors": [
+                        ".topics > .content > a"
+                    ],
+                    "container_id": "bf9e-40b6-959f",
+                    "data": {
+                        "e7cf-4930-aaf2": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "5ccf-4bba-92c1",
+                            "required": false
+                        }
+                    },
+                    "id": "7a51-40cc-b792",
+                    "text-content": "content",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "required": [],
+                    "repeated": true,
+                    "selection_mode": "css",
+                    "selector": ".topics > .content > a",
+                    "tagid": null,
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" topics \")]/*[contains(concat(\" \", @class, \" \"), \" content \")]/a"
+                }
+            ]
+        }
+    },
+    "results": [{
+        "_type": "4",
+        "title": [
+            "\u05d0\u05d9\u05da \u05d4\u05d4\u05e8\u05d2\u05e9\u05d4 \u05d6\u05d4 \u05dc\u05d4\u05d9\u05d5\u05ea \u05d8\u05d1\u05e2\u05d5\u05e0\u05d9?"
+        ],
+        "url": "http://url",
+        "field2": [
+            "/profile.asp?id=139445",
+            "/profile.asp?id=110198",
+            "/profile.asp?id=110198",
+            "/profile.asp?id=221475"
+        ],
+        "tags": [
+            "\u05d8\u05d1\u05e2\u05d5\u05e0\u05d9\u05d9\u05dd",
+            "\u05d8\u05d1\u05e2\u05d5\u05e0\u05d5\u05ea",
+            "\u05e8\u05d2\u05e9\u05d5\u05ea"
+        ],
+        "_template": "3fd3-4288-b3dd"
+    }],
+    "schemas": {
+        "2cdc-4284-ab08": {
+            "fields": {
+                "22a1-4765-82a1": {
+                    "id": "22a1-4765-82a1",
+                    "name": "title",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "dc27-4087-8fb8": {
+                    "id": "dc27-4087-8fb8",
+                    "name": "link",
+                    "required": false,
+                    "type": "url",
+                    "vary": false
+                },
+                "779a-439b-9272": {
+                    "id": "779a-439b-9272",
+                    "name": "field1",
+                    "required": false,
+                    "type": "url",
+                    "vary": false
+                },
+                "5983-4b80-8547": {
+                    "auto_created": true,
+                    "id": "5983-4b80-8547",
+                    "name": "field2",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "5ccf-4bba-92c1": {
+                    "id": "5ccf-4bba-92c1",
+                    "name": "tags",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                }
+            },
+            "name": "4"
+        }
+    },
+    "scrapes": "2cdc-4284-ab08",
+    "spider": "stips.co.il_2",
+    "url": "https://stips.co.il/ask/5163110/%D7%90%D7%99%D7%9A-%D7%94%D7%94%D7%A8%D7%92%D7%A9%D7%94-%D7%96%D7%94-%D7%9C%D7%94%D7%99%D7%95%D7%AA-%D7%98%D7%91%D7%A2%D7%95%D7%A0%D7%99",
+    "version": "0.13.0b35"
+}
