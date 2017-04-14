@@ -4484,3 +4484,11 @@ class AnnotationTests(ProjectTestCase):
             '        "name": "other"\n'
             '    }\n'
             '}')
+
+    def test_invalid_project_name(self):
+        self.assertRaises(ValidationError, Project, self.storage, id='')
+        self.assertRaises(ValidationError, Project, self.storage, id='e' * 249)
+
+    def test_invalid_spider_name(self):
+        self.assertRaises(ValidationError, Spider, self.storage, id='')
+        self.assertRaises(ValidationError, Spider, self.storage, id='e' * 244)

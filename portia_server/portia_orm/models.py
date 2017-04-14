@@ -6,6 +6,7 @@ import six
 from collections import deque, OrderedDict
 
 from marshmallow.fields import Nested
+from marshmallow.validate import Length
 from six import iteritems, iterkeys, itervalues
 
 from slybot import __version__ as SLYBOT_VERSION
@@ -36,7 +37,7 @@ FIELD_TYPES = FieldTypeManager().available_type_names()
 
 class Project(Model):
     # TODO: override storage for hosted version, return generated project.json
-    id = String(primary_key=True)
+    id = String(primary_key=True, validate=Length(min=1, max=248))
     name = String()
     spiders = HasMany('Spider', related_name='project', on_delete=CLEAR,
                       ignore_in_file=True)
@@ -208,7 +209,7 @@ class Extractor(Model):
 
 class Spider(Model):
     # TODO: validate id against allowed file name
-    id = String(primary_key=True)
+    id = String(primary_key=True, validate=Length(min=1, max=243))
     start_urls = List(Nested(StartUrl))
     links_to_follow = String(default='all', validate=OneOf(
         ['none', 'patterns', 'all', 'auto']))
