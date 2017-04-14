@@ -1,4 +1,5 @@
 import Ember from "ember";
+const { computed, guidFor } = Ember;
 
 const IMPLICIT_TAGS = new Set(['tbody']);
 let escapeCSS = CSS.escape;
@@ -115,12 +116,12 @@ export const BaseSelectorGenerator = Ember.Object.extend({
     elements: [],
     siblings: null,
 
-    paths: Ember.computed.map('elements', elementPath),
-    groupedPaths: Ember.computed('paths', function() {
+    paths: computed.map('elements', elementPath),
+    groupedPaths: computed('paths', function() {
         const paths = this.get('paths');
         return this.groupPaths(paths);
     }),
-    parentMap: Ember.computed(
+    parentMap: computed(
         'parent', 'parent.groupedPaths', 'parent.selectors', 'parent.siblings', function() {
             if (!this.get('parent')) {
                 return null;
@@ -154,12 +155,12 @@ export const BaseSelectorGenerator = Ember.Object.extend({
 
             return parentMap;
         }),
-    selectors: Ember.computed('groupedPaths', 'parentMap', function() {
+    selectors: computed('groupedPaths', 'parentMap', function() {
         const groupedPaths = this.get('groupedPaths');
         const parentMap = this.get('parentMap');
         return this.createSelectors(groupedPaths, parentMap);
     }),
-    selector: Ember.computed('selectors', function() {
+    selector: computed('selectors', function() {
         const selectors = this.get('selectors');
 
         // filter out selectors with trailing implicit tags, if a selector
@@ -179,7 +180,7 @@ export const BaseSelectorGenerator = Ember.Object.extend({
 
         return this.mergeSelectors(filteredSelectors);
     }),
-    xpath: Ember.computed('selector', function() {
+    xpath: computed('selector', function() {
         const selector = this.get('selector');
         return cssToXpath(selector);
     }),
@@ -188,7 +189,7 @@ export const BaseSelectorGenerator = Ember.Object.extend({
         const groupedPaths = new Map();
         for (let path of paths) {
             // group by full path of tags names, and root element
-            const tagPath = [Ember.guidFor(path[0])].concat(path.map(element => element.tagName))
+            const tagPath = [guidFor(path[0])].concat(path.map(element => element.tagName))
                                                     .join(' ').toLowerCase();
             const list = groupedPaths.get(tagPath) || [];
             groupedPaths.set(tagPath, list);
@@ -470,15 +471,15 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
     selectorMatcher: null,
     annotation: null,
 
-    acceptElements: Ember.computed('annotation.acceptSelectors.[]', function() {
+    acceptElements: computed('annotation.acceptSelectors.[]', function() {
         const acceptSelectors = this.get('annotation.acceptSelectors');
         return this.get('selectorMatcher').query(this.mergeSelectors(acceptSelectors));
     }),
-    rejectElements: Ember.computed('annotation.rejectSelectors.[]', function() {
+    rejectElements: computed('annotation.rejectSelectors.[]', function() {
         const rejectSelectors = this.get('annotation.rejectSelectors');
         return this.get('selectorMatcher').query(this.mergeSelectors(rejectSelectors));
     }),
-    generalizedSelector: Ember.computed(
+    generalizedSelector: computed(
         'annotation.selectionMode', 'annotation.acceptSelectors.[]',
         'acceptElements.[]', 'rejectElements.[]', function() {
             if (this.get('annotation.selectionMode') === 'css') {
@@ -492,11 +493,11 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
             const selectors = this.createGeneralizedSelectors(groupedPaths);
             return this.mergeSelectors(selectors);
         }),
-    elements: Ember.computed('generalizedSelector', function() {
+    elements: computed('generalizedSelector', function() {
         const selector = this.get('generalizedSelector');
         return this.get('selectorMatcher').query(selector);
     }),
-    selector: Ember.computed(
+    selector: computed(
         'selectors', 'annotation.selectionMode',
         'annotation.acceptSelectors.[]', 'acceptElements.[]', 'rejectElements.[]', function() {
             if (this.get('annotation.selectionMode') === 'css') {
@@ -517,7 +518,7 @@ export const AnnotationSelectorGenerator = BaseSelectorGenerator.extend({
             return this.mergeSelectors(filteredSelectors);
         }),
 
-    repeatedAnnotation: Ember.computed('selector', 'parent.repeatedContainers', function() {
+    repeatedAnnotation: computed('selector', 'parent.repeatedContainers', function() {
         const parent = this.get('parent');
         if (!parent) {
             return false;
@@ -590,12 +591,13 @@ export const ContainerSelectorGenerator = BaseSelectorGenerator.extend({
         this._super(...arguments);
     },
 
-    childElements: Ember.computed.mapBy('children', 'elements'),
-    container: Ember.computed('childElements', function() {
+    autoChildren: computed.filterBy('children', 'annotation.selectionMode', 'auto'),
+    childElements: computed.mapBy('autoChildren', 'elements'),
+    container: computed('childElements', function() {
         const childElements = this.get('childElements');
         return findContainer(childElements);
     }),
-    containerSelector: Ember.computed('container', function() {
+    containerSelector: computed('container', function() {
         const container = this.get('container');
         if (container) {
             const selectors = this.createSelectors([[elementPath(container)]]);
@@ -603,15 +605,15 @@ export const ContainerSelectorGenerator = BaseSelectorGenerator.extend({
         }
         return 'body';
     }),
-    repeatedContainersAndSiblings: Ember.computed('childElements', 'container', function() {
+    repeatedContainersAndSiblings: computed('childElements', 'container', function() {
         const childElements = this.get('childElements');
         const container = this.get('container');
         // TODO: support separated trees
         return findRepeatedContainers(childElements, container);
     }),
-    repeatedContainers: Ember.computed.readOnly('repeatedContainersAndSiblings.firstObject'),
-    siblings: Ember.computed.readOnly('repeatedContainersAndSiblings.lastObject'),
-    elements: Ember.computed('container', 'repeatedContainers', function() {
+    repeatedContainers: computed.readOnly('repeatedContainersAndSiblings.firstObject'),
+    siblings: computed.readOnly('repeatedContainersAndSiblings.lastObject'),
+    elements: computed('container', 'repeatedContainers', function() {
         const container = this.get('container');
         const repeatedContainers = this.get('repeatedContainers');
         if (repeatedContainers.length) {
