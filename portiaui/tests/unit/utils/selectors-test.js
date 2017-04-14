@@ -20,6 +20,7 @@ class MockBrowser {
 test('BaseSelectorGenerator computes paths for all elements', function(assert) {
     const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
     const selector = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#div2, #li1, #li2, #li3').toArray()
     });
     const idPaths = selector.get('paths').map(
@@ -36,6 +37,7 @@ test('BaseSelectorGenerator computes paths for all elements', function(assert) {
 test('BaseSelectorGenerator groups paths for all elements', function(assert) {
     const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
     const selector = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#div2, #li1, #li2, #li3').toArray()
     });
     const groupedIdPaths = selector.get('groupedPaths').map(
@@ -57,6 +59,7 @@ test('BaseSelectorGenerator groups paths for all elements', function(assert) {
 test('BaseSelectorGenerator generates selectors for groups of elements', function(assert) {
     const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
     const selector = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#div2, #li1, #li2, #li3').toArray()
     });
     assert.deepEqual(selector.get('selectors'), [
@@ -69,9 +72,11 @@ test('BaseSelectorGenerator generates selectors for groups of elements', functio
 test('BaseSelectorGenerator nesting generates correct selectors', function(assert) {
     const $elements = Ember.$('<main id="main"><div id="div1"><div id="div2"></div><ul id="ul1"><li id="li1"></li><li id="li2"></li><li id="li3"></li></ul></div></main>');
     const selectorParent = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#div1, #li1, #li2, #li3').toArray()
     });
     const selector = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         parent: selectorParent,
         elements: $elements.find('#div2, #li1').toArray()
     });
@@ -90,12 +95,15 @@ test('ContainerSelectorGenerator propagates groups to child selectors', function
         '</ul></div></main>');
     const selectorParent = ContainerSelectorGenerator.create({});
     const selector1 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-1').toArray()
     });
     const selector2 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-2, #span2-2, #span3-2').toArray()
     });
     const selector3 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-3').toArray()
     });
     selectorParent.addChildren([selector1, selector2, selector3]);
@@ -112,12 +120,15 @@ test('ContainerSelectorGenerator propagates groups to disjoint child selectors',
         '</ul></div></main>');
     const selectorParent = ContainerSelectorGenerator.create({});
     const selector1 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-1').toArray()
     });
     const selector2 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-2, #span2-2, #span3-2').toArray()
     });
     const selector3 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span2-3').toArray()
     });
     selectorParent.addChildren([selector1, selector2, selector3]);
@@ -134,12 +145,15 @@ skip('ContainerSelectorGenerator propagates groups to child selectors with addit
         '</ul></div></main>');
     const selectorParent = ContainerSelectorGenerator.create({});
     const selector1 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#div2, #span1-1').toArray()
     });
     const selector2 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-2, #span2-2, #span3-2').toArray()
     });
     const selector3 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span2-3').toArray()
     });
     selectorParent.addChildren([selector1, selector2, selector3]);
@@ -156,12 +170,15 @@ test('ContainerSelectorGenerator propagates changes in a child selector to other
         '</ul></div></main>');
     const selectorParent = ContainerSelectorGenerator.create({});
     const selector1 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-1').toArray()
     });
     const selector2 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span1-2, #span2-2').toArray()
     });
     const selector3 = BaseSelectorGenerator.create({
+        annotation: Ember.Object.create({selectionMode: 'auto'}),
         elements: $elements.find('#span2-3').toArray()
     });
     selectorParent.addChildren([selector1, selector2, selector3]);
@@ -183,6 +200,7 @@ test('AnnotationSelectorGenerator generates selectors for groups of elements', f
     const selector = AnnotationSelectorGenerator.create({
         selectorMatcher,
         annotation: Ember.Object.create({
+            selectionMode: 'auto',
             acceptSelectors: ["#div2", "#li1", "#li2", "#li3"],
             rejectSelectors: []
         })
@@ -203,6 +221,7 @@ test('AnnotationSelectorGenerator generates generalized selectors', function(ass
     const selector2 = AnnotationSelectorGenerator.create({
         selectorMatcher,
         annotation: Ember.Object.create({
+            selectionMode: 'auto',
             acceptSelectors: ["#div2", "#li1", "#li2"],
             rejectSelectors: []
         })
@@ -220,6 +239,7 @@ test('AnnotationSelectorGenerator generates repeated selectors for repeated fiel
     const repeatedSelector = AnnotationSelectorGenerator.create({
         selectorMatcher,
         annotation: Ember.Object.create({
+            selectionMode: 'auto',
             acceptSelectors: ["#li1", "#li2"],
             rejectSelectors: []
         })
@@ -227,6 +247,7 @@ test('AnnotationSelectorGenerator generates repeated selectors for repeated fiel
     const standardSelector = AnnotationSelectorGenerator.create({
         selectorMatcher,
         annotation: Ember.Object.create({
+            selectionMode: 'auto',
             acceptSelectors: ["#div2"],
             rejectSelectors: []
         })
@@ -251,6 +272,7 @@ test('AnnotationSelectorGenerator supports rejecting selectors', function(assert
     const selector = AnnotationSelectorGenerator.create({
         selectorMatcher,
         annotation: Ember.Object.create({
+            selectionMode: 'auto',
             acceptSelectors: ["#div2", "#li1", "#li2"],
             rejectSelectors: ["#li3"]
         })
@@ -273,6 +295,7 @@ test('AnnotationSelectorGenerator changes get propagated to siblings', function(
         selectorMatcher,
         annotation: Ember.Object.create({
             id: 1,
+            selectionMode: 'auto',
             acceptSelectors: ['#span1-1'],
             rejectSelectors: []
         })
@@ -281,6 +304,7 @@ test('AnnotationSelectorGenerator changes get propagated to siblings', function(
         selectorMatcher,
         annotation: Ember.Object.create({
             id: 2,
+            selectionMode: 'auto',
             acceptSelectors: ['#span1-2'],
             rejectSelectors: []
         })
@@ -289,6 +313,7 @@ test('AnnotationSelectorGenerator changes get propagated to siblings', function(
         selectorMatcher,
         annotation: Ember.Object.create({
             id: 3,
+            selectionMode: 'auto',
             acceptSelectors: ['#span2-3'],
             rejectSelectors: []
         })
@@ -323,6 +348,7 @@ test('Nested AnnotationSelectorGenerator supports rejecting elements', function(
         selectorMatcher,
         annotation: Ember.Object.create({
             id: 1,
+            selectionMode: 'auto',
             acceptSelectors: ['#span1-1'],
             rejectSelectors: []
         })
@@ -331,6 +357,7 @@ test('Nested AnnotationSelectorGenerator supports rejecting elements', function(
         selectorMatcher,
         annotation: Ember.Object.create({
             id: 2,
+            selectionMode: 'auto',
             acceptSelectors: ['#span1-2', '#span2-2', '#span3-2'],
             rejectSelectors: []
         })
@@ -339,6 +366,7 @@ test('Nested AnnotationSelectorGenerator supports rejecting elements', function(
         selectorMatcher,
         annotation: Ember.Object.create({
             id: 3,
+            selectionMode: 'auto',
             acceptSelectors: ['#span2-3'],
             rejectSelectors: []
         })
