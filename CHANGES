@@ -1,3 +1,13 @@
+2.0.8 - 2017-04-20
+
+Limit project and spider id length to avoid causing issues in windows
+Only use auto annotations when calculating container selectors
+Update portia2code to 0.0.12 - Handle malformed schemas
+Convert splash url to unicode instead of bytes
+Enable item nesting in samples from ember config
+Add logic for keeping track of, and blocking pages that fail to load in Portia
+Fix 404 error when downloading projects from git backend as a new user
+
 2.0.7 - 2017-03-28
 
 Pin ember data to 2.11.x
