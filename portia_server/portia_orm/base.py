@@ -9,6 +9,7 @@ import sys
 from six import iteritems, iterkeys, string_types, with_metaclass
 from toposort import toposort_flatten
 
+from slybot.utils import decode
 from storage.backends import ContentFile
 from .collection import ModelCollection
 from .datastore import shared_data
@@ -559,7 +560,8 @@ class Model(with_metaclass(ModelMeta)):
 
         file_data = storage.open(path).read()
         if not cls.opts.raw:
-            file_data = json.loads(file_data, object_pairs_hook=OrderedDict)
+            file_data = json.loads(
+                decode(file_data), object_pairs_hook=OrderedDict)
 
         if cls.opts.polymorphic:
             if not many:

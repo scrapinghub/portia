@@ -610,8 +610,7 @@ class JsonApiPolymorphicSerializer(object):
                 u"You can only use a JsonApiPolymorphicSerializer with "
                 u"many=True for serializing a ModelCollection")
 
-        return super(JsonApiPolymorphicSerializer, cls).__new__(
-            cls, base, default_model, instance, data, many, **kwargs)
+        return super(JsonApiPolymorphicSerializer, cls).__new__(cls)
 
     def __init__(self, base, default_model, instance=None, data=None,
                  many=False, **kwargs):
