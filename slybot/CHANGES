@@ -1,5 +1,7 @@
 Slybot 0.13.0b37 - next
 
+Do not create repeated extractor for CSS/XPath annotations
+Handle parsing Empty HTML response without raising error
 Handle malformed JSON annotation due to invalid HTML
 Merge fields extracted with the same name instead of deleting them
 
