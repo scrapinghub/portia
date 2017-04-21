@@ -1476,7 +1476,7 @@ class SpiderTests(ProjectTestCase):
         spider.id = 'test-id'
         spider.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1750,7 +1750,7 @@ class SampleTests(ProjectTestCase):
                 'version': SLYBOT_VERSION,
             },
         ])
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1859,7 +1859,7 @@ class SampleTests(ProjectTestCase):
             'extractors': {},
             'version': SLYBOT_VERSION,
         })
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1869,7 +1869,7 @@ class SampleTests(ProjectTestCase):
                         spider=Spider(self.storage, id='shop-crawler'))
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1882,7 +1882,7 @@ class SampleTests(ProjectTestCase):
         sample.page_id = sample.id
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 5)
+        self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -1993,7 +1993,7 @@ class SampleTests(ProjectTestCase):
         sample.id = 'test-id'
         sample.save()
 
-        self.assertEqual(self.storage.open.call_count, 5)
+        self.assertEqual(self.storage.open.call_count, 4)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2580,7 +2580,7 @@ class ItemTests(ProjectTestCase):
         items = project.spiders['shop-crawler'].samples['1ddc-4043-ac4d'].items
         self.assertListEqual(items.keys(), ['1e47-4833-a4d4'])
         self.assertIsInstance(items, Item.collection)
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2701,7 +2701,7 @@ class ItemTests(ProjectTestCase):
                 'text-content': '#portia-content',
             },
         ])
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -2827,7 +2827,7 @@ class ItemTests(ProjectTestCase):
             'tagid': None,
             'text-content': '#portia-content',
         })
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -2841,7 +2841,7 @@ class ItemTests(ProjectTestCase):
                 spider=Spider(self.storage, id='shop-crawler')))
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -2851,7 +2851,7 @@ class ItemTests(ProjectTestCase):
         item.selector = '#test'
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -3005,7 +3005,7 @@ class ItemTests(ProjectTestCase):
         item.id = 'test-id'
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -3166,7 +3166,7 @@ class ItemTests(ProjectTestCase):
         item = Item(self.storage, id='test1', sample=sample)
         item.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -3337,7 +3337,7 @@ class ItemTests(ProjectTestCase):
                                     repeated_selector='.yyy'))
         sample.items[0].save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -3689,7 +3689,7 @@ class AnnotationTests(ProjectTestCase):
                              ['3606-4d68-a6a0|d1e2-4673-a72a',
                               '5c18-40cf-8809|de35-49b5-b90b'])
         self.assertIsInstance(annotations, BaseAnnotation.collection)
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3749,7 +3749,7 @@ class AnnotationTests(ProjectTestCase):
                 'xpath': None,
             },
         ])
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
@@ -3790,7 +3790,7 @@ class AnnotationTests(ProjectTestCase):
             'tagid': None,
             'xpath': None,
         })
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -3806,7 +3806,7 @@ class AnnotationTests(ProjectTestCase):
                     spider=Spider(self.storage, id='shop-crawler'))))
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -3816,7 +3816,7 @@ class AnnotationTests(ProjectTestCase):
         annotation.selector = '.test'
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -3930,7 +3930,7 @@ class AnnotationTests(ProjectTestCase):
         annotation.id = 'test-id|data-id'
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -4052,7 +4052,7 @@ class AnnotationTests(ProjectTestCase):
         annotation = Annotation(self.storage, id='test1|data1', parent=item)
         annotation.save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
@@ -4189,7 +4189,7 @@ class AnnotationTests(ProjectTestCase):
         item.annotations.insert(0, Annotation(self.storage, id='test2|data2'))
         item.annotations[0].save()
 
-        self.assertEqual(self.storage.open.call_count, 4)
+        self.assertEqual(self.storage.open.call_count, 3)
         self.storage.open.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),

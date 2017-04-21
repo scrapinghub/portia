@@ -1,4 +1,4 @@
-{{#list-item-relation-manager value=(mut annotation.field) choices=annotation.field.schema.fields selecting=(mut selecting) onChange=(action 'changeField') validate=(action 'validateFieldName') create=(action 'addField') as |options|}}
+{{#list-item-relation-manager value=(mut annotation.field) choices=annotation.parent.schema.fields selecting=(mut selecting) onChange=(action 'changeField') validate=(action 'validateFieldName') create=(action 'addField') as |options|}}
     {{#if (eq options.section 'change-header')}}
         Type to change the field
     {{else if (eq options.section 'choices-header')}}

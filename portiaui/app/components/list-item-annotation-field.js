@@ -14,7 +14,7 @@ export default Ember.Component.extend({
         validateFieldName(name) {
             return Ember.RSVP.all([
                 this.get('annotation.field'),
-                this.get('annotation.field.schema.fields')
+                this.get('annotation.parent.schema.fields')
             ]).then(([currentField, fields]) => {
                 if (!fields) {
                     return true;
