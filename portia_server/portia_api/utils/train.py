@@ -97,8 +97,11 @@ def save_portia_spider(spider_name, country_code):
                 shutil.copy2(s, d)
 
     kipp_merchant_settings_dir = KIPP_MERCHANT_SETTINGS_DIR.format(country_code=country_code, spider_name=spider_name)
+    merchant_init_path = kipp_merchant_settings_dir + '__init__.py'
     if not os.path.exists(kipp_merchant_settings_dir):
         os.makedirs(kipp_merchant_settings_dir)
+        f = open(merchant_init_path, mode='w')
+        f.close()
 
     portia_spider_name = "%s.json" % spider_name
     portia_spider_file = os.path.join(PORTIA_SPIDERS_DIR, portia_spider_name)
