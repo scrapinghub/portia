@@ -122,6 +122,11 @@ configure_initctl(){
     cp "$APP_ROOT/portia.conf" /etc/init
 }
 
+
+migrate_django_db(){
+    python /vagrant/portia_server/manage.py migrate
+}
+
 start_portia(){
     echo "Starting Nginx"
     echo "=============="

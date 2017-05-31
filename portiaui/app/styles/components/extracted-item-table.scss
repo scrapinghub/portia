@@ -1,4 +1,5 @@
 .extracted-item-table {
+    user-select: text;
     &,
     table {
         margin-bottom: $line-height-computed;
