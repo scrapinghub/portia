@@ -1,7 +1,3 @@
-.fragment-span {
-    margin-left: -3px;
-}
-
 .start-url-list {
     overflow-y: auto;
     min-height: 200px;
@@ -15,6 +11,7 @@
 .start-url-generation-list {
     p {
         white-space: nowrap;
+        user-select: text;
         position: relative;
         margin: 0;
     }

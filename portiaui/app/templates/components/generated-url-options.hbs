@@ -36,11 +36,11 @@
     <section class="start-url-generation-list">
     {{#each generatedUrlLists as |generatedUrlList|}}
         <p>
-        {{#each generatedUrlList as |fragment index|}}
-            {{#colored-span class="fragment-span" color=(array-get fragmentColors index)}}
+        {{#each generatedUrlList as |fragment index| ~}}
+            {{#colored-span color=(array-get fragmentColors index) ~}}
                 {{fragment}}
-            {{/colored-span}}
-        {{/each}}
+            {{~/colored-span}}
+        {{~/each}}
         </p>
     {{/each}}
 
