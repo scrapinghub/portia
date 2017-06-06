@@ -150,12 +150,11 @@ class SpiderTest(TestCase):
             url="http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
         response.request = generic_form_request
-        request_list = [request_to_dict(req, spider)
+        request_list = [{k: v for k, v in request_to_dict(req, spider).items()
+                         if not k.startswith('_')}
                         for req in generic_form_request.callback(response)]
         expected = [{
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -171,9 +170,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -189,9 +186,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -207,9 +202,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -225,8 +218,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50')
         }, {
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'parse',
             'cookies': {},
             'dont_filter': True,
@@ -337,12 +329,11 @@ class SpiderTest(TestCase):
             url="http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
             body=open(join(_PATH, "data", "ebay_advanced_search.html")).read())
         response.request = generic_form_request
-        request_list = [request_to_dict(req, spider)
+        request_list = [{k: v for k, v in request_to_dict(req, spider).items()
+                         if not k.startswith('_')}
                         for req in generic_form_request.callback(response)]
         expected = [{
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -358,9 +349,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -376,9 +365,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -394,9 +381,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -412,9 +397,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -430,9 +413,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -448,9 +429,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -466,9 +445,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -484,9 +461,7 @@ class SpiderTest(TestCase):
                     'dio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_dm'
                     'd=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -502,9 +477,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -520,9 +493,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -538,9 +509,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -556,9 +525,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Cars')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -574,9 +541,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -592,9 +557,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -610,9 +573,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_class': 'scrapy.http.request.form.FormRequest',
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'after_form_page',
             'cookies': {},
             'dont_filter': True,
@@ -628,8 +589,7 @@ class SpiderTest(TestCase):
                     'adio=%26LH_SpecificSeller%3D1&_saslop=1&_sasl=&_sop=12&_d'
                     'md=1&_ipg=50&_nkw2=Boats')
         }, {
-            '_encoding': 'utf-8',
-            'body': '',
+            'body': b'',
             'callback': 'parse',
             'cookies': {},
             'dont_filter': True,

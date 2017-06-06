@@ -489,7 +489,8 @@ class StartUrlCollectionTest(TestCase):
             'http://example.com/1\r'
             'http://example.com/2\r\n'
             'http://example.com/3\n\r'
-            'http://example.com/4\n'))
+            'http://example.com/4\n'),
+            encoding='utf-8')
         self.assertEqual([r.url for r in feed.parse_urls(response)], [
             'http://example.com/1',
             'http://example.com/2',

@@ -1,0 +1,609 @@
+{
+    "extractors": {},
+    "id": "2688-4a8e-8b29",
+    "name": "Elektrotechnik - Firmen A-Z",
+    "page_id": "",
+    "page_type": "item",
+    "plugins": {
+        "annotations-plugin": {
+            "extracts": [
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    },
+                    "container_id": null,
+                    "id": "75f8-4fdc-b4e3#parent",
+                    "item_container": true,
+                    "repeated": false,
+                    "required": [],
+                    "schema_id": "020e-42fe-8006",
+                    "selector": "#result > .container",
+                    "siblings": 0,
+                    "tagid": null,
+                    "text-content": "#portia-content"
+                },
+                {
+                    "annotations": {
+                        "#portia-content": "#dummy"
+                    },
+                    "container_id": "75f8-4fdc-b4e3#parent",
+                    "id": "75f8-4fdc-b4e3",
+                    "item_container": true,
+                    "repeated": true,
+                    "required": [],
+                    "schema_id": "020e-42fe-8006",
+                    "selector": ".col1-right",
+                    "siblings": 0,
+                    "tagid": null,
+                    "text-content": "#portia-content"
+                },
+                {
+                    "accept_selectors": [
+                        "[itemprop= \"name\"]"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "e04a-4184-91a1": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "5adf-43c6-8113",
+                            "required": false
+                        }
+                    },
+                    "id": "24dd-4492-95a6",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": true,
+                    "required": [],
+                    "selection_mode": "css",
+                    "selector": "[itemprop= \"name\"]",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "//"
+                },
+                {
+                    "accept_selectors": [
+                        "[itemprop=\"streetAddress\"]"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "cd41-429d-a779": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "0247-457c-8591",
+                            "required": false
+                        }
+                    },
+                    "id": "80f0-4a7f-a632",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": true,
+                    "required": [],
+                    "selection_mode": "css",
+                    "selector": "[itemprop=\"streetAddress\"]",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "//"
+                },
+                {
+                    "accept_selectors": [
+                        "[itemprop=\"addressLocality\"]"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "4b2e-4235-9bb3": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "b9eb-4347-b68e",
+                            "required": false
+                        }
+                    },
+                    "id": "0523-45f0-b261",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": true,
+                    "required": [],
+                    "selection_mode": "css",
+                    "selector": "[itemprop=\"addressLocality\"]",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "//"
+                },
+                {
+                    "accept_selectors": [
+                        "div [class = \"authorization\"]"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "c230-47ae-abfd": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "ae31-4c8e-b4e9",
+                            "required": false
+                        }
+                    },
+                    "id": "4cd3-42fd-b9ad",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": true,
+                    "required": [],
+                    "selection_mode": "css",
+                    "selector": "div [class = \"authorization\"]",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "//"
+                },
+                {
+                    "accept_selectors": [
+                        "article:nth-child(1) > .row > .col-md-12 > .row > .col1 > .col1-right > .zip",
+                        "article:nth-child(2) > .row > .col-md-12 > .row > .col1 > .col1-right > .zip"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "5a8e-420e-ac4a": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "d07b-407d-9306",
+                            "required": false
+                        }
+                    },
+                    "id": "7515-40d7-b291",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": false,
+                    "required": [],
+                    "selection_mode": "auto",
+                    "selector": ".col1-right > .zip",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "//*[contains(concat(\" \", @class, \" \"), \" col1-right \")]/*[contains(concat(\" \", @class, \" \"), \" zip \")]"
+                },
+                {
+                    "accept_selectors": [
+                        "[itemprop=\"email\"]"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "5af1-424e-bc2b": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "3a2a-459d-9468",
+                            "required": false
+                        }
+                    },
+                    "id": "b23c-4d06-8b73",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": false,
+                    "required": [],
+                    "selection_mode": "css",
+                    "selector": "[itemprop=\"email\"]",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "//"
+                },
+                {
+                    "accept_selectors": [
+                        "[itemprop=\"url\"]"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "9504-477d-b1c7": {
+                            "attribute": "href",
+                            "extractors": {},
+                            "field": "27f0-400d-98a7",
+                            "required": false
+                        }
+                    },
+                    "id": "7884-4ce8-93f4",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": false,
+                    "required": [],
+                    "selection_mode": "css",
+                    "selector": "[itemprop=\"url\"]",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "//"
+                },
+                {
+                    "accept_selectors": [
+                        "div[class=\"icon-mobile vcard__info\"] > a"
+                    ],
+                    "container_id": "75f8-4fdc-b4e3",
+                    "data": {
+                        "88ce-4d5e-8c08": {
+                            "attribute": "content",
+                            "extractors": {},
+                            "field": "db09-4a64-9f64",
+                            "required": false
+                        }
+                    },
+                    "id": "be35-47ad-987d",
+                    "post_text": null,
+                    "pre_text": null,
+                    "reject_selectors": [],
+                    "repeated": false,
+                    "required": [],
+                    "selection_mode": "css",
+                    "selector": "div[class=\"icon-mobile vcard__info\"] > a",
+                    "tagid": null,
+                    "text-content": "content",
+                    "xpath": "///a"
+                }
+            ]
+        }
+    },
+    "results": [{
+            "website": [
+                "http://www.3e-technik.at/"
+            ],
+            "city": [
+                "Wien"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "3E-Technik e.U."
+            ],
+            "_index": 1,
+            "mobile": [
+                "+43 699 112 199 14"
+            ],
+            "url": "http://url",
+            "street": [
+                "Grellgasse 9/3/2"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "office@3e-technik.at"
+            ]
+        }, {
+            "website": [
+                "http://www.elektro-jamnik.at/"
+            ],
+            "city": [
+                "Seefeld in Tirol"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "A. Jamnik Elektro GmbH"
+            ],
+            "_index": 5,
+            "mobile": [
+                "A. Jamnik Elektro GmbH"
+            ],
+            "url": "http://url",
+            "street": [
+                "M\u00fcnchner Stra\u00dfe 487"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "a.jamnik.elektro@aon.at"
+            ]
+        }, {
+            "website": [
+                "http://url/Web/DetailsKontakt.aspx?FirmaID=745d2dc3-c0e2-4c26-bf14-b83ba23d4849&StandortID=0&Branche=24170&BranchenName=Elektrotechnik&CategoryID=0&Page=1&Filter=1"
+            ],
+            "city": [
+                "Wien"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "A.A.A. 3 Ampere - Aqua - Art Elektro-, Gas-, Wasser-, Heizungsinstallationsgesellschaft m.b.H."
+            ],
+            "_index": 9,
+            "mobile": [
+                "A.A.A. 3 Ampere - Aqua - Art Elektro-, Gas-, Wasser-, Heizungsinstallationsgesellschaft m.b.H."
+            ],
+            "url": "http://url",
+            "street": [
+                "Am Tabor 1-3"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "A.A.A. 3 Ampere - Aqua - Art Elektro-, Gas-, Wasser-, Heizungsinstallationsgesellschaft m.b.H."
+            ]
+        }, {
+            "website": [
+                "http://url/Web/DetailsKontakt.aspx?FirmaID=bed7189f-12e0-4613-a301-f18d2c9e3529&StandortID=0&Branche=24170&BranchenName=Elektrotechnik&CategoryID=0&Page=1&Filter=1"
+            ],
+            "city": [
+                "Wien"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "A.A.A. 3 Ampere - Aqua - Art Elektro-, Gas-, Wasser-, Heizungsinstallationsgesellschaft m.b.H."
+            ],
+            "_index": 13,
+            "mobile": [
+                "A.A.A. 3 Ampere - Aqua - Art Elektro-, Gas-, Wasser-, Heizungsinstallationsgesellschaft m.b.H."
+            ],
+            "url": "http://url",
+            "street": [
+                "Kolpingstra\u00dfe 4"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "A.A.A. 3 Ampere - Aqua - Art Elektro-, Gas-, Wasser-, Heizungsinstallationsgesellschaft m.b.H."
+            ]
+        }, {
+            "website": [
+                "http://www.aaves.at/"
+            ],
+            "city": [
+                "Ebenthal"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "AAVES Sicherheitstechnik GmbH"
+            ],
+            "_index": 17,
+            "mobile": [
+                "+43 (0) 664 203 75 95"
+            ],
+            "url": "http://url",
+            "street": [
+                "Gewerbezone, Zeiss Stra\u00dfe 16"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "office@aaves.at"
+            ]
+        }, {
+            "website": [
+                "http://url/Web/DetailsKontakt.aspx?FirmaID=c1a2b9b2-e9be-41fe-a427-4f1301e8159b&StandortID=0&Branche=24170&BranchenName=Elektrotechnik&CategoryID=0&Page=1&Filter=1"
+            ],
+            "city": [
+                "Esternberg"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "ABM Tech GmbH"
+            ],
+            "_index": 21,
+            "mobile": [
+                "ABM Tech GmbH"
+            ],
+            "url": "http://url",
+            "street": [
+                "Hauptstra\u00dfe 53/1"
+            ],
+            "branch": [
+                "Elektrotechnik; Errichter von Alarmanlagen"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "office@abmtech.at"
+            ]
+        }, {
+            "website": [
+                "http://www.elektro-acherer.at/"
+            ],
+            "city": [
+                "Kufstein"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "Harald Acherer - ELEKTRO ACHERER"
+            ],
+            "_index": 25,
+            "mobile": [
+                "Harald Acherer - ELEKTRO ACHERER"
+            ],
+            "url": "http://url",
+            "street": [
+                "Herzog-Erich-Stra\u00dfe 12"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "el.acherer@kufnet.at"
+            ]
+        }, {
+            "website": [
+                "http://www.aes-energietechnik.at/"
+            ],
+            "city": [
+                "Ottenschlag"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "AES - Energie Technik GmbH Alternative Energie Systeme"
+            ],
+            "_index": 29,
+            "mobile": [
+                "0664 885 018 83"
+            ],
+            "url": "http://url",
+            "street": [
+                "Spitzerstr. 24"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "office@aes-energietechnik.at"
+            ]
+        }, {
+            "website": [
+                "http://www.aes.co.at/"
+            ],
+            "city": [
+                "Treibach-Althofen"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "AES alternativENERGIEsysteme e.U."
+            ],
+            "_index": 33,
+            "mobile": [
+                "+43 664 307 47 03"
+            ],
+            "url": "http://url",
+            "street": [
+                "Hauptplatz 3 - 4"
+            ],
+            "branch": [
+                "Errichter von Photovoltaikanlagen"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "elpo1@gmx.at"
+            ]
+        }, {
+            "website": [
+                "http://www.agetech.at/"
+            ],
+            "city": [
+                "Lienz"
+            ],
+            "_type": "Elektrotechnik - Firmen A-Z",
+            "name": [
+                "AGEtech GmbH - smart electric"
+            ],
+            "_index": 37,
+            "mobile": [
+                "AGEtech GmbH - smart electric"
+            ],
+            "url": "http://url",
+            "street": [
+                "Beda-Weber-Gasse 10"
+            ],
+            "branch": [
+                "Elektrotechnik"
+            ],
+            "_template": "2688-4a8e-8b29",
+            "email": [
+                "info@agetech.at"
+            ]
+        }
+    ],
+    "scrapes": "020e-42fe-8006",
+    "schemas": {
+        "020e-42fe-8006": {
+            "fields": {
+                "5adf-43c6-8113": {
+                    "id": "5adf-43c6-8113",
+                    "name": "name",
+                    "required": true,
+                    "type": "text",
+                    "vary": false
+                },
+                "0247-457c-8591": {
+                    "id": "0247-457c-8591",
+                    "name": "street",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "84c7-48fa-b3cb": {
+                    "id": "84c7-48fa-b3cb",
+                    "name": "plz",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "b9eb-4347-b68e": {
+                    "id": "b9eb-4347-b68e",
+                    "name": "city",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "ae31-4c8e-b4e9": {
+                    "id": "ae31-4c8e-b4e9",
+                    "name": "branch",
+                    "required": true,
+                    "type": "text",
+                    "vary": false
+                },
+                "8953-460a-b810": {
+                    "id": "8953-460a-b810",
+                    "name": "landline",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "7a4b-4723-a3a1": {
+                    "id": "7a4b-4723-a3a1",
+                    "name": "phone_2",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "db09-4a64-9f64": {
+                    "id": "db09-4a64-9f64",
+                    "name": "mobile",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "e706-4d94-be4f": {
+                    "id": "e706-4d94-be4f",
+                    "name": "fax",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "2e6e-498d-81c3": {
+                    "id": "2e6e-498d-81c3",
+                    "name": "e-mail",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "27f0-400d-98a7": {
+                    "id": "27f0-400d-98a7",
+                    "name": "website",
+                    "required": false,
+                    "type": "url",
+                    "vary": false
+                },
+                "d07b-407d-9306": {
+                    "auto_created": true,
+                    "id": "d07b-407d-9306",
+                    "name": "field1",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                },
+                "3a2a-459d-9468": {
+                    "id": "3a2a-459d-9468",
+                    "name": "email",
+                    "required": false,
+                    "type": "text",
+                    "vary": false
+                }
+            },
+            "name": "Elektrotechnik - Firmen A-Z"
+        }
+    },
+    "spider": "firmen.wko.at",
+    "url": "https://firmen.wko.at/Web/Ergebnis.aspx?StandortID=0&Branche=24170&BranchenName=Elektrotechnik&CategoryID=0&Filter=1&Page=3",
+    "version": "0.13.0b37"
+}

@@ -1,4 +1,13 @@
-Slybot 0.13.0b37 - next
+Slybot 0.13.0
+
+Update slybot to use the most recent libraries
+Add a DropMetaPipeline to remove unwanted meta fields from items
+Allow `\r` character to be used in start url feeds
+Use `rendered_html` when building sample if JS enabled
+Limit CSS selector annotations to a single element
+Allow scrapy shell to find a spider if the name matches the url hostname
+
+Slybot 0.13.0b37
 
 Do not create repeated extractor for CSS/XPath annotations
 Handle parsing Empty HTML response without raising error

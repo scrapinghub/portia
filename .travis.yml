@@ -16,8 +16,10 @@ install:
 - source ${VIRTUAL_ENV}/bin/activate
 - sudo -H ./provision.sh install_deps install_splash install_python_deps
 - sudo -H pip install tox
-- python -c 'import splash, qt5reactor' # Check it's in the python path
+- python2.7 -c 'import splash, qt5reactor' # Check it's in the python path
 - cd portiaui
+- nvm install 6.10.0
+- nvm use 6.10.0
 - npm install -g bower
 - npm install
 - bower install
@@ -29,7 +31,7 @@ before_script:
 - source ${VIRTUAL_ENV}/bin/activate
 - export PYTHONPATH=`pwd`/slybot:`pwd`/slyd
 - cd slyd
-- python tests/testserver/server.py 2>&1 | grep -v 'HTTP/1.1" 200' &
+- python2.7 tests/testserver/server.py 2>&1 | grep -v 'HTTP/1.1" 200' &
 - cd ..
 - sleep 3 # give xvfb some time to start
 script:
@@ -39,6 +41,7 @@ script:
 - ./manage.py test portia_orm.tests
 - ./manage.py test portia_api.tests
 - cd ../portiaui
+- npm rebuild node-sass
 - npm test
 before_deploy:
 - cd ../slybot

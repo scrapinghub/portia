@@ -81,6 +81,10 @@ class ItemProcessor(object):
     def metadata(self):
         return self.annotation.metadata
 
+    @cached_property
+    def repeated(self):
+        return self.metadata.get('repeated', False)
+
     def attribute_query(self, metadata):
         """Extract attribute or content from a region."""
         content_field = metadata.get(u'text-content', u'content')
@@ -200,6 +204,12 @@ class ItemProcessor(object):
                 new_attribute.update(attribute)
                 yield new_attribute
 
+    @staticmethod
+    def get_region_id(region):
+        if hasattr(region, 'attributes'):
+            return region.attributes.get('data-tagid')
+        return region
+
     def _process_css_and_xpath(self, annotations, selector):
         schema, modifiers, page = self.schema, self.modifiers, self.htmlpage
         region_ids = list(filter(bool, (region_id(r) for r in self.regions)))
@@ -207,7 +217,13 @@ class ItemProcessor(object):
         parents = {e._root for e in selector.css(query)}
         containers = ()
         if self.parent_region:
-            pquery = '[data-tagid="%s"]' % self.parent_region
+            if isinstance(self.parent_region, list):
+                pquery = ', '.join(
+                    '[data-tagid="{}"]'.format(self.get_region_id(r))
+                    for r in self.parent_region)
+            else:
+                pquery = '[data-tagid="{}"]'.format(
+                    self.get_region_id(self.parent_region))
             containers = {e._root for e in selector.css(pquery)}
         for i, a in enumerate(annotations, start=len(self.fields)):
             mode = a.get(u'selection_mode')
@@ -244,7 +260,7 @@ class ItemProcessor(object):
                 other_elements.append(element)
         if closest_elements:
             return closest_elements
-        elif other_elements:
+        elif (self.repeated and containers) or other_elements:
             return other_elements
         return elements
 
