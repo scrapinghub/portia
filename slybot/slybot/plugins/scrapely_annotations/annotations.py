@@ -112,10 +112,14 @@ class Annotations(object):
             self.clustering = None
 
     def _get_annotated_template(self, template):
-        if (template.get('version', '0.12.0') >= '0.13.0' and
-                not template.get('annotated')):
+        changed = False
+        if template.get('version', '0.12.0') >= '0.13.0':
             using_js = self.spider._filter_js_urls(template['url'])
-            template['body'] = 'rendered_body' if using_js else 'original_body'
+            body = 'rendered_body' if using_js else 'original_body'
+            if template.get('body') != body:
+                template['body'] = body
+                changed = True
+        if changed or not template.get('annotated'):
             _build_sample(template)
         return template
 

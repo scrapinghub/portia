@@ -4,6 +4,8 @@ import shutil
 import atexit
 import logging
 
+from six.moves.urllib.parse import urlparse
+
 import slybot
 
 from zipfile import ZipFile
@@ -67,8 +69,10 @@ class SlybotSpiderManager(object):
         return list(self._specs["spiders"].keys())
 
     def find_by_request(self, request):
-        """Placeholder to meet SpiderManager interface"""
-        raise NotImplementedError()
+        parsed = urlparse(request.url)
+        if parsed.hostname in self._specs['spiders'].spider_names:
+            return [parsed.hostname]
+        # TODO: Look at start urls and samples
 
 
 class ZipfileSlybotSpiderManager(SlybotSpiderManager):

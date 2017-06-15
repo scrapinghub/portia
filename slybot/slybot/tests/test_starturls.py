@@ -1,6 +1,10 @@
 from unittest import TestCase
 
-from slybot.starturls import FragmentGenerator, IdentityGenerator, StartUrlCollection, UrlGenerator
+from scrapy import Request
+from scrapy.http.response.text import TextResponse
+from slybot.starturls import (
+    FragmentGenerator, IdentityGenerator, StartUrlCollection, UrlGenerator,
+    FeedGenerator)
 
 
 class StartUrlCollectionTest(TestCase):
@@ -477,6 +481,22 @@ class StartUrlCollectionTest(TestCase):
         collection = StartUrlCollection(legacy, self.generators)
 
         self.assertEqual(list(collection.normalize()), normalized)
+
+    def test_feed_url(self):
+        url = 'http://example.com/feed'
+        feed = FeedGenerator(lambda: 0)
+        response = TextResponse(url, body=(
+            'http://example.com/1\r'
+            'http://example.com/2\r\n'
+            'http://example.com/3\n\r'
+            'http://example.com/4\n'),
+            encoding='utf-8')
+        self.assertEqual([r.url for r in feed.parse_urls(response)], [
+            'http://example.com/1',
+            'http://example.com/2',
+            'http://example.com/3',
+            'http://example.com/4',
+        ])
 
 def generator_set(generator, start_urls):
     return set(list(generator()(start_urls)))

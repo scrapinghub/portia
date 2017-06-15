@@ -1,4 +1,6 @@
+import re
 from scrapy import Request
+_NEWLINE_RE = re.compile('[\r\n]')
 
 
 class FeedGenerator(object):
@@ -9,7 +11,7 @@ class FeedGenerator(object):
         return Request(url, callback=self.parse_urls)
 
     def parse_urls(self, response):
-        newline_urls = response.text.split('\n')
-        urls = [url.replace('\r', '') for url in newline_urls if url]
+        newline_urls = _NEWLINE_RE.split(response.text)
+        urls = [url for url in newline_urls if url]
         for url in urls:
             yield Request(url, callback=self.callback)

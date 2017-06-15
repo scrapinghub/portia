@@ -369,3 +369,6 @@ class ContainerExtractorTest(TestCase):
         spider, page, results = open_spider_page_and_results('stips.co.il.json')
         items = [i for i in spider.parse(page) if not isinstance(i, Request)]
         self.assertEqual(items, results)
+        spider, page, results = open_spider_page_and_results('firmen.wko.at.json')
+        items = [i for i in spider.parse(page) if not isinstance(i, Request)]
+        self.assertEqual(items, results)

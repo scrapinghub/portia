@@ -410,18 +410,12 @@ class Sample(Model, OrderedAnnotationsMixin):
             data['name'] = (data.get('id', data.get('page_id', u'')[:20]) or
                             strip_json(self.context['path'].split('/')[-1]))
         version = data.get('version', '')
-        if version >= '0.13.1':
+        if version == '0.13.0' or version >= '0.13.1':
             return data
         if any(body in data for body in ('original_body', 'rendered_body')):
             self._migrate_html(self, data)
         schemas = json.load(self.context['storage'].open('items.json'))
-        if version > '0.13.0':
-            if version < '0.13.0b30':
-                schema_id, new_schemas = guess_schema(data, schemas)
-                self._add_schemas(self, new_schemas)
-                # Add the most likely schema id to the base containers
-                self._populate_schema_id(data, schema_id)
-                data = repair_ids(data)
+        if version >= '0.13.0':
             return data
         if 'id' not in data:
             data['id'] = data['name']

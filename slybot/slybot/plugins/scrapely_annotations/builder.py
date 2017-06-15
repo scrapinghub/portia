@@ -1,3 +1,4 @@
+import copy
 import json
 import six
 
@@ -18,6 +19,8 @@ from .migration import _get_parent, short_guid
 class Annotations(object):
     def __init__(self, sample, **options):
         self.sample = sample
+        page_id = sample.get('page_id') or sample.get('id') or ""
+        sample['page_id'] = page_id
         plugins = sample.setdefault('plugins', {})
         self.data = plugins.setdefault('annotations-plugin', {'extracts': []})
         self.annotations = self.data['extracts']
@@ -32,13 +35,8 @@ class Annotations(object):
         template = self.sample
         body = template.get('body') or 'original_body'
         if body not in template:
-            if 'original_body' in template:
-                body = 'original_body'
-            else:
-                bodies = [k for k, v in template.items()
-                          if v and k.endswith('_body')]
-                if bodies:
-                    body = bodies[0]
+            body = next((k for k, v in template.items()
+                         if v and k.endswith('_body')), body)
         self._html = template[body]
         return self._html
 
@@ -198,7 +196,8 @@ class Annotations(object):
             converted_annotations = self.apply_selector(selector_annotations)
             tagid_annotations += converted_annotations
         if not self.legacy:
-            tagid_annotations = self.verify(tagid_annotations)
+            tagid_annotations = self.verify(
+                [arg_to_iter(a) for a in tagid_annotations])
         target = iter(parse_html(numbered_html))
         output, stack = [], []
         elem = next(target)
@@ -306,7 +305,7 @@ class Annotations(object):
 
     def split(self):
         selector, tagid = [], []
-        for ann in self.annotations:
+        for ann in copy.deepcopy(self.annotations):
             if ann:
                 if ann.get('selector'):
                     selector.append(ann)
