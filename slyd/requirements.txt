@@ -12,4 +12,4 @@ mock==2.0.0
 
 # Splash dev
 --allow-external=splash
-https://github.com/scrapinghub/splash/archive/master.tar.gz
+https://github.com/scrapinghub/splash/archive/2.3.x.tar.gz
