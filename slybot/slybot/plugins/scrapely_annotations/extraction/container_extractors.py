@@ -369,7 +369,9 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                         end_index + len(self.suffix))
         max_start_index = max_index - prefixlen
         extracted = []
-        surrounding_tag = element_from_page_index(page, start_index)
+        region = element_from_page_index(page, start_index)
+        surrounding_tag = [region] if region else []
+        first = True
         while index <= max_start_index:
             prefix_end = index + prefixlen
             if (page.page_tokens[index:prefix_end] == self.prefix).all():
@@ -383,6 +385,10 @@ class RepeatedContainerExtractor(BaseContainerExtractor, RecordExtractor):
                         continue
                     if matches_next_prefix:
                         peek -= suffixlen + 1
+                    if first:
+                        surrounding_tag.append(element_from_page_index(
+                            page, index - prefixlen - 1))
+                        first = False
                     try:
                         items = []
                         _index = index

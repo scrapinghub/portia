@@ -198,7 +198,7 @@ class IblSpider(SitemapSpider):
         request = response.request
         if (request and request.method == 'POST' and
                 urlparse(request.url).hostname == self.SPLASH_HOST):
-            url = (json.loads(request.body).get('url'))
+            url = json.loads(request.body.decode(request.encoding)).get('url')
             if url:
                 response._url = url
         _type = content_type(response)
