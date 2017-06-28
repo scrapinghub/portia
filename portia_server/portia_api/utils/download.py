@@ -48,7 +48,7 @@ class ProjectArchiver(object):
         if required_files is not None:
             self.required_files = required_files
 
-    def archive(self, spiders=None):
+    def archive(self, spiders=None, **kwargs):
         """
         Zip the contents or a subset of the contents in this project together
         """
@@ -212,7 +212,7 @@ class ProjectArchiver(object):
 
 
 class CodeProjectArchiver(ProjectArchiver):
-    def archive(self, spiders=None):
+    def archive(self, spiders=None, **kwargs):
 
         class ArchivingStorage(object):
             def __init__(self, storage):
@@ -238,7 +238,9 @@ class CodeProjectArchiver(ProjectArchiver):
         storage = ArchivingStorage(self.storage)
         schemas, extractors, spiders = load_project_data(storage)
         name = self._process_name()
-        return port_project(name, schemas, spiders, extractors)
+        selector = kwargs.get('selector') or 'css'
+        return port_project(name, schemas, spiders, extractors,
+                            selector=selector)
 
     def _process_name(self):
         try:

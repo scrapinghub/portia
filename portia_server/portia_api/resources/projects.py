@@ -26,6 +26,7 @@ class ProjectDownloadMixin(object):
         fmt = self.query.get('format', 'spec')
         version = self.query.get('version', None)
         branch = self.query.get('branch', None)
+        selector = self.query.get('selector') or 'css'
         spider_id = self.kwargs.get('spider_id', None)
         spiders = [spider_id] if spider_id is not None else None
         try:
@@ -41,7 +42,8 @@ class ProjectDownloadMixin(object):
                 raise JsonApiNotFoundError(str(e))
         archiver = CodeProjectArchiver if fmt == u'code' else ProjectArchiver
         try:
-            content = archiver(self.storage).archive(spiders)
+            content = archiver(self.storage).archive(
+                spiders, selector=selector)
         except IOError as e:
             raise JsonApiNotFoundError(str(e))
         return FileResponse('{}.zip'.format(self.project.name), content,
