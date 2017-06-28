@@ -237,10 +237,12 @@ class ItemProcessor(object):
                 elem._root.attrib.pop('data-tagid', None)
             extracted = elems.xpath(self.attribute_query(a)).extract()
             value = list(map(six.text_type.strip, extracted))
+            aid = a.get(u'id') or i
             if value:
-                aid = a.get(u'id') or i
                 value = [htmlregion(v) for v in arg_to_iter(value)]
                 self.fields[aid] = ItemField(value, a, schema, modifiers, page)
+            else:
+                self.fields.pop(aid, None)
 
     def _pick_elems(self, elements, parents, containers):
         closest_elements, closest_set = SelectorList(), set()
@@ -254,6 +256,7 @@ class ItemProcessor(object):
                 if parent in parents:
                     closest_elements.append(element)
                     closest_set.add(element)
+
                 if parent in containers and element not in closest_set:
                     break
             else:
