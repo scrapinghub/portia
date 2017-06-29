@@ -204,7 +204,9 @@ class GitStorage(BasePortiaStorage):
         if commit is not None and isinstance(commit, string_types):
             commit = self.repo._repo.get_object(commit)
         if not commit:
-            for ref in {'refs/heads/%s' % branch, 'refs/heads/master'}:
+            branches = OrderedDict((('refs/heads/%s' % branch or 'master', 1),
+                                    ('refs/heads/master', 1)))
+            for ref in branches:
                 try:
                     _commit_id = self.repo._repo.refs[ref]
                 except KeyError:
