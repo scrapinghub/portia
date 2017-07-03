@@ -9,7 +9,7 @@ SPIDER_MIDDLEWARES = {'slybot.spiderlets.SpiderletsMiddleware': 999}  # as close
 DOWNLOADER_MIDDLEWARES = {
     'slybot.pageactions.PageActionsMiddleware': 700,
     'scrapy_splash.middleware.SplashCookiesMiddleware': 723,
-    'slybot.splash.SlybotJsMiddleware': 725
+    'slybot.splash.SlybotJsMiddleware': 725,
 }
 PLUGINS = [
     'slybot.plugins.scrapely_annotations.Annotations',
