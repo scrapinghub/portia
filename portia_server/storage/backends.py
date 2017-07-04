@@ -196,7 +196,7 @@ class GitStorage(BasePortiaStorage):
         self.author = author
         repo = Repoman.open_repo(name, author)
         self.repo = repo
-        self.branch = branch = (author and author.username) or DEFAULT_USER
+        self.branch = branch = (author and author.username) or 'master'
         self.checkout(branch=branch)
         self.init_project()
 
@@ -204,8 +204,9 @@ class GitStorage(BasePortiaStorage):
         if commit is not None and isinstance(commit, string_types):
             commit = self.repo._repo.get_object(commit)
         if not commit:
-            branches = OrderedDict((('refs/heads/%s' % branch or 'master', 1),
-                                    ('refs/heads/master', 1)))
+            branches = OrderedDict.fromkeys((
+                'refs/heads/{}'.format(branch or 'master'),
+                'refs/heads/master'))
             for ref in branches:
                 try:
                     _commit_id = self.repo._repo.refs[ref]
