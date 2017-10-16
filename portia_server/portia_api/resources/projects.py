@@ -49,8 +49,11 @@ class ProjectDownloadMixin(object):
                 spiders, selector=selector)
         except IOError as e:
             raise JsonApiNotFoundError(str(e))
-        return FileResponse('{}.zip'.format(self.project.name), content,
-                            status=HTTP_200_OK)
+        try:
+            name = u'{}.zip'.format(self.project.name).encode('ascii')
+        except UnicodeEncodeError:
+            name = str(self.project.id)
+        return FileResponse(name, content, status=HTTP_200_OK)
 
     def commit_from_short_sha(self, version):
         for oid in self.storage.repo._repo.object_store:
