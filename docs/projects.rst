@@ -18,12 +18,12 @@ Git versioning can be enabled by creating a `local_settings.py` file in the `sly
 .. code-block:: python
 
     import os
-    
+
     SPEC_FACTORY = {
         'PROJECT_SPEC': 'slyd.gitstorage.projectspec.ProjectSpec',
         'PROJECT_MANAGER': 'slyd.gitstorage.projects.ProjectsManager',
         'PARAMS': {
-            'storage_backend': 'dulwich.repo.Repo',
+            'storage_backend': 'fs_repo.repo.FsRepo',
             'location': os.environ.get('PORTIA_DATA_DIR', SPEC_DATA_DIR)
         },
         'CAPABILITIES': {

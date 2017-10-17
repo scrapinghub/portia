@@ -64,7 +64,7 @@ class Repoman(object):
     def create_repo(cls, repo_name, author=None):
         """Create a new repository named repo_name."""
         if cls.storage.repo_exists(repo_name):
-            raise NameError()
+            raise NameError('Project already exists with that name')
         repoman = cls(author)
         repoman._repo = cls.storage.init_bare(repo_name)
         tree = Tree()
