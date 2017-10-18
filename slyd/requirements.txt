@@ -1,12 +1,13 @@
 # Slyd requirements
-twisted==16.1.1
-service_identity==16.0.0
-requests==2.9.1
-autobahn==0.16.0
-six==1.10.0
-chardet==2.3.0
-parse==1.6.6
-ndg-httpsclient==0.4.0
+twisted==17.9.0
+pyOpenSSL==17.3.0
+service_identity==17.0.0
+requests==2.18.4
+autobahn==17.9.3
+six==1.11.0
+chardet==3.0.4
+parse==1.8.2
+ndg-httpsclient==0.4.3
 retrying==1.3.3
 mock==2.0.0
 
