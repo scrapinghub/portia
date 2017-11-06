@@ -97,10 +97,6 @@ install_splash(){
 
 
 cleanup() {
-    cd /tmp/splash-*
-    dockerfiles/splash/provision.sh \
-        remove_builddeps \
-        remove_extra
     cd /
     rm -rf /tmp/splash*
     rm -rf /var/lib/apt/lists/*
