@@ -205,6 +205,8 @@ class ProjectArchiver(object):
         except IOError as e:
             if filename in ('items.json', 'extractors.json'):
                 return {} if deserialize else '{}'
+            elif filename in FILE_TEMPLATES:
+                return FILE_TEMPLATES[filename]
             raise e
         if deserialize and contents is not None:
             return json.loads(contents)
