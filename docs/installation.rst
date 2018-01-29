@@ -22,7 +22,7 @@ To extract data using portia you can run your spider with::
 
 After the crawl finishes you will find your extracted data in the the `OUTPUT_FOLDER`
 
-.. note:: *<PROJECT_FOLDER>* qne *<OUTPUT_FOLDER>* are just paths on your system where your projects and extracted data are stored.
+.. note:: *<PROJECT_FOLDER>* and *<OUTPUT_FOLDER>* are just paths on your system where your projects and extracted data are stored.
 .. warning:: For Windows the *<PROJECT_FOLDER>* path must be of the form */<DRIVE_LETTER/<PATH>*. For example */C/Users/UserName/Documents/PortiaProjects*
 
 
