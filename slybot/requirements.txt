@@ -1,13 +1,13 @@
 # Slybot requirements
-numpy==1.12.1
-Scrapy==1.4.0
+numpy==1.14.2
+Scrapy==1.5.0
 scrapely==0.13.2
 loginform==1.2.0
-lxml==3.7.3
-dateparser==0.6.0
+lxml==4.2.0
+dateparser==0.7.0
 python-dateutil==2.6.0
 jsonschema==2.6.0
-six==1.10.0
+six==1.11.0
 scrapy-splash==0.7.2
 page_finder==0.1.8
-chardet==3.0.3
+chardet==3.0.4
