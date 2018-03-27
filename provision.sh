@@ -241,20 +241,6 @@ install_python_deps(){
     ${_PYTHON} -m pip install -r "$APP_ROOT/portia_server/requirements.txt"
 }
 
-install_splash(){
-    cd /tmp
-    curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/3.2.x.tar.gz'
-    tar -xvf splash.tar.gz --keep-newer-files
-    cd splash-*
-    activate_venv
-    dockerfiles/splash/provision.sh \
-        prepare_install \
-        install_builddeps \
-        install_deps \
-        install_pyqt5
-    pip install .
-}
-
 
 install_msfonts() {
     # Agree with EULA and install Microsoft fonts
@@ -316,6 +302,24 @@ remove_extra () {
 #        /usr/share/info \
 #        /usr/share/doc
 #        /var/lib/apt/lists/*
+}
+
+install_splash(){
+    cd /tmp
+    curl -L -o splash.tar.gz 'https://github.com/scrapinghub/splash/archive/3.2.x.tar.gz'
+    tar -xvf splash.tar.gz --keep-newer-files
+    cd splash-*
+    _activate_venv
+    dockerfiles/splash/provision.sh \
+        prepare_install \
+        install_deps \
+        install_qtwebkit_deps \
+        download_official_qt \
+        install_official_qt \
+        install_qtwebkit \
+        install_pyqt5 \
+        install_python_deps
+    pip install .
 }
 
 configure_nginx(){
