@@ -220,6 +220,9 @@ class Model(with_metaclass(ModelMeta)):
                 issubclass(other_class, self_class))
         return False
 
+    def __hash__(self):
+        return hash(self.data_key)
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -559,7 +562,8 @@ class Model(with_metaclass(ModelMeta)):
 
         file_data = storage.open(path).read()
         if not cls.opts.raw:
-            file_data = json.loads(file_data, object_pairs_hook=OrderedDict)
+            file_data = json.loads(file_data.decode('utf-8'),
+                                   object_pairs_hook=OrderedDict)
 
         if cls.opts.polymorphic:
             if not many:

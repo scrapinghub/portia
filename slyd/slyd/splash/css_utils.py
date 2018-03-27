@@ -1,8 +1,7 @@
 import re
-import urllib
+from urllib.parse import urlencode, urlparse
 from scrapy.utils.url import urljoin_rfc
-from six.moves.urllib_parse import urlparse
-from slybot.utils import encode
+from slybot.utils import decode
 
 
 CSS_IMPORT = re.compile(r'''@import\s*["']([^"']+)["']''')
@@ -21,10 +20,9 @@ def wrap_url(url, tabid, base=None):
 
     if parsed.scheme == 'data':
         return url  # TODO: process CSS inside data: urls
-    if parsed.scheme not in ('http', 'https', 'ftp'):
+    if parsed.scheme not in (b'http', b'https', b'ftp'):
         return 'data:text/plain,invalid_scheme'
-
-    return "/proxy?" + urllib.urlencode({
+    return "/proxy?" + urlencode({
         "url": url,
         "referer": referer,
         "tabid": tabid
@@ -47,8 +45,8 @@ def process_css(css_source, tabid, base_uri):
         url = match.group(1).strip("\"'")
         return 'url("{}")'.format(wrap_url(url, tabid,
                                            base_uri).replace('"', '%22'))
-    css_source = encode(css_source)
+    css_source = decode(css_source)
     css_source = CSS_IMPORT.sub(_absolutize_css_import, css_source)
     css_source = CSS_URL.sub(_absolutize_css_url, css_source)
     css_source = BAD_CSS.sub('portia-blocked', css_source)
-    return encode(css_source)
+    return css_source

@@ -16,7 +16,7 @@ from splash.browser_tab import JsError
 from splash.har.qt import cookies2har
 
 from slybot.plugins.scrapely_annotations import Annotations as BotAnnotations
-from slybot.utils import decode
+from slybot.utils import encode, decode
 
 from storage.backends import ContentFile
 from portia_orm.datastore import data_store_context
@@ -101,15 +101,21 @@ class Commands(object):
             try:
                 path = html_path(name)
                 html = decode(self.storage.open(path).read())
-            except IOError:
+                assert html
+            except (AssertionError, IOError):
                 if not self.tab:
                     six.reraise(*sys.exc_info())
-                html = decoded_html(self.tab, type_)
+                html = None
+                if type_ == 'raw':
+                    html = self.tab._raw_html
+                if not html:
+                    html = self.tab.html()
                 if html:
-                    self.storage.save(path, ContentFile(html, path))
+                    self.storage.save(path, ContentFile(encode(html), path))
+                    html = decode(html)
                 else:
                     html = '<html></html>'
-            sample[name] = html
+            sample[name] = decode(html)
         return sample
 
     def update_spider(self, spider=None):
@@ -126,6 +132,7 @@ class Commands(object):
 
         def on_complete(is_error, err_info=None):
             extra_meta = {'id': meta.get('id')}
+            print('Completed page load')
             if is_error:
                 msg = 'Unknown error' if err_info is None else err_info.text
                 extra_meta.update(error=4500, reason=msg)

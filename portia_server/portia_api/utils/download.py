@@ -7,7 +7,7 @@ import zipfile
 
 from collections import defaultdict
 from os.path import join
-from six import StringIO
+from six import BytesIO
 from datetime import datetime
 
 from slybot.utils import decode
@@ -52,7 +52,7 @@ class ProjectArchiver(object):
         """
         Zip the contents or a subset of the contents in this project together
         """
-        zbuff = StringIO()
+        zbuff = BytesIO()
         self._archive = zipfile.ZipFile(zbuff, "w", zipfile.ZIP_DEFLATED)
         self._add_files(spiders)
         self._archive.close()
@@ -91,6 +91,7 @@ class ProjectArchiver(object):
         """
         if filename is None or contents in (None, 'null'):
             return
+        print(filename, type(filename), type(contents), len(contents))
         fileinfo = zipfile.ZipInfo(filename, tstamp)
         fileinfo.external_attr = 0o666 << 16
         self._archive.writestr(fileinfo, contents, zipfile.ZIP_DEFLATED)
@@ -105,7 +106,7 @@ class ProjectArchiver(object):
             return self._deleted_spider(file_path, data, templates)
 
         spider_content = json.dumps(data, sort_keys=True, indent=4)
-        return file_path, spider_content, added
+        return file_path, spider_content.encode('utf-8'), added
 
     def _deleted_spider(self, file_path, spider_data, templates):
         """
@@ -118,7 +119,7 @@ class ProjectArchiver(object):
         if self.ignore_deleted:
             return None, None, added
         spider_content = json.dumps(spider_data, sort_keys=True, indent=4)
-        return file_path, spider_content, added
+        return file_path, spider_content.encode('utf-8'), added
 
     def _spider_templates(self, spider_templates, extractors):
         """
@@ -201,15 +202,15 @@ class ProjectArchiver(object):
 
     def read_file(self, filename, deserialize=False):
         try:
-            contents = self.storage.open(filename).read()
+            contents = self.storage.open(filename, 'rb').read()
         except IOError as e:
             if filename in ('items.json', 'extractors.json'):
-                return {} if deserialize else '{}'
+                return {} if deserialize else b'{}'
             elif filename in FILE_TEMPLATES:
-                return FILE_TEMPLATES[filename]
+                return FILE_TEMPLATES[filename].encode('utf-8')
             raise e
         if deserialize and contents is not None:
-            return json.loads(contents)
+            return json.loads(contents.decode('utf-8'))
         return contents
 
 
@@ -234,8 +235,12 @@ class CodeProjectArchiver(ProjectArchiver):
 
             def open(self, *args, **kwargs):
                 raw = kwargs.get('raw')
-                fp = self.storage.open_with_default(self.rel_path(*args), {})
-                return decode(fp.read()) if raw else json.load(fp)
+                path = self.rel_path(*args)
+                if raw:
+                    fp = self.storage.open(path)
+                else:
+                    fp = self.storage.open_with_default(path, {})
+                return decode(fp.read()) if raw else json.loads(fp.read())
 
         storage = ArchivingStorage(self.storage)
         schemas, extractors, spiders = load_project_data(storage)
