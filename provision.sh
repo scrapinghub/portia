@@ -107,7 +107,8 @@ install_deps () {
         python-mysql.connector \
         python-numpy \
         python-openssl \
-        python-pip
+        python-pip \
+        nginx
 }
 
 install_qtwebkit_deps () {
@@ -316,7 +317,6 @@ remove_extra () {
 #        /usr/share/doc
 #        /var/lib/apt/lists/*
 }
-
 
 configure_nginx(){
     cp -r $APP_ROOT/nginx/* /etc/nginx
