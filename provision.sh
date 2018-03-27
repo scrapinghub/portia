@@ -297,11 +297,11 @@ remove_extra () {
         /opt/qt59/Docs \
         /opt/qt59/Tools \
         /opt/qt59/Examples \
-        /app/.git
-#        /usr/share/man \
-#        /usr/share/info \
-#        /usr/share/doc
-#        /var/lib/apt/lists/*
+        /app/.git \
+        /usr/share/man \
+        /usr/share/info \
+        /usr/share/doc \
+        /var/lib/apt/lists/*
 }
 
 install_splash(){
@@ -310,15 +310,14 @@ install_splash(){
     tar -xvf splash.tar.gz --keep-newer-files
     cd splash-*
     _activate_venv
-    dockerfiles/splash/provision.sh \
-        prepare_install \
-        install_deps \
-        install_qtwebkit_deps \
-        download_official_qt \
-        install_official_qt \
-        install_qtwebkit \
-        install_pyqt5 \
-        install_python_deps
+    prepare_install
+    install_deps
+    install_qtwebkit_deps
+    download_official_qt
+    install_official_qt
+    install_qtwebkit
+    install_pyqt5
+    install_python_deps
     pip install .
 }
 

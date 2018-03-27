@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from .models import (OneToOneModel1, OneToOneModel2, ParentModel, ChildModel,
                      ManyToManyModel1, ManyToManyModel2, PolymorphicParentModel,

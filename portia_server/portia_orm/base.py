@@ -350,7 +350,8 @@ class Model(with_metaclass(ModelMeta)):
         return self.file_schema(context=context).dump(self).data
 
     def dumps(self, state='working'):
-        return json.dumps(self.dump(state=state), sort_keys=False, indent=4)
+        return json.dumps(self.dump(state=state), sort_keys=False, indent=4,
+                          separators=(', ', ': '))
 
     def rollback(self):
         self.data_store.clear_snapshot('working')
@@ -562,7 +563,9 @@ class Model(with_metaclass(ModelMeta)):
 
         file_data = storage.open(path).read()
         if not cls.opts.raw:
-            file_data = json.loads(file_data.decode('utf-8'),
+            if hasattr(file_data, 'decode'):
+                file_data = file_data.decode('utf-8')
+            file_data = json.loads(file_data,
                                    object_pairs_hook=OrderedDict)
 
         if cls.opts.polymorphic:

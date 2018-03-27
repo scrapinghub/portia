@@ -91,7 +91,6 @@ class ProjectArchiver(object):
         """
         if filename is None or contents in (None, 'null'):
             return
-        print(filename, type(filename), type(contents), len(contents))
         fileinfo = zipfile.ZipInfo(filename, tstamp)
         fileinfo.external_attr = 0o666 << 16
         self._archive.writestr(fileinfo, contents, zipfile.ZIP_DEFLATED)

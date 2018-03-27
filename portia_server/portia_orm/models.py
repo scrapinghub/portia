@@ -11,9 +11,7 @@ from six import iteritems, iterkeys, itervalues
 
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
-from slybot.plugins.scrapely_annotations.migration import (port_sample,
-                                                           guess_schema,
-                                                           repair_ids)
+from slybot.plugins.scrapely_annotations.migration import port_sample
 from slybot.starturls import StartUrlCollection
 from slybot.utils import encode
 
@@ -39,12 +37,12 @@ class Project(Model):
     # TODO: override storage for hosted version, return generated project.json
     id = String(primary_key=True, validate=Length(min=1, max=248))
     name = String()
-    spiders = HasMany('Spider', related_name='project', on_delete=CLEAR,
-                      ignore_in_file=True)
     schemas = HasMany('Schema', related_name='project', on_delete=CLEAR,
                       ignore_in_file=True)
     extractors = HasMany('Extractor', related_name='project', on_delete=CLEAR,
                          ignore_in_file=True)
+    spiders = HasMany('Spider', related_name='project', on_delete=CLEAR,
+                      ignore_in_file=True)
 
     class Meta:
         path = u'project.json'
@@ -64,9 +62,9 @@ class Schema(Model):
     default = Boolean(default=False)
     project = BelongsTo(Project, related_name='schemas', on_delete=CASCADE,
                         ignore_in_file=True)
-    fields = HasMany('Field', related_name='schema', on_delete=CLEAR)
     items = HasMany('Item', related_name='schema',
                     on_delete=CASCADE_AUTO_OR_CLEAR, ignore_in_file=True)
+    fields = HasMany('Field', related_name='schema', on_delete=CLEAR)
 
     class Meta:
         path = u'items.json'
@@ -293,7 +291,8 @@ class Spider(Model):
     @pre_load
     def normalize_start_urls(self, data):
         if 'start_urls' in data or 'generated_urls' in data:
-            start_urls = data.get('start_urls', []) + data.get('generated_urls', [])
+            start_urls = (data.get('start_urls', []) +
+                          data.get('generated_urls', []))
             data['start_urls'] = StartUrlCollection(start_urls).normalize()
         return data
 
@@ -366,13 +365,13 @@ class Sample(Model, OrderedAnnotationsMixin):
     url = Url(required=True)
     page_id = String(default='')
     page_type = String(default='item', validate=OneOf(['item']))
-    spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
-                       only='id')
     items = HasMany('Item', related_name='sample', on_delete=CLEAR)
-    original_body = HasOne('OriginalBody', related_name='sample',
-                           on_delete=CLEAR, ignore_in_file=True)
     rendered_body = HasOne('RenderedBody', related_name='sample',
                            on_delete=CLEAR, ignore_in_file=True)
+    original_body = HasOne('OriginalBody', related_name='sample',
+                           on_delete=CLEAR, ignore_in_file=True)
+    spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
+                       only='id')
 
     class Meta:
         path = u'spiders/{self.spider.id}/{self.id}.json'
@@ -604,11 +603,12 @@ class Item(BaseAnnotation, OrderedAnnotationsMixin):
     siblings = Integer(default=0)
     sample = BelongsTo(Sample, related_name='items', on_delete=CASCADE,
                        ignore_in_file=True)
-    schema = BelongsTo(Schema, related_name='items', on_delete=PROTECT,
-                       load_from='schema_id', dump_to='schema_id', only=('id',))
     annotations = HasMany(BaseAnnotation, related_name='parent',
                           polymorphic=True, on_delete=CLEAR,
                           load_from='children', dump_to='children')
+    schema = BelongsTo(Schema, related_name='items', on_delete=PROTECT,
+                       load_from='schema_id', dump_to='schema_id',
+                       only=('id',))
 
     class Meta:
         path = u'spiders/{self.sample.spider.id}/{self.sample.id}.json'
@@ -820,6 +820,8 @@ class OriginalBody(Model):
 
     @classmethod
     def load(cls, storage, instance=None, sample=None, **kwargs):
+        if sample:
+            sample.spider
         html = super(OriginalBody, cls).load(
             storage, instance, sample=sample, **kwargs)
         if (html and not html.sample) and sample:

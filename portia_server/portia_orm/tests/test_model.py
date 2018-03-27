@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from .utils import DataStoreTestCase, mock_storage
 from ..exceptions import ValidationError
@@ -95,8 +95,8 @@ class ProjectTestCase(DataStoreTestCase):
                 '    "respect_nofollow": true,'
                 '    "start_urls": [\n'
                 '        {\n'
-                '            "url": "http://example.com/", \n'
-                '            "type": "url"\n'
+                '            "type": "url", \n'
+                '            "url": "http://example.com/"\n'
                 '        }\n'
                 '    ], \n'
                 '    "template_names": ['
@@ -378,7 +378,7 @@ class SchemaTests(ProjectTestCase):
                 'fields': {},
             },
         })
-        self.assertListEqual(schemas.keys(),
+        self.assertListEqual(list(schemas.keys()),
                              ['1664-4f20-b657', 'fa87-4791-8642'])
 
     def test_load_through_partial(self):
@@ -664,7 +664,7 @@ class SchemaTests(ProjectTestCase):
             '    }\n'
             '}')
         self.storage.delete.assert_not_called()
-        self.assertListEqual(project.schemas.keys(), ['fa87-4791-8642'])
+        self.assertListEqual(list(project.schemas.keys()), ['fa87-4791-8642'])
 
 
 class FieldTests(ProjectTestCase):
@@ -747,7 +747,7 @@ class FieldTests(ProjectTestCase):
                 "vary": False
             },
         })
-        self.assertListEqual(fields.keys(),
+        self.assertListEqual(list(fields.keys()),
                              ['fbec-4a42-a4b0', "cca5-490c-b604",
                               "34bc-406f-80bc", "ecfc-4dbe-b488"])
 
@@ -1042,7 +1042,7 @@ class FieldTests(ProjectTestCase):
             '    }\n'
             '}')
         self.storage.delete.assert_not_called()
-        self.assertListEqual(schema.fields.keys(),
+        self.assertListEqual(list(schema.fields.keys()),
                              ['cca5-490c-b604', '34bc-406f-80bc',
                               'ecfc-4dbe-b488'])
 
@@ -1140,7 +1140,7 @@ class ExtractorTests(ProjectTestCase):
                 "type_extractor": "number",
             },
         })
-        self.assertListEqual(extractors.keys(),
+        self.assertListEqual(list(extractors.keys()),
                              ['e6fc-4758-9e6b', "154f-45ce-bfbd"])
 
     def test_load_through_partial(self):
@@ -1273,7 +1273,8 @@ class ExtractorTests(ProjectTestCase):
             '    }\n'
             '}')
         self.storage.delete.assert_not_called()
-        self.assertListEqual(project.extractors.keys(), ['154f-45ce-bfbd'])
+        self.assertListEqual(list(project.extractors.keys()),
+                             ['154f-45ce-bfbd'])
 
 
 class SpiderTests(ProjectTestCase):
@@ -1370,7 +1371,7 @@ class SpiderTests(ProjectTestCase):
     def test_load_through_project(self):
         project = Project(self.storage, id='example')
         spiders = project.spiders
-        self.assertListEqual(spiders.keys(), ['shop-crawler'])
+        self.assertListEqual(list(spiders.keys()), ['shop-crawler'])
         self.assertIsInstance(spiders, Spider.collection)
         self.storage.open.assert_not_called()
         self.storage.listdir.assert_called_once_with('spiders')
@@ -1467,8 +1468,8 @@ class SpiderTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "url": "http://example.com/", \n'
-            '            "type": "url"\n'
+            '            "type": "url", \n'
+            '            "url": "http://example.com/"\n'
             '        }\n'
             '    ]\n'
             '}')
@@ -1513,8 +1514,8 @@ class SpiderTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "url": "http://example.com/", \n'
-            '            "type": "url"\n'
+            '            "type": "url", \n'
+            '            "url": "http://example.com/"\n'
             '        }\n'
             '    ]\n'
             '}')
@@ -1581,7 +1582,7 @@ class SpiderTests(ProjectTestCase):
         self.storage.delete.assert_has_calls([
             mock.call('spiders/shop-crawler.json'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
-        self.assertListEqual(project.spiders.keys(), [])
+        self.assertListEqual(list(project.spiders.keys()), [])
         self.assertEqual(
             self.storage.files['items.json'],
             '{\n'
@@ -1644,7 +1645,7 @@ class SampleTests(ProjectTestCase):
     def test_load_through_project(self):
         project = Project(self.storage, id='example')
         samples = project.spiders['shop-crawler'].samples
-        self.assertListEqual(samples.keys(), ['1ddc-4043-ac4d'])
+        self.assertListEqual(list(samples.keys()), ['1ddc-4043-ac4d'])
         self.assertIsInstance(samples, Sample.collection)
         self.storage.open.assert_called_once_with('spiders/shop-crawler.json')
         self.assertEqual(samples.dump(), [
@@ -2005,7 +2006,8 @@ class SampleTests(ProjectTestCase):
             mock.call('spiders/shop-crawler/test-id.json', mock.ANY),
             mock.call('spiders/shop-crawler/test-id/original_body.html',
                       mock.ANY),
-            mock.call('spiders/shop-crawler.json', mock.ANY)])
+            mock.call('spiders/shop-crawler.json', mock.ANY),
+        ])
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/test-id.json'],
             '{\n'
@@ -2131,8 +2133,8 @@ class SampleTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "url": "http://example.com/", \n'
-            '            "type": "url"\n'
+            '            "type": "url", \n'
+            '            "url": "http://example.com/"\n'
             '        }\n'
             '    ]\n'
             '}')
@@ -2210,7 +2212,12 @@ class SampleTests(ProjectTestCase):
         self.storage.open.assert_has_calls([
             mock.call('items.json'),
             mock.call('spiders/shop-crawler.json'),
-            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json')])
+            mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json'),
+            mock.call(
+                'spiders/shop-crawler/1ddc-4043-ac4d/rendered_body.html'),
+            mock.call(
+                'spiders/shop-crawler/1ddc-4043-ac4d/original_body.html'),
+        ])
         self.assertEqual(self.storage.save.call_count, 2)
         self.storage.save.assert_has_calls([
             mock.call('items.json', mock.ANY),
@@ -2221,7 +2228,7 @@ class SampleTests(ProjectTestCase):
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d/rendered_body.html'),
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d/original_body.html')
         ])
-        self.assertListEqual(spider.samples.keys(), [])
+        self.assertListEqual(list(spider.samples.keys()), [])
         self.assertEqual(
             self.storage.files['spiders/shop-crawler.json'],
             '{\n'
@@ -2244,8 +2251,8 @@ class SampleTests(ProjectTestCase):
             '    "respect_nofollow": true, \n'
             '    "start_urls": [\n'
             '        {\n'
-            '            "url": "http://example.com/", \n'
-            '            "type": "url"\n'
+            '            "type": "url", \n'
+            '            "url": "http://example.com/"\n'
             '        }\n'
             '    ]\n'
             '}')
@@ -2578,7 +2585,7 @@ class ItemTests(ProjectTestCase):
     def test_load_through_project(self):
         project = Project(self.storage, id='example')
         items = project.spiders['shop-crawler'].samples['1ddc-4043-ac4d'].items
-        self.assertListEqual(items.keys(), ['1e47-4833-a4d4'])
+        self.assertListEqual(list(items.keys()), ['1e47-4833-a4d4'])
         self.assertIsInstance(items, Item.collection)
         self.assertEqual(self.storage.open.call_count, 2)
         self.storage.open.assert_has_calls([
@@ -3549,7 +3556,7 @@ class ItemTests(ProjectTestCase):
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),
             mock.call('items.json', mock.ANY)])
         self.storage.delete.assert_not_called()
-        self.assertListEqual(sample.items.keys(), [])
+        self.assertListEqual(list(sample.items.keys()), [])
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],
             '{\n'
@@ -3679,7 +3686,7 @@ class AnnotationTests(ProjectTestCase):
         project = Project(self.storage, id='example')
         annotations = (project.spiders['shop-crawler'].samples['1ddc-4043-ac4d']
                               .items['1e47-4833-a4d4'].annotations)
-        self.assertListEqual(annotations.keys(),
+        self.assertListEqual(list(annotations.keys()),
                              ['3606-4d68-a6a0|d1e2-4673-a72a',
                               '5c18-40cf-8809|de35-49b5-b90b'])
         self.assertIsInstance(annotations, BaseAnnotation.collection)
@@ -4358,7 +4365,7 @@ class AnnotationTests(ProjectTestCase):
             mock.call('spiders/shop-crawler/1ddc-4043-ac4d.json', mock.ANY),
             mock.call('items.json', mock.ANY)])
         self.storage.delete.assert_not_called()
-        self.assertListEqual(item.annotations.keys(),
+        self.assertListEqual(list(item.annotations.keys()),
                              ['5c18-40cf-8809|de35-49b5-b90b'])
         self.assertEqual(
             self.storage.files['spiders/shop-crawler/1ddc-4043-ac4d.json'],

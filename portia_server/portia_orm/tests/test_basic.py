@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from .models import (ExampleModel, RequiredFieldModel, SingleFileModel,
                      ManyFileModel, ParamFileModel, PolymorphicChildModel1)

@@ -1,6 +1,7 @@
 import errno
-import mock
 import unittest
+
+from unittest import mock
 
 from storage.backends import ContentFile
 from ..datastore import data_store_context
