@@ -15,7 +15,7 @@ export default Ember.Service.extend({
         };
         this.elements.push(options);
         if (this.timerId === null) {
-            this.update();
+            this.updateRaf();
         }
     },
 
@@ -31,6 +31,14 @@ export default Ember.Service.extend({
                 this.timerId = null;
             }
         }
+    },
+
+    updateRaf() {
+        if (this.timerId !== null) {
+            cancelAnimationFrame(this.timerId);
+        }
+        this.update();
+        this.timerId = requestAnimationFrame(this.updateRaf.bind(this));
     },
 
     update(elements) {
@@ -70,6 +78,5 @@ export default Ember.Service.extend({
         updates.forEach(({element, context, writeCallback, rects, boundingRect}) => {
             writeCallback.call(context, rects, boundingRect, element);
         });
-        this.timerId = requestAnimationFrame(this.update.bind(this));
     }
 });
