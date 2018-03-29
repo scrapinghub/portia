@@ -20,11 +20,15 @@ export default Ember.Route.extend({
             if (url === undefined) {
                 return;
             }
-            this.transitionTo('projects.project.spider', {
-                queryParams: {
-                    url,
-                    baseurl: null
-                }
+            /* Transition in the next frame to prevent an issue where sometimes
+               the route fails to render. */
+            Ember.run.next(() => {
+                this.transitionTo('projects.project.spider', {
+                    queryParams: {
+                        url,
+                        baseurl: null
+                    }
+                });
             });
         }
     },
