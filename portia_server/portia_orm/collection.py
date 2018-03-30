@@ -276,7 +276,8 @@ class ModelCollection(OwnedList):
             many=True, context=context).dump(self).data
 
     def dumps(self, state='working'):
-        return json.dumps(self.dump(state=state), sort_keys=False, indent=4)
+        return json.dumps(self.dump(state=state), sort_keys=False, indent=4,
+                          separators=(', ', ': '))
 
     def _validate(self, value):
         validate_type(value, self.model)

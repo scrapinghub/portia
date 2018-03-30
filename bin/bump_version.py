@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import os
 from datetime import datetime
 _BASE_PATH = os.path.abspath(os.path.dirname(__file__))

@@ -50,7 +50,7 @@ class ProjectDownloadMixin(object):
         except IOError as e:
             raise JsonApiNotFoundError(str(e))
         try:
-            name = u'{}.zip'.format(self.project.name).encode('ascii')
+            name = u'{}.zip'.format(self.project.name)
         except UnicodeEncodeError:
             name = str(self.project.id)
         return FileResponse(name, content, status=HTTP_200_OK)

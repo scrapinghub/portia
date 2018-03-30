@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Allow to easily run slybot spiders on console. If spider is not given, print a list of available spiders inside the project"""
 import os
 import subprocess

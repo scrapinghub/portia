@@ -1,7 +1,7 @@
 language: python
-python: 2.7
+python: 3.5
 sudo: required
-dist: trusty
+dist: xenial
 env:
 - WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
 cache:
@@ -14,9 +14,9 @@ cache:
 
 install:
 - source ${VIRTUAL_ENV}/bin/activate
-- sudo -H ./provision.sh install_deps install_splash install_python_deps
+- sudo -H ./provision.sh install_splash
 - sudo -H pip install tox
-- python2.7 -c 'import splash, qt5reactor' # Check it's in the python path
+- python3.5 -c 'import splash, qt5reactor' # Check it's in the python path
 - cd portiaui
 - nvm install 6.10.0
 - nvm use 6.10.0

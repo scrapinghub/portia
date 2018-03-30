@@ -10,6 +10,8 @@ from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
 from twisted.python import log
 
+from slybot.utils import encode
+
 from .qtutils import QNetworkRequest, to_py
 from .ferry import User, is_blacklisted
 from .css_utils import process_css
@@ -19,18 +21,19 @@ class ProxyResource(Resource):
     def render_GET(self, request):
         if not request.auth_info or not request.auth_info.get('username', None):
             return self._error(request, 403, 'Auth required')
-        for arg in 'url', 'referer', 'tabid':
+        for arg in (b'url', b'referer', b'tabid'):
             if arg not in request.args or len(request.args[arg]) != 1:
-                return self._error(request, 400, 'Argument required: {}'.format(arg))
+                return self._error(
+                    request, 400, b'Argument required: %s' % arg)
 
-        url = request.args['url'][0]
+        url = request.args[b'url'][0]
         if is_blacklisted(url):
-            return self._error(request, 404, 'Not Found')
-        referer = request.args['referer'][0]
+            return self._error(request, 404, b'Not Found')
+        referer = request.args[b'referer'][0]
         try:
-            tabid = int(request.args['tabid'][0])
+            tabid = int(request.args[b'tabid'][0])
         except (ValueError, TypeError):
-            return self._error(request, 400, 'Tab must exist'.format(arg))
+            return self._error(request, 400, b'Tab must exist' % arg)
         return self._load_resource(request, url, referer, tabid)
 
     def _load_resource(self, request, url, referer, tabid=None):
@@ -47,7 +50,8 @@ class ProxyResource(Resource):
             # No browser session active, proxy resource instead
             return self._load_resource_proxy(request, url, referer, cb)
         if request.auth_info['username'] != user.auth['username']:
-            return self._error(request, 403, "You don't own that browser session")
+            return self._error(
+                request, 403, b"You don't own that browser session")
 
         try:
             entry = next((entry for entry in user.tab.har()['log']['entries']
@@ -64,7 +68,6 @@ class ProxyResource(Resource):
                 if (name_lower.startswith('x-') or
                         name_lower in {'server', 'date', 'connection', 'transfer-encoding', 'content-encoding'}):
                     continue
-                print('Header: %s, %s ' % (name, value))
                 request.responseHeaders.addRawHeader(name.encode('ascii'),
                                                      value.encode('ascii'))
             request.setResponseCode(response['status'])
@@ -110,31 +113,31 @@ class ProxyResource(Resource):
             return
 
         if hasattr(reply, 'readAll'):
-            content = str(reply.readAll())
+            content = bytes(reply.readAll())
             status_code = to_py(reply.attribute(QNetworkRequest.HttpStatusCodeAttribute))
             if status_code == 400:
                 return self._load_resource(request, original_url, referer)
             request.setResponseCode(status_code or 500)
         else:
-            content = ''.join(chunk for chunk in reply.iter_content(65535))
+            content = b''.join(chunk for chunk in reply.iter_content(65535))
             request.setResponseCode(reply.status_code)
 
         headers = {
-            'cache-control': 'private',
-            'pragma': 'no-cache',
-            'content-type': 'application/octet-stream',
+            b'cache-control': b'private',
+            b'pragma': b'no-cache',
+            b'content-type': b'application/octet-stream',
         }
-        for header in ('content-type', 'cache-control', 'pragma', 'vary',
-                       'max-age'):
+        for header in (b'content-type', b'cache-control', b'pragma', b'vary',
+                       b'max-age'):
             if hasattr(reply, 'hasRawHeader') and reply.hasRawHeader(header):
-                headers[header] = str(reply.rawHeader(header))
+                headers[header] = bytes(reply.rawHeader(header))
             elif hasattr(reply, 'headers') and header in reply.headers:
-                headers[header] = str(reply.headers.get(header))
+                headers[header] = bytes(reply.headers.get(header))
             if header in headers:
                 request.setHeader(header, headers[header])
 
-        if headers['content-type'].strip().startswith('text/css'):
-            content = process_css(content, tabid, original_url)
+        if bytes(headers[b'content-type']).strip().startswith(b'text/css'):
+            content = encode(process_css(content, tabid, original_url))
         request.write(content)
         request.finish()
 

@@ -49,23 +49,23 @@ txaio.use_twisted()
 
 _DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 '
                        '(KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36')
-IGNORED_TYPES = ('video/', 'audio/', 'application/ogg')
+IGNORED_TYPES = (b'video/', b'audio/', b'application/ogg')
 MEDIA_EXTENSIONS = (
-    '.aac', '.avi', '.mid', '.mpeg', '.oga', '.ogv', '.ogx', '.swf',
-    '.wav', '.weba', '.webm', '.xul', '.3gp', '.3g2'
+    b'.aac', b'.avi', b'.mid', b'.mpeg', b'.oga', b'.ogv', b'.ogx', b'.swf',
+    b'.wav', b'.weba', b'.webm', b'.xul', b'.3gp', b'.3g2'
 )
-STORED_TYPES = ('text/html', 'text/xhtml', 'text/xml', 'text/plain',
-                'text/css', 'image/', 'application/font')
-STORED_EXTENSIONS = ('.jpg', 'jpeg', '.png', '.webp', '.gif', '.svg', '.css',
-                     '.xml', '.html', '.htm', '.xhtml', '.woff', '.woff2',
-                     '.ttf', '.otf', '.eot')
+STORED_TYPES = (b'text/html', b'text/xhtml', b'text/xml', b'text/plain',
+                b'text/css', b'image/', b'application/font')
+STORED_EXTENSIONS = (b'.jpg', b'.jpeg', b'.png', b'.webp', b'.gif', b'.svg',
+                     b'.css', b'.xml', b'.html', b'.htm', b'.xhtml', b'.woff',
+                     b'.woff2', b'.ttf', b'.otf', b'.eot')
 
 
 def _is_xml(accepts):
-    if accepts.startswith('application/'):
-        has_xml = accepts.find('xml')
+    if accepts.startswith(b'application/'):
+        has_xml = accepts.find(b'xml')
         if has_xml > 0:
-            semicolon = accepts.find(';')
+            semicolon = accepts.find(b';')
             if semicolon < 0 or has_xml < semicolon:
                 return True
     return False
@@ -243,7 +243,6 @@ class PortiaJSApi(QObject):
             self.call = task.deferLater(self.protocol.factory.reactor, 1,
                                         self.extract)
 
-
     def extract(self):
         commands = Commands({}, self.protocol, None)
         self.protocol.sendMessage(commands.metadata())
@@ -251,7 +250,6 @@ class PortiaJSApi(QObject):
 
 
 def is_blacklisted(url):
-    from urlparse import urlparse
     return urlparse(url).netloc in settings.BLACKLIST_URLS
 
 
@@ -351,10 +349,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
 
     def sendMessage(self, payload, is_binary=False):
         if isinstance(payload, dict) and '_command' in payload:
-            super(FerryServerProtocol, self).sendMessage(
-                json.dumps(payload, cls=ScrapyJSONEncoder, sort_keys=True),
-                is_binary
-            )
+            data = json.dumps(
+                payload, cls=ScrapyJSONEncoder, sort_keys=True).encode('utf-8')
+            super(FerryServerProtocol, self).sendMessage(data, is_binary)
 
     def send_error(self, data, failure):
         e = failure.value
@@ -427,7 +424,7 @@ class FerryServerProtocol(WebSocketServerProtocol):
         if meta.get('cookies'):
             cookiejar.put_client_cookies(meta['cookies'])
 
-        main_frame.loadStarted.connect(self._on_load_started)
+        self.tab.web_page.loadStarted.connect(self._on_load_started)
         main_frame.loadFinished.connect(self._on_load_finished)
 
         self.js_api = PortiaJSApi(self)
@@ -445,19 +442,23 @@ class FerryServerProtocol(WebSocketServerProtocol):
         self.sendMessage({'_command': 'loadStarted', 'id': self.load_id,
                           'url': self.tab.url})
         self.tab.initial_layout_completed = False
+        return True
 
-    def _on_load_finished(self):
+    def _on_load_finished(self, ok=False):
         if getattr(self.tab, '_raw_url', None) != self.tab.url:
             page = self.tab.web_page
             page.triggerAction(page.ReloadAndBypassCache, False)
+            # Avoid infinite reload loop
+            self.tab._raw_url = self.tab.url
         self.sendMessage({'_command': 'loadFinished', 'url': self.tab.url,
                           'id': getattr(self, 'load_id', None)})
+        return True
 
     def _configure_requests(self, request, operation, data):
-        if request.hasRawHeader('Accept'):
+        if request.hasRawHeader(b'Accept'):
             url = six.binary_type(request.url().toEncoded())
             url_path = urlparse(url).path.lower()
-            accepts = str(request.rawHeader('Accept')).lower()
+            accepts = bytes(request.rawHeader(b'Accept')).lower()
             if (accepts.startswith(STORED_TYPES) or _is_xml(accepts) or
                     url_path.endswith(STORED_EXTENSIONS)):
                 request.track_response_body = True
@@ -466,10 +467,10 @@ class FerryServerProtocol(WebSocketServerProtocol):
                 drop_request(request)
 
     def _set_tab_html(self, reply, har, content):
-        url = decode(reply.url().toString())
+        url = reply.url().toString()
         if content is not None and url == self.tab.url:
             self.tab._raw_html = decode(content)
-            self.tab._raw_url = url
+            self.tab._raw_url = decode(url)
 
     def _on_layout_completed(self):
         if not getattr(self.tab, 'initial_layout_completed', False):
@@ -483,9 +484,9 @@ class FerryServerProtocol(WebSocketServerProtocol):
     def populate_window_object(self):
         main_frame = self.tab.web_page.mainFrame()
         main_frame.addToJavaScriptWindowObject('__portiaApi', self.js_api)
-        self.tab.run_js_files(
-            os.path.join(self.assets, 'splash_content_scripts'),
-            handle_errors=False)
+        path = os.path.join(
+            self.assets, b'splash_content_scripts').decode('utf-8')
+        self.tab.run_js_files(path, handle_errors=False)
 
     def open_spider(self, meta, storage=None, project=None):
         if not (meta.get('project') and meta.get('spider')):
