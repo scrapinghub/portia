@@ -34,12 +34,12 @@ def main():
     if project_specs.endswith(".zip"):
         command_spec.extend([
             "-s", "PROJECT_ZIPFILE=%s" % project_specs,
-            "-s", "SPIDER_MANAGER_CLASS=slybot.spidermanager.ZipfileSlybotSpiderManager",
+            "-s", "SPIDER_LOADER_CLASS=slybot.spidermanager.ZipfileSlybotSpiderManager",
         ])
     else:
         command_spec.extend([
             "-s", "PROJECT_DIR=%s" % project_specs,
-            "-s", "SPIDER_MANAGER_CLASS=slybot.spidermanager.SlybotSpiderManager",
+            "-s", "SPIDER_LOADER_CLASS=slybot.spidermanager.SlybotSpiderManager",
         ])
 
     if opts.logfile:

@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-SPIDER_MANAGER_CLASS = 'slybot.spidermanager.SlybotSpiderManager'
+SPIDER_LOADER_CLASS = 'slybot.spidermanager.SlybotSpiderManager'
 EXTENSIONS = {'slybot.closespider.SlybotCloseSpider': 1}
 ITEM_PIPELINES = {
     'slybot.dupefilter.DupeFilterPipeline': 1,
