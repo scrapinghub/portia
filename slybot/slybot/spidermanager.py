@@ -8,7 +8,7 @@ from six.moves.urllib.parse import urlparse
 
 import slybot
 
-from zipfile import ZipFile
+from zipfile import is_zipfile, ZipFile
 
 from zope.interface import implementer
 from scrapy.interfaces import ISpiderManager
@@ -24,6 +24,12 @@ class SlybotSpiderManager(object):
 
     def __init__(self, datadir, spider_cls=None, settings=None, **kwargs):
         logging.info('Slybot %s Spider', slybot.__version__)
+        if is_zipfile(datadir):
+            tempdir = tempfile.mkdtemp(prefix='slybot-')
+            ZipFile(datadir).extractall(tempdir)
+            atexit.register(shutil.rmtree, tempdir)
+            datadir = tempdir
+
         if settings is None:
             settings = get_project_settings()
         self.spider_cls = load_object(spider_cls) if spider_cls else IblSpider
@@ -80,9 +86,7 @@ class ZipfileSlybotSpiderManager(SlybotSpiderManager):
     def __init__(self, datadir, zipfile=None, spider_cls=None, settings=None,
                  **kwargs):
         if zipfile:
-            datadir = tempfile.mkdtemp(prefix='slybot-')
-            ZipFile(zipfile).extractall(datadir)
-            atexit.register(shutil.rmtree, datadir)
+            datadir = zipfile
         super(ZipfileSlybotSpiderManager, self).__init__(datadir, spider_cls,
                                                          settings=settings)
 
