@@ -85,7 +85,7 @@ class OwnedList(list):
         self._update_owner_data()
 
     def __getslice__(self, i, j):
-        return self.__getitem__(slice(i,j))
+        return self.__getitem__(slice(i, j))
 
     def __setslice__(self, i, j, value):
         self.__setitem__(slice(i, j), value)

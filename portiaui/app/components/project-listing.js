@@ -10,6 +10,7 @@ export default Ember.Component.extend({
     project: null,
     isNoticed: false,
 
+    deployable: computed.readOnly('capabilities.capabilities.deploy_projects'),
     versionControlled: computed.readOnly('capabilities.capabilities.version_control'),
     notVersionControlled: computed.not('versionControlled'),
     hasChanges: computed.readOnly('changes.hasChanges'),
@@ -28,6 +29,23 @@ export default Ember.Component.extend({
     }),
 
     actions: {
+        deploy() {
+            this.get('project').deploy().then(data => {
+                // Show user message and allow them to schedule spider
+                this.get('notificationManager').showNotification(
+                    data.meta.title);
+            }, data => {
+                let error = data.errors[0];
+                if (error.status > 499) {
+                    throw data;
+                }
+                this.get('notificationManager').showNotification(error.title, error.detail);
+                if (error.status === 409) {
+                    this.sendAction('conflict');
+                }
+            });
+        },
+
         publish() {
             this.get('project').publish().then(data => {
                 // Show user message and allow them to schedule spider

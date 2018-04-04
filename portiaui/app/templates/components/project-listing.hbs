@@ -62,6 +62,13 @@
                               class="icon"
                               icon="rollback"}}Discard changes
                         </a></li>
+                    {{else if deployable}}
+                        <li><a {{action (chain-actions (action 'deploy')
+                                         options.closeMenu)}}>
+                            {{list-item-icon
+                              class="icon"
+                              icon="publish"}}Deploy project
+                        </a></li>
                     {{/if}}
                     <li> <a href={{downloadUrl}} target='_blank'>
                         {{list-item-icon class="icon" icon="download"}}Download as Portia

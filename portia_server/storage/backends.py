@@ -137,8 +137,11 @@ class FsStorage(BasePortiaStorage, FileSystemStorage):
         return os.path.isfile(self.path(name))
 
     def move(self, old_file_name, new_file_name, allow_overwrite=False):
-        file_move_safe(self.path(old_file_name), self.path(new_file_name),
-                       allow_overwrite=True)
+        if self.isdir(old_file_name):
+            shutil.move(self.path(old_file_name), self.path(new_file_name))
+        else:
+            file_move_safe(self.path(old_file_name), self.path(new_file_name),
+                           allow_overwrite=True)
 
     def rmtree(self, name):
         shutil.rmtree(self.path(name))

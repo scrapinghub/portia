@@ -9,7 +9,6 @@ EXTENSIONS = {
 }
 
 LOG_LEVEL = 'DEBUG'
-SCHEDULE_URL = 'http://localhost:6800/schedule.json'
 
 # location of slybot projects - assumes a subdir per project
 DATA_DIR = join(dirname(dirname(__file__)), 'data')
@@ -22,7 +21,6 @@ SPEC_FACTORY = {
     'PROJECT_MANAGER': 'slyd.projects.FileSystemProjectsManager',
     'PARAMS': {
         'location': SPEC_DATA_DIR,
-        'schedule_url': SCHEDULE_URL
     },
 }
 
