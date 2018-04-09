@@ -24,6 +24,7 @@ const Project =  BaseModel.extend({
     extractors: DS.hasMany(),
 
     status: memberAction({path: 'status', type: 'GET'}),
+    deploy: memberAction({path: 'deploy', type: 'POST'}),
     publish: memberActionAndMarkClean({path: 'publish'}),
     copy: memberActionAndMarkClean({path: 'copy', type: 'POST'}),
     reset:  memberActionAndMarkClean({path: 'reset'}),

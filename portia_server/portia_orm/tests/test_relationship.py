@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 from .models import (OneToOneModel1, OneToOneModel2, ParentModel, ChildModel,
@@ -1813,8 +1814,6 @@ class PolymorphicRelationshipTests(DataStoreTestCase):
             mock.call('parents.json'),
             mock.call('children.json')])
         self.assertEqual(model.parent.dump(), {
-            'id': 'parent-1',
-            'field': 'parent-1',
             'children': [
                 {
                     'type': 'PolymorphicChildModel1',
@@ -1825,6 +1824,8 @@ class PolymorphicRelationshipTests(DataStoreTestCase):
                     'id': 'child-2',
                 },
             ],
+            'field': 'parent-1',
+            'id': 'parent-1',
         })
 
     def test_save_field(self):

@@ -6,11 +6,12 @@ from weakref import WeakKeyDictionary
 class DataStoreHandler(local):
     @property
     def data_store(self):
-        if not hasattr(self, '_data_store'):
+        try:
+            return self._data_store
+        except AttributeError:
             raise RuntimeError(
-                u"No data store available, you may need to wrap your code in "
-                u"the portia_orm.datastore.data_store_context context manager.")
-        return self._data_store
+                "No data store available, you may need to wrap your code in "
+                "the portia_orm.datastore.data_store_context context manager.")
 
     @data_store.setter
     def data_store(self, value):
@@ -22,11 +23,12 @@ class DataStoreHandler(local):
 
     @property
     def loaded(self):
-        if not hasattr(self, '_loaded'):
+        try:
+            return self._loaded
+        except AttributeError:
             raise RuntimeError(
-                u"No data store available, you may need to wrap your code in "
-                u"the portia_orm.datastore.data_store_context context manager.")
-        return self._loaded
+                "No data store available, you may need to wrap your code in "
+                "the portia_orm.datastore.data_store_context context manager.")
 
     @loaded.setter
     def loaded(self, value):

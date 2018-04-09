@@ -4,11 +4,14 @@ import re
 import six
 
 from collections import deque, OrderedDict
+from datetime import datetime
 
+from django.conf import settings
 from marshmallow.fields import Nested
 from marshmallow.validate import Length
 from six import iteritems, iterkeys, itervalues
 
+from scrapy.utils.misc import load_object
 from slybot import __version__ as SLYBOT_VERSION
 from slybot.fieldtypes import FieldTypeManager
 from slybot.plugins.scrapely_annotations.migration import port_sample
@@ -43,6 +46,15 @@ class Project(Model):
                          ignore_in_file=True)
     spiders = HasMany('Spider', related_name='project', on_delete=CLEAR,
                       ignore_in_file=True)
+
+    @property
+    def version(self):
+        if self.storage.version_control:
+            return self.storage.commit._id[:7]
+        elif getattr(settings, 'DEPLOY_VERSION', None):
+            return load_object(settings.DEPLOY_VERSION)(self.project)
+        else:
+            return '{:%Y%m%d-%H%M%S}'.format(datetime.now())
 
     class Meta:
         path = u'project.json'

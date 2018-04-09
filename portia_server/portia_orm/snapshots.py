@@ -1,7 +1,5 @@
 from collections import defaultdict
 
-from six import iteritems
-
 __all__ = [
     'ModelSnapshots',
 ]
@@ -19,10 +17,10 @@ class ModelSnapshots(defaultdict):
 
         def __getattr__(self, name):
             try:
-                value = self.instance.get(name, self.snapshots)
+                snapshots = self.snapshots
+                value = self.instance.get(name, snapshots)
                 try:
-                    store = getattr(value, 'data_store')
-                    value = store.accessor(self.snapshots)
+                    value = value.data_store.accessor(snapshots)
                 except AttributeError:
                     pass
                 return value
@@ -33,13 +31,12 @@ class ModelSnapshots(defaultdict):
 
         def __setattr__(self, name, value):
             if name in self.__slots__:
-                super(ModelSnapshots.ModelSnapshotsAccessor,
-                      self).__setattr__(name, value)
+                super().__setattr__(name, value)
                 return
             self.instance.set(name, value, self.snapshots[0])
 
     def __init__(self):
-        super(ModelSnapshots, self).__init__(dict)
+        super().__init__(dict)
 
     def get(self, key, snapshots=None):
         if not snapshots:
@@ -58,12 +55,12 @@ class ModelSnapshots(defaultdict):
 
     def copy_from(self, other):
         assert isinstance(other, ModelSnapshots)
-        for key, snapshot in iteritems(other):
+        for key, snapshot in other.items():
             self[key].update(snapshot)
 
     def dirty_fields(self, changed, original):
         dirty = set()
-        for field, value in iteritems(self[changed]):
+        for field, value in self[changed].items():
             try:
                 if self.get(field, snapshots=original) == value:
                     continue

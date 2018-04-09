@@ -12,3 +12,4 @@ requests==2.18.4
 toposort==1.5
 whitenoise==3.3.1
 portia2code==0.0.17
+shub==2.7.0

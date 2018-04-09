@@ -1,19 +1,18 @@
-from collections import OrderedDict
 from django.http.response import Http404
-
-import requests
 
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from django.conf import settings
+from scrapy.utils.misc import load_object
 
 from .projects import BaseProjectModelRoute, ProjectDownloadMixin
 from ..jsonapi.exceptions import JsonApiGeneralException
 from ..utils.extract import Pages, FetchError
 from ..utils.spiders import load_spider
 from portia_orm.models import Spider
+Deployer = load_object(settings.PROJECT_DEPLOYER)
 
 
 class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
@@ -78,28 +77,5 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
     @detail_route(methods=['post'])
     def schedule(self, *args, **kwargs):
         spider_id = self.data['data']['id']
-        schedule_data = self._schedule_data(spider_id, self.data)
-        request = requests.post(settings.SCHEDULE_URL, data=schedule_data)
-        if request.status_code != 200:
-            raise JsonApiGeneralException(
-                request.status_code, request.content)
-        response = self.retrieve()
-        data = OrderedDict()
-        data.update(response.data)
-        data.setdefault('meta', {})['scheduled'] = True
+        data = Deployer(self.project).schedule(spider_id)
         return Response(data, status=HTTP_200_OK)
-
-    def _schedule_data(self, spider_id, args):
-        data = {
-            'project': self.project.id,
-            'spider': spider_id
-        }
-        if self.storage.version_control:
-            branch = self.query.get('branch', None)
-            commit = self.query.get('commit_id', None)
-            if not branch and self.storage.repo.has_branch(self.user.username):
-                branch = self.user.username
-            self.storage.checkout(commit, branch)
-            commit_id = self.storage._commit.id
-            data['version'] = commit_id
-        return data
