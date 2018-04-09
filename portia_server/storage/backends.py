@@ -365,9 +365,10 @@ class GitStorage(BasePortiaStorage):
             # Handle paths for mysql repo where there is no project name
             if path.startswith(getattr(self.repo._repo, '_name', '\0')):
                 path = os.path.join(*(path.split('/')[1:]))
-        if hasattr(path, 'encode'):
+        try:
             return path.encode('utf-8')
-        return path
+        except AttributeError:
+            return path
 
     def commit(self, message='Saving multiple files'):
         working_tree = self._working_tree

@@ -1,5 +1,4 @@
 import json
-import six
 
 from collections import Sequence
 
@@ -97,14 +96,19 @@ class OwnedList(list):
         else:
             self._validate(value)
         try:
-            changed = value == self[index]
+            current = self[index]
+            changed = value == current
         except IndexError:
+            current = None
             changed = True
         super(OwnedList, self).__setitem__(index, value)
         if is_slice:
             self._populate_cache()
         else:
-            key = next((k for k, v in cache.items() if v == index), None)
+            if current is not None:
+                key = current
+            else:
+                key = next((k for k, v in cache.items() if v == index), None)
             if key is not None:
                 cache.replace(key, value)
 
@@ -323,16 +327,9 @@ class ModelCollection(OwnedList):
         index = self._key_to_index(key)
         return self._get_index(index, default)
 
-    def iterkeys(self):
-        return (model.pk for model in self)
-
-    if six.PY2:
-        def keys(self):
-            return list(self.iterkeys())
-
-    if six.PY3:
-        keys = iterkeys
-        del iterkeys
+    def keys(self):
+        for model in self:
+            yield model.pk
 
     def dump(self, state='working'):
         try:

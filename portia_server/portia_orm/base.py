@@ -3,10 +3,7 @@ from itertools import chain
 import errno
 import json
 import re
-import six
-import sys
 
-from six import iteritems, iterkeys, string_types, with_metaclass
 from toposort import toposort_flatten
 
 from storage.backends import ContentFile
@@ -35,16 +32,16 @@ class ModelOpts(object):
     """Meta options for Models."""
     def __init__(self, meta, model):
         self.path = getattr(meta, 'path', None)
-        if self.path is not None and not isinstance(self.path, string_types):
+        if self.path is not None and not isinstance(self.path, str):
             raise ValueError("'path' option must be a string or None.")
         self.owner = getattr(meta, 'owner', False)
-        if self.owner != False and not isinstance(self.owner, string_types):
+        if self.owner is not False and not isinstance(self.owner, str):
             raise ValueError("'owner' option must be a string or False.")
         if self.owner and not isinstance(model._fields.get(self.owner),
                                          BaseRelationship):
             raise ValueError("'owner' option must be a relationship name.")
         self.polymorphic = getattr(meta, 'polymorphic', False)
-        if not isinstance(self.polymorphic, (bool, string_types)):
+        if not isinstance(self.polymorphic, (bool, str)):
             raise ValueError(
                 "'polymorphic' option must be a string or boolean.")
         self.initialize_boolean('raw', meta)
@@ -85,7 +82,7 @@ class ModelMeta(type):
 
         for attrs in chain([attrs], (getattr(parent, '_class_attrs', {})
                                      for parent in parents)):
-            for attrname, value in iteritems(attrs):
+            for attrname, value in attrs.items():
                 if isinstance(value, BaseRelationship):
                     fields[attrname] = value
                 elif isinstance(value, Field):
@@ -115,18 +112,18 @@ class ModelMeta(type):
         cls._class_attrs = class_attrs
         cls._pk_field = primary_key
         cls._fields = fields
-        cls._file_fields = file_fields = {k for k, f in iteritems(fields)
+        cls._file_fields = file_fields = {k for k, f in fields.items()
                                           if not f.ignore_in_file}
-        cls._field_names = sorted(k for k, f in iteritems(fields)
+        cls._field_names = sorted(k for k, f in fields.items()
                                   if isinstance(f, Field))
-        cls._relationship_names = sorted(k for k, f in iteritems(fields)
+        cls._relationship_names = sorted(k for k, f in fields.items()
                                          if isinstance(f, BaseRelationship))
         cls.opts = ModelOpts(meta, cls)
         cls.collection = type(name + 'Collection', (ModelCollection,), {
             'model': cls
         })
 
-        for attrname, field in iteritems(fields):
+        for attrname, field in fields.items():
             if attrname in file_fields:
                 file_schema_attrs[attrname] = field
             field.contribute_to_class(cls, attrname)
@@ -135,7 +132,7 @@ class ModelMeta(type):
         try:
             cls._ordered_fields = toposort_flatten({
                 attrname: field.get_dependencies(cls)
-                for attrname, field in iteritems(fields)
+                for attrname, field in fields.items()
             })
         except ValueError as e:
             raise ImproperlyConfigured(e.message)
@@ -152,7 +149,7 @@ class ModelMeta(type):
         return cls
 
 
-class Model(with_metaclass(ModelMeta)):
+class Model(object, metaclass=ModelMeta):
     _own_attributes = {'data_key', 'storage', 'snapshots', '_initializing'}
 
     # set by metaclass
@@ -190,7 +187,7 @@ class Model(with_metaclass(ModelMeta)):
         self.storage = storage
         self.snapshots = snapshots or ModelSnapshots.default_snapshots
 
-        for attrname in iterkeys(kwargs):
+        for attrname in kwargs.keys():
             if attrname not in self._fields:
                 raise TypeError(
                     u"'{}' is not a field of model '{}'".format(
@@ -231,7 +228,7 @@ class Model(with_metaclass(ModelMeta)):
             if self._pk_field not in field_names:
                 field_names = (self._pk_field,) + field_names
         else:
-            field_names = [k for k, v in iteritems(self._fields)
+            field_names = [k for k, v in self._fields.items()
                            if k != self._pk_field and isinstance(v, Field)]
             field_names.sort()
             field_names.insert(0, self._pk_field)
@@ -246,7 +243,7 @@ class Model(with_metaclass(ModelMeta)):
         return u'{}<{}>({})'.format(
             self.__class__.__name__,
             self.snapshots[0],
-            u', '.join(u'{}={!r}'.format(k, v) for k, v in iteritems(fields)))
+            u', '.join(u'{}={!r}'.format(k, v) for k, v in fields.items()))
 
     def __setattr__(self, key, value):
         if key not in self._own_attributes and key not in self._fields:
@@ -382,7 +379,7 @@ class Model(with_metaclass(ModelMeta)):
             related_field = model._fields[field]
             if related_field.only is None:
                 related_dirty = dirty
-            elif isinstance(related_field.only, string_types):
+            elif isinstance(related_field.only, str):
                 related_dirty = dirty.intersection((related_field.only,))
             else:
                 related_dirty = dirty.intersection(related_field.only)
@@ -401,7 +398,7 @@ class Model(with_metaclass(ModelMeta)):
                                     in self._staged_model_references())):
             store = model.data_store
             dirty = (
-                model._file_fields.intersection(iterkeys(store['staged'])) or
+                model._file_fields.intersection(store['staged'].keys()) or
                 'project' in store.dirty_fields('working', ('committed',))
             )
             path = model.storage_path(model, snapshots=('staged', 'committed'))
@@ -420,17 +417,17 @@ class Model(with_metaclass(ModelMeta)):
                     except IOError as ex:
                         # Assume missing files are already deleted
                         if ex.errno != errno.ENOENT:
-                            six.reraise(*sys.exc_info())
+                            raise
                     deleted_paths.add(old_path)
         for model in chain([self], (model for model, _
                                     in self._staged_model_references())):
             store = model.data_store
-            dirty = set(iterkeys(store['staged']))
+            dirty = set(store['staged'].keys())
             if dirty:
                 store.update_snapshot('committed', ('staged',), fields=dirty)
                 store.clear_snapshot('staged')
                 store.clear_snapshot('working', fields=dirty.intersection(
-                    iterkeys(store['working'])))
+                    store['working'].keys()))
 
     def _get_object_to_dump(self, model, parent_snapshots):
         child = model
@@ -453,7 +450,7 @@ class Model(with_metaclass(ModelMeta)):
         return getattr(self.with_snapshots(parent_snapshots), parent_field)
 
     def _staged_model_references(self, load_relationships=False):
-        for name, field in iteritems(self._fields):
+        for name, field in self._fields.items():
             if isinstance(field, BaseRelationship):
                 try:
                     if load_relationships:
@@ -502,7 +499,7 @@ class Model(with_metaclass(ModelMeta)):
         if deleted_paths is None:
             deleted_paths = set()
 
-        for model, fields in iteritems(collector.save):
+        for model, fields in collector.save.items():
             model.resolve_attributes(snapshots=('committed',))
             model._stage_changes(fields)
 
@@ -523,10 +520,10 @@ class Model(with_metaclass(ModelMeta)):
                     except IOError as ex:
                         # Assume missing files are already deleted
                         if ex.errno != errno.ENOENT:
-                            six.reraise(*sys.exc_info())
+                            raise
                     deleted_paths.add(path)
 
-        for model, fields in iteritems(collector.save):
+        for model, fields in collector.save.items():
             model._commit_changes(saved_paths, deleted_paths)
 
         for model in collector.delete:

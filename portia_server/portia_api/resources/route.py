@@ -1,4 +1,4 @@
-from collections import Sequence, OrderedDict
+from collections import Sequence
 from operator import attrgetter
 
 from django.db import transaction
@@ -11,8 +11,6 @@ from rest_framework.response import Response
 from rest_framework.status import (HTTP_200_OK, HTTP_201_CREATED,
                                    HTTP_204_NO_CONTENT)
 from rest_framework.viewsets import ViewSet
-from six import iterkeys, text_type
-from six.moves import map
 
 from portia_orm.collection import ModelCollection
 from portia_orm.exceptions import ProtectedError
@@ -26,7 +24,7 @@ from ..jsonapi.parsers import JSONApiParser, JSONParser
 from ..jsonapi.registry import get_schema
 from ..jsonapi.renderers import JSONApiRenderer, JSONRenderer
 from ..jsonapi.serializers import JsonApiPolymorphicSerializer
-from ..jsonapi.utils import get_status_title, type_from_model_name
+from ..jsonapi.utils import type_from_model_name
 
 
 class JsonApiRoute(ViewSet):
@@ -80,7 +78,8 @@ class JsonApiRoute(ViewSet):
         status_code = response.status_code
         if (isinstance(response.data, dict) and len(response.data) == 1 and
                 'detail' in response.data):
-            response.data = render_exception(status_code, response.data['detail'])
+            response.data = render_exception(status_code,
+                                             response.data['detail'])
         return response
 
     def get_instance(self):
@@ -100,8 +99,9 @@ class JsonApiRoute(ViewSet):
 
             collection = collection.__class__((collection[id_] for id_ in ids))
 
-        for key in iterkeys(self.query):
-            if key != 'filter[id]' and key.startswith('filter[') and key[-1] == ']':
+        for key in self.query.keys():
+            if (key != 'filter[id]' and key.startswith('filter[') and
+                    key[-1] == ']'):
                 field_name = key[7:-1]
                 field_values = set()
                 for field_list in self.query.getlist(key):
@@ -115,8 +115,8 @@ class JsonApiRoute(ViewSet):
                             related = getattr(obj, field_name)
                             filter_values = {related.pk if related else 'null'}
                         elif isinstance(field, HasMany):
-                            filter_values = set(map(attrgetter('pk'),
-                                                    getattr(obj, field_name)))
+                            filter_values = {attrgetter('pk')(f)
+                                             for f in getattr(obj, field_name)}
                         else:
                             value = getattr(obj, field_name)
                             if isinstance(value, Sequence):
@@ -171,7 +171,7 @@ class JsonApiRoute(ViewSet):
             kwargs['include_data'] = include
 
         fields = {}
-        for key in iterkeys(self.query):
+        for key in self.query.keys():
             if key.startswith('fields[') and key[-1] == ']':
                 field = key[7:-1]
                 for field_list in self.query.getlist(key):
@@ -247,7 +247,7 @@ class UpdateModelMixin(object):
             raise Http404
 
         if kwargs.pop('partial', False):
-            partial = set(instance.__class__._ordered_fields).difference({'id'})
+            partial = set(instance.__class__._ordered_fields) - {'id'}
         else:
             partial = False
 
