@@ -1,12 +1,14 @@
-from collections import Sequence
 import json
-
 import six
-import sys
+
+from collections import Sequence
 
 from .exceptions import ImproperlyConfigured, ValidationError
 from .snapshots import ModelSnapshots
-from .utils import cached_property, unspecified, validate_type
+from .utils import (
+    cached_property, unspecified, validate_type, OrderedIndexedTransformDict
+)
+
 
 __all__ = [
     'set_related',
@@ -36,6 +38,26 @@ class OwnedList(list):
     def __init__(self, iterable=None, owner=None, attrname=None,
                  snapshots=None):
         super(OwnedList, self).__init__()
+
+        def get_key(model):
+            try:
+                assert len(model) == 2
+                return tuple(model)
+            except (AssertionError, TypeError):
+                pass
+            try:
+                return model.data_key
+            except AttributeError:
+                pass
+            if isinstance(model, int):
+                model = next((m for m, v in self.cache._data.items()
+                              if v == model), None)
+                if model is not None:
+                    return get_key(model)
+            elif isinstance(model, str):
+                return (self.__class__, model)
+            raise TypeError('invalid key: {!r}'.format(model))
+        self.cache = OrderedIndexedTransformDict(get_key)
         self.owner = owner and owner.with_snapshots()
         self.attrname = attrname
         self.snapshots = snapshots or ModelSnapshots.default_snapshots
@@ -60,14 +82,16 @@ class OwnedList(list):
         return copy
 
     def __setitem__(self, index, value):
-        if isinstance(index, slice):
+        is_slice = isinstance(index, slice)
+        cache = self.cache
+        if is_slice:
             try:
                 value = list(value)
             except TypeError:
                 TypeError(u"can only assign an iterable")
             for v in value:
                 self._validate(v)
-                if v in self:
+                if v in cache:
                     raise ValueError(
                         u"Collection already contains object {}".format(v))
         else:
@@ -77,11 +101,19 @@ class OwnedList(list):
         except IndexError:
             changed = True
         super(OwnedList, self).__setitem__(index, value)
+        if is_slice:
+            self._populate_cache()
+        else:
+            key = next((k for k, v in cache.items() if v == index), None)
+            if key is not None:
+                cache.replace(key, value)
+
         if changed:
             self._update_owner_data()
 
     def __delitem__(self, index):
         super(OwnedList, self).__delitem__(index)
+        del self.cache[index]
         self._update_owner_data()
 
     def __getslice__(self, i, j):
@@ -93,25 +125,63 @@ class OwnedList(list):
     def __delslice__(self, i, j):
         self.__delitem__(slice(i, j))
 
+    def __contains__(self, key):
+        if key in self.cache:
+            return True
+        if len(self.cache) != len(self):
+            try:
+                if self.index(key) > -1:
+                    return True
+            except ValueError:
+                pass
+        return False
+
     def append(self, value):
         self._validate(value)
         super(OwnedList, self).append(value)
+        self.cache[value] = len(self.cache) + 1
         self._update_owner_data()
+
+    def extend(self, iterable):
+        for value in iterable:
+            self.append(value)
 
     def insert(self, index, value):
         self._validate(value)
         super(OwnedList, self).insert(index, value)
+        self.cache.insert(index, value)
         self._update_owner_data()
 
     def remove(self, value):
         self._validate(value)
         super(OwnedList, self).remove(value)
+        self.cache.pop(value, None)
         self._update_owner_data()
 
     def pop(self, index=-1):
         value = super(OwnedList, self).pop(index)
+        self.cache.pop(value)
         self._update_owner_data()
         return value
+
+    def index(self, value, start=None, stop=None):
+        try:
+            return self.cache[value]
+        except (ValueError, KeyError):
+            if len(self.cache) != len(self):
+                self._populate_cache()
+                if len(self) == len(self.cache):
+                    return self.index(value)
+            try:
+                # Try to find matches by checking eq instead of by key
+                return super().index(value)
+            except ValueError:
+                raise ValueError('{!r} is not in {}'.format(
+                    value, self.__class__.__name__))
+
+    def clear(self):
+        del self[:]
+        self.cache.clear()
 
     def _validate(self, value):
         raise NotImplementedError
@@ -120,6 +190,10 @@ class OwnedList(list):
         if self.owner:
             owner = self.owner.with_snapshots(self.snapshots)
             owner.set_data(self.attrname, self)
+
+    def _populate_cache(self):
+        self.cache.clear()
+        self.cache.update((k, i) for i, k in enumerate(self))
 
 
 class FieldCollection(OwnedList):
@@ -147,13 +221,17 @@ class ModelCollection(OwnedList):
         return self.owner._fields[self.attrname].related_name
 
     def __getitem__(self, key):
+        try:
+            return super(ModelCollection, self).__getitem__(key)
+        except TypeError:
+            pass
         index = self._key_to_index(key)
         try:
             return super(ModelCollection, self).__getitem__(index)
         except TypeError:
             if not isinstance(key, (int, slice)):
                 raise KeyError(key)
-            six.reraise(*sys.exc_info())
+            raise
 
     def __setitem__(self, key, value):
         index = self._key_to_index(key)
@@ -195,10 +273,10 @@ class ModelCollection(OwnedList):
         self._set_related(obj)
 
     def add(self, obj):
-        if obj in self:
-            self[obj] = obj
-        else:
+        try:
             self.append(obj)
+        except ValueError:
+            self[obj] = obj
 
     def extend(self, iterable):
         for obj in iterable:
@@ -237,16 +315,13 @@ class ModelCollection(OwnedList):
         except TypeError:
             if not isinstance(key, (int, slice)):
                 raise KeyError(key)
-            six.reraise(*sys.exc_info())
+            raise
         self._clear_related(value)
         return value
 
     def get(self, key, default=None):
         index = self._key_to_index(key)
         return self._get_index(index, default)
-
-    def clear(self):
-        del self[:]
 
     def iterkeys(self):
         return (model.pk for model in self)

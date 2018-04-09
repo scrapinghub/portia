@@ -765,8 +765,8 @@ class FieldTests(ProjectTestCase):
         self.storage.open.assert_called_once_with('items.json')
 
     def test_save_edit(self):
-        field = Project(self.storage, id='example').schemas['1664-4f20-b657']\
-                                                   .fields['fbec-4a42-a4b0']
+        schemas = Project(self.storage, id='example').schemas
+        field = schemas['1664-4f20-b657'].fields['fbec-4a42-a4b0']
         field.save()
 
         self.storage.open.assert_called_once_with('items.json')

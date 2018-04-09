@@ -563,8 +563,10 @@ class Model(with_metaclass(ModelMeta)):
 
         file_data = storage.open(path).read()
         if not cls.opts.raw:
-            if hasattr(file_data, 'decode'):
+            try:
                 file_data = file_data.decode('utf-8')
+            except AttributeError:
+                pass
             file_data = json.loads(file_data,
                                    object_pairs_hook=OrderedDict)
 
