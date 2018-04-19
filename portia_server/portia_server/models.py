@@ -22,7 +22,9 @@ class LocalUser(AnonymousUser):
     def __init__(self, **kwargs):
         super(LocalUser, self).__init__()
         self.username = kwargs.get('username', self.default_username)
-        if not hasattr(self, 'id'):
+        try:
+            self.id
+        except AttributeError:
             self.id = None
 
     @property

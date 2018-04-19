@@ -104,9 +104,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-PORTIA_STORAGE_BACKEND = 'storage.backends.FsStorage'
-
-SCHEDULE_URL = 'http://localhost:6800/schedule.json'
+PORTIA_STORAGE_BACKEND = os.environ.get('PORTIA_STORAGE_BACKEND',
+                                        'storage.backends.FsStorage')
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -123,10 +122,32 @@ CAPABILITIES = {
     'create_projects': True,
     'delete_projects': True,
     'rename_projects': True,
-    'deploy_projects': False,
+    'deploy_projects': True,
     'rename_spiders': True,
     'rename_templates': True,
 }
 
 # domains that portia will not load
 BLACKLIST_URLS = set()
+
+# Schedule and deploy settings
+PROJECT_DEPLOYER = os.environ.get(
+    'PROJECT_DEPLOYER',
+    'portia_api.utils.deploy.scrapyd.ScrapydDeploy')
+# Function or object to generate version for deploy
+DEPLOY_VERSION = None
+
+
+# Scrapyd Deploy settings
+
+# Path to default scrapyd cfg file
+SCRAPYD_CFG_DEFAULT = os.environ.get('SCRAPYD_CFG_DEFAULT', None)
+# Base API url for scrapyd instance
+SCRAPYD_URL = os.environ.get('SCRAPYD_URL', 'http://localhost:6800/')
+SCRAPYD_USERNAME = os.environ.get('SCRAPYD_USERNAME')
+SCRAPYD_PASSWORD = os.environ.get('SCRAPYD_PASSWORD')
+
+
+# Scrapinghub Deploy settings
+SCRAPINGHUB_APIKEY = (os.environ.get('SCRAPINGHUB_APIKEY') or
+                      os.environ.get('SHUB_APIKEY'))

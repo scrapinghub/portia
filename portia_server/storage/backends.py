@@ -137,8 +137,11 @@ class FsStorage(BasePortiaStorage, FileSystemStorage):
         return os.path.isfile(self.path(name))
 
     def move(self, old_file_name, new_file_name, allow_overwrite=False):
-        file_move_safe(self.path(old_file_name), self.path(new_file_name),
-                       allow_overwrite=True)
+        if self.isdir(old_file_name):
+            shutil.move(self.path(old_file_name), self.path(new_file_name))
+        else:
+            file_move_safe(self.path(old_file_name), self.path(new_file_name),
+                           allow_overwrite=True)
 
     def rmtree(self, name):
         shutil.rmtree(self.path(name))
@@ -362,9 +365,10 @@ class GitStorage(BasePortiaStorage):
             # Handle paths for mysql repo where there is no project name
             if path.startswith(getattr(self.repo._repo, '_name', '\0')):
                 path = os.path.join(*(path.split('/')[1:]))
-        if hasattr(path, 'encode'):
+        try:
             return path.encode('utf-8')
-        return path
+        except AttributeError:
+            return path
 
     def commit(self, message='Saving multiple files'):
         working_tree = self._working_tree

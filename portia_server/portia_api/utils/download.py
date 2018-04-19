@@ -14,15 +14,19 @@ from slybot.utils import decode
 from portia2code.porter import load_project_data, port_project
 
 from storage.projecttemplates import templates
+from portia_api.utils.deploy.package import EggInfo
 
 REQUIRED_FILES = {'setup.py', 'scrapy.cfg', 'extractors.json', 'items.json',
-                  'project.json', 'spiders/__init__.py', 'spiders/settings.py'}
+                  'project.json', 'spiders/__init__.py', 'spiders/settings.py',
+                  'requirements.txt', 'MANIFEST.in'}
 FILE_TEMPLATES = {
     'extractors.json': '{}',
     'items.json': '{}',
     'project.json': templates['PROJECT'],
     'scrapy.cfg': templates['SCRAPY'],
     'setup.py': templates['SETUP'],
+    'MANIFEST.in': templates['MANIFEST'],
+    'requirements.txt': templates['REQUIREMENTS'],
     'spiders/__init__.py': '',
     'spiders/settings.py': templates['SETTINGS']
 }
@@ -41,10 +45,11 @@ class ProjectArchiver(object):
     required_files = frozenset(REQUIRED_FILES)
     file_templates = FILE_TEMPLATES
 
-    def __init__(self, storage, required_files=None):
+    def __init__(self, storage, required_files=None, *, project=None):
         self.separator = os.path.sep
         self.storage = storage
         self.name = storage.name
+        self.project = project
         if required_files is not None:
             self.required_files = required_files
 
@@ -55,6 +60,8 @@ class ProjectArchiver(object):
         zbuff = BytesIO()
         self._archive = zipfile.ZipFile(zbuff, "w", zipfile.ZIP_DEFLATED)
         self._add_files(spiders)
+        if kwargs.get('egg_info'):
+            self.add_egg_info()
         self._archive.close()
         zbuff.seek(0)
         return zbuff
@@ -144,6 +151,9 @@ class ProjectArchiver(object):
             templates.append(template)
         return templates, added
 
+    def add_egg_info(self):
+        EggInfo(self.project, self._archive).write()
+
     def _spider_name(self, file_path):
         """
         Get the name of a spider for a template or spider path.
@@ -164,7 +174,7 @@ class ProjectArchiver(object):
 
     def _spider_path(self, file_path):
         if len(file_path.split(self.separator)) > 2:
-            return 'spiders/%s.json' % self._spider_name(file_path)
+            return 'spiders/{{.json'.format(self._spider_name(file_path))
         return file_path
 
     def _paths(self, spiders):
@@ -176,7 +186,8 @@ class ProjectArchiver(object):
             return all_files, all_files, self._template_paths(None, all_files)
         if isinstance(spiders, six.string_types):
             spiders = [spiders]
-        spider_paths = set('spiders/%s.json' % spider for spider in spiders)
+        spider_paths = set('spiders/{}.json'.format(spider)
+                           for spider in spiders)
         all_files = self.list_files()
         template_paths = self._template_paths(spiders, all_files)
         templates = set(itertools.chain(*template_paths.values()))
@@ -254,4 +265,4 @@ class CodeProjectArchiver(ProjectArchiver):
         except ValueError:
             return self.name
         # Scrapy will not allow the use of a number as a project name
-        return 'A%s' % self.name
+        return 'A{}'.format(self.name)

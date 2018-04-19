@@ -1,11 +1,13 @@
 from collections import OrderedDict
 
+from django.conf import settings
 from django.utils.functional import cached_property
 from dulwich.objects import Commit
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
 from six import iteritems
+from scrapy.utils.misc import load_object
 
 from portia_orm.models import Project
 from storage import get_storage_class
@@ -19,6 +21,7 @@ from ..jsonapi.exceptions import (JsonApiFeatureNotAvailableError,
                                   JsonApiConflictError)
 from ..utils.download import ProjectArchiver, CodeProjectArchiver
 from ..utils.copy import ModelCopier, MissingModelException
+Deployer = load_object(settings.PROJECT_DEPLOYER)
 
 
 class ProjectDownloadMixin(object):
@@ -164,6 +167,11 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
         response = self.retrieve()
         return Response(response.data, status=HTTP_200_OK)
 
+    @detail_route(methods=['POST'])
+    def deploy(self, *args, **kwargs):
+        data = self._deploy()
+        return Response(data, HTTP_200_OK)
+
     @detail_route(methods=['put', 'patch', 'post'])
     def reset(self, *args, **kwargs):
         if not self.storage.version_control and hasattr(self.storage, 'repo'):
@@ -265,5 +273,6 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
                 for type_, path, old_path
                 in storage.changed_files()]
 
-    def deploy(self):
-        pass
+    def _deploy(self):
+        if settings.CAPABILITIES.get('deploy_projects'):
+            return Deployer(self.project).deploy()
