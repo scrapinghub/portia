@@ -174,7 +174,7 @@ class ProjectArchiver(object):
 
     def _spider_path(self, file_path):
         if len(file_path.split(self.separator)) > 2:
-            return 'spiders/{{.json'.format(self._spider_name(file_path))
+            return 'spiders/{}.json'.format(self._spider_name(file_path))
         return file_path
 
     def _paths(self, spiders):
