@@ -15,7 +15,7 @@ You can run Portia using Docker & official Portia-image by running:
 
     docker run -v ~/portia_projects:/app/data/projects:rw -p 9001:9001 scrapinghub/portia
 
-You can also set up a local instance with [Docker-compose] by running:
+You can also set up a local instance with [Docker-compose] by cloning this repo & running from the root of the folder:
 
     docker-compose up
 
