@@ -9,15 +9,20 @@ To try Portia for free without needing to install anything sign up for an accoun
 
 # Running Portia
 
-The easiest way to run Portia is using Docker.
+The easiest way to run Portia is using [Docker].
 
-You can run Portia using docker by running:
+You can run Portia using Docker & official Portia-image by running:
 
     docker run -v ~/portia_projects:/app/data/projects:rw -p 9001:9001 scrapinghub/portia
+
+You can also set up a local instance with [Docker-compose] by running:
+
+    docker-compose up
 
 For more detailed instructions, and alternatives to using Docker, see the [Installation](http://portia.readthedocs.org/en/latest/installation.html) docs.
 
 # Documentation
 
 Documentation can be found [here](http://portia.readthedocs.org/en/latest/index.html). Source files can be found in the ``docs`` directory.
-
+[Docker]:https://www.docker.com/
+[Docker-compose]:https://docs.docker.com/compose
