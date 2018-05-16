@@ -350,8 +350,7 @@ install_frontend_deps() {
 
 build_assets() {
     cd "$APP_ROOT/portiaui"
-    npm install && bower install
-    ember build
+    npm install && npm run build
 }
 
 if [ \( $# -eq 0 \) -o \( "$1" = "-h" \) -o \( "$1" = "--help" \) ]; then
