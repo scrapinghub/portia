@@ -23,7 +23,7 @@ For more detailed instructions, and alternatives to using Docker, see the [Insta
 
 # Documentation
 
-Documentation can be found [Read the docs]. Source files can be found in the ``docs`` directory.
+Documentation can be found from [Read the docs]. Source files can be found in the ``docs`` directory.
 
 [Docker]: https://www.docker.com/
 [Docker-compose]:https://docs.docker.com/compose
