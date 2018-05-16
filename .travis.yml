@@ -14,7 +14,7 @@ cache:
 
 install:
 - source ${VIRTUAL_ENV}/bin/activate
-- sudo -H ./provision.sh install_splash
+- sudo -H ./docker/provision.sh install_splash
 - sudo -H pip install tox
 - python3.5 -c 'import splash, qt5reactor' # Check it's in the python path
 - cd portiaui
