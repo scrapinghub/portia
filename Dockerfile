@@ -4,8 +4,9 @@ WORKDIR /app/slyd
 ENV PATH="/opt/qt59/5.9.1/gcc_64/bin:${PATH}"
 ENV DEBIAN_FRONTEND noninteractive
 
+COPY docker/portia.conf /app/portia.conf
 COPY docker/qt_install.qs /app/script.qs
-COPY provision.sh /app/provision.sh
+COPY docker/provision.sh /app/provision.sh
 COPY slybot/requirements.txt /app/slybot/requirements.txt
 COPY slyd/requirements.txt /app/slyd/requirements.txt
 COPY portia_server/requirements.txt /app/portia_server/requirements.txt
@@ -24,7 +25,7 @@ RUN /app/provision.sh prepare_install && \
     /app/provision.sh remove_builddeps && \
     /app/provision.sh remove_extra
 
-ADD nginx /etc/nginx
+ADD docker/nginx /etc/nginx
 ADD . /app
 RUN pip install -e /app/slyd && \
     pip install -e /app/slybot
