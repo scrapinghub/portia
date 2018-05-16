@@ -84,7 +84,7 @@ install_deps () {
     # Get more recent node install
     echo deb http://nginx.org/packages/ubuntu/ trusty nginx > /etc/apt/sources.list.d/nginx.list
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ABF5BD827BD9BF62
-    wget -O - https://deb.nodesource.com/setup_7.x | bash -
+    wget -O - https://deb.nodesource.com/setup_8.x | bash -
     # Install system dependencies for Qt, Python packages, etc.
     # ppa:pi-rho/security is a repo for libre2-dev
     add-apt-repository -y ppa:pi-rho/security && \
@@ -152,7 +152,7 @@ _ensure_folders () {
 download_official_qt() {
     _ensure_folders && \
     curl -L -o /downloads/qt-installer.run \
-               http://download.qt.io/official_releases/qt/5.9/5.9.1/qt-opensource-linux-x64-5.9.1.run
+               $QT_MIRROR
 }
 
 install_official_qt () {
