@@ -3,6 +3,7 @@ WORKDIR /app/slyd
 
 ENV PATH="/opt/qt59/5.9.1/gcc_64/bin:${PATH}"
 ENV DEBIAN_FRONTEND noninteractive
+ENV QT_MIRROR http://ftp.fau.de/qtproject/official_releases/qt/5.9/5.9.1/qt-opensource-linux-x64-5.9.1.run
 
 COPY docker/portia.conf /app/portia.conf
 COPY docker/qt_install.qs /app/script.qs
