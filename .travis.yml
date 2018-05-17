@@ -2,8 +2,13 @@ language: python
 python: 3.5
 sudo: required
 dist: xenial
+
+services:
+  - docker
+
 env:
 - WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
+
 cache:
   directories:
   - "$HOME/.cache/pip"
@@ -11,12 +16,7 @@ cache:
   - portiaui/node_modules
   - portiaui/bower_components
 
-
 install:
-- source ${VIRTUAL_ENV}/bin/activate
-- sudo -H ./provision.sh install_splash
-- sudo -H pip install tox
-- python3.5 -c 'import splash, qt5reactor' # Check it's in the python path
 - cd portiaui
 - nvm install 6.10.0
 - nvm use 6.10.0
@@ -26,27 +26,19 @@ install:
 - cd ..
 
 before_script:
-- "export DISPLAY=:99.0"
-- "sh -e /etc/init.d/xvfb start"
-- source ${VIRTUAL_ENV}/bin/activate
-- export PYTHONPATH=`pwd`/slybot:`pwd`/slyd
-- cd slyd
-- python2.7 tests/testserver/server.py 2>&1 | grep -v 'HTTP/1.1" 200' &
-- cd ..
-- sleep 3 # give xvfb some time to start
+  - docker build -t scrapinghub/portia .
+  - docker run scrapinghub/portia /app/docker/test-container.sh
+
 script:
-- cd ./slybot
-- sudo -E tox
-- cd ../portia_server
-- ./manage.py test portia_orm.tests
-- ./manage.py test portia_api.tests
-- cd ../portiaui
+- cd ./portiaui
 - npm rebuild node-sass
 - npm test
+
 before_deploy:
 - cd ../slybot
 - pip install twine
 - sudo chown -R $USER .
+
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
