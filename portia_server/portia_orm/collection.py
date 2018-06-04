@@ -55,6 +55,10 @@ class OwnedList(list):
                     return get_key(model)
             elif isinstance(model, str):
                 return (self.__class__, model)
+            try:
+                return ('start-url', (model['type'], model['url']))
+            except (TypeError, KeyError):
+                pass
             raise TypeError('invalid key: {!r}'.format(model))
         self.cache = OrderedIndexedTransformDict(get_key)
         self.owner = owner and owner.with_snapshots()
