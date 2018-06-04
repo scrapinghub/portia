@@ -12,6 +12,10 @@ You can run Portia with the command below::
 
     docker run -i -t --rm -v <PROJECTS_FOLDER>:/app/data/projects:rw -p 9001:9001 scrapinghub/portia
 
+Or with docker-compose by running::
+
+    docker compose up
+
 Portia will now be running on port 9001 and you can access it at ``http://localhost:9001``.
 Projects will be stored in the project folder that you mount to docker.
 
