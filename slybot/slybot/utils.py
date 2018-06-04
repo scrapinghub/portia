@@ -322,7 +322,7 @@ class Storage(object):
     def open(self, *args, **kwargs):
         """Open files from filesystem."""
         raw = kwargs.pop('raw', False)
-        with open(self._path(*args)) as f:
+        with open(self._path(*args), encoding = 'utf-8') as f:
             return decode(f.read()) if raw else json.load(f)
 
 
