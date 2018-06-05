@@ -51,7 +51,9 @@ class ScrapydDeploy(BaseDeploy):
             'project': cfg['project'],
             'version': cfg['version'],
         }
-        files = [('project.egg', self.build_archive())]
+        files = {
+            'egg': ('project.egg', self.build_archive())
+        }
         url = urljoin(cfg['url'], '/addversion.json')
         user = cfg.get('username')
         if user:
@@ -64,15 +66,15 @@ class ScrapydDeploy(BaseDeploy):
         }
 
     def schedule(self, spider, args=None, settings=None, target=None):
-        schedule_data = self._schedule_data(spider, self.data)
+        schedule_data = self._schedule_data(
+            spider, self._schedule_data(spider, args))
         request = requests.post(
-            urljoin(app_settings.SCRAPYD_URL, '/schedule.json',
-                    data=schedule_data))
+            urljoin(app_settings.SCRAPYD_URL, 'schedule.json'),
+            data=schedule_data)
         if request.status_code != 200:
             raise JsonApiGeneralException(
                 request.status_code, request.content)
-        response = self.retrieve()
-        data = response.data
+        data = {}
         data.setdefault('meta', {})['scheduled'] = True
         return data
 
