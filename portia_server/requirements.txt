@@ -1,5 +1,5 @@
 crochet==1.9.0
-django==1.11.11
+django>=1.11.21
 django-cache-machine==1.0.0
 djangorestframework==3.7.7
 dj-database-url==0.5.0
@@ -8,7 +8,7 @@ dulwich==0.18.6
 marshmallow==2.8.0
 marshmallow_jsonapi==0.10.0
 mysqlclient==1.3.12
-requests==2.18.4
+requests>=2.20.0
 toposort==1.5
 whitenoise==3.3.1
 portia2code==0.0.17
