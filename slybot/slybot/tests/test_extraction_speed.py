@@ -17,7 +17,10 @@ from scrapely.htmlpage import HtmlPage
 def _next_3(iterable):
     i = iter(iterable[1:-3])
     while True:
-        yield SelectorList((next(i), next(i), next(i)))
+        try:
+            yield SelectorList((next(i), next(i), next(i)))
+        except StopIteration:
+            break
 ITERATIONS = int(os.environ.get('SLYBOT_SPEED_TEST_ITERATIONS', 1))
 Extractor = namedtuple('Extractor', ['containers', 'selectors', 'group'])
 parsel_extractors = {

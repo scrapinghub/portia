@@ -11,7 +11,7 @@ import six
 from six.moves.urllib_parse import urljoin
 
 from scrapely.htmlpage import HtmlTag, HtmlTagType, parse_html
-from .splash.css_utils import process_css, wrap_url
+from slyd.splash.css_utils import process_css, wrap_url
 from slybot.utils import serialize_tag, add_tagids
 
 URI_ATTRIBUTES = ("action", "background", "cite", "classid", "codebase",
@@ -24,6 +24,7 @@ _ALLOWED_CHARS_RE = re.compile('[^!-~]')  # [!-~] = ascii printable characters
 
 def _contains_js(url):
     return _ALLOWED_CHARS_RE.sub('', url).lower().startswith('javascript:')
+
 
 try:
     from html import unescape
@@ -39,7 +40,7 @@ except ImportError:
         else:
             return six.unichr(int(entity, 10))
 
-    def unscape(mystr):
+    def unescape(mystr):
         """replaces all numeric html entities by its unicode equivalent.
         """
         return _ENTITY_RE.sub(_replace_entity, mystr)
@@ -86,7 +87,7 @@ def descriptify(doc, base=None, proxy=None):
                         element.attributes[key] = '/static/frames-not-supported.html'
                     # Rewrite javascript URIs
                     elif key in URI_ATTRIBUTES and val is not None:
-                            if _contains_js(unscape(val)):
+                            if _contains_js(unescape(val)):
                                 element.attributes[key] = "#"
                             elif base and proxy and not (element.tag == "a" and key == 'href'):
                                 element.attributes[key] = wrap_url(val, -1,

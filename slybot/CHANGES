@@ -1,3 +1,17 @@
+Slybot 0.13.3
+
+Update slybot to work with python 3.7 and Scrapy 1.6
+
+Slybot 0.13.2
+
+Allow default spidermanager to load zipfiles
+
+Slybot 0.13.1
+
+Choose parent of first extracted repeated item for parent region
+Drop empty fields if css extraction fails
+Handle requests through Splash in python 3
+
 Slybot 0.13.0
 
 Update slybot to use the most recent libraries

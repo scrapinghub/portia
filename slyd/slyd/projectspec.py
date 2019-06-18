@@ -4,13 +4,11 @@ import getpass
 import json
 import re
 
-import requests
-
 from os.path import join, splitext
 
 from scrapy.http import HtmlResponse
-from .html import html4annotation
-from .errors import BaseHTTPError, BadRequest
+from slyd.html_utils import html4annotation
+from slyd.errors import BadRequest
 from storage.backends import ContentFile, FsStorage
 
 

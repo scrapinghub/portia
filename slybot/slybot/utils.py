@@ -5,8 +5,10 @@ import json
 import os
 import re
 import six
+import sys
 
 from collections import OrderedDict, namedtuple
+from io import open
 from itertools import chain
 
 from scrapely.htmlpage import HtmlPage, HtmlTagType
@@ -223,12 +225,12 @@ def _quotify(mystr):
     to guess if string must be quoted with '"' or "'"
     """
     quote = '"'
-    l = len(mystr)
-    for i in range(l):
-        if mystr[i] == "\\" and i + 1 < l and mystr[i + 1] == "'":
+    length = len(mystr)
+    for i in range(length):
+        if mystr[i] == "\\" and i + 1 < length and mystr[i + 1] == "'":
             quote = "'"
             break
-        elif mystr[i] == "\\" and i + 1 < l and mystr[i + 1] == '"':
+        elif mystr[i] == "\\" and i + 1 < length and mystr[i + 1] == '"':
             quote = '"'
             break
         elif mystr[i] == "'":
@@ -322,7 +324,7 @@ class Storage(object):
     def open(self, *args, **kwargs):
         """Open files from filesystem."""
         raw = kwargs.pop('raw', False)
-        with open(self._path(*args), encoding = 'utf-8') as f:
+        with open(self._path(*args), encoding='utf-8') as f:
             return decode(f.read()) if raw else json.load(f)
 
 
@@ -392,7 +394,10 @@ class SpiderLoader(object):
         """
         spider_dir = self.storage.rel_path('spiders', spider_name)
         if not self.storage.isdir(spider_dir):
-            raise StopIteration
+            if sys.version_info < (3, 6):
+                raise StopIteration
+            else:
+                return
         for name in self.storage.listdir(spider_dir):
             if not name.endswith('.json'):
                 continue

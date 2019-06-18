@@ -1,6 +1,6 @@
 import StorageObject from 'ember-local-storage/local/object';
 
-const Storage = StorageObject.extend({
+const ToolStorage = StorageObject.extend({
     init() {
         this._super(...arguments);
 
@@ -11,7 +11,7 @@ const Storage = StorageObject.extend({
     }
 });
 
-Storage.reopenClass({
+ToolStorage.reopenClass({
     initialState() {
         return {
             magicToolActive: true,
@@ -20,4 +20,4 @@ Storage.reopenClass({
     }
 });
 
-export default Storage;
+export default ToolStorage;

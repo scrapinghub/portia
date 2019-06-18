@@ -1,7 +1,8 @@
 language: python
-python: 3.5
-sudo: required
-dist: xenial
+python: 3.7
+dist: bionic
+services:
+  - docker
 env:
 - WHEELHOUSE=$HOME/.cache/wheelhouse PIP_FIND_LINKS=file://$WHEELHOUSE PIP_WHEEL_DIR=$WHEELHOUSE
 cache:
@@ -11,42 +12,28 @@ cache:
   - portiaui/node_modules
   - portiaui/bower_components
 
+before_install:
+  - docker build -t scrapinghub/portia .
+  - docker ps -a
 
 install:
-- source ${VIRTUAL_ENV}/bin/activate
-- cd docker
-- sudo -H ./provision.sh install_splash
-- cd ..
-- sudo -H pip install tox
-- python3.5 -c 'import splash, qt5reactor' # Check it's in the python path
-- cd portiaui
-- nvm install 6.10.0
-- nvm use 6.10.0
-- npm install -g bower
+- docker run scrapinghub/portia /app/docker/run-tests.sh
+- pushd portiaui
+- nvm install 10.16.0
+- nvm use 10.16.0
+- npm install -g bower ember-cli@2.6.3
 - npm install
 - bower install
-- cd ..
+- popd
 
-before_script:
-- "export DISPLAY=:99.0"
-- "sh -e /etc/init.d/xvfb start"
-- source ${VIRTUAL_ENV}/bin/activate
-- export PYTHONPATH=`pwd`/slybot:`pwd`/slyd
-- cd slyd
-- python2.7 tests/testserver/server.py 2>&1 | grep -v 'HTTP/1.1" 200' &
-- cd ..
-- sleep 3 # give xvfb some time to start
 script:
-- cd ./slybot
-- sudo -E tox
-- cd ../portia_server
-- ./manage.py test portia_orm.tests
-- ./manage.py test portia_api.tests
-- cd ../portiaui
+- pushd portiaui
 - npm rebuild node-sass
 - npm test
+- popd
+
 before_deploy:
-- cd ../slybot
+- cd slybot
 - pip install twine
 - sudo chown -R $USER .
 deploy:

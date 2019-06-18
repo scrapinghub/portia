@@ -4,12 +4,11 @@ script:
   - echo "Portia is at:"`git show -s --pretty=%d HEAD`
   - git restore-mtime
   - shopt -s extglob
-  - nvm install 6.10.0
-  - nvm use 6.10.0
+  - nvm install 10.16.0
+  - nvm use 10.16.0
   - sudo mkdir -p ~/.npm ~/.node-gyp ~/.cache
   - sudo chown -R ubuntu ~/.npm ~/.node-gyp ~/.cache
-  - npm install -g bower ember-cli --cache-min 999999
-  - ember version
+  - npm install -g bower ember-cli@2.6.3 --cache-min 999999
   - docker/compile-assets.sh
   - build_docker_image
   - publish_to_dockerhub

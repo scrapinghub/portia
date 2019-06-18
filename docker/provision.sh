@@ -3,7 +3,7 @@ set -e
 
 if [ "x$APP_ROOT" = x ]
 then
-    for dir in "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" /app /vagrant
+    for dir in "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" /app /vagrant $(pwd)
     do
         if [ -d "$dir" ] && [ -d "$dir/slyd" ]
         then
@@ -50,6 +50,8 @@ EOF
 SPLASH_SIP_VERSION=${SPLASH_SIP_VERSION:-"4.19.3"}
 SPLASH_PYQT_VERSION=${SPLASH_PYQT_VERSION:-"5.9"}
 SPLASH_BUILD_PARALLEL_JOBS=${SPLASH_BUILD_PARALLEL_JOBS:-"2"}
+QT_MIRROR=${QT_MIRROR:-"http://ftp.fau.de/qtproject/official_releases/qt/5.9/5.9.1/qt-opensource-linux-x64-5.9.1.run"}
+export PATH=/opt/qt59/5.9.1/gcc_64/bin:$PATH
 
 # '2' is not supported by this script; allowed values are "3" and "venv" (?).
 SPLASH_PYTHON_VERSION=${SPLASH_PYTHON_VERSION:-"3"}
