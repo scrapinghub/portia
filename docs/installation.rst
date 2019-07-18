@@ -21,7 +21,7 @@ Projects will be stored in the project folder that you mount to docker.
 
 To extract data using portia you can run your spider with::
 
-    docker run -i -t --rm -v <PROJECTS_FOLDER>:/app/data/projects:rw -v <OUPUT_FOLDER>:/mnt:rw -p 9001:9001 scrapinghub/portia \
+    docker run -i -t --rm -v <PROJECTS_FOLDER>:/app/data/projects:rw -v <OUTPUT_FOLDER>:/mnt:rw -p 9001:9001 scrapinghub/portia \
         portiacrawl /app/data/projects/PROJECT_NAME SPIDER_NAME -o /mnt/SPIDER_NAME.jl
 
 After the crawl finishes you will find your extracted data in the the `OUTPUT_FOLDER`
