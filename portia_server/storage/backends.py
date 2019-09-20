@@ -17,7 +17,7 @@ from django.core.files.storage import FileSystemStorage, Storage
 try:
     from dulwich.diff_tree import tree_changes
     from dulwich.objects import Blob, Tree
-    from dulwich.errors import ObjectMissing
+    from dulwich.errors import NotGitRepository, ObjectMissing
 except ImportError:
     pass  # Dulwich not required when using FS backend
 from six import iteritems, text_type, string_types
@@ -69,8 +69,8 @@ class CommittingStorage(object):
     def get_projects(cls, user):
         # return an OrderedDict of id => name pairs
         try:
-            dirs, _ = cls('').listdir('')
-            return OrderedDict((project, project) for project in dirs)
+            projects = Repoman.list_repos()
+            return OrderedDict((project, project) for project in projects)
         except OSError as ex:
             if ex.errno != errno.ENOENT:
                 six.reraise(*sys.exc_info())
@@ -204,7 +204,10 @@ class GitStorage(BasePortiaStorage):
             return
         self._tree, self._working_tree = None, None
         self.author = author
-        repo = Repoman.open_repo(name, author)
+        try:
+            repo = Repoman.open_repo(name, author)
+        except NotGitRepository:
+            repo = Repoman.create_repo(name, author)
         self.repo = repo
         self.branch = branch = (author and author.username) or DEFAULT_USER
         self.checkout(branch=branch)
@@ -254,7 +257,7 @@ class GitStorage(BasePortiaStorage):
     @classmethod
     def setup(cls):
         Repoman.setup(getattr(settings, 'GITSTORAGE_REPO_BACKEND',
-                              'dulwich.repo.Repo'))
+                              'fs_repo.repo.FsRepo'))
 
     def _open(self, name, mode='rb'):
         name = self.path(name)
