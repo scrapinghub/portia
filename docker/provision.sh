@@ -77,6 +77,7 @@ prepare_install () {
     apt-get update
     apt-get install -y --no-install-recommends \
         curl \
+        wget \
         software-properties-common \
         apt-transport-https \
         python3-software-properties
