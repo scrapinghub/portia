@@ -493,8 +493,8 @@ name : string : optional
   is modified by javascript, i.e in aspx forms).
 
 value : string : optional
-  Define the value(s) to be submitted with this field. The sintax of this attribute depends of the field type (see above).
-  This attribute supports the use of spider arguments, using the following sintax: {arg1}, this will use the value of the arg1.
+  Define the value(s) to be submitted with this field. The syntax of this attribute depends of the field type (see above).
+  This attribute supports the use of spider arguments, using the following syntax: {arg1}, this will use the value of the arg1.
 
 Link Extractor
 --------------
