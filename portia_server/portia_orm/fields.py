@@ -91,7 +91,9 @@ class Field(fields.Field):
         return super(Field, self).serialize(attr, obj, accessor)
 
 
-class ValidatedField(fields.ValidatedField, Field):
+# marshmallow.fields.ValidatedField was removed in https://github.com/marshmallow-code/marshmallow/pull/712
+#class ValidatedField(fields.ValidatedField, Field):
+class ValidatedField(Field):
     default_error_messages = {
         'invalid': u"Invalid value.",
     }
