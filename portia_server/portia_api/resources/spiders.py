@@ -1,6 +1,6 @@
 from django.http.response import Http404
 
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
@@ -26,7 +26,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
     def get_collection(self):
         return self.project.spiders
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def extract(self, *args, **kwargs):
         try:
             instance = self.get_instance()
@@ -49,7 +49,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
     def _build_pages(self, spider):
         return Pages(self.data, spider)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def rename(self, *args, **kwargs):
         try:
             spider = self.get_instance()
@@ -74,7 +74,7 @@ class SpiderRoute(ProjectDownloadMixin, BaseProjectModelRoute):
         data = self.get_serializer(spider).data
         return Response(data, status=HTTP_200_OK)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def schedule(self, *args, **kwargs):
         spider_id = self.data['data']['id']
         data = Deployer(self.project).schedule(spider_id)
