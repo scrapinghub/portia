@@ -111,7 +111,7 @@ def _build_sample(sample, legacy=False):
 
 
 def htmlpage_from_response(response, _add_tagids=False):
-    body = response.body_as_unicode()
+    body = response.text
     if _add_tagids:
         body = add_tagids(body)
     return HtmlPage(response.url, response.headers, body,

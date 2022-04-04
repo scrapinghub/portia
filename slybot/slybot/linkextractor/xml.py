@@ -23,7 +23,7 @@ class XmlLinkExtractor(BaseLinkExtractor):
         self.xpath = xpath
 
     def _extract_links(self, response):
-        body = response.body_as_unicode()
+        body = response.text
         _type = 'html'
         if body.lstrip().startswith('<?xml version='):
             _type = 'xml'
