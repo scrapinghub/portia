@@ -13,21 +13,21 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_ROOT = os.path.realpath(os.path.join(BASE_DIR, '../portiaui/dist'))
-STATIC_URL = '/'
+BASE_DIR = os.environ.get('BASE_DIR', os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.realpath(os.path.join(BASE_DIR, '../portiaui/dist')))
+STATIC_URL = os.environ.get('STATIC_URL', '/')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, '../data/projects'))
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', os.path.abspath(os.path.join(BASE_DIR, '../data/projects')))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'x8#v=v_yen3pvul&2*-x3=td2eqvw%5!*qaf^g8vzu#gcyo+%n'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'x8#v=v_yen3pvul&2*-x3=td2eqvw%5!*qaf^g8vzu#gcyo+%n')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.environ.get('DEBUG', True))
 
 ALLOWED_HOSTS = [
     '*'
@@ -65,10 +65,14 @@ WSGI_APPLICATION = 'portia_server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
+SQLITE_PATH = os.environ.get('SQLITE_PATH', os.path.join(BASE_DIR, 'db.sqlite3'))
+d = os.path.dirname(SQLITE_PATH)
+os.makedirs(d, exist_ok=True)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': SQLITE_PATH,
     }
 }
 
@@ -94,15 +98,15 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = os.environ.get('LANGUAGE_CODE', 'en-us')
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.environ.get('TIME_ZONE', 'UTC')
 
-USE_I18N = True
+USE_I18N = bool(os.environ.get('USE_I18N', True))
 
-USE_L10N = True
+USE_L10N = bool(os.environ.get('USE_L10N', True))
 
-USE_TZ = True
+USE_TZ = bool(os.environ.get('USE_TZ', True))
 
 PORTIA_STORAGE_BACKEND = os.environ.get('PORTIA_STORAGE_BACKEND',
                                         'storage.backends.FsStorage')
