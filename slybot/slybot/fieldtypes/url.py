@@ -2,7 +2,7 @@ import re
 from six.moves.urllib.parse import urljoin
 from scrapely.extractors import url as strip_url
 from scrapy.utils.url import safe_download_url
-from scrapy.utils.markup import unquote_markup
+from w3lib.html import unquote_markup
 from slybot.baseurl import get_base_url
 disallowed = re.compile('[\x00-\x1F\x7F]')
 
