@@ -44,7 +44,7 @@ class OneToOneModel1(Model):
     id = fields.String(primary_key=True)
     field = fields.Field()
     m2 = fields.BelongsTo('OneToOneModel2', related_name='m1',
-                          on_delete=fields.CLEAR, only='id')
+                          on_delete=fields.CLEAR, only=('id',))
 
     class Meta:
         path = u'o2o-model-1.json'
@@ -64,7 +64,7 @@ class ChildModel(Model):
     id = fields.String(primary_key=True)
     field = fields.Field()
     parent = fields.BelongsTo('ParentModel', related_name='children',
-                              on_delete=fields.CLEAR, only='id')
+                              on_delete=fields.CLEAR, only=('id',))
 
     class Meta:
         path = u'{self.parent.id}/children.json'
@@ -85,7 +85,7 @@ class ManyToManyModel1(Model):
     id = fields.String(primary_key=True)
     field = fields.Field()
     m2 = fields.HasMany('ManyToManyModel2', related_name='m1',
-                        on_delete=fields.CLEAR, only='id')
+                        on_delete=fields.CLEAR, only=('id',))
 
     class Meta:
         path = u'm2m-model-1.json'
@@ -107,7 +107,7 @@ class PolymorphicParentModel(Model):
     field = fields.Field()
     children = fields.HasMany('PolymorphicChildBase', related_name='parent',
                               polymorphic=True, on_delete=fields.CASCADE,
-                              only='id')
+                              only=('id',))
 
     class Meta:
         path = u'parents.json'
@@ -116,7 +116,7 @@ class PolymorphicParentModel(Model):
 class PolymorphicChildBase(Model):
     id = fields.String(primary_key=True)
     parent = fields.BelongsTo(PolymorphicParentModel, related_name='children',
-                              on_delete=fields.CLEAR, only='id')
+                              on_delete=fields.CLEAR, only=('id',))
 
     class Meta:
         path = u'children.json'

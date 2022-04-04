@@ -237,7 +237,7 @@ class Spider(Model):
     project = BelongsTo(Project, related_name='spiders', on_delete=CASCADE,
                         ignore_in_file=True)
     samples = HasMany('Sample', related_name='spider', on_delete=CLEAR,
-                      only='id')
+                      only=('id',))
 
     class Meta:
         path = u'spiders/{self.id}.json'
@@ -383,7 +383,7 @@ class Sample(Model, OrderedAnnotationsMixin):
     original_body = HasOne('OriginalBody', related_name='sample',
                            on_delete=CLEAR, ignore_in_file=True)
     spider = BelongsTo(Spider, related_name='samples', on_delete=CASCADE,
-                       only='id')
+                       only=('id',))
 
     class Meta:
         path = u'spiders/{self.spider.id}/{self.id}.json'
@@ -602,7 +602,7 @@ class Sample(Model, OrderedAnnotationsMixin):
 class BaseAnnotation(Model):
     id = String(primary_key=True)
     parent = BelongsTo('Item', related_name='annotations', on_delete=CASCADE,
-                       only='id')
+                       only=('id',))
 
     class Meta:
         polymorphic = True
