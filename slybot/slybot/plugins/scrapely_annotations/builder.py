@@ -363,7 +363,10 @@ class Annotations(object):
             return []
         elems = []
         while selector and not elems:
-            elems = [elem._root for elem in self.selector.css(selector)]
+            # selector:
+            # https://github.com/scrapy/scrapy/blob/master/scrapy/selector/unified.py
+            # https://github.com/scrapy/parsel/blob/master/parsel/selector.py
+            elems = [elem.root for elem in self.selector.css(selector)]
             selector = ' > '.join(selector.split(' > ')[1:])
         self._elems[aid] = elems or []
         if not elems:
