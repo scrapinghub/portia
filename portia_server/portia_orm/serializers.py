@@ -11,7 +11,7 @@ __all__ = [
 
 
 class FileSerializerOpts(schema.SchemaOpts):
-    def __init__(self, meta):
+    def __init__(self, meta, ordered=True):
         super(FileSerializerOpts, self).__init__(meta)
         if meta is schema.BaseSchema.Meta:
             return
@@ -19,7 +19,7 @@ class FileSerializerOpts(schema.SchemaOpts):
         self.strict = True
         # make marshmallow use OrderedDicts, so that collections of enveloped
         # objects maintain their order when loaded
-        self.ordered = True
+        self.ordered = ordered
         # the model from which the Schema was created, required
         self.model = getattr(meta, 'model')
         self.polymorphic = getattr(meta, 'polymorphic', False)
