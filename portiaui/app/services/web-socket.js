@@ -52,7 +52,7 @@ export default Service.extend(Evented, {
         }
     },
 
-    _updateCountdownTimer: function() {
+    _updateCountdownTimer: Ember.observer('secondsUntilReconnect', function() {
         if(this.secondsUntilReconnect === 0 && this.get('countdownTid')) {
             clearInterval(this.get('countdownTid'));
             this.set('countdownTid', null);
@@ -61,7 +61,7 @@ export default Service.extend(Evented, {
                 this.decrementProperty('secondsUntilReconnect');
             }, 1000));
         }
-    }.observes('secondsUntilReconnect'),
+    }),
 
     _onclose(e) {
         if (this.heartbeat) {
