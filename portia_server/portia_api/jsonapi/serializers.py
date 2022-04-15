@@ -211,7 +211,7 @@ class JsonApiSerializer(with_metaclass(JsonApiSerializerMeta, BaseSchema)):
 
     @property
     def data(self):
-        return self.dump(self.instance).data
+        return self.dump(self.instance)
 
     @cached_property
     def errors(self):
