@@ -11,6 +11,19 @@ export default DS.JSONAPISerializer.extend({
         return resource;
     },
 
+    /*
+    // debug: this must return a valid jsonapi response
+    // see https://jsonapi.org/examples/
+    // possible errors:
+    //   normalizeResponse must return a valid JSON API document
+    //   You must include an 'id' for undefined in an object passed to 'push'
+    normalizeResponse() {
+        const data = this._super(...arguments);
+        console.log(`normalizeResponse: data`, data)
+        return data;
+    },
+    */
+
     serialize(snapshot, options) {
         const json = this._super(...arguments);
 
