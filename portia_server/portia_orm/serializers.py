@@ -71,7 +71,7 @@ class FileSerializer(schema.Schema):
         """
         return OrderedDict((item for item in sorted(iteritems(data))))
 
-    def _do_load(self, data, many=None, *args, **kwargs):
+    def _do_load(self, data, many=None, **kwargs):
         # support the case where we have only a single field to load and we get
         # it directly rather than wrapped in a dict. this happens when loading
         # a relationship with a single field in 'only'
@@ -82,7 +82,7 @@ class FileSerializer(schema.Schema):
             data = [self._wrap_only(value) for value in data]
 
         result, errors = super(FileSerializer, self)._do_load(
-            data, many, *args, **kwargs)
+            data, many=many, **kwargs)
 
         # we need to wrap the result of a many load in a ModelCollection, but
         # post_load(pass_many=True) processors are called before the Model
