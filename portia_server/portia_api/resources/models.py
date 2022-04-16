@@ -81,11 +81,11 @@ class ProjectSchema(SlydSchema):
     )
     project = fields.Relationship(
         self_url='/api/projects/{project_id}',
-        self_url_kwargs={'project_id': '<id>'}, type_='projects'
+        self_url_kwargs={'project_id': '<id>'}, type_='project'
     )
 
     class Meta:
-        type_ = 'projects'
+        type_ = 'project'
 
 
 class SchemaSchema(SlydSchema):
@@ -95,7 +95,7 @@ class SchemaSchema(SlydSchema):
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
-        type_='projects',
+        type_='project',
         include_resource_linkage=True
     )
     fields = fields.Relationship(
@@ -119,7 +119,7 @@ class FieldSchema(SlydSchema):
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
-        type_='projects',
+        type_='project',
         include_resource_linkage=True
     )
     schema = fields.Relationship(
@@ -159,7 +159,7 @@ class SpiderSchema(SlydSchema):
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
-        type_='projects',
+        type_='project',
         include_resource_linkage=True
     )
 
@@ -202,7 +202,7 @@ class SampleSchema(SlydSchema):
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
-        type_='projects', include_resource_linkage=True
+        type_='project', include_resource_linkage=True
     )
     spider = fields.Relationship(
         related_url='/api/projects/{project_id}/spiders/{spider_id}',
@@ -351,7 +351,7 @@ class ExtractorSchema(SlydSchema):
     project = fields.Relationship(
         related_url='/api/projects/{project_id}',
         related_url_kwargs={'project_id': '<project_id>'},
-        type_='projects',
+        type_='project',
         include_resource_linkage=True
     )
 
