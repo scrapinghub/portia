@@ -70,7 +70,7 @@ export default Service.extend(Evented, {
         this.set('closed', true);
         this.set('connecting', false);
 
-        Logger.log('<Closed Websocket>');
+        Logger.log('Websocket close');
         if(e.code !== APPLICATION_UNLOADING_CODE && e.code !== 1000) {
             if (!window.navigator.onLine) {
                 this.set('reconnectMessage',
@@ -116,7 +116,7 @@ export default Service.extend(Evented, {
     },
 
     _onopen() {
-        Logger.log('<Opened Websocket>');
+        Logger.log('Websocket open');
         this.set('closed', false);
         this.set('reconnectMessage', '');
         this.set('connecting', false);
