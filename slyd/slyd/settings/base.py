@@ -1,5 +1,6 @@
 """Scrapy settings"""
 from os.path import join, dirname
+import os
 
 EXTENSIONS = {
     'scrapy.contrib.logstats.LogStats': None,
@@ -11,8 +12,8 @@ EXTENSIONS = {
 LOG_LEVEL = 'DEBUG'
 
 # location of slybot projects - assumes a subdir per project
-DATA_DIR = join(dirname(dirname(__file__)), 'data')
-SPEC_DATA_DIR = join(DATA_DIR, 'projects')
+DATA_DIR = os.environ.get("DATA_DIR", join(dirname(dirname(__file__)), 'data'))
+SPEC_DATA_DIR = os.environ.get("SPEC_DATA_DIR", join(DATA_DIR, 'projects'))
 
 DJANGO_SETTINGS = 'portia_server.settings'
 
