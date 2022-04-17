@@ -536,9 +536,7 @@ class JsonApiSerializer(with_metaclass(JsonApiSerializerMeta, BaseSchema)):
         return order_dict(item, RESOURCE_OBJECT_ORDER)
 
     def get_top_level_links(self, data, many):
-        if self.current_url:
-            return OrderedDict([('self', self.current_url)])
-        return None
+        return OrderedDict([('self', self.current_url)])
 
     def get_resource_links(self, item):
         url = item.get('_url')
