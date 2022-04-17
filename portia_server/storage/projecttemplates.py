@@ -91,11 +91,11 @@ recursive-include spiders **.html
 """
 
 _ITEMS_TEMPLATE = """\
-{}
+[]
 """
 
 _EXTRACTORS_TEMPLATE = """\
-{}
+[]
 """
 
 _REQUIREMENTS = """\
