@@ -17,7 +17,7 @@ from twisted.python import log
 from scrapy.settings import Settings
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
-from splash.browser_tab import BrowserTab, skip_if_closing
+from splash.engines.webkit.browser_tab import WebkitBrowserTab, skip_if_closing
 from splash.network_manager import SplashQNetworkAccessManager
 from splash.qtutils import drop_request
 from splash.render_options import RenderOptions
@@ -110,7 +110,7 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
         self._url = six.text_type(reply.url().toString())
 
 
-class PortiaBrowserTab(BrowserTab):
+class PortiaBrowserTab(WebkitBrowserTab):
     @property
     def url(self):
         """ Current URL """
