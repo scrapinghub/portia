@@ -81,7 +81,7 @@ class FileSerializer(schema.Schema):
         elif isinstance(data, Sequence):
             data = [self._wrap_only(value) for value in data]
 
-        result, errors = super(FileSerializer, self)._do_load(
+        result = super(FileSerializer, self)._do_load(
             data, many=many, **kwargs)
 
         # we need to wrap the result of a many load in a ModelCollection, but
@@ -89,7 +89,7 @@ class FileSerializer(schema.Schema):
         # instances are created in the post_load(pass_many=False) processor
         if many:
             result = self.opts.model.collection(result)
-        return result, errors
+        return result
 
     def _wrap_only(self, data):
         if self.only and len(self.only) == 1 and not isinstance(data, dict):
