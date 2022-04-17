@@ -12,7 +12,8 @@ class GenericFormTest(TestCase):
 
     def test_simple_search_form(self):
         url = 'http://www.ebay.com/sch/ebayadvsearch/?rt=nc'
-        body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
+        with open(join(_PATH, "data", "ebay_advanced_search.html")) as f:
+          body = f.read()
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
@@ -33,7 +34,8 @@ class GenericFormTest(TestCase):
 
     def test_simple_search_form_2_values(self):
         url = 'http://www.ebay.com/sch/ebayadvsearch/?rt=nc'
-        body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
+        with open(join(_PATH, "data", "ebay_advanced_search.html")) as f:
+          body = f.read()
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
@@ -54,7 +56,8 @@ class GenericFormTest(TestCase):
 
     def test_advanced_search_form(self):
         url = 'http://www.ebay.com/sch/ebayadvsearch/?rt=nc'
-        body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
+        with open(join(_PATH, "data", "ebay_advanced_search.html")) as f:
+          body = f.read()
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
@@ -79,7 +82,8 @@ class GenericFormTest(TestCase):
 
     def test_advanced_search_form_regex(self):
         url = 'http://www.ebay.com/sch/ebayadvsearch/?rt=nc'
-        body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
+        with open(join(_PATH, "data", "ebay_advanced_search.html")) as f:
+          body = f.read()
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
@@ -106,7 +110,8 @@ class GenericFormTest(TestCase):
 
     def test_simple_search_form_with_named_parameter(self):
         url = 'http://www.ebay.com/sch/ebayadvsearch/?rt=nc'
-        body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
+        with open(join(_PATH, "data", "ebay_advanced_search.html")) as f:
+          body = f.read()
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",
@@ -127,7 +132,8 @@ class GenericFormTest(TestCase):
 
     def test_simple_search_form_with_file_type(self):
         url = 'http://www.ebay.com/sch/ebayadvsearch/?rt=nc'
-        body = open(join(_PATH, "data", "ebay_advanced_search.html")).read()
+        with open(join(_PATH, "data", "ebay_advanced_search.html")) as f:
+          body = f.read()
         form_descriptor = json.loads("""{
             "type": "form",
             "form_url": "http://www.ebay.com/sch/ebayadvsearch/?rt=nc",

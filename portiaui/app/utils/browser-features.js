@@ -11,7 +11,12 @@ export default function hasBrowserFeatures() {
     ];
     let feature_promises = features.map((feature) => {
         return new RSVP.Promise((resolve) => {
-            Modernizr.on(feature, (isFeatureActive) => { resolve(isFeatureActive); });
+            Modernizr.on(feature, (isFeatureActive) => {
+                if (!isFeatureActive) {
+                    console.error(`portia: missing browser feature: ${feature}`);
+                }
+                resolve(isFeatureActive);
+            });
         });
     });
 

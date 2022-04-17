@@ -214,7 +214,7 @@ class ItemProcessor(object):
         schema, modifiers, page = self.schema, self.modifiers, self.htmlpage
         region_ids = list(filter(bool, (region_id(r) for r in self.regions)))
         query = ','.join(('[data-tagid="%s"]' % rid for rid in region_ids))
-        parents = {e._root for e in selector.css(query)}
+        parents = {e.root for e in selector.css(query)}
         containers = ()
         if self.parent_region:
             if isinstance(self.parent_region, list):
@@ -224,7 +224,7 @@ class ItemProcessor(object):
             else:
                 pquery = '[data-tagid="{}"]'.format(
                     self.get_region_id(self.parent_region))
-            containers = {e._root for e in selector.css(pquery)}
+            containers = {e.root for e in selector.css(pquery)}
         for i, a in enumerate(annotations, start=len(self.fields)):
             mode = a.get(u'selection_mode')
             query = a.get(mode if mode != 'css' else u'selector')
@@ -234,7 +234,7 @@ class ItemProcessor(object):
             except ValueError:
                 continue
             for elem in elems:
-                elem._root.attrib.pop('data-tagid', None)
+                elem.root.attrib.pop('data-tagid', None)
             extracted = elems.xpath(self.attribute_query(a)).extract()
             value = list(map(six.text_type.strip, extracted))
             aid = a.get(u'id') or i
@@ -249,7 +249,7 @@ class ItemProcessor(object):
         other_elements = SelectorList()
         for element in elements:
             try:
-                element_parents = element._root.iterancestors()
+                element_parents = element.root.iterancestors()
             except AttributeError:
                 continue
             for parent in element_parents:

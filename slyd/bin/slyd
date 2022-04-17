@@ -3,10 +3,19 @@
 import splash.server
 import splash.defaults
 import argparse
+import os
 
 
-DEFAULT_PORTIA_PORT = 9001
-DEFAULT_PORTIA_ROOT = '../portiaui/dist'
+print("default DEFAULT_PORTIA_ROOT:", os.path.join(os.path.dirname(__file__), '../portiaui/dist'))
+
+DEFAULT_PORTIA_PORT = os.environ.get('PORTIA_PORT', 9001)
+DEFAULT_PORTIA_ROOT = os.environ.get(
+    'PORTIA_ROOT',
+    os.path.join(os.path.dirname(__file__), '../portiaui/dist')
+)
+
+print("current DEFAULT_PORTIA_ROOT:", DEFAULT_PORTIA_ROOT)
+
 splash.defaults.SPLASH_PORT = DEFAULT_PORTIA_PORT
 
 def parse_args():

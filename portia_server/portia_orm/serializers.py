@@ -11,7 +11,7 @@ __all__ = [
 
 
 class FileSerializerOpts(schema.SchemaOpts):
-    def __init__(self, meta):
+    def __init__(self, meta, ordered=True):
         super(FileSerializerOpts, self).__init__(meta)
         if meta is schema.BaseSchema.Meta:
             return
@@ -19,7 +19,7 @@ class FileSerializerOpts(schema.SchemaOpts):
         self.strict = True
         # make marshmallow use OrderedDicts, so that collections of enveloped
         # objects maintain their order when loaded
-        self.ordered = True
+        self.ordered = ordered
         # the model from which the Schema was created, required
         self.model = getattr(meta, 'model')
         self.polymorphic = getattr(meta, 'polymorphic', False)
@@ -71,7 +71,7 @@ class FileSerializer(schema.Schema):
         """
         return OrderedDict((item for item in sorted(iteritems(data))))
 
-    def _do_load(self, data, many=None, *args, **kwargs):
+    def _do_load(self, data, many=None, **kwargs):
         # support the case where we have only a single field to load and we get
         # it directly rather than wrapped in a dict. this happens when loading
         # a relationship with a single field in 'only'
@@ -81,15 +81,15 @@ class FileSerializer(schema.Schema):
         elif isinstance(data, Sequence):
             data = [self._wrap_only(value) for value in data]
 
-        result, errors = super(FileSerializer, self)._do_load(
-            data, many, *args, **kwargs)
+        result = super(FileSerializer, self)._do_load(
+            data, many=many, **kwargs)
 
         # we need to wrap the result of a many load in a ModelCollection, but
         # post_load(pass_many=True) processors are called before the Model
         # instances are created in the post_load(pass_many=False) processor
         if many:
             result = self.opts.model.collection(result)
-        return result, errors
+        return result
 
     def _wrap_only(self, data):
         if self.only and len(self.only) == 1 and not isinstance(data, dict):

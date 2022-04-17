@@ -3,7 +3,7 @@ from collections import OrderedDict
 from django.conf import settings
 from django.utils.functional import cached_property
 from dulwich.objects import Commit
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
 from six import iteritems
@@ -25,7 +25,7 @@ Deployer = load_object(settings.PROJECT_DEPLOYER)
 
 
 class ProjectDownloadMixin(object):
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def download(self, *args, **kwargs):
         fmt = self.query.get('format', 'spec')
         version = self.query.get('version', None)
@@ -134,7 +134,7 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
     # def destroy(self):
     #     """Delete the requested project"""
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def status(self, *args, **kwargs):
         response = self.retrieve()
         data = OrderedDict()
@@ -146,7 +146,7 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
         data.update(response.data)
         return Response(data, status=HTTP_200_OK)
 
-    @detail_route(methods=['put', 'patch', 'post'])
+    @action(detail=True, methods=['put', 'patch', 'post'])
     def publish(self, *args, **kwargs):
         if not self.storage.version_control and hasattr(self.storage, 'repo'):
             raise JsonApiFeatureNotAvailableError()
@@ -167,12 +167,12 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
         response = self.retrieve()
         return Response(response.data, status=HTTP_200_OK)
 
-    @detail_route(methods=['POST'])
+    @action(detail=True, methods=['POST'])
     def deploy(self, *args, **kwargs):
         data = self._deploy()
         return Response(data, HTTP_200_OK)
 
-    @detail_route(methods=['put', 'patch', 'post'])
+    @action(detail=True, methods=['put', 'patch', 'post'])
     def reset(self, *args, **kwargs):
         if not self.storage.version_control and hasattr(self.storage, 'repo'):
             raise JsonApiFeatureNotAvailableError()
@@ -181,7 +181,7 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
         self.storage.repo.refs['refs/heads/%s' % branch] = master
         return self.retrieve()
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def copy(self, *args, **kwargs):
         from_project_id = self.query.get('from') or self.data.get('from')
         if not from_project_id:
@@ -205,7 +205,7 @@ class ProjectRoute(ProjectDownloadMixin, BaseProjectRoute,
         response = self.retrieve()
         return Response(response.data, status=HTTP_201_CREATED)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def rollback(self, *args, **kwargs):
         if not self.storage.version_control and hasattr(self.storage, 'repo'):
             raise JsonApiFeatureNotAvailableError()

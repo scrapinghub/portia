@@ -17,7 +17,7 @@ from twisted.python import log
 from scrapy.settings import Settings
 from scrapy.utils.serialize import ScrapyJSONEncoder
 from splash import defaults
-from splash.browser_tab import BrowserTab, skip_if_closing
+from splash.engines.webkit.browser_tab import WebkitBrowserTab, skip_if_closing
 from splash.network_manager import SplashQNetworkAccessManager
 from splash.qtutils import drop_request
 from splash.render_options import RenderOptions
@@ -110,13 +110,17 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
         self._url = six.text_type(reply.url().toString())
 
 
-class PortiaBrowserTab(BrowserTab):
-    @property
-    def url(self):
-        """ Current URL """
-        if self._closing:
-            return ''
-        return decode(self.web_page.mainFrame().url().toString())
+class PortiaBrowserTab(WebkitBrowserTab):
+    # fix: AttributeError: 'PortiaBrowserTab' object has no attribute 'url'
+    # WebkitBrowserTab._closing was removed
+    # TODO? use @skip_if_closing decorator?
+    #@skip_if_closing
+    #@property
+    #def url(self):
+    #    """ Current URL """
+    #    if self._closing: # throws
+    #        return ''
+    #    return super().url
 
     @skip_if_closing
     def evaljs(self, *args, **kwargs):

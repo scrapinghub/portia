@@ -25,10 +25,12 @@ _SCHEMAS = load_schemas()
 
 
 class SlybotJsonSchemaValidator(Draft3Validator):
-    DEFAULT_TYPES = Draft3Validator.DEFAULT_TYPES.copy()
-    DEFAULT_TYPES.update({
-        "mapping": dict,
-    })
+    pass
+    # FIXME? jsonschema.validators._DontDoThat: DEFAULT_TYPES cannot be used on Validators using TypeCheckers
+    #DEFAULT_TYPES = Draft3Validator.DEFAULT_TYPES.copy()
+    #DEFAULT_TYPES.update({
+    #    "mapping": dict,
+    #})
 
 def is_valid_ipv6_address(address):
     try:

@@ -63,6 +63,8 @@ class CommittingStorage(object):
                 template = templates.get(templatename, '') % {
                     'name': self.name,
                 }
+                # TODO logging.debug
+                print(f"creating file: projects/{self.name}/{filename}")
                 self.save(filename, ContentFile(template, filename))
 
     @classmethod

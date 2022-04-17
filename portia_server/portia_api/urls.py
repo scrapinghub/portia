@@ -11,22 +11,22 @@ from .resources.schemas import SchemaRoute
 from .resources.spiders import SpiderRoute
 
 router = Router()
-router.register(r'projects', ProjectRoute, base_name='projects')
+router.register(r'projects', ProjectRoute, basename='projects')
 
 project_router = NestedRouter(router, r'projects')
-project_router.register(r'schemas', SchemaRoute, base_name='schemas')
-project_router.register(r'spiders', SpiderRoute, base_name='spiders')
-project_router.register(r'extractors', ExtractorRoute, base_name='extractors')
+project_router.register(r'schemas', SchemaRoute, basename='schemas')
+project_router.register(r'spiders', SpiderRoute, basename='spiders')
+project_router.register(r'extractors', ExtractorRoute, basename='extractors')
 
 schema_router = NestedRouter(project_router, r'schemas')
-schema_router.register(r'fields', FieldRoute, base_name='fields')
+schema_router.register(r'fields', FieldRoute, basename='fields')
 
 spider_router = NestedRouter(project_router, r'spiders')
-spider_router.register(r'samples', SampleRoute, base_name='samples')
+spider_router.register(r'samples', SampleRoute, basename='samples')
 
 sample_router = NestedRouter(spider_router, r'samples')
-sample_router.register(r'items', ItemRoute, base_name='items')
-sample_router.register(r'annotations', AnnotationRoute, base_name='annotations')
+sample_router.register(r'items', ItemRoute, basename='items')
+sample_router.register(r'annotations', AnnotationRoute, basename='annotations')
 
 urlpatterns = [
     url(r'^', include(router.urls)),

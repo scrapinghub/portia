@@ -85,13 +85,15 @@ class Field(fields.Field):
 
     def serialize(self, attr, obj, accessor=None):
         if self._CHECK_ATTRIBUTE:
-            value = self.get_value(attr, obj, accessor=accessor)
+            value = accessor(obj, attr, None)
             self._validate_missing(value)
             self._validate(value)
         return super(Field, self).serialize(attr, obj, accessor)
 
 
-class ValidatedField(fields.ValidatedField, Field):
+# marshmallow.fields.ValidatedField was removed in https://github.com/marshmallow-code/marshmallow/pull/712
+#class ValidatedField(fields.ValidatedField, Field):
+class ValidatedField(Field):
     default_error_messages = {
         'invalid': u"Invalid value.",
     }

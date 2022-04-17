@@ -558,6 +558,8 @@ class Model(object, metaclass=ModelMeta):
                 return cls.collection()
             return instance  # may be None
 
+        # TODO logging.debug
+        print(f"loading file: projects/{storage.name}/{path}")
         file_data = storage.open(path).read()
         if not cls.opts.raw:
             try:

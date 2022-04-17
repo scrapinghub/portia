@@ -55,7 +55,9 @@ def dasherize(value):
 
 
 def type_from_model_name(value):
-    return '{}s'.format(camel_case_to_dashes(value))
+    type_ = camel_case_to_dashes(value) # singular
+    #type_ = type_ + "s" # plural
+    return type_
 
 
 def deep_getattr(obj, key):
