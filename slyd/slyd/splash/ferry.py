@@ -111,12 +111,16 @@ class PortiaNetworkManager(SplashQNetworkAccessManager):
 
 
 class PortiaBrowserTab(WebkitBrowserTab):
-    @property
-    def url(self):
-        """ Current URL """
-        if self._closing:
-            return ''
-        return decode(self.web_page.mainFrame().url().toString())
+    # fix: AttributeError: 'PortiaBrowserTab' object has no attribute 'url'
+    # WebkitBrowserTab._closing was removed
+    # TODO? use @skip_if_closing decorator?
+    #@skip_if_closing
+    #@property
+    #def url(self):
+    #    """ Current URL """
+    #    if self._closing: # throws
+    #        return ''
+    #    return super().url
 
     @skip_if_closing
     def evaljs(self, *args, **kwargs):
