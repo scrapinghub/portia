@@ -50,7 +50,7 @@ The ``Configure url patterns`` option lets you set follow and exclude patterns a
 Running a spider
 ================
 
-Portia will save your projects in ``slyd/data/projects``. You can use ``portiacrawl`` to run a spider::
+Portia will save your projects in ``app/data/projects``. You can use ``portiacrawl`` to run a spider::
 
     portiacrawl PROJECT_PATH SPIDER_NAME
 
