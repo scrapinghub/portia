@@ -3,7 +3,7 @@ twisted==19.2.1
 pyOpenSSL==17.5.0
 service_identity==18.1.0
 requests>=2.20.0
-autobahn==18.3.1
+autobahn==20.12.3
 six==1.12.0
 chardet==3.0.4
 parse==1.8.2
